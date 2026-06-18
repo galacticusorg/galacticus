@@ -17,49 +17,41 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a property extractor for basic node indices.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorNodeIndices">
+  <nodePropertyExtractor name="nodePropertyExtractorNodeIndices" docformat="rst">
    <description>
-    A node property extract which extracts various indices related to the merger tree structure:
-    \begin{description}
-     \item [\mono{nodeIndex}] A unique\footnote{Node indices are typically unique, but there is no actual
-     requirement within \protect\glc\ that this must be the case. A merger tree construction method could create nodes with
-     non-unique indices.} (within a tree) integer index identifying the node;
-     \item [\mono{parentIndex}] The index of this node's parent node (or $-1$ if it has no parent);
-     \item [\mono{siblingIndex}] The index of this node's sibling node (or $-1$ if it has no sibling);
-     \item [\mono{satelliteIndex}] The index of this node's first satellite node (or $-1$ if it has no
-     satellites);
-     \item [\mono{nodeIsIsolated}] Will be $0$ for a node which is a subhalo inside some other node (i.e. a
-     satellite galaxy\index{satellite galaxies!identifying}) or $1$ for a node that is an isolated halo (i.e. a central
-     galaxy\index{central galaxies!identifying}).
-    \end{description}
-    The \mono{nodeIndex} property corresponds by default to the index of the node in the original merger
-    tree. This means that as a galaxy evolves through the tree and, in particular, gets promoted into a new halo the index
-    associated with a galaxy will change. This is useful to identify where the galaxy resides in the original (unevolved) tree
-    structure, but does not allow galaxies to be traced from one output to the next using their \mono{nodeIndex} value. By use of the node operator \mono{\textless nodeOperator value="indexShift"/\textgreater} this behavior
-    can be changed such that the value of \mono{nodeIndex} will reflect the index of the earliest progenitor
-    node along the main branch of the current node. As such, this index will remain the same for a given galaxy during its
-    evolution\index{galaxies!tracing through
-    outputs}\index{galaxies!indices}\index{nodes!indices}\index{indices!nodes}\index{indices!galaxies}. These two alternative
-    algorithms for propagating node indices are illustrated in Figure~\ref{fig:NodePromotionIndexAlgorithms}.
-    \begin{figure}
-     \begin{center}
-     \includegraphics[width=140mm]{Diagrams/NodePromotionIndices.pdf}
-     \end{center}
-     \caption{Illustration of  options for the propagation  of node indices during  node promotion events.  Two identical trees
-     (top row) are evolved without (left column) and one with (right column) the node operator \mono{\textless nodeOperator value="indexShift"/\textgreater}
-      The middle and lower rows indicate the resulting node indices after two stages of tree evolution.}
-     \label{fig:NodePromotionIndexAlgorithms}
-    \end{figure}
+   A node property extract which extracts various indices related to the merger tree structure:
+
+   ``nodeIndex``
+      A unique\footnoteNode indices are typically unique, but there is no actual requirement within Galacticus that this must be the case. A merger tree construction method could create nodes with non-unique indices. (within a tree) integer index identifying the node;
+
+   ``parentIndex``
+      The index of this node's parent node (or :math:`-1` if it has no parent);
+
+   ``siblingIndex``
+      The index of this node's sibling node (or :math:`-1` if it has no sibling);
+
+   ``satelliteIndex``
+      The index of this node's first satellite node (or :math:`-1` if it has no satellites);
+
+   ``nodeIsIsolated``
+      Will be :math:`0` for a node which is a subhalo inside some other node (i.e. a satellite galaxy) or :math:`1` for a node that is an isolated halo (i.e. a central galaxy).
+
+   The ``nodeIndex`` property corresponds by default to the index of the node in the original merger tree. This means that as a galaxy evolves through the tree and, in particular, gets promoted into a new halo the index associated with a galaxy will change. This is useful to identify where the galaxy resides in the original (unevolved) tree structure, but does not allow galaxies to be traced from one output to the next using their ``nodeIndex`` value. By use of the node operator ``&lt;nodeOperator value="indexShift"/&gt;`` this behavior can be changed such that the value of ``nodeIndex`` will reflect the index of the earliest progenitor node along the main branch of the current node. As such, this index will remain the same for a given galaxy during its evolution. These two alternative algorithms for propagating node indices are illustrated in Figure :numref:`{number} &lt;fig-NodePromotionIndexAlgorithms&gt;`.
+
+   .. figure:: Diagrams/NodePromotionIndices.pdf
+      :name: fig-NodePromotionIndexAlgorithms
+
+      Illustration of  options for the propagation  of node indices during  node promotion events.  Two identical trees (top row) are evolved without (left column) and one with (right column) the node operator ``&lt;nodeOperator value="indexShift"/&gt;`` The middle and lower rows indicate the resulting node indices after two stages of tree evolution.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerTuple) :: nodePropertyExtractorNodeIndices
-     !!{
+     !!{RST
      A property extractor class for basic node indices.
      !!}
      private
@@ -73,8 +65,8 @@ Implements a property extractor for basic node indices.
   end type nodePropertyExtractorNodeIndices
 
   interface nodePropertyExtractorNodeIndices
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorNodeIndices} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorNodeIndices` property extractor class.
      !!}
      module procedure nodeIndicesConstructorParameters
   end interface nodePropertyExtractorNodeIndices
@@ -82,8 +74,8 @@ Implements a property extractor for basic node indices.
 contains
 
   function nodeIndicesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorNodeIndices} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorNodeIndices` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -98,8 +90,8 @@ contains
   end function nodeIndicesConstructorParameters
 
   integer function nodeIndicesElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{nodeIndices} property extractors.
+    !!{RST
+    Return the number of elements in the ``nodeIndices`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorNodeIndices), intent(inout) :: self
@@ -111,8 +103,8 @@ contains
   end function nodeIndicesElementCount
 
   function nodeIndicesExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{nodeIndices} property extractor.
+    !!{RST
+    Implement a ``nodeIndices`` property extractor.
     !!}
     implicit none
     integer         (kind_int8                       ), dimension(:) , allocatable :: nodeIndicesExtract
@@ -139,8 +131,8 @@ contains
   end function nodeIndicesExtract
 
   subroutine nodeIndicesNames(self,time,names)
-    !!{
-    Return the names of the \mono{nodeIndices} properties.
+    !!{RST
+    Return the names of the ``nodeIndices`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorNodeIndices), intent(inout)                             :: self
@@ -158,8 +150,8 @@ contains
   end subroutine nodeIndicesNames
 
   subroutine nodeIndicesDescriptions(self,time,descriptions)
-    !!{
-    Return descriptions of the \mono{nodeIndices} properties.
+    !!{RST
+    Return descriptions of the ``nodeIndices`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorNodeIndices), intent(inout)                             :: self
@@ -177,7 +169,7 @@ contains
   end subroutine nodeIndicesDescriptions
 
   function nodeIndicesUnitsInSI(self,time)
-    !!{
+    !!{RST
     Return the units of the last isolated redshift property in the SI system.
     !!}
     implicit none
@@ -192,7 +184,7 @@ contains
   end function nodeIndicesUnitsInSI
 
   function nodeIndicesUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the node indices properties.
     !!}
     use :: Units_MetaData, only : unitType

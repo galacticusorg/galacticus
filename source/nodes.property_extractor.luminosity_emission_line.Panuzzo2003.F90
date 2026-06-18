@@ -36,7 +36,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an emission line luminosity node property extractor class.
 !!}
 
@@ -48,16 +48,14 @@ Implements an emission line luminosity node property extractor class.
   use :: Stellar_Spectra_Dust_Attenuations, only : stellarSpectraDustAttenuationClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLinePanuzzo2003">
+  <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLinePanuzzo2003" docformat="rst">
     <description>
-      An emission line luminosity property extractor class. The luminosity of the named emission line (given by the \mono{lineNames} parameter: if multiple lines are named, the sum of their luminosities) is computed. Additional dust
-      attenuation for emission line luminosities can be specified via the \mono{depthOpticalISMCoefficient}
-      parameter.
+    An emission line luminosity property extractor class. The luminosity of the named emission line (given by the ``lineNames`` parameter: if multiple lines are named, the sum of their luminosities) is computed. Additional dust attenuation for emission line luminosities can be specified via the ``depthOpticalISMCoefficient`` parameter.
     </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorLmnstyEmssnLinePanuzzo2003
-     !!{
+     !!{RST
      A stellar luminosity output analysis property extractor class.
      !!}
      private
@@ -86,8 +84,8 @@ Implements an emission line luminosity node property extractor class.
   end type nodePropertyExtractorLmnstyEmssnLinePanuzzo2003
 
   interface nodePropertyExtractorLmnstyEmssnLinePanuzzo2003
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLinePanuzzo2003` property extractor class.
      !!}
      module procedure lmnstyEmssnLinePanuzzo2003ConstructorParameters
      module procedure lmnstyEmssnLinePanuzzo2003ConstructorInternal
@@ -95,24 +93,30 @@ Implements an emission line luminosity node property extractor class.
 
   ! Enumerations for galactic components and ionizing continuua.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>component</name>
-   <description>Specifies the galactic component for emission line calculations.</description>
+   <description>
+   Specifies the galactic component for emission line calculations.
+   </description>
    <indexing>1</indexing>
    <entry label="disk"    />
    <entry label="spheroid"/>
   </enumeration>
-  <enumeration>
+  <enumeration docformat="rst">
    <name>ionizingContinuum</name>
-   <description>Specifies the ionizing continuum for emission line calculations.</description>
+   <description>
+   Specifies the ionizing continuum for emission line calculations.
+   </description>
    <indexing>1</indexing>
    <entry label="Hydrogen"/>
    <entry label="Helium"  />
    <entry label="Oxygen"  />
   </enumeration>
-  <enumeration>
+  <enumeration docformat="rst">
    <name>interpolant</name>
-   <description>Specifies the different interpolants for emission line calculations.</description>
+   <description>
+   Specifies the different interpolants for emission line calculations.
+   </description>
    <indexing>1</indexing>
    <entry label="metallicity"/>
    <entry label="density"    />
@@ -125,8 +129,8 @@ Implements an emission line luminosity node property extractor class.
 contains
 
   function lmnstyEmssnLinePanuzzo2003ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLinePanuzzo2003` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -141,16 +145,20 @@ contains
 
     allocate(lineNames(parameters%count('lineNames')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lineNames</name>
       <source>parameters</source>
-      <description>The emission lines to extract.</description>
+      <description>
+      The emission lines to extract.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>depthOpticalISMCoefficient</name>
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
-      <description>Multiplicative coefficient for optical depth in the ISM.</description>
+      <description>
+      Multiplicative coefficient for optical depth in the ISM.
+      </description>
     </inputParameter>
     <objectBuilder class="starFormationRateDisks"        name="starFormationRateDisks_"        source="parameters"/>
     <objectBuilder class="starFormationRateSpheroids"    name="starFormationRateSpheroids_"    source="parameters"/>
@@ -169,8 +177,8 @@ contains
   end function lmnstyEmssnLinePanuzzo2003ConstructorParameters
 
   function lmnstyEmssnLinePanuzzo2003ConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient,outputMask) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLinePanuzzo2003` property extractor class.
     !!}
     use            :: Error                         , only : Error_Report
     use            :: Input_Paths                   , only : inputPath              , pathTypeDataStatic
@@ -271,8 +279,8 @@ contains
   end function lmnstyEmssnLinePanuzzo2003ConstructorInternal
 
   subroutine lmnstyEmssnLinePanuzzo2003Destructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorLmnstyEmssnLinePanuzzo2003} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLinePanuzzo2003` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLmnstyEmssnLinePanuzzo2003), intent(inout) :: self
@@ -287,7 +295,7 @@ contains
   end subroutine lmnstyEmssnLinePanuzzo2003Destructor
 
   double precision function lmnstyEmssnLinePanuzzo2003Extract(self,node,instance)
-    !!{
+    !!{RST
     Implement an emission line output analysis property extractor.
     !!}
     use            :: Abundances_Structure            , only : abundances         , max                  , metallicityTypeLogarithmicByMassSolar
@@ -579,7 +587,7 @@ contains
 
 
   function lmnstyEmssnLinePanuzzo2003Quantity(self)
-    !!{
+    !!{RST
     Return the class of the emission line luminosity property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
@@ -593,7 +601,7 @@ contains
   end function lmnstyEmssnLinePanuzzo2003Quantity
 
   function lmnstyEmssnLinePanuzzo2003Name(self)
-    !!{
+    !!{RST
     Return the name of the lmnstyEmssnLinePanuzzo2003 property.
     !!}
     implicit none
@@ -605,7 +613,7 @@ contains
   end function lmnstyEmssnLinePanuzzo2003Name
 
   function lmnstyEmssnLinePanuzzo2003Description(self)
-    !!{
+    !!{RST
     Return a description of the lmnstyEmssnLinePanuzzo2003 property.
     !!}
     implicit none
@@ -617,7 +625,7 @@ contains
   end function lmnstyEmssnLinePanuzzo2003Description
 
   double precision function lmnstyEmssnLinePanuzzo2003UnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the lmnstyEmssnLinePanuzzo2003 property in the SI system.
     !!}
     use :: Numerical_Constants_Units, only : ergs
@@ -630,7 +638,7 @@ contains
   end function lmnstyEmssnLinePanuzzo2003UnitsInSI
 
   function lmnstyEmssnLinePanuzzo2003Units(self) result(units)
-    !!{
+    !!{RST
     Return the units of the lmnstyEmssnLinePanuzzo2003 property.
     !!}
     use :: Units_MetaData, only : unitType

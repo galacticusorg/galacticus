@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a satellite dynamical friction class that truncates the acceleration to zero below a satellite/host mass
-  ratio.
+  !!{RST
+  Implementation of a satellite dynamical friction class that truncates the acceleration to zero below a satellite/host mass ratio.
   !!}
 
   !![
-  <satelliteDynamicalFriction name="satelliteDynamicalFrictionMassRatioThreshold">
+  <satelliteDynamicalFriction name="satelliteDynamicalFrictionMassRatioThreshold" docformat="rst">
    <description>
-    A satellite dynamical friction class that wraps another dynamical friction implementation and suppresses the deceleration to zero whenever the satellite-to-host halo mass ratio falls below a threshold value. This prevents unphysically large dynamical friction forces on very low-mass satellites. The mass ratio threshold is set by \mono{[massRatioThreshold]}.
+   A satellite dynamical friction class that wraps another dynamical friction implementation and suppresses the deceleration to zero whenever the satellite-to-host halo mass ratio falls below a threshold value. This prevents unphysically large dynamical friction forces on very low-mass satellites. The mass ratio threshold is set by ``[massRatioThreshold]``.
    </description>
   </satelliteDynamicalFriction>
   !!]
   type, extends(satelliteDynamicalFrictionClass) :: satelliteDynamicalFrictionMassRatioThreshold
-     !!{
+     !!{RST
      Implementation of a satellite dynamical friction class that truncates the acceleration to zero below a satellite/host mass ratio.
      !!}
      private
@@ -42,7 +41,7 @@
   end type satelliteDynamicalFrictionMassRatioThreshold
 
   interface satelliteDynamicalFrictionMassRatioThreshold
-     !!{
+     !!{RST
      Constructors for the massRatioThreshold satellite dynamical friction class.
      !!}
      module procedure massRatioThresholdConstructorParameters
@@ -52,8 +51,8 @@
 contains
 
   function massRatioThresholdConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{satelliteDynamicalFrictionMassRatioThreshold} satellite dynamical friction class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`satelliteDynamicalFrictionMassRatioThreshold` satellite dynamical friction class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -63,9 +62,11 @@ contains
     double precision                                                              :: massRatioThreshold
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massRatioThreshold</name>
-      <description>The satellite-to-host mass ratio below which dynamical friction acceleration is truncated to zero.</description>
+      <description>
+      The satellite-to-host mass ratio below which dynamical friction acceleration is truncated to zero.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="satelliteDynamicalFriction" name="satelliteDynamicalFriction_" source="parameters"/>
@@ -79,8 +80,8 @@ contains
   end function massRatioThresholdConstructorParameters
 
   function massRatioThresholdConstructorInternal(massRatioThreshold,satelliteDynamicalFriction_) result(self)
-    !!{
-    Internal constructor for the \refClass{satelliteDynamicalFrictionMassRatioThreshold} satellite dynamical friction class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`satelliteDynamicalFrictionMassRatioThreshold` satellite dynamical friction class.
     !!}
     implicit none
     type            (satelliteDynamicalFrictionMassRatioThreshold)                        :: self
@@ -94,8 +95,8 @@ contains
   end function massRatioThresholdConstructorInternal
 
   subroutine massRatioThresholdDestructor(self)
-    !!{
-    Destructor for the \refClass{satelliteDynamicalFrictionMassRatioThreshold} satellite dynamical friction class.
+    !!{RST
+    Destructor for the :galacticus-class:`satelliteDynamicalFrictionMassRatioThreshold` satellite dynamical friction class.
     !!}
     implicit none
     type(satelliteDynamicalFrictionMassRatioThreshold), intent(inout) :: self
@@ -107,7 +108,7 @@ contains
   end subroutine massRatioThresholdDestructor
 
   function massRatioThresholdAcceleration(self,node) result(acceleration)
-    !!{
+    !!{RST
     Return an acceleration for satellites due to dynamical, truncating to zero below a given satellite-to-host mass ratio.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite

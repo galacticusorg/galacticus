@@ -3885,7 +3885,9 @@ def _generate_documentation(directive, classes, non_abstract_classes):
         f'\\section{{{descriptive_name}}}\\label{{phys:{directive_name}}}'
         f'\\hyperdef{{physics}}{{{directive_name}}}{{}}\n\n'
     )
-    if 'description' in directive:
+    # Descriptions marked docformat="rst" are rendered on ReadTheDocs (see
+    # scripts/doc/extractDocsRST.py); omit them from the LaTeX/PDF manual.
+    if 'description' in directive and directive.get('docformat') != 'rst':
         doc += directive['description'] + '\n\n'
     if 'default' in directive:
         default_target = directive_name + _ucfirst(directive['default'])
@@ -3907,7 +3909,8 @@ def _generate_documentation(directive, classes, non_abstract_classes):
             f'\\label{{phys:{class_record["name"]}}}'
             f'\\hyperdef{{physics}}{{{class_record["name"]}}}{{}}\n\n'
         )
-        doc += (class_record.get('description') or '') + '\n\n'
+        if class_record.get('docformat') != 'rst':
+            doc += (class_record.get('description') or '') + '\n\n'
         if ('default' in directive
                 and directive_name + _ucfirst(directive['default'])
                     == class_record['name']):
@@ -4154,7 +4157,10 @@ def _format_input_parameter_doc(cnode, function_node, class_record,
         description += (
             f' \\{{\\mono{{{value}}}{default_source}\\}} '
         )
-    description += cdir.get('description', '')
+    # Omit RST descriptions from the PDF (rendered on ReadTheDocs instead);
+    # the parameter name/type/default above are still listed.
+    if cdir.get('docformat') != 'rst':
+        description += cdir.get('description', '')
     return description
 
 

@@ -17,25 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements a class for initializing the bound mass of satellite halos.
 !!}
 
 module Satellites_Bound_Mass_Initialize
-  !!{
+  !!{RST
   Implements a class for initializing the bound mass of satellite halos.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>satelliteMassBoundInitializor</name>
    <descriptiveName>Satellite Bound Mass Initializor</descriptiveName>
-   <description>Class providing the initial bound mass of satellite halos when they first become satellites.</description>
+   <description>
+   Class providing the initial bound mass of satellite halos when they first become satellites.
+   </description>
    <default>basicMass</default>
    <method name="massBound">
-    <description>Returns the initial bound mass of the satellite halo associated with \mono{node} (in units of $\mathrm{M}_\odot$).</description>
+    <description>
+    Returns the initial bound mass of the satellite halo associated with ``node`` (in units of :math:`\mathrm{M}_\odot`).
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements outputting of formatted, indented messages at various verbosity levels from \glc.
+!!{RST
+Contains a module which implements outputting of formatted, indented messages at various verbosity levels from Galacticus.
 !!}
 
 module Display
-  !!{
-  Implements outputting of formatted, indented messages at various verbosity levels from \glc.
+  !!{RST
+  Implements outputting of formatted, indented messages at various verbosity levels from Galacticus.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_int
   implicit none
@@ -34,9 +34,11 @@ module Display
        &    displayBold        , displayReset
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>verbosityLevel</name>
-   <description>Enumeration of verbosity levels for controlling the amount of output displayed during a \glc\ run, ranging from \mono{silent} (no output) through \mono{standard}, \mono{working}, \mono{warn}, and \mono{info} to \mono{debug} (maximum diagnostic output).</description>
+   <description>
+   Enumeration of verbosity levels for controlling the amount of output displayed during a Galacticus run, ranging from ``silent`` (no output) through ``standard``, ``working``, ``warn``, and ``info`` to ``debug`` (maximum diagnostic output).
+   </description>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
    <validator>yes</validator>
@@ -90,8 +92,8 @@ module Display
 contains
 
   function displayVerbosity()
-    !!{
-    Returns the verbosity level in \glc.
+    !!{RST
+    Returns the verbosity level in Galacticus.
     !!}
     implicit none
     type(enumerationVerbosityLevelType) :: displayVerbosity
@@ -101,7 +103,7 @@ contains
   end function displayVerbosity
 
   subroutine displayVerbositySet(verbosityLevelNew)
-    !!{
+    !!{RST
     Set the verbosity level.
     !!}
     implicit none
@@ -119,7 +121,7 @@ contains
   end subroutine displayVerbositySet
 
   subroutine initialize()
-    !!{
+    !!{RST
     Initialize the module by determining the requested verbosity level.
     !!}
 #ifdef USEMPI
@@ -173,7 +175,7 @@ contains
   end subroutine initialize
 
   subroutine displayIndentVarStr(message,verbosity)
-    !!{
+    !!{RST
     Increase the indentation level and display a message.
     !!}
     use :: ISO_Varying_String, only : varying_string, char
@@ -186,7 +188,7 @@ contains
   end subroutine displayIndentVarStr
 
   subroutine displayIndentChar(message,verbosity)
-    !!{
+    !!{RST
     Increase the indentation level and display a message.
     !!}
     use   , intrinsic :: ISO_Fortran_Env, only : output_unit
@@ -220,7 +222,7 @@ contains
   end subroutine displayIndentChar
 
   subroutine displayUnindentVarStr(message,verbosity)
-    !!{
+    !!{RST
     Decrease the indentation level and display a message.
     !!}
     use :: ISO_Varying_String, only : varying_string, char
@@ -233,7 +235,7 @@ contains
   end subroutine displayUnindentVarStr
 
   subroutine displayUnindentChar(message,verbosity)
-    !!{
+    !!{RST
     Decrease the indentation level and display a message.
     !!}
     use   , intrinsic :: ISO_Fortran_Env, only : output_unit
@@ -267,8 +269,8 @@ contains
   end subroutine displayUnindentChar
 
   subroutine displayMessageChar(message,verbosity)
-    !!{
-    Display a message (input as a \mono{character} variable).
+    !!{RST
+    Display a message (input as a ``character`` variable).
     !!}
     use   , intrinsic :: ISO_Fortran_Env, only : output_unit
     !$ use            :: OMP_Lib        , only : OMP_In_Parallel, OMP_Get_Thread_Num
@@ -296,8 +298,8 @@ contains
   end subroutine displayMessageChar
 
   subroutine displayMessageVarStr(message,verbosity)
-    !!{
-    Display a message (input as a \mono{varying\_string} variable).
+    !!{RST
+    Display a message (input as a ``varying_string`` variable).
     !!}
     use   , intrinsic :: ISO_Fortran_Env   , only : output_unit
     !$ use            :: OMP_Lib           , only : OMP_In_Parallel, OMP_Get_Thread_Num
@@ -326,7 +328,7 @@ contains
   end subroutine displayMessageVarStr
 
   subroutine formatIndentationCreate()
-    !!{
+    !!{RST
     Create a format for indentation.
     !!}
     !$ use :: OMP_Lib, only : OMP_In_Parallel, OMP_Get_Thread_Num
@@ -356,7 +358,7 @@ contains
   end subroutine formatIndentationCreate
 
   subroutine displayCounter(percentageComplete,isNew,verbosity)
-    !!{
+    !!{RST
     Displays a percentage counter and bar to show progress.
     !!}
     implicit none
@@ -371,7 +373,7 @@ contains
   end subroutine displayCounter
 
   subroutine displayCounterLockless(percentageComplete,isNew,verbosity)
-    !!{
+    !!{RST
     Displays a percentage counter and bar to show progress.
     !!}
     use, intrinsic :: ISO_Fortran_Env, only : output_unit
@@ -400,7 +402,7 @@ contains
   end subroutine displayCounterLockless
 
   subroutine displayCounterClear(verbosity)
-    !!{
+    !!{RST
     Clears a percentage counter.
     !!}
     implicit none
@@ -415,7 +417,7 @@ contains
   end subroutine displayCounterClear
 
   subroutine counterClearLockless(verbosity)
-    !!{
+    !!{RST
     Clears a percentage counter.
     !!}
     use, intrinsic :: ISO_Fortran_Env, only : output_unit
@@ -434,7 +436,7 @@ contains
   end subroutine counterClearLockless
 
   logical function showMessage(verbosity)
-    !!{
+    !!{RST
     Return true if the message should be displayed at the current verbosity level.
     !!}
     implicit none
@@ -449,7 +451,7 @@ contains
   end function showMessage
 
   function displayRed()
-    !!{
+    !!{RST
     Return the ANSI escape code for red text.
     !!}
 #ifndef USEMPI
@@ -471,7 +473,7 @@ contains
   end function displayRed
 
   function displayBlue()
-    !!{
+    !!{RST
     Return the ANSI escape code for blue text.
     !!}
 #ifndef USEMPI
@@ -493,7 +495,7 @@ contains
   end function displayBlue
   
   function displayYellow()
-    !!{
+    !!{RST
     Return the ANSI escape code for yellow text.
     !!}
 #ifndef USEMPI
@@ -515,7 +517,7 @@ contains
   end function displayYellow
   
   function displayMagenta()
-    !!{
+    !!{RST
     Return the ANSI escape code for magenta text.
     !!}
 #ifndef USEMPI
@@ -537,7 +539,7 @@ contains
   end function displayMagenta
   
   function displayGreen()
-    !!{
+    !!{RST
     Return the ANSI escape code for green text.
     !!}
 #ifndef USEMPI
@@ -559,7 +561,7 @@ contains
   end function displayGreen
   
   function displayBold()
-    !!{
+    !!{RST
     Return the ANSI escape code for bold text.
     !!}
 #ifndef USEMPI
@@ -581,7 +583,7 @@ contains
   end function displayBold
   
   function displayReset()
-    !!{
+    !!{RST
     Return the ANSI escape code to reset text.
     !!}
 #ifndef USEMPI

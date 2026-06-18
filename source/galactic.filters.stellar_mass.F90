@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic high-pass filter for total stellar mass.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterStellarMass">
+  <galacticFilter name="galacticFilterStellarMass" docformat="rst">
    <description>
-   A galactic high-pass filter for stellar mass. Galaxies with a combined disk, spheroid, plus \gls{nsc} stellar mass greater than or equal
-   to a fixed threshold, $M_{\star,0}=$\mono{[massThreshold]}.
+   A galactic high-pass filter for stellar mass. Galaxies with a combined disk, spheroid, plus :term:`NSC` stellar mass greater than or equal to a fixed threshold, :math:`M_{\star,0}=`\ ``[massThreshold]``.
    </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterStellarMass
-     !!{
+     !!{RST
      A galactic high-pass filter class for stellar mass.
      !!}
      private
@@ -40,8 +39,8 @@ Implements a galactic high-pass filter for total stellar mass.
   end type galacticFilterStellarMass
 
   interface galacticFilterStellarMass
-     !!{
-     Constructors for the \refClass{galacticFilterStellarMass} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterStellarMass` galactic filter class.
      !!}
      module procedure stellarMassConstructorParameters
      module procedure stellarMassConstructorInternal
@@ -50,8 +49,8 @@ Implements a galactic high-pass filter for total stellar mass.
 contains
 
   function stellarMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterStellarMass} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterStellarMass` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -60,10 +59,12 @@ contains
     double precision                                           :: massThreshold
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massThreshold</name>
       <source>parameters</source>
-      <description>The parameter $M_0$ (in units of $\mathrm{M}_\odot$) appearing in the stellar mass threshold for the stellar mass galactic filter class.</description>
+      <description>
+      The parameter :math:`M_0` (in units of :math:`\mathrm{M}_\odot`) appearing in the stellar mass threshold for the stellar mass galactic filter class.
+      </description>
     </inputParameter>
     !!]
     self=galacticFilterStellarMass(massThreshold)
@@ -74,8 +75,8 @@ contains
   end function stellarMassConstructorParameters
 
   function stellarMassConstructorInternal(massThreshold) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterStellarMass} galactic filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticFilterStellarMass` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterStellarMass)                :: self
@@ -88,7 +89,7 @@ contains
   end function stellarMassConstructorInternal
 
   logical function stellarMassPasses(self,node) result(passes)
-    !!{
+    !!{RST
     Implement a stellar mass high-pass galactic filter.
     !!}
     use :: Mass_Distributions        , only : massDistributionClass, massDistributionComposite

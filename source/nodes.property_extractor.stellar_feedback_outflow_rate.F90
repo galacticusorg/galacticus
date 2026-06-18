@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a stellar feedback mass outflow rate property extractor class.
   !!}
 
@@ -27,16 +27,14 @@
   use :: Stellar_Population_Properties , only : stellarPopulationPropertiesClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorStellarFeedbackOutflowRate">
+  <nodePropertyExtractor name="nodePropertyExtractorStellarFeedbackOutflowRate" docformat="rst">
    <description>
-    A node property extractor which extracts the stellar feedback-driven mass outflow rate from a galaxy. The type of mass outflow rate is controlled
-    by the \mono{[component]} parameter, which can be either ``\mono{disk}'', ``\mono{spheroid}'', or ``\mono{total}''. The corresponding mass outflow rate is extracted as
-    \mono{\textless\ component\textgreater\ StellarFeedbackOutflowRate} in units of $\mathrm{M}_\odot$/Gyr.
+   A node property extractor which extracts the stellar feedback-driven mass outflow rate from a galaxy. The type of mass outflow rate is controlled by the ``[component]`` parameter, which can be either "``disk``", "``spheroid``", or "``total``". The corresponding mass outflow rate is extracted as ``&lt;component&gt;StellarFeedbackOutflowRate`` in units of :math:`\mathrm{M}_\odot`/Gyr.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorStellarFeedbackOutflowRate
-     !!{
+     !!{RST
      A stellar feedback-driven mass outflow rate property extractor class.
      !!}
      private
@@ -56,8 +54,8 @@
   end type nodePropertyExtractorStellarFeedbackOutflowRate
 
   interface nodePropertyExtractorStellarFeedbackOutflowRate
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorStellarFeedbackOutflowRate} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorStellarFeedbackOutflowRate` property extractor class.
      !!}
      module procedure stellarFeedbackOutflowRateConstructorParameters
      module procedure stellarFeedbackOutflowRateConstructorInternal
@@ -66,8 +64,8 @@
 contains
 
   function stellarFeedbackOutflowRateConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorStellarFeedbackOutflowRate} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorStellarFeedbackOutflowRate` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,10 +78,12 @@ contains
     type (varying_string                                 )                :: component
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>component</name>
       <source>parameters</source>
-      <description>The component from which to extract star formation rate.</description>
+      <description>
+      The component from which to extract star formation rate.
+      </description>
     </inputParameter>
     <objectBuilder class="starFormationRateDisks"      name="starFormationRateDisks_"      source="parameters"/>
     <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_"   source="parameters"/>
@@ -102,8 +102,8 @@ contains
   end function stellarFeedbackOutflowRateConstructorParameters
 
   function stellarFeedbackOutflowRateConstructorInternal(component,starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationProperties_,stellarFeedbackOutflows_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorStellarFeedbackOutflowRate} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorStellarFeedbackOutflowRate` property extractor class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -134,8 +134,8 @@ contains
   end function stellarFeedbackOutflowRateConstructorInternal
 
   subroutine stellarFeedbackOutflowRateDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorStellarFeedbackOutflowRate} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorStellarFeedbackOutflowRate` property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorStellarFeedbackOutflowRate), intent(inout) :: self
@@ -150,7 +150,7 @@ contains
   end subroutine stellarFeedbackOutflowRateDestructor
 
   double precision function stellarFeedbackOutflowRateExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement an emission line output analysis property extractor.
     !!}
     use :: Abundances_Structure          , only : abundances
@@ -250,7 +250,7 @@ contains
 
 
   function stellarFeedbackOutflowRateName(self)
-    !!{
+    !!{RST
     Return the name of the stellarFeedbackOutflowRate property.
     !!}
     implicit none
@@ -262,7 +262,7 @@ contains
   end function stellarFeedbackOutflowRateName
 
   function stellarFeedbackOutflowRateDescription(self)
-    !!{
+    !!{RST
     Return a description of the stellarFeedbackOutflowRate property.
     !!}
     implicit none
@@ -274,7 +274,7 @@ contains
   end function stellarFeedbackOutflowRateDescription
 
   double precision function stellarFeedbackOutflowRateUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the stellarFeedbackOutflowRate property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, gigaYear
@@ -287,7 +287,7 @@ contains
   end function stellarFeedbackOutflowRateUnitsInSI
 
   function stellarFeedbackOutflowRateUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the stellarFeedbackOutflowRate property.
     !!}
     use :: Units_MetaData, only : unitType

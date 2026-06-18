@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a thermal Sunyaev-Zeldovich signal vs. stellar mass analysis class.
   !!}
 
   !![
-  <outputAnalysis name="outputAnalysisSunyaevZeldovichPlanck2013">
-   <description>Computes the mean thermal Sunyaev-Zeldovich signal (Compton-$y$ parameter stacked over galaxy halos) as a function of stellar mass using the \cite{planck_collaboration_planck_2013} observational data, with configurable random and systematic error polynomial coefficients.</description>
+  <outputAnalysis name="outputAnalysisSunyaevZeldovichPlanck2013" docformat="rst">
+   <description>
+   Computes the mean thermal Sunyaev-Zeldovich signal (Compton-:math:`y` parameter stacked over galaxy halos) as a function of stellar mass using the :cite:t:`planck_collaboration_planck_2013` observational data, with configurable random and systematic error polynomial coefficients.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisSunyaevZeldovichPlanck2013
-     !!{
-     A thermal Sunyaev-Zeldovich signal vs stellar mass analysis class using the results of \cite{planck_collaboration_planck_2013}.
+     !!{RST
+     A thermal Sunyaev-Zeldovich signal vs stellar mass analysis class using the results of :cite:t:`planck_collaboration_planck_2013`.
      !!}
      private
      double precision                          , allocatable, dimension(:) :: systematicErrorPolynomialCoefficient          , randomErrorPolynomialCoefficient
@@ -42,8 +44,8 @@
   end type outputAnalysisSunyaevZeldovichPlanck2013
   
   interface outputAnalysisSunyaevZeldovichPlanck2013
-     !!{
-     Constructors for the \refClass{outputAnalysisSunyaevZeldovichPlanck2013} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisSunyaevZeldovichPlanck2013` output analysis class.
      !!}
      module procedure sunyaevZeldovichPlanck2013ConstructorParameters
      module procedure sunyaevZeldovichPlanck2013ConstructorInternal
@@ -52,8 +54,8 @@
 contains
 
   function sunyaevZeldovichPlanck2013ConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSunyaevZeldovichPlanck2013} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisSunyaevZeldovichPlanck2013` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -70,33 +72,41 @@ contains
     allocate(systematicErrorPolynomialCoefficient(max(1,parameters%count('systematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     allocate(    randomErrorPolynomialCoefficient(max(1,parameters%count(    'randomErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial.</description>
+      <description>
+      The coefficients of the systematic error polynomial.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the random error polynomial.</description>
+      <description>
+      The coefficients of the random error polynomial.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for stellar masses.</description>
+      <description>
+      The minimum random error for stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for stellar masses.</description>
+      <description>
+      The minimum random error for stellar masses.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"       name="cosmologyParameters_"       source="parameters"/>
     <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
@@ -118,8 +128,8 @@ contains
   end function sunyaevZeldovichPlanck2013ConstructorParameters
 
   function sunyaevZeldovichPlanck2013ConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,chemicalState_,outputTimes_) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSunyaevZeldovichPlanck2013} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisSunyaevZeldovichPlanck2013` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda                 , densityCosmologicalCritical
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -385,8 +395,8 @@ contains
   end function sunyaevZeldovichPlanck2013ConstructorInternal
 
   subroutine sunyaevZeldovichPlanck2013Destructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisSunyaevZeldovichPlanck2013} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisSunyaevZeldovichPlanck2013` output analysis class.
     !!}
     implicit none
     type(outputAnalysisSunyaevZeldovichPlanck2013), intent(inout) :: self

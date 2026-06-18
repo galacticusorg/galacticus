@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements the standard disk node component.
 !!}
 
 module Node_Component_Disk_Standard
-  !!{
+  !!{RST
   Implements the standard disk node component.
   !!}
   use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
@@ -186,7 +186,7 @@ contains
   <nodeComponentInitializationTask function="Node_Component_Disk_Standard_Initialize"/>
   !!]
   subroutine Node_Component_Disk_Standard_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the tree node standard disk methods module.
     !!}
     use :: Abundances_Structure, only : Abundances_Property_Count
@@ -204,46 +204,60 @@ contains
        subParameters=parameters%subParameters('componentDisk')
        ! Read parameters controlling the physical implementation.
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>toleranceAbsoluteMass</name>
          <defaultValue>1.0d-6</defaultValue>
-         <description>The mass tolerance used to judge whether the disk is physically plausible.</description>
+         <description>
+         The mass tolerance used to judge whether the disk is physically plausible.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>toleranceRelativeMetallicity</name>
          <defaultValue>1.0d-4</defaultValue>
-         <description>The metallicity tolerance for ODE solution.</description>
+         <description>
+         The metallicity tolerance for ODE solution.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>radiusStructureSolver</name>
          <defaultValue>1.0d0</defaultValue>
-         <description>The radius (in units of the standard scale length) to use in solving for the size of the disk.</description>
+         <description>
+         The radius (in units of the standard scale length) to use in solving for the size of the disk.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>structureSolverUseCole2000Method</name>
          <defaultValue>.false.</defaultValue>
-         <description>If true, use the method described in \cite{cole_hierarchical_2000} to correct for difference between thin disk and spherical mass distributions when solving for disk radii.</description>
+         <description>
+         If true, use the method described in :cite:t:`cole_hierarchical_2000` to correct for difference between thin disk and spherical mass distributions when solving for disk radii.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>diskNegativeAngularMomentumAllowed</name>
          <defaultValue>.true.</defaultValue>
-         <description>Specifies whether or not negative angular momentum is allowed for the disk.</description>
+         <description>
+         Specifies whether or not negative angular momentum is allowed for the disk.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>inactiveLuminositiesStellar</name>
          <defaultValue>.false.</defaultValue>
-         <description>Specifies whether or not disk stellar luminosities are inactive properties (i.e. do not appear in any ODE being solved).</description>
+         <description>
+         Specifies whether or not disk stellar luminosities are inactive properties (i.e. do not appear in any ODE being solved).
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>postStepZeroNegativeMasses</name>
          <defaultValue>.true.</defaultValue>
-         <description>If true, negative masses will be zeroed after each ODE step. Note that this can lead to non-conservation of mass.</description>
+         <description>
+         If true, negative masses will be zeroed after each ODE step. Note that this can lead to non-conservation of mass.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -255,7 +269,7 @@ contains
   <nodeComponentThreadInitializationTask function="Node_Component_Disk_Standard_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Disk_Standard_Thread_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the standard disk component module for each thread.
     !!}
     use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx            , openMPThreadBindingAtLevel, postEvolveEvent, &
@@ -339,11 +353,15 @@ contains
        end if
        !$omp critical (diskStandardInitializeAngularMomentum)
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>ratioAngularMomentumSolverRadius</name>
-         <defaultSource>(Assuming a flat rotation curve this ratio is $I_1/I_2$ where $I_n=\int_0^\infty \Sigma(R) R^n \mathrm{d}R$, where $\Sigma(R)$ is the disk surface density profile, unless either $I_1$ or $I_2$ is infinite, in which case a default of $1/2$ is used instead. For a fully self-gravitating, razor-thin exponential disk a ratio of $0.6679$ would be found instead.)</defaultSource>
+         <defaultSource>
+         (Assuming a flat rotation curve this ratio is :math:`I_1/I_2` where :math:`I_n=\int_0^\infty \Sigma(R) R^n \mathrm{d}R`, where :math:`\Sigma(R)` is the disk surface density profile, unless either :math:`I_1` or :math:`I_2` is infinite, in which case a default of :math:`1/2` is used instead. For a fully self-gravitating, razor-thin exponential disk a ratio of :math:`0.6679` would be found instead.)
+         </defaultSource>
          <defaultValue>ratioAngularMomentumSolverRadiusDefault</defaultValue>
-         <description>The assumed ratio of the specific angular momentum at the structure solver radius to the mean specific angular momentum of the standard disk component.</description>
+         <description>
+         The assumed ratio of the specific angular momentum at the structure solver radius to the mean specific angular momentum of the standard disk component.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -364,7 +382,7 @@ contains
   <nodeComponentThreadUninitializationTask function="Node_Component_Disk_Standard_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Disk_Standard_Thread_Uninitialize()
-    !!{
+    !!{RST
     Uninitializes the standard disk component module for each thread.
     !!}
     use :: Events_Hooks                     , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeExtraOutputEvent
@@ -393,7 +411,7 @@ contains
   <preEvolveTask function="Node_Component_Disk_Standard_Pre_Evolve"/>
   !!]
   subroutine Node_Component_Disk_Standard_Pre_Evolve(node)
-    !!{
+    !!{RST
     Ensure the disk has been initialized.
     !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent, nodeComponentDisk, nodeComponentDiskStandard, treeNode
@@ -415,7 +433,7 @@ contains
   end subroutine Node_Component_Disk_Standard_Pre_Evolve
 
   subroutine postEvolve(self,node)
-    !!{
+    !!{RST
     Trim histories attached to the disk.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, nodeComponentDiskStandard, treeNode
@@ -446,7 +464,7 @@ contains
   <postStepTask function="Node_Component_Disk_Standard_Post_Step"/>
   !!]
   subroutine Node_Component_Disk_Standard_Post_Step(node,status)
-    !!{
+    !!{RST
     Trim histories attached to the disk.
     !!}
     use :: Abundances_Structure          , only : abs                 , zeroAbundances
@@ -652,7 +670,7 @@ contains
   end subroutine Node_Component_Disk_Standard_Post_Step
 
   subroutine Node_Component_Disk_Standard_Create(node)
-    !!{
+    !!{RST
     Create properties in an standard disk component.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid, treeNode
@@ -708,8 +726,8 @@ contains
   <scaleSetTask function="Node_Component_Disk_Standard_Scale_Set"/>
   !!]
   subroutine Node_Component_Disk_Standard_Scale_Set(node)
-    !!{
-    Set scales for properties of \mono{node}.
+    !!{RST
+    Set scales for properties of ``node``.
     !!}
     use :: Abundances_Structure          , only : abs                 , abundances       , max                      , operator(*)            , &
           &                                       unitAbundances
@@ -802,8 +820,8 @@ contains
   <inactiveSetTask function="Node_Component_Disk_Standard_Inactive"/>
   !!]
   subroutine Node_Component_Disk_Standard_Inactive(node)
-    !!{
-    Set Jacobian zero status for properties of \mono{node}.
+    !!{RST
+    Set Jacobian zero status for properties of ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentDiskStandard, treeNode
     implicit none
@@ -821,8 +839,8 @@ contains
   end subroutine Node_Component_Disk_Standard_Inactive
 
   subroutine satelliteMerger(self,node)
-    !!{
-    Transfer any standard disk associated with \mono{node} to its host halo.
+    !!{RST
+    Transfer any standard disk associated with ``node`` to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
@@ -972,7 +990,7 @@ contains
   <radiusSolverPlausibility function="Node_Component_Disk_Standard_Radius_Solver_Plausibility" after="Node_Component_Basic_Standard_Plausibility"/>
   !!]
   subroutine Node_Component_Disk_Standard_Radius_Solver_Plausibility(node)
-    !!{
+    !!{RST
     Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
     !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent, nodeComponentDisk, nodeComponentDiskStandard, treeNode
@@ -1024,7 +1042,7 @@ contains
   end subroutine Node_Component_Disk_Standard_Radius_Solver_Plausibility
 
   double precision function Node_Component_Disk_Standard_Radius_Solve(node)
-    !!{
+    !!{RST
     Return the radius of the standard disk used in structure solvers.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, treeNode
@@ -1038,7 +1056,7 @@ contains
   end function Node_Component_Disk_Standard_Radius_Solve
 
   subroutine Node_Component_Disk_Standard_Radius_Solve_Set(node,radius)
-    !!{
+    !!{RST
     Set the radius of the standard disk used in structure solvers.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, treeNode
@@ -1053,7 +1071,7 @@ contains
   end subroutine Node_Component_Disk_Standard_Radius_Solve_Set
 
   double precision function Node_Component_Disk_Standard_Velocity(node)
-    !!{
+    !!{RST
     Return the circular velocity of the standard disk.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, treeNode
@@ -1067,7 +1085,7 @@ contains
   end function Node_Component_Disk_Standard_Velocity
 
   subroutine Node_Component_Disk_Standard_Velocity_Set(node,velocity)
-    !!{
+    !!{RST
     Set the circular velocity of the standard disk.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, treeNode
@@ -1086,7 +1104,7 @@ contains
   !!]
   subroutine Node_Component_Disk_Standard_Radius_Solver(node,componentActive,component,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
        &,Velocity_Set)
-    !!{
+    !!{RST
     Interface for the size solver algorithm.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentDisk             , nodeComponentDiskStandard, treeNode
@@ -1152,7 +1170,7 @@ contains
   end subroutine Node_Component_Disk_Standard_Radius_Solver
 
   subroutine mergerTreeExtraOutput(self,node,iOutput,treeIndex,nodePassesFilter,treeLock)
-    !!{
+    !!{RST
     Update the star formation history after an output time is reached.
     !!}
     use            :: Galacticus_Nodes          , only : defaultDiskComponent, nodeComponentDisk, nodeComponentDiskStandard, treeNode
@@ -1190,7 +1208,7 @@ contains
   <stateStoreTask function="Node_Component_Disk_Standard_State_Store"/>
   !!]
   subroutine Node_Component_Disk_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Write the tabulation state to file.
     !!}
     use            :: Display                          , only : displayMessage          , verbosityLevelInfo
@@ -1213,7 +1231,7 @@ contains
   <stateRetrieveTask function="Node_Component_Disk_Standard_State_Retrieve"/>
   !!]
   subroutine Node_Component_Disk_Standard_State_Retrieve(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Retrieve the tabulation state from the file.
     !!}
     use            :: Display                          , only : displayMessage          , verbosityLevelInfo

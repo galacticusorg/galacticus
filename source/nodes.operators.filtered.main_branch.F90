@@ -17,21 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that applies only to main branch nodes during tree initialization only.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorFilteredMainBranch">
+  <nodeOperator name="nodeOperatorFilteredMainBranch" docformat="rst">
     <description>
-      A node operator class that applies only to main branch nodes during tree initialization only. This uses a fast algorithm to
-      determine main branch status, so is more efficient that using the \refClass{nodeOperatorFiltered} node operator class along with a
-      \refClass{galacticFilterMainBranch} filter.
+    A node operator class that applies only to main branch nodes during tree initialization only. This uses a fast algorithm to determine main branch status, so is more efficient that using the :galacticus-class:`nodeOperatorFiltered` node operator class along with a :galacticus-class:`galacticFilterMainBranch` filter.
     </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorMulti) :: nodeOperatorFilteredMainBranch
-     !!{
+     !!{RST
      A node operator class that applies only to main branch nodes during tree initialization only.
      !!}
      private
@@ -43,8 +41,8 @@
   end type nodeOperatorFilteredMainBranch
 
   interface nodeOperatorFilteredMainBranch
-     !!{
-     Constructors for the \refClass{nodeOperatorFilteredMainBranch} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorFilteredMainBranch` node operator class.
      !!}
      module procedure filteredMainBranchConstructorParameters
      module procedure filteredMainBranchConstructorInternal
@@ -53,8 +51,8 @@
 contains
 
   function filteredMainBranchConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorFilteredMainBranch} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorFilteredMainBranch` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,11 +61,13 @@ contains
 
     self%nodeOperatorMulti=nodeOperatorMulti(parameters)
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>invertFilter</name>
       <variable>self%invertFilter</variable>
       <defaultValue>.false.</defaultValue>
-      <description>If true, the filter is inverted to pass only nodes \emph{not} on the main branch.</description>
+      <description>
+      If true, the filter is inverted to pass only nodes *not* on the main branch.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <inputParametersValidate source="parameters" multiParameters="nodeOperator"/>
@@ -78,8 +78,8 @@ contains
   end function filteredMainBranchConstructorParameters
 
   function filteredMainBranchConstructorInternal(processes,invertFilter) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorFilteredMainBranch} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorFilteredMainBranch` node operator class.
     !!}
     implicit none
     type   (nodeOperatorFilteredMainBranch)                        :: self
@@ -94,7 +94,7 @@ contains
   end function filteredMainBranchConstructorInternal
 
   subroutine filteredMainBranchNodeTreeInitialize(self,node)
-    !!{
+    !!{RST
     Perform node tree initialization.
     !!}
     implicit none
@@ -115,11 +115,8 @@ contains
   end subroutine filteredMainBranchNodeTreeInitialize
 
   logical function filteredMainBranchIsActive(self,node) result(isActive)
-    !!{
-    Return true if the given \mono{node} is on the main branch of the tree. Here we assume that a depth-first
-    walk of the tree is being performed. As such, we keep a record of the (unique ID of the) last main branch node seen (starting
-    from the tip of the main branch). A subsequent node is then only on the main branch if its first child is that same last seen
-    main branch node.
+    !!{RST
+    Return true if the given ``node`` is on the main branch of the tree. Here we assume that a depth-first walk of the tree is being performed. As such, we keep a record of the (unique ID of the) last main branch node seen (starting from the tip of the main branch). A subsequent node is then only on the main branch if its first child is that same last seen main branch node.
     !!}
     implicit none
     class(nodeOperatorFilteredMainBranch), intent(inout) :: self

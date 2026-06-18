@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains custom functions for the preset satellite component.
 !!}
 
 double precision function SatellitePresetMergeBoundMass(self)
-  !!{
+  !!{RST
   Return the satellite bound mass at the current time.
   !!}
   use            :: Histories              , only : history
@@ -62,7 +62,7 @@ double precision function SatellitePresetMergeBoundMass(self)
 end function SatellitePresetMergeBoundMass
 
 function SatellitePresetNodeIndex(self)
-  !!{
+  !!{RST
   Return the satellite node index.
   !!}
   use            :: Histories              , only : longIntegerHistory

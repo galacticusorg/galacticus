@@ -17,30 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a cooling rate class for the \cite{white_galaxy_1991} cooling rate calculation.
+  !!{RST
+  Implementation of a cooling rate class for the :cite:t:`white_galaxy_1991` cooling rate calculation.
   !!}
 
   use :: Cooling_Infall_Radii   , only : coolingInfallRadiusClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <coolingRate name="coolingRateWhiteFrenk1991">
+  <coolingRate name="coolingRateWhiteFrenk1991" docformat="rst">
    <description>
-    A cooling rate class that uses the expression given by \cite{white_galaxy_1991}, namely
-    \begin{equation}
-    \dot{M}_\mathrm{cool} = \left\{ \begin{array}{ll} 4 \pi r_\mathrm{infall}^2 \rho(r_\mathrm{infall})
-    \dot{r}_\mathrm{infall}&amp; \hbox{ if } r_\mathrm{infall} &lt; r_\mathrm{hot, outer} \\ M_\mathrm{hot}/\tau_\mathrm{halo,
-    dynamical} &amp; \hbox{ if } r_\mathrm{infall} \ge r_\mathrm{hot, outer}, \end{array} \right. ,
-    \end{equation}
-    where $r_\mathrm{infall}$ is the infall radius (see \refPhysics{coolingInfallRadius}) in the hot halo and $\rho(r)$ is the
-    density profile of the hot halo.
+   A cooling rate class that uses the expression given by :cite:t:`white_galaxy_1991`, namely
+
+   .. math::
+
+      \dot{M}_\mathrm{cool} = \left\{ \begin{array}{ll} 4 \pi r_\mathrm{infall}^2 \rho(r_\mathrm{infall})
+      \dot{r}_\mathrm{infall}&amp; \hbox{ if } r_\mathrm{infall} &lt; r_\mathrm{hot, outer} \\ M_\mathrm{hot}/\tau_\mathrm{halo,
+      dynamical} &amp; \hbox{ if } r_\mathrm{infall} \ge r_\mathrm{hot, outer}, \end{array} \right. ,
+
+   where :math:`r_\mathrm{infall}` is the infall radius (see :galacticus-class:`coolingInfallRadius`) in the hot halo and :math:`\rho(r)` is the density profile of the hot halo.
    </description>
   </coolingRate>
   !!]
   type, extends(coolingRateClass) :: coolingRateWhiteFrenk1991
-     !!{
-     Implementation of cooling rate class for the \cite{white_galaxy_1991} cooling rate calculation.
+     !!{RST
+     Implementation of cooling rate class for the :cite:t:`white_galaxy_1991` cooling rate calculation.
      !!}
      private
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
@@ -52,8 +53,8 @@
   end type coolingRateWhiteFrenk1991
 
   interface coolingRateWhiteFrenk1991
-     !!{
-     Constructors for the \cite{white_galaxy_1991} cooling rate class.
+     !!{RST
+     Constructors for the :cite:t:`white_galaxy_1991` cooling rate class.
      !!}
      module procedure whiteFrenk1991ConstructorParameters
      module procedure whiteFrenk1991ConstructorInternal
@@ -62,8 +63,8 @@
 contains
 
   function whiteFrenk1991ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \cite{white_galaxy_1991} cooling rate class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :cite:t:`white_galaxy_1991` cooling rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,11 +75,13 @@ contains
     double precision                                           :: velocityCutOff
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityCutOff</name>
       <source>parameters</source>
       <defaultValue>1.0d4</defaultValue>
-      <description>The halo virial velocity (in km/s) above which cooling rates are forced to zero in the \cite{white_galaxy_1991} cooling rate model.</description>
+      <description>
+      The halo virial velocity (in km/s) above which cooling rates are forced to zero in the :cite:t:`white_galaxy_1991` cooling rate model.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     <objectBuilder class="coolingInfallRadius" name="coolingInfallRadius_" source="parameters"/>
@@ -93,8 +96,8 @@ contains
   end function whiteFrenk1991ConstructorParameters
 
   function whiteFrenk1991ConstructorInternal(velocityCutOff,darkMatterHaloScale_,coolingInfallRadius_) result(self)
-    !!{
-    Internal constructor for the \cite{white_galaxy_1991} cooling rate class.
+    !!{RST
+    Internal constructor for the :cite:t:`white_galaxy_1991` cooling rate class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Component_List          , Error_Report
@@ -130,8 +133,8 @@ contains
   end function whiteFrenk1991ConstructorInternal
 
   subroutine whiteFrenk1991Destructor(self)
-    !!{
-    Destructor for the \cite{white_galaxy_1991} cooling rate class.
+    !!{RST
+    Destructor for the :cite:t:`white_galaxy_1991` cooling rate class.
     !!}
     implicit none
     type(coolingRateWhiteFrenk1991), intent(inout) :: self
@@ -144,9 +147,8 @@ contains
   end subroutine whiteFrenk1991Destructor
 
   double precision function whiteFrenk1991Rate(self,node)
-    !!{
-    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere for the \cite{white_galaxy_1991} cooling rate
-    model.
+    !!{RST
+    Returns the cooling rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) in the hot atmosphere for the :cite:t:`white_galaxy_1991` cooling rate model.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentHotHalo , treeNode
     use :: Numerical_Constants_Math  , only : Pi

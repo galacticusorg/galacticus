@@ -17,25 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that causes dark matter profile shape parameter to be interpolated linearly between child and parent nodes.
   !!}
 
   use :: Dark_Matter_Profiles_Shape, only : darkMatterProfileShapeClass
   
   !![
-  <nodeOperator name="nodeOperatorDarkMatterProfileShapeInterpolate">
+  <nodeOperator name="nodeOperatorDarkMatterProfileShapeInterpolate" docformat="rst">
    <description>
-    A node operator class that causes dark matter profile shape parameter to be interpolated linearly between child and parent
-    nodes. For primary progenitor nodes $\dot{\alpha} = (\alpha_{i+1}-\alpha_{i})/(t_{i+1}-t_i)$, where $\alpha_{i}$ is the shape
-    parameter of the dark matter profile of the node in the initialized tree, $\alpha_{i+1}$ is the spin of its parent node, and
-    $t_i$ and $t_{i+1}$ are the corresponding times. For non-primary progenitors the rate of change is set to zero,
-    i.e. $\dot{\alpha}=0$.
+   A node operator class that causes dark matter profile shape parameter to be interpolated linearly between child and parent nodes. For primary progenitor nodes :math:`\dot{\alpha} = (\alpha_{i+1}-\alpha_{i})/(t_{i+1}-t_i)`, where :math:`\alpha_{i}` is the shape parameter of the dark matter profile of the node in the initialized tree, :math:`\alpha_{i+1}` is the spin of its parent node, and :math:`t_i` and :math:`t_{i+1}` are the corresponding times. For non-primary progenitors the rate of change is set to zero, i.e. :math:`\dot{\alpha}=0`.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDarkMatterProfileShapeInterpolate
-     !!{
+     !!{RST
      A node operator class that causes dark matter profile shape parameter to be interpolated linearly between child and parent nodes.
      !!}
      private
@@ -50,8 +46,8 @@
   end type nodeOperatorDarkMatterProfileShapeInterpolate
   
   interface nodeOperatorDarkMatterProfileShapeInterpolate
-     !!{
-     Constructors for the \refClass{nodeOperatorDarkMatterProfileShapeInterpolate} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorDarkMatterProfileShapeInterpolate` node operator class.
      !!}
      module procedure dmpShapeInterpolateConstructorParameters
      module procedure dmpShapeInterpolateConstructorInternal
@@ -60,8 +56,8 @@
 contains
   
   function dmpShapeInterpolateConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorDarkMatterProfileShapeInterpolate} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorDarkMatterProfileShapeInterpolate` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -81,8 +77,8 @@ contains
   end function dmpShapeInterpolateConstructorParameters
 
   function dmpShapeInterpolateConstructorInternal(darkMatterProfileShape_) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorDarkMatterProfileShapeInterpolate} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorDarkMatterProfileShapeInterpolate` node operator class which takes a parameter set as input.
     !!}
     implicit none
     type (nodeOperatorDarkMatterProfileShapeInterpolate)                        :: self
@@ -98,8 +94,8 @@ contains
   end function dmpShapeInterpolateConstructorInternal
 
   subroutine dmpShapeInterpolateConstructorDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorDarkMatterProfileShapeInterpolate} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorDarkMatterProfileShapeInterpolate` node operator class.
     !!}
     implicit none
     type(nodeOperatorDarkMatterProfileShapeInterpolate), intent(inout) :: self
@@ -111,7 +107,7 @@ contains
   end subroutine dmpShapeInterpolateConstructorDestructor
 
   subroutine dmpShapeInterpolateNodeInitialize(self,node)
-    !!{
+    !!{RST
     Compute the rate of growth of dark matter profile shape parameter assuming a constant growth rate.
     !!}
     use :: Display         , only : displayBlue       , displayGreen                  , displayYellow, displayBold, &
@@ -166,7 +162,7 @@ contains
   end subroutine dmpShapeInterpolateNodeInitialize
   
   subroutine dmpShapeInterpolateDifferentialEvolutionAnalytics(self,node)
-    !!{
+    !!{RST
     Mark analytically-solvable properties.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
@@ -181,7 +177,7 @@ contains
   end subroutine dmpShapeInterpolateDifferentialEvolutionAnalytics
 
   subroutine dmpShapeInterpolateDifferentialEvolutionSolveAnalytics(self,node,time)
-    !!{
+    !!{RST
     Evolve dark matter profile shape parameter at a constant rate, to achieve linear interpolation in time.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
@@ -208,9 +204,8 @@ contains
   end subroutine dmpShapeInterpolateDifferentialEvolutionSolveAnalytics
 
   subroutine dmpShapeInterpolateNodePromote(self,node)
-    !!{
-    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply update the shape parameter
-    growth rate of \mono{node} to be that of its parent.
+    !!{RST
+    Ensure that ``node`` is ready for promotion to its parent. In this case, we simply update the shape parameter growth rate of ``node`` to be that of its parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none

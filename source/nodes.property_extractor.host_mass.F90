@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a massHost property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMassHost">
-   <description>Extracts the virial mass of the immediate host (parent) halo for satellite nodes, distinguishing the mass of the surrounding host halo from the subhalo mass itself. Returns $-1$ for isolated (non-satellite) nodes where no host exists.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorMassHost" docformat="rst">
+   <description>
+   Extracts the virial mass of the immediate host (parent) halo for satellite nodes, distinguishing the mass of the surrounding host halo from the subhalo mass itself. Returns :math:`-1` for isolated (non-satellite) nodes where no host exists.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassHost
-     !!{
+     !!{RST
      A host halo mass property extractor class.
      !!}
      private
@@ -40,8 +42,8 @@ Implements a massHost property extractor class.
   end type nodePropertyExtractorMassHost
 
   interface nodePropertyExtractorMassHost
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMassHost} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassHost` property extractor class.
      !!}
      module procedure massHostConstructorParameters
   end interface nodePropertyExtractorMassHost
@@ -49,8 +51,8 @@ Implements a massHost property extractor class.
 contains
 
   function massHostConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMassHost} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassHost` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +67,7 @@ contains
   end function massHostConstructorParameters
 
   double precision function massHostExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a last isolated redshift output analysis.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -88,7 +90,7 @@ contains
   end function massHostExtract
 
   function massHostName(self)
-    !!{
+    !!{RST
     Return the name of the host halo mass property.
     !!}
     implicit none
@@ -101,7 +103,7 @@ contains
   end function massHostName
 
   function massHostDescription(self)
-    !!{
+    !!{RST
     Return a description of the host halo mass property.
     !!}
     implicit none
@@ -114,7 +116,7 @@ contains
   end function massHostDescription
 
   double precision function massHostUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the host halo mass in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
@@ -127,7 +129,7 @@ contains
   end function massHostUnitsInSI
 
   function massHostUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the massHost property.
     !!}
     use :: Units_MetaData, only : unitType

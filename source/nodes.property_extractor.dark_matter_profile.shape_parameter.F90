@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a dark matter profile scale radius output analysis property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorDarkMatterProfileShapeParameter">
-   <description>Extracts the shape parameter of the dark matter halo density profile (e.g., the Einasto index or inner logarithmic slope), which characterizes the curvature of the profile and distinguishes between different dark matter density models such as NFW, Einasto, or cored profiles.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorDarkMatterProfileShapeParameter" docformat="rst">
+   <description>
+   Extracts the shape parameter of the dark matter halo density profile (e.g., the Einasto index or inner logarithmic slope), which characterizes the curvature of the profile and distinguishes between different dark matter density models such as NFW, Einasto, or cored profiles.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorDarkMatterProfileShapeParameter
-     !!{
+     !!{RST
      A dark matter profile scale radius output property extractor class.
      !!}
      private
@@ -40,8 +42,8 @@ Implements a dark matter profile scale radius output analysis property extractor
   end type nodePropertyExtractorDarkMatterProfileShapeParameter
 
   interface nodePropertyExtractorDarkMatterProfileShapeParameter
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorDarkMatterProfileShapeParameter} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorDarkMatterProfileShapeParameter` property extractor class.
      !!}
      module procedure darkMatterProfileShapeParameterConstructorParameters
   end interface nodePropertyExtractorDarkMatterProfileShapeParameter
@@ -49,8 +51,8 @@ Implements a dark matter profile scale radius output analysis property extractor
 contains
 
   function darkMatterProfileShapeParameterConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorDarkMatterProfileShapeParameter} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorDarkMatterProfileShapeParameter` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,8 +67,8 @@ contains
   end function darkMatterProfileShapeParameterConstructorParameters
 
   double precision function darkMatterProfileShapeParameterExtract(self,node,instance)
-    !!{
-    Implement a \mono{darkMatterProfileShapeParameter} output analysis.
+    !!{RST
+    Implement a ``darkMatterProfileShapeParameter`` output analysis.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none
@@ -83,8 +85,8 @@ contains
 
 
   function darkMatterProfileShapeParameterName(self)
-    !!{
-    Return the name of the \mono{darkMatterProfileShapeParameter} property.
+    !!{RST
+    Return the name of the ``darkMatterProfileShapeParameter`` property.
     !!}
     implicit none
     type (varying_string                                      )                :: darkMatterProfileShapeParameterName
@@ -96,8 +98,8 @@ contains
   end function darkMatterProfileShapeParameterName
 
   function darkMatterProfileShapeParameterDescription(self)
-    !!{
-    Return a description of the \mono{darkMatterProfileShapeParameter} property.
+    !!{RST
+    Return a description of the ``darkMatterProfileShapeParameter`` property.
     !!}
     implicit none
     type (varying_string                                      )                :: darkMatterProfileShapeParameterDescription
@@ -109,7 +111,7 @@ contains
   end function darkMatterProfileShapeParameterDescription
 
   double precision function darkMatterProfileShapeParameterUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the darkMatterProfileShapeParameter property in the SI system.
     !!}
     implicit none
@@ -121,7 +123,7 @@ contains
   end function darkMatterProfileShapeParameterUnitsInSI
 
   function darkMatterProfileShapeParameterUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the darkMatterProfileShapeParameter property.
     !!}
     use :: Units_MetaData, only : unitType

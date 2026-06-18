@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program which tests the \cite{correa_accretion_2015} concentration-mass relation.
+!!{RST
+Contains a program which tests the :cite:t:`correa_accretion_2015` concentration-mass relation.
 !!}
 
 program Test_Correa2015_Concentration
-  !!{
-  Tests the \cite{correa_accretion_2015} concentration-mass relation.
+  !!{RST
+  Tests the :cite:t:`correa_accretion_2015` concentration-mass relation.
   !!}
   use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which determines the potential energy of each particle.
 !!}
 
@@ -25,12 +25,14 @@ Implements an N-body data operator which determines the potential energy of each
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   
   !![
-  <nbodyOperator name="nbodyOperatorPotentialEnergy">
-   <description>An N-body data operator which computes the gravitational potential energy of each particle in an N-body halo using a tree-based algorithm. Parameters control whether only self-bound particles contribute, the tree opening-angle criterion, particle sampling rate, and bootstrap resample count.</description>
+  <nbodyOperator name="nbodyOperatorPotentialEnergy" docformat="rst">
+   <description>
+   An N-body data operator which computes the gravitational potential energy of each particle in an N-body halo using a tree-based algorithm. Parameters control whether only self-bound particles contribute, the tree opening-angle criterion, particle sampling rate, and bootstrap resample count.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorPotentialEnergy
-     !!{
+     !!{RST
      An N-body data operator which determines the potential energy of each particle.
      !!}
      private
@@ -44,8 +46,8 @@ Implements an N-body data operator which determines the potential energy of each
   end type nbodyOperatorPotentialEnergy
 
   interface nbodyOperatorPotentialEnergy
-     !!{
-     Constructors for the \refClass{nbodyOperatorPotentialEnergy} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorPotentialEnergy` N-body operator class.
      !!}
      module procedure potentialEnergyConstructorParameters
      module procedure potentialEnergyConstructorInternal
@@ -54,8 +56,8 @@ Implements an N-body data operator which determines the potential energy of each
 contains
 
   function potentialEnergyConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorPotentialEnergy} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorPotentialEnergy` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -67,28 +69,36 @@ contains
     double precision                                              :: bootstrapSampleRate   , thetaTolerance 
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>selfBoundParticlesOnly</name>
       <source>parameters</source>
-      <description>If true, the gravitational potential is computed only from self-bound particles.</description>
+      <description>
+      If true, the gravitational potential is computed only from self-bound particles.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bootstrapSampleCount</name>
       <source>parameters</source>
       <defaultValue>30_c_size_t</defaultValue>
-      <description>The number of bootstrap resamples of the particles that should be used.</description>
+      <description>
+      The number of bootstrap resamples of the particles that should be used.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bootstrapSampleRate</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The sampling rate for particles.</description>
+      <description>
+      The sampling rate for particles.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>thetaTolerance</name>
       <source>parameters</source>
       <defaultValue>0.5d0</defaultValue>
-      <description>The Barnes-Hut opening-angle tolerance $\theta$; cells subtending an angle smaller than $\theta$ at a particle are treated as point masses, trading accuracy for speed.</description>
+      <description>
+      The Barnes-Hut opening-angle tolerance :math:`\theta`; cells subtending an angle smaller than :math:`\theta` at a particle are treated as point masses, trading accuracy for speed.
+      </description>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
@@ -101,8 +111,8 @@ contains
   end function potentialEnergyConstructorParameters
 
   function potentialEnergyConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,bootstrapSampleRate,thetaTolerance,randomNumberGenerator_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorPotentialEnergy} N-body operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyOperatorPotentialEnergy` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorPotentialEnergy)                        :: self
@@ -118,8 +128,8 @@ contains
   end function potentialEnergyConstructorInternal
 
   subroutine potentialEnergyDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorPotentialEnergy} N-body operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nbodyOperatorPotentialEnergy` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorPotentialEnergy), intent(inout) :: self
@@ -131,7 +141,7 @@ contains
   end subroutine potentialEnergyDestructor
   
   subroutine potentialEnergyOperate(self,simulations)
-    !!{
+    !!{RST
     Determine the acceleration of bound particles from stripped ones.
     !!}
     use :: Error                           , only : Error_Report
@@ -228,9 +238,8 @@ contains
   end subroutine potentialEnergyOperate
 
   subroutine potentialEnergyPotential(value,centerOfMass,nodeWeight,relativePosition,separation,separationSquared)
-    !!{
-    Compute the potential given the separation between a particle and a node in the octree. Currently assumes the functional form of the softening used by
-    Gadget.
+    !!{RST
+    Compute the potential given the separation between a particle and a node in the octree. Currently assumes the functional form of the softening used by Gadget.
     !!}
     implicit none
     double precision              , intent(inout) :: value

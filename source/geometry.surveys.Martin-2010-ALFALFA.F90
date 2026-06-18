@@ -17,50 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements the survey geometry used by \cite{martin_arecibo_2010}.
+!!{RST
+Implements the survey geometry used by :cite:t:`martin_arecibo_2010`.
 !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !![
-  <surveyGeometry name="surveyGeometryMartin2010ALFALFA">
+  <surveyGeometry name="surveyGeometryMartin2010ALFALFA" docformat="rst">
    <description>
-    A survey geometry class that describes the survey geometry of \cite{martin_arecibo_2010}. 
-    
-    For the angular mask we use the three disjoint regions defined by 07$^\mathrm{h}$30$^\mathrm{m}$ $&lt;$ R.A. $&lt;$
-    16$^\mathrm{h}$30$^\mathrm{m}$, +04$^\circ$ $&lt;$ decl. $&lt;$ +16$^\circ$, and +24$^\circ$ $&lt;$ decl. $&lt;$ +28$^\circ$ and
-    22$^\mathrm{h}$ $&lt;$ R.A. $&lt;$ 03$^\mathrm{h}$, +14$^\circ$ $&lt;$ decl. $&lt;$ +16$^\circ$, and +24$^\circ$ $&lt;$ decl. $&lt;$
-    +32$^\circ$ corresponding to the sample of \cite{martin_arecibo_2010}. When the survey window function is needed we
-    generate randomly distributed points within this angular mask and out to the survey depth. These points are used to
-    determine which elements of a 3D grid fall within the window function.
-    
-    To estimate the depth of the \cite{martin_arecibo_2010} sample as a function of galaxy HI mass we first infer the median
-    line width corresponding to that mass. To do so, we have fit the median line width-mass relation from the $\alpha.40$
-    sample with power-law function as shown in Fig.~\ref{fig:ALFALFALineWidthMassRelation}. We find that the median line width
-    can be approximated by
-    \begin{equation}
-     \log_{10} (W_\mathrm{50}/\hbox{km s}^{-1}) = c_0 + c_1 \log_10(M_\mathrm{HI}/\mathrm{M}_\odot),
-     \label{eq:ALFALFALineWidthMassRelation}
-    \end{equation}
-    with $c_0=-0.770$ and $c_1=0.315$. Given the line width, the corresponding integrated flux limit, $S_\mathrm{int}$, for a
-    signal-to-noise of $6.5$ is inferred using equation~(A1) of \cite{haynes_arecibo_2011}. Finally, this integrated flux limit
-    is converted to maximum distance at which the source could be detected using the expression given in the text of
-    section~2.2 of \cite{martin_arecibo_2010}:
-    \begin{equation}
-     M_\mathrm{HI} = 2.356\times10^5 \left({D\over \hbox{Mpc}}\right)^2 \left({S_\mathrm{int}\over\hbox{Jy km s}^{-1}}\right).
-    \end{equation}
-    
-    \begin{figure}
-     \begin{center}
-      \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/alfalfaHILineWidthMassRelation.pdf}
-     \end{center}
-     \caption{HI line width vs. HI mass as measured from the $\alpha.40$ survey of \protect\cite{martin_arecibo_2010}. Red
-     points with error bars show individual measurements, while the larger circles indicate the running median of these
-     data. The green line is a power-law fit to the running median as described in
-     eqn.~(\protect\ref{eq:ALFALFALineWidthMassRelation}).}
-     \label{fig:ALFALFALineWidthMassRelation}
-    \end{figure}
+   A survey geometry class that describes the survey geometry of :cite:t:`martin_arecibo_2010`.
+
+   For the angular mask we use the three disjoint regions defined by 07\ :math:`^\mathrm{h}`\ 30\ :math:`^\mathrm{m}` :math:`&lt;` R.A. :math:`&lt;` 16\ :math:`^\mathrm{h}`\ 30\ :math:`^\mathrm{m}`, +04\ :math:`^\circ` :math:`&lt;` decl. :math:`&lt;` +16\ :math:`^\circ`, and +24\ :math:`^\circ` :math:`&lt;` decl. :math:`&lt;` +28\ :math:`^\circ` and 22\ :math:`^\mathrm{h}` :math:`&lt;` R.A. :math:`&lt;` 03\ :math:`^\mathrm{h}`, +14\ :math:`^\circ` :math:`&lt;` decl. :math:`&lt;` +16\ :math:`^\circ`, and +24\ :math:`^\circ` :math:`&lt;` decl. :math:`&lt;` +32\ :math:`^\circ` corresponding to the sample of :cite:t:`martin_arecibo_2010`. When the survey window function is needed we generate randomly distributed points within this angular mask and out to the survey depth. These points are used to determine which elements of a 3D grid fall within the window function.
+
+   To estimate the depth of the :cite:t:`martin_arecibo_2010` sample as a function of galaxy HI mass we first infer the median line width corresponding to that mass. To do so, we have fit the median line width-mass relation from the :math:`\alpha.40` sample with power-law function as shown in Fig. :numref:`{number} &lt;fig-ALFALFALineWidthMassRelation&gt;`. We find that the median line width can be approximated by
+
+   .. math::
+      :label: eq-ALFALFALineWidthMassRelation
+
+      \log_{10} (W_\mathrm{50}/\hbox{km s}^{-1}) = c_0 + c_1 \log_10(M_\mathrm{HI}/\mathrm{M}_\odot),
+
+   with :math:`c_0=-0.770` and :math:`c_1=0.315`. Given the line width, the corresponding integrated flux limit, :math:`S_\mathrm{int}`, for a signal-to-noise of :math:`6.5` is inferred using equation (A1) of :cite:t:`haynes_arecibo_2011`. Finally, this integrated flux limit is converted to maximum distance at which the source could be detected using the expression given in the text of section 2.2 of :cite:t:`martin_arecibo_2010`:
+
+   .. math::
+
+      M_\mathrm{HI} = 2.356\times10^5 \left({D\over \hbox{Mpc}}\right)^2 \left({S_\mathrm{int}\over\hbox{Jy km s}^{-1}}\right).
+
+   .. figure:: Plots/DataAnalysis/alfalfaHILineWidthMassRelation.pdf
+      :name: fig-ALFALFALineWidthMassRelation
+
+      HI line width vs. HI mass as measured from the :math:`\alpha.40` survey of :cite:t:`martin_arecibo_2010`. Red points with error bars show individual measurements, while the larger circles indicate the running median of these data. The green line is a power-law fit to the running median as described in eqn. (:eq:`eq-ALFALFALineWidthMassRelation`).
    </description>
   </surveyGeometry>
   !!]
@@ -75,8 +61,8 @@ Implements the survey geometry used by \cite{martin_arecibo_2010}.
   end type surveyGeometryMartin2010ALFALFA
 
   interface surveyGeometryMartin2010ALFALFA
-     !!{
-     Constructors for the \cite{martin_arecibo_2010} survey geometry class.
+     !!{RST
+     Constructors for the :cite:t:`martin_arecibo_2010` survey geometry class.
      !!}
      module procedure martin2010ALFALFAConstructorParameters
      module procedure martin2010ALFALFAConstructorInternal
@@ -88,8 +74,8 @@ Implements the survey geometry used by \cite{martin_arecibo_2010}.
 contains
 
   function martin2010ALFALFAConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \cite{martin_arecibo_2010} conditional mass function class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :cite:t:`martin_arecibo_2010` conditional mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -112,8 +98,8 @@ contains
   end function martin2010ALFALFAConstructorParameters
 
   function martin2010ALFALFAConstructorInternal(cosmologyParameters_,randomNumberGenerator_) result(self)
-    !!{
-    Internal constructor for the \cite{martin_arecibo_2010} conditional mass function class.
+    !!{RST
+    Internal constructor for the :cite:t:`martin_arecibo_2010` conditional mass function class.
     !!}
     implicit none
     type (surveyGeometryMartin2010ALFALFA)                                  :: self
@@ -128,8 +114,8 @@ contains
   end function martin2010ALFALFAConstructorInternal
 
   subroutine martin2010ALFALFADestructor(self)
-    !!{
-    Destructor for the \refClass{surveyGeometryMartin2010ALFALFA} survey geometry class.
+    !!{RST
+    Destructor for the :galacticus-class:`surveyGeometryMartin2010ALFALFA` survey geometry class.
     !!}
     implicit none
     type(surveyGeometryMartin2010ALFALFA), intent(inout) :: self
@@ -142,7 +128,7 @@ contains
   end subroutine martin2010ALFALFADestructor
 
   double precision function martin2010ALFALFADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
-    !!{
+    !!{RST
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Error, only : Error_Report
@@ -193,8 +179,8 @@ contains
   end function martin2010ALFALFADistanceMaximum
 
   double precision function martin2010ALFALFASolidAngle(self,field)
-    !!{
-    Return the solid angle of the \cite{martin_arecibo_2010} sample.
+    !!{RST
+    Return the solid angle of the :cite:t:`martin_arecibo_2010` sample.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -210,7 +196,7 @@ contains
   end function martin2010ALFALFASolidAngle
 
   subroutine martin2010ALFALFARandomsInitialize(self)
-    !!{
+    !!{RST
     Initialize random points for the survey.
     !!}
     use :: Numerical_Constants_Astronomical, only : degreesToRadians       , hoursToRadians

@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements trigonometric functions.
 !!}
 
 module Trigonometric_Functions
-  !!{
+  !!{RST
   Implements trigonometric functions.
   !!}
   implicit none
@@ -42,8 +42,8 @@ module Trigonometric_Functions
 contains
 
   double precision function hypotenuse(x)
-    !!{
-    Compute the $N$-dimensional hypotenuse, $(\sum_{i=1}^N x_i^2)^{1/2}$ avoiding undue floating point overflow.
+    !!{RST
+    Compute the :math:`N`-dimensional hypotenuse, :math:`(\sum_{i=1}^N x_i^2)^{1/2}` avoiding undue floating point overflow.
     !!}
     implicit none
     double precision, intent(in   ), dimension(:) :: x
@@ -55,8 +55,8 @@ contains
   end function hypotenuse
   
   double precision function cotDouble(x)
-    !!{
-    Implements cotangent for double precision \mono{x}.
+    !!{RST
+    Implements cotangent for double precision ``x``.
     !!}
     implicit none
     double precision, intent(in   ) :: x
@@ -66,8 +66,8 @@ contains
   end function cotDouble
 
   double complex function cotDoubleComplex(x)
-    !!{
-    Implements cotangent for double precision complex \mono{x}.
+    !!{RST
+    Implements cotangent for double precision complex ``x``.
     !!}
     implicit none
     double complex, intent(in   ) :: x
@@ -77,8 +77,8 @@ contains
   end function cotDoubleComplex
 
   double precision function cosecDouble(x)
-    !!{
-    Implements cosecant for double precision \mono{x}.
+    !!{RST
+    Implements cosecant for double precision ``x``.
     !!}
     implicit none
     double precision, intent(in   ) :: x
@@ -88,8 +88,8 @@ contains
   end function cosecDouble
 
   double complex function cosecDoubleComplex(x)
-    !!{
-    Implements cosecant for double precision complex \mono{x}.
+    !!{RST
+    Implements cosecant for double precision complex ``x``.
     !!}
     implicit none
     double complex, intent(in   ) :: x

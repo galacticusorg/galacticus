@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a \cite{tinker_towardhalo_2008} dark matter halo mass function class.
+  !!{RST
+  Implements a :cite:t:`tinker_towardhalo_2008` dark matter halo mass function class.
   !!}
 
   !![
-  <haloMassFunction name="haloMassFunctionRodriguezPuebla2016">
-   <description>The halo mass function is computed from the function given by \cite{tinker_towardhalo_2008}, and using the fits of \cite{rodriguez-puebla_halo_2016} for the parameter values.</description>
+  <haloMassFunction name="haloMassFunctionRodriguezPuebla2016" docformat="rst">
+   <description>
+   The halo mass function is computed from the function given by :cite:t:`tinker_towardhalo_2008`, and using the fits of :cite:t:`rodriguez-puebla_halo_2016` for the parameter values.
+   </description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionTinker2008Form) :: haloMassFunctionRodriguezPuebla2016
-     !!{
-     A halo mass function class using the fitting function of \cite{tinker_towardhalo_2008}, and using the fits of \cite{rodriguez-puebla_halo_2016} for the parameter values.
+     !!{RST
+     A halo mass function class using the fitting function of :cite:t:`tinker_towardhalo_2008`, and using the fits of :cite:t:`rodriguez-puebla_halo_2016` for the parameter values.
      !!}
      private
    contains
@@ -40,8 +42,8 @@
   end type haloMassFunctionRodriguezPuebla2016
 
   interface haloMassFunctionRodriguezPuebla2016
-     !!{
-     Constructors for the \refClass{haloMassFunctionRodriguezPuebla2016} halo mass function class.
+     !!{RST
+     Constructors for the :galacticus-class:`haloMassFunctionRodriguezPuebla2016` halo mass function class.
      !!}
      module procedure rodriguezPuebla2016ConstructorParameters
      module procedure rodriguezPuebla2016ConstructorInternal
@@ -50,8 +52,8 @@
 contains
 
   function rodriguezPuebla2016ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{haloMassFunctionRodriguezPuebla2016} halo mass function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`haloMassFunctionRodriguezPuebla2016` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,8 +88,8 @@ contains
   end function rodriguezPuebla2016ConstructorParameters
 
   function rodriguezPuebla2016ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{haloMassFunctionRodriguezPuebla2016} halo mass function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`haloMassFunctionRodriguezPuebla2016` halo mass function class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -106,8 +108,8 @@ contains
   end function rodriguezPuebla2016ConstructorInternal
 
   subroutine rodriguezPuebla2016Destructor(self)
-    !!{
-    Destructor for the \refClass{haloMassFunctionRodriguezPuebla2016} halo mass function class.
+    !!{RST
+    Destructor for the :galacticus-class:`haloMassFunctionRodriguezPuebla2016` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionRodriguezPuebla2016), intent(inout) :: self
@@ -122,8 +124,8 @@ contains
   end subroutine rodriguezPuebla2016Destructor
 
   double precision function rodriguezPuebla2016Normalization(self,time,mass)
-    !!{
-    Return the normalization for the \mono{rodriguezPuebla2016} halo mass function class.
+    !!{RST
+    Return the normalization for the ``rodriguezPuebla2016`` halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionRodriguezPuebla2016), intent(inout) :: self
@@ -146,8 +148,8 @@ contains
   end function rodriguezPuebla2016Normalization
 
   double precision function rodriguezPuebla2016A(self,time,mass)
-    !!{
-    Return the normalization for the \mono{rodriguezPuebla2016} halo mass function class.
+    !!{RST
+    Return the normalization for the ``rodriguezPuebla2016`` halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionRodriguezPuebla2016), intent(inout) :: self
@@ -171,8 +173,8 @@ contains
   end function rodriguezPuebla2016A
 
   double precision function rodriguezPuebla2016B(self,time,mass)
-    !!{
-    Return the normalization for the \mono{rodriguezPuebla2016} halo mass function class.
+    !!{RST
+    Return the normalization for the ``rodriguezPuebla2016`` halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionRodriguezPuebla2016), intent(inout) :: self
@@ -196,8 +198,8 @@ contains
   end function rodriguezPuebla2016B
 
   double precision function rodriguezPuebla2016C(self,time,mass)
-    !!{
-    Return the normalization for the \mono{rodriguezPuebla2016} halo mass function class.
+    !!{RST
+    Return the normalization for the ``rodriguezPuebla2016`` halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionRodriguezPuebla2016), intent(inout) :: self

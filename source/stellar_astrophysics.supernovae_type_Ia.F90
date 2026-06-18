@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class for calculations of Type Ia supernovae.
 !!}
 
 module Supernovae_Type_Ia
-  !!{
+  !!{RST
   Implements a class for calculations of Type Ia supernovae.
   !!}
   use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionClass
@@ -30,18 +30,17 @@ module Supernovae_Type_Ia
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>supernovaeTypeIa</name>
    <descriptiveName>Supernovae Type Ia</descriptiveName>
-   <description>Class providing models of Type Ia supernovae from a stellar population, specifically the cumulative
-    number of Type Ia events and the associated metal yield (iron-peak elements) as a function of initial stellar
-    population mass, age, and metallicity. Type Ia supernovae are thermonuclear explosions of white dwarfs in
-    binary systems and are the dominant source of iron in the universe. Their delay-time distribution governs the
-    iron enrichment history of galaxies and is expected to vary across different prescriptions (e.g.\ power-law
-    vs.\ single-degenerate vs.\ double-degenerate channels).</description>
+   <description>
+   Class providing models of Type Ia supernovae from a stellar population, specifically the cumulative number of Type Ia events and the associated metal yield (iron-peak elements) as a function of initial stellar population mass, age, and metallicity. Type Ia supernovae are thermonuclear explosions of white dwarfs in binary systems and are the dominant source of iron in the universe. Their delay-time distribution governs the iron enrichment history of galaxies and is expected to vary across different prescriptions (e.g.\ power-law vs.\ single-degenerate vs.\ double-degenerate channels).
+   </description>
    <default>nagashima2005</default>
    <method name="massInitialRange" >
-    <description>Return the range of initial stellar masses that contribute to the Type Ia population.</description>
+    <description>
+    Return the range of initial stellar masses that contribute to the Type Ia population.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>class           (initialMassFunctionClass), intent(inout) :: initialMassFunction_                    </argument>
@@ -49,7 +48,9 @@ module Supernovae_Type_Ia
     <argument>double precision                          , intent(  out) :: massInitialMinimum  , massInitialMaximum</argument>
    </method>
    <method name="number" >
-    <description>Return the cumulative number of Type Ia supernovae from a stellar population of the given \mono{initialMass}, \mono{age}, and \mono{metallicity}.</description>
+    <description>
+    Return the cumulative number of Type Ia supernovae from a stellar population of the given ``initialMass``, ``age``, and ``metallicity``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -57,7 +58,9 @@ module Supernovae_Type_Ia
     <argument>double precision                          , intent(in   )         :: initialMass         , age, metallicity</argument>
    </method>
    <method name="yield" >
-    <description>Return the cumulative yield from Type Ia supernoave from a stellar population of the given \mono{initialMass}, \mono{age}, and \mono{metallicity}.</description>
+    <description>
+    Return the cumulative yield from Type Ia supernovae from a stellar population of the given ``initialMass``, ``age``, and ``metallicity``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class           (initialMassFunctionClass), intent(inout)           :: initialMassFunction_                  </argument>

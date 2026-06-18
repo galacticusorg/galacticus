@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides buffer types for merger tree outputters.
 !!}
 
 module Merger_Tree_Outputter_Buffer_Types
-  !!{
+  !!{RST
   Provides buffer types for merger tree outputters.
   !!}
   use :: Kind_Numbers      , only : kind_int8
@@ -36,7 +36,7 @@ module Merger_Tree_Outputter_Buffer_Types
   integer, parameter :: propertyNameLengthMax=256, propertyCommentLengthMax=256
 
   type :: outputPropertyInteger
-     !!{
+     !!{RST
      A type used to store integer data for output.
      !!}
      character       (len=propertyNameLengthMax   )                              :: name
@@ -51,7 +51,7 @@ module Merger_Tree_Outputter_Buffer_Types
   end type outputPropertyInteger
 
   type :: outputPropertyDouble
-     !!{
+     !!{RST
      A type used to store double precision data for output.
      !!}
      character       (len=propertyNameLengthMax   )                              :: name

@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of a merger tree builder mass resolution which assumes a resolution which scales with tree mass.
   !!}
 
   !![
-  <mergerTreeMassResolution name="mergerTreeMassResolutionScaled">
+  <mergerTreeMassResolution name="mergerTreeMassResolutionScaled" docformat="rst">
    <description>
-    A merger tree mass resolution class which computes the mass resolution to be min(\mono{[massResolutionMaximum]},max(\mono{[massResolutionMinimum]},\mono{[massResolutionFractional]}$\times M_\mathrm{base}$)), where $M_\mathrm{base}$ is the base mass of the merger tree.
+   A merger tree mass resolution class which computes the mass resolution to be min(``[massResolutionMaximum]``,max(``[massResolutionMinimum]``,\ ``[massResolutionFractional]``\ :math:`\times M_\mathrm{base}`)), where :math:`M_\mathrm{base}` is the base mass of the merger tree.
    </description>
   </mergerTreeMassResolution>
   !!]
   type, extends(mergerTreeMassResolutionClass) :: mergerTreeMassResolutionScaled
-     !!{
+     !!{RST
      A merger tree mass resolution class which assumes a mass resolution that scales with tree mass.
      !!}
      private
@@ -40,8 +40,8 @@
   end type mergerTreeMassResolutionScaled
 
   interface mergerTreeMassResolutionScaled
-     !!{
-     Constructors for the \refClass{mergerTreeMassResolutionScaled} merger tree building mass resolution class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeMassResolutionScaled` merger tree building mass resolution class.
      !!}
      module procedure scaledConstructorParameters
      module procedure scaledConstructorInternal
@@ -50,9 +50,8 @@
 contains
 
   function scaledConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeMassResolutionScaled} merger tree building mass resolution class which reads parameters from a
-    provided parameter list.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeMassResolutionScaled` merger tree building mass resolution class which reads parameters from a provided parameter list.
     !!}
     implicit none
     type            (mergerTreeMassResolutionScaled)                :: self
@@ -62,23 +61,29 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massResolutionMinimum</name>
       <source>parameters</source>
       <defaultValue>5.0d9</defaultValue>
-      <description>The minimum mass resolution to use when building merger trees.</description>
+      <description>
+      The minimum mass resolution to use when building merger trees.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massResolutionMaximum</name>
       <source>parameters</source>
       <defaultValue>huge(0.0d0)</defaultValue>
-      <description>The maximum mass resolution to use when building merger trees.</description>
+      <description>
+      The maximum mass resolution to use when building merger trees.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massResolutionFractional</name>
       <source>parameters</source>
       <defaultValue>1.0d-3</defaultValue>
-      <description>The fraction of the tree's root node mass to be used for the mass resolution when building merger trees.</description>
+      <description>
+      The fraction of the tree's root node mass to be used for the mass resolution when building merger trees.
+      </description>
     </inputParameter>
     !!]
     self=mergerTreeMassResolutionScaled(massResolutionMinimum,massResolutionMaximum,massResolutionFractional)
@@ -89,8 +94,8 @@ contains
   end function scaledConstructorParameters
 
   function scaledConstructorInternal(massResolutionMinimum,massResolutionMaximum,massResolutionFractional) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeMassResolutionScaled} merger tree building mass resolution class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeMassResolutionScaled` merger tree building mass resolution class.
     !!}
     implicit none
     type            (mergerTreeMassResolutionScaled)                :: self
@@ -104,7 +109,7 @@ contains
   end function scaledConstructorInternal
 
   double precision function scaledResolution(self,tree)
-    !!{
+    !!{RST
     Returns a scaled mass resolution to use when building merger trees.
     !!}
     use :: Galacticus_Nodes, only : mergerTree, nodeComponentBasic

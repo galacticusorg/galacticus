@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a kinematic distribution class for NFW mass distributions.
   !!}
 
   !![
-  <kinematicsDistribution name="kinematicsDistributionNFW">
-   <description>A kinematic distribution class that computes the collisionless 1D velocity dispersion profile for Navarro-Frenk-White (NFW) dark matter mass distributions by solving the Jeans equation. A series approximation for the velocity dispersion integral can be selected via \mono{[useSeriesApproximation]} to improve numerical efficiency.</description>
+  <kinematicsDistribution name="kinematicsDistributionNFW" docformat="rst">
+   <description>
+   A kinematic distribution class that computes the collisionless 1D velocity dispersion profile for Navarro-Frenk-White (NFW) dark matter mass distributions by solving the Jeans equation. A series approximation for the velocity dispersion integral can be selected via ``[useSeriesApproximation]`` to improve numerical efficiency.
+   </description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionNFW
-     !!{
+     !!{RST
      A kinematics distribution for NFW distributions.
      !!}
      logical :: useSeriesApproximation
@@ -37,8 +39,8 @@
   end type kinematicsDistributionNFW
 
   interface kinematicsDistributionNFW
-     !!{
-     Constructors for the \refClass{kinematicsDistributionNFW} kinematic distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`kinematicsDistributionNFW` kinematic distribution class.
      !!}
      module procedure nfwConstructorParameters
      module procedure nfwConstructorInternal
@@ -47,9 +49,8 @@
 contains
 
   function nfwConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionNFW} kinematic distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`kinematicsDistributionNFW` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -58,10 +59,12 @@ contains
     logical                                           :: useSeriesApproximation
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
     <name>useSeriesApproximation</name>
     <defaultValue>.true.</defaultValue>
-    <description>If true, use a fast series approximation to the velocity dispersion profile in an NFW mass distribution. The approximation matches the exact (dilogarithm-based) form to better than $5\times 10^{-6}$ in relative terms across $r/r_\mathrm{s} \in [10^{-4},10^4]$ (see \mono{tests.kinematic\_distributions.NFW}).</description>
+    <description>
+    If true, use a fast series approximation to the velocity dispersion profile in an NFW mass distribution. The approximation matches the exact (dilogarithm-based) form to better than :math:`5\times 10^{-6}` in relative terms across :math:`r/r_\mathrm{s} \in [10^{-4},10^4]` (see ``tests.kinematic_distributions.NFW``).
+    </description>
     <source>parameters</source>
     </inputParameter>
     !!]
@@ -73,8 +76,8 @@ contains
   end function nfwConstructorParameters
 
   function nfwConstructorInternal(useSeriesApproximation) result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionNFW} kinematic distribution class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`kinematicsDistributionNFW` kinematic distribution class.
     !!}
     implicit none
     type   (kinematicsDistributionNFW)                :: self
@@ -87,7 +90,7 @@ contains
   end function nfwConstructorInternal
   
   logical function nfwIsCollisional(self)
-    !!{
+    !!{RST
     Return true indicating that the nfw kinematic distribution represents collisional particles.
     !!}
     implicit none
@@ -98,8 +101,8 @@ contains
   end function nfwIsCollisional
 
   double precision function nfwVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
-    !!{
-    Return the 1D velocity dispersion at the specified \mono{coordinates} in an NFW kinematic distribution.
+    !!{RST
+    Return the 1D velocity dispersion at the specified ``coordinates`` in an NFW kinematic distribution.
     !!}
     use :: Dilogarithms                    , only : Dilogarithm
     use :: Numerical_Constants_Math        , only : Pi

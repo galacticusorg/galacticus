@@ -17,14 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a identity modifier for power spectra in the halo model of clustering.
 !!}
 
   !![
-  <haloModelPowerSpectrumModifier name="haloModelPowerSpectrumModifierIdentity">
+  <haloModelPowerSpectrumModifier name="haloModelPowerSpectrumModifierIdentity" docformat="rst">
    <description>
-    A halo model power spectrum modifier class which applies an identity modifier.
+   A halo model power spectrum modifier class which applies an identity modifier.
    </description>
   </haloModelPowerSpectrumModifier>
   !!]
@@ -35,8 +35,8 @@ Implements a identity modifier for power spectra in the halo model of clustering
   end type haloModelPowerSpectrumModifierIdentity
 
   interface haloModelPowerSpectrumModifierIdentity
-     !!{
-     Constructors for the \refClass{haloModelPowerSpectrumModifierIdentity} halo model power spectrum modifier class.
+     !!{RST
+     Constructors for the :galacticus-class:`haloModelPowerSpectrumModifierIdentity` halo model power spectrum modifier class.
      !!}
      module procedure identityConstructorParameters
   end interface haloModelPowerSpectrumModifierIdentity
@@ -44,9 +44,8 @@ Implements a identity modifier for power spectra in the halo model of clustering
 contains
 
   function identityConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{identity} hot halo outflow reincorporation class which takes a parameter
-    set as input.
+    !!{RST
+    Default constructor for the ``identity`` hot halo outflow reincorporation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +60,7 @@ contains
   end function identityConstructorParameters
 
   subroutine identityModify(self,wavenumber,term,powerSpectrum,powerSpectrumCovariance,mass)
-    !!{
+    !!{RST
     Applies a identity modification to a halo model power spectrum.
     !!}
     implicit none

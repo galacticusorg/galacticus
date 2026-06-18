@@ -19,20 +19,20 @@
 
   !+    Contributions to this file made by: Yu Zhao
 
-  !!{
-  Implementation of a mass distribution class for fuzzy dark matter halos consisting of soliton profiles \citep{schive_understanding_2014}.   
+  !!{RST
+  Implementation of a mass distribution class for fuzzy dark matter halos consisting of soliton profiles :cite:p:`schive_understanding_2014`.
   !!}
   
   !![
-  <massDistribution name="massDistributionSoliton">
+  <massDistribution name="massDistributionSoliton" docformat="rst">
     <description>
-      A mass distribution class representing the solitonic core of fuzzy dark matter halos \citep{schive_understanding_2014}.
+    A mass distribution class representing the solitonic core of fuzzy dark matter halos :cite:p:`schive_understanding_2014`.
     </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSphericalTabulated) :: massDistributionSoliton
-     !!{
-     A mass distribution class representing the solitonic core of fuzzy dark matter halos \citep{schive_understanding_2014}.   
+     !!{RST
+     A mass distribution class representing the solitonic core of fuzzy dark matter halos :cite:p:`schive_understanding_2014`.
      !!}
      private
      double precision :: radiusCore, densitySolitonCentral
@@ -49,8 +49,8 @@
   end type massDistributionSoliton
   
    interface massDistributionSoliton
-     !!{
-     Constructors for the \mono{soliton} mass distribution class.
+     !!{RST
+     Constructors for the ``soliton`` mass distribution class.
      !!}
      module procedure solitonConstructorParameters
      module procedure solitonConstructorInternal
@@ -67,7 +67,7 @@
  contains
    
    function solitonConstructorParameters(parameters) result(self)
-     !!{
+     !!{RST
      Constructor for the soliton mass distribution class which builds the object from a parameter set.
      !!}
      use :: Input_Parameters          , only : inputParameter                , inputParameters
@@ -83,38 +83,50 @@
      type            (varying_string         )                :: massType
      
      !![
-     <inputParameter>
+     <inputParameter docformat="rst">
        <name>radiusCore</name>
-       <description>The soliton core radius (in Mpc) characterizing the size of the quantum pressure-supported central core of the fuzzy dark matter halo; the density profile flattens inside this scale.</description>
+       <description>
+       The soliton core radius (in Mpc) characterizing the size of the quantum pressure-supported central core of the fuzzy dark matter halo; the density profile flattens inside this scale.
+       </description>
        <source>parameters</source>
      </inputParameter>
-     <inputParameter>
+     <inputParameter docformat="rst">
        <name>densitySolitonCentral</name>
-       <description>The central density (in $\mathrm{M}_\odot$/Mpc$^3$) of the solitonic core at $r=0$, which sets the overall normalization of the density profile $\rho(r) = \rho_\mathrm{c} [1+(r/r_c)^2]^{-8}$.</description>
+       <description>
+       The central density (in :math:`\mathrm{M}_\odot`/Mpc\ :math:`^3`) of the solitonic core at :math:`r=0`, which sets the overall normalization of the density profile :math:`\rho(r) = \rho_\mathrm{c} [1+(r/r_c)^2]^{-8}`.
+       </description>
        <source>parameters</source>
      </inputParameter>
-     <inputParameter>
+     <inputParameter docformat="rst">
        <name>toleranceRelativePotential</name>
        <defaultValue>1.0d-3</defaultValue>
-       <description>The relative tolerance used in numerical ODE solutions for the gravitational potential of the solitonic core profile.</description>
+       <description>
+       The relative tolerance used in numerical ODE solutions for the gravitational potential of the solitonic core profile.
+       </description>
        <source>parameters</source>
      </inputParameter>
-     <inputParameter>
+     <inputParameter docformat="rst">
        <name>dimensionless</name>
        <defaultValue>.true.</defaultValue>
-       <description>If true the soliton profile is treated as dimensionless (scale-free), allowing its radial and density quantities to be specified in arbitrary units.</description>
+       <description>
+       If true the soliton profile is treated as dimensionless (scale-free), allowing its radial and density quantities to be specified in arbitrary units.
+       </description>
        <source>parameters</source>
      </inputParameter>
-     <inputParameter>
+     <inputParameter docformat="rst">
        <name>componentType</name>
        <defaultValue>var_str('unknown')</defaultValue>
-       <description>The galactic structure component type (e.g.\ dark matter halo, disk, spheroid) represented by this mass distribution, used for component-specific queries.</description>
+       <description>
+       The galactic structure component type (e.g.\ dark matter halo, disk, spheroid) represented by this mass distribution, used for component-specific queries.
+       </description>
        <source>parameters</source>
      </inputParameter>
-     <inputParameter>
+     <inputParameter docformat="rst">
        <name>massType</name>
        <defaultValue>var_str('unknown')</defaultValue>
-       <description>The mass type (e.g.\ dark matter, baryonic, total) represented by this mass distribution, used for mass-type-specific queries.</description>
+       <description>
+       The mass type (e.g.\ dark matter, baryonic, total) represented by this mass distribution, used for mass-type-specific queries.
+       </description>
        <source>parameters</source>
      </inputParameter>
      <conditionalCall>
@@ -131,8 +143,8 @@
    end function solitonConstructorParameters
    
    function solitonConstructorInternal(radiusCore,densitySolitonCentral,dimensionless,componentType,massType,toleranceRelativePotential) result(self)
-     !!{
-     Internal constructor for ``soliton'' mass distribution class.
+     !!{RST
+     Internal constructor for "soliton" mass distribution class.
      !!}
      use :: Error, only : Error_Report
      implicit none
@@ -168,7 +180,7 @@
    end function solitonConstructorInternal
    
    function solitonFactoryTabulation(self,parameters) result(instance)
-     !!{
+     !!{RST
      Construct an instance of this class using tabulation parameters.
      !!}
      implicit none
@@ -189,8 +201,8 @@
    end function solitonFactoryTabulation
    
    double precision function solitonMassEnclosedBySphere(self,radius) result(mass)
-     !!{
-     Return the mass at the specified \mono{coordinates} in a soliton mass distribution.
+     !!{RST
+     Return the mass at the specified ``coordinates`` in a soliton mass distribution.
      !!}
      use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
      use :: Numerical_Constants_Math            , only : Pi
@@ -242,8 +254,8 @@
    end function solitonMassEnclosedBySphere
    
    double precision function solitonDensity(self,coordinates) result(density)
-     !!{
-     Return the density at the specified \mono{coordinates} in a soliton mass distribution.
+     !!{RST
+     Return the density at the specified ``coordinates`` in a soliton mass distribution.
      !!}
      use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
      implicit none
@@ -262,8 +274,8 @@
    end function solitonDensity
    
    double precision function solitonDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
-     !!{
-     Return the radial density gradient at the specified \mono{coordinates} in a soliton mass distribution.
+     !!{RST
+     Return the radial density gradient at the specified ``coordinates`` in a soliton mass distribution.
      !!}
      use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
      implicit none
@@ -294,7 +306,7 @@
    end function solitonDensityGradientRadial
    
    double precision function solitonRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
-     !!{
+     !!{RST
      Computes the radius enclosing a given mean density for soliton mass distributions.
      !!}
      use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
@@ -328,7 +340,7 @@
    end function solitonRadiusEnclosingDensity
    
    double precision function solitonRadiusEnclosingDensityNumerical(self,density,radiusGuess) result(radius)
-     !!{
+     !!{RST
      Computes the radius enclosing a given mean density for soliton mass distributions.
      !!}
      use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
@@ -361,7 +373,7 @@
    end function solitonRadiusEnclosingDensityNumerical
    
    subroutine solitonParameters(self,densityNormalization,radiusNormalization,parameters,container)
-     !!{
+     !!{RST
      Establish parameters for tabulation.
      !!}
      implicit none
@@ -407,7 +419,7 @@
    end subroutine solitonParameters
    
    subroutine solitonDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
-     !!{
+     !!{RST
      Return an input parameter list descriptor which could be used to recreate this object.
      !!}
      use :: Input_Parameters, only : inputParameters
@@ -429,7 +441,7 @@
    end subroutine solitonDescriptor
    
    function solitonSuffix(self) result(suffix)
-     !!{
+     !!{RST
      Return a suffix for tabulated file names.
      !!}
      use :: String_Handling, only : String_C_To_Fortran

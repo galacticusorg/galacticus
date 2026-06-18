@@ -19,8 +19,8 @@
 
   !+    Contributions to this file made by: Matías Liempi
 
-  !!{
-  Implements a node operator class that performs star formation in \glspl{nsc}.
+  !!{RST
+  Implements a node operator class that performs star formation in :term:`NSC`.
   !!}
 
   use :: Star_Formation_Rates_Nuclear_Star_Clusters, only : starFormationRateNuclearStarClustersClass
@@ -28,13 +28,15 @@
   use :: Star_Formation_Histories                  , only : starFormationHistoryClass
 
   !![
-  <nodeOperator name="nodeOperatorStarFormationNuclearStarClusters">
-   <description>A node operator class that performs star formation in nuclear star clusters (\glspl{nsc}) by integrating gas conversion into stars at each ODE timestep. The star formation rate is computed by \refClass{starFormationRateNuclearStarClustersClass} and applied to evolve the \gls{nsc} gas mass, stellar mass, chemical abundances, and star formation history. \mono{luminositiesStellarInactive} controls whether stellar luminosities participate in the ODE solver.</description>
+  <nodeOperator name="nodeOperatorStarFormationNuclearStarClusters" docformat="rst">
+   <description>
+   A node operator class that performs star formation in nuclear star clusters (:term:`NSC`) by integrating gas conversion into stars at each ODE timestep. The star formation rate is computed by :galacticus-class:`starFormationRateNuclearStarClustersClass` and applied to evolve the :term:`NSC` gas mass, stellar mass, chemical abundances, and star formation history. ``luminositiesStellarInactive`` controls whether stellar luminosities participate in the ODE solver.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorStarFormationNuclearStarClusters
-     !!{
-     A node operator class that performs star formation in \glspl{nsc}.
+     !!{RST
+     A node operator class that performs star formation in :term:`NSC`.
      !!}
      private
      class  (starFormationRateNuclearStarClustersClass), pointer :: starFormationRateNuclearStarClusters_ => null()
@@ -48,8 +50,8 @@
   end type nodeOperatorStarFormationNuclearStarClusters
   
   interface nodeOperatorStarFormationNuclearStarClusters
-     !!{
-     Constructors for the \refClass{nodeOperatorStarFormationNuclearStarClusters} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorStarFormationNuclearStarClusters` node operator class.
      !!}
      module procedure starFormationNuclearStarClustersConstructorParameters
      module procedure starFormationNuclearStarClustersConstructorInternal
@@ -58,8 +60,8 @@
 contains
 
   function starFormationNuclearStarClustersConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorStarFormationNuclearStarClusters} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorStarFormationNuclearStarClusters` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,11 +73,13 @@ contains
     logical                                                              :: luminositiesStellarInactive
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>luminositiesStellarInactive</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If true, stellar luminosities will be treated as inactive properties.</description>
+      <description>
+      If true, stellar luminosities will be treated as inactive properties.
+      </description>
     </inputParameter>
     <objectBuilder class="starFormationRateNuclearStarClusters" name="starFormationRateNuclearStarClusters_" source="parameters"/>
     <objectBuilder class="stellarPopulationProperties"          name="stellarPopulationProperties_"          source="parameters"/>
@@ -92,8 +96,8 @@ contains
   end function starFormationNuclearStarClustersConstructorParameters
 
   function starFormationNuclearStarClustersConstructorInternal(luminositiesStellarInactive,starFormationRateNuclearStarClusters_,stellarPopulationProperties_,starFormationHistory_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorStarFormationNuclearStarClusters} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorStarFormationNuclearStarClusters` node operator class.
     !!}
     implicit none
     type   (nodeOperatorStarFormationNuclearStarClusters)                        :: self
@@ -109,8 +113,8 @@ contains
   end function starFormationNuclearStarClustersConstructorInternal
 
   subroutine starFormationNuclearStarClustersDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorStarFormationNuclearStarClusters} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorStarFormationNuclearStarClusters` node operator class.
     !!}
     implicit none
     type(nodeOperatorStarFormationNuclearStarClusters), intent(inout) :: self
@@ -124,7 +128,7 @@ contains
   end subroutine starFormationNuclearStarClustersDestructor
   
   subroutine starFormationNuclearStarClustersDifferentialEvolutionAnalytics(self,node)
-    !!{
+    !!{RST
     Mark the formed stellar mass as analytically-solvable.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentNSC
@@ -148,7 +152,7 @@ contains
   end subroutine starFormationNuclearStarClustersDifferentialEvolutionAnalytics
 
   subroutine starFormationNuclearStarClustersDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Perform star formation in a nuclear star cluster.
     !!}
     use :: Abundances_Structure          , only : abundances

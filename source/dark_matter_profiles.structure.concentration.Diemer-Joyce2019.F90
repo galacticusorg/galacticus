@@ -19,9 +19,8 @@
 
   !+    Contributions to this file made by: Xiaolong Du
   
-  !!{
-  An implementation of dark matter halo profile concentrations using the
-  \cite{diemer_accurate_2019} algorithm.
+  !!{RST
+  An implementation of dark matter halo profile concentrations using the :cite:t:`diemer_accurate_2019` algorithm.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
@@ -33,8 +32,10 @@
   use :: Root_Finder               , only : rootFinder
 
   !![
-  <darkMatterProfileConcentration name="darkMatterProfileConcentrationDiemerJoyce2019">
-   <description>Computes dark matter halo concentrations using the fitting function of \cite{diemer_accurate_2019}, which models concentration as a function of the effective spectral slope of the matter power spectrum. The fitting parameters controlling the normalization and slopes of the concentration-mass relation are \mono{[kappa]}, \mono{[a0]}, \mono{[a1]}, \mono{[b0]}, and \mono{[b1]}.</description>
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationDiemerJoyce2019" docformat="rst">
+   <description>
+   Computes dark matter halo concentrations using the fitting function of :cite:t:`diemer_accurate_2019`, which models concentration as a function of the effective spectral slope of the matter power spectrum. The fitting parameters controlling the normalization and slopes of the concentration-mass relation are ``[kappa]``, ``[a0]``, ``[a1]``, ``[b0]``, and ``[b1]``.
+   </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
    </deepCopy>
@@ -44,9 +45,8 @@
   </darkMatterProfileConcentration>
   !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationDiemerJoyce2019
-     !!{
-     A dark matter halo profile concentration class implementing the algorithm of
-     \cite{diemer_accurate_2019}.
+     !!{RST
+     A dark matter halo profile concentration class implementing the algorithm of :cite:t:`diemer_accurate_2019`.
      !!}
      private
      class           (cosmologyFunctionsClass      ), pointer     :: cosmologyFunctions_              => null()
@@ -74,8 +74,8 @@
   end type darkMatterProfileConcentrationDiemerJoyce2019
 
   interface darkMatterProfileConcentrationDiemerJoyce2019
-     !!{
-     Constructors for the \refClass{darkMatterProfileConcentrationDiemerJoyce2019} dark matter halo profile concentration class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationDiemerJoyce2019` dark matter halo profile concentration class.
      !!}
      module procedure diemerJoyce2019ConstructorParameters
      module procedure diemerJoyce2019ConstructorInternal
@@ -88,9 +88,8 @@
 contains
 
   function diemerJoyce2019ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{diemerJoyce2019} dark matter halo
-    profile concentration class.
+    !!{RST
+    Default constructor for the ``diemerJoyce2019`` dark matter halo profile concentration class.
     !!}
     implicit none
     type            (darkMatterProfileConcentrationDiemerJoyce2019   )                :: self
@@ -109,65 +108,85 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>kappa</name>
       <source>parameters</source>
       <defaultValue>0.41d0</defaultValue>
-      <description>The parameter $\kappa$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
+      <description>
+      The parameter :math:`\kappa` appearing in the halo concentration algorithm of :cite:t:`diemer_accurate_2019`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>a0</name>
       <source>parameters</source>
       <defaultValue>2.45d0</defaultValue>
-      <description>The parameter $a_0$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
+      <description>
+      The parameter :math:`a_0` appearing in the halo concentration algorithm of :cite:t:`diemer_accurate_2019`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>a1</name>
       <source>parameters</source>
       <defaultValue>1.82d0</defaultValue>
-      <description>The parameter $a_1$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
+      <description>
+      The parameter :math:`a_1` appearing in the halo concentration algorithm of :cite:t:`diemer_accurate_2019`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>b0</name>
       <source>parameters</source>
       <defaultValue>3.20d0</defaultValue>
-      <description>The parameter $b_0$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
+      <description>
+      The parameter :math:`b_0` appearing in the halo concentration algorithm of :cite:t:`diemer_accurate_2019`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>b1</name>
       <source>parameters</source>
       <defaultValue>2.30d0</defaultValue>
-      <description>The parameter $b_1$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
+      <description>
+      The parameter :math:`b_1` appearing in the halo concentration algorithm of :cite:t:`diemer_accurate_2019`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>cAlpha</name>
       <source>parameters</source>
       <defaultValue>0.21d0</defaultValue>
-      <description>The parameter $c_{\alpha}$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
+      <description>
+      The parameter :math:`c_{\alpha}` appearing in the halo concentration algorithm of :cite:t:`diemer_accurate_2019`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scatter</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The scatter (in dex) to assume in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
+      <description>
+      The scatter (in dex) to assume in the halo concentration algorithm of :cite:t:`diemer_accurate_2019`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>truncateConcentration</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If false, solutions to equation~(30) of \cite{diemer_accurate_2019} requiring $x&lt;1$ will cause a fatal error. If true, such cases are simply truncated to $x=1$.</description>
+      <description>
+      If false, solutions to equation (30) of :cite:t:`diemer_accurate_2019` requiring :math:`x&lt;1` will cause a fatal error. If true, such cases are simply truncated to :math:`x=1`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeUpturn</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, the term modeling the upturn in the $c(M)$ relation at high masses (i.e. $[1+\nu^2/B(n)]$ in equation~(28) of \citealt{diemer_accurate_2019}) is included. Otherwise this term is set equal to $1$ so that no upturn occurs.</description>
+      <description>
+      If true, the term modeling the upturn in the :math:`c(M)` relation at high masses (i.e. :math:`[1+\nu^2/B(n)]` in equation (28) of :cite:author:`diemer_accurate_2019` :cite:year:`diemer_accurate_2019`) is included. Otherwise this term is set equal to :math:`1` so that no upturn occurs.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>truncateUpturn</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, the term modeling the upturn in the $c(M)$ relation at high masses (i.e. $[1+\nu^2/B(n)]$ in equation~(28) of \citealt{diemer_accurate_2019}) will be truncated at $\nu=\sqrt{B(n)}$ where the right-hand side of equation~(28) reaches the minimum, i.e. for any $\nu>\sqrt{B(n)}$, the right-hand side of equation~(28) will be truncated to $2 A/\sqrt{B}$.</description>
+      <description>
+      If true, the term modeling the upturn in the :math:`c(M)` relation at high masses (i.e. :math:`[1+\nu^2/B(n)]` in equation (28) of :cite:author:`diemer_accurate_2019` :cite:year:`diemer_accurate_2019`) will be truncated at :math:`\nu=\sqrt{B(n)}` where the right-hand side of equation (28) reaches the minimum, i.e. for any :math:`\nu&gt;\sqrt{B(n)}`, the right-hand side of equation (28) will be truncated to :math:`2 A/\sqrt{B}`.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
@@ -188,9 +207,8 @@ contains
   end function diemerJoyce2019ConstructorParameters
 
   function diemerJoyce2019ConstructorInternal(kappa,a0,a1,b0,b1,cAlpha,scatter,truncateConcentration,includeUpturn,truncateUpturn,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileConcentrationDiemerJoyce2019} dark matter halo profile
-    concentration class.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationDiemerJoyce2019` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
@@ -266,8 +284,8 @@ contains
   end function diemerJoyce2019ConstructorInternal
 
   subroutine diemerJoyce2019Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileConcentrationDiemerJoyce2019} dark matter halo profile concentration class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationDiemerJoyce2019` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationDiemerJoyce2019), intent(inout) :: self
@@ -285,9 +303,8 @@ contains
   end subroutine diemerJoyce2019Destructor
 
   double precision function diemerJoyce2019Concentration(self,node)
-    !!{
-    Return the concentration of the dark matter halo profile of \mono{node}
-    using the \cite{diemer_accurate_2019} algorithm.
+    !!{RST
+    Return the concentration of the dark matter halo profile of ``node`` using the :cite:t:`diemer_accurate_2019` algorithm.
     !!}
     implicit none
     class(darkMatterProfileConcentrationDiemerJoyce2019), intent(inout), target :: self
@@ -307,9 +324,8 @@ contains
   end function diemerJoyce2019Concentration
 
   double precision function diemerJoyce2019ConcentrationMean(self,node)
-    !!{
-    Return the mean concentration of the dark matter halo profile of \mono{node}
-    using the \cite{diemer_accurate_2019} algorithm.
+    !!{RST
+    Return the mean concentration of the dark matter halo profile of ``node`` using the :cite:t:`diemer_accurate_2019` algorithm.
     !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
     use :: Math_Exponentiation     , only : cubeRoot
@@ -383,9 +399,8 @@ contains
   end function diemerJoyce2019ConcentrationMean
 
   function diemerJoyce2019DensityContrastDefinition(self)
-    !!{
-    Return a virial density contrast object defining that used in the definition of concentration in the
-    \cite{diemer_accurate_2019} algorithm.
+    !!{RST
+    Return a virial density contrast object defining that used in the definition of concentration in the :cite:t:`diemer_accurate_2019` algorithm.
     !!}
     implicit none
     class(virialDensityContrastClass                   ), pointer       :: diemerJoyce2019DensityContrastDefinition
@@ -396,9 +411,8 @@ contains
   end function diemerJoyce2019DensityContrastDefinition
 
   function diemerJoyce2019DarkMatterProfileDefinition(self)
-    !!{
-    Return a dark matter density profile object defining that used in the definition of concentration in the
-    \cite{diemer_accurate_2019} algorithm.
+    !!{RST
+    Return a dark matter density profile object defining that used in the definition of concentration in the :cite:t:`diemer_accurate_2019` algorithm.
     !!}
     implicit none
     class(darkMatterProfileDMOClass                    ), pointer       :: diemerJoyce2019DarkMatterProfileDefinition
@@ -409,7 +423,7 @@ contains
   end function diemerJoyce2019DarkMatterProfileDefinition
 
   double precision function GRoot(concentration)
-     !!{
+     !!{RST
      Root function used to find the concentration.
      !!}
      implicit none

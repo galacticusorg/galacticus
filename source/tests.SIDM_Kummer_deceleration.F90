@@ -17,11 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Tests of the large-$x$ ($x>x_\mathrm{critical}=100$) asymptotic deceleration factor, $\chi_\mathrm{d}$, of the
-\cite{kummer_effective_2018} self-interacting dark matter satellite deceleration model, for both the velocity-dependent and
-constant cross-section models. In this regime the factor has a closed analytic form, dispatched on the dark matter particle
-class; the reference values are evaluated directly from those forms.
+!!{RST
+Tests of the large-:math:`x` (:math:`x>x_\mathrm{critical}=100`) asymptotic deceleration factor, :math:`\chi_\mathrm{d}`, of the :cite:t:`kummer_effective_2018` self-interacting dark matter satellite deceleration model, for both the velocity-dependent and constant cross-section models. In this regime the factor has a closed analytic form, dispatched on the dark matter particle class; the reference values are evaluated directly from those forms.
 !!}
 
 program Tests_SIDM_Kummer_Deceleration

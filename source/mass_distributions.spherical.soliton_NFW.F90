@@ -19,23 +19,20 @@
 
   !+    Contributions to this file made by: Yu Zhao
 
-  !!{
-  Implementation of a mass distribution class for fuzzy dark matter halos consisting of soliton and NFW profiles
-  \citep{schive_understanding_2014}.   
+  !!{RST
+  Implementation of a mass distribution class for fuzzy dark matter halos consisting of soliton and NFW profiles :cite:p:`schive_understanding_2014`.
   !!}
   
   !![
-  <massDistribution name="massDistributionSolitonNFW">
+  <massDistribution name="massDistributionSolitonNFW" docformat="rst">
     <description>
-      A mass distribution class for fuzzy dark matter halos \citep{schive_understanding_2014} consisting of soliton core for small
-      radii, transitioning to an \gls{nfw} profile at larger radii.
+    A mass distribution class for fuzzy dark matter halos :cite:p:`schive_understanding_2014` consisting of soliton core for small radii, transitioning to an :term:`NFW` profile at larger radii.
     </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSphericalTabulated) :: massDistributionSolitonNFW
-     !!{
-     A mass distribution class for fuzzy dark matter halos \citep{schive_understanding_2014} consisting of soliton core for small
-     radii, transitioning to an \gls{nfw} profile at larger radii.     
+     !!{RST
+     A mass distribution class for fuzzy dark matter halos :cite:p:`schive_understanding_2014` consisting of soliton core for small radii, transitioning to an :term:`NFW` profile at larger radii.
      !!}
      private
      double precision :: densityNormalizationNFW, radiusScale            , &
@@ -58,8 +55,8 @@
   end type massDistributionSolitonNFW
   
    interface massDistributionSolitonNFW
-     !!{
-     Constructors for the \mono{solitonNFW} mass distribution class.
+     !!{RST
+     Constructors for the ``solitonNFW`` mass distribution class.
      !!}
      module procedure solitonNFWConstructorParameters
      module procedure solitonNFWConstructorInternal
@@ -76,7 +73,7 @@
  contains
    
    function solitonNFWConstructorParameters(parameters) result(self)
-     !!{
+     !!{RST
      Constructor for the soliton and NFW mass distribution class which builds the object from a parameter set.
      !!}
      use :: Input_Parameters          , only : inputParameter                , inputParameters
@@ -93,63 +90,85 @@
      type            (varying_string            )                :: massType
      
      !![
-     <inputParameter>
+     <inputParameter docformat="rst">
        <name>radiusScale</name>
-       <description>The scale radius of the NFW component of the mass distribution.</description>
+       <description>
+       The scale radius of the NFW component of the mass distribution.
+       </description>
        <source>parameters</source>
      </inputParameter>
-     <inputParameter>
+     <inputParameter docformat="rst">
        <name>radiusCore</name>
-       <description>The soliton core radius (in Mpc) characterizing the size of the central quantum pressure-supported core of the fuzzy dark matter halo before the profile transitions to the outer NFW envelope.</description>
+       <description>
+       The soliton core radius (in Mpc) characterizing the size of the central quantum pressure-supported core of the fuzzy dark matter halo before the profile transitions to the outer NFW envelope.
+       </description>
        <source>parameters</source>
      </inputParameter>
-     <inputParameter>
+     <inputParameter docformat="rst">
        <name>radiusSoliton</name>
-       <description>The transition radius (in Mpc) at which the solitonic core profile smoothly joins onto the outer NFW envelope; the density profile matches the NFW form beyond this radius.</description>
+       <description>
+       The transition radius (in Mpc) at which the solitonic core profile smoothly joins onto the outer NFW envelope; the density profile matches the NFW form beyond this radius.
+       </description>
        <source>parameters</source>
      </inputParameter>
-     <inputParameter>
+     <inputParameter docformat="rst">
        <name>densitySolitonCentral</name>
-       <description>The central density (in $\mathrm{M}_\odot$/Mpc$^3$) of the solitonic core at $r=0$, which sets the normalization of the soliton density profile $\rho(r) = \rho_\mathrm{c} [1+(r/r_c)^2]^{-8}$.</description>
+       <description>
+       The central density (in :math:`\mathrm{M}_\odot`/Mpc\ :math:`^3`) of the solitonic core at :math:`r=0`, which sets the normalization of the soliton density profile :math:`\rho(r) = \rho_\mathrm{c} [1+(r/r_c)^2]^{-8}`.
+       </description>
        <source>parameters</source>
      </inputParameter>
-     <inputParameter>
+     <inputParameter docformat="rst">
        <name>densityNormalizationNFW</name>
-       <description>The density normalization $\rho_0$ (in $\mathrm{M}_\odot$/Mpc$^3$) of the outer NFW component, setting the amplitude of the $\rho(r) = \rho_0/[(r/r_\mathrm{s})(1+r/r_\mathrm{s})^2]$ profile.</description>
+       <description>
+       The density normalization :math:`\rho_0` (in :math:`\mathrm{M}_\odot`/Mpc\ :math:`^3`) of the outer NFW component, setting the amplitude of the :math:`\rho(r) = \rho_0/[(r/r_\mathrm{s})(1+r/r_\mathrm{s})^2]` profile.
+       </description>
        <source>parameters</source>
      </inputParameter>
-     <inputParameter>
+     <inputParameter docformat="rst">
        <name>concentration</name>
-       <description>The concentration parameter $c = r_\mathrm{vir}/r_\mathrm{s}$ of the outer NFW component, specifying how centrally concentrated the NFW halo is.</description>
+       <description>
+       The concentration parameter :math:`c = r_\mathrm{vir}/r_\mathrm{s}` of the outer NFW component, specifying how centrally concentrated the NFW halo is.
+       </description>
        <source>parameters</source>
      </inputParameter>
-     <inputParameter>
+     <inputParameter docformat="rst">
        <name>radiusVirial</name>
-       <description>The virial radius (in Mpc) of the outer NFW component, defining the outer boundary of the halo at which the mean enclosed density equals the virial overdensity threshold.</description>
+       <description>
+       The virial radius (in Mpc) of the outer NFW component, defining the outer boundary of the halo at which the mean enclosed density equals the virial overdensity threshold.
+       </description>
        <source>parameters</source>
      </inputParameter>
-     <inputParameter>
+     <inputParameter docformat="rst">
        <name>toleranceRelativePotential</name>
        <defaultValue>1.0d-3</defaultValue>
-       <description>The relative tolerance used in numerical ODE solutions for the gravitational potential of the soliton-NFW composite profile.</description>
+       <description>
+       The relative tolerance used in numerical ODE solutions for the gravitational potential of the soliton-NFW composite profile.
+       </description>
        <source>parameters</source>
      </inputParameter>
-     <inputParameter>
+     <inputParameter docformat="rst">
        <name>dimensionless</name>
        <defaultValue>.true.</defaultValue>
-       <description>If true the soliton-NFW profile is treated as dimensionless (scale-free), allowing its radial and density quantities to be specified in arbitrary units.</description>
+       <description>
+       If true the soliton-NFW profile is treated as dimensionless (scale-free), allowing its radial and density quantities to be specified in arbitrary units.
+       </description>
        <source>parameters</source>
      </inputParameter>
-     <inputParameter>
+     <inputParameter docformat="rst">
        <name>componentType</name>
        <defaultValue>var_str('unknown')</defaultValue>
-       <description>The galactic structure component type (e.g.\ dark matter halo, disk, spheroid) represented by this mass distribution, used for component-specific queries.</description>
+       <description>
+       The galactic structure component type (e.g.\ dark matter halo, disk, spheroid) represented by this mass distribution, used for component-specific queries.
+       </description>
        <source>parameters</source>
      </inputParameter>
-     <inputParameter>
+     <inputParameter docformat="rst">
        <name>massType</name>
        <defaultValue>var_str('unknown')</defaultValue>
-       <description>The mass type (e.g.\ dark matter, baryonic, total) represented by this mass distribution, used for mass-type-specific queries.</description>
+       <description>
+       The mass type (e.g.\ dark matter, baryonic, total) represented by this mass distribution, used for mass-type-specific queries.
+       </description>
        <source>parameters</source>
      </inputParameter>
      <conditionalCall>
@@ -171,8 +190,8 @@
    end function solitonNFWConstructorParameters
    
    function solitonNFWConstructorInternal(radiusScale,radiusCore,radiusSoliton,densitySolitonCentral,densityNormalizationNFW,radiusVirial,concentration,dimensionless,componentType,massType,toleranceRelativePotential) result(self)
-     !!{
-     Internal constructor for ``soliton and NFW'' mass distribution class.
+     !!{RST
+     Internal constructor for "soliton and NFW" mass distribution class.
      !!}
      use :: Error      , only : Error_Report
      use :: Coordinates, only : coordinateSpherical, assignment(=)
@@ -253,7 +272,7 @@
    end function solitonNFWConstructorInternal
    
    function solitonNFWFactoryTabulation(self,parameters) result(instance)
-     !!{
+     !!{RST
      Construct an instance of this class using tabulation parameters.
      !!}
      implicit none
@@ -277,8 +296,8 @@
    end function solitonNFWFactoryTabulation
    
    double precision function solitonNFWMassEnclosedBySphere(self,radius) result(mass)
-     !!{
-     Return the mass at the specified \mono{coordinates} in a soliton and NFW mass distribution.
+     !!{RST
+     Return the mass at the specified ``coordinates`` in a soliton and NFW mass distribution.
      !!}
      use :: Numerical_Constants_Math, only : Pi
      implicit none
@@ -316,8 +335,8 @@
    contains
      
      double precision function massSoliton(radius_) result(mass)
-       !!{
-       Return the mass at the specified \mono{coordinates} in the soliton region.
+       !!{RST
+       Return the mass at the specified ``coordinates`` in the soliton region.
        !!}
        use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
        implicit none
@@ -366,8 +385,8 @@
    end function solitonNFWMassEnclosedBySphere
    
    double precision function solitonNFWDensity(self,coordinates) result(density)
-     !!{
-     Return the density at the specified \mono{coordinates} in a soliton and NFW mass distribution.
+     !!{RST
+     Return the density at the specified ``coordinates`` in a soliton and NFW mass distribution.
      !!}
      use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
      implicit none
@@ -392,8 +411,8 @@
    end function solitonNFWDensity
    
    double precision function solitonNFWDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
-     !!{
-     Return the radial density gradient at the specified \mono{coordinates} in a soliton and NFW mass distribution.
+     !!{RST
+     Return the radial density gradient at the specified ``coordinates`` in a soliton and NFW mass distribution.
      !!}
      use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
      implicit none
@@ -441,7 +460,7 @@
    end function solitonNFWDensityGradientRadial
    
    double precision function solitonNFWRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
-     !!{
+     !!{RST
      Computes the radius enclosing a given mean density for soliton NFW mass distributions.
      !!}
      use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
@@ -475,7 +494,7 @@
    end function solitonNFWRadiusEnclosingDensity
    
    double precision function solitonNFWRadiusEnclosingDensityNumerical(self,density,radiusGuess) result(radius)
-     !!{
+     !!{RST
      Computes the radius enclosing a given mean density for soliton NFW mass distributions.
      !!}
      use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
@@ -508,7 +527,7 @@
    end function solitonNFWRadiusEnclosingDensityNumerical
    
    subroutine solitonNFWParameters(self,densityNormalization,radiusNormalization,parameters,container)
-     !!{
+     !!{RST
      Establish parameters for tabulation.
      !!}
      implicit none
@@ -563,7 +582,7 @@
    end subroutine solitonNFWParameters
    
    subroutine solitonNFWDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
-     !!{
+     !!{RST
      Return an input parameter list descriptor which could be used to recreate this object.
      !!}
      use :: Input_Parameters, only : inputParameters
@@ -591,7 +610,7 @@
    end subroutine solitonNFWDescriptor
    
    function solitonNFWSuffix(self) result(suffix)
-     !!{
+     !!{RST
      Return a suffix for tabulated file names.
      !!}
      use :: String_Handling, only : String_C_To_Fortran

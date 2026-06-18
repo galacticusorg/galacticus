@@ -19,45 +19,47 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson, Xiaolong Du.
 
-  !!{
-  Implementation of a satellite tidal stripping class which follows the model of \cite{zentner_physics_2005}.
+  !!{RST
+  Implementation of a satellite tidal stripping class which follows the model of :cite:t:`zentner_physics_2005`.
   !!}
 
   use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusClass
   use :: Dark_Matter_Halo_Scales        , only : darkMatterHaloScaleClass
 
   !![
-  <satelliteTidalStripping name="satelliteTidalStrippingZentner2005">
+  <satelliteTidalStripping name="satelliteTidalStrippingZentner2005" docformat="rst">
    <description>
-    A satellite tidal stripping class which uses the formalism of \cite{zentner_physics_2005} to compute the mass loss rate
-    $\dot{M}_\mathrm{sat}$:
-    \begin{equation}
-    \dot{M}_\mathrm{sat}=-\alpha \frac{M_\mathrm{sat}(>r_\mathrm{tidal})}{T_\mathrm{loss}},
-    \end{equation}
-    where $\alpha=$\mono{[efficiency]}, $T_\mathrm{loss}$ is the time scale of mass loss, and $r_\mathrm{tidal}$
-    is the tidal radius of the satellite, given by the \cite{king_structure_1962} formula:
-    \begin{equation}
-    r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\gamma_\mathrm{c}\omega^2-d^2\Phi/dr^2}\right)^{1/3},
-    \end{equation}
-    where $\omega$ is the orbital angular velocity of the satellite, $\Phi(r)$ is the gravitational potential due to the host,
-    and $\gamma_\mathrm{c}$ is the efficiency of the centrifugal force when computing the tidal radius.
+   A satellite tidal stripping class which uses the formalism of :cite:t:`zentner_physics_2005` to compute the mass loss rate :math:`\dot{M}_\mathrm{sat}`:
 
-    By default, $T_\mathrm{loss}$ is taken to be the orbital time scale
-    \begin{equation}
-    T_\mathrm{orb} = {1 \over \hbox{max}(\omega/2\pi,v_\mathrm{r}/r)},
-    \end{equation}
-    where $\omega$ is the angular velocity of the satellite, $v_\mathrm{r}$ is the radial velocity, $r$ is the orbital radius.
-    If \mono{[useDynamicalTimeScale]} is set to true, $T_\mathrm{loss}$ is taken to be the dynamical time scale
-    computed at the tidal radius
-    \begin{equation}
-    T_\mathrm{dyn} = \sqrt{\frac{3 \pi}{16 G \overline{\rho}_\mathrm{sat}(r_\mathrm{tidal})}} = 2 \pi \sqrt{\frac{r_\mathrm{tidal}^3}{16 G M_\mathrm{sat}(r_\mathrm{tidal})}}.
-    \end{equation}
+   .. math::
+
+      \dot{M}_\mathrm{sat}=-\alpha \frac{M_\mathrm{sat}(&gt;r_\mathrm{tidal})}{T_\mathrm{loss}},
+
+   where :math:`\alpha=`\ ``[efficiency]``, :math:`T_\mathrm{loss}` is the time scale of mass loss, and :math:`r_\mathrm{tidal}` is the tidal radius of the satellite, given by the :cite:t:`king_structure_1962` formula:
+
+   .. math::
+
+      r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\gamma_\mathrm{c}\omega^2-d^2\Phi/dr^2}\right)^{1/3},
+
+   where :math:`\omega` is the orbital angular velocity of the satellite, :math:`\Phi(r)` is the gravitational potential due to the host, and :math:`\gamma_\mathrm{c}` is the efficiency of the centrifugal force when computing the tidal radius.
+
+   By default, :math:`T_\mathrm{loss}` is taken to be the orbital time scale
+
+   .. math::
+
+      T_\mathrm{orb} = {1 \over \hbox{max}(\omega/2\pi,v_\mathrm{r}/r)},
+
+   where :math:`\omega` is the angular velocity of the satellite, :math:`v_\mathrm{r}` is the radial velocity, :math:`r` is the orbital radius. If ``[useDynamicalTimeScale]`` is set to true, :math:`T_\mathrm{loss}` is taken to be the dynamical time scale computed at the tidal radius
+
+   .. math::
+
+      T_\mathrm{dyn} = \sqrt{\frac{3 \pi}{16 G \overline{\rho}_\mathrm{sat}(r_\mathrm{tidal})}} = 2 \pi \sqrt{\frac{r_\mathrm{tidal}^3}{16 G M_\mathrm{sat}(r_\mathrm{tidal})}}.
    </description>
   </satelliteTidalStripping>
   !!]
   type, extends(satelliteTidalStrippingClass) :: satelliteTidalStrippingZentner2005
-     !!{
-     Implementation of a satellite tidal stripping class which follows the model of \cite{zentner_physics_2005}.
+     !!{RST
+     Implementation of a satellite tidal stripping class which follows the model of :cite:t:`zentner_physics_2005`.
      !!}
      private
      class           (satelliteTidalStrippingRadiusClass), pointer :: satelliteTidalStrippingRadius_ => null()
@@ -70,8 +72,8 @@
   end type satelliteTidalStrippingZentner2005
 
   interface satelliteTidalStrippingZentner2005
-     !!{
-     Constructors for the \refClass{satelliteTidalStrippingZentner2005} satellite tidal stripping class.
+     !!{RST
+     Constructors for the :galacticus-class:`satelliteTidalStrippingZentner2005` satellite tidal stripping class.
      !!}
      module procedure zentner2005ConstructorParameters
      module procedure zentner2005ConstructorInternal
@@ -80,8 +82,8 @@
 contains
 
   function zentner2005ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{satelliteTidalStrippingZentner2005} satellite tidal stripping class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`satelliteTidalStrippingZentner2005` satellite tidal stripping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,16 +95,20 @@ contains
     logical                                                             :: useDynamicalTimeScale
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>efficiency</name>
       <defaultValue>2.5d0</defaultValue>
-      <description>The dimensionless rate coefficient appearing in the \cite{zentner_physics_2005} expression for the tidal mass loss rate from subhalos.</description>
+      <description>
+      The dimensionless rate coefficient appearing in the :cite:t:`zentner_physics_2005` expression for the tidal mass loss rate from subhalos.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>useDynamicalTimeScale</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, the mass outside the tidal radius is assumed to be lost on dynamical time scale computed at the tidal radius. Otherwise, mass loss occurs on the orbital timescale of the satellite.</description>
+      <description>
+      If true, the mass outside the tidal radius is assumed to be lost on dynamical time scale computed at the tidal radius. Otherwise, mass loss occurs on the orbital timescale of the satellite.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="satelliteTidalStrippingRadius" name="satelliteTidalStrippingRadius_" source="parameters"/>
@@ -118,8 +124,8 @@ contains
   end function zentner2005ConstructorParameters
 
   function zentner2005ConstructorInternal(efficiency,useDynamicalTimeScale,satelliteTidalStrippingRadius_,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{satelliteTidalStrippingZentner2005} satellite tidal stripping class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`satelliteTidalStrippingZentner2005` satellite tidal stripping class.
     !!}
     implicit none
     type            (satelliteTidalStrippingZentner2005)                        :: self
@@ -135,8 +141,8 @@ contains
   end function zentner2005ConstructorInternal
 
   subroutine zentner2005Destructor(self)
-    !!{
-    Destructor for the \refClass{satelliteTidalStrippingZentner2005} satellite tidal stripping class.
+    !!{RST
+    Destructor for the :galacticus-class:`satelliteTidalStrippingZentner2005` satellite tidal stripping class.
     !!}
     implicit none
     type(satelliteTidalStrippingZentner2005), intent(inout) :: self
@@ -149,8 +155,8 @@ contains
   end subroutine zentner2005Destructor
 
   double precision function zentner2005MassLossRate(self,node)
-    !!{
-    Return a mass loss rate for satellites due to tidal stripping using the formulation of \cite{zentner_physics_2005}.
+    !!{RST
+    Return a mass loss rate for satellites due to tidal stripping using the formulation of :cite:t:`zentner_physics_2005`.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentSatellite, treeNode
     use :: Mass_Distributions              , only : massDistributionClass

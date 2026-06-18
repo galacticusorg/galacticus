@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a dark matter profile scale radius class using the energy-based model of \cite{johnson_random_2021}.
+  !!{RST
+  Implements a dark matter profile scale radius class using the energy-based model of :cite:t:`johnson_random_2021`.
   !!}
 
   use :: Cosmology_Functions               , only : cosmologyFunctionsClass
@@ -31,7 +31,7 @@
   use :: Kind_Numbers                      , only : kind_int8
 
   type :: branch
-     !!{
+     !!{RST
      Type used to store radius offsets along a branch.
      !!}
      private
@@ -41,126 +41,101 @@
   end type branch
 
   !![
-  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusJohnson2021">
+  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusJohnson2021" docformat="rst">
     <description>
-      A dark matter profile scale radius class that computes scale radii based on the energy conservation approach of
-      \cite{johnson_random_2021}, with some modifications and improvements.
+    A dark matter profile scale radius class that computes scale radii based on the energy conservation approach of :cite:t:`johnson_random_2021`, with some modifications and improvements.
 
-      Specifically, for ``well-resolved'' halos (see below for discussion of this point), the concentration is found by computing
-      the total energy of the halo as the sum over the energies (internal and orbital) of its progenitor halos. The halo is
-      assumed to have virialized at this energy, and the scale radius is then solved for such that the energy of the assumed
-      density profile (e.g. \glc{nfw}) is equal to the computed energy of the halo.
+    Specifically, for "well-resolved" halos (see below for discussion of this point), the concentration is found by computing the total energy of the halo as the sum over the energies (internal and orbital) of its progenitor halos. The halo is assumed to have virialized at this energy, and the scale radius is then solved for such that the energy of the assumed density profile (e.g. Galacticusnfw) is equal to the computed energy of the halo.
 
-      In detail, the energy, $E_\mathrm{int}$, of a node is assumed to be given by:
-      \begin{equation}
+    In detail, the energy, :math:`E_\mathrm{int}`, of a node is assumed to be given by:
+
+    .. math::
+
        E_\mathrm{int} = E_{\mathrm{int}, 0} + \sum_{i=1}^N \left( E_{\mathrm{int}, i} +  E_{\mathrm{orb}, i,0} \right) (1 + \mu)^{-\alpha} (1+b \nu^\beta) w_i 10^{\sigma \mathcal{N}(0,1)},
-      \end{equation}
-      where $E_{\mathrm{int}, 0}$ is the internal energy of the primary progenitor halo, $E_{\mathrm{int}, i}$ is the internal
-      energy of the $i^\mathrm{th}$ non-primary progenitor halo, $E_{\mathrm{orb}, i,0}$ is the orbital energy of the
-      $i^\mathrm{th}$ non-primary progenitor halo about the primary progenitor halo, $\mu = M_i/M_0$ is the mass ratio of the
-      $i^\mathrm{th}$ non-primary progenitor and the primary progenitor ratio, $\nu$ is the peak height parameter for the primary
-      progenitor halo, $w_i$ is the subsampling weight of the $i^\mathrm{th}$ non-primary progenitor, $\mathcal{N}(0,1)$ is a
-      standard normal deviate, $\alpha=$\mono{[massExponent]}, $\beta=$\mono{[peakHeightExponent]}, $b=$\mono{[energyBoost]}, and $\sigma=$\mono{[scatterExcess]}.
 
-      To account for the contribution to the energy from unresolved accretion, we proceed as follows. First, the unresolved mass
-      is determined by subtracting the mass of all progenitors from the halo mass:
-      \begin{equation}
-      M_{\mathrm unres} = M - \sum_{i=0}^N M_i.
-      \end{equation}
-      This mass will be accreted in halos spanning a range of masses below the unresolved mass scale, $M_\mathrm{unres}$. We assume the
-      mass function of these unresolved halos follows a power-law, $n(M) \propto M^\delta$, with $\delta = -1.8$. We further assume
-      that the mean orbit energy of an unresolved halo is simply proportional to $M$ (i.e. the distribution of orbital parameters
-      is independent of mass), and that the internal energy of an unresolved halo scales as $E_\mathrm{int} \propto
-      M^{5/3+\epsilon}$ where the $5/3$ exponent is the expected scaling for halos assuming a self-similar structure, and
-      $\epsilon = -0.02$ accounts for the non-self-similarity (e.g. that concentration is a function of mass) and was estimated
-      for typical CDM halos.
+    where :math:`E_{\mathrm{int}, 0}` is the internal energy of the primary progenitor halo, :math:`E_{\mathrm{int}, i}` is the internal energy of the :math:`i^\mathrm{th}` non-primary progenitor halo, :math:`E_{\mathrm{orb}, i,0}` is the orbital energy of the :math:`i^\mathrm{th}` non-primary progenitor halo about the primary progenitor halo, :math:`\mu = M_i/M_0` is the mass ratio of the :math:`i^\mathrm{th}` non-primary progenitor and the primary progenitor ratio, :math:`\nu` is the peak height parameter for the primary progenitor halo, :math:`w_i` is the subsampling weight of the :math:`i^\mathrm{th}` non-primary progenitor, :math:`\mathcal{N}(0,1)` is a standard normal deviate, :math:`\alpha=`\ ``[massExponent]``, :math:`\beta=`\ ``[peakHeightExponent]``, :math:`b=`\ ``[energyBoost]``, and :math:`\sigma=`\ ``[scatterExcess]``.
 
-      The mean energy (orbital or internal) per unit mass of unresolved halos is then found by averaging these scalings over the
-      mass function. Dividing these by the energy of an unresolved halo of mass $M_\mathrm{unres}$ then gives a correction factor
-      that can be applied to the energy computed for halos of $M_\mathrm{res}$ to account for the spectrum of unresolved halo
-      masses. That is, for an energy that scales as $x^p$ where $x = M/M_0$, the correction factor is:
-      \begin{equation}
-      c_p = \frac{1}{x_\mathrm{unres}^{p-1} (1+x_\mathrm{unres})^{-\alpha}} \frac{\int_0^{x_\mathrm{unres}} n(x) x^p (1+x)^{-\alpha} \mathrm{d}x}{\int_0^{x_\mathrm{unres}} n(x) x \mathrm{d}x}.
-      \end{equation}
-      This evaluates to:
-      \begin{equation}
-      c_p = \frac{2+\delta}{1+\delta+p} (1+x_\mathrm{unres})^\alpha\, _2\mathrm{F}_1({1+\delta+p,\alpha},{2+\delta+p},-x_\mathrm{unres}).
-      \end{equation}
+    To account for the contribution to the energy from unresolved accretion, we proceed as follows. First, the unresolved mass is determined by subtracting the mass of all progenitors from the halo mass:
 
-      We further compute correction factors to account for the fact that this unresolved mass is accreted over some interval of
-      time, during which mean halo properties (e.g. virial density) will evolve. For internal energies we have $E_\mathrm{int}
-      \propto M^2/r \propto M^{5/3}/\rho \propto M^{5/3}/a(t)$ where $a(t)$ is the expansion factor. If the current halo exists at
-      time $t$, and the primary progenitor at time $t_0$, we therefore compute a correction factor to the midpoint of this
-      interval,
-      \begin{equation}
-      f_\mathrm{int} = \frac{1}{2} \left( 1 + \frac{a(t_0)}{a(t)} \right),
-      \end{equation}
-      where the second term in the parentheses is the ratio of the internal energy of a halo of fixed mass at $t$ and $t_0$. For
-      orbital energy we expect a scaling $E_\mathrm{orb} \propto M M_\mathrm{host}/r_\mathrm{host} \propto M
-      M_\mathrm{host}^{2/3}/\rho \propto M M_\mathrm{host}^{2/3}/a(t)$ where $M_\mathrm{host}$ and $r_\mathrm{host}$ are the
-      virial mass and radius of the host (current) halo, respectively. Computing a correction factor to the midpoint of the time
-      interval we find,
-      \begin{equation}
-      f_\mathrm{orb} = \frac{1}{2} \left( 1 + \frac{a(t_0)}{a(t)} \left[\frac{M}{M_0}\right]^{2/3} \right).
-      \end{equation}
+    .. math::
 
-      We next estimate the mean and root-variance, $\bar{E}_\mathrm{unres}$ and $\sigma_\mathrm{unres}$, respectively, of the
-      energy of a halo of mass $M_\mathrm{unres}$ via a Monte Carlo approach. We generate $N_\mathrm{MC}=$\mono{[countSampleEnergyUnresolved]} such halos, each with scale radii set using the fall-back \refClass{darkMatterHaloScaleClass}
-      object with an added scatter of $\sigma^\prime=$\mono{[scatter]} dex, and a randomly selected orbit. For
-      each such halo, the energy is computed as
-      \begin{equation}
-      E_\mathrm{unres} = u (E_\mathrm{orb} c_\mathrm{orb} f_\mathrm{orb} + E_\mathrm{int} c_\mathrm{int} f_\mathrm{int}) (1+b \nu^\beta),
-      \end{equation}
-      where $u = $\mono{[unresolvedEnergy]}.
+       M_{\mathrm unres} = M - \sum_{i=0}^N M_i.
 
-      To estimate the deviation from the mean unresolved energy we again consider the contributions from a spectrum of unresolved
-      halo masses. For simplicity we here ignore the internal energies (which are typically small relative to the orbital energy
-      assuming that the unresolved halo masses are small compared to that of the primary progenitor. The mean energy of unresolved
-      halos is then
-      \begin{equation}
-      \epsilon = \bar{E}_\mathrm{unres} \int_0^1 x^{1+a} \mathrm{d}x = \frac{\bar{E}_\mathrm{unres}}{2+a},
-      \end{equation}
-      while the variance in this energy is
-      \begin{equation}
-      \sigma^2_\epsilon = \sigma^2_\mathrm{unres} \int_0^1 x^{2+a} \mathrm{d}x = \frac{\sigma^2_\mathrm{unres}}{3+a}.
-      \end{equation}
-      The fractional variance is then
-      \begin{equation}
-      \frac{\sigma^2_\epsilon}{\epsilon^2} =\frac{2+a}{3+a} \left(\frac{\sigma_\mathrm{unres}}{\bar{E}_\mathrm{unres}}\right)^2.
-      \end{equation}
+    This mass will be accreted in halos spanning a range of masses below the unresolved mass scale, :math:`M_\mathrm{unres}`. We assume the mass function of these unresolved halos follows a power-law, :math:`n(M) \propto M^\delta`, with :math:`\delta = -1.8`. We further assume that the mean orbit energy of an unresolved halo is simply proportional to :math:`M` (i.e. the distribution of orbital parameters is independent of mass), and that the internal energy of an unresolved halo scales as :math:`E_\mathrm{int} \propto M^{5/3+\epsilon}` where the :math:`5/3` exponent is the expected scaling for halos assuming a self-similar structure, and :math:`\epsilon = -0.02` accounts for the non-self-similarity (e.g. that concentration is a function of mass) and was estimated for typical CDM halos.
 
-      We therefore add to the energy of the halo an unresolved contribution of
-      \begin{equation}
-      \bar{E}_\mathrm{unres} \exp\left( \left[ \frac{2+a}{3+a} \left(\frac{\sigma_\mathrm{unres}}{\bar{E}_\mathrm{unres}}\right)^2 + (\sigma_e \log_\mathrm{e}10)^2 \right]^{1/2} \mathcal{N}(0,1) \right).
-      \end{equation}
-      where $\sigma_\mathrm{e}=$\mono{[scatterExcess]} accounts for scatter missed by this model.
+    The mean energy (orbital or internal) per unit mass of unresolved halos is then found by averaging these scalings over the mass function. Dividing these by the energy of an unresolved halo of mass :math:`M_\mathrm{unres}` then gives a correction factor that can be applied to the energy computed for halos of :math:`M_\mathrm{res}` to account for the spectrum of unresolved halo masses. That is, for an energy that scales as :math:`x^p` where :math:`x = M/M_0`, the correction factor is:
 
-      The scale radius which corresponds to this energy is then solved for.
+    .. math::
 
-      For halos with mass less than $f_\mathrm{res} M_\mathrm{res}$, where $f_\mathrm{res}=$\mono{[factorMassResolution]} and $M_\mathrm{res}$ is the mass resolution of the merger tree, and for any halo which has no
-      progenitors (a leaf node), the scale radius is instead computed using an alternative method\footnote{For leaf nodes, there
-      are no progenitors for which to apply the above energy calculation, and for halos sufficiently close to the mass resolution
-      the energy calculation may not be reliable due to the poorly-resolved formation history of the node.}. In these cases, the
-      entire extent of the branch for which this criterion applies is first determined. Each halo in this sub-branch is first
-      assigned a scale radius from a fall-back \refClass{darkMatterHaloScaleClass} object which should be configured to return a
-      \emph{scatter-free} scale radius for halos of given mass and redshift\footnote{As scatter will be added directly by the
-      present class.} Then, a correlated set of random, log-normal deviates are applied to the scale radii of these nodes. That
-      is, the scale radius of the $i^\mathrm{th}$ node in such a sub-branch will be $r_\mathrm{s} = \bar{r}_{\mathrm{s}, i} 10^{x_i}$
-      where $x_i$ is a normally-distributed random variate with mean zero and dispersion $\sigma^\prime=$\mono{[scatter]}. The deviates $x_i$ are assumed to be correlated with correlation matrix:
-      \begin{equation}
+       c_p = \frac{1}{x_\mathrm{unres}^{p-1} (1+x_\mathrm{unres})^{-\alpha}} \frac{\int_0^{x_\mathrm{unres}} n(x) x^p (1+x)^{-\alpha} \mathrm{d}x}{\int_0^{x_\mathrm{unres}} n(x) x \mathrm{d}x}.
+
+    This evaluates to:
+
+    .. math::
+
+       c_p = \frac{2+\delta}{1+\delta+p} (1+x_\mathrm{unres})^\alpha\, _2\mathrm{F}_1({1+\delta+p,\alpha},{2+\delta+p},-x_\mathrm{unres}).
+
+    We further compute correction factors to account for the fact that this unresolved mass is accreted over some interval of time, during which mean halo properties (e.g. virial density) will evolve. For internal energies we have :math:`E_\mathrm{int} \propto M^2/r \propto M^{5/3}/\rho \propto M^{5/3}/a(t)` where :math:`a(t)` is the expansion factor. If the current halo exists at time :math:`t`, and the primary progenitor at time :math:`t_0`, we therefore compute a correction factor to the midpoint of this interval,
+
+    .. math::
+
+       f_\mathrm{int} = \frac{1}{2} \left( 1 + \frac{a(t_0)}{a(t)} \right),
+
+    where the second term in the parentheses is the ratio of the internal energy of a halo of fixed mass at :math:`t` and :math:`t_0`. For orbital energy we expect a scaling :math:`E_\mathrm{orb} \propto M M_\mathrm{host}/r_\mathrm{host} \propto M M_\mathrm{host}^{2/3}/\rho \propto M M_\mathrm{host}^{2/3}/a(t)` where :math:`M_\mathrm{host}` and :math:`r_\mathrm{host}` are the virial mass and radius of the host (current) halo, respectively. Computing a correction factor to the midpoint of the time interval we find,
+
+    .. math::
+
+       f_\mathrm{orb} = \frac{1}{2} \left( 1 + \frac{a(t_0)}{a(t)} \left[\frac{M}{M_0}\right]^{2/3} \right).
+
+    We next estimate the mean and root-variance, :math:`\bar{E}_\mathrm{unres}` and :math:`\sigma_\mathrm{unres}`, respectively, of the energy of a halo of mass :math:`M_\mathrm{unres}` via a Monte Carlo approach. We generate :math:`N_\mathrm{MC}=`\ ``[countSampleEnergyUnresolved]`` such halos, each with scale radii set using the fall-back :galacticus-class:`darkMatterHaloScaleClass` object with an added scatter of :math:`\sigma^\prime=`\ ``[scatter]`` dex, and a randomly selected orbit. For each such halo, the energy is computed as
+
+    .. math::
+
+       E_\mathrm{unres} = u (E_\mathrm{orb} c_\mathrm{orb} f_\mathrm{orb} + E_\mathrm{int} c_\mathrm{int} f_\mathrm{int}) (1+b \nu^\beta),
+
+    where :math:`u =`\ ``[unresolvedEnergy]``.
+
+    To estimate the deviation from the mean unresolved energy we again consider the contributions from a spectrum of unresolved halo masses. For simplicity we here ignore the internal energies (which are typically small relative to the orbital energy assuming that the unresolved halo masses are small compared to that of the primary progenitor. The mean energy of unresolved halos is then
+
+    .. math::
+
+       \epsilon = \bar{E}_\mathrm{unres} \int_0^1 x^{1+a} \mathrm{d}x = \frac{\bar{E}_\mathrm{unres}}{2+a},
+
+    while the variance in this energy is
+
+    .. math::
+
+       \sigma^2_\epsilon = \sigma^2_\mathrm{unres} \int_0^1 x^{2+a} \mathrm{d}x = \frac{\sigma^2_\mathrm{unres}}{3+a}.
+
+    The fractional variance is then
+
+    .. math::
+
+       \frac{\sigma^2_\epsilon}{\epsilon^2} =\frac{2+a}{3+a} \left(\frac{\sigma_\mathrm{unres}}{\bar{E}_\mathrm{unres}}\right)^2.
+
+    We therefore add to the energy of the halo an unresolved contribution of
+
+    .. math::
+
+       \bar{E}_\mathrm{unres} \exp\left( \left[ \frac{2+a}{3+a} \left(\frac{\sigma_\mathrm{unres}}{\bar{E}_\mathrm{unres}}\right)^2 + (\sigma_e \log_\mathrm{e}10)^2 \right]^{1/2} \mathcal{N}(0,1) \right).
+
+    where :math:`\sigma_\mathrm{e}=`\ ``[scatterExcess]`` accounts for scatter missed by this model.
+
+    The scale radius which corresponds to this energy is then solved for.
+
+    For halos with mass less than :math:`f_\mathrm{res} M_\mathrm{res}`, where :math:`f_\mathrm{res}=`\ ``[factorMassResolution]`` and :math:`M_\mathrm{res}` is the mass resolution of the merger tree, and for any halo which has no progenitors (a leaf node), the scale radius is instead computed using an alternative method\footnoteFor leaf nodes, there are no progenitors for which to apply the above energy calculation, and for halos sufficiently close to the mass resolution the energy calculation may not be reliable due to the poorly-resolved formation history of the node.. In these cases, the entire extent of the branch for which this criterion applies is first determined. Each halo in this sub-branch is first assigned a scale radius from a fall-back :galacticus-class:`darkMatterHaloScaleClass` object which should be configured to return a *scatter-free* scale radius for halos of given mass and redshift\footnoteAs scatter will be added directly by the present class. Then, a correlated set of random, log-normal deviates are applied to the scale radii of these nodes. That is, the scale radius of the :math:`i^\mathrm{th}` node in such a sub-branch will be :math:`r_\mathrm{s} = \bar{r}_{\mathrm{s}, i} 10^{x_i}` where :math:`x_i` is a normally-distributed random variate with mean zero and dispersion :math:`\sigma^\prime=`\ ``[scatter]``. The deviates :math:`x_i` are assumed to be correlated with correlation matrix:
+
+    .. math::
+
        C_{i,j} = \exp\left( -\gamma \left| \log_{10} \frac{M_i}{M_j} \right|^\mu \right),
-      \end{equation}
 
-      where\footnote{These values were found by fitting to results from this class.} $\gamma = $\mono{[correlationRateDecay]}, $\mu =$\mono{[correlationExponent]} and $M_i$ is the mass of the $i^\mathrm{th}$
-      halo in the sub-branch. This results in a scale radius along the sub-branch with the correct mean and scatter, but
-      correlated over mass increment scales in a way that matches the predictions of this algorithm.
+    where\footnoteThese values were found by fitting to results from this class. :math:`\gamma =`\ ``[correlationRateDecay]``, :math:`\mu =`\ ``[correlationExponent]`` and :math:`M_i` is the mass of the :math:`i^\mathrm{th}` halo in the sub-branch. This results in a scale radius along the sub-branch with the correct mean and scatter, but correlated over mass increment scales in a way that matches the predictions of this algorithm.
     </description>
   </darkMatterProfileScaleRadius>
   !!]
   type, extends(darkMatterProfileScaleRadiusClass) :: darkMatterProfileScaleRadiusJohnson2021
-     !!{
-     A dark matter profile scale radius class that assigns dark matter profile scale radii using the energy-based model of
-     \cite{johnson_random_2021}.
+     !!{RST
+     A dark matter profile scale radius class that assigns dark matter profile scale radii using the energy-based model of :cite:t:`johnson_random_2021`.
      !!}
      private
      class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_           => null()
@@ -186,8 +161,8 @@
   end type darkMatterProfileScaleRadiusJohnson2021
   
   interface darkMatterProfileScaleRadiusJohnson2021
-     !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusJohnson2021} dark matter halo profile scale radius class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileScaleRadiusJohnson2021` dark matter halo profile scale radius class.
      !!}
      module procedure darkMatterProfileScaleJohnson2021ConstructorParameters
      module procedure darkMatterProfileScaleJohnson2021ConstructorInternal
@@ -203,9 +178,8 @@
 contains
   
   function darkMatterProfileScaleJohnson2021ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusJohnson2021} dark matter halo profile scale radius class which
-    takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileScaleRadiusJohnson2021` dark matter halo profile scale radius class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -229,92 +203,126 @@ contains
          &                                                                      acceptUnboundOrbits          , includeUnresolvedVariance
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>energyBoost</name>
       <defaultValue>0.797d0</defaultValue>
-      <defaultSource>\citep{johnson_random_2021}</defaultSource>
+      <defaultSource>
+      :cite:p:`johnson_random_2021`
+      </defaultSource>
       <source>parameters</source>
-      <description>A multiplicative boost factor applied to the orbital energy in the \citep{johnson_random_2021} scale radius model, calibrated to match the energy budget of merging halos in N-body simulations.</description>
+      <description>
+      A multiplicative boost factor applied to the orbital energy in the :cite:p:`johnson_random_2021` scale radius model, calibrated to match the energy budget of merging halos in N-body simulations.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massExponent</name>
       <defaultValue>2.168d0</defaultValue>
-      <defaultSource>\citep{johnson_random_2021}</defaultSource>
+      <defaultSource>
+      :cite:p:`johnson_random_2021`
+      </defaultSource>
       <source>parameters</source>
-      <description>The exponent of mass ratio appearing in the orbital energy term.</description>
+      <description>
+      The exponent of mass ratio appearing in the orbital energy term.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>peakHeightExponent</name>
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
-      <description>The exponent of the peak height $\nu$ (a dimensionless measure of halo rarity relative to the mass function) in the orbital energy term of the \citep{johnson_random_2021} scale radius model; controls the dependence of scale radius on halo formation epoch.</description>
+      <description>
+      The exponent of the peak height :math:`\nu` (a dimensionless measure of halo rarity relative to the mass function) in the orbital energy term of the :cite:p:`johnson_random_2021` scale radius model; controls the dependence of scale radius on halo formation epoch.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>unresolvedEnergy</name>
       <defaultValue>0.550d0</defaultValue>
-      <defaultSource>\citep{johnson_random_2021}</defaultSource>
+      <defaultSource>
+      :cite:p:`johnson_random_2021`
+      </defaultSource>
       <source>parameters</source>
-      <description>Factor multiplying the estimate of the internal energy of unresolved accretion.</description>
+      <description>
+      Factor multiplying the estimate of the internal energy of unresolved accretion.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorMassResolution</name>
       <defaultValue>1.0d2</defaultValue>
       <source>parameters</source>
-      <description>The \cite{johnson_random_2021} model is applied only for halos with mass greater than $f M_\mathrm{res}$ where $f=$\mono{[factorMassResolution]}. Below this mass the fall-back method is used, with correlated scatter along the branch.</description>
+      <description>
+      The :cite:t:`johnson_random_2021` model is applied only for halos with mass greater than :math:`f M_\mathrm{res}` where :math:`f=`\ ``[factorMassResolution]``. Below this mass the fall-back method is used, with correlated scatter along the branch.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scatter</name>
       <defaultValue>0.16d0</defaultValue>
       <source>parameters</source>
-      <description>The scatter in scale radius (in dex) to be applied to halos that are too low mass for the \cite{johnson_random_2021} model to be applied.</description>
+      <description>
+      The scatter in scale radius (in dex) to be applied to halos that are too low mass for the :cite:t:`johnson_random_2021` model to be applied.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scatterExcess</name>
       <defaultValue>0.116d0</defaultValue>
       <source>parameters</source>
-      <description>The additional scatter radius (in dex) to be applied to the energies of merging halos to account for the fact that the \cite{johnson_random_2021} underpredicts the scatter in concentrations.</description>
+      <description>
+      The additional scatter radius (in dex) to be applied to the energies of merging halos to account for the fact that the :cite:t:`johnson_random_2021` underpredicts the scatter in concentrations.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>correlationRateDecay</name>
       <defaultValue>3.8361d0</defaultValue>
       <source>parameters</source>
-      <description>The decay rate for the exponential correlation model for scale radii.</description>
+      <description>
+      The decay rate for the exponential correlation model for scale radii.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>correlationExponent</name>
       <defaultValue>1.6198d0</defaultValue>
       <source>parameters</source>
-      <description>The exponent for the exponential correlation model for scale radii.</description>
+      <description>
+      The exponent for the exponential correlation model for scale radii.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countSampleEnergyUnresolved</name>
       <defaultValue>100</defaultValue>
       <source>parameters</source>
-      <description>The number of samples to use in Monte Carlo estimates of the mean and scatter in the energy of unresolved halos.</description>
+      <description>
+      The number of samples to use in Monte Carlo estimates of the mean and scatter in the energy of unresolved halos.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mainBranchOnly</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If true, the \cite{johnson_random_2021} algorithm is applied to the main branch only, with other branches using the fall-back method.</description>
+      <description>
+      If true, the :cite:t:`johnson_random_2021` algorithm is applied to the main branch only, with other branches using the fall-back method.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>applySubsamplingWeights</name>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
-      <description>If true, account for halo subsampling weights when computing population-averaged quantities in the \citep{johnson_random_2021} model, necessary when the merger tree was constructed using subsampled halo catalogs.</description>
+      <description>
+      If true, account for halo subsampling weights when computing population-averaged quantities in the :cite:p:`johnson_random_2021` model, necessary when the merger tree was constructed using subsampled halo catalogs.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>acceptUnboundOrbits</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If true, allow unbound orbits when sampling orbits for unresolved halos.</description>
+      <description>
+      If true, allow unbound orbits when sampling orbits for unresolved halos.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeUnresolvedVariance</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If true, account for the variance in the energy of unresolved halos.</description>
+      <description>
+      If true, account for the variance in the energy of unresolved halos.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     <objectBuilder class="criticalOverdensity"          name="criticalOverdensity_"          source="parameters"/>
@@ -341,8 +349,8 @@ contains
   end function darkMatterProfileScaleJohnson2021ConstructorParameters
 
   function darkMatterProfileScaleJohnson2021ConstructorInternal(massExponent,peakHeightExponent,energyBoost,unresolvedEnergy,factorMassResolution,scatter,scatterExcess,correlationRateDecay,correlationExponent,countSampleEnergyUnresolved,mainBranchOnly,applySubsamplingWeights,acceptUnboundOrbits,includeUnresolvedVariance,cosmologyFunctions_,darkMatterProfileScaleRadius_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileScaleRadiusJohnson2021} dark matter halo profile scale radius class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterProfileScaleRadiusJohnson2021` dark matter halo profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusJohnson2021)                        :: self
@@ -370,8 +378,8 @@ contains
   end function darkMatterProfileScaleJohnson2021ConstructorInternal
 
   subroutine darkMatterProfileScaleJohnson2021Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileScaleRadiusJohnson2021} dark matter halo profile scale radius class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileScaleRadiusJohnson2021` dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusJohnson2021), intent(inout) :: self
@@ -390,7 +398,7 @@ contains
   end subroutine darkMatterProfileScaleJohnson2021Destructor
 
   double precision function darkMatterProfileScaleJohnson2021Radius(self,node) result(radiusScale)
-    !!{
+    !!{RST
     Initialize dark matter profile scale radii.
     !!}
     use :: Calculations_Resets             , only : Calculations_Reset
@@ -813,7 +821,7 @@ contains
   end function darkMatterProfileScaleJohnson2021Radius
 
   double precision function radiusScaleRoot(radiusScale)
-    !!{
+    !!{RST
     Function used in root-finding to compute the scale radius of a dark matter profile as a given energy.
     !!}
     use :: Calculations_Resets, only : Calculations_Reset

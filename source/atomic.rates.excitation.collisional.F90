@@ -19,27 +19,28 @@
 
 !+ Contributions to this file made by: Daniel McAndrew.
 
-!!{
+!!{RST
 Contains a module which provides a class implementing atomic collisional excitation rates.
 !!}
 
 module Atomic_Rates_Excitation_Collisional
-  !!{
+  !!{RST
   Provides a class implementing atomic collisional excitation rates.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>atomicExcitationRateCollisional</name>
    <descriptiveName>Atomic Collisional Excitation</descriptiveName>
-   <description>Class providing collisional excitation cooling rates (in J m$^3$ s$^{-1}$) for ions of given atomic
-    number and ionization state at a specified electron temperature. Collisional excitation followed by radiative
-    de-excitation is a key coolant for warm ionized gas at temperatures of $10^4$--$10^5$ K, particularly for
-    metal ions such as oxygen and carbon.</description>
+   <description>
+   Class providing collisional excitation cooling rates (in J m\ :math:`^3` s\ :math:`^{-1}`) for ions of given atomic number and ionization state at a specified electron temperature. Collisional excitation followed by radiative de-excitation is a key coolant for warm ionized gas at temperatures of :math:`10^4`--:math:`10^5` K, particularly for metal ions such as oxygen and carbon.
+   </description>
    <default>scholzWalters1991</default>
    <method name="coolingRate" >
-    <description>Return the collisional excitation cooling rate , in units of J m$^3$ s$^{-1}$, for ion of given \mono{atomicNumber} and \mono{electronNumber} at temperature \mono{T} (in Kelvin).</description>
+    <description>
+    Return the collisional excitation cooling rate , in units of J m\ :math:`^3` s\ :math:`^{-1}`, for ion of given ``atomicNumber`` and ``electronNumber`` at temperature ``T`` (in Kelvin).
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer         , intent(in   ) :: atomicNumber, electronNumber</argument>

@@ -17,48 +17,46 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a stellar tracks class in which the tracks are read from file and interpolated.
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
   
   !![
-  <stellarTracks name="stellarTracksFile">
+  <stellarTracks name="stellarTracksFile" docformat="rst">
    <description>
-    A stellar tracks class in which luminosities and effective temperatures of stars are computed from a tabulated set of
-    stellar tracks, read from file and interpolated. The file containing the tracks to use is specified via the \mono{stellarTracksFile} parameter. The file specified must be an HDF5 file with the following structure:
-    \begin{verbatim}
-     stellarTracksFile
-      |
-      +-> metallicity1
-      |    |
-      |    +-> metallicity
-      |    |
-      |    +-> mass1
-      |    |    |
-      |    |    +-> mass
-      |    |    |
-      |    |    +-> age
-      |    |    |
-      |    |    +-> luminosity
-      |    |    |
-      |    |    +-> effectiveTemperature
-      |    |
-      |    x-> massN
-      |
-      x-> metallicityN
-    \end{verbatim}
-    Each \mono{metallicityN} group tabulates tracks for a given metallicity (the value of which is stored in
-    the \mono{metallicity} dataset within each group), and may contain an arbitrary number of \mono{massN} groups. Each \mono{massN} group should contain a track for a star of some mass (the value
-    of which is given in the \mono{mass} dataset). Within each track three datasets specify the \mono{age} (in Gyr), \mono{luminosity} (in $L_\odot$) and \mono{effectiveTemperature}
-    (in Kelvin) along the track.
+   A stellar tracks class in which luminosities and effective temperatures of stars are computed from a tabulated set of stellar tracks, read from file and interpolated. The file containing the tracks to use is specified via the ``stellarTracksFile`` parameter. The file specified must be an HDF5 file with the following structure:
+
+   .. code-block:: none
+
+       stellarTracksFile
+        |
+        +-&gt; metallicity1
+        |    |
+        |    +-&gt; metallicity
+        |    |
+        |    +-&gt; mass1
+        |    |    |
+        |    |    +-&gt; mass
+        |    |    |
+        |    |    +-&gt; age
+        |    |    |
+        |    |    +-&gt; luminosity
+        |    |    |
+        |    |    +-&gt; effectiveTemperature
+        |    |
+        |    x-&gt; massN
+        |
+        x-&gt; metallicityN
+
+   Each ``metallicityN`` group tabulates tracks for a given metallicity (the value of which is stored in the ``metallicity`` dataset within each group), and may contain an arbitrary number of ``massN`` groups. Each ``massN`` group should contain a track for a star of some mass (the value of which is given in the ``mass`` dataset). Within each track three datasets specify the ``age`` (in Gyr), ``luminosity`` (in :math:`L_\odot`) and ``effectiveTemperature`` (in Kelvin) along the track.
    </description>
    <runTimeFileDependencies paths="fileName"/>
   </stellarTracks>
   !!]
   type, extends(stellarTracksClass) :: stellarTracksFile
-     !!{
+     !!{RST
      A stellar tracks class in which the tracks are read from file and interpolated.
      !!}
      private
@@ -76,9 +74,9 @@
      logical                                                         :: initialized
    contains
      !![
-     <methods>
-       <method description="\textcolor{red}{\textless integer(c\_size\_t)(2)\textgreater} interpolationIndicesMetallicity\argout, {\textless integer(c\_size\_t)(2,2)\textgreater} interpolationIndicesMass\argout, {\textless integer(c\_size\_t)(2,2,2)\textgreater} interpolationIndicesAge\argout, {\textless double(2)\textgreater} interpolationFactorsMetallicity\argout, {\textless double(2,2)\textgreater} interpolationFactorsMass\argout, {\textless double(2,2,2)\textgreater} interpolationFactorsAge\argout, \logicalzero\ metallicityOutOfRange\argout, \logicalzero\ massOutOfRange\argout, \logicalzero\ ageOutOfRange\argout" method="interpolationCompute" />
-       <method description="\textcolor{red}{\textless integer(c\_size\_t)(2)\textgreater} interpolationIndicesMetallicity\argin, {\textless integer(c\_size\_t)(2,2)\textgreater} interpolationIndicesMass\argin, {\textless integer(c\_size\_t)(2,2,2)\textgreater} interpolationIndicesAge\argin, {\textless double(2)\textgreater} interpolationFactorsMetallicity\argin, {\textless double(2,2)\textgreater} interpolationFactorsMass\argin, {\textless double(2,2,2)\textgreater} interpolationFactorsAge\argin, {\textless double(:,:,:)\textgreater} stellarTracks\argin" method="interpolate" />
+     <methods docformat="rst">
+       <method description="\textcolorred&lt;integer(c_size_t)(2)&gt; interpolationIndicesMetallicity\argout, &lt;integer(c_size_t)(2,2)&gt; interpolationIndicesMass\argout, &lt;integer(c_size_t)(2,2,2)&gt; interpolationIndicesAge\argout, &lt;double(2)&gt; interpolationFactorsMetallicity\argout, &lt;double(2,2)&gt; interpolationFactorsMass\argout, &lt;double(2,2,2)&gt; interpolationFactorsAge\argout, \logicalzero\ metallicityOutOfRange\argout, \logicalzero\ massOutOfRange\argout, \logicalzero\ ageOutOfRange\argout" method="interpolationCompute" />
+       <method description="\textcolorred&lt;integer(c_size_t)(2)&gt; interpolationIndicesMetallicity\argin, &lt;integer(c_size_t)(2,2)&gt; interpolationIndicesMass\argin, &lt;integer(c_size_t)(2,2,2)&gt; interpolationIndicesAge\argin, &lt;double(2)&gt; interpolationFactorsMetallicity\argin, &lt;double(2,2)&gt; interpolationFactorsMass\argin, &lt;double(2,2,2)&gt; interpolationFactorsAge\argin, &lt;double(:,:,:)&gt; stellarTracks\argin" method="interpolate" />
        <method method="initialize" description="Initialize stellar data."/>
      </methods>
      !!]
@@ -90,8 +88,8 @@
   end type stellarTracksFile
 
   interface stellarTracksFile
-     !!{
-     Constructors for the \refClass{stellarTracksFile} stellar tracks class.
+     !!{RST
+     Constructors for the :galacticus-class:`stellarTracksFile` stellar tracks class.
      !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
@@ -103,8 +101,8 @@
 contains
 
   function fileConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarTracksFile} stellar tracks class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`stellarTracksFile` stellar tracks class which takes a parameter list as input.
     !!}
     use :: Input_Paths     , only : inputPath     , pathTypeDataStatic
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -114,10 +112,12 @@ contains
     type(varying_string   )                :: fileName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <defaultValue>inputPath(pathTypeDataStatic)//'stellarAstrophysics/Stellar_Tracks_Padova.hdf5'</defaultValue>
-      <description>The name of the HDF5 file from which to read stellar tracks.</description>
+      <description>
+      The name of the HDF5 file from which to read stellar tracks.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -129,8 +129,8 @@ contains
   end function fileConstructorParameters
 
   function fileConstructorInternal(fileName) result(self)
-    !!{
-    Internal constructor for the \refClass{stellarTracksFile} stellar tracks class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`stellarTracksFile` stellar tracks class.
     !!}
     implicit none
     type     (stellarTracksFile)                :: self
@@ -144,8 +144,8 @@ contains
   end function fileConstructorInternal
 
   subroutine fileInitialize(self)
-    !!{
-    Read data for the \mono{file} stellar tracks class.
+    !!{RST
+    Read data for the ``file`` stellar tracks class.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
@@ -261,8 +261,8 @@ contains
   end subroutine fileInitialize
 
   double precision function fileLuminosity(self,initialMass,metallicity,age)
-    !!{
-    Return the bolometric luminosity (in $L_\odot$) for a star of given \mono{initialMass}, \mono{metallicity} and \mono{age}.
+    !!{RST
+    Return the bolometric luminosity (in :math:`L_\odot`) for a star of given ``initialMass``, ``metallicity`` and ``age``.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -311,8 +311,8 @@ contains
   end function fileLuminosity
 
   double precision function fileTemperatureEffective(self,initialMass,metallicity,age)
-    !!{
-    Return the effective temperature (in Kelvin) for a star of given \mono{initialMass}, \mono{metallicity} and \mono{age}.
+    !!{RST
+    Return the effective temperature (in Kelvin) for a star of given ``initialMass``, ``metallicity`` and ``age``.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
@@ -361,8 +361,8 @@ contains
   end function fileTemperatureEffective
 
   double precision function fileInterpolate(self,interpolationIndicesMetallicity,interpolationIndicesMass,interpolationIndicesAge,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge,stellarTracks)
-    !!{
-    Using precomputed factors, interpolate in metallicity, mass and age in the given \mono{stellarTracks}.
+    !!{RST
+    Using precomputed factors, interpolate in metallicity, mass and age in the given ``stellarTracks``.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Error        , only : Error_Report
@@ -403,7 +403,7 @@ contains
   end function fileInterpolate
 
   subroutine fileInterpolationCompute(self,initialMass,metallicity,age,interpolationIndicesMetallicity,interpolationIndicesMass,interpolationIndicesAge,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge,metallicityOutOfRange,massOutOfRange,ageOutOfRange)
-    !!{
+    !!{RST
     Get interpolating factors for stellar tracks.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

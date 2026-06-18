@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test OpenMP lock functions.
 !!}
 
 program Test_Locks
-  !!{
+  !!{RST
   Tests of OpenMP locking functions.
   !!}
   use            :: OMP_Lib           , only : OMP_Get_Thread_Num   , OMP_Set_Max_Active_Levels, OMP_Get_Supported_Active_Levels, omp_get_ancestor_thread_num, omp_get_level  , &

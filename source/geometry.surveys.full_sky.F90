@@ -17,15 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements survey geometries over the full sky.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <surveyGeometry name="surveyGeometryFullSky">
-   <description>Implements a survey geometry covering the full sky over a specified distance or redshift range. The survey volume is bounded by \mono{[redshiftMinimum]} and \mono{[redshiftMaximum]}, with all sky positions included, making this suitable for theoretical or volume-limited analyses without angular masking.</description>
+  <surveyGeometry name="surveyGeometryFullSky" docformat="rst">
+   <description>
+   Implements a survey geometry covering the full sky over a specified distance or redshift range. The survey volume is bounded by ``[redshiftMinimum]`` and ``[redshiftMaximum]``, with all sky positions included, making this suitable for theoretical or volume-limited analyses without angular masking.
+   </description>
   </surveyGeometry>
   !!]
   type, extends(surveyGeometryClass) :: surveyGeometryFullSky
@@ -46,7 +48,7 @@ Implements survey geometries over the full sky.
   end type surveyGeometryFullSky
 
   interface surveyGeometryFullSky
-     !!{
+     !!{RST
      Constructors for the full sky survey geometry class.
      !!}
      module procedure fullSkyConstructorParameters
@@ -56,7 +58,7 @@ Implements survey geometries over the full sky.
 contains
 
   function fullSkyConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Default constructor for the full sky survey geometry.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -69,17 +71,21 @@ contains
     ! Check and read parameters.
     !![
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMinimum</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum redshift of the full-sky survey volume; sources below this redshift are excluded from the survey sample.</description>
+      <description>
+      The minimum redshift of the full-sky survey volume; sources below this redshift are excluded from the survey sample.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMaximum</name>
       <defaultValue>huge(1.0d0)</defaultValue>
       <source>parameters</source>
-      <description>The maximum redshift of the full-sky survey volume; sources above this redshift are excluded from the survey sample.</description>
+      <description>
+      The maximum redshift of the full-sky survey volume; sources above this redshift are excluded from the survey sample.
+      </description>
     </inputParameter>
     !!]
     ! Build the object.
@@ -96,7 +102,7 @@ contains
   end function fullSkyConstructorParameters
 
   function fullSkyConstructorInternal(redshiftMinimum,redshiftMaximum,distanceMinimum,distanceMaximum,cosmologyFunctions_) result(self)
-    !!{
+    !!{RST
     Constructor for the full sky survey class which allows specification of minimum and maximum redshifts.
     !!}
     use :: Error                      , only : Error_Report
@@ -142,8 +148,8 @@ contains
   end function fullSkyConstructorInternal
 
   subroutine fullSkyDestructor(self)
-    !!{
-    Destructor for the \refClass{surveyGeometryFullSky} survey geometry class.
+    !!{RST
+    Destructor for the :galacticus-class:`surveyGeometryFullSky` survey geometry class.
     !!}
     implicit none
     type(surveyGeometryFullSky), intent(inout) :: self
@@ -155,7 +161,7 @@ contains
   end subroutine fullSkyDestructor
 
   double precision function fullSkyDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
-    !!{
+    !!{RST
     Compute the minimum distance at which a galaxy is visible.
     !!}
     implicit none
@@ -170,7 +176,7 @@ contains
   end function fullSkyDistanceMinimum
 
   double precision function fullSkyDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
-    !!{
+    !!{RST
     Compute the maximum distance at which a galaxy is visible.
     !!}
     implicit none
@@ -185,8 +191,8 @@ contains
   end function fullSkyDistanceMaximum
 
   double precision function fullSkySolidAngle(self,field)
-    !!{
-    Return the solid angle of the \cite{li_distribution_2009} sample.
+    !!{RST
+    Return the solid angle of the :cite:t:`li_distribution_2009` sample.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -199,7 +205,7 @@ contains
   end function fullSkySolidAngle
 
   logical function fullSkyWindowFunctionAvailable(self)
-    !!{
+    !!{RST
     Return true to indicate that survey window function is available.
     !!}
     implicit none
@@ -211,7 +217,7 @@ contains
   end function fullSkyWindowFunctionAvailable
 
   logical function fullSkyAngularPowerAvailable(self)
-    !!{
+    !!{RST
     Return true to indicate that survey angular power is available.
     !!}
     implicit none
@@ -223,7 +229,7 @@ contains
   end function fullSkyAngularPowerAvailable
 
   subroutine fullSkyWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
-    !!{
+    !!{RST
     Compute the window function for the survey.
     !!}
 #ifdef FFTW3AVAIL
@@ -299,7 +305,7 @@ contains
   end subroutine fullSkyWindowFunctions
 
   double precision function fullSkyAngularPower(self,i,j,l)
-    !!{
+    !!{RST
     Return the angular power for the full sky.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -317,7 +323,7 @@ contains
   end function fullSkyAngularPower
 
   logical function fullSkyPointIncluded(self,point,mass)
-    !!{
+    !!{RST
     Return true if a point is included in the survey geometry.
     !!}
     use :: Vectors, only : Vector_Magnitude

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a multi node operator class.
   !!}
 
@@ -27,21 +27,23 @@
   end type multiProcessList
 
   !![
-  <nodeOperator name="nodeOperatorMulti">
-   <description>A node operator class that applies a linked list of multiple child \refClass{nodeOperatorClass} objects sequentially to each node, enabling a composite set of physical processes to be executed as a single operator.</description>
+  <nodeOperator name="nodeOperatorMulti" docformat="rst">
+   <description>
+   A node operator class that applies a linked list of multiple child :galacticus-class:`nodeOperatorClass` objects sequentially to each node, enabling a composite set of physical processes to be executed as a single operator.
+   </description>
    <linkedList type="multiProcessList" variable="processes" next="next" object="process_" objectType="nodeOperatorClass"/>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorMulti
-     !!{
+     !!{RST
      A multi node operator output process class, which applies multiple node operators.
      !!}
      private
      type(multiProcessList), pointer :: processes => null()
    contains
      !![
-     <methods>
-	<method method="isActive" description="Return true if the operators are active for the given \mono{node}."/>
+     <methods docformat="rst">
+	<method method="isActive" description="Return true if the operators are active for the given ``node``."/>
      </methods>
      !!]
      final     ::                                        multiDestructor
@@ -64,8 +66,8 @@
   end type nodeOperatorMulti
 
   interface nodeOperatorMulti
-     !!{
-     Constructors for the \refClass{nodeOperatorMulti} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorMulti` node operator class.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -74,8 +76,8 @@
 contains
 
   function multiConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorMulti} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorMulti` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -105,8 +107,8 @@ contains
   end function multiConstructorParameters
 
   function multiConstructorInternal(processes) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorMulti} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorMulti` node operator class.
     !!}
     implicit none
     type(nodeOperatorMulti)                         :: self
@@ -125,8 +127,8 @@ contains
   end function multiConstructorInternal
 
   subroutine multiDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorMulti} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorMulti` node operator class.
     !!}
     implicit none
     type(nodeOperatorMulti), intent(inout) :: self
@@ -147,7 +149,7 @@ contains
   end subroutine multiDestructor
 
   subroutine multiNodeTreeInitialize(self,node)
-    !!{
+    !!{RST
     Perform node tree initialization.
     !!}
     implicit none
@@ -165,7 +167,7 @@ contains
   end subroutine multiNodeTreeInitialize
 
   subroutine multiNodeInitialize(self,node)
-    !!{
+    !!{RST
     Perform node initialization.
     !!}
     implicit none
@@ -183,7 +185,7 @@ contains
   end subroutine multiNodeInitialize
 
   subroutine multiNodesMerge(self,node)
-    !!{
+    !!{RST
     Act on a merger between galaxies.
     !!}
     implicit none
@@ -201,7 +203,7 @@ contains
   end subroutine multiNodesMerge
 
   subroutine multiNodePromote(self,node)
-    !!{
+    !!{RST
     Act on a node promotion event.
     !!}
     implicit none
@@ -219,7 +221,7 @@ contains
   end subroutine multiNodePromote
 
   subroutine multiGalaxiesMerge(self,node)
-    !!{
+    !!{RST
     Act on a merger between galaxies.
     !!}
     implicit none
@@ -237,7 +239,7 @@ contains
   end subroutine multiGalaxiesMerge
 
   subroutine multiDifferentialEvolutionPre(self,node)
-    !!{
+    !!{RST
     Act on a node before differential evolution.
     !!}
     implicit none
@@ -255,7 +257,7 @@ contains
   end subroutine multiDifferentialEvolutionPre
 
   subroutine multiDifferentialEvolutionScales(self,node)
-    !!{
+    !!{RST
     Set absolute ODE solver scales prior to differential evolution.
     !!}
     implicit none
@@ -273,7 +275,7 @@ contains
   end subroutine multiDifferentialEvolutionScales
 
   subroutine multiDifferentialEvolutionAnalytics(self,node)
-    !!{
+    !!{RST
     Mark (meta-)properties as analytically solved for the ODE solver prior to differential evolution.
     !!}
     implicit none
@@ -291,7 +293,7 @@ contains
   end subroutine multiDifferentialEvolutionAnalytics
 
   subroutine multiDifferentialEvolutionInactives(self,node)
-    !!{
+    !!{RST
     Mark (meta-)properties as inactive for the ODE solver prior to differential evolution.
     !!}
     implicit none
@@ -309,7 +311,7 @@ contains
   end subroutine multiDifferentialEvolutionInactives
 
   subroutine multiDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Act on a node during differential evolution.
     !!}
     implicit none
@@ -330,7 +332,7 @@ contains
   end subroutine multiDifferentialEvolution
 
   subroutine multiDifferentialEvolutionSolveAnalytics(self,node,time)
-    !!{
+    !!{RST
     Set the values of analytically-solvable properties of a node during differential evolution.
     !!}
     implicit none
@@ -349,7 +351,7 @@ contains
   end subroutine multiDifferentialEvolutionSolveAnalytics
 
   subroutine multiPredeterminedSolveAnalytics(self,node,time)
-    !!{
+    !!{RST
     Set the pre-determined values of analytically-solvable properties of a node.
     !!}
     implicit none
@@ -368,7 +370,7 @@ contains
   end subroutine multiPredeterminedSolveAnalytics
 
   subroutine multiDifferentialEvolutionStepFinalState(self,node)
-    !!{
+    !!{RST
     Act on a node after a differential evolution ODE step.
     !!}
     implicit none
@@ -386,7 +388,7 @@ contains
   end subroutine multiDifferentialEvolutionStepFinalState
 
   subroutine multiDifferentialEvolutionPost(self,node)
-    !!{
+    !!{RST
     Act on a node after differential evolution.
     !!}
     implicit none
@@ -404,7 +406,7 @@ contains
   end subroutine multiDifferentialEvolutionPost
 
   subroutine multiDifferentialEvolutionPostStep(self,node,status)
-    !!{
+    !!{RST
     Act on a node after a differential evolution step.
     !!}
     implicit none
@@ -423,8 +425,8 @@ contains
   end subroutine multiDifferentialEvolutionPostStep
 
   logical function multiIsActive(self,node) result(isActive)
-    !!{
-    Return true if the operators are active for the given \mono{node}.
+    !!{RST
+    Return true if the operators are active for the given ``node``.
     !!}
     implicit none
     class(nodeOperatorMulti), intent(inout) :: self

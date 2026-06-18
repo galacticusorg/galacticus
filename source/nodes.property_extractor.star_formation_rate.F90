@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a star formation rate property extractor class.
 !!}
 
@@ -26,16 +26,14 @@ Implements a star formation rate property extractor class.
   use :: Star_Formation_Rates_Nuclear_Star_Clusters, only : starFormationRateNuclearStarClustersClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorStarFormationRate">
+  <nodePropertyExtractor name="nodePropertyExtractorStarFormationRate" docformat="rst">
    <description>
-    A node property extractor which extracts the star formation rate in a galaxy. The type of star formation rate is controlled by
-    the \mono{[component]} parameter, which can be either ``\mono{disk}'', ``\mono{spheroid}'', ``\mono{nsc}'' or ``\mono{total}''. The corresponding star formation
-    rate is extracted as \mono{\textless\ component\textgreater\ StarFormationRate} in units of $\mathrm{M}_\odot$/Gyr.
+   A node property extractor which extracts the star formation rate in a galaxy. The type of star formation rate is controlled by the ``[component]`` parameter, which can be either "``disk``", "``spheroid``", "``nsc``" or "``total``". The corresponding star formation rate is extracted as ``&lt;component&gt;StarFormationRate`` in units of :math:`\mathrm{M}_\odot`/Gyr.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorStarFormationRate
-     !!{
+     !!{RST
      A star formation rate property extractor class.
      !!}
      private
@@ -55,8 +53,8 @@ Implements a star formation rate property extractor class.
   end type nodePropertyExtractorStarFormationRate
 
   interface nodePropertyExtractorStarFormationRate
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorStarFormationRate} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorStarFormationRate` property extractor class.
      !!}
      module procedure starFormationRateConstructorParameters
      module procedure starFormationRateConstructorInternal
@@ -65,8 +63,8 @@ Implements a star formation rate property extractor class.
 contains
 
   function starFormationRateConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorStarFormationRate} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorStarFormationRate` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,10 +77,12 @@ contains
     type (enumerationGalacticComponentType         )                :: component_
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>component</name>
       <source>parameters</source>
-      <description>The component from which to extract star formation rate.</description>
+      <description>
+      The component from which to extract star formation rate.
+      </description>
     </inputParameter>
     !!]
     component_=enumerationGalacticComponentEncode(char(component),includesPrefix=.false.)
@@ -123,8 +123,8 @@ contains
   end function starFormationRateConstructorParameters
 
   function starFormationRateConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorStarFormationRate} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorStarFormationRate` property extractor class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -159,8 +159,8 @@ contains
   end function starFormationRateConstructorInternal
 
   subroutine starFormationRateDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorStarFormationRate} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorStarFormationRate` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorStarFormationRate), intent(inout) :: self
@@ -174,7 +174,7 @@ contains
   end subroutine starFormationRateDestructor
 
   double precision function starFormationRateExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a star formation rate output analysis property extractor.
     !!}
     implicit none
@@ -191,7 +191,7 @@ contains
   end function starFormationRateExtract
 
   function starFormationRateQuantity(self)
-    !!{
+    !!{RST
     Return the class of the stellar luminosity property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityStarFormationRate
@@ -205,7 +205,7 @@ contains
   end function starFormationRateQuantity
 
   function starFormationRateName(self)
-    !!{
+    !!{RST
     Return the name of the starFormationRate property.
     !!}
     implicit none
@@ -217,7 +217,7 @@ contains
   end function starFormationRateName
 
   function starFormationRateDescription(self)
-    !!{
+    !!{RST
     Return a description of the starFormationRate property.
     !!}
     implicit none
@@ -229,7 +229,7 @@ contains
   end function starFormationRateDescription
 
   double precision function starFormationRateUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the starFormationRate property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, gigaYear
@@ -242,7 +242,7 @@ contains
   end function starFormationRateUnitsInSI
 
   function starFormationRateUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the star formation rat property.
     !!}
     use :: Units_MetaData, only : unitType

@@ -17,15 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements the geometry of the SDSS survey used by \cite{gunawardhana_galaxy_2013}.
+!!{RST
+Implements the geometry of the SDSS survey used by :cite:t:`gunawardhana_galaxy_2013`.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <surveyGeometry name="surveyGeometryGunawardhana2013SDSS">
-   <description>Implements the geometry of the SDSS survey of \cite{gunawardhana_galaxy_2013}.</description>
+  <surveyGeometry name="surveyGeometryGunawardhana2013SDSS" docformat="rst">
+   <description>
+   Implements the geometry of the SDSS survey of :cite:t:`gunawardhana_galaxy_2013`.
+   </description>
   </surveyGeometry>
   !!]
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryGunawardhana2013SDSS
@@ -38,8 +40,8 @@ Implements the geometry of the SDSS survey used by \cite{gunawardhana_galaxy_201
   end type surveyGeometryGunawardhana2013SDSS
 
   interface surveyGeometryGunawardhana2013SDSS
-     !!{
-     Constructors for the \cite{gunawardhana_galaxy_2013} survey geometry class.
+     !!{RST
+     Constructors for the :cite:t:`gunawardhana_galaxy_2013` survey geometry class.
      !!}
      module procedure gunawardhana2013SDSSConstructorParameters
      module procedure gunawardhana2013SDSSConstructorInternal
@@ -48,8 +50,8 @@ Implements the geometry of the SDSS survey used by \cite{gunawardhana_galaxy_201
 contains
 
   function gunawardhana2013SDSSConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \cite{gunawardhana_galaxy_2013} conditional mass function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :cite:t:`gunawardhana_galaxy_2013` conditional mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,8 +71,8 @@ contains
   end function gunawardhana2013SDSSConstructorParameters
 
   function gunawardhana2013SDSSConstructorInternal(cosmologyFunctions_) result (self)
-    !!{
-    Default constructor for the \cite{gunawardhana_galaxy_2013} survey geometry class.
+    !!{RST
+    Default constructor for the :cite:t:`gunawardhana_galaxy_2013` survey geometry class.
     !!}
     implicit none
     type (surveyGeometryGunawardhana2013SDSS)                        :: self
@@ -85,8 +87,8 @@ contains
   end function gunawardhana2013SDSSConstructorInternal
 
   subroutine gunawardhana2013SDSSDestructor(self)
-    !!{
-    Destructor for the \refClass{surveyGeometryGunawardhana2013SDSS} survey geometry class.
+    !!{RST
+    Destructor for the :galacticus-class:`surveyGeometryGunawardhana2013SDSS` survey geometry class.
     !!}
     implicit none
     type(surveyGeometryGunawardhana2013SDSS), intent(inout) :: self
@@ -98,7 +100,7 @@ contains
   end subroutine gunawardhana2013SDSSDestructor
 
   double precision function gunawardhana2013SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
-    !!{
+    !!{RST
     Compute the minimum distance at which a galaxy is visible.
     !!}
     implicit none
@@ -120,7 +122,7 @@ contains
   end function gunawardhana2013SDSSDistanceMinimum
 
   double precision function gunawardhana2013SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
-    !!{
+    !!{RST
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Cosmology_Functions_Options     , only : distanceTypeComoving

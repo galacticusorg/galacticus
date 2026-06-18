@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that performs deceleration of satellites due to dark matter self-interactions.
   !!}
 
   use :: Satellite_Deceleration_SIDM, only : satelliteDecelerationSIDMClass
 
   !![
-  <nodeOperator name="nodeOperatorSatelliteDecelerationSIDM">
-   <description>Computes the deceleration of satellite dark matter halos due to self-interactions with the host halo's dark matter, applying a drag force that supplements dynamical friction and can accelerate orbital decay in self-interacting dark matter models.</description>
+  <nodeOperator name="nodeOperatorSatelliteDecelerationSIDM" docformat="rst">
+   <description>
+   Computes the deceleration of satellite dark matter halos due to self-interactions with the host halo's dark matter, applying a drag force that supplements dynamical friction and can accelerate orbital decay in self-interacting dark matter models.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteDecelerationSIDM
-     !!{
+     !!{RST
      A node operator class that performs deceleration of satellites due to dark matter self-interactions.
      !!}
      private
@@ -40,8 +42,8 @@
   end type nodeOperatorSatelliteDecelerationSIDM
   
   interface nodeOperatorSatelliteDecelerationSIDM
-     !!{
-     Constructors for the \refClass{nodeOperatorSatelliteDecelerationSIDM} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteDecelerationSIDM` node operator class.
      !!}
      module procedure satelliteDecelerationSIDMConstructorParameters
      module procedure satelliteDecelerationSIDMConstructorInternal
@@ -50,8 +52,8 @@
 contains
 
   function satelliteDecelerationSIDMConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorSatelliteDecelerationSIDM} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteDecelerationSIDM` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,8 +73,8 @@ contains
   end function satelliteDecelerationSIDMConstructorParameters
 
   function satelliteDecelerationSIDMConstructorInternal(satelliteDecelerationSIDM_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorSatelliteDecelerationSIDM} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteDecelerationSIDM` node operator class.
     !!}
     implicit none
     type (nodeOperatorSatelliteDecelerationSIDM)                        :: self
@@ -85,8 +87,8 @@ contains
   end function satelliteDecelerationSIDMConstructorInternal
 
   subroutine satelliteDecelerationSIDMDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorSatelliteDecelerationSIDM} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteDecelerationSIDM` node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteDecelerationSIDM), intent(inout) :: self
@@ -98,7 +100,7 @@ contains
   end subroutine satelliteDecelerationSIDMDestructor
   
   subroutine satelliteDecelerationSIDMDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Perform deceleration of a satellite due to dark matter self-interactions.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite

@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides an interface to read command line arguments of arbitrary type.
 !!}
 
 module Command_Arguments
-  !!{
+  !!{RST
   Provides an interface to read command line arguments of arbitrary type.
   !!}
   implicit none
@@ -30,7 +30,7 @@ module Command_Arguments
   public :: Get_Argument
 
   interface Get_Argument
-     !!{
+     !!{RST
      Generic interface to routines that read command line arguments.
      !!}
      module procedure Get_Argument_Varying_String
@@ -44,7 +44,7 @@ module Command_Arguments
 contains
 
   subroutine Get_Argument_Varying_String(argumentNumber,varStrArgument)
-    !!{
+    !!{RST
     Reads a varying string command line argument.
     !!}
     use :: ISO_Varying_String, only : varying_string
@@ -60,7 +60,7 @@ contains
   end subroutine Get_Argument_Varying_String
 
   subroutine Get_Temporary_String(argumentNumber,varStrArgument,argumentLength)
-    !!{
+    !!{RST
     Reads a command line argument into a temporary string of the correct length, and returns it as a varying string.
     !!}
     use :: ISO_Varying_String, only : varying_string
@@ -75,7 +75,7 @@ contains
   end subroutine Get_Temporary_String
 
   subroutine Get_Argument_Character(argumentNumber,characterArgument)
-    !!{
+    !!{RST
     Reads a character command line argument.
     !!}
     implicit none
@@ -87,7 +87,7 @@ contains
   end subroutine Get_Argument_Character
 
   subroutine Get_Argument_Integer(argumentNumber,integerArgument)
-    !!{
+    !!{RST
     Reads a integer command line argument.
     !!}
     implicit none
@@ -101,7 +101,7 @@ contains
   end subroutine Get_Argument_Integer
 
   subroutine Get_Argument_Real(argumentNumber,realArgument)
-    !!{
+    !!{RST
     Reads a real command line argument.
     !!}
     implicit none
@@ -115,7 +115,7 @@ contains
   end subroutine Get_Argument_Real
 
   subroutine Get_Argument_Double(argumentNumber,doubleArgument)
-    !!{
+    !!{RST
     Reads a double command line argument.
     !!}
     implicit none
@@ -129,7 +129,7 @@ contains
   end subroutine Get_Argument_Double
 
   subroutine Get_Argument_Logical(argumentNumber,logicalArgument)
-    !!{
+    !!{RST
     Reads a logical command line argument.
     !!}
     implicit none

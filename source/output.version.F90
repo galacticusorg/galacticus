@@ -17,16 +17,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements writing of the version number and run time to the \glc\ output file.
+!!{RST
+Contains a module which implements writing of the version number and run time to the Galacticus output file.
 !!}
 
 ! Specify an explicit dependence on the git2.o object file.
 !: $(BUILDPATH)/git2.o
 
 module Output_Versioning
-  !!{
-  Implements writing of the version number and run time to the \glc\ output file.
+  !!{RST
+  Implements writing of the version number and run time to the Galacticus output file.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_char, c_size_t
   implicit none
@@ -39,7 +39,7 @@ module Output_Versioning
 #ifdef GIT2AVAIL
   interface
      subroutine repoHeadHash(repoPath,hash) bind(c,name='repoHeadHash')
-       !!{
+       !!{RST
        Template for a C function that returns the Git hash of a repo HEAD.
        !!}
        import
@@ -55,7 +55,7 @@ module Output_Versioning
 contains
 
   subroutine Version(gitHash_,gitBranch_,buildTime_)
-    !!{
+    !!{RST
     Return version information
     !!}
     use :: ISO_Varying_String, only : assignment(=), varying_string
@@ -70,8 +70,8 @@ contains
   end subroutine Version
 
   function Version_String()
-    !!{
-    Returns a string describing the version of \glc.
+    !!{RST
+    Returns a string describing the version of Galacticus.
     !!}
     use :: ISO_Varying_String, only : operator(//), var_str, varying_string
     implicit none
@@ -85,7 +85,7 @@ contains
   <outputFileOpen function="Version_Output"/>
   !!]
   subroutine Version_Output
-    !!{
+    !!{RST
     Output version information to the main output file.
     !!}
 #ifdef GIT2AVAIL
@@ -181,7 +181,7 @@ contains
   <outputFileClose function="Version_Finalize"/>
   !!]
   subroutine Version_Finalize()
-    !!{
+    !!{RST
     Output final version information to the main output file.
     !!}
     use :: Dates_and_Times   , only : Formatted_Date_and_Time

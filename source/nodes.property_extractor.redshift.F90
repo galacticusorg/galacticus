@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a redshift property extractor class.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRedshift">
-   <description>Extracts the current cosmological redshift at which a node exists, computed from the node's cosmic time, and outputs it as the scalar property named ``\mono{redshift}''.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorRedshift" docformat="rst">
+   <description>
+   Extracts the current cosmological redshift at which a node exists, computed from the node's cosmic time, and outputs it as the scalar property named "``redshift``".
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRedshift
-     !!{
+     !!{RST
      A redshift property extractor class.
      !!}
      private
@@ -44,8 +46,8 @@ Implements a redshift property extractor class.
   end type nodePropertyExtractorRedshift
 
   interface nodePropertyExtractorRedshift
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRedshift} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorRedshift` property extractor class.
      !!}
      module procedure redshiftConstructorParameters
      module procedure redshiftConstructorInternal
@@ -54,8 +56,8 @@ Implements a redshift property extractor class.
 contains
 
   function redshiftConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRedshift} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorRedshift` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,8 +77,8 @@ contains
   end function redshiftConstructorParameters
 
   function redshiftConstructorInternal(cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRedshift} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRedshift` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRedshift)                        :: self
@@ -89,8 +91,8 @@ contains
   end function redshiftConstructorInternal
 
   subroutine redshiftDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorRedshift} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorRedshift` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRedshift), intent(inout) :: self
@@ -102,7 +104,7 @@ contains
   end subroutine redshiftDestructor
 
   double precision function redshiftExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a last isolated redshift output analysis.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -123,7 +125,7 @@ contains
   end function redshiftExtract
 
   function redshiftName(self)
-    !!{
+    !!{RST
     Return the name of the last isolated redshift property.
     !!}
     implicit none
@@ -136,7 +138,7 @@ contains
   end function redshiftName
 
   function redshiftDescription(self)
-    !!{
+    !!{RST
     Return a description of the redshift property.
     !!}
     implicit none
@@ -149,7 +151,7 @@ contains
   end function redshiftDescription
 
   double precision function redshiftUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the last isolated redshift property in the SI system.
     !!}
     implicit none
@@ -161,7 +163,7 @@ contains
   end function redshiftUnitsInSI
 
   function redshiftUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the redshift property.
     !!}
     use :: Units_MetaData, only : unitType

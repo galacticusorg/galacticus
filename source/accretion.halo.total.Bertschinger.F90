@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of the intergalactic medium state class for a simplistic model of instantaneous and full reionization.
   !!}
 
   !![
-  <accretionHaloTotal name="accretionHaloTotalBertschinger">
+  <accretionHaloTotal name="accretionHaloTotalBertschinger" docformat="rst">
    <description>
-    A halo total accretion class that assumes that the accretion rate is equal to the growth rate of the basic component
-    Bertschinger mass property.
+   A halo total accretion class that assumes that the accretion rate is equal to the growth rate of the basic component Bertschinger mass property.
    </description>
   </accretionHaloTotal>
   !!]
   type, extends(accretionHaloTotalClass) :: accretionHaloTotalBertschinger
-     !!{
+     !!{RST
      A halo total accretion class which assumes the accretion corresponds to the Bertschinger mass.
      !!}
      private
@@ -41,7 +40,7 @@
   end type accretionHaloTotalBertschinger
 
   interface accretionHaloTotalBertschinger
-     !!{
+     !!{RST
      Constructors for the bertschinger total halo accretion class.
      !!}
      module procedure bertschingerConstructorParameters
@@ -51,7 +50,7 @@
 contains
 
   function bertschingerConstructorParameters(parameters) result (self)
-    !!{
+    !!{RST
     Constructor for the bertschinger total halo accretion state class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -67,7 +66,7 @@ contains
   end function bertschingerConstructorParameters
 
   function bertschingerConstructorInternal() result (self)
-    !!{
+    !!{RST
     Internal constructor for the Bertschinger total halo accretion state class
     !!}
     implicit none
@@ -81,7 +80,7 @@ contains
   end function bertschingerConstructorInternal
 
   double precision function bertschingerAccretionRate(self,node)
-    !!{
+    !!{RST
     Return the accretion rate onto a halo.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -97,7 +96,7 @@ contains
   end function bertschingerAccretionRate
 
   double precision function bertschingerAccretedMass(self,node)
-    !!{
+    !!{RST
     Return the mass accreted onto a halo.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode

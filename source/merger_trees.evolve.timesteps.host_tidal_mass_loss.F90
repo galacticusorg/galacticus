@@ -20,20 +20,20 @@
   use :: Satellite_Tidal_Stripping, only : satelliteTidalStrippingClass
 
   !![
-  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepHostTidalMassLoss">
+  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepHostTidalMassLoss" docformat="rst">
    <description>
-    A merger tree evolution timestepping class that enforces
-    \begin{eqnarray}
-    \Delta t &amp;\le&amp; \epsilon_\mathrm{hostTidalMassLoss} (M_\mathrm{host}/\dot{M}_\mathrm{host}|),
-    \end{eqnarray}
-    where $\epsilon_\mathrm{hostTidalMassLoss}=$\mono{[timeStepRelative]}, and $M_\mathrm{host}$ is the
-    bound mass of the host satellite. This criterion is intended to prevent any satellite evolving over an excessively
-    large time in one step ahead of its host satellite.
+   A merger tree evolution timestepping class that enforces
+
+   .. math::
+
+      \Delta t  \le  \epsilon_\mathrm{hostTidalMassLoss} (M_\mathrm{host}/\dot{M}_\mathrm{host}|),
+
+   where :math:`\epsilon_\mathrm{hostTidalMassLoss}=`\ ``[timeStepRelative]``, and :math:`M_\mathrm{host}` is the bound mass of the host satellite. This criterion is intended to prevent any satellite evolving over an excessively large time in one step ahead of its host satellite.
    </description>
   </mergerTreeEvolveTimestep>
   !!]
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepHostTidalMassLoss
-     !!{
+     !!{RST
      Implementation of a merger tree evolution timestepping class which is based on the mass loss rate of the satellite.
      !!}
      private
@@ -47,8 +47,8 @@
   end type mergerTreeEvolveTimestepHostTidalMassLoss
 
   interface mergerTreeEvolveTimestepHostTidalMassLoss
-     !!{
-     Constructors for the \refClass{mergerTreeEvolveTimestepHostTidalMassLoss} merger tree evolution timestep class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeEvolveTimestepHostTidalMassLoss` merger tree evolution timestep class.
      !!}
      module procedure hostTidalMassLossConstructorParameters
      module procedure hostTidalMassLossConstructorInternal
@@ -57,8 +57,8 @@
 contains
 
   function hostTidalMassLossConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveTimestepHostTidalMassLoss} merger tree evolution timestep class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepHostTidalMassLoss` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -68,16 +68,20 @@ contains
     double precision                                                           :: timeStepRelative        , fractionTimestepMinimum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeStepRelative</name>
       <defaultValue>0.1d0</defaultValue>
-      <description>The maximum allowed relative change in time for a single step in the evolution of a node.</description>
+      <description>
+      The maximum allowed relative change in time for a single step in the evolution of a node.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionTimestepMinimum</name>
       <defaultValue>0.1d0</defaultValue>
-      <description>The minimum fraction of the timestep imposed by this timestepper to evolve over. If the timestep allowed is smaller than this fraction, the actual timestep will be reduced to zero. This avoids forcing satellites to take a large number of very small timesteps, and instead defers evolving a satellite until a large timestep can be taken.</description>
+      <description>
+      The minimum fraction of the timestep imposed by this timestepper to evolve over. If the timestep allowed is smaller than this fraction, the actual timestep will be reduced to zero. This avoids forcing satellites to take a large number of very small timesteps, and instead defers evolving a satellite until a large timestep can be taken.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="satelliteTidalStripping" name="satelliteTidalStripping_" source="parameters"/>
@@ -91,8 +95,8 @@ contains
   end function hostTidalMassLossConstructorParameters
 
   function hostTidalMassLossConstructorInternal(timeStepRelative,fractionTimestepMinimum,satelliteTidalStripping_) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveTimestepHostTidalMassLoss} merger tree evolution timestep class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepHostTidalMassLoss` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     implicit none
     type            (mergerTreeEvolveTimestepHostTidalMassLoss)                        :: self
@@ -106,8 +110,8 @@ contains
   end function hostTidalMassLossConstructorInternal
 
   subroutine hostTidalMassLossDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeEvolveTimestepHostTidalMassLoss} merger tree evolution timestep class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeEvolveTimestepHostTidalMassLoss` merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepHostTidalMassLoss), intent(inout) :: self
@@ -119,9 +123,8 @@ contains
   end subroutine hostTidalMassLossDestructor
 
   double precision function hostTidalMassLossTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
-    !!{
-    Determine a suitable timestep for \mono{node} using the \mono{hostTidalMassLoss} method.
-    This sets the time step size to \mono{timeStepRelative}$M_\mathrm{host}/|\dot{M}_\mathrm{host}|$.
+    !!{RST
+    Determine a suitable timestep for ``node`` using the ``hostTidalMassLoss`` method. This sets the time step size to ``timeStepRelative``\ :math:`M_\mathrm{host}/|\dot{M}_\mathrm{host}|`.
     !!}
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use :: Galacticus_Nodes      , only : nodeComponentBasic   , nodeComponentSatellite, treeNode
@@ -187,7 +190,7 @@ contains
   end function hostTidalMassLossTimeEvolveTo
 
   logical function hostTidalMassLossRefuseToEvolve(self,node)
-    !!{
+    !!{RST
     Refuse to evolve if the timestep is too small.
     !!}
     implicit none

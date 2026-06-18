@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree operator which profiles tree structure.
   !!}
 
@@ -25,14 +25,14 @@
   use :: Kind_Numbers       , only : kind_int8
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorProfiler">
+  <mergerTreeOperator name="mergerTreeOperatorProfiler" docformat="rst">
    <description>
-    A merger tree operator which profiles merger tree structure by counting nodes and non-primary progenitors as a function of mass and redshift, characterizing the statistical properties of the merger history. Mass and redshift binning is controlled by \mono{[massMinimum]}, \mono{[massMaximum]}, \mono{[massBinsPerDecade]}, \mono{[redshiftMinimum]}, \mono{[redshiftMaximum]}, and \mono{[timeBinsPerDecade]}.
-  </description>
+   A merger tree operator which profiles merger tree structure by counting nodes and non-primary progenitors as a function of mass and redshift, characterizing the statistical properties of the merger history. Mass and redshift binning is controlled by ``[massMinimum]``, ``[massMaximum]``, ``[massBinsPerDecade]``, ``[redshiftMinimum]``, ``[redshiftMaximum]``, and ``[timeBinsPerDecade]``.
+   </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorProfiler
-     !!{
+     !!{RST
      A merger tree operator class which profiles merger tree structure.
      !!}
      private
@@ -53,7 +53,7 @@
   end type mergerTreeOperatorProfiler
 
   interface mergerTreeOperatorProfiler
-     !!{
+     !!{RST
      Constructors for the prune-hierarchy merger tree operator class.
      !!}
      module procedure profilerConstructorParameters
@@ -63,7 +63,7 @@
 contains
 
   function profilerConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the information content merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -76,41 +76,53 @@ contains
     integer                                                     :: massBinsPerDecade  , timeBinsPerDecade
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <source>parameters</source>
       <defaultValue>1.0d10</defaultValue>
-      <description>The minimum mass of non-primary progenitor to count.</description>
+      <description>
+      The minimum mass of non-primary progenitor to count.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMaximum</name>
       <source>parameters</source>
       <defaultValue>1.0d15</defaultValue>
-      <description>The maximum mass of non-primary progenitor to count.</description>
+      <description>
+      The maximum mass of non-primary progenitor to count.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massBinsPerDecade</name>
       <source>parameters</source>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of non-primary progenitor mass.</description>
+      <description>
+      The number of bins per decade of non-primary progenitor mass.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMinimum</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum redshift at which to count non-primary progenitors.</description>
+      <description>
+      The minimum redshift at which to count non-primary progenitors.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMaximum</name>
       <source>parameters</source>
       <defaultValue>10.0d0</defaultValue>
-      <description>The maximum redshift at which to count non-primary progenitors.</description>
+      <description>
+      The maximum redshift at which to count non-primary progenitors.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeBinsPerDecade</name>
       <source>parameters</source>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of time at which to count non-primary progenitors.</description>
+      <description>
+      The number of bins per decade of time at which to count non-primary progenitors.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
@@ -123,7 +135,7 @@ contains
   end function profilerConstructorParameters
 
   function profilerConstructorInternal(massMinimum,massMaximum,massBinsPerDecade,redshiftMinimum,redshiftMaximum,timeBinsPerDecade,cosmologyFunctions_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the information content merger tree operator class.
     !!}
     use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
@@ -159,7 +171,7 @@ contains
   end function profilerConstructorInternal
 
   subroutine profilerDestructor(self)
-    !!{
+    !!{RST
     Destructor for the profiler merger tree operator function class.
     !!}
     implicit none
@@ -172,7 +184,7 @@ contains
   end subroutine profilerDestructor
 
   subroutine profilerOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Perform a information content operation on a merger tree.
     !!}
     use :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode
@@ -212,7 +224,7 @@ contains
   end subroutine profilerOperatePreEvolution
 
   subroutine profilerFinalize(self)
-    !!{
+    !!{RST
     Outputs tree information content function.
     !!}
     use :: Output_HDF5, only : outputFile

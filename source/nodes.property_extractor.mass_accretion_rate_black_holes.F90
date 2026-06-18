@@ -20,12 +20,14 @@
   use :: Black_Hole_Accretion_Rates, only : blackHoleAccretionRateClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMassAccretionRateBlackHoles">
-   <description>Extracts a list of mass accretion rates for all supermassive black holes in each node, enabling output of per-black-hole accretion activity for analysis of AGN populations and feedback.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorMassAccretionRateBlackHoles" docformat="rst">
+   <description>
+   Extracts a list of mass accretion rates for all supermassive black holes in each node, enabling output of per-black-hole accretion activity for analysis of AGN populations and feedback.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorMassAccretionRateBlackHoles
-     !!{
+     !!{RST
      A property extractor which extracts a list of all super-massive black hole mass accretion rates.
      !!}
      private
@@ -41,8 +43,8 @@
   end type nodePropertyExtractorMassAccretionRateBlackHoles
 
   interface nodePropertyExtractorMassAccretionRateBlackHoles
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMassAccretionRateBlackHoles} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassAccretionRateBlackHoles` property extractor class.
      !!}
      module procedure massAccretionRateBlackHolesConstructorParameters
      module procedure massAccretionRateBlackHolesConstructorInternal
@@ -51,8 +53,8 @@
 contains
 
   function massAccretionRateBlackHolesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMassAccretionRateBlackHoles} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassAccretionRateBlackHoles` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,8 +74,8 @@ contains
   end function massAccretionRateBlackHolesConstructorParameters
 
   function massAccretionRateBlackHolesConstructorInternal(blackHoleAccretionRate_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassAccretionRateBlackHoles} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMassAccretionRateBlackHoles` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorMassAccretionRateBlackHoles)                        :: self
@@ -86,7 +88,7 @@ contains
   end function massAccretionRateBlackHolesConstructorInternal
 
   subroutine massAccretionRateBlackHolesDestructor(self)
-    !!{
+    !!{RST
     Destructor for the critical overdensity massAccretionRateBlackHoles set barrier class.
     !!}
     implicit none
@@ -99,7 +101,7 @@ contains
   end subroutine massAccretionRateBlackHolesDestructor
 
   integer function massAccretionRateBlackHolesElementCount(self)
-    !!{
+    !!{RST
     Return a count of the number of properties extracted.
     !!}
     implicit none
@@ -110,7 +112,7 @@ contains
   end function massAccretionRateBlackHolesElementCount
 
   function massAccretionRateBlackHolesExtract(self,node,instance) result(massAccretionRate)
-    !!{
+    !!{RST
     Implement an output extractor for the radiative efficiencies of all supermassive black holes.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
@@ -138,8 +140,8 @@ contains
   end function massAccretionRateBlackHolesExtract
 
   subroutine massAccretionRateBlackHolesNames(self,names)
-    !!{
-    Return the names of the \mono{massAccretionRateBlackHoles} properties.
+    !!{RST
+    Return the names of the ``massAccretionRateBlackHoles`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorMassAccretionRateBlackHoles), intent(inout)                             :: self
@@ -152,8 +154,8 @@ contains
   end subroutine massAccretionRateBlackHolesNames
 
   subroutine massAccretionRateBlackHolesDescriptions(self,descriptions)
-    !!{
-    Return the descriptions of the \mono{massAccretionRateBlackHoles} properties.
+    !!{RST
+    Return the descriptions of the ``massAccretionRateBlackHoles`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorMassAccretionRateBlackHoles), intent(inout)                             :: self
@@ -166,8 +168,8 @@ contains
   end subroutine massAccretionRateBlackHolesDescriptions
 
   function massAccretionRateBlackHolesUnitsInSI(self) result(unitsInSI)
-    !!{
-    Return the units of the \mono{massAccretionRateBlackHoles} properties in the SI system.
+    !!{RST
+    Return the units of the ``massAccretionRateBlackHoles`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, gigaYear
     implicit none
@@ -181,7 +183,7 @@ contains
   end function massAccretionRateBlackHolesUnitsInSI
 
   function massAccretionRateBlackHolesUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the massAccretionRateBlackHoles properties.
     !!}
     use :: Units_MetaData, only : unitType

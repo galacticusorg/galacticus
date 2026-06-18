@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which defines the abundances structure used for describing elemental abundances in \glc.
+!!{RST
+Contains a module which defines the abundances structure used for describing elemental abundances in Galacticus.
 !!}
 
 module Abundances_Structure
-  !!{
-  Defines the abundances structure used for describing elemental abundances in \glc.
+  !!{RST
+  Defines the abundances structure used for describing elemental abundances in Galacticus.
   !!}
   implicit none
   private
@@ -52,22 +52,22 @@ module Abundances_Structure
   end interface abs
 
   type abundances
-     !!{
-     The abundances structure used for describing elemental abundances in \glc.
+     !!{RST
+     The abundances structure used for describing elemental abundances in Galacticus.
      !!}
      private
      double precision                            :: metallicityValue
      double precision, allocatable, dimension(:) :: elementalValue
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Multiply an abundance by a scalar." method="operator(*)" />
        <method description="Divide an abundance by a scalar." method="operator(/)" />
        <method description="Add two abundances." method="operator(+)" />
        <method description="Subtract one abundance from another." method="operator(-)" />
        <method description="Returns the metallicity." method="metallicity" />
-       <method description="Sets the metallicity to \mono{metallicity}." method="metallicitySet" />
-       <method description="Converts abundance masses to mass fractions by dividing by the given \mono{mass} while ensuring that fractions are in the range 0--1." method="massToMassFraction" />
+       <method description="Sets the metallicity to ``metallicity``." method="metallicitySet" />
+       <method description="Converts abundance masses to mass fractions by dividing by the given ``mass`` while ensuring that fractions are in the range 0--1." method="massToMassFraction" />
        <method description="Increment an abundances object." method="increment" />
        <method description="Return a count of the number of properties in a serialized abundances object." method="serializeCount" />
        <method description="Serialize an abundances object to an array." method="serialize" />
@@ -126,8 +126,8 @@ module Abundances_Structure
   end type abundances
 
   interface abundances
-     !!{
-     Constructors for the \mono{abundances} class.
+     !!{RST
+     Constructors for the ``abundances`` class.
      !!}
      module procedure abundancesConstructorZero
   end interface abundances
@@ -150,9 +150,11 @@ module Abundances_Structure
 
   ! Enumeration specifying type of metallicity/abundance measure required.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>metallicityType</name>
-   <description>Used to specify the metallicity scale when working with \mono{abundances} objects.</description>
+   <description>
+   Used to specify the metallicity scale when working with ``abundances`` objects.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -168,9 +170,11 @@ module Abundances_Structure
 
   ! Enumeration used in determining how to update elemental abundances when metallicity is adjusted.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>adjustElements</name>
-   <description>Used to specify how elements should be adjusted when the metallicity of an \mono{abundances} object is changed.</description>
+   <description>
+   Used to specify how elements should be adjusted when the metallicity of an ``abundances`` object is changed.
+   </description>
    <visibility>public</visibility>
    <entry label="none"   />
    <entry label="reset"  />
@@ -184,8 +188,8 @@ contains
   <nodeComponentInitializationTask function="Abundances_Initialize"/>
   !!]
   subroutine Abundances_Initialize(parameters_)
-    !!{
-    Initialize the \mono{abundanceStructure} object module. Determines which abundances are to be tracked.
+    !!{RST
+    Initialize the ``abundanceStructure`` object module. Determines which abundances are to be tracked.
     !!}
     use :: Atomic_Data      , only : Atom_Lookup
     use :: Input_Parameters , only : inputParameters
@@ -204,9 +208,11 @@ contains
        allocate(elementsToTrack(elementsCount))
        allocate(elementsIndices(elementsCount))
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>elementsToTrack</name>
-         <description>The names of the elements to be tracked.</description>
+         <description>
+         The names of the elements to be tracked.
+         </description>
          <source>parameters_</source>
        </inputParameter>
        !!]
@@ -228,8 +234,8 @@ contains
   end subroutine Abundances_Initialize
 
   function abundancesConstructorZero() result(self)
-    !!{
-    A constructor for \mono{abundances} objects which sets all content to zero.
+    !!{RST
+    A constructor for ``abundances`` objects which sets all content to zero.
     !!}
     implicit none
     type(abundances) :: self
@@ -239,7 +245,7 @@ contains
   end function abundancesConstructorZero
 
   subroutine Abundances_Destroy(self)
-    !!{
+    !!{RST
     Destroy an abundances object.
     !!}
     implicit none
@@ -250,8 +256,8 @@ contains
   end subroutine Abundances_Destroy
 
   subroutine Abundances_Builder(self,abundancesDefinition)
-    !!{
-    Build a \mono{abundances} object from the given XML \mono{abundancesDefinition}.
+    !!{RST
+    Build a ``abundances`` object from the given XML ``abundancesDefinition``.
     !!}
     use :: FoX_DOM, only : node                        , extractDataContent
     use :: Error  , only : Error_Report
@@ -292,7 +298,7 @@ contains
   end subroutine Abundances_Builder
 
   subroutine Abundances_Dump(self,verbosityLevel)
-    !!{
+    !!{RST
     Dump properties of an abundances object.
     !!}
     use :: Display           , only : displayMessage, enumerationVerbosityLevelType
@@ -318,7 +324,7 @@ contains
   end subroutine Abundances_Dump
 
   subroutine Abundances_Dump_Raw(self,fileHandle)
-    !!{
+    !!{RST
     Dump an abundances object to binary.
     !!}
     implicit none
@@ -331,7 +337,7 @@ contains
   end subroutine Abundances_Dump_Raw
 
   subroutine Abundances_Read_Raw(self,fileHandle)
-    !!{
+    !!{RST
     Read an abundances object from binary.
     !!}
     implicit none
@@ -349,7 +355,7 @@ contains
   end subroutine Abundances_Read_Raw
 
   subroutine Abundances_Reset(self)
-    !!{
+    !!{RST
     Reset an abundances object.
     !!}
     implicit none
@@ -360,7 +366,7 @@ contains
   end subroutine Abundances_Reset
 
   subroutine Abundances_Set_To_Unity(self)
-    !!{
+    !!{RST
     Set an abundances object to unity.
     !!}
     implicit none
@@ -375,7 +381,7 @@ contains
   end subroutine Abundances_Set_To_Unity
 
   logical function Abundances_Is_Zero(self)
-    !!{
+    !!{RST
     Test whether an abundances object is zero.
     !!}
     implicit none
@@ -391,7 +397,7 @@ contains
   end function Abundances_Is_Zero
 
   function Abundances_Add(abundances1,abundances2)
-    !!{
+    !!{RST
     Add two abundances objects.
     !!}
     implicit none
@@ -410,7 +416,7 @@ contains
   end function Abundances_Add
 
   subroutine Abundances_Increment(self,increment)
-    !!{
+    !!{RST
     Increment an abundances object.
     !!}
     implicit none
@@ -423,7 +429,7 @@ contains
   end subroutine Abundances_Increment
 
   function Abundances_Subtract(abundances1,abundances2)
-    !!{
+    !!{RST
     Subtract two abundances objects.
     !!}
     implicit none
@@ -442,7 +448,7 @@ contains
   end function Abundances_Subtract
 
   function Abundances_Multiply(abundances1,multiplier)
-    !!{
+    !!{RST
     Multiply an abundances object by a scalar.
     !!}
     implicit none
@@ -456,7 +462,7 @@ contains
   end function Abundances_Multiply
 
   function Abundances_Multiply_Switched(multiplier,abundances1)
-    !!{
+    !!{RST
     Multiply a scalar by an abundances object.
     !!}
     implicit none
@@ -469,8 +475,8 @@ contains
   end function Abundances_Multiply_Switched
 
   logical function Abundances_Greater_Than(abundances1,abundances2)
-    !!{
-    Return an element-by-element ``$>$'' on two abundances objects.
+    !!{RST
+    Return an element-by-element ":math:`>`" on two abundances objects.
     !!}
     implicit none
     type(abundances), intent(in   ) :: abundances1, abundances2
@@ -481,8 +487,8 @@ contains
   end function Abundances_Greater_Than
 
   function Abundances_Max(abundances1,abundances2)
-    !!{
-    Return an element-by-element \mono{max()} on two abundances objects.
+    !!{RST
+    Return an element-by-element ``max()`` on two abundances objects.
     !!}
     implicit none
     type(abundances)                :: Abundances_Max
@@ -494,8 +500,8 @@ contains
   end function Abundances_Max
 
   function Abundances_Abs(abundances1)
-    !!{
-    Return an element-by-element \mono{abs()} on an abundances objects.
+    !!{RST
+    Return an element-by-element ``abs()`` on an abundances objects.
     !!}
     implicit none
     type(abundances)                :: Abundances_Abs
@@ -507,7 +513,7 @@ contains
   end function Abundances_Abs
 
   function Abundances_Divide(abundances1,divisor)
-    !!{
+    !!{RST
     Divide an abundances object by a scalar.
     !!}
     implicit none
@@ -521,8 +527,8 @@ contains
   end function Abundances_Divide
 
   integer function Abundances_Property_Count()
-    !!{
-    Return the number of properties required to track abundances. This is equal to the number of elements tracked, \mono{elementsCount}, plus one since we always track a total metallicity.
+    !!{RST
+    Return the number of properties required to track abundances. This is equal to the number of elements tracked, ``elementsCount``, plus one since we always track a total metallicity.
     !!}
     implicit none
 
@@ -531,7 +537,7 @@ contains
   end function Abundances_Property_Count
 
   function Abundances_Names(index)
-    !!{
+    !!{RST
     Return a name for the specified entry in the abundances structure.
     !!}
     use :: Error             , only : Error_Report
@@ -557,7 +563,7 @@ contains
   end function Abundances_Names
 
   integer function Abundances_Index_From_Name(name)
-    !!{
+    !!{RST
     Return the index of an element in the elements array given its name.
     !!}
     implicit none
@@ -575,7 +581,7 @@ contains
   end function Abundances_Index_From_Name
 
   integer function Abundances_Atomic_Index(index)
-    !!{
+    !!{RST
     Return the atomic index for the specified entry in the abundances structure.
     !!}
     use :: Error, only : Error_Report
@@ -600,8 +606,8 @@ contains
   end function Abundances_Atomic_Index
 
   subroutine Abundances_Allocate_Elemental_Values(self)
-    !!{
-    Ensure that the \mono{elementalValue} array in an \mono{abundances} is allocated.
+    !!{RST
+    Ensure that the ``elementalValue`` array in an ``abundances`` is allocated.
     !!}
     implicit none
     type(abundances), intent(inout) :: self
@@ -611,7 +617,7 @@ contains
   end subroutine Abundances_Allocate_Elemental_Values
 
   subroutine Abundances_Deserialize(self,abundancesArray)
-    !!{
+    !!{RST
     Pack abundances from an array into an abundances structure.
     !!}
     implicit none
@@ -630,7 +636,7 @@ contains
   end subroutine Abundances_Deserialize
 
   subroutine Abundances_Serialize(self,abundancesArray)
-    !!{
+    !!{RST
     Pack abundances from an array into an abundances structure.
     !!}
     implicit none
@@ -651,8 +657,8 @@ contains
   end subroutine Abundances_Serialize
 
   double precision function Abundances_Get_Metallicity(self,metallicityType)
-    !!{
-    Return the metallicity of the \mono{self} structure.
+    !!{RST
+    Return the metallicity of the ``self`` structure.
     !!}
     use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
@@ -684,8 +690,8 @@ contains
   end function Abundances_Get_Metallicity
 
   subroutine Abundances_Set_Metallicity(self,metallicity,metallicityType,adjustElements,abundanceIndex)
-    !!{
-    Set the metallicity of the \mono{self} structure to \mono{metallicity}.
+    !!{RST
+    Set the metallicity of the ``self`` structure to ``metallicity``.
     !!}
     use :: Atomic_Data                     , only : Atomic_Abundance, normalizationMetals
     use :: Error                           , only : Error_Report
@@ -758,8 +764,8 @@ contains
   end subroutine Abundances_Set_Metallicity
 
   subroutine Abundances_Mass_To_Mass_Fraction_Packed(self,mass)
-    !!{
-    Convert abundance masses to mass fractions by dividing by \mono{mass} while ensuring that the fractions remain within the range 0--1.
+    !!{RST
+    Convert abundance masses to mass fractions by dividing by ``mass`` while ensuring that the fractions remain within the range 0--1.
     !!}
     implicit none
     class           (abundances), intent(inout) :: self
@@ -788,8 +794,8 @@ contains
   end subroutine Abundances_Mass_To_Mass_Fraction_Packed
 
   subroutine Abundances_Mass_To_Mass_Fraction(self,mass)
-    !!{
-    Convert abundance masses to mass fractions by dividing by \mono{mass} while ensuring that the fractions remain within the range 0--1.
+    !!{RST
+    Convert abundance masses to mass fractions by dividing by ``mass`` while ensuring that the fractions remain within the range 0--1.
     !!}
     implicit none
     double precision, dimension(:), intent(inout) :: self
@@ -807,7 +813,7 @@ contains
   end subroutine Abundances_Mass_To_Mass_Fraction
 
   double precision function Abundances_Hydrogen_Mass_Fraction(self)
-    !!{
+    !!{RST
     Returns the mass fraction of hydrogen.
     !!}
     use :: Numerical_Constants_Astronomical, only : hydrogenByMassPrimordial, hydrogenByMassSolar, metallicitySolar
@@ -829,7 +835,7 @@ contains
   end function Abundances_Hydrogen_Mass_Fraction
 
   double precision function Abundances_Helium_Mass_Fraction(self)
-    !!{
+    !!{RST
     Returns the mass fraction of helium.
     !!}
     use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, heliumByMassSolar, metallicitySolar
@@ -847,7 +853,7 @@ contains
   end function Abundances_Helium_Mass_Fraction
 
   double precision function Abundances_Hydrogen_Number_Fraction(self)
-    !!{
+    !!{RST
     Returns the number fraction of hydrogen.
     !!}
     use :: Numerical_Constants_Atomic, only : atomicMassHelium, atomicMassHydrogen
@@ -862,7 +868,7 @@ contains
   end function Abundances_Hydrogen_Number_Fraction
 
   double precision function Abundances_Helium_Number_Fraction(self)
-    !!{
+    !!{RST
     Returns the mass fraction of helium.
     !!}
     use :: Numerical_Constants_Atomic, only : atomicMassHelium, atomicMassHydrogen
@@ -877,7 +883,7 @@ contains
   end function Abundances_Helium_Number_Fraction
 
   subroutine Abundances_Output(self,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,outputInstance)
-    !!{
+    !!{RST
     Store an abundances object in the output buffers.
     !!}
     use :: Kind_Numbers                      , only : kind_int8
@@ -906,7 +912,7 @@ contains
   end subroutine Abundances_Output
 
   subroutine Abundances_Post_Output(self,time)
-    !!{
+    !!{RST
     Perform post-output processing of abundances objects.
     !!}
     implicit none
@@ -918,7 +924,7 @@ contains
   end subroutine Abundances_Post_Output
 
   subroutine Abundances_Output_Count(self,integerPropertyCount,doublePropertyCount,time)
-    !!{
+    !!{RST
     Increment the output count to account for an abundances object.
     !!}
     implicit none
@@ -932,7 +938,7 @@ contains
   end subroutine Abundances_Output_Count
 
   subroutine Abundances_Output_Names(self,integerProperty,integerProperties,doubleProperty,doubleProperties,time,prefix,comment,unitsInSI,unitsDescription,unitsQuantity)
-    !!{
+    !!{RST
     Assign names to output buffers for an abundances object.
     !!}
     use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
@@ -965,7 +971,7 @@ contains
   end subroutine Abundances_Output_Names
 
   function Abundances_Non_Static_Size_Of(self)
-    !!{
+    !!{RST
     Return the size of any non-static components of the object.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

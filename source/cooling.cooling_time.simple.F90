@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a simple cooling time class.
   !!}
 
@@ -25,20 +25,20 @@
   use :: Cooling_Functions, only : coolingFunction, coolingFunctionClass
 
   !![
-  <coolingTime name="coolingTimeSimple">
+  <coolingTime name="coolingTimeSimple" docformat="rst">
    <description>
-    A cooling time class in which the cooling time is simply
-    \begin{equation}
-     t_\mathrm{cool} = {N \over 2} {\mathrm{k}_\mathrm{B} T n_\mathrm{tot} \over \Lambda},
-    \end{equation}
-    where $N=$\mono{[degreesOfFreedom]} is the number of degrees of freedom in the cooling gas which has
-    temperature $T$ and total particle number density (including electrons) $n_\mathrm{tot}$ and $\Lambda$ is the cooling
-    function.
+   A cooling time class in which the cooling time is simply
+
+   .. math::
+
+      t_\mathrm{cool} = {N \over 2} {\mathrm{k}_\mathrm{B} T n_\mathrm{tot} \over \Lambda},
+
+   where :math:`N=`\ ``[degreesOfFreedom]`` is the number of degrees of freedom in the cooling gas which has temperature :math:`T` and total particle number density (including electrons) :math:`n_\mathrm{tot}` and :math:`\Lambda` is the cooling function.
    </description>
   </coolingTime>
   !!]
   type, extends(coolingTimeClass) :: coolingTimeSimple
-     !!{
+     !!{RST
      Implementation of cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).
      !!}
      private
@@ -53,7 +53,7 @@
   end type coolingTimeSimple
 
   interface coolingTimeSimple
-     !!{
+     !!{RST
      Constructors for the simple cooling time class.
      !!}
      module procedure simpleConstructorParameters
@@ -63,7 +63,7 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the simple cooling time class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -75,11 +75,13 @@ contains
     double precision                                      :: degreesOfFreedom
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>degreesOfFreedom</name>
       <source>parameters</source>
       <defaultValue>3.0d0</defaultValue>
-      <description>Number of degrees of freedom to assume when computing the energy density of cooling gas in the ``simple'' cooling time class.</description>
+      <description>
+      Number of degrees of freedom to assume when computing the energy density of cooling gas in the "simple" cooling time class.
+      </description>
     </inputParameter>
     <objectBuilder class="coolingFunction" name="coolingFunction_" source="parameters"/>
     <objectBuilder class="chemicalState"   name="chemicalState_"   source="parameters"/>
@@ -94,7 +96,7 @@ contains
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(degreesOfFreedom,coolingFunction_,chemicalState_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the simple cooling time class.
     !!}
     implicit none
@@ -110,7 +112,7 @@ contains
   end function simpleConstructorInternal
 
   subroutine simpleDestructor(self)
-    !!{
+    !!{RST
     Destructor for the simple cooling time class.
     !!}
     implicit none
@@ -124,9 +126,8 @@ contains
   end subroutine simpleDestructor
 
   double precision function simpleTime(self,node,temperature,density,gasAbundances,chemicalDensities,radiation)
-    !!{
-    Compute the cooling time (in Gyr) for gas at the given \mono{temperature} (in Kelvin), \mono{density} (in $\mathrm{M}_\odot$
-    Mpc$^{-3}$), composition specified by \mono{gasAbundances} and experiencing a radiation field as described by \mono{radiation}.
+    !!{RST
+    Compute the cooling time (in Gyr) for gas at the given ``temperature`` (in Kelvin), ``density`` (in :math:`\mathrm{M}_\odot` Mpc\ :math:`^{-3}`), composition specified by ``gasAbundances`` and experiencing a radiation field as described by ``radiation``.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear          , massSolar, megaParsec
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
@@ -178,9 +179,8 @@ contains
   end function simpleTime
 
   double precision function simpleGradientDensityLogarithmic(self,node,temperature,density,gasAbundances,chemicalDensities,radiation)
-    !!{
-    Return $\d\ln t_\mathrm{cool}/\d\ln \rho$ for gas at the given \mono{temperature} (in Kelvin), \mono{density} (in $\mathrm{M}_\odot$
-    Mpc$^{-3}$), composition specified by \mono{gasAbundances} and experiencing a radiation field as described by \mono{radiation}.
+    !!{RST
+    Return :math:`\d\ln t_\mathrm{cool}/\d\ln \rho` for gas at the given ``temperature`` (in Kelvin), ``density`` (in :math:`\mathrm{M}_\odot` Mpc\ :math:`^{-3}`), composition specified by ``gasAbundances`` and experiencing a radiation field as described by ``radiation``.
     !!}
    implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self
@@ -197,9 +197,8 @@ contains
   end function simpleGradientDensityLogarithmic
 
   double precision function simpleGradientTemperatureLogarithmic(self,node,temperature,density,gasAbundances,chemicalDensities,radiation)
-    !!{
-    Return $\d\ln t_\mathrm{cool}/\d\ln T$ for gas at the given \mono{temperature} (in Kelvin), \mono{density} (in $\mathrm{M}_\odot$
-    Mpc$^{-3}$), composition specified by \mono{gasAbundances} and experiencing a radiation field as described by \mono{radiation}.
+    !!{RST
+    Return :math:`\d\ln t_\mathrm{cool}/\d\ln T` for gas at the given ``temperature`` (in Kelvin), ``density`` (in :math:`\mathrm{M}_\odot` Mpc\ :math:`^{-3}`), composition specified by ``gasAbundances`` and experiencing a radiation field as described by ``radiation``.
     !!}
     implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self

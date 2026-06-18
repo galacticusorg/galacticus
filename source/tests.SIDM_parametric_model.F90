@@ -19,15 +19,10 @@
 
 !+    Contributions to this file made by: Niusha Ahvazi
 
-!!{
-Tests of the inputs to the SIDM parametric model of \cite{yang_parametric_2024} (implemented by the
-\refClass{nodeOperatorSIDMParametric} class). A cold dark matter (CDM) halo mass accretion history, extracted from an N-body
-simulation, is read from file; for each step the maximum circular velocity and virial radius of the corresponding NFW halo are
-computed and compared against the values tabulated in the simulation. This validates the CDM-side quantities from which the
-parametric SIDM solution is built.
+!!{RST
+Tests of the inputs to the SIDM parametric model of :cite:t:`yang_parametric_2024` (implemented by the :galacticus-class:`nodeOperatorSIDMParametric` class). A cold dark matter (CDM) halo mass accretion history, extracted from an N-body simulation, is read from file; for each step the maximum circular velocity and virial radius of the corresponding NFW halo are computed and compared against the values tabulated in the simulation. This validates the CDM-side quantities from which the parametric SIDM solution is built.
 
-The reference data files \mono{testSuite/data/SIDM/data\_799\_cdm\_NFW.txt} and \mono{testSuite/data/SIDM/data\_799\_cdm.txt}
-are tabulated from an N-body simulation and committed alongside this test.
+The reference data files ``testSuite/data/SIDM/data_799_cdm_NFW.txt`` and ``testSuite/data/SIDM/data_799_cdm.txt`` are tabulated from an N-body simulation and committed alongside this test.
 !!}
 
 program Tests_SIDM_Parametric_Model

@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{ 
+!!{RST
 Implements a merger tree processing time estimator that estimates times based on the total time to evolve in the tree.
 !!}
 
   !![
-  <metaTreeProcessingTime name="metaTreeProcessingTimeTotalEvolveTime">
+  <metaTreeProcessingTime name="metaTreeProcessingTimeTotalEvolveTime" docformat="rst">
    <description>
-    A merger tree processing time estimator that estimates the remaining computation time based on the total time spent evolving nodes in the tree, using a power-law scaling with cosmic time. The time scaling exponent is set by \mono{[exponentTime]} and the minimum interval between progress updates by \mono{[updateInterval]}.
+   A merger tree processing time estimator that estimates the remaining computation time based on the total time spent evolving nodes in the tree, using a power-law scaling with cosmic time. The time scaling exponent is set by ``[exponentTime]`` and the minimum interval between progress updates by ``[updateInterval]``.
    </description>
   </metaTreeProcessingTime>
   !!]
   type, extends(metaTreeProcessingTimeClass) :: metaTreeProcessingTimeTotalEvolveTime
-     !!{
+     !!{RST
      A merger tree processing time estimator that estimates times based on the total time to evolve in the tree.
      !!}
      private
@@ -39,8 +39,8 @@ Implements a merger tree processing time estimator that estimates times based on
   end type metaTreeProcessingTimeTotalEvolveTime
 
   interface metaTreeProcessingTimeTotalEvolveTime
-     !!{
-     Constructors for the \refClass{metaTreeProcessingTimeTotalEvolveTime} merger tree processing time estimator.
+     !!{RST
+     Constructors for the :galacticus-class:`metaTreeProcessingTimeTotalEvolveTime` merger tree processing time estimator.
      !!}
      module procedure totalEvolveTimeConstructorParameters
      module procedure totalEvolveTimeConstructorInternal
@@ -49,8 +49,8 @@ Implements a merger tree processing time estimator that estimates times based on
 contains
 
   function totalEvolveTimeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{metaTreeProcessingTimeTotalEvolveTime} merger tree processing time estimator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`metaTreeProcessingTimeTotalEvolveTime` merger tree processing time estimator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -59,15 +59,19 @@ contains
     double precision                                                       :: exponentTime, updateInterval
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentTime</name>
-      <description>The exponent of cosmic time used in estimating the work associated with evolving a node.</description>
+      <description>
+      The exponent of cosmic time used in estimating the work associated with evolving a node.
+      </description>
       <defaultValue>0.5d0</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>updateInterval</name>
-      <description>The minimum interval (in seconds) between updates of the estimated time remaining.</description>
+      <description>
+      The minimum interval (in seconds) between updates of the estimated time remaining.
+      </description>
       <defaultValue>10.0d0</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -80,8 +84,8 @@ contains
   end function totalEvolveTimeConstructorParameters
 
   function totalEvolveTimeConstructorInternal(exponentTime,updateInterval) result(self)
-    !!{
-    Internal constructor for the \refClass{metaTreeProcessingTimeTotalEvolveTime} merger tree processing time estimator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`metaTreeProcessingTimeTotalEvolveTime` merger tree processing time estimator class.
     !!}
     implicit none
     type            (metaTreeProcessingTimeTotalEvolveTime)                :: self
@@ -94,7 +98,7 @@ contains
   end function totalEvolveTimeConstructorInternal
 
   double precision function totalEvolveTimeTimeRemaining(self,tree,timeFinal) result(timeRemaining)
-    !!{
+    !!{RST
     Estimate the remaining time to process the tree.
     !!}
     use   , intrinsic :: ISO_C_Binding      , only : c_size_t

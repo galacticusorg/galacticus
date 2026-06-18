@@ -17,22 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger mass movements class which uses a simple calculation.
   !!}
 
   use :: Kind_Numbers, only : kind_int8
 
   !![
-  <mergerMassMovements name="mergerMassMovementsVerySimple">
+  <mergerMassMovements name="mergerMassMovementsVerySimple" docformat="rst">
    <description>
-    A merger mass movements class which assumes that the satellite material is always added to the disk of the host, while the
-    host mass is not moved.
+   A merger mass movements class which assumes that the satellite material is always added to the disk of the host, while the host mass is not moved.
    </description>
   </mergerMassMovements>
   !!]
   type, extends(mergerMassMovementsClass) :: mergerMassMovementsVerySimple
-     !!{
+     !!{RST
      A merger mass movements class which uses a simple calculation.
      !!}
      private
@@ -46,8 +45,8 @@
   end type mergerMassMovementsVerySimple
 
   interface mergerMassMovementsVerySimple
-     !!{
-     Constructors for the \refClass{mergerMassMovementsVerySimple} merger mass movements class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerMassMovementsVerySimple` merger mass movements class.
      !!}
      module procedure verySimpleConstructorParameters
      module procedure verySimpleConstructorInternal
@@ -56,8 +55,8 @@
 contains
 
   function verySimpleConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerMassMovementsVerySimple} merger mass movements class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerMassMovementsVerySimple` merger mass movements class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,10 +65,12 @@ contains
     double precision                                               :: massRatioMajorMerger
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massRatioMajorMerger</name>
       <defaultValue>0.25d0</defaultValue>
-      <description>The mass ratio above which mergers are considered to be ``major''.</description>
+      <description>
+      The mass ratio above which mergers are considered to be "major".
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -81,8 +82,8 @@ contains
   end function verySimpleConstructorParameters
 
   function verySimpleConstructorInternal(massRatioMajorMerger) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerMassMovementsVerySimple} merger mass movements.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerMassMovementsVerySimple` merger mass movements.
     !!}
     implicit none
     type            (mergerMassMovementsVerySimple)                :: self
@@ -98,7 +99,7 @@ contains
   end function verySimpleConstructorInternal
 
   subroutine verySimpleAutoHook(self)
-    !!{
+    !!{RST
     Attach to the calculation reset event.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels, satelliteMergerEvent
@@ -111,8 +112,8 @@ contains
   end subroutine verySimpleAutoHook
 
   subroutine verySimpleDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerMassMovementsVerySimple} merger mass movements class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerMassMovementsVerySimple` merger mass movements class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none
@@ -124,7 +125,7 @@ contains
   end subroutine verySimpleDestructor
 
   subroutine verySimpleCalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the dark matter profile calculation.
     !!}
     use :: Error       , only : Error_Report
@@ -146,7 +147,7 @@ contains
   end subroutine verySimpleCalculationReset
 
   subroutine verySimpleGetHook(self,node)
-    !!{
+    !!{RST
     Hookable wrapper around the get function.
     !!}
     use :: Error, only : Error_Report
@@ -167,7 +168,7 @@ contains
   end subroutine verySimpleGetHook
 
   subroutine verySimpleGet(self,node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
-    !!{
+    !!{RST
     Determine where stars and gas move as the result of a merger event using a very simple algorithm.
     !!}
     use :: Galactic_Structure_Options, only : massTypeGalactic

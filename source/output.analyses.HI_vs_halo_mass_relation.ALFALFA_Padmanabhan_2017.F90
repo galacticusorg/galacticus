@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an HI vs halo mass relation analysis class.
   !!}
 
@@ -25,12 +25,14 @@
   use            :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <outputAnalysis name="outputAnalysisHIVsHaloMassRelationPadmanabhan2017">
-   <description>Computes the HI gas mass to dark matter halo mass relation for comparison with the \cite{padmanabhan_halo_2017} ALFALFA observational constraints, with systematic and random error polynomial coefficients and optional single-bin likelihood evaluation.</description>
+  <outputAnalysis name="outputAnalysisHIVsHaloMassRelationPadmanabhan2017" docformat="rst">
+   <description>
+   Computes the HI gas mass to dark matter halo mass relation for comparison with the :cite:t:`padmanabhan_halo_2017` ALFALFA observational constraints, with systematic and random error polynomial coefficients and optional single-bin likelihood evaluation.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisHIVsHaloMassRelationPadmanabhan2017
-     !!{
+     !!{RST
      An HI vs halo mass relation output analysis class.
      !!}
      private
@@ -46,8 +48,8 @@
   end type outputAnalysisHIVsHaloMassRelationPadmanabhan2017
   
   interface outputAnalysisHIVsHaloMassRelationPadmanabhan2017
-     !!{
-     Constructors for the \refClass{outputAnalysisHIVsHaloMassRelationPadmanabhan2017} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisHIVsHaloMassRelationPadmanabhan2017` output analysis class.
      !!}
      module procedure hiVsHaloMassRelationPadmanabhan2017ConstructorParameters
      module procedure hiVsHaloMassRelationPadmanabhan2017ConstructorInternal
@@ -56,8 +58,8 @@
 contains
 
   function hiVsHaloMassRelationPadmanabhan2017ConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisHIVsHaloMassRelationPadmanabhan2017} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisHIVsHaloMassRelationPadmanabhan2017` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions             , only : cosmologyFunctions                                      , cosmologyFunctionsClass
     use :: Cosmology_Parameters            , only : cosmologyParameters                                     , cosmologyParametersClass
@@ -84,18 +86,22 @@ contains
        allocate(systematicErrorPolynomialCoefficient(1                                                      ))
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for HI vs halo mass relation.</description>
+      <description>
+      The coefficients of the systematic error polynomial for HI vs halo mass relation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>likelihoodBin</name>
       <source>parameters</source>
       <defaultValue>0_c_size_t</defaultValue>
-      <description>If $>0$ then use only the mass bin given by this value in the likelihood calculation.</description>
+      <description>
+      If :math:`&gt;0` then use only the mass bin given by this value in the likelihood calculation.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
@@ -119,8 +125,8 @@ contains
   end function hiVsHaloMassRelationPadmanabhan2017ConstructorParameters
 
   function hiVsHaloMassRelationPadmanabhan2017ConstructorInternal(likelihoodBin,systematicErrorPolynomialCoefficient,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisHIVsHaloMassRelationPadmanabhan2017} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisHIVsHaloMassRelationPadmanabhan2017` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                           , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                          , cosmologyParametersSimple                      , hubbleUnitsLittleH
@@ -480,8 +486,8 @@ contains
   end function hiVsHaloMassRelationPadmanabhan2017ConstructorInternal
 
   subroutine hiVsHaloMassRelationPadmanabhan2017Destructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisHIVsHaloMassRelationPadmanabhan2017} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisHIVsHaloMassRelationPadmanabhan2017` output analysis class.
     !!}
     implicit none
     type(outputAnalysisHIVsHaloMassRelationPadmanabhan2017), intent(inout) :: self

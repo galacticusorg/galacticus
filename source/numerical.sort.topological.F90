@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements topological sorting.
 !!}
 
 module Sorting_Topological
-  !!{
+  !!{RST
   Implements topological sorting.
   !!}
   implicit none
@@ -32,16 +32,25 @@ module Sorting_Topological
 contains
 
   subroutine Sort_Topological(countObjects,countDependencies,dependencies,order,countOrdered,status)
-    !!{
-    Topological sorting function. Based on the example from \href{https://www.rosettacode.org/wiki/Topological_sort\#Modern_Fortran}{Rosetta Code}. Arguments are:
-    \begin{description}
-     \item[\mono{countObjects}\argin] the number of objects to be sorted;
-     \item[\mono{countDependencies}\argin] the number of dependencies;
-     \item[\mono{dependencies}\argin] an array of dependencies, such that \mono{dependencies(:,1)} depends on \mono{dependencies(:,2)};
-     \item[\mono{order}\argout] an array giving the order of the objects after sorting;
-     \item[\mono{countOrdered}\argout] a count of the objects which were ordered by the sort, such that \mono{order(1:countOrdered)} contains the ordered objects, while the remainder of \mono{order()} contains objects that were unordered (i.e. had no dependencies).
-    \end{description}
-    The unordered objects are those for which no solution is available---i.e. the graph is not acyclic. So, if \mono{order}$<$\mono{countObjects} then one or more circular dependencies existed in the graph.
+    !!{RST
+    Topological sorting function. Based on the example from `Rosetta Code <https://www.rosettacode.org/wiki/Topological_sort\#Modern_Fortran>`_. Arguments are:
+
+    ``countObjects``\ \argin
+       the number of objects to be sorted;
+
+    ``countDependencies``\ \argin
+       the number of dependencies;
+
+    ``dependencies``\ \argin
+       an array of dependencies, such that ``dependencies(:,1)`` depends on ``dependencies(:,2)``;
+
+    ``order``\ \argout
+       an array giving the order of the objects after sorting;
+
+    ``countOrdered``\ \argout
+       a count of the objects which were ordered by the sort, such that ``order(1:countOrdered)`` contains the ordered objects, while the remainder of ``order()`` contains objects that were unordered (i.e. had no dependencies).
+
+    The unordered objects are those for which no solution is available---i.e. the graph is not acyclic. So, if ``order``\ :math:`<`\ ``countObjects`` then one or more circular dependencies existed in the graph.
     !!}
     use :: Error, only : Error_Report, errorStatusFail, errorStatusSuccess
     implicit none

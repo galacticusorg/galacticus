@@ -17,43 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements the geometry of the ZFOURGE survey used by \cite{tomczak_galaxy_2014}.
+!!{RST
+Implements the geometry of the ZFOURGE survey used by :cite:t:`tomczak_galaxy_2014`.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <surveyGeometry name="surveyGeometryTomczak2014ZFOURGE">
+  <surveyGeometry name="surveyGeometryTomczak2014ZFOURGE" docformat="rst">
    <description>
-    A survey geometry class that describes the survey geometry of \cite{tomczak_galaxy_2014}. 
-    
-    For the angular mask, we make use of \mono{mangle} polygon files constructed by hand using vertices
-    matched approximately to the distribution of galaxies in the survey (positions of which were provided by R.~Quadri; private
-    communication). The solid angle of each mask is computed using the \mono{mangle} \mono{harmonize} command.
-    
-    To determine the depth as a function of stellar mass, we make use of the tabulated mass completeness limits as a function
-    of redshift for ZFOURGE and NMBS fields provided by R.~Quadri (private communication). These are fit with fourth-order
-    polynomials. Figure~\ref{fig:Tomczak2014DepthFit} shows the resulting relation between stellar mass and the maximum
-    redshift at which such a galaxy would be included in the sample. Dotted lines indicate the tabulated result from ZFOURGE,
-    while the lines show polynomial fits:
-    \begin{equation}
-     z_\mathrm{max}(M_\star) = \left\{ \begin{array}{ll} -114.66+m*(45.901+m*(-6.1617+m*(0.27822))) &amp; \hbox{ZFOURGE fields} \\
-     -58.483+m*(20.250+m*(-2.3563+m*(0.092705))) &amp; \hbox{NMBS fields} \end{array} \right.
-     \label{eq:TomczakDepthPolynomial}
-    \end{equation}
-    where $m= \log_{10}(M_\star/\mathrm{M}_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
-    stellar mass.
-    
-    \begin{figure}
-     \begin{center}
-     \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/TomczakZFOURGEMassRedshiftRelation.pdf}
-     \end{center}
-     \caption{The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of
-     \protect\cite{tomczak_galaxy_2014}. Points show the results obtained from data provided by Davidzon, while the lines shows
-     a polynomial fit to these results (given in eqn.~\ref{eq:TomczakDepthPolynomial}).}
-     \label{fig:Tomczak2014DepthFit}
-    \end{figure}
+   A survey geometry class that describes the survey geometry of :cite:t:`tomczak_galaxy_2014`.
+
+   For the angular mask, we make use of ``mangle`` polygon files constructed by hand using vertices matched approximately to the distribution of galaxies in the survey (positions of which were provided by R. Quadri; private communication). The solid angle of each mask is computed using the ``mangle`` ``harmonize`` command.
+
+   To determine the depth as a function of stellar mass, we make use of the tabulated mass completeness limits as a function of redshift for ZFOURGE and NMBS fields provided by R. Quadri (private communication). These are fit with fourth-order polynomials. Figure :numref:`{number} &lt;fig-Tomczak2014DepthFit&gt;` shows the resulting relation between stellar mass and the maximum redshift at which such a galaxy would be included in the sample. Dotted lines indicate the tabulated result from ZFOURGE, while the lines show polynomial fits:
+
+   .. math::
+      :label: eq-TomczakDepthPolynomial
+
+      z_\mathrm{max}(M_\star) = \left\{ \begin{array}{ll} -114.66+m*(45.901+m*(-6.1617+m*(0.27822))) &amp; \hbox{ZFOURGE fields} \\
+      -58.483+m*(20.250+m*(-2.3563+m*(0.092705))) &amp; \hbox{NMBS fields} \end{array} \right.
+
+   where :math:`m= \log_{10}(M_\star/\mathrm{M}_\odot)`. We use this polynomial fit to determine the depth of the sample as a function of stellar mass.
+
+   .. figure:: Plots/DataAnalysis/TomczakZFOURGEMassRedshiftRelation.pdf
+      :name: fig-Tomczak2014DepthFit
+
+      The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`tomczak_galaxy_2014`. Points show the results obtained from data provided by Davidzon, while the lines shows a polynomial fit to these results (given in eqn. :eq:`eq-TomczakDepthPolynomial`).
    </description>
   </surveyGeometry>
   !!]
@@ -75,8 +65,8 @@ Implements the geometry of the ZFOURGE survey used by \cite{tomczak_galaxy_2014}
    end type surveyGeometryTomczak2014ZFOURGE
 
   interface surveyGeometryTomczak2014ZFOURGE
-     !!{
-     Constructors for the \cite{tomczak_galaxy_2014} survey geometry class.
+     !!{RST
+     Constructors for the :cite:t:`tomczak_galaxy_2014` survey geometry class.
      !!}
      module procedure tomczak2014ZFOURGEConstructorParameters
      module procedure tomczak2014ZFOURGEConstructorInternal
@@ -91,8 +81,8 @@ Implements the geometry of the ZFOURGE survey used by \cite{tomczak_galaxy_2014}
 contains
 
   function tomczak2014ZFOURGEConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \cite{tomczak_galaxy_2014} conditional mass function class.
+    !!{RST
+    Default constructor for the :cite:t:`tomczak_galaxy_2014` conditional mass function class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,10 +94,12 @@ contains
     ! Check and read parameters.
     !![
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftBin</name>
       <source>parameters</source>
-      <description>The redshift bin (0, 1, 2, 3, 4, 5, 6, or 7) of the \cite{tomczak_galaxy_2014} mass function to use.</description>
+      <description>
+      The redshift bin (0, 1, 2, 3, 4, 5, 6, or 7) of the :cite:t:`tomczak_galaxy_2014` mass function to use.
+      </description>
     </inputParameter>
     !!]
     self=surveyGeometryTomczak2014ZFOURGE(redshiftBin,cosmologyFunctions_)
@@ -119,8 +111,8 @@ contains
   end function tomczak2014ZFOURGEConstructorParameters
 
   function tomczak2014ZFOURGEConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \cite{tomczak_galaxy_2014} mass function class.
+    !!{RST
+    Internal constructor for the :cite:t:`tomczak_galaxy_2014` mass function class.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     use :: Error                      , only : Error_Report
@@ -176,8 +168,8 @@ contains
   end function tomczak2014ZFOURGEConstructorInternal
 
   subroutine tomczak2014ZFOURGEDestructor(self)
-    !!{
-    Destructor for the \refClass{surveyGeometryTomczak2014ZFOURGE} survey geometry class.
+    !!{RST
+    Destructor for the :galacticus-class:`surveyGeometryTomczak2014ZFOURGE` survey geometry class.
     !!}
     implicit none
     type(surveyGeometryTomczak2014ZFOURGE), intent(inout) :: self
@@ -189,7 +181,7 @@ contains
   end subroutine tomczak2014ZFOURGEDestructor
 
   integer function tomczak2014ZFOURGEFieldCount(self)
-    !!{
+    !!{RST
     Return the number of fields in this sample.
     !!}
     implicit none
@@ -201,7 +193,7 @@ contains
   end function tomczak2014ZFOURGEFieldCount
 
   double precision function tomczak2014ZFOURGEDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
-    !!{
+    !!{RST
     Compute the minimum distance at which a galaxy is included.
     !!}
     implicit none
@@ -216,7 +208,7 @@ contains
   end function tomczak2014ZFOURGEDistanceMinimum
 
   double precision function tomczak2014ZFOURGEDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
-    !!{
+    !!{RST
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
@@ -262,7 +254,7 @@ contains
   end function tomczak2014ZFOURGEDistanceMaximum
 
   double precision function tomczak2014ZFOURGEVolumeMaximum(self,mass,field)
-    !!{
+    !!{RST
     Compute the maximum volume within which a galaxy is visible.
     !!}
     implicit none
@@ -285,8 +277,8 @@ contains
   end function tomczak2014ZFOURGEVolumeMaximum
 
   function tomczak2014ZFOURGEMangleDirectory(self)
-    !!{
-    Return the path to the directory containing \gls{mangle} files.
+    !!{RST
+    Return the path to the directory containing :term:`mangle` files.
     !!}
     use :: Input_Paths, only : inputPath, pathTypeDataStatic
     implicit none
@@ -299,8 +291,8 @@ contains
   end function tomczak2014ZFOURGEMangleDirectory
 
   subroutine tomczak2014ZFOURGEMangleFiles(self,mangleFiles)
-    !!{
-    Return a list of \gls{mangle} files.
+    !!{RST
+    Return a list of :term:`mangle` files.
     !!}
     implicit none
     class(surveyGeometryTomczak2014ZFOURGE)                           , intent(inout) :: self
@@ -316,8 +308,8 @@ contains
   end subroutine tomczak2014ZFOURGEMangleFiles
 
   integer function tomczak2014ZFOURGEAngularPowerMaximumDegree(self)
-    !!{
-    Return the maximum degree for which angular power is computed for the \cite{tomczak_galaxy_2014} survey.
+    !!{RST
+    Return the maximum degree for which angular power is computed for the :cite:t:`tomczak_galaxy_2014` survey.
     !!}
     implicit none
     class(surveyGeometryTomczak2014ZFOURGE), intent(inout) :: self

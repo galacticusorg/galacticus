@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a perfectly stable model for galactic disk bar instability.
   !!}
 
   !![
-  <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityStable">
+  <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityStable" docformat="rst">
    <description>
-    A galactic dynamics bar instability class which assumes perfect stability for galactic disks and so returns an infinite
-    timescale, and no external driving torque.
+   A galactic dynamics bar instability class which assumes perfect stability for galactic disks and so returns an infinite timescale, and no external driving torque.
    </description>
   </galacticDynamicsBarInstability>
   !!]
   type, extends(galacticDynamicsBarInstabilityClass) :: galacticDynamicsBarInstabilityStable
-     !!{
+     !!{RST
      Implementation of a perfectly stable model for galactic disk bar instability.
      !!}
      private
@@ -39,8 +38,8 @@
   end type galacticDynamicsBarInstabilityStable
 
   interface galacticDynamicsBarInstabilityStable
-     !!{
-     Constructors for the \refClass{galacticDynamicsBarInstabilityStable} model for galactic disk bar instability class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticDynamicsBarInstabilityStable` model for galactic disk bar instability class.
      !!}
      module procedure stableConstructorParameters
   end interface galacticDynamicsBarInstabilityStable
@@ -48,9 +47,8 @@
 contains
 
   function stableConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticDynamicsBarInstabilityStable} model for galactic disk bar instability class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticDynamicsBarInstabilityStable` model for galactic disk bar instability class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,9 +63,8 @@ contains
   end function stableConstructorParameters
 
   subroutine stableTimescale(self,node,timescale,externalDrivingSpecificTorque,fractionAngularMomentumRetainedDisk,fractionAngularMomentumRetainedSpheroid)
-    !!{
-    Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
-    \cite{efstathiou_stability_1982}.
+    !!{RST
+    Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of :cite:t:`efstathiou_stability_1982`.
     !!}
     implicit none
     class           (galacticDynamicsBarInstabilityStable), intent(inout) :: self

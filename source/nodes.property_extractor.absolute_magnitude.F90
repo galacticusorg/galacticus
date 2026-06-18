@@ -17,26 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a node property extractor class for absolute magnitudes.
 !!}
 
   use :: Galactic_Structure_Options, only : enumerationComponentTypeType
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMagnitudesAbsolute">
+  <nodePropertyExtractor name="nodePropertyExtractorMagnitudesAbsolute" docformat="rst">
    <description>
-    A property extractor that returns stellar absolute magnitudes (AB system) in all broadband
-    filters currently activated in the stellar luminosities structure, for a specified galaxy
-    \mono{component} (disk or spheroid). Output datasets are named
-    \mono{componentMagnitudeAbsoluteStellar:filterName:filterType} for each
-    active filter and output time. Non-positive luminosities (unresolved or dark galaxies) are
-    returned as the maximum representable double-precision value.
+   A property extractor that returns stellar absolute magnitudes (AB system) in all broadband filters currently activated in the stellar luminosities structure, for a specified galaxy ``component`` (disk or spheroid). Output datasets are named ``componentMagnitudeAbsoluteStellar:filterName:filterType`` for each active filter and output time. Non-positive luminosities (unresolved or dark galaxies) are returned as the maximum representable double-precision value.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorMagnitudesAbsolute
-     !!{
+     !!{RST
      A node property extractor which extracts stellar absolute magnitudes in all available bands.
      !!}
      private
@@ -51,8 +46,8 @@ Implements a node property extractor class for absolute magnitudes.
   end type nodePropertyExtractorMagnitudesAbsolute
 
   interface nodePropertyExtractorMagnitudesAbsolute
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMagnitudesAbsolute} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorMagnitudesAbsolute` property extractor class.
      !!}
      module procedure magnitudesAbsoluteConstructorParameters
      module procedure magnitudesAbsoluteConstructorInternal
@@ -61,8 +56,8 @@ Implements a node property extractor class for absolute magnitudes.
 contains
 
   function magnitudesAbsoluteConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMagnitudesAbsolute} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorMagnitudesAbsolute` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -72,10 +67,12 @@ contains
     type(varying_string                         )                :: component
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>component</name>
       <source>parameters</source>
-      <description>The component from which to extract star formation rate.</description>
+      <description>
+      The component from which to extract star formation rate.
+      </description>
     </inputParameter>
     !!]
     self=nodePropertyExtractorMagnitudesAbsolute(enumerationComponentTypeEncode(char(component),includesPrefix=.false.))
@@ -86,8 +83,8 @@ contains
   end function magnitudesAbsoluteConstructorParameters
 
   function magnitudesAbsoluteConstructorInternal(component) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMagnitudesAbsolute} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMagnitudesAbsolute` property extractor class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -101,8 +98,8 @@ contains
   end function magnitudesAbsoluteConstructorInternal
   
   integer function magnitudesAbsoluteElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{magnitudesAbsolute} property extractor class.
+    !!{RST
+    Return the number of elements in the ``magnitudesAbsolute`` property extractor class.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
@@ -115,8 +112,8 @@ contains
   end function magnitudesAbsoluteElementCount
 
   function magnitudesAbsoluteExtract(self,node,time,instance) result(magnitudes)
-    !!{
-    Implement a \mono{magnitudesAbsolute} property extractor.
+    !!{RST
+    Implement a ``magnitudesAbsolute`` property extractor.
     !!}
     use :: Galacticus_Nodes              , only : nodeComponentDisk  , nodeComponentSpheroid
     use :: Galactic_Structure_Options    , only : componentTypeDisk  , componentTypeSpheroid
@@ -166,8 +163,8 @@ contains
   end function magnitudesAbsoluteExtract
 
   subroutine magnitudesAbsoluteNames(self,time,names)
-    !!{
-    Return the names of the \mono{magnitudesAbsolute} properties.
+    !!{RST
+    Return the names of the ``magnitudesAbsolute`` properties.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     use :: Galactic_Structure_Options    , only : enumerationComponentTypeDecode
@@ -190,8 +187,8 @@ contains
   end subroutine magnitudesAbsoluteNames
 
   subroutine magnitudesAbsoluteDescriptions(self,time,descriptions)
-    !!{
-    Return descriptions of the \mono{magnitudesAbsolute} property extractor class.
+    !!{RST
+    Return descriptions of the ``magnitudesAbsolute`` property extractor class.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
@@ -206,7 +203,7 @@ contains
   end subroutine magnitudesAbsoluteDescriptions
 
   function magnitudesAbsoluteUnitsInSI(self,time) result(unitsInSI)
-    !!{
+    !!{RST
     Return the units of absolute magnitude in the SI system.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
@@ -222,7 +219,7 @@ contains
   end function magnitudesAbsoluteUnitsInSI
 
   function magnitudesAbsoluteUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the magnitudesAbsolute properties.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities

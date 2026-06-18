@@ -17,42 +17,45 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that provides a class for distributions of orphan satellites.
 !!}
 
 module Satellite_Oprhan_Distributions
-  !!{
+  !!{RST
   Provides a class for dark matter halo spin distributions.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>satelliteOrphanDistribution</name>
    <descriptiveName>Satellite Orphan Distributions</descriptiveName>
-   <description>Class providing distributions for orphan satellites---galaxies whose host dark matter subhalo has been
-    disrupted or fallen below the mass resolution limit, so they no longer have an explicit subhalo tracked in the
-    merger tree. Since orphans retain stellar mass and continue to orbit, their positions and velocities must be
-    modelled statistically. Implementations return the spatial extent of the orphan distribution, and sample
-    physical positions and peculiar velocities for individual orphan satellites, typically by assuming they trace
-    the dark matter distribution or follow their last-known orbit.</description>
+   <description>
+   Class providing distributions for orphan satellites---galaxies whose host dark matter subhalo has been disrupted or fallen below the mass resolution limit, so they no longer have an explicit subhalo tracked in the merger tree. Since orphans retain stellar mass and continue to orbit, their positions and velocities must be modelled statistically. Implementations return the spatial extent of the orphan distribution, and sample physical positions and peculiar velocities for individual orphan satellites, typically by assuming they trace the dark matter distribution or follow their last-known orbit.
+   </description>
    <default>traceDarkMatter</default>
    <method name="extent" >
-    <description>The maximum extent of the distribution, i.e. the radius of a sphere centered on the host halo which encompasses all orphan satellites.</description>
+    <description>
+    The maximum extent of the distribution, i.e. the radius of a sphere centered on the host halo which encompasses all orphan satellites.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="position" >
-    <description>Return the position of the given orphan in physical coordinates.</description>
+    <description>
+    Return the position of the given orphan in physical coordinates.
+    </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="velocity" >
-    <description>Return the peculiar velocity of the given orphan in physical coordinates.</description>
+    <description>
+    Return the peculiar velocity of the given orphan in physical coordinates.
+    </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

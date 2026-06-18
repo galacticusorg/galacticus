@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a mass distribution for accretion flow using the 2-halo correlation function.
   !!}
 
@@ -25,14 +25,14 @@
   use :: Numerical_Interpolation, only : interpolator
   
   !![
-  <massDistribution name="massDistributionCorrelationFunction">
+  <massDistribution name="massDistributionCorrelationFunction" docformat="rst">
     <description>
-      An accretion flow class which models the accretion flow using the 2-halo correlation function.
-   </description>
+    An accretion flow class which models the accretion flow using the 2-halo correlation function.
+    </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionCorrelationFunction
-     !!{
+     !!{RST
      A mass distribution for accretion flow using the 2-halo correlation function.
      !!}
      private
@@ -47,8 +47,8 @@
  end type massDistributionCorrelationFunction
 
   interface massDistributionCorrelationFunction
-     !!{
-     Constructors for the \refClass{massDistributionCorrelationFunction} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionCorrelationFunction` mass distribution class.
      !!}
      module procedure massDistributionCorrelationFunctionConstructorParameters
      module procedure massDistributionCorrelationFunctionConstructorInternal
@@ -57,9 +57,8 @@
 contains
 
   function massDistributionCorrelationFunctionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionCorrelationFunction} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionCorrelationFunction` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -74,36 +73,48 @@ contains
     type            (varying_string                     )                            :: massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
-      <description>The virial mass (in $\mathrm{M}_\odot$) of the halo whose accretion flow is being modeled via the 2-halo correlation function.</description>
+      <description>
+      The virial mass (in :math:`\mathrm{M}_\odot`) of the halo whose accretion flow is being modeled via the 2-halo correlation function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
-      <description>The cosmological redshift of the halo, used to convert to cosmic time for evaluating the correlation function-based accretion flow density profile.</description>
+      <description>
+      The cosmological redshift of the halo, used to convert to cosmic time for evaluating the correlation function-based accretion flow density profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radius</name>
-      <description>The radius in the tabulated correlation function.</description>
+      <description>
+      The radius in the tabulated correlation function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>correlationFunction</name>
-      <description>The correlation in the tabulated correlation function.</description>
+      <description>
+      The correlation in the tabulated correlation function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
@@ -117,8 +128,8 @@ contains
   end function massDistributionCorrelationFunctionConstructorParameters
 
   function massDistributionCorrelationFunctionConstructorInternal(mass,time,radius,correlationFunction,cosmologyFunctions_,componentType,massType) result(self)
-    !!{
-    Internal constructor for ``correlationFunction'' mass distribution class.
+    !!{RST
+    Internal constructor for "correlationFunction" mass distribution class.
     !!}
     implicit none
     type            (massDistributionCorrelationFunction)                              :: self
@@ -138,8 +149,8 @@ contains
   end function massDistributionCorrelationFunctionConstructorInternal
 
   subroutine correlationFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{massDistributionCorrelationFunction} mass distribution class.
+    !!{RST
+    Destructor for the :galacticus-class:`massDistributionCorrelationFunction` mass distribution class.
     !!}
     implicit none
     type(massDistributionCorrelationFunction), intent(inout) :: self
@@ -151,8 +162,8 @@ contains
   end subroutine correlationFunctionDestructor
 
   double precision function correlationFunctionDensity(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in a accretion flow modeled on the 2-halo correlation function.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a accretion flow modeled on the 2-halo correlation function.
     !!}
     implicit none
     class(massDistributionCorrelationFunction), intent(inout) :: self
@@ -167,8 +178,8 @@ contains
   end function correlationFunctionDensity
 
   double precision function correlationFunctionDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
-    !!{
-    Return the radial density gradient at the specified \mono{coordinates} in a accretion flow modeled on the 2-halo correlation function.
+    !!{RST
+    Return the radial density gradient at the specified ``coordinates`` in a accretion flow modeled on the 2-halo correlation function.
     !!}
     implicit none
     class  (massDistributionCorrelationFunction), intent(inout), target   :: self

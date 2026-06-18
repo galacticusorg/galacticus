@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree operator which outputs a file of tree root masses (and weights).
   !!}
 
@@ -32,12 +32,14 @@
   integer, parameter :: outputRootMassesBufferSize=1000
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorOutputRootMasses">
-   <description>A merger tree operator which outputs a file containing the root halo masses and statistical weights of all merger trees, enabling post-processing analysis of the sampled halo mass distribution. The output redshift is set by \mono{[redshift]}, optionally restricted to always-isolated halos via \mono{[alwaysIsolatedOnly]}, with the output filename specified by \mono{[fileName]}.</description>
+  <mergerTreeOperator name="mergerTreeOperatorOutputRootMasses" docformat="rst">
+   <description>
+   A merger tree operator which outputs a file containing the root halo masses and statistical weights of all merger trees, enabling post-processing analysis of the sampled halo mass distribution. The output redshift is set by ``[redshift]``, optionally restricted to always-isolated halos via ``[alwaysIsolatedOnly]``, with the output filename specified by ``[fileName]``.
+   </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorOutputRootMasses
-     !!{
+     !!{RST
      A merger tree operator class which outputs a file of tree root masses (and weights).
      !!}
      private
@@ -54,7 +56,7 @@
   end type mergerTreeOperatorOutputRootMasses
 
   interface mergerTreeOperatorOutputRootMasses
-     !!{
+     !!{RST
      Constructors for the tree root mass outputting merger tree operator class.
      !!}
      module procedure outputRootMassesConstructorParameters
@@ -64,7 +66,7 @@
 contains
 
   function outputRootMassesConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the conditional mass function merger tree operator class which takes a parameter set as input.
     !!}
     implicit none
@@ -76,22 +78,28 @@ contains
     type            (varying_string                    )                :: fileName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The redshift at which to gather tree root masses.</description>
+      <description>
+      The redshift at which to gather tree root masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alwaysIsolatedHalosOnly</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>Include only always-isolated halos when gathering tree root masses?</description>
+      <description>
+      Include only always-isolated halos when gathering tree root masses?
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <source>parameters</source>
-      <description>The name of the file to which tree masses should be written.</description>
+      <description>
+      The name of the file to which tree masses should be written.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
@@ -111,7 +119,7 @@ contains
   end function outputRootMassesConstructorParameters
 
   function outputRootMassesConstructorInternal(time,alwaysIsolatedHalosOnly,fileName,cosmologyFunctions_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the conditional mass function merger tree operator class.
     !!}
     use :: File_Utilities  , only : File_Exists, File_Remove
@@ -140,8 +148,8 @@ contains
   end function outputRootMassesConstructorInternal
 
   subroutine outputRootMassesDestructor(self)
-    !!{
-    Destructor for  the \refClass{mergerTreeOperatorOutputRootMasses} merger tree operator class.
+    !!{RST
+    Destructor for  the :galacticus-class:`mergerTreeOperatorOutputRootMasses` merger tree operator class.
     !!}
     implicit none
     type(mergerTreeOperatorOutputRootMasses), intent(inout) :: self
@@ -153,8 +161,8 @@ contains
   end subroutine outputRootMassesDestructor
   
   subroutine outputRootMassesOperatePreEvolution(self,tree)
-    !!{
-    Compute conditional mass function on \mono{tree}.
+    !!{RST
+    Compute conditional mass function on ``tree``.
     !!}
     use :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, treeNode
     use :: Merger_Tree_Walkers , only : mergerTreeWalkerIsolatedNodes
@@ -242,7 +250,7 @@ contains
   end subroutine outputRootMassesOperatePreEvolution
 
   subroutine outputRootMassesFinalize(self)
-    !!{
+    !!{RST
     Outputs conditional mass function.
     !!}
     use :: HDF5_Access, only : hdf5Access

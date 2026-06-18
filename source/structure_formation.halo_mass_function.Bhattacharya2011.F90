@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a \cite{bhattacharya_mass_2011} dark matter halo mass function class.
+  !!{RST
+  Implements a :cite:t:`bhattacharya_mass_2011` dark matter halo mass function class.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !![
-  <haloMassFunction name="haloMassFunctionBhattacharya2011">
-   <description>The dark matter halo mass function is computed using the redshift-dependent fitting function of \cite{bhattacharya_mass_2011}, calibrated against N-body simulations. The shape parameters $\bar{a}$, $\bar{p}$, $\bar{q}$, and normalization $\bar{A}$ of the fit can each be specified via input parameters.</description>
+  <haloMassFunction name="haloMassFunctionBhattacharya2011" docformat="rst">
+   <description>
+   The dark matter halo mass function is computed using the redshift-dependent fitting function of :cite:t:`bhattacharya_mass_2011`, calibrated against N-body simulations. The shape parameters :math:`\bar{a}`, :math:`\bar{p}`, :math:`\bar{q}`, and normalization :math:`\bar{A}` of the fit can each be specified via input parameters.
+   </description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionBhattacharya2011
-     !!{
-     A halo mass function class using the fitting function of \cite{bhattacharya_mass_2011}.
+     !!{RST
+     A halo mass function class using the fitting function of :cite:t:`bhattacharya_mass_2011`.
      !!}
      private
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
@@ -40,13 +42,13 @@
           &                                                      b_                                 , c_
    contains
      !![
-     <methods>
-       <method description="Return the parameter $\bar{a}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="a" />
-       <method description="Return the parameter $\bar{b}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="c" />
-       <method description="Return the parameter $\bar{c}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="b" />
-       <method description="Return the parameter $\bar{p}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="p" />
-       <method description="Return the parameter $\bar{q}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="q" />
-       <method description="Return the parameter $\bar{A}$ in the \cite{bhattacharya_mass_2011} halo mass function fit." method="normalization" />
+     <methods docformat="rst">
+       <method description="Return the parameter :math:`\bar{a}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="a" />
+       <method description="Return the parameter :math:`\bar{b}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="c" />
+       <method description="Return the parameter :math:`\bar{c}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="b" />
+       <method description="Return the parameter :math:`\bar{p}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="p" />
+       <method description="Return the parameter :math:`\bar{q}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="q" />
+       <method description="Return the parameter :math:`\bar{A}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="normalization" />
      </methods>
      !!]
      final     ::                  bhattacharya2011Destructor
@@ -60,8 +62,8 @@
   end type haloMassFunctionBhattacharya2011
 
   interface haloMassFunctionBhattacharya2011
-     !!{
-     Constructors for the \refClass{haloMassFunctionBhattacharya2011} halo mass function class.
+     !!{RST
+     Constructors for the :galacticus-class:`haloMassFunctionBhattacharya2011` halo mass function class.
      !!}
      module procedure bhattacharya2011ConstructorParameters
      module procedure bhattacharya2011ConstructorInternal
@@ -70,8 +72,8 @@
 contains
 
   function bhattacharya2011ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{haloMassFunctionBhattacharya2011} halo mass function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`haloMassFunctionBhattacharya2011` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -89,45 +91,65 @@ contains
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>a</name>
       <source>parameters</source>
       <defaultValue>0.788d0</defaultValue>
-      <defaultSource>\citep{comparat_accurate_2017}</defaultSource>
-      <description>The parameter $\bar{a}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
+      <defaultSource>
+      :cite:p:`comparat_accurate_2017`
+      </defaultSource>
+      <description>
+      The parameter :math:`\bar{a}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>b</name>
       <source>parameters</source>
       <defaultValue>1.000d0</defaultValue>
-      <description>The parameter $\bar{b}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
+      <description>
+      The parameter :math:`\bar{b}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>c</name>
       <source>parameters</source>
       <defaultValue>1.000d0</defaultValue>
-      <description>The parameter $\bar{c}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
+      <description>
+      The parameter :math:`\bar{c}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>p</name>
       <source>parameters</source>
       <defaultValue>0.807d0</defaultValue>
-      <defaultSource>\citep{comparat_accurate_2017}</defaultSource>
-      <description>The parameter $\bar{p}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
+      <defaultSource>
+      :cite:p:`comparat_accurate_2017`
+      </defaultSource>
+      <description>
+      The parameter :math:`\bar{p}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>q</name>
       <source>parameters</source>
       <defaultValue>1.795d0</defaultValue>
-      <defaultSource>\citep{comparat_accurate_2017}</defaultSource>
-      <description>The parameter $\bar{q}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
+      <defaultSource>
+      :cite:p:`comparat_accurate_2017`
+      </defaultSource>
+      <description>
+      The parameter :math:`\bar{q}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>normalization</name>
       <source>parameters</source>
       <defaultValue>0.333d0</defaultValue>
-      <defaultSource>\citep{comparat_accurate_2017}</defaultSource>
-      <description>The normalization parameter $\bar{A}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
+      <defaultSource>
+      :cite:p:`comparat_accurate_2017`
+      </defaultSource>
+      <description>
+      The normalization parameter :math:`\bar{A}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit.
+      </description>
     </inputParameter>
     !!]
     self=haloMassFunctionBhattacharya2011(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,b,c,p,q,normalization)
@@ -141,8 +163,8 @@ contains
   end function bhattacharya2011ConstructorParameters
 
   function bhattacharya2011ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,b,c,p,q,normalization) result(self)
-    !!{
-    Internal constructor for the \refClass{haloMassFunctionBhattacharya2011} halo mass function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`haloMassFunctionBhattacharya2011` halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionBhattacharya2011)                        :: self
@@ -166,8 +188,8 @@ contains
   end function bhattacharya2011ConstructorInternal
 
   subroutine bhattacharya2011Destructor(self)
-    !!{
-    Destructor for the \refClass{haloMassFunctionBhattacharya2011} halo mass function class.
+    !!{RST
+    Destructor for the :galacticus-class:`haloMassFunctionBhattacharya2011` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionBhattacharya2011), intent(inout) :: self
@@ -181,7 +203,7 @@ contains
   end subroutine bhattacharya2011Destructor
 
   double precision function bhattacharya2011Differential(self,time,mass,node)
-    !!{
+    !!{RST
     Return the differential halo mass function at the given time and mass.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -233,8 +255,8 @@ contains
   end function bhattacharya2011Differential
 
   double precision function bhattacharya2011A(self,time,mass)
-    !!{
-    Return the parameter $\bar{a}$ in the \mono{bhattacharya2011} halo mass function at the given time and mass.
+    !!{RST
+    Return the parameter :math:`\bar{a}` in the ``bhattacharya2011`` halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
@@ -246,8 +268,8 @@ contains
   end function bhattacharya2011A
 
   double precision function bhattacharya2011B(self,time,mass)
-    !!{
-    Return the parameter $\bar{b}$ in the \mono{bhattacharya2011} halo mass function at the given time and mass.
+    !!{RST
+    Return the parameter :math:`\bar{b}` in the ``bhattacharya2011`` halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
@@ -259,8 +281,8 @@ contains
   end function bhattacharya2011B
 
   double precision function bhattacharya2011C(self,time,mass)
-    !!{
-    Return the parameter $\bar{c}$ in the \mono{bhattacharya2011} halo mass function at the given time and mass.
+    !!{RST
+    Return the parameter :math:`\bar{c}` in the ``bhattacharya2011`` halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
@@ -272,8 +294,8 @@ contains
   end function bhattacharya2011C
 
   double precision function bhattacharya2011P(self,time,mass)
-    !!{
-    Return the parameter $\bar{p}$ in the \mono{bhattacharya2011} halo mass function at the given time and mass.
+    !!{RST
+    Return the parameter :math:`\bar{p}` in the ``bhattacharya2011`` halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
@@ -285,8 +307,8 @@ contains
   end function bhattacharya2011P
 
   double precision function bhattacharya2011Q(self,time,mass)
-    !!{
-    Return the parameter $\bar{q}$ in the \mono{bhattacharya2011} halo mass function at the given time and mass.
+    !!{RST
+    Return the parameter :math:`\bar{q}` in the ``bhattacharya2011`` halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self
@@ -298,8 +320,8 @@ contains
   end function bhattacharya2011Q
 
   double precision function bhattacharya2011Normalization(self,time,mass)
-    !!{
-    Return the normalization, $\bar{A}$, in the \mono{bhattacharya2011} halo mass function at the given time and mass.
+    !!{RST
+    Return the normalization, :math:`\bar{A}`, in the ``bhattacharya2011`` halo mass function at the given time and mass.
     !!}
     implicit none
     class           (haloMassFunctionBhattacharya2011), intent(inout) :: self

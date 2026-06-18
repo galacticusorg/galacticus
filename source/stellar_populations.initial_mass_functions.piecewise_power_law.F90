@@ -17,26 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a stellar initial mass function class for piecewise power-law \gls{imf}s.
+  !!{RST
+  Implements a stellar initial mass function class for piecewise power-law :term:`IMF`\ s.
   !!}
 
   !![
-  <initialMassFunction name="initialMassFunctionPiecewisePowerLaw">
+  <initialMassFunction name="initialMassFunctionPiecewisePowerLaw" docformat="rst">
    <description>
-    A stellar initial mass function class for piecewise power-law \gls{imf}s. Arbitrary piecewise power-law {\gls{imf}}s can be
-    defined using the \mono{PiecewisePowerLaw} method. The \gls{imf} will be constructed such that:
-    \begin{equation}
-     \phi(M) \propto M^{\alpha_i} \hbox{ if } M_i \le M &lt; M_{i+1},
-    \end{equation}
-    where $i=1$\ldots$N$, the $M_i$ are given by \mono{[mass]} and the $\alpha_i$ are given by \mono{[exponent]}. (Note that \mono{[mass]} must contain $N+1$ elements, while \mono{[exponent]} contains only $N$ elements.) The normalization of each power-law piece is chosen to ensure a continuous
-    \gls{imf} that is normalized to unit mass overall.
+   A stellar initial mass function class for piecewise power-law :term:`IMF`\ s. Arbitrary piecewise power-law :term:`IMF`\ s can be defined using the ``PiecewisePowerLaw`` method. The :term:`IMF` will be constructed such that:
+
+   .. math::
+
+      \phi(M) \propto M^{\alpha_i} \hbox{ if } M_i \le M &lt; M_{i+1},
+
+   where :math:`i=1`\ …\ :math:`N`, the :math:`M_i` are given by ``[mass]`` and the :math:`\alpha_i` are given by ``[exponent]``. (Note that ``[mass]`` must contain :math:`N+1` elements, while ``[exponent]`` contains only :math:`N` elements.) The normalization of each power-law piece is chosen to ensure a continuous :term:`IMF` that is normalized to unit mass overall.
    </description>
   </initialMassFunction>
   !!]
   type, extends(initialMassFunctionClass) :: initialMassFunctionPiecewisePowerLaw
-     !!{
-     A stellar initial mass function class for piecewise power-law \gls{imf}s.
+     !!{RST
+     A stellar initial mass function class for piecewise power-law :term:`IMF`\ s.
      !!}
      private
      integer                                     :: countPieces
@@ -53,8 +53,8 @@
   end type initialMassFunctionPiecewisePowerLaw
 
   interface initialMassFunctionPiecewisePowerLaw
-     !!{
-     Constructors for the \refClass{initialMassFunctionPiecewisePowerLaw} initial mass function class.
+     !!{RST
+     Constructors for the :galacticus-class:`initialMassFunctionPiecewisePowerLaw` initial mass function class.
      !!}
      module procedure piecewisePowerLawConstructorParameters
      module procedure piecewisePowerLawConstructorInternal
@@ -63,8 +63,8 @@
 contains
 
   function piecewisePowerLawConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{initialMassFunctionPiecewisePowerLaw} initial mass function class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`initialMassFunctionPiecewisePowerLaw` initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,17 +78,21 @@ contains
     allocate(mass    (countMass    ))
     allocate(exponent(countExponent))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
       <defaultValue>[0.1d0,125.0d0]</defaultValue>
       <source>parameters</source>
-      <description>The mass points used to define a piecewise power-law initial mass function.</description>
+      <description>
+      The mass points used to define a piecewise power-law initial mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponent</name>
       <defaultValue>[-2.35d0]</defaultValue>
       <source>parameters</source>
-      <description>The exponents used to define a piecewise power-law initial mass function.</description>
+      <description>
+      The exponents used to define a piecewise power-law initial mass function.
+      </description>
     </inputParameter>
     !!]
     self=initialMassFunctionPiecewisePowerLaw(mass,exponent)
@@ -99,8 +103,8 @@ contains
   end function piecewisePowerLawConstructorParameters
 
   function piecewisePowerLawConstructorInternal(mass,exponent) result(self)
-    !!{
-    Internal constructor for the \refClass{initialMassFunctionPiecewisePowerLaw} initial mass function.
+    !!{RST
+    Internal constructor for the :galacticus-class:`initialMassFunctionPiecewisePowerLaw` initial mass function.
     !!}
     use :: Array_Utilities, only : Array_Is_Monotonic, directionIncreasing
     use :: Error          , only : Error_Report
@@ -165,8 +169,8 @@ contains
   end function piecewisePowerLawConstructorInternal
 
   double precision function piecewisePowerLawMassMinimum(self)
-    !!{
-    Return the minimum mass of stars in the \cite{chabrier_galactic_2001} \gls{imf}.
+    !!{RST
+    Return the minimum mass of stars in the :cite:t:`chabrier_galactic_2001` :term:`IMF`.
     !!}
     implicit none
     class(initialMassFunctionPiecewisePowerLaw), intent(inout) :: self
@@ -176,8 +180,8 @@ contains
   end function piecewisePowerLawMassMinimum
 
   double precision function piecewisePowerLawMassMaximum(self)
-    !!{
-    Return the maximum mass of stars in a piecewise power-law \gls{imf}.
+    !!{RST
+    Return the maximum mass of stars in a piecewise power-law :term:`IMF`.
     !!}
     implicit none
     class(initialMassFunctionPiecewisePowerLaw), intent(inout) :: self
@@ -187,7 +191,7 @@ contains
   end function piecewisePowerLawMassMaximum
 
   double precision function piecewisePowerLawPhi(self,massInitial)
-    !!{
+    !!{RST
     Evaluate a piecewise power-law stellar initial mass function.
     !!}
     implicit none
@@ -219,7 +223,7 @@ contains
   end function piecewisePowerLawPhi
 
   double precision function piecewisePowerLawNumberCumulative(self,massLower,massUpper) result(number)
-    !!{
+    !!{RST
     Evaluate a piecewise power-law stellar initial mass function.
     !!}
     implicit none
@@ -245,8 +249,8 @@ contains
   end function piecewisePowerLawNumberCumulative
 
   subroutine piecewisePowerLawTabulate(self,imfTable)
-    !!{
-    Construct and return a tabulation of a piecewise power-law \gls{imf}.
+    !!{RST
+    Construct and return a tabulation of a piecewise power-law :term:`IMF`.
     !!}
     use :: Tables, only : table1DLogarithmicLinear
     implicit none
@@ -271,8 +275,8 @@ contains
   end subroutine piecewisePowerLawTabulate
 
   function piecewisePowerLawLabel(self)
-    !!{
-    Return a label for this \gls{imf}.
+    !!{RST
+    Return a label for this :term:`IMF`.
     !!}
     implicit none
     class(initialMassFunctionPiecewisePowerLaw), intent(inout) :: self

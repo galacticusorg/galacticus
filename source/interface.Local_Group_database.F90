@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which interfaces with the Local Group database.
 !!}
 
 module Interface_Local_Group_DB
-  !!{
+  !!{RST
   Interfaces with the Local Group database.
   !!}
   use :: FoX_DOM         , only : node
@@ -40,9 +40,11 @@ module Interface_Local_Group_DB
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>comparison</name>
-   <description>Enumeration of comparison operators used when filtering Local Group database entries by property value: \mono{equals}, \mono{greaterThan}, and \mono{lessThan}.</description>
+   <description>
+   Enumeration of comparison operators used when filtering Local Group database entries by property value: ``equals``, ``greaterThan``, and ``lessThan``.
+   </description>
    <visibility>public</visibility>
    <entry label="equals"     />
    <entry label="greaterThan"/>
@@ -51,9 +53,11 @@ module Interface_Local_Group_DB
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>setOperator</name>
-   <description>Enumeration of set operators for combining Local Group database selections: \mono{intersection} retains only common members, \mono{union} combines all members, and \mono{relativeComplement} removes members of one set from another.</description>
+   <description>
+   Enumeration of set operators for combining Local Group database selections: ``intersection`` retains only common members, ``union`` combines all members, and ``relativeComplement`` removes members of one set from another.
+   </description>
    <visibility>public</visibility>
    <entry label="intersection"/>
    <entry label="union"/>
@@ -62,9 +66,11 @@ module Interface_Local_Group_DB
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>attribute</name>
-   <description>Enumeration of attribute types stored in the Local Group database for each property: \mono{value} holds the measured quantity and \mono{uncertainty} holds its associated measurement uncertainty.</description>
+   <description>
+   Enumeration of attribute types stored in the Local Group database for each property: ``value`` holds the measured quantity and ``uncertainty`` holds its associated measurement uncertainty.
+   </description>
    <visibility>public</visibility>
    <entry label="value"      />
    <entry label="uncertainty"/>
@@ -72,13 +78,13 @@ module Interface_Local_Group_DB
   !!]
 
   type :: vector3D
-     !!{
+     !!{RST
      Vector type.
      !!}
      double precision, dimension(3) :: x
    contains
      !![
-     <methods>
+     <methods docformat="rst">
       <method method="operator(==)"   description="Test equality of two 3D vectors."         />
       <method method="operator(&lt;)" description="Less than operator for two 3D vectors."   />
       <method method="operator(&gt;)" description="Greater than operator for two 3D vectors."/>
@@ -92,7 +98,7 @@ module Interface_Local_Group_DB
   end type vector3D
 
   type :: documentWrapper
-     !!{
+     !!{RST
      Wrapper class for managing XML documents.
      !!}
      private
@@ -102,7 +108,7 @@ module Interface_Local_Group_DB
   end type documentWrapper
   
   type :: localGroupDB
-     !!{
+     !!{RST
      Local Group database class.
      !!}
      private
@@ -112,7 +118,7 @@ module Interface_Local_Group_DB
      type   (resourceManager)                            :: databaseManager
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="getProperty" description="Return an array of values of the named property for the current selection."                />
        <method method="select"      description="Select all galaxies in the current selection where the named property has the given value."/>
        <method method="selectAll"   description="Select all galaxies in the database."                                                      />
@@ -128,7 +134,7 @@ module Interface_Local_Group_DB
   end type localGroupDB
 
   interface localGroupDB
-     !!{
+     !!{RST
      Constructors for the Local Group database class.
      !!}
      module procedure localGroupDBConstructorInternal
@@ -137,7 +143,7 @@ module Interface_Local_Group_DB
 contains
 
   function localGroupDBConstructorInternal() result(self)
-    !!{
+    !!{RST
     Constructor for the Local Group database class.
     !!}
     use :: Input_Paths       , only : inputPath                   , pathTypeDataStatic
@@ -155,8 +161,10 @@ contains
     call XML_Get_Elements_By_Tag_Name(XML_Get_First_Element_By_Tag_Name(self%database%document,'galaxies'),'galaxy',self%galaxies)
     !$omp end critical (FoX_DOM_Access)
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_ => self%database
     self%databaseManager=resourceManager(dummyPointer_)
@@ -169,8 +177,8 @@ contains
   end function localGroupDBConstructorInternal
 
   subroutine documentWrapperDestructor(self)
-    !!{
-    Destroy a \mono{documentWrapper} object.
+    !!{RST
+    Destroy a ``documentWrapper`` object.
     !!}
     use :: FoX_DOM, only : destroy
     implicit none
@@ -185,7 +193,7 @@ contains
   end subroutine documentWrapperDestructor
 
   subroutine localGroupDBGetProperty{Type¦label}(self,name,property,isPresent,attribute)
-    !!{
+    !!{RST
     Get a named text property from the Local Group database.
     !!}
     use                      :: FoX_DOM           , only : getAttributeNode            , getTextContent , hasAttribute, setAttribute, &
@@ -302,7 +310,7 @@ contains
   end subroutine localGroupDBGetProperty{Type¦label}
 
   subroutine localGroupDBSelectAll(self)
-    !!{
+    !!{RST
     Select all galaxies in the database.
     !!}
     implicit none
@@ -313,7 +321,7 @@ contains
   end subroutine localGroupDBSelectAll
 
   subroutine localGroupDBSelect{Type¦label}(self,name,value,comparison,setOperator)
-    !!{
+    !!{RST
     Impose a selection on the database.
     !!}
     use                      :: FoX_DOM           , only : getAttributeNode, getTextContent
@@ -370,7 +378,7 @@ contains
   end subroutine localGroupDBSelect{Type¦label}
 
   subroutine localGroupDBUpdate(self)
-    !!{
+    !!{RST
     Update the database.
     !!}
     use :: FoX_DOM                         , only : appendChild                 , createElementNS    , setAttribute    , getAttributeNode, &
@@ -648,7 +656,7 @@ contains
   end subroutine localGroupDBUpdate
 
   logical function vector3DEquals(self,other)
-    !!{
+    !!{RST
     Equality comparison operator for two 3D vectors.
     !!}
     implicit none
@@ -659,7 +667,7 @@ contains
   end function vector3DEquals
 
   logical function vector3DComparisonUnimplemented(self,other)
-    !!{
+    !!{RST
     Unimplemented comparison operators for 3D vectors.
     !!}
     use :: Error, only : Error_Report

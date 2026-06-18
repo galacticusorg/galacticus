@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a power-law stellar feedback model in which the characteristic velocity scales as a power of $(1+z)$.
+  !!{RST
+  Implementation of a power-law stellar feedback model in which the characteristic velocity scales as a power of :math:`(1+z)`.
   !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
   !![
-  <stellarFeedbackOutflows name="stellarFeedbackOutflowsPowerLawRedshiftScaling">
-   <description>A power-law stellar feedback model in which the characteristic velocity scales as a power of $(1+z)$.</description>
+  <stellarFeedbackOutflows name="stellarFeedbackOutflowsPowerLawRedshiftScaling" docformat="rst">
+   <description>
+   A power-law stellar feedback model in which the characteristic velocity scales as a power of :math:`(1+z)`.
+   </description>
   </stellarFeedbackOutflows>
   !!]
   type, extends(stellarFeedbackOutflowsPowerLaw) :: stellarFeedbackOutflowsPowerLawRedshiftScaling
-     !!{
-     Implementation of a power-law stellar feedback model in which the characteristic velocity scales as a power of $(1+z)$.
+     !!{RST
+     Implementation of a power-law stellar feedback model in which the characteristic velocity scales as a power of :math:`(1+z)`.
      !!}
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
@@ -41,7 +43,7 @@
   end type stellarFeedbackOutflowsPowerLawRedshiftScaling
 
   interface stellarFeedbackOutflowsPowerLawRedshiftScaling
-     !!{
+     !!{RST
      Constructors for the power-law redshift-scaling stellar feedback class.
      !!}
      module procedure powerLawRedshiftScalingConstructorParameters
@@ -51,7 +53,7 @@
 contains
 
   function powerLawRedshiftScalingConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the power-law redshift-scaling stellar feedback class which takes a parameter set as input.
     !!}
     implicit none
@@ -59,12 +61,14 @@ contains
     type(inputParameters                               ), intent(inout) :: parameters
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentRedshift</name>
       <source>parameters</source>
       <variable>self%exponentRedshift</variable>
       <defaultValue>0.0d0</defaultValue>
-      <description>The redshift scaling of characteristic velocity for \gls{sne}-driven outflow rates in disks.</description>
+      <description>
+      The redshift scaling of characteristic velocity for :term:`SNe`-driven outflow rates in disks.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="self%cosmologyFunctions_" source="parameters"/>
     !!]
@@ -76,7 +80,7 @@ contains
   end function powerLawRedshiftScalingConstructorParameters
 
   function powerLawRedshiftScalingConstructorInternal(velocityCharacteristic_,exponent,exponentRedshift,cosmologyFunctions_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the power-law redshift-scaling stellar feedback class.
     !!}
     implicit none
@@ -93,7 +97,7 @@ contains
   end function powerLawRedshiftScalingConstructorInternal
 
   subroutine powerLawRedshiftScalingDestructor(self)
-    !!{
+    !!{RST
     Destructor for the power-law redshift-scaling feedback from star formation in disks class.
     !!}
     implicit none
@@ -106,9 +110,8 @@ contains
   end subroutine powerLawRedshiftScalingDestructor
 
   double precision function powerLawRedshiftScalingVelocityCharacteristic(self,component)
-    !!{
-    Return the characteristic velocity for power-law feedback models in disks. In this case the characteristic velocity is a
-    constant.
+    !!{RST
+    Return the characteristic velocity for power-law feedback models in disks. In this case the characteristic velocity is a constant.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

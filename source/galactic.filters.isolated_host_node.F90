@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic filter which applies another filter to the isolated host node of the given node.
 !!}
   
   !![
-  <galacticFilter name="galacticFilterIsolatedHostNode">
-   <description>Evaluates a wrapped \refClass{galacticFilterClass} on the isolated (top-level) host halo of the current node rather than on the node itself, enabling selection of satellites based on properties of their ultimate host environment.</description>
+  <galacticFilter name="galacticFilterIsolatedHostNode" docformat="rst">
+   <description>
+   Evaluates a wrapped :galacticus-class:`galacticFilterClass` on the isolated (top-level) host halo of the current node rather than on the node itself, enabling selection of satellites based on properties of their ultimate host environment.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterIsolatedHostNode
-     !!{
+     !!{RST
      A galactic filter which applies another filter to the isolated host node of the given node.
      !!}
      private
@@ -38,8 +40,8 @@ Implements a galactic filter which applies another filter to the isolated host n
   end type galacticFilterIsolatedHostNode
 
   interface galacticFilterIsolatedHostNode
-     !!{
-     Constructors for the \refClass{galacticFilterIsolatedHostNode} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterIsolatedHostNode` galactic filter class.
      !!}
      module procedure isolatedHostNodeConstructorParameters
      module procedure isolatedHostNodeConstructorInternal
@@ -48,8 +50,8 @@ Implements a galactic filter which applies another filter to the isolated host n
 contains
 
   function isolatedHostNodeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterIsolatedHostNode} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterIsolatedHostNode` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,8 +71,8 @@ contains
   end function isolatedHostNodeConstructorParameters
   
   function isolatedHostNodeConstructorInternal(galacticFilter_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterIsolatedHostNode} galactic filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticFilterIsolatedHostNode` galactic filter class.
     !!}
     implicit none
     type (galacticFilterIsolatedHostNode)                        :: self
@@ -83,8 +85,8 @@ contains
   end function isolatedHostNodeConstructorInternal
   
   subroutine isolatedHostNodeDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterIsolatedHostNode} galactic filter class.
+    !!{RST
+    Destructor for the :galacticus-class:`galacticFilterIsolatedHostNode` galactic filter class.
     !!}
     implicit none
     type(galacticFilterIsolatedHostNode), intent(inout) :: self
@@ -96,7 +98,7 @@ contains
   end subroutine isolatedHostNodeDestructor
   
   logical function isolatedHostNodePasses(self,node) result(passes)
-    !!{
+    !!{RST
     Implement a filter on parent node properties.
     !!}
     implicit none

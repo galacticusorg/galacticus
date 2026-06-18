@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements searching of ordered arrays.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module which implements searching of ordered arrays.
 !; gsl
 
 module Arrays_Search
-  !!{
+  !!{RST
   Implements searching of ordered arrays.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t, c_double
@@ -41,7 +41,7 @@ module Arrays_Search
   !!]
 
   interface searchArray
-     !!{
+     !!{RST
      Generic interface for array searching routines.
      !!}
      module procedure searchArrayDouble
@@ -49,7 +49,7 @@ module Arrays_Search
   end interface searchArray
 
   interface searchIndexed
-     !!{
+     !!{RST
      Generic interface for array searching routines using indexing.
      !!}
      module procedure searchIndexedInteger8
@@ -57,7 +57,7 @@ module Arrays_Search
 
   interface
      function gsl_interp_bsearch(x_array,x,index_lo,index_hi) bind(c,name='gsl_interp_bsearch')
-       !!{
+       !!{RST
        Template for the GSL binary search function.
        !!}
        import
@@ -71,9 +71,8 @@ module Arrays_Search
 contains
 
   function searchArrayDouble(arrayToSearch,valueToFind)
-    !!{
-    Searches an array, $x=($\mono{arrayToSearch}$)$, for value, $v(=$\mono{valueToFind}$)$,
-    to find the index $i$ such that $x(i) \le v < x(i+1)$.
+    !!{RST
+    Searches an array, :math:`x=(`\ ``arrayToSearch``\ :math:`)`, for value, :math:`v(=`\ ``valueToFind``\ :math:`)`, to find the index :math:`i` such that :math:`x(i) \le v < x(i+1)`.
     !!}
     implicit none
     integer         (c_size_t)                              :: searchArrayDouble
@@ -92,9 +91,8 @@ contains
   end function searchArrayDouble
 
   function searchArray{Type¦label}(arrayToSearch,valueToFind)
-    !!{
-    Searches an array, $x=($\mono{arrayToSearch}$)$, for value, $v(=$\mono{valueToFind}$)$,
-    to find the index $i$ such that $x(i) \le v < x(i+1)$.
+    !!{RST
+    Searches an array, :math:`x=(`\ ``arrayToSearch``\ :math:`)`, for value, :math:`v(=`\ ``valueToFind``\ :math:`)`, to find the index :math:`i` such that :math:`x(i) \le v < x(i+1)`.
     !!}
     {Type¦match¦^(varstr)$¦  use :: ISO_Varying_String, only : varying_string, operator(<), operator(>), operator(<=), operator(>=)¦}
     {Type¦match¦^(integer8)$¦use :: Kind_Numbers      , only : kind_int8¦}
@@ -145,9 +143,8 @@ contains
   end function searchArray{Type¦label}
 
   function searchArrayClosest(arrayToSearch,valueToFind,tolerance,status)
-    !!{
-    Searches an array, $x=($\mono{arrayToSearch}$)$, for the entry closest to value, $v(=$\mono{valueToFind}$)$ and returns the index of that element in the array. Optionally, a tolerance may be specified
-    within which the two values must match.
+    !!{RST
+    Searches an array, :math:`x=(`\ ``arrayToSearch``\ :math:`)`, for the entry closest to value, :math:`v(=`\ ``valueToFind``\ :math:`)` and returns the index of that element in the array. Optionally, a tolerance may be specified within which the two values must match.
     !!}
     use :: Error               , only : Error_Report, errorStatusFail, errorStatusSuccess
     use :: Numerical_Comparison, only : Values_Agree
@@ -198,10 +195,8 @@ contains
   end function searchArrayClosest
 
   function searchIndexedInteger8(arrayToSearch,arrayIndex,valueToFind)
-    !!{
-    Searches a long integer array, $x=($\mono{arrayToSearch}$)$, which is rank ordered when indexed by
-    \mono{arrayIndex}, for value, $v(=$\mono{valueToFind}$)$, to find the index $i$ such that
-    $x(i) \le v < x(i+1)$.
+    !!{RST
+    Searches a long integer array, :math:`x=(`\ ``arrayToSearch``\ :math:`)`, which is rank ordered when indexed by ``arrayIndex``, for value, :math:`v(=`\ ``valueToFind``\ :math:`)`, to find the index :math:`i` such that :math:`x(i) \le v < x(i+1)`.
     !!}
     use :: Kind_Numbers , only : kind_int8
     implicit none

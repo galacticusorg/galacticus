@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree build controller class which limits tree building to a single step.
 !!}
   
@@ -26,12 +26,14 @@ Implements a merger tree build controller class which limits tree building to a 
   use :: Linear_Growth             , only : linearGrowthClass 
 
   !![
-  <mergerTreeBuildController name="mergerTreeBuildControllerSingleStep">
-   <description>A merger tree build controller class which limits the building of a merger tree to a single step, advancing to a specified target redshift set by \mono{[redshift]}. After the step, tree building either halts or continues without further step limitations depending on the \mono{[haltAfterStep]} parameter.</description>
+  <mergerTreeBuildController name="mergerTreeBuildControllerSingleStep" docformat="rst">
+   <description>
+   A merger tree build controller class which limits the building of a merger tree to a single step, advancing to a specified target redshift set by ``[redshift]``. After the step, tree building either halts or continues without further step limitations depending on the ``[haltAfterStep]`` parameter.
+   </description>
   </mergerTreeBuildController>
   !!]
   type, extends(mergerTreeBuildControllerClass) :: mergerTreeBuildControllerSingleStep
-     !!{
+     !!{RST
      A merger tree build controller class which limits tree building to a single step.
      !!}
      private
@@ -54,8 +56,8 @@ Implements a merger tree build controller class which limits tree building to a 
   end type mergerTreeBuildControllerSingleStep
 
   interface mergerTreeBuildControllerSingleStep
-     !!{
-     Constructors for the \refClass{mergerTreeBuildControllerSingleStep} merger tree build controller class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeBuildControllerSingleStep` merger tree build controller class.
      !!}
      module procedure singleStepConstructorParameters
      module procedure singleStepConstructorInternal
@@ -64,8 +66,8 @@ Implements a merger tree build controller class which limits tree building to a 
 contains
 
   function singleStepConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildControllerSingleStep} merger tree build controller class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeBuildControllerSingleStep` merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,16 +82,20 @@ contains
     logical                                                              :: haltAfterStep
  
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftStep</name>
       <source>parameters</source>
-      <description>The redshift to which to take a single step.</description>
+      <description>
+      The redshift to which to take a single step.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>haltAfterStep</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, cease building the tree after the first step. Otherwise, continue to build with no further step limitations.</description>
+      <description>
+      If true, cease building the tree after the first step. Otherwise, continue to build with no further step limitations.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
     <objectBuilder class="linearGrowth"              name="linearGrowth_"              source="parameters"/>
@@ -111,8 +117,8 @@ contains
   end function singleStepConstructorParameters
 
   function singleStepConstructorInternal(criticalOverdensityStep,haltAfterStep,cosmologyFunctions_,criticalOverdensity_,linearGrowth_,mergerTreeBuildController_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildControllerSingleStep} merger tree build controller class .
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeBuildControllerSingleStep` merger tree build controller class .
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
@@ -142,8 +148,8 @@ contains
   end function singleStepConstructorInternal
 
   subroutine singleStepDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBuildControllerSingleStep} merger tree build controller class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeBuildControllerSingleStep` merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerSingleStep), intent(inout) :: self
@@ -158,7 +164,7 @@ contains
   end subroutine singleStepDestructor
 
   logical function singleStepControl(self,node,treeWalker_)
-    !!{
+    !!{RST
     Apply control to merger tree building.
     !!}
     use :: Nodes_Labels, only : nodeLabelSet
@@ -178,7 +184,7 @@ contains
   end function singleStepControl
 
   double precision function singleStepTimeMinimum(self,node,massBranch,criticalOverdensityBranch)
-    !!{
+    !!{RST
     Return the maximum allowed time for this node.
     !!}
     implicit none
@@ -195,7 +201,7 @@ contains
   end function singleStepTimeMinimum
   
   double precision function singleStepTimeMaximum(self,node,massBranch,criticalOverdensityBranch,timeReference,insertNode)
-    !!{
+    !!{RST
     Return the maximum allowed time for this node.
     !!}
     implicit none
@@ -215,7 +221,7 @@ contains
   end function singleStepTimeMaximum
   
   logical function singleStepControlTimeMaximum(self,node,massBranch,criticalOverdensityBranch,nodeIndex)
-    !!{
+    !!{RST
     Control when the maximum time is reached.
     !!}
     use :: Error           , only : Error_Report
@@ -258,7 +264,7 @@ contains
   end function singleStepControlTimeMaximum
   
   function singleStepBranchingProbabilityObject(self,node) result(mergerTreeBranchingProbability_)
-    !!{
+    !!{RST
     Return a pointer the the merger tree branching probability object to use.
     !!}
     implicit none
@@ -271,7 +277,7 @@ contains
   end function singleStepBranchingProbabilityObject
 
   subroutine singleStepNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2,didBranch)
-    !!{
+    !!{RST
     Act on the insertion of nodes into the merger tree.
     !!}
     use :: Nodes_Labels, only : nodeLabelSet, nodeLabelIsPresent

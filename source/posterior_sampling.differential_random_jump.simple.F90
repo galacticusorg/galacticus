@@ -17,23 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a posterior sampling differential evolution random jump class in which the jump is drawn from a fixed
-  distribution.
+  !!{RST
+  Implementation of a posterior sampling differential evolution random jump class in which the jump is drawn from a fixed distribution.
   !!}
 
   !![
-  <posteriorSampleDffrntlEvltnRandomJump name="posteriorSampleDffrntlEvltnRandomJumpSimple">
+  <posteriorSampleDffrntlEvltnRandomJump name="posteriorSampleDffrntlEvltnRandomJumpSimple" docformat="rst">
    <description>
-    In this class, the random jumps are drawn directly from the distributions specified in the \mono{random} object
-    of each \refClass{modelParameterClass} object.
+   In this class, the random jumps are drawn directly from the distributions specified in the ``random`` object of each :galacticus-class:`modelParameterClass` object.
    </description>
   </posteriorSampleDffrntlEvltnRandomJump>
   !!]
   type, extends(posteriorSampleDffrntlEvltnRandomJumpClass) :: posteriorSampleDffrntlEvltnRandomJumpSimple
-     !!{
-     Implementation of a posterior sampling differential evolution random jump class in which the jump is drawn from a fixed
-     distribution.
+     !!{RST
+     Implementation of a posterior sampling differential evolution random jump class in which the jump is drawn from a fixed distribution.
      !!}
      private
    contains
@@ -41,8 +38,8 @@
   end type posteriorSampleDffrntlEvltnRandomJumpSimple
 
   interface posteriorSampleDffrntlEvltnRandomJumpSimple
-     !!{
-     Constructors for the \refClass{posteriorSampleDffrntlEvltnRandomJumpSimple} posterior sampling differential evolution random jump class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSampleDffrntlEvltnRandomJumpSimple` posterior sampling differential evolution random jump class.
      !!}
      module procedure simpleConstructorParameters
   end interface posteriorSampleDffrntlEvltnRandomJumpSimple
@@ -50,9 +47,8 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleDffrntlEvltnRandomJumpSimple} posterior sampling differential evolution random jump class which builds
-    the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleDffrntlEvltnRandomJumpSimple` posterior sampling differential evolution random jump class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,7 +63,7 @@ contains
   end function simpleConstructorParameters
 
   function simpleSample(self,modelParameters_,simulationState)
-    !!{
+    !!{RST
     Sample from the random jump distribution.
     !!}
     implicit none

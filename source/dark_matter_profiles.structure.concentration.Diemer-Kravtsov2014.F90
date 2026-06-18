@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo profile concentrations using the
-  \cite{diemer_universal_2014} algorithm.
+  !!{RST
+  An implementation of dark matter halo profile concentrations using the :cite:t:`diemer_universal_2014` algorithm.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
@@ -30,20 +29,16 @@
   use :: Virial_Density_Contrast   , only : virialDensityContrastFixed
 
   !![
-  <darkMatterProfileConcentration name="darkMatterProfileConcentrationDiemerKravtsov2014">
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationDiemerKravtsov2014" docformat="rst">
    <description>
-    A dark matter profile concentration class in which the concentration is computed using a fitting function from
-    \cite{diemer_universal_2014}:
-    \begin{equation}
-    c = {c_\mathrm{min} \over 2} \left[ \left({\nu\over\nu_\mathrm{min}}\right)^{-\alpha} +
-    \left({\nu\over\nu_\mathrm{min}}\right)^{\beta} \right],
-    \end{equation}
-    where $c_\mathrm{min}=\phi_0+\phi_1 n$, $\nu_\mathrm{min}=\eta_0+\eta_1 n$, $n$ is the logarithmic slope of the linear
-    power spectrum at wavenumber $k = \kappa 2 \pi / R$, $R$ is the comoving Lagrangian radius of the halo, $R=[3 M / 4 \pi
-    \rho_\mathrm{M}(z=0)]^{1/3}$, and $\nu=\delta_\mathrm{crit}(t)/\sigma(M)$ is the peak height parameter. The numerical
-    parameters $(\kappa,\phi_0,\phi_1,\eta_0,\eta_1,\alpha,\beta)$ are set by the parameters \mono{[kappa]},
-    \mono{[phi0]}, \mono{[phi1]}, \mono{[eta0]}, \mono{[eta1]}, \mono{[alpha]}, \mono{[beta]}, respectively, and default to the values given in
-    Table 3 of \cite{diemer_universal_2014} for the median relation, namely $(0.69,6.58,1.37,6.82,1.42,1.12,1.69)$.
+   A dark matter profile concentration class in which the concentration is computed using a fitting function from :cite:t:`diemer_universal_2014`:
+
+   .. math::
+
+      c = {c_\mathrm{min} \over 2} \left[ \left({\nu\over\nu_\mathrm{min}}\right)^{-\alpha} +
+      \left({\nu\over\nu_\mathrm{min}}\right)^{\beta} \right],
+
+   where :math:`c_\mathrm{min}=\phi_0+\phi_1 n`, :math:`\nu_\mathrm{min}=\eta_0+\eta_1 n`, :math:`n` is the logarithmic slope of the linear power spectrum at wavenumber :math:`k = \kappa 2 \pi / R`, :math:`R` is the comoving Lagrangian radius of the halo, :math:`R=[3 M / 4 \pi \rho_\mathrm{M}(z=0)]^{1/3}`, and :math:`\nu=\delta_\mathrm{crit}(t)/\sigma(M)` is the peak height parameter. The numerical parameters :math:`(\kappa,\phi_0,\phi_1,\eta_0,\eta_1,\alpha,\beta)` are set by the parameters ``[kappa]``, ``[phi0]``, ``[phi1]``, ``[eta0]``, ``[eta1]``, ``[alpha]``, ``[beta]``, respectively, and default to the values given in Table 3 of :cite:t:`diemer_universal_2014` for the median relation, namely :math:`(0.69,6.58,1.37,6.82,1.42,1.12,1.69)`.
    </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
@@ -54,9 +49,8 @@
   </darkMatterProfileConcentration>
   !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationDiemerKravtsov2014
-     !!{
-     A dark matter halo profile concentration class implementing the algorithm of
-     \cite{diemer_universal_2014}.
+     !!{RST
+     A dark matter halo profile concentration class implementing the algorithm of :cite:t:`diemer_universal_2014`.
      !!}
      private
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_              => null()
@@ -81,8 +75,8 @@
   end type darkMatterProfileConcentrationDiemerKravtsov2014
 
   interface darkMatterProfileConcentrationDiemerKravtsov2014
-     !!{
-     Constructors for the \refClass{darkMatterProfileConcentrationDiemerKravtsov2014} dark matter halo profile concentration class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationDiemerKravtsov2014` dark matter halo profile concentration class.
      !!}
      module procedure diemerKravtsov2014ConstructorParameters
      module procedure diemerKravtsov2014ConstructorInternal
@@ -91,9 +85,8 @@
 contains
 
   function diemerKravtsov2014ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{diemerKravtsov2014} dark matter halo
-    profile concentration class.
+    !!{RST
+    Default constructor for the ``diemerKravtsov2014`` dark matter halo profile concentration class.
     !!}
     implicit none
     type            (darkMatterProfileConcentrationDiemerKravtsov2014)                :: self
@@ -110,61 +103,77 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>kappa</name>
       <source>parameters</source>
       <variable>kappa</variable>
       <defaultValue>0.69d0</defaultValue>
-      <description>The parameter $\kappa$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
+      <description>
+      The parameter :math:`\kappa` appearing in the halo concentration algorithm of :cite:t:`diemer_universal_2014`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>phi0</name>
       <source>parameters</source>
       <variable>phi0</variable>
       <defaultValue>6.58d0</defaultValue>
-      <description>The parameter $\phi_0$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
+      <description>
+      The parameter :math:`\phi_0` appearing in the halo concentration algorithm of :cite:t:`diemer_universal_2014`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>phi1</name>
       <source>parameters</source>
       <variable>phi1</variable>
       <defaultValue>1.37d0</defaultValue>
-      <description>The parameter $\phi_1$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
+      <description>
+      The parameter :math:`\phi_1` appearing in the halo concentration algorithm of :cite:t:`diemer_universal_2014`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>eta0</name>
       <source>parameters</source>
       <variable>eta0</variable>
       <defaultValue>6.82d0</defaultValue>
-      <description>The parameter $\eta_0$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
+      <description>
+      The parameter :math:`\eta_0` appearing in the halo concentration algorithm of :cite:t:`diemer_universal_2014`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>eta1</name>
       <source>parameters</source>
       <variable>eta1</variable>
       <defaultValue>1.42d0</defaultValue>
-      <description>The parameter $\eta_1$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
+      <description>
+      The parameter :math:`\eta_1` appearing in the halo concentration algorithm of :cite:t:`diemer_universal_2014`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha</name>
       <source>parameters</source>
       <variable>alpha</variable>
       <defaultValue>1.12d0</defaultValue>
-      <description>The parameter $\alpha$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
+      <description>
+      The parameter :math:`\alpha` appearing in the halo concentration algorithm of :cite:t:`diemer_universal_2014`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <source>parameters</source>
       <variable>beta</variable>
       <defaultValue>1.69d0</defaultValue>
-      <description>The parameter $\beta$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
+      <description>
+      The parameter :math:`\beta` appearing in the halo concentration algorithm of :cite:t:`diemer_universal_2014`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scatter</name>
       <source>parameters</source>
       <variable>scatter</variable>
       <defaultValue>0.0d0</defaultValue>
-      <description>The scatter (in dex) to assume in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
+      <description>
+      The scatter (in dex) to assume in the halo concentration algorithm of :cite:t:`diemer_universal_2014`.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
@@ -185,9 +194,8 @@ contains
   end function diemerKravtsov2014ConstructorParameters
 
   function diemerKravtsov2014ConstructorInternal(kappa,phi0,phi1,eta0,eta1,alpha,beta,scatter,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,powerSpectrum_) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileConcentrationDiemerKravtsov2014} dark matter halo profile
-    concentration class.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationDiemerKravtsov2014` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
@@ -248,8 +256,8 @@ contains
   end function diemerKravtsov2014ConstructorInternal
 
   subroutine diemerKravtsov2014Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileConcentrationDiemerKravtsov2014} dark matter halo profile concentration class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationDiemerKravtsov2014` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout) :: self
@@ -267,9 +275,8 @@ contains
   end subroutine diemerKravtsov2014Destructor
 
   double precision function diemerKravtsov2014Concentration(self,node)
-    !!{
-    Return the concentration of the dark matter halo profile of \mono{node}
-    using the \cite{diemer_universal_2014} algorithm.
+    !!{RST
+    Return the concentration of the dark matter halo profile of ``node`` using the :cite:t:`diemer_universal_2014` algorithm.
     !!}
     implicit none
     class(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout), target :: self
@@ -289,9 +296,8 @@ contains
   end function diemerKravtsov2014Concentration
 
   double precision function diemerKravtsov2014ConcentrationMean(self,node)
-    !!{
-    Return the mean concentration of the dark matter halo profile of \mono{node}
-    using the \cite{diemer_universal_2014} algorithm.
+    !!{RST
+    Return the mean concentration of the dark matter halo profile of ``node`` using the :cite:t:`diemer_universal_2014` algorithm.
     !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
     use :: Math_Exponentiation     , only : cubeRoot
@@ -351,9 +357,8 @@ contains
   end function diemerKravtsov2014ConcentrationMean
 
   function diemerKravtsov2014DensityContrastDefinition(self)
-    !!{
-    Return a virial density contrast object defining that used in the definition of concentration in the
-    \cite{diemer_universal_2014} algorithm.
+    !!{RST
+    Return a virial density contrast object defining that used in the definition of concentration in the :cite:t:`diemer_universal_2014` algorithm.
     !!}
     implicit none
     class(virialDensityContrastClass                      ), pointer       :: diemerKravtsov2014DensityContrastDefinition
@@ -364,9 +369,8 @@ contains
   end function diemerKravtsov2014DensityContrastDefinition
 
   function diemerKravtsov2014DarkMatterProfileDefinition(self)
-    !!{
-    Return a dark matter density profile object defining that used in the definition of concentration in the
-    \cite{diemer_universal_2014} algorithm.
+    !!{RST
+    Return a dark matter density profile object defining that used in the definition of concentration in the :cite:t:`diemer_universal_2014` algorithm.
     !!}
     implicit none
     class(darkMatterProfileDMOClass                       ), pointer       :: diemerKravtsov2014DarkMatterProfileDefinition

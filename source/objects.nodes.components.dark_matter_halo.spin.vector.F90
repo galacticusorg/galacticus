@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements the a vector angular momentum component for halos.
 !!}
 
 module Node_Component_Halo_Angular_Momentum_Vector
-  !!{
+  !!{RST
   Implements the vector spin component.
   !!}
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
@@ -76,7 +76,7 @@ contains
   <nodeComponentInitializationTask function="Node_Component_Halo_Angular_Momentum_Vector_Initialize"/>
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Vector_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the tree node vector halo angular momentum methods module.
     !!}
     use :: Galacticus_Nodes, only : defaultSpinComponent, nodeComponentSpinVector
@@ -95,7 +95,7 @@ contains
   <nodeComponentThreadInitializationTask function="Node_Component_Halo_Angular_Momentum_Vector_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Vector_Thread_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the halo vector angular momentum module.
     !!}
     use :: Galacticus_Nodes, only : defaultSpinComponent
@@ -115,7 +115,7 @@ contains
   <nodeComponentThreadUninitializationTask function="Node_Component_Halo_Angular_Momentum_Vector_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Vector_Thread_Uninitialize()
-    !!{
+    !!{RST
     Uninitializes the tree node preset spin module.
     !!}
     use :: Galacticus_Nodes, only : defaultSpinComponent
@@ -133,7 +133,7 @@ contains
   <scaleSetTask function="Node_Component_Halo_Angular_Momentum_Vector_Scale_Set"/>
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Vector_Scale_Set(node)
-    !!{
+    !!{RST
     Set scales for properties in the preset implementation of the spin component.
     !!}
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
@@ -157,7 +157,7 @@ contains
   end subroutine Node_Component_Halo_Angular_Momentum_Vector_Scale_Set
 
   double precision function angularMomentumGrowthRateGet(self)
-    !!{
+    !!{RST
     Compute the rate of growth of the magnitude of halo angular momentum.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpinVector
@@ -183,7 +183,7 @@ contains
   <stateStoreTask function="Node_Component_Halo_Angular_Momentum_Vector_State_Store"/>
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Vector_State_Store(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Store object state.
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo
@@ -204,7 +204,7 @@ contains
   <stateRetrieveTask function="Node_Component_Halo_Angular_Momentum_Vector_State_Restore"/>
   !!]
   subroutine Node_Component_Halo_Angular_Momentum_Vector_State_Restore(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Retrieve object state.
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo

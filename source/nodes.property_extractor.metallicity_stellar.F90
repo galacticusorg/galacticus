@@ -17,22 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an ISM metallicity output analysis property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMetallicityStellar">
-   <description>A property extractor that returns the stellar metallicity of a node, defined as the
-    mass ratio of a specified element to hydrogen in the stellar component, $Z_\star = M_X / M_\mathrm{H}$,
-    summed over disk and spheroid stars. The \mono{element} parameter specifies the atomic symbol
-    (e.g.\ \mono{Fe}, \mono{O}) for the metal used in the definition. Only elements tracked by the
-    abundances structure are valid choices. Returns zero for nodes with no stellar mass, and tracks
-    the mass-weighted mean metallicity of all stars formed.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorMetallicityStellar" docformat="rst">
+   <description>
+   A property extractor that returns the stellar metallicity of a node, defined as the mass ratio of a specified element to hydrogen in the stellar component, :math:`Z_\star = M_X / M_\mathrm{H}`, summed over disk and spheroid stars. The ``element`` parameter specifies the atomic symbol (e.g.\ ``Fe``, ``O``) for the metal used in the definition. Only elements tracked by the abundances structure are valid choices. Returns zero for nodes with no stellar mass, and tracks the mass-weighted mean metallicity of all stars formed.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMetallicityStellar
-     !!{
+     !!{RST
      A stellar metallicity output analysis property extractor class.
      !!}
      private
@@ -47,8 +44,8 @@ Implements an ISM metallicity output analysis property extractor class.
   end type nodePropertyExtractorMetallicityStellar
 
   interface nodePropertyExtractorMetallicityStellar
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMetallicityStellar} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorMetallicityStellar` property extractor class.
      !!}
      module procedure metallicityStellarConstructorParameters
      module procedure metallicityStellarConstructorInternal
@@ -57,8 +54,8 @@ Implements an ISM metallicity output analysis property extractor class.
 contains
 
   function metallicityStellarConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMetallicityStellar} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorMetallicityStellar` property extractor class which takes a parameter set as input.
     !!}
     use :: Abundances_Structure, only : Abundances_Index_From_Name
     use :: Input_Parameters    , only : inputParameter            , inputParameters
@@ -70,10 +67,12 @@ contains
     character(len=3                                  )                :: element
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>element</name>
       <source>parameters</source>
-      <description>The atomic symbol for the element to use to define metallicity.</description>
+      <description>
+      The atomic symbol for the element to use to define metallicity.
+      </description>
     </inputParameter>
     !!]
     indexElement=Abundances_Index_From_Name(element)
@@ -86,8 +85,8 @@ contains
   end function metallicityStellarConstructorParameters
 
   function metallicityStellarConstructorInternal(indexElement) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMetallicityStellar} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMetallicityStellar` property extractor class.
     !!}
     use :: Abundances_Structure, only : Abundances_Names
     implicit none
@@ -102,7 +101,7 @@ contains
   end function metallicityStellarConstructorInternal
 
   double precision function metallicityStellarExtract(self,node,instance)
-    !!{
+    !!{RST
     Extracts the metallicity (defined as the mass ratio of a specified element to hydrogen) in the stellar component.
     !!}
     use :: Abundances_Structure, only : abundances
@@ -143,7 +142,7 @@ contains
   end function metallicityStellarExtract
 
   function metallicityStellarName(self)
-    !!{
+    !!{RST
     Return the name of the metallicityStellar property.
     !!}
     use :: Abundances_Structure, only : Abundances_Names
@@ -157,7 +156,7 @@ contains
   end function metallicityStellarName
 
   function metallicityStellarDescription(self)
-    !!{
+    !!{RST
     Return a description of the metallicityStellar property.
     !!}
     use :: Abundances_Structure, only : Abundances_Names
@@ -171,7 +170,7 @@ contains
   end function metallicityStellarDescription
 
   double precision function metallicityStellarUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the metallicityStellar property in the SI system.
     !!}
     implicit none
@@ -183,7 +182,7 @@ contains
   end function metallicityStellarUnitsInSI
 
   function metallicityStellarUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the metallicityStellar property.
     !!}
     use :: Units_MetaData, only : unitType

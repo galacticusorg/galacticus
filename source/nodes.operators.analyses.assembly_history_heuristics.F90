@@ -17,36 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that applies heuristics to look for unphysical behavior in merger trees.
   !!}
   
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
   !![
-  <nodeOperator name="nodeOperatorAssemblyHistoryHeuristics">
+  <nodeOperator name="nodeOperatorAssemblyHistoryHeuristics" docformat="rst">
   <description>
- 
-      A node operator class that applies heuristics to look for unphysical behavior in merger trees. Specifically, rapid changes
-      in the halo mass from a node to its parent\footnote{This is only considered for primary progenitors (the jump in mass from a
-      non-primary progenitor to its parent can, of course, be very large), including cases of subhalo promotions, and for the
-      bound mass history of subhalos.} are flagged as unphysical.
+  A node operator class that applies heuristics to look for unphysical behavior in merger trees. Specifically, rapid changes in the halo mass from a node to its parent\footnoteThis is only considered for primary progenitors (the jump in mass from a non-primary progenitor to its parent can, of course, be very large), including cases of subhalo promotions, and for the bound mass history of subhalos. are flagged as unphysical.
 
-      Halos for which the change in mass is less than \mono{[sigmaThreshold]} times the uncertainty in the
-      difference of the halo mass between child and parent are treated as being physical. For other halos, the unphysicalness is
-      judged by the heuristic:
-      \begin{equation}
-       \left| \log \frac{M_2}{M_1} \right| > \alpha \left| \log \frac{t_2}{t_1} \right|,
-      \end{equation}
-      where $\alpha=$\mono{[exponentGrowth]}, $M_1$ is the mass of a primary progenitor halo, $M_2$ is the mass
-      of its parent \emph{minus any mass resolved in non-primary progenitors}. Essentially, this says that we expect masses to
-      grow (or shrink) no faster that a power-law in cosmic time, with exponent $\alpha$.
+  Halos for which the change in mass is less than ``[sigmaThreshold]`` times the uncertainty in the difference of the halo mass between child and parent are treated as being physical. For other halos, the unphysicalness is judged by the heuristic:
 
-      </description>
+  .. math::
+
+     \left| \log \frac{M_2}{M_1} \right| &gt; \alpha \left| \log \frac{t_2}{t_1} \right|,
+
+  where :math:`\alpha=`\ ``[exponentGrowth]``, :math:`M_1` is the mass of a primary progenitor halo, :math:`M_2` is the mass of its parent *minus any mass resolved in non-primary progenitors*. Essentially, this says that we expect masses to grow (or shrink) no faster that a power-law in cosmic time, with exponent :math:`\alpha`.
+  </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorAssemblyHistoryHeuristics
-     !!{
+     !!{RST
      A node operator class that applies heuristics to look for unphysical behavior in merger trees.
      !!}
      private
@@ -61,8 +54,8 @@
   end type nodeOperatorAssemblyHistoryHeuristics
   
   interface nodeOperatorAssemblyHistoryHeuristics
-     !!{
-     Constructors for the \refClass{nodeOperatorAssemblyHistoryHeuristics} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorAssemblyHistoryHeuristics` node operator class.
      !!}
      module procedure assemblyHistoryHeuristicsConstructorParameters
      module procedure assemblyHistoryHeuristicsConstructorInternal
@@ -71,8 +64,8 @@
 contains
 
   function assemblyHistoryHeuristicsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorAssemblyHistoryHeuristics} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorAssemblyHistoryHeuristics` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -82,16 +75,20 @@ contains
     double precision                                                       :: exponentGrowth     , sigmaThreshold
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentGrowth</name>
       <defaultValue>100.0d0</defaultValue>
-      <description>The maximum plausible power-law exponent $\alpha$ in the mass growth criterion $|\log(M_2/M_1)| > \alpha |\log(t_2/t_1)|$; primary progenitors that grow faster than this are flagged as unphysical.</description>
+      <description>
+      The maximum plausible power-law exponent :math:`\alpha` in the mass growth criterion :math:`|\log(M_2/M_1)| &gt; \alpha |\log(t_2/t_1)|`; primary progenitors that grow faster than this are flagged as unphysical.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sigmaThreshold</name>
       <defaultValue>5.0d0</defaultValue>
-      <description>The number of $\sigma$ in halo mass uncertainty below which we ignore changes in halo mass.</description>
+      <description>
+      The number of :math:`\sigma` in halo mass uncertainty below which we ignore changes in halo mass.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
@@ -105,8 +102,8 @@ contains
   end function assemblyHistoryHeuristicsConstructorParameters
 
   function assemblyHistoryHeuristicsConstructorInternal(exponentGrowth,sigmaThreshold,nbodyHaloMassError_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorAssemblyHistoryHeuristics} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorAssemblyHistoryHeuristics` node operator class.
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
@@ -122,8 +119,8 @@ contains
   end function assemblyHistoryHeuristicsConstructorInternal
 
   subroutine assemblyHistoryHeuristicsDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorAssemblyHistoryHeuristics} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorAssemblyHistoryHeuristics` node operator class.
     !!}
     implicit none
     type(nodeOperatorAssemblyHistoryHeuristics), intent(inout) :: self
@@ -135,7 +132,7 @@ contains
   end subroutine assemblyHistoryHeuristicsDestructor
 
   subroutine assemblyHistoryHeuristicsNodeTreeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize the maximum host mass of this node.
     !!}
     use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentSatellite, nodeEvent, nodeEventSubhaloPromotion
@@ -276,7 +273,7 @@ contains
   end subroutine assemblyHistoryHeuristicsNodeTreeInitialize
 
   subroutine assemblyHistoryHeuristicsNodePromote(self,node)
-    !!{
+    !!{RST
     Propagate bad status into parent node on promotion.
     !!}
     use :: Nodes_Labels, only : nodeLabelIsPresent, nodeLabelUnset    
@@ -289,7 +286,7 @@ contains
   end subroutine assemblyHistoryHeuristicsNodePromote
 
   subroutine assemblyHistoryHeuristicsGalaxiesMerge(self,node)
-    !!{
+    !!{RST
     Propagate bad status into merge target when two galaxies merge.
     !!}
     use :: Nodes_Labels, only : nodeLabelIsPresent, nodeLabelUnset
@@ -304,7 +301,7 @@ contains
   end subroutine assemblyHistoryHeuristicsGalaxiesMerge
 
   subroutine heuristicWarn(node,nodeParent,nodeSibling,description,isSubhaloPromotion,massBound,indexBound)
-    !!{
+    !!{RST
     Warn about violations of assembly history heuristics.
     !!}
     use :: Display           , only : displayMessage    , displayIndent     , displayUnindent, displayMagenta, &

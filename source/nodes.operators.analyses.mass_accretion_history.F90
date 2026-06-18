@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that collects and stores the mass accretion history of each node.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorMassAccretionHistory">
-   <description>Records the mass accretion history of each dark matter halo by logging the virial mass at each timestep, building a time-series record used by mass accretion history fitting and mass growth rate analyses.</description>
+  <nodeOperator name="nodeOperatorMassAccretionHistory" docformat="rst">
+   <description>
+   Records the mass accretion history of each dark matter halo by logging the virial mass at each timestep, building a time-series record used by mass accretion history fitting and mass growth rate analyses.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorMassAccretionHistory
-     !!{
+     !!{RST
      A node operator class that collects and stores the mass accretion history of each node.
      !!}
      private
@@ -37,8 +39,8 @@
   end type nodeOperatorMassAccretionHistory
   
   interface nodeOperatorMassAccretionHistory
-     !!{
-     Constructors for the \refClass{nodeOperatorMassAccretionHistory} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorMassAccretionHistory` node operator class.
      !!}
      module procedure massAccretionHistoryConstructorParameters
      module procedure massAccretionHistoryConstructorInternal
@@ -47,8 +49,8 @@
 contains
 
   function massAccretionHistoryConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorMassAccretionHistory} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorMassAccretionHistory` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,8 +65,8 @@ contains
   end function massAccretionHistoryConstructorParameters
 
   function massAccretionHistoryConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorMassAccretionHistory} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorMassAccretionHistory` node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -78,7 +80,7 @@ contains
   end function massAccretionHistoryConstructorInternal
 
   subroutine massAccretionHistoryNodeInitialize(self,node)
-    !!{
+    !!{RST
     Record the mass accretion history of the node.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

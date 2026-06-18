@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module of integrands for unit tests.
 !!}
 
 module Test_Integration2_Functions
-  !!{
+  !!{RST
   Contains integrands for unit tests.
   !!}
   use :: ISO_Varying_String    , only : varying_string
@@ -37,7 +37,7 @@ module Test_Integration2_Functions
        &    testFunctionsInitialize
 
   type :: testIntegrator
-     !!{
+     !!{RST
      Type used for testing numerical integrators.
      !!}
      class  (integrator2   ), allocatable :: integrator_
@@ -46,7 +46,7 @@ module Test_Integration2_Functions
   end type testIntegrator
 
   type :: testFunction
-     !!{
+     !!{RST
      Type used for referencing functions.
      !!}
      character       (len=22         )                  :: description
@@ -56,7 +56,7 @@ module Test_Integration2_Functions
   end type testFunction
 
   type :: testIntegratorMulti
-     !!{
+     !!{RST
      Type used for testing multi-integrand numerical integrators.
      !!}
      class  (integratorMulti), allocatable :: integrator_
@@ -65,7 +65,7 @@ module Test_Integration2_Functions
   end type testIntegratorMulti
 
   type :: testFunctionMulti
-     !!{
+     !!{RST
      Type used for referencing functions.
      !!}
      character       (len=22         )                             :: description
@@ -81,7 +81,7 @@ module Test_Integration2_Functions
 contains
 
   subroutine testFunctionsInitialize()
-    !!{
+    !!{RST
     Initialize an array of test functions for integration tests.
     !!}
     implicit none
@@ -102,7 +102,7 @@ contains
   end subroutine testFunctionsInitialize
 
   double precision function function1Scalar(x)
-    !!{
+    !!{RST
     Test function number 1 for numerical integration tests: scalar version.
     !!}
     implicit none
@@ -113,7 +113,7 @@ contains
   end function function1Scalar
 
   function function1Vector(x)
-    !!{
+    !!{RST
     Test function number 1 for numerical integration tests: vector version.
     !!}
     double precision, intent(in   ), dimension(     : ) :: x
@@ -124,7 +124,7 @@ contains
   end function function1Vector
 
   double precision function function2Scalar(x)
-    !!{
+    !!{RST
     Test function number 1 for numerical integration tests: scalar version.
     !!}
     implicit none
@@ -135,7 +135,7 @@ contains
   end function function2Scalar
 
   function function2Vector(x)
-    !!{
+    !!{RST
     Test function number 2 for numerical integration tests: vector version.
     !!}
     double precision, intent(in   ), dimension(     : ) :: x
@@ -146,7 +146,7 @@ contains
   end function function2Vector
 
   double precision function function3Scalar(x)
-    !!{
+    !!{RST
     Test function number 3 for numerical integration tests: scalar version.
     !!}
     implicit none
@@ -157,7 +157,7 @@ contains
   end function function3Scalar
 
   function function3Vector(x)
-    !!{
+    !!{RST
     Test function number 3 for numerical integration tests: vector version.
     !!}
     implicit none
@@ -169,7 +169,7 @@ contains
   end function function3Vector
 
   double precision function function4Scalar(x)
-    !!{
+    !!{RST
     Test function number 4 for numerical integration tests: scalar version.
     !!}
     implicit none
@@ -180,7 +180,7 @@ contains
   end function function4Scalar
 
   function function4Vector(x)
-    !!{
+    !!{RST
     Test function number 4 for numerical integration tests: vector version.
     !!}
     implicit none
@@ -192,7 +192,7 @@ contains
   end function function4Vector
 
   subroutine function14Vector(n,x,e,integrand)
-    !!{
+    !!{RST
     Combined functions number 1 and 4 for numerical integration tests: vector version.
     !!}
     implicit none

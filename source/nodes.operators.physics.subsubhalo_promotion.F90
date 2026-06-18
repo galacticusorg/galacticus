@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that promotes sub-sub-halos.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorSubsubhaloPromotion">
-   <description>A node operator class that handles the promotion of sub-sub-halos (halos orbiting within a subhalo) when their host subhalo is itself promoted, correctly updating the host hierarchy so the sub-sub-halo becomes a direct satellite of the new host halo.</description>
+  <nodeOperator name="nodeOperatorSubsubhaloPromotion" docformat="rst">
+   <description>
+   A node operator class that handles the promotion of sub-sub-halos (halos orbiting within a subhalo) when their host subhalo is itself promoted, correctly updating the host hierarchy so the sub-sub-halo becomes a direct satellite of the new host halo.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSubsubhaloPromotion
-     !!{
+     !!{RST
      A node operator class that shifts node indices at node promotion.
      !!}
      private
@@ -36,8 +38,8 @@
   end type nodeOperatorSubsubhaloPromotion
   
   interface nodeOperatorSubsubhaloPromotion
-     !!{
-     Constructors for the \refClass{nodeOperatorSubsubhaloPromotion} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorSubsubhaloPromotion` node operator class.
      !!}
      module procedure subsubhaloPromotionConstructorParameters
      module procedure subsubhaloPromotionConstructorInternal
@@ -46,8 +48,8 @@
 contains
   
   function subsubhaloPromotionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorSubsubhaloPromotion} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorSubsubhaloPromotion` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,8 +64,8 @@ contains
   end function subsubhaloPromotionConstructorParameters
 
   function subsubhaloPromotionConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorSubsubhaloPromotion} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorSubsubhaloPromotion` node operator class.
     !!}
     use:: Error           , only : Component_List           , Error_Report
     use:: Galacticus_Nodes, only : defaultSatelliteComponent
@@ -84,7 +86,7 @@ contains
   end function subsubhaloPromotionConstructorInternal
 
   subroutine subsubhaloPromotionDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Determine if sub-sub-halos should be promoted.
     !!}
     use :: Galacticus_Nodes          , only : propertyInactive           , nodeComponentSatellite
@@ -129,7 +131,7 @@ contains
   end subroutine subsubhaloPromotionDifferentialEvolution
   
   subroutine subsubhaloPromotionPromote(node,timeEnd)
-    !!{
+    !!{RST
     Promote a sub-sub-halo into its host's host.
     !!}
     use :: Satellite_Promotion, only : Satellite_Move_To_New_Host

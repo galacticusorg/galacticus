@@ -17,35 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that provides a class implementing dust attenuation of stellar spectra.
 !!}
 
 module Stellar_Spectra_Dust_Attenuations
-  !!{
+  !!{RST
   Provides a class implementing dust attenuation of stellar spectra.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>stellarSpectraDustAttenuation</name>
    <descriptiveName>Stellar Spectra Dust Attenuation</descriptiveName>
-   <description>Class implementing dust attenuation of stellar spectra---the wavelength-dependent extinction (in
-    magnitudes) applied to the intrinsic spectral energy distribution of a stellar population to model the
-    absorption and scattering of starlight by interstellar dust grains. The attenuation depends on
-    wavelength (following an extinction curve such as Calzetti or Charlot-Fall), the age of the
-    stellar population (young stars embedded in birth clouds are more obscured), and the overall V-band
-    optical depth. Both separable and non-separable implementations are supported.</description>
+   <description>
+   Class implementing dust attenuation of stellar spectra---the wavelength-dependent extinction (in magnitudes) applied to the intrinsic spectral energy distribution of a stellar population to model the absorption and scattering of starlight by interstellar dust grains. The attenuation depends on wavelength (following an extinction curve such as Calzetti or Charlot-Fall), the age of the stellar population (young stars embedded in birth clouds are more obscured), and the overall V-band optical depth. Both separable and non-separable implementations are supported.
+   </description>
    <default>zero</default>
    <method name="attenuation" >
-    <description>Return the attenuation, in magnitudes, of stellar spectra due to dust at the given wavelength, age, and V-band extinction.</description>
+    <description>
+    Return the attenuation, in magnitudes, of stellar spectra due to dust at the given wavelength, age, and V-band extinction.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavelength, age, vBandAttenuation</argument>
    </method>
    <method name="isAgeDependent" >
-    <description>Return true if the attenuation may depend on the age of the stellar population.</description>
+    <description>
+    Return true if the attenuation may depend on the age of the stellar population.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <code>
@@ -54,7 +55,9 @@ module Stellar_Spectra_Dust_Attenuations
     </code>
    </method>
    <method name="isSeparable" >
-    <description>Return true if the attenuation is separable into a product of functions of wavelength, age, and V-band attenuation.</description>
+    <description>
+    Return true if the attenuation is separable into a product of functions of wavelength, age, and V-band attenuation.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <code>

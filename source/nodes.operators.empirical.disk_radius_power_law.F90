@@ -17,37 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that implements an an empirical power law relationship between disk stellar mass and
-  stellar radius.
+  !!{RST
+  Implements a node operator class that implements an an empirical power law relationship between disk stellar mass and stellar radius.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorDiskRadiusPowerLaw">
+  <nodeOperator name="nodeOperatorDiskRadiusPowerLaw" docformat="rst">
    <description>
-    A node operator that sets the disk scale radius using an empirical broken power law in stellar mass,
-    $r_\mathrm{s} = \gamma \left(M_\star/\mathrm{M}_\odot\right)^\alpha \left[1 + (M_\star/M_0)^{\beta-\alpha}\right]$,
-    calibrated to observations (default parameters from \citealt{shen_size_2003} for late-type galaxies). \mono{alpha} and
-    \mono{beta} are the low- and high-mass exponents, \mono{gamma} is the normalization, and \mono{massPivot} is the
-    transition mass $M_0$. The radius is updated at node initialization, after mergers, and when the ODE is solved analytically.
+   A node operator that sets the disk scale radius using an empirical broken power law in stellar mass, :math:`r_\mathrm{s} = \gamma \left(M_\star/\mathrm{M}_\odot\right)^\alpha \left[1 + (M_\star/M_0)^{\beta-\alpha}\right]`, calibrated to observations (default parameters from :cite:author:`shen_size_2003` :cite:year:`shen_size_2003` for late-type galaxies). ``alpha`` and ``beta`` are the low- and high-mass exponents, ``gamma`` is the normalization, and ``massPivot`` is the transition mass :math:`M_0`. The radius is updated at node initialization, after mergers, and when the ODE is solved analytically.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDiskRadiusPowerLaw
-     !!{
+     !!{RST
      Implements a power law prescription for the stellar mass--stellar radius relation of disks. Specifically:
-     \begin{equation}
-       r_\mathrm{s} = \gamma \left( \frac{M_\star}{\mathrm{M}_\odot} \right)^\alpha \left( 1 + \frac{M_\star}{M_0}^{\beta-\alpha} \right), 
-     \end{equation}
-     where $r_\mathrm{s}$ is the disk scale radius, $M_\star$ is the stellar mass of the disk, and $M_0$, $\alpha$, $\beta$, and $\gamma$
-     are free parameters.
+
+     .. math::
+
+        r_\mathrm{s} = \gamma \left( \frac{M_\star}{\mathrm{M}_\odot} \right)^\alpha \left( 1 + \frac{M_\star}{M_0}^{\beta-\alpha} \right),
+
+     where :math:`r_\mathrm{s}` is the disk scale radius, :math:`M_\star` is the stellar mass of the disk, and :math:`M_0`, :math:`\alpha`, :math:`\beta`, and :math:`\gamma` are free parameters.
      !!}
      private
      double precision :: alpha, beta     , &
           &              gamma, massPivot
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="update" description="Update the disk radius to be consistent with its stellar mass."/>
      </methods>
      !!]
@@ -58,8 +54,8 @@
   end type nodeOperatorDiskRadiusPowerLaw
   
   interface nodeOperatorDiskRadiusPowerLaw
-     !!{
-     Constructors for the \refClass{nodeOperatorDiskRadiusPowerLaw} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorDiskRadiusPowerLaw` node operator class.
      !!}
      module procedure diskRadiusPowerLawConstructorParameters
      module procedure diskRadiusPowerLawConstructorInternal
@@ -68,8 +64,8 @@
 contains
 
   function diskRadiusPowerLawConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorDiskRadiusPowerLaw} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorDiskRadiusPowerLaw` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -79,33 +75,49 @@ contains
          &                                                             gamma     , massPivot
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha</name>
       <source>parameters</source>
-      <description>Exponent $\alpha$ in the power law fit.</description> 
+      <description>
+      Exponent :math:`\alpha` in the power law fit.
+      </description> 
       <defaultValue>0.14d0</defaultValue>
-      <defaultSource>\cite[][table 1: Parameter $\alpha$, for late type galaxies]{shen_size_2003}</defaultSource>
+      <defaultSource>
+      :cite:t:`shen_size_2003`
+      </defaultSource>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <source>parameters</source>
-      <description>Exponent $\beta$ in the power law fit.</description>
+      <description>
+      Exponent :math:`\beta` in the power law fit.
+      </description>
       <defaultValue>0.39d0</defaultValue>
-      <defaultSource>\cite[][table 1: Parameter $\beta$, for late type galaxies]{shen_size_2003}</defaultSource>
+      <defaultSource>
+      :cite:t:`shen_size_2003`
+      </defaultSource>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma</name>
       <source>parameters</source>
-      <description>Coefficient $\gamma$ in the power law fit.</description>
+      <description>
+      Coefficient :math:`\gamma` in the power law fit.
+      </description>
       <defaultValue>5.958d-5</defaultValue>
-      <defaultSource>\cite[][table 1: Parameter $\gamma$, for late type galaxies and re-scaled from half light radius to exponential radius]{shen_size_2003}</defaultSource>
+      <defaultSource>
+      :cite:t:`shen_size_2003`
+      </defaultSource>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massPivot</name>
       <source>parameters</source>
-      <description>Pivot mass $M_0$ in the power law fit.</description>
+      <description>
+      Pivot mass :math:`M_0` in the power law fit.
+      </description>
       <defaultValue>3.98d10</defaultValue>
-      <defaultSource>\cite[][table 1: Parameter $M_0$, for late type galaxies]{shen_size_2003}</defaultSource>
+      <defaultSource>
+      :cite:t:`shen_size_2003`
+      </defaultSource>
     </inputParameter>
     !!]
     self=diskRadiusPowerLawConstructorInternal(alpha,beta,gamma,massPivot)
@@ -115,8 +127,8 @@ contains
   end function diskRadiusPowerLawConstructorParameters
 
   function diskRadiusPowerLawConstructorInternal(alpha,beta,gamma,massPivot) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorDiskRadiusPowerLaw} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorDiskRadiusPowerLaw` node operator class.
     !!}
     implicit none
     type            (nodeOperatorDiskRadiusPowerLaw)             :: self
@@ -129,7 +141,7 @@ contains
   end function diskRadiusPowerLawConstructorInternal
 
   subroutine diskRadiusPowerLawUpdate(self,node)
-    !!{
+    !!{RST
     Update radius of the disk.
     !!} 
     use :: Galacticus_Nodes, only : nodeComponentDisk
@@ -152,7 +164,7 @@ contains
   end subroutine diskRadiusPowerLawUpdate
    
   subroutine diskRadiusPowerLawNodeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize the disk.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk
@@ -169,7 +181,7 @@ contains
   end subroutine diskRadiusPowerLawNodeInitialize
 
   subroutine diskRadiusPowerLawSolveAnalytics(self,node,time)
-    !!{
+    !!{RST
     Set the radius of the disk.
     !!}
     implicit none
@@ -183,7 +195,7 @@ contains
   end subroutine diskRadiusPowerLawSolveAnalytics
 
   subroutine diskRadiusPowerLawNodesMerge(self,node)
-    !!{
+    !!{RST
     Update the radius of the disk after a merger.
     !!}
     implicit none

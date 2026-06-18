@@ -17,29 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements core radii for cored cold mode hot halo mass distributions.
 !!}
 
 module Merger_Tree_Branching_Modifiers
-  !!{
+  !!{RST
   Provides a module which provides a class that implements core radii for cored cold mode hot halo mass distributions.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>mergerTreeBranchingProbabilityModifier</name>
    <descriptiveName>Modifiers for merger tree branching probabilities</descriptiveName>
-   <description>Class providing multiplicative modifiers to the merger tree branching probability rate,
-    applied at each potential branching event during tree construction. Modifiers allow the branching
-    probability to be re-weighted based on halo properties (mass, overdensity, redshift) beyond what
-    the base branching probability class provides. This enables fitting to N-body simulation merger
-    rates or implementing environmental or assembly-bias corrections.</description>
+   <description>
+   Class providing multiplicative modifiers to the merger tree branching probability rate, applied at each potential branching event during tree construction. Modifiers allow the branching probability to be re-weighted based on halo properties (mass, overdensity, redshift) beyond what the base branching probability class provides. This enables fitting to N-body simulation merger rates or implementing environmental or assembly-bias corrections.
+   </description>
    <default>identity</default>
    <method name="rateModifier" >
-    <description>Return the multiplicative modifier to the tree branch probability rate.</description>
+    <description>
+    Return the multiplicative modifier to the tree branch probability rate.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout) :: nodeParent</argument>

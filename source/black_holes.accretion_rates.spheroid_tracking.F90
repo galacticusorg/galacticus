@@ -17,22 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements the a black hole accretion rate model that tracks the growth of the spheroid.
   !!}
 
   use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
 
   !![
-  <blackHoleAccretionRate name="blackHoleAccretionRateSpheroidTracking">
+  <blackHoleAccretionRate name="blackHoleAccretionRateSpheroidTracking" docformat="rst">
    <description>
-    A black hole accretion rate class that drives black hole growth in proportion to the stellar mass growth rate of the host spheroid. The ratio of black hole growth to spheroid stellar mass growth is set by the \mono{[growthRatioToStellarSpheroid]} parameter.
+   A black hole accretion rate class that drives black hole growth in proportion to the stellar mass growth rate of the host spheroid. The ratio of black hole growth to spheroid stellar mass growth is set by the ``[growthRatioToStellarSpheroid]`` parameter.
    </description>
   </blackHoleAccretionRate>
   !!]
   type, extends(blackHoleAccretionRateClass) :: blackHoleAccretionRateSpheroidTracking
-     !!{
-     The spheroidTracking black hole accretion rate calculation.      
+     !!{RST
+     The spheroidTracking black hole accretion rate calculation.
      !!}
      private
      class           (starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_  => null()
@@ -43,8 +43,8 @@
   end type blackHoleAccretionRateSpheroidTracking
 
   interface blackHoleAccretionRateSpheroidTracking
-     !!{
-     Constructors for the \refClass{blackHoleAccretionRateSpheroidTracking} black hole accretion rate class.
+     !!{RST
+     Constructors for the :galacticus-class:`blackHoleAccretionRateSpheroidTracking` black hole accretion rate class.
      !!}
      module procedure spheroidTrackingConstructorParameters
      module procedure spheroidTrackingConstructorInternal
@@ -53,8 +53,8 @@
 contains
 
   function spheroidTrackingConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{blackHoleAccretionRateSpheroidTracking} black hole accretion rate class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`blackHoleAccretionRateSpheroidTracking` black hole accretion rate class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,10 +64,12 @@ contains
     double precision                                                        :: growthRatioToStellarSpheroid
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>growthRatioToStellarSpheroid</name>
       <defaultValue>1.0d-3</defaultValue>
-      <description>The ratio of the rates of black hole growth and spheroid stellar mass growth.</description>
+      <description>
+      The ratio of the rates of black hole growth and spheroid stellar mass growth.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
@@ -81,8 +83,8 @@ contains
   end function spheroidTrackingConstructorParameters
 
   function spheroidTrackingConstructorInternal(growthRatioToStellarSpheroid,starFormationRateSpheroids_) result(self)
-    !!{
-    Internal constructor for the \refClass{blackHoleAccretionRateSpheroidTracking} black hole accretion rate class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`blackHoleAccretionRateSpheroidTracking` black hole accretion rate class.
     !!}
     implicit none
     type            (blackHoleAccretionRateSpheroidTracking)                        :: self
@@ -96,7 +98,7 @@ contains
   end function spheroidTrackingConstructorInternal
 
   subroutine spheroidTrackingDestructor(self)
-    !!{
+    !!{RST
     Destructor for the critical overdensity spheroidTracking set barrier class.
     !!}
     implicit none
@@ -109,7 +111,7 @@ contains
   end subroutine spheroidTrackingDestructor
 
   subroutine spheroidTrackingRateAccretion(self,blackHole,rateMassAccretionSpheroid,rateMassAccretionHotHalo,rateMassAccretionNuclearStarCluster)
-    !!{
+    !!{RST
     Compute the accretion rate onto a black hole.
     !!}
     use :: Galacticus_Nodes, only : treeNode

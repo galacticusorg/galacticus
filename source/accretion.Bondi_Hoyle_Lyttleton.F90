@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements calculations of Bondi-Hoyle-Lyttleton accretion (see \citealt{edgar_review_2004}).
+!!{RST
+Contains a module which implements calculations of Bondi-Hoyle-Lyttleton accretion (see :cite:author:`edgar_review_2004` :cite:year:`edgar_review_2004`).
 !!}
 
 module Bondi_Hoyle_Lyttleton_Accretion
-  !!{
-  Implements calculations of Bondi-Hoyle-Lyttleton accretion (see \citealt{edgar_review_2004}).
+  !!{RST
+  Implements calculations of Bondi-Hoyle-Lyttleton accretion (see :cite:author:`edgar_review_2004` :cite:year:`edgar_review_2004`).
   !!}
   implicit none
   private
@@ -32,8 +32,8 @@ module Bondi_Hoyle_Lyttleton_Accretion
 contains
 
   double precision function Bondi_Hoyle_Lyttleton_Accretion_Rate(mass,density,velocity,temperature,radius)
-    !!{
-    Computes the Bondi-Hoyle-Lyttleton accretion rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$; \citealt{edgar_review_2004}).
+    !!{RST
+    Computes the Bondi-Hoyle-Lyttleton accretion rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`; :cite:author:`edgar_review_2004` :cite:year:`edgar_review_2004`).
     !!}
     use :: Ideal_Gases_Thermodynamics      , only : Ideal_Gas_Sound_Speed
     use :: Numerical_Constants_Astronomical, only : gigaYear             , megaParsec, gravitationalConstant_internal
@@ -59,8 +59,8 @@ contains
   end function Bondi_Hoyle_Lyttleton_Accretion_Rate
 
   double precision function Bondi_Hoyle_Lyttleton_Accretion_Radius(mass,temperature) result(radiusAccretion)
-    !!{
-    Computes the Bondi-Hoyle-Lyttleton accretion radius (in Mpc; \citealt{edgar_review_2004}).
+    !!{RST
+    Computes the Bondi-Hoyle-Lyttleton accretion radius (in Mpc; :cite:author:`edgar_review_2004` :cite:year:`edgar_review_2004`).
     !!}
     use :: Ideal_Gases_Thermodynamics      , only : Ideal_Gas_Sound_Speed
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal

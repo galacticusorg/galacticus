@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a host index output analysis property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorIndicesHost">
+  <nodePropertyExtractor name="nodePropertyExtractorIndicesHost" docformat="rst">
    <description>
-    A node property extractor which extracts the index of the node which hosts a given node. For unhosted nodes (i.e. nodes
-    which are not subhalos), a value of $-1$ is extracted instead.
+   A node property extractor which extracts the index of the node which hosts a given node. For unhosted nodes (i.e. nodes which are not subhalos), a value of :math:`-1` is extracted instead.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIndicesHost
-     !!{
+     !!{RST
      A host index output analysis class.
      !!}
      private
@@ -42,8 +41,8 @@ Implements a host index output analysis property extractor class.
   end type nodePropertyExtractorIndicesHost
 
   interface nodePropertyExtractorIndicesHost
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorIndicesHost} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorIndicesHost` property extractor class.
      !!}
      module procedure indicesHostConstructorParameters
      module procedure indicesHostConstructorInternal
@@ -52,8 +51,8 @@ Implements a host index output analysis property extractor class.
 contains
 
   function indicesHostConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorIndicesHost} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorIndicesHost` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -62,10 +61,12 @@ contains
     logical                                                  :: topLevel
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>topLevel</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, output the index of the host at the top level of the hierarchy, otherwise output the index of the direct host.</description>
+      <description>
+      If true, output the index of the host at the top level of the hierarchy, otherwise output the index of the direct host.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -77,8 +78,8 @@ contains
   end function indicesHostConstructorParameters
 
   function indicesHostConstructorInternal(topLevel) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorIndicesHost} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorIndicesHost` property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorIndicesHost)                :: self
@@ -91,8 +92,8 @@ contains
   end function indicesHostConstructorInternal
 
   function indicesHostExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{indicesHost} node property extractor.
+    !!{RST
+    Implement a ``indicesHost`` node property extractor.
     !!}
     implicit none
     integer         (kind_int8                       )                          :: indicesHostExtract
@@ -119,7 +120,7 @@ contains
 
 
   function indicesHostName(self)
-    !!{
+    !!{RST
     Return the name of the indicesHost property.
     !!}
     implicit none
@@ -132,7 +133,7 @@ contains
   end function indicesHostName
 
   function indicesHostDescription(self)
-    !!{
+    !!{RST
     Return a description of the indicesHost property.
     !!}
     implicit none

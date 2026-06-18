@@ -17,22 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of isothermal dark matter halo profiles.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOIsothermal">
+  <darkMatterProfileDMO name="darkMatterProfileDMOIsothermal" docformat="rst">
    <description>
-    A dark matter profile DMO class in which builds \refClass{massDistributionIsothermal} objects to implement isothermal density
-    profiles, normalized such that the total mass of the \gls{node} is enclosed with the virial radius.
+   A dark matter profile DMO class in which builds :galacticus-class:`massDistributionIsothermal` objects to implement isothermal density profiles, normalized such that the total mass of the :term:`node` is enclosed with the virial radius.
    </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOIsothermal
-     !!{
+     !!{RST
      A dark matter halo profile class implementing isothermal dark matter halos.
      !!}
      private
@@ -43,8 +42,8 @@
   end type darkMatterProfileDMOIsothermal
 
   interface darkMatterProfileDMOIsothermal
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMOIsothermal} dark matter halo profile class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileDMOIsothermal` dark matter halo profile class.
      !!}
      module procedure isothermalConstructorParameters
      module procedure isothermalConstructorInternal
@@ -53,8 +52,8 @@
 contains
 
   function isothermalConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{isothermal} dark matter halo profile class.
+    !!{RST
+    Default constructor for the ``isothermal`` dark matter halo profile class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,8 +73,8 @@ contains
   end function isothermalConstructorParameters
 
   function isothermalConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOIsothermal} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOIsothermal` dark matter halo profile class.
     !!}
     implicit none
     type (darkMatterProfileDMOIsothermal)                        :: self
@@ -88,8 +87,8 @@ contains
   end function isothermalConstructorInternal
 
   subroutine isothermalDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMOIsothermal} dark matter halo profile class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileDMOIsothermal` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOIsothermal), intent(inout) :: self
@@ -101,8 +100,8 @@ contains
   end subroutine isothermalDestructor
 
   function isothermalGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo     , massTypeDark                    , weightByMass

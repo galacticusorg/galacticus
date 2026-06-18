@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test the numerical interpolation code.
 !!}
 
 program Test_Interpolation
-  !!{
+  !!{RST
   Tests that numerical interpolation code works correctly.
   !!}
   use            :: Display                , only : displayVerbositySet         , verbosityLevelStandard

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a zero acceleration satellite dynamical friction class.
   !!}
 
   !![
-  <satelliteDynamicalFriction name="satelliteDynamicalFrictionZero">
-   <description>A satellite dynamical friction class in which the acceleration is always zero.</description>
+  <satelliteDynamicalFriction name="satelliteDynamicalFrictionZero" docformat="rst">
+   <description>
+   A satellite dynamical friction class in which the acceleration is always zero.
+   </description>
   </satelliteDynamicalFriction>
   !!]
   type, extends(satelliteDynamicalFrictionClass) :: satelliteDynamicalFrictionZero
-     !!{
+     !!{RST
      Implementation of a satellite dynamical fiction class in which the acceleration is always zero.
      !!}
      private
@@ -36,7 +38,7 @@
   end type satelliteDynamicalFrictionZero
 
   interface satelliteDynamicalFrictionZero
-     !!{
+     !!{RST
      Constructors for the zero satellite dynamical friction class.
      !!}
      module procedure zeroConstructorParameters
@@ -45,7 +47,7 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the zero satellite dynamical friction class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -61,7 +63,7 @@ contains
   end function zeroConstructorParameters
 
   function zeroAcceleration(self,node)
-    !!{
+    !!{RST
     Return a zero acceleration for satellites due to dynamical friction.
     !!}
     implicit none

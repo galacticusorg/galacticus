@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{  
-  Implements a node operator class that evaluates the properties of prompt cusps following the model of
-  \cite{delos_cusp-halo_2025}.
+  !!{RST
+  Implements a node operator class that evaluates the properties of prompt cusps following the model of :cite:t:`delos_cusp-halo_2025`.
   !!}
 
   use :: Cosmology_Parameters    , only : cosmologyParametersClass
@@ -31,16 +30,15 @@
   use :: Virial_Density_Contrast , only : virialDensityContrastClass
 
   !![
-  <nodeOperator name="nodeOperatorDarkMatterProfilePromptCusps">
+  <nodeOperator name="nodeOperatorDarkMatterProfilePromptCusps" docformat="rst">
    <description>
-    A node operator class that evaluates the properties of prompt cusps following the model of \cite{delos_cusp-halo_2025}, with a
-    log-normal scatter of $\mu \exp(-1/\sigma_0)$~dex added to the cusp amplitude, where $\mu=$\mono{[coefficientScatter]}.
+   A node operator class that evaluates the properties of prompt cusps following the model of :cite:t:`delos_cusp-halo_2025`, with a log-normal scatter of :math:`\mu \exp(-1/\sigma_0)` dex added to the cusp amplitude, where :math:`\mu=`\ ``[coefficientScatter]``.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDarkMatterProfilePromptCusps
-     !!{     
-     A node operator class that evaluates the properties of prompt cusps following the model of \cite{delos_cusp-halo_2025}.
+     !!{RST
+     A node operator class that evaluates the properties of prompt cusps following the model of :cite:t:`delos_cusp-halo_2025`.
      !!}
      private
      class           (powerSpectrumClass        ), pointer                   :: powerSpectrum_              => null()
@@ -60,8 +58,8 @@
           &                                                                     promptCuspNFWGrowthRateID            , promptCuspNFWDensityID
    contains
      !![
-     <methods>
-       <method method="sigma" description="Evaluate $\sigma_j^2 = \int_0^\infty \frac{\mathrm{d}k}{k} \mathcal{P}(k,t) k^{2j}$ where $\mathcal{P}(k) = k^3 P(k) / 2 \pi^2$ is the dimensionless form of the power spectrum."/>
+     <methods docformat="rst">
+       <method method="sigma" description="Evaluate :math:`\sigma_j^2 = \int_0^\infty \frac{\mathrm{d}k}{k} \mathcal{P}(k,t) k^{2j}` where :math:`\mathcal{P}(k) = k^3 P(k) / 2 \pi^2` is the dimensionless form of the power spectrum."/>
      </methods>
      !!]
      final     ::                                        darkMatterProfilePromptCuspsDestructor
@@ -73,8 +71,8 @@
   end type nodeOperatorDarkMatterProfilePromptCusps
   
   interface nodeOperatorDarkMatterProfilePromptCusps
-     !!{
-     Constructors for the \refClass{nodeOperatorDarkMatterProfilePromptCusps} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorDarkMatterProfilePromptCusps` node operator class.
      !!}
      module procedure darkMatterProfilePromptCuspsConstructorParameters
      module procedure darkMatterProfilePromptCuspsConstructorInternal
@@ -96,9 +94,8 @@
 contains
   
   function darkMatterProfilePromptCuspsConstructorParameters(parameters) result(self)
-    !!{    
-    Constructor for the \refClass{nodeOperatorDarkMatterProfilePromptCusps} node operator class which takes a parameter set as
-    input.    
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorDarkMatterProfilePromptCusps` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -117,53 +114,79 @@ contains
          &                                                                       p                     , coefficientScatter
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonConvergenceIsFatal</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, failure to converge on a solution for the scale radius, $r_\mathrm{s}$, will result in a fatal error. Otherwise, only warnings are issued.</description>
+      <description>
+      If true, failure to converge on a solution for the scale radius, :math:`r_\mathrm{s}`, will result in a fatal error. Otherwise, only warnings are issued.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha</name>
       <source>parameters</source>
       <defaultValue>24.0d0</defaultValue>
-      <defaultSource>\citep[][Table 3]{delos_cusp-halo_2025}</defaultSource>
-      <description>The coefficient, $\alpha$ of the cusp amplitude, $A$, in the peak-cusp connection of the \cite{delos_cusp-halo_2025} prompt cusp model.</description>
+      <defaultSource>
+      :cite:p:`delos_cusp-halo_2025`
+      </defaultSource>
+      <description>
+      The coefficient, :math:`\alpha` of the cusp amplitude, :math:`A`, in the peak-cusp connection of the :cite:t:`delos_cusp-halo_2025` prompt cusp model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <source>parameters</source>
       <defaultValue>7.3d0</defaultValue>
-      <defaultSource>\citep[][Table 3]{delos_cusp-halo_2025}</defaultSource>
-      <description>The coefficient, $\beta$, of the cusp mass, $m$, in the peak-cusp connection of the \cite{delos_cusp-halo_2025} prompt cusp model.</description>
+      <defaultSource>
+      :cite:p:`delos_cusp-halo_2025`
+      </defaultSource>
+      <description>
+      The coefficient, :math:`\beta`, of the cusp mass, :math:`m`, in the peak-cusp connection of the :cite:t:`delos_cusp-halo_2025` prompt cusp model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>C</name>
       <source>parameters</source>
       <defaultValue>0.8d0</defaultValue>
-      <defaultSource>\citep[][Table 3]{delos_cusp-halo_2025}</defaultSource>
-      <description>The coefficient, $C$, of the cusp $A$--$m$ relation in the \cite{delos_cusp-halo_2025} prompt cusp model.</description>
+      <defaultSource>
+      :cite:p:`delos_cusp-halo_2025`
+      </defaultSource>
+      <description>
+      The coefficient, :math:`C`, of the cusp :math:`A`--:math:`m` relation in the :cite:t:`delos_cusp-halo_2025` prompt cusp model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>p</name>
       <source>parameters</source>
       <defaultValue>1.9d0</defaultValue>
-      <defaultSource>\citep[][Table 3]{delos_cusp-halo_2025}</defaultSource>
-      <description>The exponent, $p$, of the cusp $A$--$m$ relation in the \cite{delos_cusp-halo_2025} prompt cusp model.</description>
+      <defaultSource>
+      :cite:p:`delos_cusp-halo_2025`
+      </defaultSource>
+      <description>
+      The exponent, :math:`p`, of the cusp :math:`A`--:math:`m` relation in the :cite:t:`delos_cusp-halo_2025` prompt cusp model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>kappa</name>
       <source>parameters</source>
       <defaultValue>4.5d0</defaultValue>
-      <defaultSource>\citep[][Table 3]{delos_cusp-halo_2025}</defaultSource>
-      <description>The parameter, $\kappa$, of the mass growth factor in the \cite{delos_cusp-halo_2025} prompt cusp model.</description>
+      <defaultSource>
+      :cite:p:`delos_cusp-halo_2025`
+      </defaultSource>
+      <description>
+      The parameter, :math:`\kappa`, of the mass growth factor in the :cite:t:`delos_cusp-halo_2025` prompt cusp model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>coefficientScatter</name>
       <source>parameters</source>
       <defaultValue>0.195d0</defaultValue>
-      <defaultSource>Delos (private communication)</defaultSource>
-      <description>The parameter, $\mu$, in the expression for the scatter in cusp amplitude.</description>
+      <defaultSource>
+      Delos (private communication)
+      </defaultSource>
+      <description>
+      The parameter, :math:`\mu`, in the expression for the scatter in cusp amplitude.
+      </description>
     </inputParameter>
     <objectBuilder class="linearGrowth"          name="linearGrowth_"          source="parameters"/>
     <objectBuilder class="powerSpectrum"         name="powerSpectrum_"         source="parameters"/>
@@ -188,8 +211,8 @@ contains
   end function darkMatterProfilePromptCuspsConstructorParameters
 
   function darkMatterProfilePromptCuspsConstructorInternal(nonConvergenceIsFatal,alpha,beta,kappa,C,p,coefficientScatter,linearGrowth_,powerSpectrum_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorDarkMatterProfilePromptCusps} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorDarkMatterProfilePromptCusps` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -222,8 +245,8 @@ contains
   end function darkMatterProfilePromptCuspsConstructorInternal
 
   subroutine darkMatterProfilePromptCuspsDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorDarkMatterProfilePromptCusps} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorDarkMatterProfilePromptCusps` node operator class.
     !!}
     implicit none
     type(nodeOperatorDarkMatterProfilePromptCusps), intent(inout) :: self
@@ -241,7 +264,7 @@ contains
   end subroutine darkMatterProfilePromptCuspsDestructor
 
   subroutine darkMatterProfilePromptCuspsNodeTreeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize dark matter profile prompt cusp properties.
     !!}
     use :: Calculations_Resets                 , only : Calculations_Reset
@@ -544,7 +567,7 @@ contains
   end subroutine darkMatterProfilePromptCuspsNodeTreeInitialize
 
   double precision function timeCollapseRoot(timeCollapse)
-    !!{
+    !!{RST
     Root function used to find the time of collapse.
     !!}
     implicit none
@@ -556,9 +579,8 @@ contains
   end function timeCollapseRoot
 
   double precision function concentrationTargetRoot(concentration)
-    !!{
-    Implements the equation in footnote~9 of \cite{delos_cusp-halo_2025}. Used in solving for the minimum allowed concentration in
-    a cusp-NFW density profile.    
+    !!{RST
+    Implements the equation in footnote 9 of :cite:t:`delos_cusp-halo_2025`. Used in solving for the minimum allowed concentration in a cusp-NFW density profile.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -569,12 +591,14 @@ contains
   end function concentrationTargetRoot
   
   double precision function darkMatterProfilePromptCuspsNodeSigma(self,j,time) result(sigma)
-    !!{
+    !!{RST
     Evaluate the integral
-    \begin{equation}
-      \sigma_j^2(t) = \int_0^\infty \frac{\mathrm{d}k}{k} \mathcal{P}(k,t) k^{2j},
-    \end{equation}
-    where $\mathcal{P}(k) = k^3 P(k) / 2 \pi^2$ is the dimensionless form of the power spectrum.
+
+    .. math::
+
+       \sigma_j^2(t) = \int_0^\infty \frac{\mathrm{d}k}{k} \mathcal{P}(k,t) k^{2j},
+
+    where :math:`\mathcal{P}(k) = k^3 P(k) / 2 \pi^2` is the dimensionless form of the power spectrum.
     !!}
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Comparison , only : Values_Agree
@@ -648,8 +672,8 @@ contains
   end function darkMatterProfilePromptCuspsNodeSigma
   
   double precision function integrand(wavenumberPhysicalLogarithmic)
-    !!{
-    Integrand used to compute the quantity $\sigma^2_j(t)$ in the prompt cusps model of \cite{delos_cusp-halo_2025}.
+    !!{RST
+    Integrand used to compute the quantity :math:`\sigma^2_j(t)` in the prompt cusps model of :cite:t:`delos_cusp-halo_2025`.
     !!}
     implicit none
     double precision, intent(in   ) :: wavenumberPhysicalLogarithmic
@@ -664,7 +688,7 @@ contains
   end function integrand
 
   subroutine darkMatterProfilePromptCuspsNodeInitialize(self,node)
-    !!{
+    !!{RST
     Compute the rate of growth of dark matter profile scale radius assuming a constant growth rate.
     !!}
     use :: Display         , only : displayBlue       , displayGreen                  , displayYellow, displayBold, &
@@ -718,9 +742,8 @@ contains
   end subroutine darkMatterProfilePromptCuspsNodeInitialize
 
   subroutine darkMatterProfilePromptCuspsNodePromote(self,node)
-    !!{
-    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply update the scale radius
-    growth rate of \mono{node} to be that of its parent.
+    !!{RST
+    Ensure that ``node`` is ready for promotion to its parent. In this case, we simply update the scale radius growth rate of ``node`` to be that of its parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
@@ -738,8 +761,8 @@ contains
   end subroutine darkMatterProfilePromptCuspsNodePromote
 
   subroutine darkMatterProfilePromptCuspsSolveAnalytics(self,node,time)
-    !!{
-    Compute the value of the $y$-parameter in the prompt cusp.
+    !!{RST
+    Compute the value of the :math:`y`-parameter in the prompt cusp.
     !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic, nodeComponentDarkMatterProfile
     use :: Numerical_Constants_Math, only : Pi
@@ -810,7 +833,7 @@ contains
   end subroutine darkMatterProfilePromptCuspsSolveAnalytics
 
   double precision function densityNormalizationRoot(densityScale)
-    !!{
+    !!{RST
     Root function used in finding the density normalization for cusp-NFW density profiles.
     !!}
     use :: Numerical_Constants_Math, only : Pi

@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program which tests the \cite{prada_halo_2011} halo concentration algorithm.
+!!{RST
+Contains a program which tests the :cite:t:`prada_halo_2011` halo concentration algorithm.
 !!}
 
 program Test_Prada2011_Concentration
-  !!{
-  Tests the \cite{prada_halo_2011} halo concentration algorithm. Values of concentration were read from their Figure~12.
+  !!{RST
+  Tests the :cite:t:`prada_halo_2011` halo concentration algorithm. Values of concentration were read from their Figure 12.
   !!}
   use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda

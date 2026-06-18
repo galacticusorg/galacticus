@@ -17,20 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a property operator class which converts a metallicity, assumed to be a mass ratio of a
-  given element to hydrogen, to $12+\log_{10}(\mathrm{N}/\mathrm{H})$ form.
+  !!{RST
+  Implements a property operator class which converts a metallicity, assumed to be a mass ratio of a given element to hydrogen, to :math:`12+\log_{10}(\mathrm{N}/\mathrm{H})` form.
   !!}
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMetallicity12LogNH">
-   <description>A property operator class which converts a metallicity, assumed to be a mass ratio of a given element to hydrogen, to $12+\log_{10}(\mathrm{N}/\mathrm{H})$ form.</description>
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMetallicity12LogNH" docformat="rst">
+   <description>
+   A property operator class which converts a metallicity, assumed to be a mass ratio of a given element to hydrogen, to :math:`12+\log_{10}(\mathrm{N}/\mathrm{H})` form.
+   </description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorMetallicity12LogNH
-     !!{
-     A metallicity property operator class which converts a metallicity, assumed to be a mass ratio of a given element to
-     hydrogen, to $12+\log_{10}(\mathrm{N}/\mathrm{H})$ form.
+     !!{RST
+     A metallicity property operator class which converts a metallicity, assumed to be a mass ratio of a given element to hydrogen, to :math:`12+\log_{10}(\mathrm{N}/\mathrm{H})` form.
      !!}
      private
      double precision :: massElement
@@ -39,8 +39,8 @@
   end type outputAnalysisPropertyOperatorMetallicity12LogNH
 
   interface outputAnalysisPropertyOperatorMetallicity12LogNH
-     !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorMetallicity12LogNH} output analysis property operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorMetallicity12LogNH` output analysis property operator class.
      !!}
      module procedure metallicity12LogNHConstructorParameters
      module procedure metallicity12LogNHConstructorInternal
@@ -49,8 +49,8 @@
 contains
 
   function metallicity12LogNHConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisPropertyOperatorMetallicity12LogNH} output analysis property operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorMetallicity12LogNH` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -60,10 +60,12 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massElement</name>
       <source>parameters</source>
-      <description>The atomic mass of the element used to define metallicity.</description>
+      <description>
+      The atomic mass of the element used to define metallicity.
+      </description>
     </inputParameter>
     !!]
     self=outputAnalysisPropertyOperatorMetallicity12LogNH(massElement)
@@ -74,8 +76,8 @@ contains
   end function metallicity12LogNHConstructorParameters
 
   function metallicity12LogNHConstructorInternal(massElement) result (self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorMetallicity12LogNH} output analysis property operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisPropertyOperatorMetallicity12LogNH` output analysis property operator class.
     !!}
     implicit none
     type            (outputAnalysisPropertyOperatorMetallicity12LogNH)                :: self
@@ -88,7 +90,7 @@ contains
   end function metallicity12LogNHConstructorInternal
 
   double precision function metallicity12LogNHOperate(self,propertyValue,node,propertyType,outputIndex)
-    !!{
+    !!{RST
     Implement an metallicity output analysis property operator.
     !!}
     use, intrinsic :: ISO_C_Binding             , only : c_size_t

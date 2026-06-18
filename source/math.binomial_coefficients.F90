@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements binomial coefficients.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module which implements binomial coefficients.
 !; gsl
 
 module Binomial_Coefficients
-  !!{
+  !!{RST
   Implements binomial coefficients.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_double, c_int
@@ -35,7 +35,7 @@ module Binomial_Coefficients
 
   interface
      function gsl_sf_choose(n,m) bind(c,name='gsl_sf_choose')
-       !!{
+       !!{RST
        Template for the GSL choose C function.
        !!}
        import
@@ -47,8 +47,8 @@ module Binomial_Coefficients
 contains
 
   double precision function Binomial_Coefficient(n,m)
-    !!{
-    Evaluate the binomial coefficient, $\left({n \over m}\right)$.
+    !!{RST
+    Evaluate the binomial coefficient, :math:`\left({n \over m}\right)`.
     !!}
     implicit none
     integer, intent(in   ) :: n,m

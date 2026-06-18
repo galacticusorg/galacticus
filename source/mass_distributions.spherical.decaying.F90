@@ -17,21 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of decaying dark matter halo profiles.
   !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !![
-  <massDistribution name="massDistributionSphericalDecaying">
+  <massDistribution name="massDistributionSphericalDecaying" docformat="rst">
    <description>
-     Decaying dark matter halo profiles.
-    </description>
+   Decaying dark matter halo profiles.
+   </description>
   </massDistribution>
   !!]
   type, extends(massDistributionSphericalDecorator) :: massDistributionSphericalDecaying
-     !!{
+     !!{RST
      A dark matter halo profile class implementing decaying dark matter halos.
      !!}
      private
@@ -43,7 +43,7 @@
      logical                                            :: potentialEscapeComputed
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute the density reduction factor." method="decayingFactor"/>
      </methods>
      !!]
@@ -56,8 +56,8 @@
   end type massDistributionSphericalDecaying
 
   interface massDistributionSphericalDecaying
-     !!{
-     Constructors for the \refClass{massDistributionSphericalDecaying} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionSphericalDecaying` mass distribution class.
      !!}
      module procedure sphericalDecayingConstructorParameters
      module procedure sphericalDecayingConstructorInternal
@@ -66,9 +66,8 @@
 contains
 
   function sphericalDecayingConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalDecaying} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionSphericalDecaying` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -84,51 +83,67 @@ contains
          &                                                                tolerateEnclosedMassIntegrationFailure
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativePotential</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The relative tolerance to use in numerical solutions for the gravitational potential.</description>
+      <description>
+      The relative tolerance to use in numerical solutions for the gravitational potential.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerateEnclosedMassIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, tolerate failures to find the mass enclosed as a function of radius.</description>
+      <description>
+      If ``true``, tolerate failures to find the mass enclosed as a function of radius.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerateVelocityMaximumFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, tolerate failures to find the radius of the maximum circular velocity.</description>
+      <description>
+      If ``true``, tolerate failures to find the radius of the maximum circular velocity.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleratePotentialIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, tolerate failures to compute the potential.</description>
+      <description>
+      If ``true``, tolerate failures to compute the potential.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusEscape</name>
       <source>parameters</source>
-      <description>The radius beyond which a particle is assumed to have escaped the potential.</description>
+      <description>
+      The radius beyond which a particle is assumed to have escaped the potential.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>time</name>
       <source>parameters</source>
-      <description>The time at which decays should be evaluated.</description>
+      <description>
+      The time at which decays should be evaluated.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterParticle" name="darkMatterParticle_" source="parameters"/>
     <objectBuilder class="massDistribution"   name="massDistribution_"   source="parameters"/>
@@ -148,8 +163,8 @@ contains
   end function sphericalDecayingConstructorParameters
   
   function sphericalDecayingConstructorInternal(toleranceRelativePotential,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,tolerateEnclosedMassIntegrationFailure,radiusEscape,time,darkMatterParticle_,massDistribution_,componentType,massType) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalDecaying} mass distribution class.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionSphericalDecaying` mass distribution class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleDecayingDarkMatter
     implicit none
@@ -184,8 +199,8 @@ contains
   end function sphericalDecayingConstructorInternal
 
   subroutine sphericalDecayingDestructor(self)
-    !!{
-    Destructor for the \refClass{massDistributionSphericalDecaying} mass distribution class.
+    !!{RST
+    Destructor for the :galacticus-class:`massDistributionSphericalDecaying` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalDecaying), intent(inout) :: self
@@ -198,7 +213,7 @@ contains
   end subroutine sphericalDecayingDestructor
 
   logical function sphericalDecayingUseUndecorated(self) result(useUndecorated)
-    !!{
+    !!{RST
     Determines whether to use the undecorated solution.
     !!}
     implicit none
@@ -209,7 +224,7 @@ contains
   end function sphericalDecayingUseUndecorated
   
   double precision function sphericalDecayingDecayingFactor(self,radius) result(factor)
-    !!{
+    !!{RST
     Return the remaining mass fraction in the profile.
     !!}
     use :: Coordinates         , only : coordinateSpherical               , assignment(=)
@@ -282,8 +297,8 @@ contains
   end function sphericalDecayingDecayingFactor
 
   double precision function sphericalDecayingDensity(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in a scaled spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a scaled spherical mass distribution.
     !!}
     implicit none
     class(massDistributionSphericalDecaying), intent(inout) :: self
@@ -295,8 +310,8 @@ contains
   end function sphericalDecayingDensity
 
   double precision function sphericalDecayingMassEnclosedBySphere(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for a decaying mass distributions.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for a decaying mass distributions.
     !!}
     implicit none
     class           (massDistributionSphericalDecaying), intent(inout), target :: self
@@ -314,7 +329,7 @@ contains
   end function sphericalDecayingMassEnclosedBySphere
   
   double precision function sphericalDecayingRadiusEnclosingMass(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mass or mass fraction for decaying spherical mass distributions.
     !!}
     implicit none

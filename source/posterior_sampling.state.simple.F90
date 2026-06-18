@@ -17,21 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a simple posterior sampling state class.
   !!}
 
   !![
-  <posteriorSampleState name="posteriorSampleStateSimple">
+  <posteriorSampleState name="posteriorSampleStateSimple" docformat="rst">
    <description>
-   This class stores the current state but makes no attempt to record a history of the state and so cannot provide measures of the
-   mean or variance of state over the simulation history. It does, however, maintain a running average of the state acceptance
-   rate. The number of steps over which the acceptance rate should be computed is specified by the \mono{acceptedStateCount}.
+   This class stores the current state but makes no attempt to record a history of the state and so cannot provide measures of the mean or variance of state over the simulation history. It does, however, maintain a running average of the state acceptance rate. The number of steps over which the acceptance rate should be computed is specified by the ``acceptedStateCount``.
    </description>
   </posteriorSampleState>
   !!]
   type, extends(posteriorSampleStateClass) :: posteriorSampleStateSimple
-     !!{
+     !!{RST
      Implementation of a simple posterior sampling state class.
      !!}
      private
@@ -40,7 +38,7 @@
      integer                                     :: acceptedStateCount
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the state count." method="countSet" />
      </methods>
      !!]
@@ -56,8 +54,8 @@
   end type posteriorSampleStateSimple
 
   interface posteriorSampleStateSimple
-     !!{
-     Constructors for the \refClass{posteriorSampleStateSimple} posterior sampling state class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSampleStateSimple` posterior sampling state class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -66,9 +64,8 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStateSimple} posterior sampling state class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleStateSimple` posterior sampling state class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,9 +74,11 @@ contains
     integer                                            :: acceptedStateCount
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>acceptedStateCount</name>
-      <description>The number of states to use in acceptance rate statistics.</description>
+      <description>
+      The number of states to use in acceptance rate statistics.
+      </description>
       <defaultValue>100</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -92,9 +91,8 @@ contains
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(acceptedStateCount) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStateSimple} posterior sampling state class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleStateSimple` posterior sampling state class which builds the object from a parameter set.
     !!}
     use :: MPI_Utilities, only : mpiSelf
     implicit none
@@ -112,7 +110,7 @@ contains
   end function simpleConstructorInternal
 
   subroutine simpleParameterCountSet(self,parameterCount)
-    !!{
+    !!{RST
     Set the number of parameters in this state.
     !!}
     implicit none
@@ -126,7 +124,7 @@ contains
   end subroutine simpleParameterCountSet
 
   function simpleGet(self)
-    !!{
+    !!{RST
     Return the current state.
     !!}
     implicit none
@@ -138,7 +136,7 @@ contains
   end function simpleGet
 
   subroutine simpleUpdate(self,stateNew,logState,isConverged,outlierMask)
-    !!{
+    !!{RST
     Update the current state.
     !!}
     implicit none
@@ -164,7 +162,7 @@ contains
   end subroutine simpleUpdate
 
   function simpleMean(self)
-    !!{
+    !!{RST
     Return the mean over state history.
     !!}
     use :: Error, only : Error_Report
@@ -178,7 +176,7 @@ contains
   end function simpleMean
 
   function simpleVariance(self)
-    !!{
+    !!{RST
     Return the mean over state history.
     !!}
     use :: Error, only : Error_Report
@@ -192,7 +190,7 @@ contains
   end function simpleVariance
 
   double precision function simpleAcceptanceRate(self)
-    !!{
+    !!{RST
     Return the acceptance rate for the state.
     !!}
     implicit none
@@ -209,7 +207,7 @@ contains
   end function simpleAcceptanceRate
 
   subroutine simpleReset(self)
-    !!{
+    !!{RST
     Reset the state object.
     !!}
     implicit none
@@ -221,7 +219,7 @@ contains
   end subroutine simpleReset
 
   subroutine simpleRestore(self,stateVector,first)
-    !!{
+    !!{RST
     Restore the state object.
     !!}
     use :: Error, only : Error_Report
@@ -248,7 +246,7 @@ contains
   end subroutine simpleRestore
 
   subroutine simpleCountSet(self,stateCount)
-    !!{
+    !!{RST
     Set the state count.
     !!}
     implicit none

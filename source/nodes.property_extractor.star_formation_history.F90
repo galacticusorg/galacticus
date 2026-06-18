@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node property extractor class that combines star formation history masses and times.
   !!}
 
@@ -26,12 +26,14 @@
   use :: Output_Times              , only : outputTimesClass
                                                       
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorStarFormationHistory">
-   <description>A composite property extractor that combines both the stellar mass formed in each age--metallicity bin and the corresponding time bin boundaries of the star formation history for a specified galaxy \mono{component} (disk, spheroid, nuclearStarCluster, or all). It bundles together the outputs of \refClass{nodePropertyExtractorStarFormationHistoryMass} and \refClass{nodePropertyExtractorStarFormationHistoryTimes} for convenient simultaneous extraction, providing the full information needed to reconstruct the star formation history from output datasets.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorStarFormationHistory" docformat="rst">
+   <description>
+   A composite property extractor that combines both the stellar mass formed in each age--metallicity bin and the corresponding time bin boundaries of the star formation history for a specified galaxy ``component`` (disk, spheroid, nuclearStarCluster, or all). It bundles together the outputs of :galacticus-class:`nodePropertyExtractorStarFormationHistoryMass` and :galacticus-class:`nodePropertyExtractorStarFormationHistoryTimes` for convenient simultaneous extraction, providing the full information needed to reconstruct the star formation history from output datasets.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorMulti) :: nodePropertyExtractorStarFormationHistory
-     !!{
+     !!{RST
      An output extractor property extractor class that combines star formation history masses and times.
      !!}
      private
@@ -43,8 +45,8 @@
   end type nodePropertyExtractorStarFormationHistory
 
   interface nodePropertyExtractorStarFormationHistory
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorStarFormationHistory} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorStarFormationHistory` property extractor class.
      !!}
      module procedure starFormationHistoryConstructorParameters
      module procedure starFormationHistoryConstructorInternal
@@ -53,8 +55,8 @@
 contains
 
   function starFormationHistoryConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorStarFormationHistory} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorStarFormationHistory` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -66,10 +68,12 @@ contains
     type(varying_string                           )                :: component
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>component</name>
       <source>parameters</source>
-      <description>The component from which to extract star formation history.</description>
+      <description>
+      The component from which to extract star formation history.
+      </description>
     </inputParameter>
     <objectBuilder class="starFormationHistory" name="starFormationHistory_" source="parameters"/>
     <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
@@ -84,8 +88,8 @@ contains
   end function starFormationHistoryConstructorParameters
 
   function starFormationHistoryConstructorInternal(component,starFormationHistory_,outputTimes_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorStarFormationHistory} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorStarFormationHistory` property extractor class.
     !!}
     use :: Star_Formation_Histories, only : starFormationHistoryAgesFixedPerOutput
     use :: Error                   , only : Error_Report
@@ -120,8 +124,8 @@ contains
   end function starFormationHistoryConstructorInternal
 
   subroutine starFormationHistoryDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorStarFormationHistory} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorStarFormationHistory` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorStarFormationHistory), intent(inout) :: self

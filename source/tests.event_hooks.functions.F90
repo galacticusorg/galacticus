@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module of functions for testing the functionality of the event hook infrastructure.
 !!}
 
 module Tests_Event_Hook_Functions
-  !!{
+  !!{RST
   Module providing functions used in testing the functionality of the event hook infrastructure.
   !!}
   private
@@ -39,7 +39,7 @@ module Tests_Event_Hook_Functions
 contains
 
   subroutine testEventHooksInitialize()
-    !!{
+    !!{RST
     Initialize all hooks into the test event.
     !!}
     use :: Events_Hooks, only : testEventEvent, openMPThreadBindingAtLevel, dependencyExact, dependencyRegEx, dependencyDirectionAfter, dependencyDirectionBefore
@@ -56,7 +56,7 @@ contains
   end subroutine testEventHooksInitialize
 
   subroutine hookedFunction1(self,testValue)
-    !!{
+    !!{RST
     A function used in testing the event hook infrastructure.
     !!}
     implicit none
@@ -71,7 +71,7 @@ contains
   end subroutine hookedFunction1
   
   subroutine hookedFunction2(self,testValue)
-    !!{
+    !!{RST
     A function used in testing the event hook infrastructure.
     !!}
     implicit none
@@ -86,7 +86,7 @@ contains
   end subroutine hookedFunction2
 
   subroutine hookedFunction3(self,testValue)
-    !!{
+    !!{RST
     A function used in testing the event hook infrastructure.
     !!}
     implicit none
@@ -100,7 +100,7 @@ contains
   end subroutine hookedFunction3
 
   subroutine hookedFunction4(self,testValue)
-    !!{
+    !!{RST
     A function used in testing the event hook infrastructure.
     !!}
     implicit none

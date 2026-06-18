@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a satellite orbit component that simply tracks the time of merging.
 !!}
 
 module Node_Component_Satellite_Merge_Time
-  !!{
+  !!{RST
   Implements a satellite orbit component that simply tracks the time of merging.
   !!}
   implicit none

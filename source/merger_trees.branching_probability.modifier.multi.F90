@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree branching probability rate modifier which chains multiple other modifiers.
   !!}
 
@@ -27,15 +27,15 @@
   end type multiModifierList
 
   !![
-  <mergerTreeBranchingProbabilityModifier name="mergerTreeBranchingProbabilityModifierMulti">
+  <mergerTreeBranchingProbabilityModifier name="mergerTreeBranchingProbabilityModifierMulti" docformat="rst">
    <description>
-     Chains multiple other merger tree branch probability modifiers by taking their product.
+   Chains multiple other merger tree branch probability modifiers by taking their product.
    </description>
    <linkedList type="multiModifierList" variable="modifiers" next="next" object="modifier_" objectType="mergerTreeBranchingProbabilityModifierClass"/>
   </mergerTreeBranchingProbabilityModifier>
   !!]
   type, extends(mergerTreeBranchingProbabilityModifierClass) :: mergerTreeBranchingProbabilityModifierMulti
-     !!{
+     !!{RST
      A merger tree branching probability rate modifier which chains multiple other modifiers.
      !!}
      private
@@ -46,8 +46,8 @@
   end type mergerTreeBranchingProbabilityModifierMulti
 
   interface mergerTreeBranchingProbabilityModifierMulti
-     !!{
-     Constructors for the \refClass{mergerTreeBranchingProbabilityModifierMulti} merger tree branching probability rate class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeBranchingProbabilityModifierMulti` merger tree branching probability rate class.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -56,9 +56,8 @@
 contains
 
   function multiConstructorParameters(parameters) result(self)
-    !!{
-    A constructor for the \mono{multi} merger tree branching probability rate class which builds the
-    object from a parameter set.
+    !!{RST
+    A constructor for the ``multi`` merger tree branching probability rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,8 +87,8 @@ contains
   end function multiConstructorParameters
 
   function multiConstructorInternal(modifiers) result(self)
-    !!{
-    Default constructor for the \mono{multi} merger tree branching probability rate class.
+    !!{RST
+    Default constructor for the ``multi`` merger tree branching probability rate class.
     !!}
     implicit none
     type(mergerTreeBranchingProbabilityModifierMulti)                        :: self
@@ -108,8 +107,8 @@ contains
   end function multiConstructorInternal
 
   subroutine multiDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBranchingProbabilityModifierMulti} class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeBranchingProbabilityModifierMulti` class.
     !!}
     implicit none
     type(mergerTreeBranchingProbabilityModifierMulti), intent(inout) :: self
@@ -130,7 +129,7 @@ contains
   end subroutine multiDestructor
 
   double precision function multiRateModifier(self,nodeParent,massParent,sigmaParent,sigmaChild,timeParent) result(modifier)
-    !!{
+    !!{RST
     Returns a modifier for merger tree branching rates by taking the product over other modifiers.
     !!}
     implicit none

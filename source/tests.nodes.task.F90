@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements a simple test of mapping a function over all components in a \gls{node}.
+!!{RST
+Contains a module which implements a simple test of mapping a function over all components in a :term:`node`.
 !!}
 
 module Test_Nodes_Tasks
-  !!{
-  Implements a simple test of mapping a function over all components in a \gls{node}.
+  !!{RST
+  Implements a simple test of mapping a function over all components in a :term:`node`.
   !!}
   private
   public :: Test_Node_Task
@@ -35,8 +35,8 @@ module Test_Nodes_Tasks
 contains
 
   subroutine Test_Node_Task(node)
-    !!{
-    Implements simple tests of mapping functions over all components in a \gls{node}.
+    !!{RST
+    Implements simple tests of mapping functions over all components in a :term:`node`.
     !!}
     use :: Display         , only : displayVerbositySet, verbosityLevelStandard
     use :: Galacticus_Nodes, only : nodeComponent      , nodeComponentBlackHole, treeNode
@@ -59,7 +59,7 @@ contains
   end subroutine Test_Node_Task
 
   subroutine testVoidFunc(component)
-    !!{
+    !!{RST
     A simple void function used in testing mapping over a function over all components.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponent

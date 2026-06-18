@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that performs tidal mass loss in spheroids.
   !!}
 
   use :: Tidal_Stripping_Mass_Loss_Rate, only : tidalStrippingClass
   
   !![
-  <nodeOperator name="nodeOperatorTidalMassLossSpheroids">
-   <description>Computes and applies gravitational tidal stripping of stellar mass from satellite galaxy spheroids as they orbit within the host halo tidal field, progressively removing outer stars from the bulge component at each orbit.</description>
+  <nodeOperator name="nodeOperatorTidalMassLossSpheroids" docformat="rst">
+   <description>
+   Computes and applies gravitational tidal stripping of stellar mass from satellite galaxy spheroids as they orbit within the host halo tidal field, progressively removing outer stars from the bulge component at each orbit.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorTidalMassLossSpheroids
-     !!{
+     !!{RST
      A node operator class that performs tidal mass loss in spheroids.
      !!}
      private
@@ -40,8 +42,8 @@
   end type nodeOperatorTidalMassLossSpheroids
   
   interface nodeOperatorTidalMassLossSpheroids
-     !!{
-     Constructors for the \refClass{nodeOperatorTidalMassLossSpheroids} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorTidalMassLossSpheroids` node operator class.
      !!}
      module procedure tidalMassLossSpheroidsConstructorParameters
      module procedure tidalMassLossSpheroidsConstructorInternal
@@ -50,8 +52,8 @@
 contains
 
   function tidalMassLossSpheroidsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorTidalMassLossSpheroids} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorTidalMassLossSpheroids` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,8 +73,8 @@ contains
   end function tidalMassLossSpheroidsConstructorParameters
 
   function tidalMassLossSpheroidsConstructorInternal(tidalStripping_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorTidalMassLossSpheroids} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorTidalMassLossSpheroids` node operator class.
     !!}
     implicit none
     type (nodeOperatorTidalMassLossSpheroids)                        :: self
@@ -85,8 +87,8 @@ contains
   end function tidalMassLossSpheroidsConstructorInternal
 
   subroutine tidalMassLossSpheroidsDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorTidalMassLossSpheroids} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorTidalMassLossSpheroids` node operator class.
     !!}
     implicit none
     type(nodeOperatorTidalMassLossSpheroids), intent(inout) :: self
@@ -98,7 +100,7 @@ contains
   end subroutine tidalMassLossSpheroidsDestructor
   
   subroutine tidalMassLossSpheroidsDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Perform star formation in a spheroid.
     !!}
     use :: Galacticus_Nodes              , only : propertyInactive, nodeComponentSpheroid  , nodeComponentHotHalo

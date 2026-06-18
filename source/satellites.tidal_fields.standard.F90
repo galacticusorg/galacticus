@@ -17,31 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a model of the tidal field acting on a satellite for arbitrary geometry in the host.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <satelliteTidalField name="satelliteTidalFieldStandard">
+  <satelliteTidalField name="satelliteTidalFieldStandard" docformat="rst">
    <description>
-    A satellite tidal field class that computes the tidal field in arbitrary geometry. Note that the centrifugal term,
-    $\omega_\mathrm{p}^2$, is included only if the \mono{includeCentrifugalAcceleration} argument is set to
-    true. The tidal field is evaluated at the current orbital position of the satellite by default, but can be evaluated at the
-    orbital pericenter if the \mono{atPericenter} argument is set to true.
+   A satellite tidal field class that computes the tidal field in arbitrary geometry. Note that the centrifugal term, :math:`\omega_\mathrm{p}^2`, is included only if the ``includeCentrifugalAcceleration`` argument is set to true. The tidal field is evaluated at the current orbital position of the satellite by default, but can be evaluated at the orbital pericenter if the ``atPericenter`` argument is set to true.
    </description>
   </satelliteTidalField>
   !!]
   type, extends(satelliteTidalFieldClass) :: satelliteTidalFieldStandard
-     !!{
+     !!{RST
      Implementation of a satellite tidal field class in arbitrary geometry.
      !!}
      private
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="factors"        description="Compute factors needed for tidal tensor calculation."/>
        <method method="tidalTensorGet" description="Get the tidal tensor."                               />
      </methods>
@@ -55,7 +52,7 @@
   end type satelliteTidalFieldStandard
 
   interface satelliteTidalFieldStandard
-     !!{
+     !!{RST
      Constructors for the standard satellite tidal field class.
      !!}
      module procedure standardConstructorParameters
@@ -65,8 +62,8 @@
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{satelliteTidalFieldStandard} satellite tidal field class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`satelliteTidalFieldStandard` satellite tidal field class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,8 +83,8 @@ contains
   end function standardConstructorParameters
 
   function standardConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{satelliteTidalFieldStandard} satellite tidal field class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`satelliteTidalFieldStandard` satellite tidal field class.
     !!}
     implicit none
     type (satelliteTidalFieldStandard)                        :: self
@@ -100,8 +97,8 @@ contains
   end function standardConstructorInternal
 
   subroutine standardDestructor(self)
-    !!{
-    Destructor for the \refClass{satelliteTidalFieldStandard} satellite tidal field class.
+    !!{RST
+    Destructor for the :galacticus-class:`satelliteTidalFieldStandard` satellite tidal field class.
     !!}
     implicit none
     type(satelliteTidalFieldStandard), intent(inout) :: self
@@ -113,7 +110,7 @@ contains
   end subroutine standardDestructor
 
   subroutine standardFactors(self,node,nodeHost,atPericenter,coordinatesOrbital,coordinatesOrbitalVelocity,radiusOrbital,velocityOrbital)
-    !!{
+    !!{RST
     Compute relevant quantities for tidal field calculations.
     !!}
     use :: Coordinates     , only : coordinateCartesian                             , assignment(=)
@@ -162,7 +159,7 @@ contains
   end subroutine standardFactors
   
   function standardTidalTensorGet(self,node,nodeHost,atPericenter,includeCentrifugalAcceleration,isSphericallySymmetric) result(tidalTensor)
-    !!{
+    !!{RST
     Return the tidal tensor for satellite halos in arbitrary host geometry.
     !!}
     use :: Coordinates       , only : coordinateCartesian  , assignment(=)
@@ -246,7 +243,7 @@ contains
   end function standardTidalTensorGet
 
   function standardTidalTensor(self,node,nodeHost,atPericenter,includeCentrifugalAcceleration) result(tidalTensor)
-    !!{
+    !!{RST
     Return the tidal tensor for satellite halos in arbitrary host geometry.
     !!}
     implicit none
@@ -261,7 +258,7 @@ contains
   end function standardTidalTensor
 
   double precision function standardTidalTensorRadial(self,node,nodeHost,atPericenter,includeCentrifugalAcceleration) result(tidalTensorRadial)
-    !!{
+    !!{RST
     Return the radial part of the tidal tensor for satellite halos in arbitrary host geometry.
     !!}
     use :: Coordinates, only : coordinateCartesian, assignment(=)
@@ -303,31 +300,24 @@ contains
   end function standardTidalTensorRadial
 
   double precision function standardTidalTensorDominant(self,node,nodeHost,atPericenter,includeCentrifugalAcceleration) result(tidalTensorDominant)
-    !!{
-    Return the dominant tidal field from the tidal tensor for satellite halos in arbitrary host geometry. To allow for
-    non-spherical mass distributions, we proceed as follows to determine the tidal field:
-    
-    Let $\boldsymbol{\mathsf{G}}$ be the gravitational tidal tensor evaluated at the position of the satellite. Consider a unit vector,
-    $\boldsymbol{\hat{x}}$ in the satellite. The tidal field along this vector is $\boldsymbol{\mathsf{G}} \boldsymbol{\hat{x}}$. The
-    radial component of the tidal field in this direction is then $\boldsymbol{\hat{x}} \boldsymbol{\mathsf{G}}
-    \boldsymbol{\hat{x}}$. We want to find the maximum of the tidal field over all possible directions (i.e. all possible unit
-    vectors).
-    
+    !!{RST
+    Return the dominant tidal field from the tidal tensor for satellite halos in arbitrary host geometry. To allow for non-spherical mass distributions, we proceed as follows to determine the tidal field:
+
+    Let :math:`\boldsymbol{\mathsf{G}}` be the gravitational tidal tensor evaluated at the position of the satellite. Consider a unit vector, :math:`\boldsymbol{\hat{x}}` in the satellite. The tidal field along this vector is :math:`\boldsymbol{\mathsf{G}} \boldsymbol{\hat{x}}`. The radial component of the tidal field in this direction is then :math:`\boldsymbol{\hat{x}} \boldsymbol{\mathsf{G}} \boldsymbol{\hat{x}}`. We want to find the maximum of the tidal field over all possible directions (i.e. all possible unit vectors).
+
     We can write our unit vector as
-    \begin{equation}
-     \boldsymbol{\hat{x}} = \sum_{i=1}^3 a_i \boldsymbol{\hat{e}}_i,
-    \end{equation}
-    where the $\boldsymbol{\hat{e}}_i$ are the eigenvectors of $\boldsymbol{\mathsf{G}}$ and $\sum_{i=1}^3 a_i^2 = 1$. Then since, by
-    definition, $\boldsymbol{\mathsf{G}} \boldsymbol{\hat{e}}_i = \lambda_i \boldsymbol{\hat{e}}_i$, where $\lambda_i$ are the
-    eigenvalues of $\boldsymbol{\mathsf{G}}$, we have that
-    \begin{equation}
-     \boldsymbol{\hat{x}} \boldsymbol{\mathsf{G}} \boldsymbol{\hat{x}}= \sum_{i=1}^3 a_i^2 \lambda_i.
-    \end{equation}
-    The sum on the right hand side of the above is a weighted average of eigenvalues. Any weighted average is maximized by
-    setting the weight of the largest value to $1$, and all other weights to $0$. Therefore, our tidal field is maximized along
-    the direction corresponding the eigenvector of $\boldsymbol{\mathsf{G}}$ with the largest eigenvalue. (Note that we want the
-    largest positive eigenvalue, not the largest absolute eigenvalue as we're interested in stretching tidal fields, not
-    compressive ones.)
+
+    .. math::
+
+       \boldsymbol{\hat{x}} = \sum_{i=1}^3 a_i \boldsymbol{\hat{e}}_i,
+
+    where the :math:`\boldsymbol{\hat{e}}_i` are the eigenvectors of :math:`\boldsymbol{\mathsf{G}}` and :math:`\sum_{i=1}^3 a_i^2 = 1`. Then since, by definition, :math:`\boldsymbol{\mathsf{G}} \boldsymbol{\hat{e}}_i = \lambda_i \boldsymbol{\hat{e}}_i`, where :math:`\lambda_i` are the eigenvalues of :math:`\boldsymbol{\mathsf{G}}`, we have that
+
+    .. math::
+
+       \boldsymbol{\hat{x}} \boldsymbol{\mathsf{G}} \boldsymbol{\hat{x}}= \sum_{i=1}^3 a_i^2 \lambda_i.
+
+    The sum on the right hand side of the above is a weighted average of eigenvalues. Any weighted average is maximized by setting the weight of the largest value to :math:`1`, and all other weights to :math:`0`. Therefore, our tidal field is maximized along the direction corresponding the eigenvector of :math:`\boldsymbol{\mathsf{G}}` with the largest eigenvalue. (Note that we want the largest positive eigenvalue, not the largest absolute eigenvalue as we're interested in stretching tidal fields, not compressive ones.)
     !!}
     use :: Coordinates   , only : assignment(=), coordinateCartesian
     use :: Linear_Algebra, only : assignment(=), matrix                        , vector

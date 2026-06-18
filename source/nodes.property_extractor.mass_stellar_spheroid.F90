@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a spheroid stellar mass output analysis property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMassStellarSpheroid">
-   <description>Extracts the stellar mass contained in the spheroid (bulge) component of a galaxy node, used to study bulge growth via mergers and disk instabilities and to calibrate the bulge-to-total mass ratio.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorMassStellarSpheroid" docformat="rst">
+   <description>
+   Extracts the stellar mass contained in the spheroid (bulge) component of a galaxy node, used to study bulge growth via mergers and disk instabilities and to calibrate the bulge-to-total mass ratio.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassStellarSpheroid
-     !!{
+     !!{RST
      A stellar mass output analysis class.
      !!}
      private
@@ -41,8 +43,8 @@ Implements a spheroid stellar mass output analysis property extractor class.
   end type nodePropertyExtractorMassStellarSpheroid
 
   interface nodePropertyExtractorMassStellarSpheroid
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMassStellarSpheroid} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassStellarSpheroid` property extractor class.
      !!}
      module procedure massStellarSpheroidConstructorParameters
   end interface nodePropertyExtractorMassStellarSpheroid
@@ -50,8 +52,8 @@ Implements a spheroid stellar mass output analysis property extractor class.
 contains
 
   function massStellarSpheroidConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMassStellarSpheroid} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassStellarSpheroid` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +68,7 @@ contains
   end function massStellarSpheroidConstructorParameters
 
   double precision function massStellarSpheroidExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a stellar mass-weighted morphology output analysis.
     !!}
     use :: Mass_Distributions        , only : massDistributionClass
@@ -88,7 +90,7 @@ contains
 
 
   function massStellarSpheroidQuantity(self)
-    !!{
+    !!{RST
     Return the class of the stellar luminosity property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
@@ -102,7 +104,7 @@ contains
   end function massStellarSpheroidQuantity
 
   function massStellarSpheroidName(self)
-    !!{
+    !!{RST
     Return the name of the massStellarSpheroid property.
     !!}
     implicit none
@@ -115,7 +117,7 @@ contains
   end function massStellarSpheroidName
 
   function massStellarSpheroidDescription(self)
-    !!{
+    !!{RST
     Return a description of the massStellarSpheroid property.
     !!}
     implicit none
@@ -128,7 +130,7 @@ contains
   end function massStellarSpheroidDescription
 
   double precision function massStellarSpheroidUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the spheroid stellar mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
@@ -141,7 +143,7 @@ contains
   end function massStellarSpheroidUnitsInSI
 
   function massStellarSpheroidUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the spheroid stellar mass property.
     !!}
     use :: Units_MetaData, only : unitType

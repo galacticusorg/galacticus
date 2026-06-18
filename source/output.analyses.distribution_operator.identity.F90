@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a identity output analysis distribution operator class.
   !!}
 
   !![
-  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorIdentity">
-   <description>An identity (no-op) output analysis distribution operator class that returns the input scalar property as a delta-function distribution with all weight placed in the single bin containing the value, with no smearing applied.</description>
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorIdentity" docformat="rst">
+   <description>
+   An identity (no-op) output analysis distribution operator class that returns the input scalar property as a delta-function distribution with all weight placed in the single bin containing the value, with no smearing applied.
+   </description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorIdentity
-     !!{
+     !!{RST
      A identity output distribution operator class.
      !!}
      private
@@ -37,8 +39,8 @@
   end type outputAnalysisDistributionOperatorIdentity
 
   interface outputAnalysisDistributionOperatorIdentity
-     !!{
-     Constructors for the \refClass{outputAnalysisDistributionOperatorIdentity} output analysis distribution operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorIdentity` output analysis distribution operator class.
      !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisDistributionOperatorIdentity
@@ -46,8 +48,8 @@
 contains
 
   function identityConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisDistributionOperatorIdentity} output analysis distribution operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorIdentity` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,7 +64,7 @@ contains
   end function identityConstructorParameters
 
   function identityOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !!{
+    !!{RST
     Implement a identity output analysis distribution operator.
     !!}
     use :: Arrays_Search, only : searchArray
@@ -95,7 +97,7 @@ contains
   end function identityOperateScalar
 
   function identityOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !!{
+    !!{RST
     Implement a identity output analysis distribution operator.
     !!}
     implicit none

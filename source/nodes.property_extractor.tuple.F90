@@ -21,20 +21,22 @@
   use :: Units_MetaData, only : unitType
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorTuple" abstract="yes">
-   <description>Abstract base class for extractors that return a fixed-length tuple of floating-point values per node (e.g., 3D position or velocity vectors), defining the interface for multi-component vector property extraction used in output analysis.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorTuple" abstract="yes" docformat="rst">
+   <description>
+   Abstract base class for extractors that return a fixed-length tuple of floating-point values per node (e.g., 3D position or velocity vectors), defining the interface for multi-component vector property extraction used in output analysis.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorTuple
-     !!{
+     !!{RST
      A tuple property extractor.
      !!}
      private
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="elementCount" description="Return the number of properties in the tuple."                 />
-       <method method="extract"      description="Extract the properties from the given \mono{node}."            />
+       <method method="extract"      description="Extract the properties from the given ``node``."            />
        <method method="names"        description="Return the names of the properties extracted."                 />
        <method method="descriptions" description="Return descriptions of the properties extracted."              />
        <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."/>
@@ -53,7 +55,7 @@
 
   abstract interface
      function tupleExtract(self,node,time,instance)
-       !!{
+       !!{RST
        Interface for tuple property extraction.
        !!}
        import nodePropertyExtractorTuple, treeNode, multiCounter
@@ -67,7 +69,7 @@
 
   abstract interface
      subroutine tupleNames(self,time,names)
-       !!{
+       !!{RST
        Interface for tuple property names.
        !!}
        import varying_string, nodePropertyExtractorTuple
@@ -79,7 +81,7 @@
 
   abstract interface
      subroutine tupleDescriptions(self,time,descriptions)
-       !!{
+       !!{RST
        Interface for tuple property names.
        !!}
        import varying_string, nodePropertyExtractorTuple
@@ -91,7 +93,7 @@
 
   abstract interface
      function tupleUnitsInSI(self,time)
-       !!{
+       !!{RST
        Interface for tuple property units.
        !!}
        import nodePropertyExtractorTuple
@@ -103,7 +105,7 @@
 
   abstract interface
      integer function tupleElementCount(self,time)
-       !!{
+       !!{RST
        Interface for tuple element count.
        !!}
        import nodePropertyExtractorTuple
@@ -115,9 +117,8 @@
 contains
 
   function tupleUnits(self,time) result(units_)
-    !!{
-    Default implementation: wraps the deferred \mono{nodePropertyExtractorTuple}{unitsInSI} array into an array of
-    \mono{unitType}.  Subclasses may override this to populate \mono{description}, \mono{quantity}, and \mono{isComoving}.
+    !!{RST
+    Default implementation: wraps the deferred ``nodePropertyExtractorTuple``\ unitsInSI array into an array of ``unitType``.  Subclasses may override this to populate ``description``, ``quantity``, and ``isComoving``.
     !!}
     implicit none
     type            (unitType                  ), dimension(:), allocatable :: units_
@@ -135,7 +136,7 @@ contains
   end function tupleUnits
 
   subroutine tupleMetaData(self,node,indexProperty,metaDataRank0,metaDataRank1)
-    !!{
+    !!{RST
     Interface for tuple property meta-data.
     !!}
     implicit none

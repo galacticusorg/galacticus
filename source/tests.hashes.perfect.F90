@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test perfect hashing algorithms.
 !!}
 
 program Test_Perfect_Hashes
-  !!{
+  !!{RST
   Tests perfect hashing algorithms.
   !!}
   use :: Display          , only : displayVerbositySet, verbosityLevelStandard

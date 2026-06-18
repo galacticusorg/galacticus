@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic filter which passes nodes with host halo basic mass within a specified range.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterHostMassRange">
-   <description>Passes nodes whose host halo basic mass, $M_\mathrm{host}$, falls within the range \mono{[massMinimum]}$\le M_\mathrm{host}&lt;$\mono{[massMaximum]}. This selects subhalos or galaxies hosted by halos of a specified mass interval, enabling mass-binned analyses of galaxy populations in their environmental context.</description>
+  <galacticFilter name="galacticFilterHostMassRange" docformat="rst">
+   <description>
+   Passes nodes whose host halo basic mass, :math:`M_\mathrm{host}`, falls within the range ``[massMinimum]``\ :math:`\le M_\mathrm{host}&lt;`\ ``[massMaximum]``. This selects subhalos or galaxies hosted by halos of a specified mass interval, enabling mass-binned analyses of galaxy populations in their environmental context.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterHostMassRange
-     !!{
+     !!{RST
      A galactic filter which passes nodes with host halo basic mass within a specified range.
      !!}
      private
@@ -38,8 +40,8 @@ Implements a galactic filter which passes nodes with host halo basic mass within
   end type galacticFilterHostMassRange
 
   interface galacticFilterHostMassRange
-     !!{
-     Constructors for the \refClass{galacticFilterHostMassRange} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterHostMassRange` galactic filter class.
      !!}
      module procedure hostMassRangeConstructorParameters
      module procedure hostMassRangeConstructorInternal
@@ -48,8 +50,8 @@ Implements a galactic filter which passes nodes with host halo basic mass within
 contains
 
   function hostMassRangeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterHostMassRange} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterHostMassRange` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -59,20 +61,26 @@ contains
     logical                                                      :: useFinalHost
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <source>parameters</source>
-      <description>The minimum mass of host halo to pass.</description>
+      <description>
+      The minimum mass of host halo to pass.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMaximum</name>
       <source>parameters</source>
-      <description>The maximum mass of host halo to pass.</description>
+      <description>
+      The maximum mass of host halo to pass.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>useFinalHost</name>
       <source>parameters</source>
-      <description>If true, the final host (i.e. the isolated host halo in the subhalo hierarchy) is used for filtering, otherwise the immediate host is used.</description>
+      <description>
+      If true, the final host (i.e. the isolated host halo in the subhalo hierarchy) is used for filtering, otherwise the immediate host is used.
+      </description>
     </inputParameter>
     !!]
     self=galacticFilterHostMassRange(massMinimum,massMaximum,useFinalHost)
@@ -83,8 +91,8 @@ contains
   end function hostMassRangeConstructorParameters
 
   function hostMassRangeConstructorInternal(massMinimum,massMaximum,useFinalHost) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterHostMassRange} galactic filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticFilterHostMassRange` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterHostMassRange)                :: self
@@ -98,7 +106,7 @@ contains
   end function hostMassRangeConstructorInternal
 
   logical function hostMassRangePasses(self,node)
-    !!{
+    !!{RST
     Implement a filter which passes nodes with host halo basic mass in a specified range.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode

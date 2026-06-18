@@ -17,34 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a simple ram pressure stripping class for cylindrically symmetric systems.
   !!}
 
   use :: Hot_Halo_Ram_Pressure_Forces, only : hotHaloRamPressureForceClass
 
   !![
-  <ramPressureStripping name="ramPressureStrippingSimpleCylindrical">
+  <ramPressureStripping name="ramPressureStrippingSimpleCylindrical" docformat="rst">
    <description>
-    A ram pressure stripping class which applies to systems with cylindrical symmetry (e.g. disks), and computes the mass loss
-    rate to be:
-    \begin{equation}
-     \dot{M}_\mathrm{gas, disk} = \hbox{min}\left({\beta \mathcal{F}_\mathrm{hot, host} \over 2 \pi \mathrm{G}
-     \Sigma_\mathrm{gas}(r_\mathrm{half}) \Sigma_\mathrm{total}(r_\mathrm{half})}, R_\mathrm{maximum}\right) {M_\mathrm{gas,
-     disk} \over \tau_\mathrm{dyn, disk}},
-    \end{equation}
-    where $\mathcal{F}_\mathrm{hot, host}$ is the ram pressure force due to the hot halo of the node's host (computed using the
-    selected hot halo ram pressure force method; see \refPhysics{hotHaloRamPressureForce}), $\Sigma_\mathrm{gas}(r)$ is the gas
-    surface density in the disk, $\Sigma_\mathrm{total}(r)$ is the total surface density in the disk, $r_\mathrm{half}$ is the
-    disk half-mass radius, $M_\mathrm{gas, disk}$ is the total gas mass in the disk, $\tau_\mathrm{dyn, disk} =
-    r_\mathrm{disk}/v_\mathrm{disk}$ is the dynamical time in the disk, $\beta=$\mono{[beta]} scales the rate of
-    mass loss, and $R_\mathrm{maximum}=$\mono{[rateFractionalMaximum]} controls the maximum allowed rate of mass
-    loss.
+   A ram pressure stripping class which applies to systems with cylindrical symmetry (e.g. disks), and computes the mass loss rate to be:
+
+   .. math::
+
+      \dot{M}_\mathrm{gas, disk} = \hbox{min}\left({\beta \mathcal{F}_\mathrm{hot, host} \over 2 \pi \mathrm{G}
+      \Sigma_\mathrm{gas}(r_\mathrm{half}) \Sigma_\mathrm{total}(r_\mathrm{half})}, R_\mathrm{maximum}\right) {M_\mathrm{gas,
+      disk} \over \tau_\mathrm{dyn, disk}},
+
+   where :math:`\mathcal{F}_\mathrm{hot, host}` is the ram pressure force due to the hot halo of the node's host (computed using the selected hot halo ram pressure force method; see :galacticus-class:`hotHaloRamPressureForce`), :math:`\Sigma_\mathrm{gas}(r)` is the gas surface density in the disk, :math:`\Sigma_\mathrm{total}(r)` is the total surface density in the disk, :math:`r_\mathrm{half}` is the disk half-mass radius, :math:`M_\mathrm{gas, disk}` is the total gas mass in the disk, :math:`\tau_\mathrm{dyn, disk} = r_\mathrm{disk}/v_\mathrm{disk}` is the dynamical time in the disk, :math:`\beta=`\ ``[beta]`` scales the rate of mass loss, and :math:`R_\mathrm{maximum}=`\ ``[rateFractionalMaximum]`` controls the maximum allowed rate of mass loss.
    </description>
   </ramPressureStripping>
   !!]
   type, extends(ramPressureStrippingClass) :: ramPressureStrippingSimpleCylindrical
-     !!{
+     !!{RST
      Implementation of a simple model of ram pressure stripping of cylindrically symmetric systems.
      !!}
      private
@@ -56,8 +51,8 @@
   end type ramPressureStrippingSimpleCylindrical
 
   interface ramPressureStrippingSimpleCylindrical
-     !!{
-     Constructors for the \refClass{ramPressureStrippingSimpleCylindrical} model of ram pressure stripping of disks class.
+     !!{RST
+     Constructors for the :galacticus-class:`ramPressureStrippingSimpleCylindrical` model of ram pressure stripping of disks class.
      !!}
      module procedure simpleCylindricalConstructorParameters
      module procedure simpleCylindricalConstructorInternal
@@ -66,8 +61,8 @@
 contains
 
   function simpleCylindricalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{ramPressureStrippingSimpleCylindrical} model of ram pressure stripping of disks class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`ramPressureStrippingSimpleCylindrical` model of ram pressure stripping of disks class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,16 +72,20 @@ contains
     double precision                                                       :: rateFractionalMaximum   , beta
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rateFractionalMaximum</name>
       <defaultValue>10.0d0</defaultValue>
-      <description>The maximum fractional mass loss rate per dynamical time in the simple model of mass loss in cylindrically symmetric systems due to ram pressure stripping.</description>
+      <description>
+      The maximum fractional mass loss rate per dynamical time in the simple model of mass loss in cylindrically symmetric systems due to ram pressure stripping.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The scaling factor which multiplies the ram pressure mass loss rate.</description>
+      <description>
+      The scaling factor which multiplies the ram pressure mass loss rate.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
@@ -100,8 +99,8 @@ contains
   end function simpleCylindricalConstructorParameters
 
   function simpleCylindricalConstructorInternal(rateFractionalMaximum,beta,hotHaloRamPressureForce_) result(self)
-    !!{
-    Internal constructor for the \refClass{ramPressureStrippingSimpleCylindrical} model of ram pressure stripping of disks class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`ramPressureStrippingSimpleCylindrical` model of ram pressure stripping of disks class.
     !!}
     implicit none
     type            (ramPressureStrippingSimpleCylindrical)                        :: self
@@ -115,8 +114,8 @@ contains
   end function simpleCylindricalConstructorInternal
 
   subroutine simpleCylindricalDestructor(self)
-    !!{
-    Destructor for the \refClass{ramPressureStrippingSimpleCylindrical} model of ram pressure stripping of disks class.
+    !!{RST
+    Destructor for the :galacticus-class:`ramPressureStrippingSimpleCylindrical` model of ram pressure stripping of disks class.
     !!}
     implicit none
     type(ramPressureStrippingSimpleCylindrical), intent(inout) :: self
@@ -128,21 +127,26 @@ contains
   end subroutine simpleCylindricalDestructor
 
   double precision function simpleCylindricalRateMassLoss(self,component)
-    !!{
-    Computes the mass loss rate from cylindrically-symmetric systems due to ram pressure stripping assuming a simple model. Specifically, the mass loss
-    rate is
-    \begin{equation}
-    \dot{M}_\mathrm{gas} = -\alpha M_\mathrm{gas}/\tau,
-    \end{equation}
+    !!{RST
+    Computes the mass loss rate from cylindrically-symmetric systems due to ram pressure stripping assuming a simple model. Specifically, the mass loss rate is
+
+    .. math::
+
+       \dot{M}_\mathrm{gas} = -\alpha M_\mathrm{gas}/\tau,
+
     where
-    \begin{equation}
-    \alpha = \beta F_\mathrm{ram}/F_\mathrm{gravity},
-    \end{equation}
-    $F_\mathrm{ram}$ is the ram pressure force from the hot halo (see \refPhysics{hotHaloRamPressureForce}), and
-    \begin{equation}
-    F_\mathrm{gravity} = 2 \pi \mathrm{G} \Sigma_\mathrm{gas}(r_{1/2}) \Sigma_\mathrm{total}(r_{1/2})
-    \end{equation}
-    is the gravitational restoring force at the half-mass radius, $r_\mathrm{1/2}$.
+
+    .. math::
+
+       \alpha = \beta F_\mathrm{ram}/F_\mathrm{gravity},
+
+    :math:`F_\mathrm{ram}` is the ram pressure force from the hot halo (see :galacticus-class:`hotHaloRamPressureForce`), and
+
+    .. math::
+
+       F_\mathrm{gravity} = 2 \pi \mathrm{G} \Sigma_\mathrm{gas}(r_{1/2}) \Sigma_\mathrm{total}(r_{1/2})
+
+    is the gravitational restoring force at the half-mass radius, :math:`r_\mathrm{1/2}`.
     !!}
     use :: Coordinates                     , only : coordinateCylindrical, assignment(=)
     use :: Display                         , only : displayGreen         , displayBlue                   , displayMagenta, displayReset

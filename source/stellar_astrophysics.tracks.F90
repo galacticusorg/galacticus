@@ -17,34 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class for calculation of stellar tracks.
 !!}
 
 module Stellar_Astrophysics_Tracks
-  !!{
+  !!{RST
   Implements a class for stellar tracks.
   !!}
   implicit none
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>stellarTracks</name>
    <descriptiveName>Stellar Tracks</descriptiveName>
    <description>
-    Class providing models of stellar tracks in luminosity and effective temperature as a function of initial mass,
-    metallicity, and age.
+   Class providing models of stellar tracks in luminosity and effective temperature as a function of initial mass, metallicity, and age.
    </description>
    <default>file</default>
    <method name="luminosity" >
-    <description>Returns the bolometric luminosity of a star of given \mono{initialMass}, \mono{metallicity} and \mono{age}.</description>
+    <description>
+    Returns the bolometric luminosity of a star of given ``initialMass``, ``metallicity`` and ``age``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: initialMass, metallicity, age</argument>
    </method>
    <method name="temperatureEffective" >
-    <description>Returns the effective temperature of a star of given \mono{initialMass}, \mono{metallicity} and \mono{age}.</description>
+    <description>
+    Returns the effective temperature of a star of given ``initialMass``, ``metallicity`` and ``age``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: initialMass, metallicity, age</argument>

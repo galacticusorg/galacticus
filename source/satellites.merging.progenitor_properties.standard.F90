@@ -17,42 +17,47 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger progenitor properties class which uses a standard calculation.
   !!}
 
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
 
   !![
-  <mergerProgenitorProperties name="mergerProgenitorPropertiesStandard">
+  <mergerProgenitorProperties name="mergerProgenitorPropertiesStandard" docformat="rst">
    <description>
-    A merger progenitor properties class which implements a standard method to compute progenitor properties. Masses of
-    progenitors are set to
-    \begin{equation}
-     M_\mathrm{host|satellite} = \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j},
-    \end{equation}
-    where $M_{i,j}$ is the mass of mass type $j$ in \gls{component} $i$. Masses of progenitors that will end up in the remnant
-    spheroid are set to
-    \begin{equation}
-     M_\mathrm{spheroid\,\,host|satellite} = \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j} \delta_{i,j},
-    \end{equation}
-    where $\delta_{i,j}=0$ of mass type $j$ in \gls{component} $i$ will end up in the remnant spheroid and $0$ otherwise. Radii
-    of material that will end up in the spheroid are set to
-    \begin{equation}
-     r_\mathrm{host|satellite} = {1 \over M_\mathrm{spheroid\,\,host|satellite}} \sum_{i=\mathrm{disk|spheroid}}
-     \sum_{j=\mathrm{stars|gas}} M_{i,j} r_{1/2\,\,i,j} \delta_{i,j}.
-    \end{equation}
-    Finally, the angular momentum factor is set to
-    \begin{equation}
-     f_\mathrm{AM\,\,host|satellite} = {1 \over M_\mathrm{spheroid\,\,host|satellite}} \sum_{i=\mathrm{disk|spheroid}}
-     \sum_{j=\mathrm{stars|gas}} M_{i,j} {J_{i,j} \over \mathrm{G} M^{3/2}_{i,j} r_{1/2\,\,i,j}} \delta_{i,j},
-    \end{equation}
-    where $J_{i,j}$ is the angular momentum or pseudo-angular momentum of mass type $j$ in \gls{component} $i$.
+   A merger progenitor properties class which implements a standard method to compute progenitor properties. Masses of progenitors are set to
+
+   .. math::
+
+      M_\mathrm{host|satellite} = \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j},
+
+   where :math:`M_{i,j}` is the mass of mass type :math:`j` in :term:`component` :math:`i`. Masses of progenitors that will end up in the remnant spheroid are set to
+
+   .. math::
+
+      M_\mathrm{spheroid\,\,host|satellite} = \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j} \delta_{i,j},
+
+   where :math:`\delta_{i,j}=0` of mass type :math:`j` in :term:`component` :math:`i` will end up in the remnant spheroid and :math:`0` otherwise. Radii of material that will end up in the spheroid are set to
+
+   .. math::
+
+      r_\mathrm{host|satellite} = {1 \over M_\mathrm{spheroid\,\,host|satellite}} \sum_{i=\mathrm{disk|spheroid}}
+      \sum_{j=\mathrm{stars|gas}} M_{i,j} r_{1/2\,\,i,j} \delta_{i,j}.
+
+   Finally, the angular momentum factor is set to
+
+   .. math::
+
+      f_\mathrm{AM\,\,host|satellite} = {1 \over M_\mathrm{spheroid\,\,host|satellite}} \sum_{i=\mathrm{disk|spheroid}}
+      \sum_{j=\mathrm{stars|gas}} M_{i,j} {J_{i,j} \over \mathrm{G} M^{3/2}_{i,j} r_{1/2\,\,i,j}} \delta_{i,j},
+
+   where :math:`J_{i,j}` is the angular momentum or pseudo-angular momentum of mass type :math:`j` in :term:`component` :math:`i`.
    </description>
   </mergerProgenitorProperties>
   !!]
   type, extends(mergerProgenitorPropertiesClass) :: mergerProgenitorPropertiesStandard
-     !!{
+     !!{RST
      A merger progenitor properties class which uses a standard calculation.
      !!}
      private
@@ -63,8 +68,8 @@
   end type mergerProgenitorPropertiesStandard
 
   interface mergerProgenitorPropertiesStandard
-     !!{
-     Constructors for the \refClass{mergerProgenitorPropertiesStandard} merger progenitor properties class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerProgenitorPropertiesStandard` merger progenitor properties class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -73,8 +78,8 @@
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerProgenitorPropertiesStandard} merger progenitor properties class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerProgenitorPropertiesStandard` merger progenitor properties class which takes a parameter list as input.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Error_Report            , Component_List
@@ -137,8 +142,8 @@ contains
   end function standardConstructorParameters
 
  function standardConstructorInternal(mergerMassMovements_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerProgenitorPropertiesStandard} merger progenitor properties class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerProgenitorPropertiesStandard` merger progenitor properties class.
     !!}
     implicit none
     type (mergerProgenitorPropertiesStandard)                        :: self
@@ -151,8 +156,8 @@ contains
   end function standardConstructorInternal
 
   subroutine standardDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerProgenitorPropertiesStandard} merger progenitor properties class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerProgenitorPropertiesStandard` merger progenitor properties class.
     !!}
     implicit none
     type(mergerProgenitorPropertiesStandard), intent(inout) :: self
@@ -164,7 +169,7 @@ contains
   end subroutine standardDestructor
 
   subroutine standardGet(self,nodeSatellite,nodeHost,massSatellite,massHost,massSpheroidSatellite,massSpheroidHost,massSpheroidHostPreMerger,radiusSatellite,radiusHost,factorAngularMomentum,massSpheroidRemnant,massGasSpheroidRemnant)
-    !!{
+    !!{RST
     Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
     !!}
     use :: Galactic_Structure_Options      , only : massTypeGalactic

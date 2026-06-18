@@ -19,13 +19,13 @@
 
 !+    Contributions to this file made by: Andrew Benson, Xiaolong Du.
 
-!!{
-Contains a module which provides various interfaces to the \gls{axioncamb} code.
+!!{RST
+Contains a module which provides various interfaces to the :term:`AxionCAMB` code.
 !!}
 
 module Interfaces_AxionCAMB
-  !!{
-  Provides various interfaces to the \gls{axioncamb} code.
+  !!{RST
+  Provides various interfaces to the :term:`AxionCAMB` code.
   !!}
   use :: File_Utilities, only : lockDescriptor
   private
@@ -39,9 +39,11 @@ module Interfaces_AxionCAMB
   double precision                , parameter :: axionCambLogWavenumberMaximumDefault=log(2500.0d0)
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>axionCambSpecies</name>
-   <description>Enumeration of particle species tracked by the AxionCAMB Boltzmann code when computing transfer functions: \mono{darkMatter} (total), \mono{coldDarkMatter}, \mono{fuzzyDarkMatter} (axion), and \mono{baryons}, used to select which species' transfer function is returned.</description>
+   <description>
+   Enumeration of particle species tracked by the AxionCAMB Boltzmann code when computing transfer functions: ``darkMatter`` (total), ``coldDarkMatter``, ``fuzzyDarkMatter`` (axion), and ``baryons``, used to select which species' transfer function is returned.
+   </description>
    <visibility>public</visibility>
    <indexing>1</indexing>
    <entry label="darkMatter"     />
@@ -59,7 +61,7 @@ module Interfaces_AxionCAMB
 contains
 
   subroutine Interface_AxionCAMB_Initialize(axionCambPath,axionCambVersion,static)
-    !!{
+    !!{RST
     Initialize the interface with AxionCAMB, including downloading and compiling AxionCAMB if necessary.
     !!}
     use :: File_Utilities    , only : File_Exists      , File_Lock            , File_Unlock , lockDescriptor, &
@@ -110,7 +112,7 @@ contains
   end subroutine Interface_AxionCAMB_Initialize
 
   subroutine Interface_AxionCAMB_Transfer_Function(cosmologyParameters_,darkMatterParticle_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionColdDarkMatter,transferFunctionFuzzyDarkMatter,transferFunctionBaryons)
-    !!{
+    !!{RST
     Run AxionCAMB as necessary to compute transfer functions.
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH

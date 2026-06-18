@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an intracluster medium X-ray luminosity property extractor class.
 !!}
 
@@ -26,12 +26,14 @@ Implements an intracluster medium X-ray luminosity property extractor class.
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorICMXRayLuminosity">
-   <description>Extracts the X-ray luminosity of the intracluster medium by integrating thermal bremsstrahlung and line emission from hot halo gas out to the virial radius, using a cooling function evaluated at each radial shell. Useful for comparison with X-ray cluster survey observations.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorICMXRayLuminosity" docformat="rst">
+   <description>
+   Extracts the X-ray luminosity of the intracluster medium by integrating thermal bremsstrahlung and line emission from hot halo gas out to the virial radius, using a cooling function evaluated at each radial shell. Useful for comparison with X-ray cluster survey observations.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorICMXRayLuminosity
-     !!{
+     !!{RST
      A icmXRayLuminosity property extractor class.
      !!}
      private
@@ -48,8 +50,8 @@ Implements an intracluster medium X-ray luminosity property extractor class.
   end type nodePropertyExtractorICMXRayLuminosity
 
   interface nodePropertyExtractorICMXRayLuminosity
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorICMXRayLuminosity} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorICMXRayLuminosity` property extractor class.
      !!}
      module procedure icmXRayLuminosityConstructorParameters
      module procedure icmXRayLuminosityConstructorInternal
@@ -58,8 +60,8 @@ Implements an intracluster medium X-ray luminosity property extractor class.
 contains
 
   function icmXRayLuminosityConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorICMXRayLuminosity} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorICMXRayLuminosity` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,8 +87,8 @@ contains
   end function icmXRayLuminosityConstructorParameters
 
   function icmXRayLuminosityConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorICMXRayLuminosity} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorICMXRayLuminosity` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorICMXRayLuminosity)                        :: self
@@ -101,8 +103,8 @@ contains
   end function icmXRayLuminosityConstructorInternal
 
   subroutine icmXRayLuminosityDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorICMXRayLuminosity} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorICMXRayLuminosity` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
@@ -116,7 +118,7 @@ contains
   end subroutine icmXRayLuminosityDestructor
 
   double precision function icmXRayLuminosityExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement an ICM X-ray properties extractor.
     !!}
     use :: Galacticus_Nodes            , only : nodeComponentHotHalo                   , treeNode
@@ -158,7 +160,7 @@ contains
   contains
 
     double precision function integrandLuminosityXray(radius)
-      !!{
+      !!{RST
       Integrand function used for computing ICM X-ray luminosities.
       !!}
       use :: Abundances_Structure             , only : abundances
@@ -222,8 +224,8 @@ contains
   end function icmXRayLuminosityExtract
 
   function icmXRayLuminosityName(self)
-    !!{
-    Return the names of the \mono{icmXRayLuminosity} properties.
+    !!{RST
+    Return the names of the ``icmXRayLuminosity`` properties.
     !!}
     implicit none
     type (varying_string                        )                :: icmXRayLuminosityName
@@ -235,8 +237,8 @@ contains
   end function icmXRayLuminosityName
 
   function icmXRayLuminosityDescription(self)
-    !!{
-    Return descriptions of the \mono{icmXRayLuminosity} properties.
+    !!{RST
+    Return descriptions of the ``icmXRayLuminosity`` properties.
     !!}
     implicit none
     type (varying_string                        )                :: icmXRayLuminosityDescription
@@ -248,8 +250,8 @@ contains
   end function icmXRayLuminosityDescription
 
   double precision function icmXRayLuminosityUnitsInSI(self)
-    !!{
-    Return the units of the \mono{icmXRayLuminosity} properties in the SI system.
+    !!{RST
+    Return the units of the ``icmXRayLuminosity`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Units, only : ergs
     implicit none
@@ -261,7 +263,7 @@ contains
   end function icmXRayLuminosityUnitsInSI
 
   function icmXRayLuminosityUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the iCMXRayLuminosity property.
     !!}
     use :: Units_MetaData, only : unitType

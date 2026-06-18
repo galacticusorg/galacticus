@@ -17,27 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a prune-by-lightcone operator on merger trees.
   !!}
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorPruneLightcone">
+  <mergerTreeOperator name="mergerTreeOperatorPruneLightcone" docformat="rst">
    <description>
-     Provides a pruning-by-lightcone operator on merger trees, \emph{intended for use with the newer approach, in which galaxies
-     are evolved to precisely the time of lightcone crossing}. For the older approach (in which galaxies were evolved to one of a
-     fixed set of snapshots, and then output into the section of the lightcone corresponding to that snapshot) see the
-     \refClass{mergerTreeOperatorPruneLightconeSnapshots} merger tree operator class.
+   Provides a pruning-by-lightcone operator on merger trees, *intended for use with the newer approach, in which galaxies are evolved to precisely the time of lightcone crossing*. For the older approach (in which galaxies were evolved to one of a fixed set of snapshots, and then output into the section of the lightcone corresponding to that snapshot) see the :galacticus-class:`mergerTreeOperatorPruneLightconeSnapshots` merger tree operator class.
 
-     Trees which have no nodes which lie within the lightcone are completely pruned away. If the parameter \mono{[splitTrees]} is
-     set to \mono{true} then any parts of a merger tree which does intersect the lightcone that exist after the latest time at which a
-     constituent node of the tree intersects the lightcone will be pruned away also (possibly causing the tree to be split into
-     multiple trees in a forest).
+   Trees which have no nodes which lie within the lightcone are completely pruned away. If the parameter ``[splitTrees]`` is set to ``true`` then any parts of a merger tree which does intersect the lightcone that exist after the latest time at which a constituent node of the tree intersects the lightcone will be pruned away also (possibly causing the tree to be split into multiple trees in a forest).
    </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorPruneLightconeSnapshots) :: mergerTreeOperatorPruneLightcone
-     !!{
+     !!{RST
      A pruning-by-lightcone merger tree operator class.
      !!}
      private
@@ -47,7 +41,7 @@
   end type mergerTreeOperatorPruneLightcone
 
   interface mergerTreeOperatorPruneLightcone
-     !!{
+     !!{RST
      Constructors for the pruning-by-lightcone merger tree operator class.
      !!}
      module procedure pruneLightconeConstructorParameters
@@ -57,7 +51,7 @@
 contains
 
   function pruneLightconeConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the prune-by-lightcone merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -70,11 +64,13 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>splitTrees</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, prune away any nodes of the tree that are not needed to determine evolution up to the latest time at which a node is present inside the lightcone. This typically leads to a tree splitting into a forest of trees.</description>
+      <description>
+      If true, prune away any nodes of the tree that are not needed to determine evolution up to the latest time at which a node is present inside the lightcone. This typically leads to a tree splitting into a forest of trees.
+      </description>
     </inputParameter>
     <objectBuilder class="geometryLightcone" name="geometryLightcone_" source="parameters"/>
     <objectBuilder class="outputTimes"       name="outputTimes_"       source="parameters"/>
@@ -89,7 +85,7 @@ contains
   end function pruneLightconeConstructorParameters
 
   function pruneLightconeConstructorInternal(geometryLightcone_,outputTimes_,splitTrees) result(self)
-    !!{
+    !!{RST
     Internal constructor for the prune-by-lightcone merger tree operator class.
     !!}
     implicit none
@@ -106,7 +102,7 @@ contains
   end function pruneLightconeConstructorInternal
 
   logical function pruneLightconeProcessNode(self,node) result(processNode)
-    !!{
+    !!{RST
     Return true if the given node should be processed for intersection with the lightcone.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeEvent, nodeEventSubhaloPromotion
@@ -145,7 +141,7 @@ contains
   end function pruneLightconeProcessNode
   
   double precision function pruneLightconeTimeIntersect(self,node) result(timeIntersect)
-    !!{
+    !!{RST
     Return the latest time at which the given node intersects the lightcone.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, mergerTree

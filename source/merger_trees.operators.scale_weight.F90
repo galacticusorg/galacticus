@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree operator that scales the weight of each tree by a fixed factor.
 !!}
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorScaleWeight">
-   <description>A merger tree operator that multiplies the statistical weight of each merger tree by a user-specified constant factor, enabling rescaling of tree ensembles for combining datasets or adjusting volume normalizations. The scaling factor is specified by the \mono{[factor]} parameter.</description>
+  <mergerTreeOperator name="mergerTreeOperatorScaleWeight" docformat="rst">
+   <description>
+   A merger tree operator that multiplies the statistical weight of each merger tree by a user-specified constant factor, enabling rescaling of tree ensembles for combining datasets or adjusting volume normalizations. The scaling factor is specified by the ``[factor]`` parameter.
+   </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorScaleWeight
-     !!{
+     !!{RST
      A merger tree operator that scales the weight of each tree by a fixed factor.
      !!}
      private
@@ -37,7 +39,7 @@ Implements a merger tree operator that scales the weight of each tree by a fixed
   end type mergerTreeOperatorScaleWeight
 
   interface mergerTreeOperatorScaleWeight
-     !!{
+     !!{RST
      Constructors for the scaleWeight merger tree operator class.
      !!}
      module procedure scaleWeightConstructorParameters
@@ -47,7 +49,7 @@ Implements a merger tree operator that scales the weight of each tree by a fixed
 contains
 
   function scaleWeightConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the scaleWeight merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -57,9 +59,11 @@ contains
     double precision                                               :: scaleFactor
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scaleFactor</name>
-      <description>The factor by which to scale merger tree weights.</description>
+      <description>
+      The factor by which to scale merger tree weights.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -71,7 +75,7 @@ contains
   end function scaleWeightConstructorParameters
 
   function scaleWeightConstructorInternal(scaleFactor) result(self)
-    !!{
+    !!{RST
     Internal constructor for the scaleWeight merger tree operator class.
     !!}
     implicit none
@@ -85,7 +89,7 @@ contains
   end function scaleWeightConstructorInternal
 
   subroutine scaleFactorOperatePreInitialization(self,tree)
-    !!{
+    !!{RST
     Scale the weight of a merger tree by a fixed factor.
     !!}
     implicit none

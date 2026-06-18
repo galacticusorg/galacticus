@@ -17,21 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements an N-body data operator which determines the subset of particles that are self-bound. The potential is computed using a tree method following \cite{barnes_hierarchical_1986}.
+!!{RST
+Implements an N-body data operator which determines the subset of particles that are self-bound. The potential is computed using a tree method following :cite:t:`barnes_hierarchical_1986`.
 !!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
-  <nbodyOperator name="nbodyOperatorSelfBoundBarnesHut">
-   <description>An N-body data operator which determines the subset of particles that are self-bound. The potential is computed using a tree method following \cite{barnes_hierarchical_1986}.</description>
+  <nbodyOperator name="nbodyOperatorSelfBoundBarnesHut" docformat="rst">
+   <description>
+   An N-body data operator which determines the subset of particles that are self-bound. The potential is computed using a tree method following :cite:t:`barnes_hierarchical_1986`.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorSelfBound) :: nbodyOperatorSelfBoundBarnesHut
-     !!{
-     An N-body data operator which determines the subset of particles that are self-bound. The potential is computed using a tree method following \cite{barnes_hierarchical_1986}.
+     !!{RST
+     An N-body data operator which determines the subset of particles that are self-bound. The potential is computed using a tree method following :cite:t:`barnes_hierarchical_1986`.
      !!}
      private
      double precision :: thetaTolerance
@@ -40,8 +42,8 @@ Implements an N-body data operator which determines the subset of particles that
   end type nbodyOperatorSelfBoundBarnesHut
 
   interface nbodyOperatorSelfBoundBarnesHut
-     !!{
-     Constructors for the \refClass{nbodyOperatorSelfBoundBarnesHut} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorSelfBoundBarnesHut` N-body operator class.
      !!}
      module procedure selfBoundBarnesHutConstructorParameters
      module procedure selfBoundBarnesHutConstructorInternal
@@ -50,8 +52,8 @@ Implements an N-body data operator which determines the subset of particles that
 contains
 
   function selfBoundBarnesHutConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorSelfBoundBarnesHut} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorSelfBoundBarnesHut` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -60,11 +62,13 @@ contains
     double precision                                                 :: thetaTolerance
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>thetaTolerance</name>
       <source>parameters</source>
       <defaultValue>0.5d0</defaultValue>
-      <description>The Barnes-Hut opening-angle tolerance $\theta$; cells subtending an angle smaller than $\theta$ at a particle are treated as point masses, trading accuracy for speed.</description>
+      <description>
+      The Barnes-Hut opening-angle tolerance :math:`\theta`; cells subtending an angle smaller than :math:`\theta` at a particle are treated as point masses, trading accuracy for speed.
+      </description>
     </inputParameter>
     !!]
     self%nbodyOperatorSelfBound=nbodyOperatorSelfBound(parameters)
@@ -76,8 +80,8 @@ contains
   end function selfBoundBarnesHutConstructorParameters
 
   function selfBoundBarnesHutConstructorInternal(thetaTolerance,tolerance,bootstrapSampleCount,bootstrapSampleRate,representativeMinimumCount,representativeFraction,analyzeAllParticles,useVelocityMostBound,randomNumberGenerator_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorSelfBoundBarnesHut} N-body operator class
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyOperatorSelfBoundBarnesHut` N-body operator class
     !!}
     implicit none
     type            (nbodyOperatorSelfBoundBarnesHut)                        :: self
@@ -95,7 +99,7 @@ contains
   end function selfBoundBarnesHutConstructorInternal
   
   subroutine selfBoundBarnesHutOperate(self,simulations)
-    !!{
+    !!{RST
     Determine the subset of N-body particles which are self-bound.
     !!}
     use :: Display                         , only : displayIndent                 , displayUnindent  , displayMessage
@@ -441,9 +445,8 @@ contains
   end subroutine selfBoundBarnesHutOperate
 
   subroutine selfBoundBarnesHutPotential(value,centerOfMass,nodeWeight,relativePosition,separation,separationSquared)
-    !!{
-    Compute the potential given the separation between a particle and a node in the octree. Currently assumes the functional form of the softening used by
-    Gadget.
+    !!{RST
+    Compute the potential given the separation between a particle and a node in the octree. Currently assumes the functional form of the softening used by Gadget.
     !!}
     implicit none
     double precision              , intent(inout) :: value

@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements dependency versioning.
 !!}
 
 module Dependencies
-  !!{
+  !!{RST
   Implements dependency versioning.
   !!}
   use :: Dictionaries, only : varyingStringDictionary
@@ -36,7 +36,7 @@ module Dependencies
 contains
 
   function dependencyVersion(dependency,majorOnly)
-    !!{
+    !!{RST
     Return the version number to use for a named dependency.
     !!}
     use :: Error             , only : Error_Report

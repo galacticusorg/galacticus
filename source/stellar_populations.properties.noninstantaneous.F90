@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a stellar population properties class based on the noninstantaneous recycling approximation.
   !!}
 
@@ -26,26 +26,25 @@
   use :: Stellar_Population_Broad_Band_Luminosities, only : stellarPopulationBroadBandLuminositiesClass
 
   !![
-  <stellarPopulationProperties name="stellarPopulationPropertiesNoninstantaneous">
+  <stellarPopulationProperties name="stellarPopulationPropertiesNoninstantaneous" docformat="rst">
    <description>
-    A stellar population properties class based on the noninstantaneous recycling approximation---fully non-instantaneous
-    recycling and metal enrichment are used. Recycling and metal production rates from simple stellar populations are computed,
-    for any given \gls{imf}, from stellar evolution models. The rates of change are then:
-    \begin{eqnarray}
-     \dot{M}_\star &amp;=&amp; \phi - \int_0^t \phi(t^\prime) \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) \d t^\prime, \\
-     \dot{M}_\mathrm{fuel} &amp;=&amp; -\phi + \int_0^t \phi(t^\prime) \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t]) \d t^\prime, \\
-     \dot{M}_{\star,Z} &amp;=&amp; Z_\mathrm{fuel} \phi - \int_0^t \phi(t^\prime) Z_\mathrm{fuel}(t^\prime)
-     \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) \d t^\prime, \\
-     \dot{M}_{\mathrm{fuel},Z} &amp;=&amp; -Z_\mathrm{fuel} \phi + \int_0^t \phi(t^\prime) \{ Z_\mathrm{fuel}(t^\prime)
-     \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) + \dot{p}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) \} \d t^\prime, \\
-    \end{eqnarray}
-    where $\dot{R}(t;Z)$ and $\dot{p}(t;Z)$ are the recycling and metal yield rates respectively from a stellar population of
-    age $t$ and metallicity $Z$. The energy input rate is computed self-consistently from the star formation history.
+   A stellar population properties class based on the noninstantaneous recycling approximation---fully non-instantaneous recycling and metal enrichment are used. Recycling and metal production rates from simple stellar populations are computed, for any given :term:`IMF`, from stellar evolution models. The rates of change are then:
+
+   .. math::
+
+      \dot{M}_\star &amp; = \phi - \int_0^t \phi(t^\prime) \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) \d t^\prime, \\
+      \dot{M}_\mathrm{fuel} &amp; = -\phi + \int_0^t \phi(t^\prime) \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t]) \d t^\prime, \\
+      \dot{M}_{\star,Z} &amp; = Z_\mathrm{fuel} \phi - \int_0^t \phi(t^\prime) Z_\mathrm{fuel}(t^\prime)
+      \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) \d t^\prime, \\
+      \dot{M}_{\mathrm{fuel},Z} &amp; = -Z_\mathrm{fuel} \phi + \int_0^t \phi(t^\prime) \{ Z_\mathrm{fuel}(t^\prime)
+      \dot{R}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) + \dot{p}(t-t^\prime;Z_\mathrm{fuel}[t^\prime]) \} \d t^\prime, \\
+
+   where :math:`\dot{R}(t;Z)` and :math:`\dot{p}(t;Z)` are the recycling and metal yield rates respectively from a stellar population of age :math:`t` and metallicity :math:`Z`. The energy input rate is computed self-consistently from the star formation history.
    </description>
   </stellarPopulationProperties>
   !!]
   type, extends(stellarPopulationPropertiesClass) :: stellarPopulationPropertiesNoninstantaneous
-     !!{
+     !!{RST
      A stellar population properties class based on the noninstantaneous recycling approximation.
      !!}
      private
@@ -71,8 +70,8 @@
   end type stellarPopulationPropertiesNoninstantaneous
 
   interface stellarPopulationPropertiesNoninstantaneous
-     !!{
-     Constructors for the \refClass{stellarPopulationPropertiesNoninstantaneous} stellar population properties class.
+     !!{RST
+     Constructors for the :galacticus-class:`stellarPopulationPropertiesNoninstantaneous` stellar population properties class.
      !!}
      module procedure noninstantaneousConstructorParameters
      module procedure noninstantaneousConstructorInternal
@@ -81,9 +80,8 @@
 contains
 
   function noninstantaneousConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarPopulationPropertiesNoninstantaneous} stellar population properties class which takes a parameter list
-    as input.
+    !!{RST
+    Constructor for the :galacticus-class:`stellarPopulationPropertiesNoninstantaneous` stellar population properties class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,10 +93,12 @@ contains
     integer                                                             :: countHistoryTimes
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countHistoryTimes</name>
       <defaultValue>10</defaultValue>
-      <description>The number of times at which a galaxy's stellar properties history is stored.</description>
+      <description>
+      The number of times at which a galaxy's stellar properties history is stored.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="outputTimes"                            name="outputTimes_"                            source="parameters"/>
@@ -116,8 +116,8 @@ contains
   end function noninstantaneousConstructorParameters
 
   function noninstantaneousConstructorInternal(countHistoryTimes,stellarPopulationSelector_,stellarPopulationBroadBandLuminosities_,outputTimes_) result(self)
-    !!{
-    Internal constructor for the \refClass{stellarPopulationPropertiesNoninstantaneous} stellar population properties class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`stellarPopulationPropertiesNoninstantaneous` stellar population properties class.
     !!}
     use :: Abundances_Structure, only : Abundances_Property_Count
     implicit none
@@ -146,8 +146,8 @@ contains
   end function noninstantaneousConstructorInternal
 
   subroutine noninstantaneousDestructor(self)
-    !!{
-    Destructor for the \refClass{stellarPopulationPropertiesNoninstantaneous} stellar population properties class.
+    !!{RST
+    Destructor for the :galacticus-class:`stellarPopulationPropertiesNoninstantaneous` stellar population properties class.
     !!}
     implicit none
     type(stellarPopulationPropertiesNoninstantaneous), intent(inout) :: self
@@ -161,7 +161,7 @@ contains
   end subroutine noninstantaneousDestructor
 
   integer function noninstantaneousHistoryCount(self)
-    !!{
+    !!{RST
     Returns the number of histories required by the noninstantaneous stellar populations properties class.
     !!}
     implicit none
@@ -173,7 +173,7 @@ contains
 
   subroutine noninstantaneousRates(self,rateStarFormation,abundancesFuel,component,node,history_,rateMassStellar,rateMassFuel,rateEnergyInput&
        &,rateAbundancesFuel,rateAbundancesStellar,rateLuminosityStellar,computeRateLuminosityStellar)
-    !!{
+    !!{RST
     Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
     !!}
     use            :: Abundances_Structure          , only : zeroAbundances
@@ -272,7 +272,7 @@ contains
   end subroutine noninstantaneousRates
 
   subroutine noninstantaneousScales(self,massStellar,abundancesStellar,history_)
-    !!{
+    !!{RST
     Set the scalings for error control on the absolute values of stellar population properties.
     !!}
     use :: Stellar_Feedback , only : feedbackEnergyInputAtInfinityCanonical
@@ -309,7 +309,7 @@ contains
   end subroutine noninstantaneousScales
 
   subroutine noninstantaneousHistoryCreate(self,node,history_)
-    !!{
+    !!{RST
     Create any history required for storing stellar population properties.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic  , treeNode

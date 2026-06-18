@@ -17,31 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of the \cite{creasey_how_2013} stellar feedback model.
+  !!{RST
+  Implementation of the :cite:t:`creasey_how_2013` stellar feedback model.
   !!}
 
   use :: Star_Formation_Rate_Surface_Density_Disks, only : starFormationRateSurfaceDensityDisksClass
 
   !![
-  <stellarFeedbackOutflows name="stellarFeedbackOutflowsCreasey2013">
+  <stellarFeedbackOutflows name="stellarFeedbackOutflowsCreasey2013" docformat="rst">
    <description>
-    A stellar feedback outflow class which implements the model of \cite{creasey_how_2013}. Specifically, the outflow rate is:
-    \begin{equation}
-    \dot{M}_\mathrm{outflow} = {\dot{E}_\mathrm{SN} \over E_\mathrm{SN} \dot{M}_\star} \int_0^\infty \beta_0
-    \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
-    \end{equation}
-    where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $\mathrm{M}_\odot$ pc$^{-2}$, $f_\mathrm{g}(r)$ is the gas
-    fraction, $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\dot{M}_\star$ is the total star
-    formation rate in the disk, $\dot{E}_\mathrm{SN}$ is the current energy input rate from supernovae, $E_\mathrm{SN}$ is the
-    total energy input per unit mass from a stellar population after infinite time, $\beta_0=$\mono{[beta0]},
-    $\mu=$\mono{[mu]}, and $\nu=$\mono{[nu]}.
+   A stellar feedback outflow class which implements the model of :cite:t:`creasey_how_2013`. Specifically, the outflow rate is:
+
+   .. math::
+
+      \dot{M}_\mathrm{outflow} = {\dot{E}_\mathrm{SN} \over E_\mathrm{SN} \dot{M}_\star} \int_0^\infty \beta_0
+      \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
+
+   where :math:`\Sigma_{g,1}(r)` is the surface density of gas in units of :math:`\mathrm{M}_\odot` pc\ :math:`^{-2}`, :math:`f_\mathrm{g}(r)` is the gas fraction, :math:`\dot{\Sigma}_\star(r)` is the surface density of star formation rate, :math:`\dot{M}_\star` is the total star formation rate in the disk, :math:`\dot{E}_\mathrm{SN}` is the current energy input rate from supernovae, :math:`E_\mathrm{SN}` is the total energy input per unit mass from a stellar population after infinite time, :math:`\beta_0=`\ ``[beta0]``, :math:`\mu=`\ ``[mu]``, and :math:`\nu=`\ ``[nu]``.
    </description>
   </stellarFeedbackOutflows>
   !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsCreasey2013
-     !!{
-     Implementation of the \cite{creasey_how_2013} stellar feedback model.
+     !!{RST
+     Implementation of the :cite:t:`creasey_how_2013` stellar feedback model.
      !!}
      private
      class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_ => null()
@@ -53,7 +51,7 @@
   end type stellarFeedbackOutflowsCreasey2013
 
   interface stellarFeedbackOutflowsCreasey2013
-     !!{
+     !!{RST
      Constructors for the creasey2013 fraction stellar feedback class.
      !!}
      module procedure creasey2013ConstructorParameters
@@ -63,8 +61,8 @@
 contains
 
   function creasey2013ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \cite{creasey_how_2013} stellar feedback class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :cite:t:`creasey_how_2013` stellar feedback class which takes a parameter set as input.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -75,26 +73,38 @@ contains
          &                                                                        beta0
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mu</name>
       <source>parameters</source>
       <defaultValue>1.15d0</defaultValue>
-      <defaultSource>\citep{creasey_how_2013}</defaultSource>
-      <description>The parameter $\mu$ appearing in the \cite{creasey_how_2013} model for supernovae feedback.</description>
+      <defaultSource>
+      :cite:p:`creasey_how_2013`
+      </defaultSource>
+      <description>
+      The parameter :math:`\mu` appearing in the :cite:t:`creasey_how_2013` model for supernovae feedback.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nu</name>
       <source>parameters</source>
       <defaultValue>0.16d0</defaultValue>
-      <defaultSource>\citep{creasey_how_2013}</defaultSource>
-      <description>The parameter $\nu$ appearing in the \cite{creasey_how_2013} model for supernovae feedback.</description>
+      <defaultSource>
+      :cite:p:`creasey_how_2013`
+      </defaultSource>
+      <description>
+      The parameter :math:`\nu` appearing in the :cite:t:`creasey_how_2013` model for supernovae feedback.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta0</name>
       <source>parameters</source>
       <defaultValue>13.0d0</defaultValue>
-      <defaultSource>\citep{creasey_how_2013}</defaultSource>
-      <description>The parameter $\beta_0$ appearing in the \cite{creasey_how_2013} model for supernovae feedback.</description>
+      <defaultSource>
+      :cite:p:`creasey_how_2013`
+      </defaultSource>
+      <description>
+      The parameter :math:`\beta_0` appearing in the :cite:t:`creasey_how_2013` model for supernovae feedback.
+      </description>
     </inputParameter>
     <objectBuilder class="starFormationRateSurfaceDensityDisks" name="starFormationRateSurfaceDensityDisks_" source="parameters"/>
     !!]
@@ -107,8 +117,8 @@ contains
   end function creasey2013ConstructorParameters
 
   function creasey2013ConstructorInternal(mu,nu,beta0,starFormationRateSurfaceDensityDisks_) result(self)
-    !!{
-    Internal constructor for the \refClass{stellarFeedbackOutflowsCreasey2013} stellar feedback class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`stellarFeedbackOutflowsCreasey2013` stellar feedback class.
     !!}
     implicit none
     type            (stellarFeedbackOutflowsCreasey2013       )                        :: self
@@ -123,8 +133,8 @@ contains
   end function creasey2013ConstructorInternal
 
   subroutine creasey2013Destructor(self)
-    !!{
-    Destructor for the \refClass{stellarFeedbackOutflowsCreasey2013} stellar feedback class.
+    !!{RST
+    Destructor for the :galacticus-class:`stellarFeedbackOutflowsCreasey2013` stellar feedback class.
     !!}
     implicit none
     type(stellarFeedbackOutflowsCreasey2013), intent(inout) :: self
@@ -136,15 +146,14 @@ contains
   end subroutine creasey2013Destructor
 
   subroutine creasey2013OutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
-    !!{
-    Returns the outflow rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the galactic disk \mono{component} using
-    the model of \cite{creasey_how_2013}. The outflow rate is given by
-    \begin{equation}
-    \dot{M}_\mathrm{outflow} = \int_0^\infty \beta_0 \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
-    \end{equation}
-    where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $\mathrm{M}_\odot$ pc$^{-2}$, $f_\mathrm{g}(r)$ is the gas
-    fraction, $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\beta_0=$\mono{[beta0]},
-    $\mu=$\mono{[mu]}, and $\nu=$\mono{[nu]}.
+    !!{RST
+    Returns the outflow rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) for star formation in the galactic disk ``component`` using the model of :cite:t:`creasey_how_2013`. The outflow rate is given by
+
+    .. math::
+
+       \dot{M}_\mathrm{outflow} = \int_0^\infty \beta_0 \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
+
+    where :math:`\Sigma_{g,1}(r)` is the surface density of gas in units of :math:`\mathrm{M}_\odot` pc\ :math:`^{-2}`, :math:`f_\mathrm{g}(r)` is the gas fraction, :math:`\dot{\Sigma}_\star(r)` is the surface density of star formation rate, :math:`\beta_0=`\ ``[beta0]``, :math:`\mu=`\ ``[mu]``, and :math:`\nu=`\ ``[nu]``.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk                     , coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
     use :: Galacticus_Nodes          , only : nodeComponentDisk                     , nodeComponentSpheroid
@@ -212,8 +221,8 @@ contains
   contains
 
     double precision function outflowRateIntegrand(radius)
-      !!{
-      Integrand function for the \cite{creasey_how_2013} supernovae feedback calculation.
+      !!{RST
+      Integrand function for the :cite:t:`creasey_how_2013` supernovae feedback calculation.
       !!}
       use :: Coordinates                 , only : coordinateCylindrical, assignment(=)
       use :: Numerical_Constants_Prefixes, only : mega

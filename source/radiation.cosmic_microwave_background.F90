@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a class for the cosmic microwave background radiation field.
   !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <radiationField name="radiationFieldCosmicMicrowaveBackground">
-   <description>A radiation field class for the cosmic microwave background (CMB), modelled as a blackbody with temperature $T_\mathrm{CMB}(z) = T_0\,(1+z)$ that evolves with redshift according to the adopted cosmology.</description>
+  <radiationField name="radiationFieldCosmicMicrowaveBackground" docformat="rst">
+   <description>
+   A radiation field class for the cosmic microwave background (CMB), modelled as a blackbody with temperature :math:`T_\mathrm{CMB}(z) = T_0\,(1+z)` that evolves with redshift according to the adopted cosmology.
+   </description>
   </radiationField>
   !!]
   type, extends(radiationFieldBlackBody) :: radiationFieldCosmicMicrowaveBackground
-     !!{
+     !!{RST
      A radiation field class for the cosmic microwave background.
      !!}
      private
@@ -43,8 +45,8 @@
   end type radiationFieldCosmicMicrowaveBackground
 
   interface radiationFieldCosmicMicrowaveBackground
-     !!{
-     Constructors for the \refClass{radiationFieldCosmicMicrowaveBackground} radiation field class.
+     !!{RST
+     Constructors for the :galacticus-class:`radiationFieldCosmicMicrowaveBackground` radiation field class.
      !!}
      module procedure cosmicMicrowaveBackgroundConstructorParameters
      module procedure cosmicMicrowaveBackgroundConstructorInternal
@@ -53,8 +55,8 @@
 contains
 
   function cosmicMicrowaveBackgroundConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiationFieldCosmicMicrowaveBackground} radiation field class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`radiationFieldCosmicMicrowaveBackground` radiation field class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,8 +76,8 @@ contains
   end function cosmicMicrowaveBackgroundConstructorParameters
 
   function cosmicMicrowaveBackgroundConstructorInternal(cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{radiationFieldCosmicMicrowaveBackground} radiation field class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`radiationFieldCosmicMicrowaveBackground` radiation field class.
     !!}
     implicit none
     type (radiationFieldCosmicMicrowaveBackground)                        :: self
@@ -89,8 +91,8 @@ contains
   end function cosmicMicrowaveBackgroundConstructorInternal
 
   subroutine cosmicMicrowaveBackgroundDestructor(self)
-    !!{
-    Destructor for the \refClass{radiationFieldCosmicMicrowaveBackground} radiation field class.
+    !!{RST
+    Destructor for the :galacticus-class:`radiationFieldCosmicMicrowaveBackground` radiation field class.
     !!}
     implicit none
     type(radiationFieldCosmicMicrowaveBackground), intent(inout) :: self
@@ -102,7 +104,7 @@ contains
   end subroutine cosmicMicrowaveBackgroundDestructor
 
   double precision function cosmicMicrowaveBackgroundTime(self)
-    !!{
+    !!{RST
     Return the time for which this radiation field is set.
     !!}
     implicit none
@@ -113,7 +115,7 @@ contains
   end function cosmicMicrowaveBackgroundTime
 
   subroutine cosmicMicrowaveBackgroundTimeSet(self,time)
-    !!{
+    !!{RST
     Set the time (and temperature) of the cosmic microwave background radiation field.
     !!}
     implicit none
@@ -126,7 +128,7 @@ contains
   end subroutine cosmicMicrowaveBackgroundTimeSet
 
   logical function cosmicMicrowaveBackgroundTimeDependentOnly(self)
-    !!{
+    !!{RST
     Return true as this radiation field depends on time only.
     !!}
     implicit none

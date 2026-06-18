@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements calculations of the infall torques for cooling calculations.
 !!}
 
 module Cooling_Infall_Torques
-  !!{
+  !!{RST
   Provides a class that implements calculations of the infall torques for cooling calculations.
   !!}
   use :: Galacticus_Nodes, only : treeNode
@@ -30,17 +30,17 @@ module Cooling_Infall_Torques
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>coolingInfallTorque</name>
    <descriptiveName>Cooling Infall Torque</descriptiveName>
-   <description>Class providing models of the fraction of angular momentum lost by gas as it falls from the hot
-    halo onto the galaxy. Torques from the dark matter halo, the existing galaxy, and gas dynamical effects can
-    cause infalling gas to lose angular momentum before it joins the disk, thereby producing a more compact disc
-    than would result from purely angular-momentum-conserving infall. The returned fraction of angular momentum
-    loss directly modulates the specific angular momentum assigned to the cooling gas.</description>
+   <description>
+   Class providing models of the fraction of angular momentum lost by gas as it falls from the hot halo onto the galaxy. Torques from the dark matter halo, the existing galaxy, and gas dynamical effects can cause infalling gas to lose angular momentum before it joins the disk, thereby producing a more compact disc than would result from purely angular-momentum-conserving infall. The returned fraction of angular momentum loss directly modulates the specific angular momentum assigned to the cooling gas.
+   </description>
    <default>fixed</default>
    <method name="fractionAngularMomentumLoss" >
-    <description>Return the fraction of specific angular momentum lost by infalling gas as it travels from the infall radius to the galaxy disk, where torques from the halo, galaxy, or gas dynamics reduce the angular momentum of the accreting gas.</description>
+    <description>
+    Return the fraction of specific angular momentum lost by infalling gas as it travels from the infall radius to the galaxy disk, where torques from the halo, galaxy, or gas dynamics reduce the angular momentum of the accreting gas.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

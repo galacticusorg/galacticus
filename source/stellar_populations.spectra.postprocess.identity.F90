@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of a spectrum postprocessor that does nothing.
   !!}
 
   !![
-  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorIdentity">
+  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorIdentity" docformat="rst">
    <description>
-    A stellar population postprocessing class which leaves the spectrum unchanged.
+   A stellar population postprocessing class which leaves the spectrum unchanged.
    </description>
   </stellarPopulationSpectraPostprocessor>
   !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorIdentity
-     !!{
+     !!{RST
      An identity spectrum postprocessor.
      !!}
      private
@@ -39,8 +39,8 @@
   end type stellarPopulationSpectraPostprocessorIdentity
 
   interface stellarPopulationSpectraPostprocessorIdentity
-     !!{
-     Constructors for the \refClass{stellarPopulationSpectraPostprocessorIdentity} stellar population spectra postprocessor class.
+     !!{RST
+     Constructors for the :galacticus-class:`stellarPopulationSpectraPostprocessorIdentity` stellar population spectra postprocessor class.
      !!}
      module procedure identityConstructorParameters
   end interface stellarPopulationSpectraPostprocessorIdentity
@@ -48,9 +48,8 @@
 contains
 
   function identityConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarPopulationSpectraPostprocessorIdentity} stellar population spectra postprocessor class which takes a
-    parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`stellarPopulationSpectraPostprocessorIdentity` stellar population spectra postprocessor class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +64,7 @@ contains
   end function identityConstructorParameters
 
   double precision function identityMultiplier(self,wavelength,age,redshift)
-    !!{
+    !!{RST
     Perform an identity postprocessing on a spectrum.
     !!}
     implicit none
@@ -78,7 +77,7 @@ contains
   end function identityMultiplier
 
   logical function identityIsRedshiftDependent(self) result(isRedshiftDependent)
-    !!{
+    !!{RST
     Return false indicating that the postprocessor is redshift independent.
     !!}
     implicit none

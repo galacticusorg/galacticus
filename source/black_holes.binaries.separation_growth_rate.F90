@@ -19,12 +19,12 @@
 
 !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-!!{
+!!{RST
 Contains a module which implements a class for calculations of black hole binary separation growth rate.
 !!}
 
 module Black_Hole_Binary_Separations
-  !!{
+  !!{RST
   Implements a class for calculations of black hole binary separation growth rate.
   !!}
   use :: Galacticus_Nodes, only : nodeComponentBlackHole
@@ -32,17 +32,17 @@ module Black_Hole_Binary_Separations
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>blackHoleBinarySeparationGrowthRate</name>
    <descriptiveName>Black Hole Binaries Separation Growth Rate</descriptiveName>
-   <description>Class providing models of the rate of change of the binary separation (in Mpc Gyr$^{-1}$)
-    for a black hole binary during its inspiral toward coalescence. After the initial dynamical friction
-    phase brings the two black holes close together, the hardening of the binary is driven by three-body
-    stellar scattering, viscous gas torques, or gravitational wave emission depending on the separation.
-    The separation growth rate (which is negative for inspiral) determines the merger timescale.</description>
+   <description>
+   Class providing models of the rate of change of the binary separation (in Mpc Gyr\ :math:`^{-1}`) for a black hole binary during its inspiral toward coalescence. After the initial dynamical friction phase brings the two black holes close together, the hardening of the binary is driven by three-body stellar scattering, viscous gas torques, or gravitational wave emission depending on the separation. The separation growth rate (which is negative for inspiral) determines the merger timescale.
+   </description>
    <default>zero</default>
    <method name="growthRate" >
-    <description>Computes the rate of growth of the separation of the given black hole and its binary companion in units of Mpc/Gyr.</description>
+    <description>
+    Computes the rate of growth of the separation of the given black hole and its binary companion in units of Mpc/Gyr.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(nodeComponentBlackHole), intent(inout) :: blackHole</argument>

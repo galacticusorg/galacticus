@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an identity output analysis property operator class.
 !!}
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorIdentity">
-   <description>Applies no transformation to a property value, passing it through unchanged; useful as a no-op placeholder in output analysis property operator pipelines or for testing purposes.</description>
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorIdentity" docformat="rst">
+   <description>
+   Applies no transformation to a property value, passing it through unchanged; useful as a no-op placeholder in output analysis property operator pipelines or for testing purposes.
+   </description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorIdentity
-     !!{
+     !!{RST
      An identity output property operator class.
      !!}
      private
@@ -36,8 +38,8 @@ Implements an identity output analysis property operator class.
   end type outputAnalysisPropertyOperatorIdentity
 
   interface outputAnalysisPropertyOperatorIdentity
-     !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorIdentity} output analysis property operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorIdentity` output analysis property operator class.
      !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisPropertyOperatorIdentity
@@ -45,8 +47,8 @@ Implements an identity output analysis property operator class.
 contains
 
   function identityConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisPropertyOperatorIdentity} output analysis property operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorIdentity` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function identityConstructorParameters
 
   double precision function identityOperate(self,propertyValue,node,propertyType,outputIndex)
-    !!{
+    !!{RST
     Implement an identity output analysis property operator.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an N-body halo mass ratio output analysis distribution operator class.
   !!}
   
@@ -25,12 +25,14 @@
   use :: Galactic_Filters                 , only : galacticFilterClass
 
   !![
-  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorMassRatioNBody">
-   <description>An output analysis distribution operator that convolves a property with random errors derived from the N-body halo mass ratio distribution, integrating over parent halo masses between \mono{massParentMinimum} and \mono{massParentMaximum} at time \mono{timeParent}.</description>
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorMassRatioNBody" docformat="rst">
+   <description>
+   An output analysis distribution operator that convolves a property with random errors derived from the N-body halo mass ratio distribution, integrating over parent halo masses between ``massParentMinimum`` and ``massParentMaximum`` at time ``timeParent``.
+   </description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorMassRatioNBody
-     !!{
+     !!{RST
      An N-body halo mass ratio output analysis distribution operator class.
      !!}
      private
@@ -52,9 +54,8 @@
 contains
 
   function massRatioNBodyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisDistributionOperatorMassRatioNBody} output analysis distribution operator class which takes a parameter
-    set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorMassRatioNBody` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,20 +67,26 @@ contains
          &                                                                               timeParent
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParentMinimum</name>
       <source>parameters</source>
-      <description>Minimum mass of the parent halo over which to integrate.</description>
+      <description>
+      Minimum mass of the parent halo over which to integrate.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParentMaximum</name>
       <source>parameters</source>
-      <description>Maximum mass of the parent halo over which to integrate.</description>
+      <description>
+      Maximum mass of the parent halo over which to integrate.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeParent</name>
       <source>parameters</source>
-      <description>The time at which the parent halo is defined.</description>
+      <description>
+      The time at which the parent halo is defined.
+      </description>
     </inputParameter>
     <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
     <objectBuilder class="galacticFilter"     name="galacticFilter_"     source="parameters"/>
@@ -93,8 +100,8 @@ contains
   end function massRatioNBodyConstructorParameters
 
   function massRatioNBodyConstructorInternal(massParentMinimum,massParentMaximum,timeParent,nbodyHaloMassError_,galacticFilter_) result (self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisDistributionOperatorMassRatioNBody} output analysis distribution operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorMassRatioNBody` output analysis distribution operator class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
@@ -112,8 +119,8 @@ contains
   end function massRatioNBodyConstructorInternal
 
   subroutine massRatioNBodyDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisDistributionOperatorMassRatioNBody} output analysis distribution operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisDistributionOperatorMassRatioNBody` output analysis distribution operator class.
     !!}
     type(outputAnalysisDistributionOperatorMassRatioNBody), intent(inout) :: self
 
@@ -125,7 +132,7 @@ contains
   end subroutine massRatioNBodyDestructor
 
   function massRatioNBodyOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !!{
+    !!{RST
     Implement an N-body mass ratio output analysis distribution operator.
     !!}
     use :: Arrays_Search          , only : searchArray
@@ -291,10 +298,8 @@ contains
   contains
 
     double precision function massRatioBivariateNormalIntegrand(massParentPrimed)
-      !!{
-      Integrand used in finding the weight given to a bin in the space of parent mass vs. progenitor mass ratio. This is just
-      the bivariate normal distribution of parent mass and mass ratio integrated over the required range of mass ratio. The
-      remaining integral over the parent mass must then be found numerically.
+      !!{RST
+      Integrand used in finding the weight given to a bin in the space of parent mass vs. progenitor mass ratio. This is just the bivariate normal distribution of parent mass and mass ratio integrated over the required range of mass ratio. The remaining integral over the parent mass must then be found numerically.
       !!}
       use :: Numerical_Constants_Math, only : Pi
       use :: Kind_Numbers            , only : kind_quad
@@ -322,7 +327,7 @@ contains
   end function massRatioNBodyOperateScalar
 
   function massRatioNBodyOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !!{
+    !!{RST
     Implement an N-body mass ratio output analysis distribution operator.
     !!}
     use :: Error, only : Error_Report

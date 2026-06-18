@@ -19,17 +19,19 @@
 
 !+    Contributions to this file made by: Niusha Ahvazi
 
-!!{
+!!{RST
 Contains a module which implements a selfInteracting dark matter particle class.
 !!}
 
   !![
-  <darkMatterParticle name="darkMatterParticleSelfInteractingDarkMatterConstant">
-   <description>Provides a selfInteracting dark matter particle.</description>
+  <darkMatterParticle name="darkMatterParticleSelfInteractingDarkMatterConstant" docformat="rst">
+   <description>
+   Provides a selfInteracting dark matter particle.
+   </description>
   </darkMatterParticle>
   !!]
   type, extends(darkMatterParticleSelfInteractingDarkMatter) :: darkMatterParticleSelfInteractingDarkMatterConstant
-     !!{
+     !!{RST
      A selfInteracting dark matter particle class.
      !!}
      private
@@ -37,11 +39,11 @@ Contains a module which implements a selfInteracting dark matter particle class.
      double precision                                   :: crossSectionSelfInteraction_
    contains
      !![
-     <methods>
-       <method method="crossSectionSelfInteraction"                 description="Return the self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                                    />
-       <method method="crossSectionSelfInteractionDifferential"     description="Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\Omega$, of the dark matter particle in units of cm$^2$ g$^{-1}$ ster$^{-1}$."/>
-       <method method="crossSectionSelfInteractionMomentumTransfer" description="Return the momentum transfer self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                  />
-       <method method="crossSectionSelfInteractionViscosity"        description="Return the viscosity self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                          />
+     <methods docformat="rst">
+       <method method="crossSectionSelfInteraction"                 description="Return the self-interaction cross section, :math:`\sigma`, of the dark matter particle in units of cm\ :math:`^2` g\ :math:`^{-1}`."                                                    />
+       <method method="crossSectionSelfInteractionDifferential"     description="Return the differential self-interaction cross section, :math:`\mathrm{d}\sigma/\mathrm{d}\Omega`, of the dark matter particle in units of cm\ :math:`^2` g\ :math:`^{-1}` ster\ :math:`^{-1}`."/>
+       <method method="crossSectionSelfInteractionMomentumTransfer" description="Return the momentum transfer self-interaction cross section, :math:`\sigma`, of the dark matter particle in units of cm\ :math:`^2` g\ :math:`^{-1}`."                                  />
+       <method method="crossSectionSelfInteractionViscosity"        description="Return the viscosity self-interaction cross section, :math:`\sigma`, of the dark matter particle in units of cm\ :math:`^2` g\ :math:`^{-1}`."                                          />
      </methods>
      !!]
      final     ::                                                sidmConstantDestructor
@@ -55,8 +57,8 @@ Contains a module which implements a selfInteracting dark matter particle class.
   end type darkMatterParticleSelfInteractingDarkMatterConstant
 
   interface darkMatterParticleSelfInteractingDarkMatterConstant
-     !!{
-     Constructors for the ``\mono{selfInteractingDarkMatter}'' dark matter particle class.
+     !!{RST
+     Constructors for the "``selfInteractingDarkMatter``" dark matter particle class.
      !!}
      module procedure sidmConstantConstructorParameters
      module procedure sidmConstantConstructorInternal
@@ -65,8 +67,8 @@ Contains a module which implements a selfInteracting dark matter particle class.
 contains
 
   function sidmConstantConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the ``\mono{selfInteractingDarkMatter}'' dark matter particle class which takes a parameter set as input.
+    !!{RST
+    Constructor for the "``selfInteractingDarkMatter``" dark matter particle class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,10 +78,12 @@ contains
     double precision                                                                     :: crossSectionSelfInteraction
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>crossSectionSelfInteraction</name>
       <source>parameters</source>
-      <description>The self-interaction cross section in units of cm$^2$ g$^{-1}$.</description>
+      <description>
+      The self-interaction cross section in units of cm\ :math:`^2` g\ :math:`^{-1}`.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterParticle" name="darkMatterParticle_" source="parameters"/>
     !!]
@@ -92,8 +96,8 @@ contains
   end function sidmConstantConstructorParameters
 
   function sidmConstantConstructorInternal(crossSectionSelfInteraction,darkMatterParticle_) result(self)
-    !!{
-    Internal constructor for the ``\mono{selfInteractingDarkMatter}'' dark matter particle class.
+    !!{RST
+    Internal constructor for the "``selfInteractingDarkMatter``" dark matter particle class.
     !!}
     implicit none
     type            (darkMatterParticleSelfInteractingDarkMatterConstant)                        :: self
@@ -108,8 +112,8 @@ contains
   end function sidmConstantConstructorInternal
 
   subroutine sidmConstantDestructor(self)
-    !!{
-    Destructor for the \mono{selfInteractingDarkMatter} dark matter particle class.
+    !!{RST
+    Destructor for the ``selfInteractingDarkMatter`` dark matter particle class.
     !!}
     implicit none
     type(darkMatterParticleSelfInteractingDarkMatterConstant), intent(inout) :: self
@@ -121,7 +125,7 @@ contains
   end subroutine sidmConstantDestructor
 
   double precision function sidmConstantMass(self)
-    !!{
+    !!{RST
     Return the mass, in units of keV, of a self-interacting dark matter particle.
     !!}
     implicit none
@@ -132,8 +136,8 @@ contains
   end function sidmConstantMass
 
   double precision function sidmConstantCrossSectionSelfInteraction(self,velocityRelative)
-    !!{
-    Return the self-interaction cross section, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
+    !!{RST
+    Return the self-interaction cross section, in units of cm\ :math:`^2` g\ :math:`^{-1}`, of a self-interacting dark matter particle.
     !!}
     implicit none
     class(darkMatterParticleSelfInteractingDarkMatterConstant), intent(inout) :: self
@@ -144,10 +148,8 @@ contains
   end function sidmConstantCrossSectionSelfInteraction
 
   double precision function sidmConstantCrossSectionEffective(self,velocityMaximum)
-    !!{
-    Return the effective self-interaction cross section, in units of cm$^2$ g$^{-1}$, of a
-    self-interacting dark matter particle. For this constant cross-section model, this is just
-    the usual cross-section.
+    !!{RST
+    Return the effective self-interaction cross section, in units of cm\ :math:`^2` g\ :math:`^{-1}`, of a self-interacting dark matter particle. For this constant cross-section model, this is just the usual cross-section.
     !!}
     implicit none
     class(darkMatterParticleSelfInteractingDarkMatterConstant), intent(inout) :: self
@@ -159,9 +161,8 @@ contains
   end function sidmConstantCrossSectionEffective
 
   double precision function sidmConstantCrossSectionSelfInteractionDifferential(self,theta,velocityRelative)
-    !!{
-    Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\theta$, in units of cm$^2$ g$^{-1}$
-    ster$^{-1}$, of a self-interacting dark matter particle.
+    !!{RST
+    Return the differential self-interaction cross section, :math:`\mathrm{d}\sigma/\mathrm{d}\theta`, in units of cm\ :math:`^2` g\ :math:`^{-1}` ster\ :math:`^{-1}`, of a self-interacting dark matter particle.
     !!}
     implicit none
     class           (darkMatterParticleSelfInteractingDarkMatterConstant), intent(inout) :: self
@@ -176,9 +177,8 @@ contains
   end function sidmConstantCrossSectionSelfInteractionDifferential
 
   double precision function sidmConstantCrossSectionSelfInteractionDifferentialCos(self,cosTheta,velocityRelative)
-    !!{
-    Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\cos\theta$, as a function of
-    $\cos\theta$, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
+    !!{RST
+    Return the differential self-interaction cross section, :math:`\mathrm{d}\sigma/\mathrm{d}\cos\theta`, as a function of :math:`\cos\theta`, in units of cm\ :math:`^2` g\ :math:`^{-1}`, of a self-interacting dark matter particle.
     !!}
     implicit none
     class(darkMatterParticleSelfInteractingDarkMatterConstant), intent(inout) :: self
@@ -191,8 +191,8 @@ contains
   end function sidmConstantCrossSectionSelfInteractionDifferentialCos
 
   double precision function sidmConstantCrossSectionMomentumTransfer(self,velocityRelative)
-    !!{
-    Return the momentum transfer self-interaction cross section, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
+    !!{RST
+    Return the momentum transfer self-interaction cross section, in units of cm\ :math:`^2` g\ :math:`^{-1}`, of a self-interacting dark matter particle.
     !!}
     implicit none
     class(darkMatterParticleSelfInteractingDarkMatterConstant), intent(inout) :: self
@@ -203,8 +203,8 @@ contains
   end function sidmConstantCrossSectionMomentumTransfer
 
   double precision function sidmConstantCrossSectionViscosity(self,velocityRelative)
-    !!{
-    Return the viscosity self-interaction cross section, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
+    !!{RST
+    Return the viscosity self-interaction cross section, in units of cm\ :math:`^2` g\ :math:`^{-1}`, of a self-interacting dark matter particle.
     !!}
     implicit none
     class(darkMatterParticleSelfInteractingDarkMatterConstant), intent(inout) :: self

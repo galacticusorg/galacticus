@@ -19,7 +19,7 @@
 
   !+    Contributions to this file made by: Sachi Weerasooriya, Andrew Benson
 
-  !!{
+  !!{RST
   Implements an emission line luminosity for AGN node property extractor class.
   !!}
 
@@ -30,17 +30,15 @@
   use :: Accretion_Disks                     , only : accretionDisksClass
   use :: Atomic_Rates_Recombination_Radiative, only : atomicRecombinationRateRadiativeClass
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLineAGN">
+  <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLineAGN" docformat="rst">
     <description>
-      An emission line luminosity property extractor class for AGN narrow line regions. The luminosity of the named emission lines
-      (given by the \mono{lineNames} parameter are computed, largely following the model of
-      \cite{feltre_nuclear_2016}.
+    An emission line luminosity property extractor class for AGN narrow line regions. The luminosity of the named emission lines (given by the ``lineNames`` parameter) are computed, largely following the model of :cite:t:`feltre_nuclear_2016`.
     </description>
     <runTimeFileDependencies paths="cloudyTableFileName"/>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorLmnstyEmssnLineAGN
-     !!{
+     !!{RST
      A stellar luminosity output analysis property extractor class.
      !!}
      private
@@ -73,8 +71,8 @@
   end type nodePropertyExtractorLmnstyEmssnLineAGN
 
   interface nodePropertyExtractorLmnstyEmssnLineAGN
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLineAGN` property extractor class.
      !!}
      module procedure lmnstyEmssnLineAGNConstructorParameters
      module procedure lmnstyEmssnLineAGNConstructorInternal
@@ -82,9 +80,11 @@
 
   ! Enumeration for interpolants in the AGN emission line table.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>interpolants</name>
-   <description>Specifies the different interpolants for AGN emission line calculations.</description>
+   <description>
+   Specifies the different interpolants for AGN emission line calculations.
+   </description>
    <indexing>1</indexing>
    <entry label="density"            />
    <entry label="ionizationParameter"/>
@@ -94,8 +94,8 @@
   !!]
 contains
   function lmnstyEmssnLineAGNConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLineAGN` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -112,40 +112,52 @@ contains
 
     allocate(lineNames(parameters%count('lineNames')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>cloudyTableFileName</name>
       <defaultValue>var_str('%DATASTATICPATH%/hiiRegions/emissionLineLuminosities_AGN.hdf5')</defaultValue>
       <source>parameters</source>
-      <description>The file of emission line luminosities to use.</description>
+      <description>
+      The file of emission line luminosities to use.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lineNames</name>
       <source>parameters</source>
-      <description>The names of the emission lines to extract.</description>
+      <description>
+      The names of the emission lines to extract.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>indexSpectralShortWavelength</name>
       <defaultValue>-1.7d0</defaultValue>
       <source>parameters</source>
-      <description>The index, $\alpha$, of the power-law spectrum at wavelengths shortward of 0.25$\mu$m: $S_\nu \propto \nu^\alpha$ \citep{feltre_nuclear_2016}.</description>
+      <description>
+      The index, :math:`\alpha`, of the power-law spectrum at wavelengths shortward of 0.25\ :math:`\mu`\ m: :math:`S_\nu \propto \nu^\alpha` :cite:p:`feltre_nuclear_2016`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorFillingVolume</name>
       <defaultValue>0.01d0</defaultValue>
       <source>parameters</source>
-      <description>The volume-filling factor, i.e. the ratio of the volume-averaged hydrogen density to the hydrogen density.</description>
+      <description>
+      The volume-filling factor, i.e. the ratio of the volume-averaged hydrogen density to the hydrogen density.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityHydrogen</name>
       <defaultValue>1.0d3</defaultValue>
       <source>parameters</source>
-      <description>Density of hydrogen in narrow line region clouds in units of cm$^{-3}$.</description>
+      <description>
+      Density of hydrogen in narrow line region clouds in units of cm\ :math:`^{-3}`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>temperature</name>
       <defaultValue>1.0d4</defaultValue>
       <source>parameters</source>
-      <description>Temperature of narrow line region clouds in units of K.</description>
+      <description>
+      Temperature of narrow line region clouds in units of K.
+      </description>
     </inputParameter>
     <objectBuilder class="accretionDisks"                   name="accretionDisks_"                   source="parameters"/>
     <objectBuilder class="blackHoleAccretionRate"           name="blackHoleAccretionRate_"           source="parameters"/>
@@ -164,8 +176,8 @@ contains
   end function lmnstyEmssnLineAGNConstructorParameters
 
   function lmnstyEmssnLineAGNConstructorInternal(cloudyTableFileName,accretionDisks_,blackHoleAccretionRate_,outputTimes_,atomicRecombinationRateRadiative_,lineNames,indexSpectralShortWavelength,factorFillingVolume,densityHydrogen_,temperature,outputMask) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLineAGN` property extractor class.
     !!}
     use            :: Error                         , only : Error_Report
     use            :: Input_Paths                   , only : inputPath             , pathTypeDataStatic
@@ -284,8 +296,8 @@ contains
   end function lmnstyEmssnLineAGNConstructorInternal
 
   subroutine lmnstyEmssnLineAGNDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorLmnstyEmssnLineAGN} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorLmnstyEmssnLineAGN` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout) :: self
@@ -300,7 +312,7 @@ contains
   end subroutine lmnstyEmssnLineAGNDestructor
 
   function lmnstyEmssnLineAGNExtract(self,node,time,instance)
-    !!{
+    !!{RST
     Implement an emission line output analysis property extractor.
     !!}
     use            :: Atomic_Rates_Recombination_Radiative, only : recombinationCaseB
@@ -515,8 +527,8 @@ contains
   end function lmnstyEmssnLineAGNExtract
 
   integer function lmnstyEmssnLineAGNElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{lmnstyEmssnLineAGN} property extractor.
+    !!{RST
+    Return the number of elements in the ``lmnstyEmssnLineAGN`` property extractor.
     !!}
     implicit none
     class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout) :: self
@@ -528,8 +540,8 @@ contains
   end function lmnstyEmssnLineAGNElementCount
 
   subroutine lmnstyEmssnLineAGNNames(self,time,names)
-    !!{
-    Return the names of the \mono{emissionLines}.
+    !!{RST
+    Return the names of the ``emissionLines``.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
@@ -544,8 +556,8 @@ contains
   end subroutine lmnstyEmssnLineAGNNames
 
   subroutine lmnstyEmssnLineAGNDescriptions(self,time,descriptions)
-    !!{
-    Return descriptions of the \mono{emission line luminosity} property.
+    !!{RST
+    Return descriptions of the ``emission line luminosity`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorLmnstyEmssnLineAGN), intent(inout)                             :: self
@@ -559,8 +571,8 @@ contains
   end subroutine lmnstyEmssnLineAGNDescriptions
 
   function lmnstyEmssnLineAGNUnitsInSI(self,time) result(unitsInSI)
-    !!{
-    Return the units of the \mono{lmnstyEmssnLineAGN} properties in the SI system.
+    !!{RST
+    Return the units of the ``lmnstyEmssnLineAGN`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Units, only : ergs
     implicit none
@@ -575,7 +587,7 @@ contains
   end function lmnstyEmssnLineAGNUnitsInSI
  
   subroutine lmnstyEmssnLineAGNMetaData(self,node,indexProperty,metaDataRank0,metaDataRank1)
-    !!{
+    !!{RST
     Interface for tuple property meta-data.
     !!}
     implicit none
@@ -591,7 +603,7 @@ contains
   end subroutine lmnstyEmssnLineAGNMetaData
 
   function lmnstyEmssnLineAGNUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the lmnstyEmssnLineAGN properties.
     !!}
     use :: Units_MetaData, only : unitType

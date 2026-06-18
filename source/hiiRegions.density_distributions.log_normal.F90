@@ -19,24 +19,25 @@
 
 !+    Contributions to this file made by: Sachi Weerasooriya
 
-  !!{
+  !!{RST
   Implementation of a class for the distribution of hydrogen density in a HII region which assumes a log-normal distribution.
   !!}
 
   use :: Statistics_Distributions, only : distributionFunction1DLogNormal
 
   !![
-  <hiiRegionDensityDistribution name="hiiRegionDensityDistributionLogNormal">
+  <hiiRegionDensityDistribution name="hiiRegionDensityDistributionLogNormal" docformat="rst">
    <description>
-    A class for the  distribution of hydrogen density in a HII region in which the distribution is a lognormal, specifically:
-    \begin{equation}
-     p(n_\mathrm{H}) = \left\{ \begin{array}{ll} \frac{1}{\sqrt{2\pi} n_\mathrm{H} \sigma} \exp\left(-\frac{1}{2}\left[\frac{\log(n_\mathrm{H})-\log(n_\mathrm{H,0})}{\sigma}\right]^2\right) &amp; \hbox{ if } n_\mathrm{H,min} &lt; n_\mathrm{H} &lt; n_\mathrm{H,max}, \\ 0 &amp; \hbox{ otherwise.} \end{array} \right.
-    \end{equation} 
+   A class for the  distribution of hydrogen density in a HII region in which the distribution is a lognormal, specifically:
+
+   .. math::
+
+      p(n_\mathrm{H}) = \left\{ \begin{array}{ll} \frac{1}{\sqrt{2\pi} n_\mathrm{H} \sigma} \exp\left(-\frac{1}{2}\left[\frac{\log(n_\mathrm{H})-\log(n_\mathrm{H,0})}{\sigma}\right]^2\right) &amp; \hbox{ if } n_\mathrm{H,min} &lt; n_\mathrm{H} &lt; n_\mathrm{H,max}, \\ 0 &amp; \hbox{ otherwise.} \end{array} \right.
    </description>
   </hiiRegionDensityDistribution>
   !!]
   type, extends(hiiRegionDensityDistributionClass) :: hiiRegionDensityDistributionLogNormal
-     !!{
+     !!{RST
      A class for the  distribution of hydrogen density in a HII region in which the distribution is a lognormal.
      !!}
      private
@@ -49,8 +50,8 @@
   end type hiiRegionDensityDistributionLogNormal
 
   interface hiiRegionDensityDistributionLogNormal
-     !!{
-     Constructors for the \refClass{hiiRegionDensityDistributionLogNormal} HII region density distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`hiiRegionDensityDistributionLogNormal` HII region density distribution class.
      !!}
      module procedure logNormalConstructorParameters
      module procedure logNormalConstructorInternal
@@ -59,7 +60,7 @@
 contains
 
   function logNormalConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the hiiRegionDensityDistributionLogNormal class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -69,32 +70,48 @@ contains
     double precision                                                       :: densityHydrogenMinimum  , densityHydrogenMaximum, &
          &                                                                    densityHydrogenReference, sigma    
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityHydrogenReference</name>
       <defaultValue>250.0d0</defaultValue>
-      <defaultSource>Fit to FIRE II data from \cite{yang_efficient_2023}, provided by S. Yang (private communication).</defaultSource>
-      <description>The parameter $n_\mathrm{H,0}$ in the log normal distribution of HII region densities.</description>
+      <defaultSource>
+      Fit to FIRE II data from :cite:t:`yang_efficient_2023`, provided by S. Yang (private communication).
+      </defaultSource>
+      <description>
+      The parameter :math:`n_\mathrm{H,0}` in the log normal distribution of HII region densities.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sigma</name>
       <defaultValue>1.8d0</defaultValue>
-      <defaultSource>Fit to FIRE II data from \cite{yang_efficient_2023}, provided by S. Yang (private communication).</defaultSource>
-      <description>The parameter $\sigma$ in the log normal distribution of HII region densities.</description>
+      <defaultSource>
+      Fit to FIRE II data from :cite:t:`yang_efficient_2023`, provided by S. Yang (private communication).
+      </defaultSource>
+      <description>
+      The parameter :math:`\sigma` in the log normal distribution of HII region densities.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityHydrogenMinimum</name>
       <defaultValue>1.0d1</defaultValue>
-      <defaultSource>Fit to FIRE II data from \cite{yang_efficient_2023}, provided by S. Yang (private communication).</defaultSource>
-      <description>Minimum value of hydrogen density in HII regions.</description>
+      <defaultSource>
+      Fit to FIRE II data from :cite:t:`yang_efficient_2023`, provided by S. Yang (private communication).
+      </defaultSource>
+      <description>
+      Minimum value of hydrogen density in HII regions.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityHydrogenMaximum</name>
       <defaultValue>1.0d5</defaultValue>
-      <defaultSource>Fit to FIRE II data from \cite{yang_efficient_2023}, provided by S. Yang (private communication).</defaultSource>
-      <description>Maximum value of hydrogen density in HII regions.</description>
+      <defaultSource>
+      Fit to FIRE II data from :cite:t:`yang_efficient_2023`, provided by S. Yang (private communication).
+      </defaultSource>
+      <description>
+      Maximum value of hydrogen density in HII regions.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -106,8 +123,8 @@ contains
   end function logNormalConstructorParameters
 
   function logNormalConstructorInternal(densityHydrogenReference,sigma,densityHydrogenMinimum,densityHydrogenMaximum) result(self)
-    !!{
-    Internal constructor for the \refClass{hiiRegionDensityDistributionLogNormal} HII region density distribution class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`hiiRegionDensityDistributionLogNormal` HII region density distribution class.
     !!}
     implicit none
     type            (hiiRegionDensityDistributionLogNormal)                :: self
@@ -122,7 +139,7 @@ contains
   end function logNormalConstructorInternal
 
   double precision function lognormalCumulativeDensityDistribution(self,densityHydrogenMinimum,densityHydrogenMaximum) result(weightDensityHydrogen)
-    !!{
+    !!{RST
     Compute the cumulative distribution function of the hydrogen density in HII regions for a log-normal distribution.
     !!}
     implicit none

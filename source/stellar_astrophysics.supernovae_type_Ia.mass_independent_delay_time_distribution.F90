@@ -17,25 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a supernovae type Ia class for delay time distributions that are independent of progenitor mass.
   !!}
   
   !![
-  <supernovaeTypeIa name="supernovaeTypeIaMassIndependentDTD" abstract="yes">
+  <supernovaeTypeIa name="supernovaeTypeIaMassIndependentDTD" abstract="yes" docformat="rst">
    <description>
-    A supernovae type Ia class for delay time distributions that are independent of progenitor mass.
+   A supernovae type Ia class for delay time distributions that are independent of progenitor mass.
    </description>
   </supernovaeTypeIa>
   !!]
   type, abstract, extends(supernovaeTypeIaFixedYield) :: supernovaeTypeIaMassIndependentDTD
-     !!{
+     !!{RST
      A supernovae type Ia class for delay time distributions that are independent of progenitor mass.
      !!}
      private
    contains    
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="numberCumulative" description="Return the cumulative number of type Ia supernovae per Solar mass of stars formed at a given population age and metallicity."/>
      </methods>
      !!]
@@ -46,7 +46,7 @@
 
   abstract interface
      double precision function numberCumulativeTemplate(self,age,metallicity)
-       !!{
+       !!{RST
        Interface for cumulative number of Type Ia SNe.
        !!}
        import supernovaeTypeIaMassIndependentDTD
@@ -58,7 +58,7 @@
 contains
 
   subroutine massIndependentDTDMassInitialRange(self,initialMassFunction_,age,metallicity,massInitialMinimum,massInitialMaximum)
-    !!{
+    !!{RST
     Return the range of initial stellar masses contributing to the Type Ia population.
     !!}
     implicit none
@@ -74,10 +74,8 @@ contains
   end subroutine massIndependentDTDMassInitialRange
   
   double precision function massIndependentDTDNumber(self,initialMassFunction_,initialMass,age,metallicity) result(number)
-    !!{
-    Compute the cumulative number of Type Ia supernovae originating per unit interval of secondary star mass with given
-    \mono{initialMass} and \mono{metallicity} after a time \mono{age}. Here we
-    assume that the total number of Type Ias is specified independent of secondary star mass.
+    !!{RST
+    Compute the cumulative number of Type Ia supernovae originating per unit interval of secondary star mass with given ``initialMass`` and ``metallicity`` after a time ``age``. Here we assume that the total number of Type Ias is specified independent of secondary star mass.
     !!}
     implicit none
     class           (supernovaeTypeIaMassIndependentDTD), intent(inout), target :: self

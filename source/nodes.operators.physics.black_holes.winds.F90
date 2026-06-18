@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that implements winds driven by accretion onto black holes.
   !!}
 
   use :: Black_Hole_Winds, only : blackHoleWindClass
 
   !![
-  <nodeOperator name="nodeOperatorBlackHolesWinds">
-   <description>Computes AGN-driven winds from accreting black holes, coupling the wind mechanical power to the surrounding gas and halo, providing a feedback mechanism that quenches star formation and expels gas from massive galaxies.</description>
+  <nodeOperator name="nodeOperatorBlackHolesWinds" docformat="rst">
+   <description>
+   Computes AGN-driven winds from accreting black holes, coupling the wind mechanical power to the surrounding gas and halo, providing a feedback mechanism that quenches star formation and expels gas from massive galaxies.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorBlackHolesWinds
-     !!{
+     !!{RST
      A node operator class that implements winds driven by accretion onto black holes.
      !!}
      private
@@ -40,8 +42,8 @@
   end type nodeOperatorBlackHolesWinds
   
   interface nodeOperatorBlackHolesWinds
-     !!{
-     Constructors for the \refClass{nodeOperatorBlackHolesWinds} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorBlackHolesWinds` node operator class.
      !!}
      module procedure blackHolesWindsConstructorParameters
      module procedure blackHolesWindsConstructorInternal
@@ -50,8 +52,8 @@
 contains
 
   function blackHolesWindsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorBlackHolesWinds} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorBlackHolesWinds` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,8 +73,8 @@ contains
   end function blackHolesWindsConstructorParameters
 
   function blackHolesWindsConstructorInternal(blackHoleWind_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorBlackHolesWinds} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorBlackHolesWinds` node operator class.
     !!}
     implicit none
     type (nodeOperatorBlackHolesWinds)                        :: self
@@ -85,8 +87,8 @@ contains
   end function blackHolesWindsConstructorInternal
 
   subroutine blackHolesWindsDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorBlackHolesWinds} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorBlackHolesWinds` node operator class.
     !!}
     implicit none
     type(nodeOperatorBlackHolesWinds), intent(inout) :: self
@@ -98,7 +100,7 @@ contains
   end subroutine blackHolesWindsDestructor
 
   subroutine blackHolesWindsDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Account for winds driven by accretion onto black holes.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, nodeComponentSpheroid

@@ -17,28 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger mass movements class which uses a simple calculation.
   !!}
 
   use :: Kind_Numbers, only : kind_int8
 
   !![
-  <mergerMassMovements name="mergerMassMovementsSimple">
+  <mergerMassMovements name="mergerMassMovementsSimple" docformat="rst">
    <description>
-    A merger mass movements class which implements mass movements according to:
-    \begin{itemize}
-     \item If $M_\mathrm{satellite} &gt; f_\mathrm{major} M_\mathrm{central}$ then all mass from both satellite and central
-     galaxies moves to the spheroid \gls{component} of the central galaxy;
-     \item Otherwise: Gas from the satellite moves to the \gls{component} of the central specified by the \mono{[minorMergerGasMovesTo]} parameter (either ``\mono{disk}'' or ``\mono{spheroid}''), stars from the satellite moves to the spheroid of the central and mass in the central does not move.
-    \end{itemize}
-    Here, $f_\mathrm{major}=$\mono{[majorMergerMassRatio]} is the mass ratio above which a merger is
-    considered to be ``major''.
+   A merger mass movements class which implements mass movements according to:
+
+   * If :math:`M_\mathrm{satellite} &gt; f_\mathrm{major} M_\mathrm{central}` then all mass from both satellite and central galaxies moves to the spheroid :term:`component` of the central galaxy;
+   * Otherwise: Gas from the satellite moves to the :term:`component` of the central specified by the ``[minorMergerGasMovesTo]`` parameter (either "``disk``" or "``spheroid``"), stars from the satellite moves to the spheroid of the central and mass in the central does not move.
+
+   Here, :math:`f_\mathrm{major}=`\ ``[majorMergerMassRatio]`` is the mass ratio above which a merger is considered to be "major".
    </description>
   </mergerMassMovements>
   !!]
   type, extends(mergerMassMovementsClass) :: mergerMassMovementsSimple
-     !!{
+     !!{RST
      A merger mass movements class which uses a simple calculation.
      !!}
      private
@@ -55,8 +53,8 @@
   end type mergerMassMovementsSimple
 
   interface mergerMassMovementsSimple
-     !!{
-     Constructors for the \refClass{mergerMassMovementsSimple} merger mass movements class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerMassMovementsSimple` merger mass movements class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -65,8 +63,8 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerMassMovementsSimple} merger mass movements class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerMassMovementsSimple` merger mass movements class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,22 +74,28 @@ contains
     type            (varying_string           )                :: destinationGasMinorMerger, destinationStarsMinorMerger
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massRatioMajorMerger</name>
       <defaultValue>0.25d0</defaultValue>
-      <description>The mass ratio above which mergers are considered to be ``major''.</description>
+      <description>
+      The mass ratio above which mergers are considered to be "major".
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>destinationGasMinorMerger</name>
       <defaultValue>var_str('spheroid')</defaultValue>
-      <description>The component to which satellite galaxy gas moves to as a result of a minor merger.</description>
+      <description>
+      The component to which satellite galaxy gas moves to as a result of a minor merger.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>destinationStarsMinorMerger</name>
       <defaultValue>var_str('spheroid')</defaultValue>
-      <description>The component to which satellite galaxy stars move to as a result of a minor merger.</description>
+      <description>
+      The component to which satellite galaxy stars move to as a result of a minor merger.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -103,8 +107,8 @@ contains
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(massRatioMajorMerger,destinationGasMinorMerger,destinationStarsMinorMerger) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerMassMovementsSimple} merger mass movements class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerMassMovementsSimple` merger mass movements class.
     !!}
     implicit none
     type            (mergerMassMovementsSimple       )                        :: self
@@ -125,7 +129,7 @@ contains
   end function simpleConstructorInternal
 
   subroutine simpleAutoHook(self)
-    !!{
+    !!{RST
     Attach to the calculation reset event.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels, satelliteMergerEvent
@@ -138,8 +142,8 @@ contains
   end subroutine simpleAutoHook
 
   subroutine simpleDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerMassMovementsSimple} merger mass movements class
+    !!{RST
+    Destructor for the :galacticus-class:`mergerMassMovementsSimple` merger mass movements class
     !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none
@@ -151,7 +155,7 @@ contains
   end subroutine simpleDestructor
 
   subroutine simpleCalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the dark matter profile calculation.
     !!}
     use :: Error       , only : Error_Report
@@ -173,7 +177,7 @@ contains
   end subroutine simpleCalculationReset
 
   subroutine simpleGetHook(self,node)
-    !!{
+    !!{RST
     Hookable wrapper around the get function.
     !!}
     use :: Error, only : Error_Report
@@ -194,7 +198,7 @@ contains
   end subroutine simpleGetHook
 
   subroutine simpleGet(self,node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
-    !!{
+    !!{RST
     Determine where stars and gas move as the result of a merger event using a simple algorithm.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk    , componentTypeSpheroid, massTypeGalactic

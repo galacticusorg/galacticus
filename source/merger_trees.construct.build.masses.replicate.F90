@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a merger tree masses class which replicates masses from another class a specified number of times.
   !!}
 
   !![
-  <mergerTreeBuildMasses name="mergerTreeBuildMassesReplicate">
-   <description>A merger tree masses class which replicates the halo mass list from a delegate class a specified number of times, effectively increasing statistical sampling of the halo population. The number of replications is controlled by the \mono{[replicationCount]} parameter, multiplying the effective tree count for improved sampling statistics.</description>
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesReplicate" docformat="rst">
+   <description>
+   A merger tree masses class which replicates the halo mass list from a delegate class a specified number of times, effectively increasing statistical sampling of the halo population. The number of replications is controlled by the ``[replicationCount]`` parameter, multiplying the effective tree count for improved sampling statistics.
+   </description>
   </mergerTreeBuildMasses>
   !!]
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesReplicate
-     !!{
+     !!{RST
      Implementation of a merger tree masses class which replicates masses from another class a specified number of times.
      !!}
      private
@@ -46,9 +48,8 @@
 contains
 
   function replicateConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildMassesReplicate} merger tree masses class which takes a parameter set
-    as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeBuildMassesReplicate` merger tree masses class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -58,10 +59,12 @@ contains
     integer(c_size_t                      )                :: replicationCount
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>replicationCount</name>
       <source>parameters</source>
-      <description>The number of times to replicate each halo mass.</description>
+      <description>
+      The number of times to replicate each halo mass.
+      </description>
     </inputParameter>
     <objectBuilder class="mergerTreeBuildMasses" name="mergerTreeBuildMasses_" source="parameters"/>
     !!]
@@ -74,8 +77,8 @@ contains
   end function replicateConstructorParameters
 
   function replicateConstructorInternal(replicationCount,mergerTreeBuildMasses_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildMassesReplicate} merger tree masses class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeBuildMassesReplicate` merger tree masses class.
     !!}
     implicit none
     type   (mergerTreeBuildMassesReplicate)                        :: self
@@ -89,7 +92,7 @@ contains
   end function replicateConstructorInternal
 
   subroutine replicateDestructor(self)
-    !!{
+    !!{RST
     Destructor for the merger tree mergerTreeBuildMasses function class.
     !!}
     implicit none
@@ -102,7 +105,7 @@ contains
   end subroutine replicateDestructor
 
   subroutine replicateConstruct(self,time,mass,massMinimum,massMaximum,weight)
-    !!{
+    !!{RST
     Construct a set of merger tree masses by sampling from a distribution.
     !!}
     use            :: Error        , only : Error_Report

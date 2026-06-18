@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which provides various interfaces to the FSPS code \citep{conroy_propagation_2009}.
+!!{RST
+Contains a module which provides various interfaces to the FSPS code :cite:p:`conroy_propagation_2009`.
 !!}
 
 module Interfaces_FSPS
-  !!{
-  Provides various interfaces to the FSPS code \citep{conroy_propagation_2009}.
+  !!{RST
+  Provides various interfaces to the FSPS code :cite:p:`conroy_propagation_2009`.
   !!}
   use :: File_Utilities, only : lockDescriptor
   private
@@ -38,7 +38,7 @@ module Interfaces_FSPS
 contains
 
   subroutine Interface_FSPS_Version(fspsVersion)
-    !!{
+    !!{RST
     Set the version of FSPS being used.
     !!}
     use :: Dependencies      , only : dependencyVersion
@@ -51,7 +51,7 @@ contains
   end subroutine Interface_FSPS_Version
   
   subroutine Interface_FSPS_Initialize(fspsPath,fspsVersion,static)
-    !!{
+    !!{RST
     Initialize the interface with FSPS, including downloading and compiling FSPS if necessary.
     !!}
     use :: Display           , only : displayMessage   , verbosityLevelWorking
@@ -155,8 +155,8 @@ contains
   end subroutine Interface_FSPS_Initialize
 
   subroutine Interface_FSPS_SSPs_Tabulate(imf,imfName,fileFormat,spectraFileName)
-    !!{
-    Tabulate simple stellar populations for the given \gls{imf} using FSPS.
+    !!{RST
+    Tabulate simple stellar populations for the given :term:`IMF` using FSPS.
     !!}
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time
     use :: File_Utilities                  , only : Directory_Make         , File_Exists    , File_Name_Temporary, File_Path, &

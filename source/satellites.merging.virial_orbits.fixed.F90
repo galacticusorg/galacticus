@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of virial orbits which assumes fixed orbital parameters.
   !!}
 
@@ -28,14 +28,14 @@
   use :: Virial_Density_Contrast , only : virialDensityContrastClass
 
   !![
-  <virialOrbit name="virialOrbitFixed">
+  <virialOrbit name="virialOrbitFixed" docformat="rst">
    <description>
-    A virial orbit class that assigns all satellite infall orbits a single fixed set of orbital parameters, with radial velocity $v_\mathrm{r}=$\mono{[velocityRadial]}$V_\mathrm{virial}$ and tangential velocity $v_\phi=$\mono{[velocityTangential]}$V_\mathrm{virial}$ in units of the host halo virial velocity. Default values match the approximate peak in the distribution of \cite{benson_orbital_2005}.
+   A virial orbit class that assigns all satellite infall orbits a single fixed set of orbital parameters, with radial velocity :math:`v_\mathrm{r}=`\ ``[velocityRadial]``\ :math:`V_\mathrm{virial}` and tangential velocity :math:`v_\phi=`\ ``[velocityTangential]``\ :math:`V_\mathrm{virial}` in units of the host halo virial velocity. Default values match the approximate peak in the distribution of :cite:t:`benson_orbital_2005`.
    </description>
   </virialOrbit>
   !!]
   type, extends(virialOrbitClass) :: virialOrbitFixed
-     !!{
+     !!{RST
      A virial orbit class that assumes fixed orbital parameters.
      !!}
      private
@@ -58,8 +58,8 @@
   end type virialOrbitFixed
 
   interface virialOrbitFixed
-     !!{
-     Constructors for the \refClass{virialOrbitFixed} virial orbits class.
+     !!{RST
+     Constructors for the :galacticus-class:`virialOrbitFixed` virial orbits class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -68,8 +68,8 @@
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{virialOrbitFixed} virial orbits class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`virialOrbitFixed` virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -83,17 +83,21 @@ contains
     double precision                                            :: velocityRadial        , velocityTangential
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityRadial</name>
       <defaultValue>-0.90d0</defaultValue>
       <source>parameters</source>
-      <description>The radial velocity (in units of the host virial velocity) to used for the fixed virial orbits distribution. Default value matches approximate peak in the distribution of \cite{benson_orbital_2005}.</description>
+      <description>
+      The radial velocity (in units of the host virial velocity) to used for the fixed virial orbits distribution. Default value matches approximate peak in the distribution of :cite:t:`benson_orbital_2005`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityTangential</name>
       <defaultValue>0.75d0</defaultValue>
       <source>parameters</source>
-      <description>The tangential velocity (in units of the host virial velocity) to used for the fixed virial orbits distribution. Default value matches approximate peak in the distribution of \cite{benson_orbital_2005}.</description>
+      <description>
+      The tangential velocity (in units of the host virial velocity) to used for the fixed virial orbits distribution. Default value matches approximate peak in the distribution of :cite:t:`benson_orbital_2005`.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"                                                />
@@ -116,8 +120,8 @@ contains
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(velocityRadial,velocityTangential,virialDensityContrastDefinition_,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{virialOrbitFixed} virial orbits class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`virialOrbitFixed` virial orbits class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -137,8 +141,8 @@ contains
   end function fixedConstructorInternal
 
   subroutine fixedDestructor(self)
-    !!{
-    Destructor for the \refClass{virialOrbitFixed} virial orbits class.
+    !!{RST
+    Destructor for the :galacticus-class:`virialOrbitFixed` virial orbits class.
     !!}
     implicit none
     type(virialOrbitFixed), intent(inout) :: self
@@ -155,7 +159,7 @@ contains
   end subroutine fixedDestructor
 
   function fixedOrbit(self,node,host,acceptUnboundOrbits)
-    !!{
+    !!{RST
     Return fixed orbital parameters for a satellite.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -233,7 +237,7 @@ contains
   end function fixedOrbit
 
   function fixedDensityContrastDefinition(self)
-    !!{
+    !!{RST
     Return a virial density contrast object defining that used in the definition of fixed virial orbits.
     !!}
     implicit none
@@ -245,7 +249,7 @@ contains
   end function fixedDensityContrastDefinition
 
   double precision function fixedVelocityTangentialMagnitudeMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean magnitude of the tangential velocity.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -275,7 +279,7 @@ contains
   end function fixedVelocityTangentialMagnitudeMean
 
   function fixedVelocityTangentialVectorMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean of the vector tangential velocity.
     !!}
     use :: Error, only : Error_Report
@@ -291,7 +295,7 @@ contains
   end function fixedVelocityTangentialVectorMean
 
   double precision function fixedAngularMomentumMagnitudeMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean magnitude of the angular momentum.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -326,7 +330,7 @@ contains
   end function fixedAngularMomentumMagnitudeMean
 
   function fixedAngularMomentumVectorMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean of the vector angular momentum.
     !!}
     use :: Error, only : Error_Report
@@ -342,7 +346,7 @@ contains
   end function fixedAngularMomentumVectorMean
 
   double precision function fixedVelocityTotalRootMeanSquared(self,node,host)
-    !!{
+    !!{RST
     Return the root mean squared of the total velocity.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -375,7 +379,7 @@ contains
   end function fixedVelocityTotalRootMeanSquared
 
   double precision function fixedEnergyMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean energy of the orbits.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition

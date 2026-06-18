@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which executes system commands.
 !!}
 
 module System_Command
-  !!{
+  !!{RST
   Executes system commands.
   !!}
   implicit none
@@ -37,8 +37,8 @@ module System_Command
 contains
 
   subroutine System_Command_VarStr(command,iStatus)
-    !!{
-    Executes the system command \mono{command}, optionally returning the resulting status in \mono{iStatus}.
+    !!{RST
+    Executes the system command ``command``, optionally returning the resulting status in ``iStatus``.
     !!}
     use :: ISO_Varying_String, only : char, varying_string
     implicit none
@@ -50,8 +50,8 @@ contains
   end subroutine System_Command_VarStr
 
   subroutine System_Command_Char(command,iStatus)
-    !!{
-    Executes the system command \mono{command}, optionally returning the resulting status in \mono{iStatus}.
+    !!{RST
+    Executes the system command ``command``, optionally returning the resulting status in ``iStatus``.
     !!}
     use :: Error, only : Error_Report
     implicit none

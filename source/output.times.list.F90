@@ -20,25 +20,23 @@
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <outputTimes name="outputTimesList">
-    <description>      
-      An output times class which simply reads a list of output times specified via parameters. Times can be given as a
-      (space-separated) list of actual cosmic times (in Gyr) via the \mono{[times]} parameter, or as a
-      (space-separated) list of redshifts via the \mono{[redshifts]} parameter, or by a combination of the
-      two. The \mono{[times]} parameter allows negative values which are interpreted as lookback times. For
-      example, in a cosmological model where the universe is currently 13.8~Gyr old the following:
-      \begin{verbatim}
-      &lt;outputTimes value="list"&gt;
-	&lt;redshifts value=" 0.0"/&gt;
-	&lt;times     value="-1.0"/&gt;
-      &lt;/outtputTimes&gt;
-      \end{verbatim}
-      will result in output at 12.8 and 13.8~Gyr.
+  <outputTimes name="outputTimesList" docformat="rst">
+    <description>
+    An output times class which simply reads a list of output times specified via parameters. Times can be given as a (space-separated) list of actual cosmic times (in Gyr) via the ``[times]`` parameter, or as a (space-separated) list of redshifts via the ``[redshifts]`` parameter, or by a combination of the two. The ``[times]`` parameter allows negative values which are interpreted as lookback times. For example, in a cosmological model where the universe is currently 13.8 Gyr old the following:
+
+    .. code-block:: none
+
+             &lt;outputTimes value="list"&gt;
+       	&lt;redshifts value=" 0.0"/&gt;
+       	&lt;times     value="-1.0"/&gt;
+             &lt;/outtputTimes&gt;
+
+    will result in output at 12.8 and 13.8 Gyr.
     </description>
   </outputTimes>
   !!]
   type, extends(outputTimesClass) :: outputTimesList
-     !!{
+     !!{RST
      Implementation of an output times class which reads a list of output times from a parameter.
      !!}
      private
@@ -55,8 +53,8 @@
   end type outputTimesList
 
   interface outputTimesList
-     !!{
-     Constructors for the \refClass{outputTimesList} output times class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputTimesList` output times class.
      !!}
      module procedure listConstructorParameters
      module procedure listConstructorInternal
@@ -65,8 +63,8 @@
 contains
 
   function listConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputTimesList} output times class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputTimesList` output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters , only : inputParameter, inputParameters
     use :: Sorting          , only : sort
@@ -89,10 +87,12 @@ contains
        allocate(redshifts         (max(1,parameters%count('redshifts',zeroIfNotPresent=.true.))))
        allocate(timesFromRedshifts(size(redshifts)                                             ))
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>redshifts</name>
          <defaultValue>[0.0d0]</defaultValue>
-         <description>A list of (space-separated) redshifts at which \glc\ results should be output. Redshifts need not be in any particular order.</description>
+         <description>
+         A list of (space-separated) redshifts at which Galacticus results should be output. Redshifts need not be in any particular order.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -106,9 +106,11 @@ contains
     if (haveTimes) then
        allocate(times(parameters%count('times')))
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>times</name>
-         <description>A list of (space-separated) times at which \glc\ results should be output. Times need not be in any particular order. Negative times are interpreted as look-back times.</description>
+         <description>
+         A list of (space-separated) times at which Galacticus results should be output. Times need not be in any particular order. Negative times are interpreted as look-back times.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -135,8 +137,8 @@ contains
   end function listConstructorParameters
 
   function listConstructorInternal(times,cosmologyFunctions_) result(self)
-    !!{
-    Constructor for the \refClass{outputTimesList} output times class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputTimesList` output times class which takes a parameter set as input.
     !!}
     implicit none
     type            (outputTimesList        )                              :: self
@@ -154,8 +156,8 @@ contains
   end function listConstructorInternal
 
   subroutine listDestructor(self)
-    !!{
-    Destructor for the \refClass{outputTimesList} output times class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputTimesList` output times class.
     !!}
     implicit none
     type(outputTimesList), intent(inout) :: self
@@ -167,7 +169,7 @@ contains
   end subroutine listDestructor
 
   function listCount(self)
-    !!{
+    !!{RST
     Return the number of outputs.
     !!}
     implicit none
@@ -179,8 +181,8 @@ contains
   end function listCount
 
   double precision function listTime(self,indexOutput)
-    !!{
-    Returns the time of the output indexed by \mono{iOutput}.
+    !!{RST
+    Returns the time of the output indexed by ``iOutput``.
     !!}
     implicit none
     class  (outputTimesList), intent(inout) :: self
@@ -195,8 +197,8 @@ contains
   end function listTime
 
   double precision function listRedshift(self,indexOutput)
-    !!{
-    Returns the redshift of the output indexed by \mono{indexOutput}.
+    !!{RST
+    Returns the redshift of the output indexed by ``indexOutput``.
     !!}
     implicit none
     class  (outputTimesList), intent(inout) :: self
@@ -211,7 +213,7 @@ contains
   end function listRedshift
 
   function listIndex(self,time,findClosest)
-    !!{
+    !!{RST
     Returns the index of the output given the corresponding time.
     !!}
     use :: Arrays_Search       , only : searchArray   , searchArrayClosest
@@ -252,8 +254,8 @@ contains
   end function listIndex
 
   double precision function listTimeNext(self,timeCurrent,indexOutput)
-    !!{
-    Returns the time of the next output after \mono{currentTime}.
+    !!{RST
+    Returns the time of the next output after ``currentTime``.
     !!}
     use :: Arrays_Search, only : searchArray
     implicit none
@@ -278,8 +280,8 @@ contains
   end function listTimeNext
 
   double precision function listTimePrevious(self,timeCurrent,indexOutput)
-    !!{
-    Returns the time of the previous output prior to \mono{timeCurrent}.
+    !!{RST
+    Returns the time of the previous output prior to ``timeCurrent``.
     !!}
     use :: Arrays_Search, only : searchArray
     implicit none

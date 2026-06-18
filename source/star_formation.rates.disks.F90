@@ -17,28 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements rates of star formation in disks.
 !!}
 
 module Star_Formation_Rates_Disks
-  !!{
+  !!{RST
   Provides a class that implements calculations of rates of formation in disks.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>starFormationRateDisks</name>
    <descriptiveName>Star Formation Rates in Disks</descriptiveName>
-   <description>Class providing models of the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the disk component of a
-    galaxy. The star formation rate typically depends on the available cold gas mass, the disk surface density, and the
-    dynamical state of the disk. Implementations may integrate over surface density profiles, apply empirical Schmidt-Kennicutt
-    type relations, or use dynamical instability thresholds to determine where and how quickly stars form.</description>
+   <description>
+   Class providing models of the star formation rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) in the disk component of a galaxy. The star formation rate typically depends on the available cold gas mass, the disk surface density, and the dynamical state of the disk. Implementations may integrate over surface density profiles, apply empirical Schmidt-Kennicutt type relations, or use dynamical instability thresholds to determine where and how quickly stars form.
+   </description>
    <default>intgrtdSurfaceDensity</default>
    <method name="rate" >
-    <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the disk component of \mono{node}.</description>
+    <description>
+    Returns the rate (in units of :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) for star formation in the disk component of ``node``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

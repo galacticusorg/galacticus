@@ -17,22 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements calculations of incompleteness assuming a complete sample.
   !!}
 
   !![
-  <massFunctionIncompleteness name="massFunctionIncompletenessComplete">
+  <massFunctionIncompleteness name="massFunctionIncompletenessComplete" docformat="rst">
    <description>
-    A mass function incompleteness class that assumes the observational sample is fully complete at all masses---i.e., the
-    completeness fraction is identically 1 for every object regardless of mass. This is the appropriate choice when no
-    observational selection effects need to be modelled, and serves as the trivial (no-op) implementation of the
-    \refClass{massFunctionIncompletenessClass} interface.
+   A mass function incompleteness class that assumes the observational sample is fully complete at all masses---i.e., the completeness fraction is identically 1 for every object regardless of mass. This is the appropriate choice when no observational selection effects need to be modelled, and serves as the trivial (no-op) implementation of the :galacticus-class:`massFunctionIncompletenessClass` interface.
    </description>
   </massFunctionIncompleteness>
   !!]
   type, extends(massFunctionIncompletenessClass) :: massFunctionIncompletenessComplete
-     !!{
+     !!{RST
      A class implementing incompleteness calculations for a complete survey.
      !!}
      private
@@ -41,8 +38,8 @@
   end type massFunctionIncompletenessComplete
 
   interface massFunctionIncompletenessComplete
-     !!{
-     Constructors for the \refClass{massFunctionIncompletenessComplete} incompleteness class.
+     !!{RST
+     Constructors for the :galacticus-class:`massFunctionIncompletenessComplete` incompleteness class.
      !!}
      module procedure completeConstructorParameters
   end interface massFunctionIncompletenessComplete
@@ -50,8 +47,8 @@
 contains
 
   function completeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massFunctionIncompletenessComplete} incompleteness class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`massFunctionIncompletenessComplete` incompleteness class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +63,7 @@ contains
   end function completeConstructorParameters
 
   double precision function completeCompleteness(self,mass)
-    !!{
+    !!{RST
     Return the completeness.
     !!}
     implicit none

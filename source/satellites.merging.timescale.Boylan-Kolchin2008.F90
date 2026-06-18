@@ -17,23 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements calculations of satellite merging times using the \cite{boylan-kolchin_dynamical_2008} method.
+  !!{RST
+  Implements calculations of satellite merging times using the :cite:t:`boylan-kolchin_dynamical_2008` method.
   !!}
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <satelliteMergingTimescales name="satelliteMergingTimescalesBoylanKolchin2008">
+  <satelliteMergingTimescales name="satelliteMergingTimescalesBoylanKolchin2008" docformat="rst">
    <description>
-    A satellite merging timescale class that computes the time until a satellite galaxy merges with its host using the N-body calibrated dynamical friction formula of \cite{boylan-kolchin_dynamical_2008}. The predicted timescale can be rescaled by the \mono{[timescaleMultiplier]} parameter.
+   A satellite merging timescale class that computes the time until a satellite galaxy merges with its host using the N-body calibrated dynamical friction formula of :cite:t:`boylan-kolchin_dynamical_2008`. The predicted timescale can be rescaled by the ``[timescaleMultiplier]`` parameter.
    </description>
   </satelliteMergingTimescales>
   !!]
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesBoylanKolchin2008
-     !!{
-     A class implementing the \cite{boylan-kolchin_dynamical_2008} method for satellite merging timescales.
+     !!{RST
+     A class implementing the :cite:t:`boylan-kolchin_dynamical_2008` method for satellite merging timescales.
      !!}
      private
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
@@ -45,8 +45,8 @@
   end type satelliteMergingTimescalesBoylanKolchin2008
 
   interface satelliteMergingTimescalesBoylanKolchin2008
-     !!{
-     Constructors for the \refClass{satelliteMergingTimescalesBoylanKolchin2008} satellite merging timescale class.
+     !!{RST
+     Constructors for the :galacticus-class:`satelliteMergingTimescalesBoylanKolchin2008` satellite merging timescale class.
      !!}
      module procedure boylanKolchin2008ConstructorParameters
      module procedure boylanKolchin2008ConstructorInternal
@@ -55,9 +55,8 @@
 contains
 
   function boylanKolchin2008ConstructorParameters(parameters) result(self)
-    !!{
-    A constructor for the \mono{boylanKolchin2008} satellite merging timescale class which builds the object from a
-    parameter set.
+    !!{RST
+    A constructor for the ``boylanKolchin2008`` satellite merging timescale class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -68,10 +67,12 @@ contains
     double precision                                                             :: timescaleMultiplier
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescaleMultiplier</name>
       <defaultValue>0.75d0</defaultValue>
-      <description>A multiplier for the merging timescale in dynamical friction timescale calculations.</description>
+      <description>
+      A multiplier for the merging timescale in dynamical friction timescale calculations.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
@@ -87,8 +88,8 @@ contains
   end function boylanKolchin2008ConstructorParameters
 
   function boylanKolchin2008ConstructorInternal(timescaleMultiplier,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !!{
-    Default constructor for the \mono{boylanKolchin2008} satellite merging timescale class.
+    !!{RST
+    Default constructor for the ``boylanKolchin2008`` satellite merging timescale class.
     !!}
     implicit none
     type            (satelliteMergingTimescalesBoylanKolchin2008)                        :: self
@@ -103,8 +104,8 @@ contains
   end function boylanKolchin2008ConstructorInternal
 
   subroutine boylanKolchin2008Destructor(self)
-    !!{
-    Destructor for the \refClass{satelliteMergingTimescalesBoylanKolchin2008} satellite merging timescale class.
+    !!{RST
+    Destructor for the :galacticus-class:`satelliteMergingTimescalesBoylanKolchin2008` satellite merging timescale class.
     !!}
     implicit none
     type(satelliteMergingTimescalesBoylanKolchin2008), intent(inout) :: self
@@ -117,8 +118,8 @@ contains
   end subroutine boylanKolchin2008Destructor
 
   double precision function boylanKolchin2008TimeUntilMerging(self,node,orbit)
-    !!{
-    Return the timescale for merging satellites using the \cite{boylan-kolchin_dynamical_2008} method.
+    !!{RST
+    Return the timescale for merging satellites using the :cite:t:`boylan-kolchin_dynamical_2008` method.
     !!}
     use :: Error             , only : Error_Report
     use :: Galacticus_Nodes  , only : nodeComponentBasic                              , treeNode

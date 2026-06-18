@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that performs ram pressure mass loss in disks.
   !!}
 
   use :: Ram_Pressure_Stripping_Mass_Loss_Rate, only : ramPressureStrippingClass
   
   !![
-  <nodeOperator name="nodeOperatorRamPressureMassLossDisks">
-   <description>Computes and applies ram pressure stripping of cold gas from satellite galaxy disks, using the Gunn-Gott criterion or similar to determine the stripped gas mass as a function of the satellite's orbital velocity through the host halo ICM.</description>
+  <nodeOperator name="nodeOperatorRamPressureMassLossDisks" docformat="rst">
+   <description>
+   Computes and applies ram pressure stripping of cold gas from satellite galaxy disks, using the Gunn-Gott criterion or similar to determine the stripped gas mass as a function of the satellite's orbital velocity through the host halo ICM.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorRamPressureMassLossDisks
-     !!{
+     !!{RST
      A node operator class that performs ram pressure mass loss in disks.
      !!}
      private
@@ -40,8 +42,8 @@
   end type nodeOperatorRamPressureMassLossDisks
   
   interface nodeOperatorRamPressureMassLossDisks
-     !!{
-     Constructors for the \refClass{nodeOperatorRamPressureMassLossDisks} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorRamPressureMassLossDisks` node operator class.
      !!}
      module procedure ramPressureMassLossDisksConstructorParameters
      module procedure ramPressureMassLossDisksConstructorInternal
@@ -50,8 +52,8 @@
 contains
 
   function ramPressureMassLossDisksConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorRamPressureMassLossDisks} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorRamPressureMassLossDisks` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,8 +73,8 @@ contains
   end function ramPressureMassLossDisksConstructorParameters
 
   function ramPressureMassLossDisksConstructorInternal(ramPressureStripping_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorRamPressureMassLossDisks} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorRamPressureMassLossDisks` node operator class.
     !!}
     implicit none
     type (nodeOperatorRamPressureMassLossDisks)                        :: self
@@ -85,8 +87,8 @@ contains
   end function ramPressureMassLossDisksConstructorInternal
 
   subroutine ramPressureMassLossDisksDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorRamPressureMassLossDisks} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorRamPressureMassLossDisks` node operator class.
     !!}
     implicit none
     type(nodeOperatorRamPressureMassLossDisks), intent(inout) :: self
@@ -98,7 +100,7 @@ contains
   end subroutine ramPressureMassLossDisksDestructor
   
   subroutine ramPressureMassLossDisksDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Perform ram pressure stripping-induced mass loss in a disk.
     !!}
     use :: Galacticus_Nodes    , only : propertyInactive, nodeComponentDisk, nodeComponentHotHalo

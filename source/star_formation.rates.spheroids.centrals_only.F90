@@ -17,19 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a star formation rate in galactic spheroids which sets rates in satellites to zero.
   !!}
 
   !![
-  <starFormationRateSpheroids name="starFormationRateSpheroidsCentralsOnly">
-   <description>A star formation rate in galactic spheroids which sets rates in satellites to zero.</description>
+  <starFormationRateSpheroids name="starFormationRateSpheroidsCentralsOnly" docformat="rst">
+   <description>
+   A star formation rate in galactic spheroids which sets rates in satellites to zero.
+   </description>
   </starFormationRateSpheroids>
   !!]
   type, extends(starFormationRateSpheroidsClass) :: starFormationRateSpheroidsCentralsOnly
-     !!{
-     Implementation of a rate for star formation in galactic spheroids which computes the rate by integrating a star formation rate
-     over the spheroid.
+     !!{RST
+     Implementation of a rate for star formation in galactic spheroids which computes the rate by integrating a star formation rate over the spheroid.
      !!}
      private
      class(starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_ => null()
@@ -39,8 +40,8 @@
   end type starFormationRateSpheroidsCentralsOnly
 
   interface starFormationRateSpheroidsCentralsOnly
-     !!{
-     Constructors for the \refClass{starFormationRateSpheroidsCentralsOnly} star formation rate in spheroids class.
+     !!{RST
+     Constructors for the :galacticus-class:`starFormationRateSpheroidsCentralsOnly` star formation rate in spheroids class.
      !!}
      module procedure centralsOnlyConstructorParameters
      module procedure centralsOnlyConstructorInternal
@@ -49,9 +50,8 @@
 contains
 
   function centralsOnlyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{starFormationRateSpheroidsCentralsOnly} star formation rate in spheroids class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`starFormationRateSpheroidsCentralsOnly` star formation rate in spheroids class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -71,8 +71,8 @@ contains
   end function centralsOnlyConstructorParameters
 
   function centralsOnlyConstructorInternal(starFormationRateSpheroids_) result(self)
-    !!{
-    Internal constructor for the \refClass{starFormationRateSpheroidsCentralsOnly} star formation rate in spheroids class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`starFormationRateSpheroidsCentralsOnly` star formation rate in spheroids class.
     !!}
     implicit none
     type (starFormationRateSpheroidsCentralsOnly)                        :: self
@@ -85,8 +85,8 @@ contains
   end function centralsOnlyConstructorInternal
 
   subroutine centralsOnlyDestructor(self)
-    !!{
-    Destructor for the \refClass{starFormationRateSpheroidsCentralsOnly} star formation rate in spheroids class.
+    !!{RST
+    Destructor for the :galacticus-class:`starFormationRateSpheroidsCentralsOnly` star formation rate in spheroids class.
     !!}
     implicit none
     type(starFormationRateSpheroidsCentralsOnly), intent(inout) :: self
@@ -98,8 +98,8 @@ contains
   end subroutine centralsOnlyDestructor
 
   double precision function centralsOnlyRate(self,node)
-    !!{
-    Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic spheroid of \mono{node}. Assumes zero rate for satellites, falling through to another class for centrals.
+    !!{RST
+    Returns the star formation rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) in the galactic spheroid of ``node``. Assumes zero rate for satellites, falling through to another class for centrals.
     !!}
     implicit none
     class(starFormationRateSpheroidsCentralsOnly), intent(inout), target :: self

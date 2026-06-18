@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a dark matter profile method that provides no properties (but does provide a mass distribution factory).
 !!}
 
 module Node_Component_Dark_Matter_Profile_Scale_Free
-  !!{
+  !!{RST
   Implements a dark matter profile method that provides no properties (but does provide a mass distribution factory).
   !!}
   use :: Dark_Matter_Profiles    , only : darkMatterProfileClass
@@ -71,7 +71,7 @@ contains
   <nodeComponentInitializationTask function="Node_Component_Dark_Matter_Profile_Scale_Free_Init"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Free_Init(parameters)
-    !!{
+    !!{RST
     Initializes the scale dark matter profile component.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -93,7 +93,7 @@ contains
   <nodeComponentThreadInitializationTask function="Node_Component_Dark_Matter_Profile_Scale_Free_Thread_Init"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Free_Thread_Init(parameters)
-    !!{
+    !!{RST
     Initializes the tree node scale dark matter profile module.
     !!}
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
@@ -114,7 +114,7 @@ contains
   <nodeComponentThreadUninitializationTask function="Node_Component_Dark_Matter_Profile_Scale_Free_Thread_Uninit"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Free_Thread_Uninit()
-    !!{
+    !!{RST
     Uninitializes the tree node scale dark matter profile module.
     !!}
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
@@ -133,7 +133,7 @@ contains
   <stateStoreTask function="Node_Component_Dark_Matter_Profile_Scale_Free_State_Store"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Free_State_Store(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Store object state,
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo
@@ -154,7 +154,7 @@ contains
   <stateRetrieveTask function="Node_Component_Dark_Matter_Profile_Scale_Free_State_Restore"/>
   !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Free_State_Restore(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Retrieve object state.
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo
@@ -172,7 +172,7 @@ contains
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Free_State_Restore
 
   function Node_Component_Dark_Matter_Profile_Scale_Free_Mass_Dist(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
-    !!{
+    !!{RST
     Return the mass distribution associated with the dark matter profile.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfileScaleFree

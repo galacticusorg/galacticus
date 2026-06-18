@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a deforestation operator on merger trees (i.e. removes all but the most massive tree in a forest).
 !!}
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorDeforest">
-   <description>Provides a deforestation operator for merger trees. Given a forest, this operator will destroy all but the first tree in the forest.</description>
+  <mergerTreeOperator name="mergerTreeOperatorDeforest" docformat="rst">
+   <description>
+   Provides a deforestation operator for merger trees. Given a forest, this operator will destroy all but the first tree in the forest.
+   </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorDeforest
-     !!{
+     !!{RST
      A deforestation merger tree operator class.
      !!}
      private
@@ -36,7 +38,7 @@ Implements a deforestation operator on merger trees (i.e. removes all but the mo
   end type mergerTreeOperatorDeforest
 
   interface mergerTreeOperatorDeforest
-     !!{
+     !!{RST
      Constructors for the deforestation merger tree operator class.
      !!}
      module procedure deforestConstructorParameters
@@ -45,7 +47,7 @@ Implements a deforestation operator on merger trees (i.e. removes all but the mo
 contains
 
   function deforestConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the deforestation merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -61,7 +63,7 @@ contains
   end function deforestConstructorParameters
 
   subroutine deforestOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Perform a deforestation operation on a merger tree.
     !!}
     use :: Galacticus_Nodes, only : mergerTree, nodeComponentBasic, treeNode

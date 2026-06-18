@@ -19,18 +19,20 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-  !!{
+  !!{RST
   Implementation of a satellite tidal stripping class in which the stripping rate is always zero.
   !!}
 
 
   !![
-  <satelliteTidalStripping name="satelliteTidalStrippingZero">
-   <description>A satellite tidal stripping class in which the stripping rate is always zero.</description>
+  <satelliteTidalStripping name="satelliteTidalStrippingZero" docformat="rst">
+   <description>
+   A satellite tidal stripping class in which the stripping rate is always zero.
+   </description>
   </satelliteTidalStripping>
   !!]
   type, extends(satelliteTidalStrippingClass) :: satelliteTidalStrippingZero
-     !!{
+     !!{RST
      Implementation of a satellite tidal stripping class in which the stripping rate is always zero.
      !!}
      private
@@ -39,8 +41,8 @@
   end type satelliteTidalStrippingZero
 
   interface satelliteTidalStrippingZero
-     !!{
-     Constructors for the \refClass{satelliteTidalStrippingZero} satellite tidal stripping class.
+     !!{RST
+     Constructors for the :galacticus-class:`satelliteTidalStrippingZero` satellite tidal stripping class.
      !!}
      module procedure zeroConstructorParameters
   end interface satelliteTidalStrippingZero
@@ -48,8 +50,8 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{satelliteTidalStrippingZero} satellite tidal stripping class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`satelliteTidalStrippingZero` satellite tidal stripping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +66,7 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroMassLossRate(self,node)
-    !!{
+    !!{RST
     Return a mass loss rate for satellites due to tidal stripping which is always zero.
     !!}
     implicit none

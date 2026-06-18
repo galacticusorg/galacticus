@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a excursion set first crossing statistics class for linear barriers with constrained branching
-described by a Brownian bridge solution.
+!!{RST
+Implements a excursion set first crossing statistics class for linear barriers with constrained branching described by a Brownian bridge solution.
 !!}
 
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
@@ -28,69 +27,79 @@ described by a Brownian bridge solution.
   use :: Excursion_Sets_Barriers   , only : excursionSetBarrierClass
 
   !![
-  <excursionSetFirstCrossing name="excursionSetFirstCrossingLinearBarrierBrownianBridge">
+  <excursionSetFirstCrossing name="excursionSetFirstCrossingLinearBarrierBrownianBridge" docformat="rst">
    <description>
-     An excursion set first crossing statistics class for linear barriers and where the trajectories are constrained to follow a
-     Brownian bridge.
+   An excursion set first crossing statistics class for linear barriers and where the trajectories are constrained to follow a Brownian bridge.
 
-     If we consider the Brownian bridge to originate from $(0,0)$ (i.e. we apply the usual shift of coordinates to move our
-     starting point to the origin), and to end at $(\delta_2,S_2)$ then we can transform this Brownian bridge into the standard
-     bridge with non-zero drift through the transformations:    
-     \begin{eqnarray}
-     \tau &amp;=&amp; \frac{S}{S_2}, \\
-     b    &amp;=&amp; \frac{\delta_2}{\sqrt{S_2}}.
-     \end{eqnarray}
-     To find the first crossing time distribution we then follow the general approach outlined by \cite{kiwiakos_answer_2014}, but
-     with an important difference that we will detail below.
+   If we consider the Brownian bridge to originate from :math:`(0,0)` (i.e. we apply the usual shift of coordinates to move our starting point to the origin), and to end at :math:`(\delta_2,S_2)` then we can transform this Brownian bridge into the standard bridge with non-zero drift through the transformations:
 
-     The standard Brownian bridge (with no drift), $Y_0$, can be written in terms of a standard Weiner process, $W$, through a
-     change of variables     
-     \begin{equation}
-     Y_0(t) = (1-t) W\left(\frac{t}{1-t}\right).
-     \end{equation}
-     The first crossing time distribution for our Brownian bridge can therefore be expressed as:
-     \begin{equation}
-     \tau_{Y}(B) = \mathrm{inf}\left\{ t : Y(t) = B(t)\right\} = \mathrm{inf}\left\{ \mu(t) + (1-t) W\left(\frac{t}{1-t}\right) \right\} = B(t) = \mathrm{inf}\left\{ t : W\left(\frac{t}{1-t}\right) = B(t) - \mu(t) \right\},
-     \end{equation}
-     where $B(t)$ is our barrier, and $\mu(t)$ is the drift term in the Brownian bridge.
+   .. math::
 
-     As can be seen from the above, for the case of a linear barrier, a Brownian bridge with non-zero drift effectively results in
-     a new linear barrier equal to the original one minus the drift term, i.e.:
-     \begin{equation}
-     B^\prime(t) \rightarrow B(t) - \mu(t),
-     \end{equation}
-     where $B(S)$ is the barrier and $\mu(S)$ is the Brownian bridge term. This means that the first-crossing time of the
-     Brownian bridge is just the hitting time of this time changed Weiner process. That is, is
-     \begin{equation}
-     \tau_W(B) = \mathrm{inf}\left\{ s : W(s) = B\right\},
-     \end{equation}
-     then
-     \begin{equation}
-     \frac{\tau_Y(B)}{1 - \tau_Y(B)} = \tau_W(B) \implies \tau_Y(B) = \frac{\tau_W(B)}{1+\tau_W(B)}.
-     \end{equation}
-     Here is where the solution presented by \cite{kiwiakos_answer_2014} is slightly wrong. We must use the first crossing time
-     solution for the standard Weiner process, but with a \emph{linear} barrier (because, even if the actual barrier is constant,
-     the effective barrier is linear due to the Brownian bridge drift term). Therefore (e.g. \citealt{zhang_random_2006}):
-     \begin{equation}
-     f_{W}(\tau_{W}) = B(0) \exp\left( - \frac{B(\tau_{W})^2}{2\ tau_{W}} \right) / \sqrt{2 pi \tau_{W}^3}.
-     \end{equation}
-     We then have that
-     \begin{equation}
-     f_{Y}(\tau_{Y}) \mathrm{d}\tau_{Y} = f_{W}(\tau_{W}) \mathrm{d}\tau_{W},
-     \end{equation}
-     such that
-     \begin{equation}
-     f_{Y}(\tau_{Y}) = \frac{B(0)}{\sqrt{2 \pi \tau_{Y}^3 (1 - \tau_{Y})}} \exp\left( \frac{B^{\prime 2}(\tau_{Y})}{2 \tau_{Y} (1-\tau_{Y})} \right),
-     \end{equation}
-     or, expressed in our usual variables
-     \begin{equation}
-     f(S) = \frac{S(0)}{\sqrt{2 \pi S^3 (1 - S/S_2)}} \exp\left( \frac{[B(S)-\mu(S)]^2}{2 S (1-S/S_2)} \right).
-     \end{equation}
+      \tau &amp; = \frac{S}{S_2}, \\
+      b &amp; = \frac{\delta_2}{\sqrt{S_2}}.
+
+   To find the first crossing time distribution we then follow the general approach outlined by :cite:t:`kiwiakos_answer_2014`, but with an important difference that we will detail below.
+
+   The standard Brownian bridge (with no drift), :math:`Y_0`, can be written in terms of a standard Weiner process, :math:`W`, through a change of variables
+
+   .. math::
+
+      Y_0(t) = (1-t) W\left(\frac{t}{1-t}\right).
+
+   The first crossing time distribution for our Brownian bridge can therefore be expressed as:
+
+   .. math::
+
+      \tau_{Y}(B) = \mathrm{inf}\left\{ t : Y(t) = B(t)\right\} = \mathrm{inf}\left\{ \mu(t) + (1-t) W\left(\frac{t}{1-t}\right) \right\} = B(t) = \mathrm{inf}\left\{ t : W\left(\frac{t}{1-t}\right) = B(t) - \mu(t) \right\},
+
+   where :math:`B(t)` is our barrier, and :math:`\mu(t)` is the drift term in the Brownian bridge.
+
+   As can be seen from the above, for the case of a linear barrier, a Brownian bridge with non-zero drift effectively results in a new linear barrier equal to the original one minus the drift term, i.e.:
+
+   .. math::
+
+      B^\prime(t) \rightarrow B(t) - \mu(t),
+
+   where :math:`B(S)` is the barrier and :math:`\mu(S)` is the Brownian bridge term. This means that the first-crossing time of the Brownian bridge is just the hitting time of this time changed Weiner process. That is, is
+
+   .. math::
+
+      \tau_W(B) = \mathrm{inf}\left\{ s : W(s) = B\right\},
+
+   then
+
+   .. math::
+
+      \frac{\tau_Y(B)}{1 - \tau_Y(B)} = \tau_W(B) \implies \tau_Y(B) = \frac{\tau_W(B)}{1+\tau_W(B)}.
+
+   Here is where the solution presented by :cite:t:`kiwiakos_answer_2014` is slightly wrong. We must use the first crossing time solution for the standard Weiner process, but with a *linear* barrier (because, even if the actual barrier is constant, the effective barrier is linear due to the Brownian bridge drift term). Therefore (e.g. :cite:author:`zhang_random_2006` :cite:year:`zhang_random_2006`):
+
+   .. math::
+
+      f_{W}(\tau_{W}) = B(0) \exp\left( - \frac{B(\tau_{W})^2}{2\ tau_{W}} \right) / \sqrt{2 pi \tau_{W}^3}.
+
+   We then have that
+
+   .. math::
+
+      f_{Y}(\tau_{Y}) \mathrm{d}\tau_{Y} = f_{W}(\tau_{W}) \mathrm{d}\tau_{W},
+
+   such that
+
+   .. math::
+
+      f_{Y}(\tau_{Y}) = \frac{B(0)}{\sqrt{2 \pi \tau_{Y}^3 (1 - \tau_{Y})}} \exp\left( \frac{B^{\prime 2}(\tau_{Y})}{2 \tau_{Y} (1-\tau_{Y})} \right),
+
+   or, expressed in our usual variables
+
+   .. math::
+
+      f(S) = \frac{S(0)}{\sqrt{2 \pi S^3 (1 - S/S_2)}} \exp\left( \frac{[B(S)-\mu(S)]^2}{2 S (1-S/S_2)} \right).
    </description>
   </excursionSetFirstCrossing>
   !!]
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingLinearBarrierBrownianBridge
-     !!{
+     !!{RST
      A linearBarrierBrownianBridge excursion set barrier class.
      !!}
      private
@@ -113,7 +122,7 @@ described by a Brownian bridge solution.
   end type excursionSetFirstCrossingLinearBarrierBrownianBridge
 
   interface excursionSetFirstCrossingLinearBarrierBrownianBridge
-     !!{
+     !!{RST
      Constructors for the linearBarrierBrownianBridge excursion set barrier class.
      !!}
      module procedure linearBarrierBrownianBridgeConstructorParameters
@@ -123,7 +132,7 @@ described by a Brownian bridge solution.
 contains
 
   function linearBarrierBrownianBridgeConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -148,11 +157,13 @@ contains
     <objectBuilder class="excursionSetBarrier"       name="excursionSetBarrier_"       source="parameters"/>
     <objectBuilder class="excursionSetFirstCrossing" name="excursionSetFirstCrossing_" source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance"  name="cosmologicalMassVariance_"  source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionalTimeStep</name>
       <defaultValue>0.01d0</defaultValue>
       <source>parameters</source>
-      <description>The fractional time step used when computing barrier crossing rates (i.e. the step used in finite difference calculations).</description>
+      <description>
+      The fractional time step used when computing barrier crossing rates (i.e. the step used in finite difference calculations).
+      </description>
     </inputParameter>
     !!]
     timePresent=cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0)
@@ -166,15 +177,19 @@ contains
             &       parameters%isPresent('massConstrained'               )                                                                                                            &
             & ) call Error_Report('can not mix "criticalOverdensityConstrained/varianceConstrained" and "redshiftConstrained/massConstrained" constraints'//{introspection:location})
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>criticalOverdensityConstrained</name>
          <source>parameters</source>
-         <description>The linear theory critical overdensity $\delta_\mathrm{c}$ (extrapolated to the present epoch) that defines the constrained end-point of the Brownian bridge in excursion-set space; used together with \mono{varianceConstrained} to pin the random walk to a specific progenitor halo.</description>
+         <description>
+         The linear theory critical overdensity :math:`\delta_\mathrm{c}` (extrapolated to the present epoch) that defines the constrained end-point of the Brownian bridge in excursion-set space; used together with ``varianceConstrained`` to pin the random walk to a specific progenitor halo.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>varianceConstrained</name>
          <source>parameters</source>
-         <description>The mass variance $\sigma^2(M)$ corresponding to the constrained end-point mass of the Brownian bridge; together with \mono{criticalOverdensityConstrained} it specifies the progenitor mass to which the excursion-set random walk is conditioned.</description>
+         <description>
+         The mass variance :math:`\sigma^2(M)` corresponding to the constrained end-point mass of the Brownian bridge; together with ``criticalOverdensityConstrained`` it specifies the progenitor mass to which the excursion-set random walk is conditioned.
+         </description>
        </inputParameter>
        !!]
        massConstrained=cosmologicalMassVariance_%mass          (time               =timePresent                   ,rootVariance=sqrt(varianceConstrained))
@@ -189,15 +204,19 @@ contains
             &       parameters%isPresent('varianceConstrained'           )                                                                                                            &
             & ) call Error_Report('can not mix "criticalOverdensityConstrained/varianceConstrained" and "redshiftConstrained/massConstrained" constraints'//{introspection:location})
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>redshiftConstrained</name>
          <source>parameters</source>
-         <description>The redshift of the progenitor epoch that defines the constrained end-point of the Brownian bridge; converted internally to a cosmic time and then to a linear overdensity threshold via the critical overdensity at that epoch.</description>
+         <description>
+         The redshift of the progenitor epoch that defines the constrained end-point of the Brownian bridge; converted internally to a cosmic time and then to a linear overdensity threshold via the critical overdensity at that epoch.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massConstrained</name>
          <source>parameters</source>
-         <description>The halo mass ($\mathrm{M}_\odot$) of the constrained progenitor at the end of the Brownian bridge; converted internally to a mass variance $\sigma^2(M)$ that pins the excursion-set random walk to a specific progenitor scale.</description>
+         <description>
+         The halo mass (:math:`\mathrm{M}_\odot`) of the constrained progenitor at the end of the Brownian bridge; converted internally to a mass variance :math:`\sigma^2(M)` that pins the excursion-set random walk to a specific progenitor scale.
+         </description>
        </inputParameter>
        !!]
        expansionFactor               =+cosmologyFunctions_      %expansionFactorFromRedshift(redshift       =redshiftConstrained                 )
@@ -226,7 +245,7 @@ contains
   end function linearBarrierBrownianBridgeConstructorParameters
 
   function linearBarrierBrownianBridgeConstructorInternal(varianceConstrained,criticalOverdensityConstrained,fractionalTimeStep,cosmologyFunctions_,excursionSetFirstCrossing_,excursionSetBarrier_,cosmologicalMassVariance_,criticalOverdensity_,linearGrowth_) result(self)
-    !!{
+    !!{RST
     Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
     !!}
     implicit none
@@ -254,7 +273,7 @@ contains
   end function linearBarrierBrownianBridgeConstructorInternal
 
   subroutine linearBarrierBrownianBridgeDestructor(self)
-    !!{
+    !!{RST
     Destructor for the critical overdensity excursion set barrier class.
     !!}
     implicit none
@@ -272,7 +291,7 @@ contains
   end subroutine linearBarrierBrownianBridgeDestructor
 
   double precision function linearBarrierBrownianBridgeProbability(self,variance,time,node) result(probability)
-    !!{
+    !!{RST
     Return the excursion set barrier at the given variance and time.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -344,7 +363,7 @@ contains
   end function linearBarrierBrownianBridgeProbability
 
   double precision function linearBarrierBrownianBridgeRate(self,variance,varianceProgenitor,time,node) result(rate)
-    !!{
+    !!{RST
     Return the excursion set barrier at the given variance and time.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -421,7 +440,7 @@ contains
   contains
 
     double precision function barrierEffective(variance0,time0,variance1,time1)
-      !!{
+      !!{RST
       The effective barrier for conditional excursion sets.
       !!}
       implicit none
@@ -434,7 +453,7 @@ contains
     end function barrierEffective
 
     double precision function barrierEffectiveConstrained(variance0,time0,variance1,time1)
-      !!{
+      !!{RST
       The effective barrier for conditional excursion sets.
       !!}
       implicit none
@@ -464,7 +483,7 @@ contains
   end function linearBarrierBrownianBridgeRate
 
   double precision function linearBarrierBrownianBridgeRateNonCrossing(self,variance,massMinimum,time,node) result(rateNonCrossing)
-    !!{
+    !!{RST
     Return the rate for excursion set non-crossing assuming a linear barrier.
     !!}
     implicit none

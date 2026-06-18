@@ -25,13 +25,15 @@
   end type radiativeTransferSourceList
 
   !![
-  <radiativeTransferSource name="radiativeTransferSourceSummation">
-   <description>A photon source class for summation sources.</description>
+  <radiativeTransferSource name="radiativeTransferSourceSummation" docformat="rst">
+   <description>
+   A photon source class for summation sources.
+   </description>
    <linkedList type="radiativeTransferSourceList" variable="radiativeTransferSources" next="next" object="radiativeTransferSource" objectType="radiativeTransferSourceClass"/>
   </radiativeTransferSource>
   !!]
   type, extends(radiativeTransferSourceClass) :: radiativeTransferSourceSummation
-     !!{
+     !!{RST
      Implementation of a summation source class for radiative transfer calculations.
      !!}
      private
@@ -49,8 +51,8 @@
   end type radiativeTransferSourceSummation
 
   interface radiativeTransferSourceSummation
-     !!{
-     Constructors for the \refClass{radiativeTransferSourceSummation} radiative transfer source class.
+     !!{RST
+     Constructors for the :galacticus-class:`radiativeTransferSourceSummation` radiative transfer source class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -59,8 +61,8 @@
 contains
 
   function summationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiativeTransferSourceSummation} radiative transfer source class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`radiativeTransferSourceSummation` radiative transfer source class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -96,8 +98,8 @@ contains
   end function summationConstructorParameters
 
   function summationConstructorInternal(radiativeTransferSources,randomNumberGenerator_) result(self)
-    !!{
-    Internal constructor for the \refClass{radiativeTransferSourceSummation} radiative transfer source class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`radiativeTransferSourceSummation` radiative transfer source class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -133,8 +135,8 @@ contains
   end function summationConstructorInternal
 
   subroutine summationDestructor(self)
-    !!{
-    Destructor for the \refClass{radiativeTransferSourceSummation} radiative transfer source class.
+    !!{RST
+    Destructor for the :galacticus-class:`radiativeTransferSourceSummation` radiative transfer source class.
     !!}
     implicit none
     type(radiativeTransferSourceSummation), intent(inout) :: self
@@ -156,7 +158,7 @@ contains
   end subroutine summationDestructor
   
   subroutine summationInitializePhotonPacket(self,photonPacket)
-    !!{
+    !!{RST
     Initialize the photon packet.
     !!}
     implicit none
@@ -190,7 +192,7 @@ contains
   end subroutine summationInitializePhotonPacket
 
   double precision function summationLuminosity(self,wavelengthMinimum,wavelengthMaximum,sourceType)
-    !!{
+    !!{RST
     Return the spectrum of the summation source.
     !!}
     implicit none
@@ -218,7 +220,7 @@ contains
   end function summationLuminosity
 
   double precision function summationSpectrum(self,wavelength,sourceType)
-    !!{
+    !!{RST
     Return the spectrum of the summation source.
     !!}
     implicit none
@@ -246,7 +248,7 @@ contains
   end function summationSpectrum
 
   integer function summationSourceTypeCount(self)
-    !!{
+    !!{RST
     Return the number of source types provided.
     !!}
     implicit none
@@ -257,7 +259,7 @@ contains
   end function summationSourceTypeCount
 
   function summationSourceTypeName(self,sourceType)
-    !!{
+    !!{RST
     Return the name of the source type.
     !!}
     use :: Error, only : Error_Report

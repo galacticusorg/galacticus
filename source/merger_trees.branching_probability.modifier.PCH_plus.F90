@@ -17,31 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a merger tree branching probability rate modifier which uses the model of \cite{parkinson_generating_2008} plus an additional term.
+  !!{RST
+  Implements a merger tree branching probability rate modifier which uses the model of :cite:t:`parkinson_generating_2008` plus an additional term.
   !!}
 
   !![
-  <mergerTreeBranchingProbabilityModifier name="mergerTreeBranchingProbabilityModifierPCHPlus">
+  <mergerTreeBranchingProbabilityModifier name="mergerTreeBranchingProbabilityModifierPCHPlus" docformat="rst">
    <description>
-    Provides a merger tree branching probability rate modifier which uses the model of \cite{parkinson_generating_2008} plus an
-    additional term. Specifically, the modifier becomes
-    \begin{equation}
-     G\left( {\sigma_1 \over \sigma_2} , {\delta_2 \over \sigma_2} \right) =
-     G_0
-     \left({\sigma_1\over\sigma_2}\right)^{\gamma_1}
-     \left({\delta_2\over\sigma_2}\right)^{\gamma_2}
-     \left(1 - {\sigma_2^2 \over \sigma_1^2}\right)^{\gamma_3},
-    \end{equation}
-    where $\sigma_i=\sigma(M_i)$, $\sigma(M)$ is the usual present-day, linear-theory mass-variance in spheres enclosing an average
-    mass $M$, $M_2$ is the mass of the parent halo, $M_1$ is the mass of the child halo, and $\delta_2$ is the critical overdensity
-    for collapse at the epoch of the parent.
+   Provides a merger tree branching probability rate modifier which uses the model of :cite:t:`parkinson_generating_2008` plus an additional term. Specifically, the modifier becomes
+
+   .. math::
+
+      G\left( {\sigma_1 \over \sigma_2} , {\delta_2 \over \sigma_2} \right) =
+      G_0
+      \left({\sigma_1\over\sigma_2}\right)^{\gamma_1}
+      \left({\delta_2\over\sigma_2}\right)^{\gamma_2}
+      \left(1 - {\sigma_2^2 \over \sigma_1^2}\right)^{\gamma_3},
+
+   where :math:`\sigma_i=\sigma(M_i)`, :math:`\sigma(M)` is the usual present-day, linear-theory mass-variance in spheres enclosing an average mass :math:`M`, :math:`M_2` is the mass of the parent halo, :math:`M_1` is the mass of the child halo, and :math:`\delta_2` is the critical overdensity for collapse at the epoch of the parent.
    </description>
   </mergerTreeBranchingProbabilityModifier>
   !!]
   type, extends(mergerTreeBranchingProbabilityModifierParkinson2008) :: mergerTreeBranchingProbabilityModifierPCHPlus
-     !!{
-     A merger tree branching probability rate modifier which uses the model of \cite{parkinson_generating_2008} plus an additional term.
+     !!{RST
+     A merger tree branching probability rate modifier which uses the model of :cite:t:`parkinson_generating_2008` plus an additional term.
      !!}
      private
      double precision :: gamma3
@@ -50,8 +49,8 @@
   end type mergerTreeBranchingProbabilityModifierPCHPlus
 
   interface mergerTreeBranchingProbabilityModifierPCHPlus
-     !!{
-     Constructors for the \refClass{mergerTreeBranchingProbabilityModifierPCHPlus} merger tree branching probability rate class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeBranchingProbabilityModifierPCHPlus` merger tree branching probability rate class.
      !!}
      module procedure pchPlusConstructorParameters
      module procedure pchPlusConstructorInternal
@@ -60,9 +59,8 @@
 contains
 
   function pchPlusConstructorParameters(parameters) result(self)
-    !!{
-    A constructor for the \mono{pchPlus} merger tree branching probability rate class which builds the
-    object from a parameter set.
+    !!{RST
+    A constructor for the ``pchPlus`` merger tree branching probability rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,28 +71,36 @@ contains
          &                                                                            gamma2              , gamma3
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>G0</name>
       <defaultValue>0.57d0</defaultValue>
-      <description>The parameter $G_0$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+      <description>
+      The parameter :math:`G_0` appearing in the modified merger rate expression of :cite:t:`parkinson_generating_2008`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma1</name>
       <defaultValue>0.38d0</defaultValue>
-      <description>The parameter $\gamma_1$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+      <description>
+      The parameter :math:`\gamma_1` appearing in the modified merger rate expression of :cite:t:`parkinson_generating_2008`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma2</name>
       <defaultValue>-0.01d0</defaultValue>
-      <description>The parameter $\gamma_2$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+      <description>
+      The parameter :math:`\gamma_2` appearing in the modified merger rate expression of :cite:t:`parkinson_generating_2008`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma3</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The parameter $\gamma_3$ appearing in the extension of the modified merger rate expression of \cite{parkinson_generating_2008} as defined in this class.</description>
+      <description>
+      The parameter :math:`\gamma_3` appearing in the extension of the modified merger rate expression of :cite:t:`parkinson_generating_2008` as defined in this class.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="criticalOverdensity" name="criticalOverdensity_" source="parameters"/>
@@ -108,8 +114,8 @@ contains
   end function pchPlusConstructorParameters
 
   function pchPlusConstructorInternal(G0,gamma1,gamma2,gamma3,criticalOverdensity_) result(self)
-    !!{
-    Default constructor for the \mono{pchPlus} merger tree branching probability rate class.
+    !!{RST
+    Default constructor for the ``pchPlus`` merger tree branching probability rate class.
     !!}
     implicit none
     type            (mergerTreeBranchingProbabilityModifierPCHPlus)                        :: self
@@ -125,8 +131,8 @@ contains
   end function pchPlusConstructorInternal
 
   double precision function pchPlusRateModifier(self,nodeParent,massParent,sigmaParent,sigmaChild,timeParent)
-    !!{
-    Returns a modifier for merger tree branching rates using the \cite{parkinson_generating_2008} algorithm plus an additional term.
+    !!{RST
+    Returns a modifier for merger tree branching rates using the :cite:t:`parkinson_generating_2008` algorithm plus an additional term.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityModifierPCHPlus), intent(inout) :: self

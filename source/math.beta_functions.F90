@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements beta functions.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module which implements beta functions.
 !; gsl
 
 module Beta_Functions
-  !!{
+  !!{RST
   Implements beta functions.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_double     , c_int
@@ -36,7 +36,7 @@ module Beta_Functions
 
   interface
      function gsl_sf_beta_e(a,b,r) bind(c,name='gsl_sf_beta_e')
-       !!{
+       !!{RST
        Template for the GSL beta C function.
        !!}
        import
@@ -48,7 +48,7 @@ module Beta_Functions
 
   interface
      function gsl_sf_beta_inc_e(a,b,x,r) bind(c,name='gsl_sf_beta_inc_e')
-       !!{
+       !!{RST
        Template for the GSL incomplete beta C function.
        !!}
        import
@@ -62,8 +62,8 @@ module Beta_Functions
 contains
 
   double precision function Beta_Function(a,b,status) result(r)
-    !!{
-    Evaluate the beta function, $B(a,b)$.
+    !!{RST
+    Evaluate the beta function, :math:`B(a,b)`.
     !!}
     use :: Error             , only : Error_Report, GSL_Error_Handler_Abort_Off, GSL_Error_Handler_Abort_On
     use :: Interface_GSL     , only : GSL_Success , gslErrorDecode
@@ -96,8 +96,8 @@ contains
   end function Beta_Function
 
   double precision function Beta_Function_Incomplete_Normalized(a,b,x,status) result(r)
-    !!{
-    Evaluate the normalized incomplete beta function, $B_x(a,b)/B(a,b)$.
+    !!{RST
+    Evaluate the normalized incomplete beta function, :math:`B_x(a,b)/B(a,b)`.
     !!}
     use :: Error             , only : Error_Report, GSL_Error_Handler_Abort_Off, GSL_Error_Handler_Abort_On
     use :: Interface_GSL     , only : GSL_Success , GSL_EUndrFlw               , gslErrorDecode

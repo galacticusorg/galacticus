@@ -17,30 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements operators on universes.
 !!}
 
 module Universe_Operators
-  !!{
+  !!{RST
   Provides a class that implements operators on universes.
   !!}
   use :: Galacticus_Nodes, only : universe
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>universeOperator</name>
    <descriptiveName>Universe Operators</descriptiveName>
-   <description>Class providing operators that act on \mono{universe} objects---top-level transformations applied
-    to a fully-evolved \glc\ universe (containing the complete set of merger trees and their galaxies)
-    prior to or after model evolution. Universe operators can perform global post-processing steps such as
-    computing derived statistics, writing supplementary output, or modifying global properties. The interface
-    provides a single \mono{operate} method that receives the universe object and performs whatever
-    transformation the implementation requires.</description>
+   <description>
+   Class providing operators that act on ``universe`` objects---top-level transformations applied to a fully-evolved Galacticus universe (containing the complete set of merger trees and their galaxies) prior to or after model evolution. Universe operators can perform global post-processing steps such as computing derived statistics, writing supplementary output, or modifying global properties. The interface provides a single ``operate`` method that receives the universe object and performs whatever transformation the implementation requires.
+   </description>
    <default>identity</default>
    <method name="operate" >
-    <description>Operate on the universe.</description>
+    <description>
+    Operate on the universe.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

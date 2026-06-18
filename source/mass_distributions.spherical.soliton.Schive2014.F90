@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Contains a module which provides utility variables for the \cite{schive_understanding_2014} soliton density profile.
+  !!{RST
+  Contains a module which provides utility variables for the :cite:t:`schive_understanding_2014` soliton density profile.
   !!}
 
   module Mass_Distribution_Soliton_Schive2014
-    !!{
-    Provides utility variables for the \cite{schive_understanding_2014} soliton density profile.
+    !!{RST
+    Provides utility variables for the :cite:t:`schive_understanding_2014` soliton density profile.
     !!}
     implicit none
     private

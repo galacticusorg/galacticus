@@ -20,14 +20,14 @@
   !+    Contributions to this file made by: Niusha Ahvazi
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorSIDMParametric">
+  <nodePropertyExtractor name="nodePropertyExtractorSIDMParametric" docformat="rst">
    <description>
-     A node property extractor which extracts dark matter profile properties for the SIDM parametric model.
+   A node property extractor which extracts dark matter profile properties for the SIDM parametric model.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorSIDMParametric
-     !!{
+     !!{RST
      A property extractor which extracts dark matter profile properties for the SIDM parametric model.
      !!}
      private
@@ -43,8 +43,8 @@
   end type nodePropertyExtractorSIDMParametric
 
   interface nodePropertyExtractorSIDMParametric
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorSIDMParametric} class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorSIDMParametric` class.
      !!}
      module procedure SIDMParametricConstructorParameters
      module procedure SIDMParametricConstructorInternal
@@ -53,8 +53,8 @@
 contains
 
   function SIDMParametricConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorSIDMParametric} class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorSIDMParametric` class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,8 +69,8 @@ contains
   end function SIDMParametricConstructorParameters
 
   function SIDMParametricConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSIDMParametric} class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorSIDMParametric` class.
     !!}
     implicit none
     type(nodePropertyExtractorSIDMParametric) :: self
@@ -87,8 +87,8 @@ contains
   end function SIDMParametricConstructorInternal
 
   integer function SIDMParametricElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{SIDMParametric} property extractors.
+    !!{RST
+    Return the number of elements in the ``SIDMParametric`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorSIDMParametric), intent(inout) :: self
@@ -100,7 +100,7 @@ contains
   end function SIDMParametricElementCount
 
   function SIDMParametricExtract(self,node,time,instance)
-    !!{
+    !!{RST
     Extract parameters of the SIDM parametric model.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkmatterProfile 
@@ -151,8 +151,8 @@ contains
   end function SIDMParametricExtract
 
   subroutine SIDMParametricNames(self,time,names)
-    !!{
-    Return the names of the \mono{SIDMParametric} properties.
+    !!{RST
+    Return the names of the ``SIDMParametric`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorSIDMParametric), intent(inout)                             :: self
@@ -171,8 +171,8 @@ contains
   end subroutine SIDMParametricNames
 
   subroutine SIDMParametricDescriptions(self,time,descriptions)
-    !!{
-    Return the descriptions of the \mono{SIDMParametric} properties.
+    !!{RST
+    Return the descriptions of the ``SIDMParametric`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorSIDMParametric), intent(inout)                            :: self
@@ -191,8 +191,8 @@ contains
   end subroutine SIDMParametricDescriptions
 
   function SIDMParametricUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{SIDMParametric} properties in the SI system.
+    !!{RST
+    Return the units of the ``SIDMParametric`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Prefixes,     only : kilo
     use :: Numerical_Constants_Astronomical, only : megaParsec, massSolar

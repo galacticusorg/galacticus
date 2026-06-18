@@ -17,25 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function, using the specific form given by
-\cite[][eqn.~3]{bohr_halo_2021}.
+!!{RST
+Implements the ETHOS :cite:p:`cyr-racine_ethoseffective_2016` transfer function, using the specific form given by :cite:t:`bohr_halo_2021`.
 !!}
 
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !![
-  <transferFunction name="transferFunctionETHOSDM">
+  <transferFunction name="transferFunctionETHOSDM" docformat="rst">
     <description>
-      Implements the ETHOS effective theory of structure formation \citep{cyr-racine_ethoseffective_2016} transfer function for dark acoustic oscillations, using the specific parametric form given by \cite[][eqn.~3]{bohr_halo_2021}. The shape and amplitude of the dark acoustic oscillation feature are controlled by the parameters $\alpha$, $\beta$, $\gamma$, $\sigma$, $\tau$, $k_\mathrm{peak}$, and $h_\mathrm{peak}$.
+    Implements the ETHOS effective theory of structure formation :cite:p:`cyr-racine_ethoseffective_2016` transfer function for dark acoustic oscillations, using the specific parametric form given by :cite:t:`bohr_halo_2021`. The shape and amplitude of the dark acoustic oscillation feature are controlled by the parameters :math:`\alpha`, :math:`\beta`, :math:`\gamma`, :math:`\sigma`, :math:`\tau`, :math:`k_\mathrm{peak}`, and :math:`h_\mathrm{peak}`.
     </description>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionETHOSDM
-     !!{
-     Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function, using the specific form given by
-     \cite[][eqn.~3]{bohr_halo_2021}.
+     !!{RST
+     Implements the ETHOS :cite:p:`cyr-racine_ethoseffective_2016` transfer function, using the specific form given by :cite:t:`bohr_halo_2021`.
      !!}
      private
      double precision                                    :: alpha                         , beta    , &
@@ -56,8 +54,8 @@ Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function, u
   end type transferFunctionETHOSDM
 
   interface transferFunctionETHOSDM
-     !!{
-     Constructors for the \refClass{transferFunctionETHOSDM} transfer function class.
+     !!{RST
+     Constructors for the :galacticus-class:`transferFunctionETHOSDM` transfer function class.
      !!}
      module procedure ETHOSDMConstructorParameters
      module procedure ETHOSDMConstructorInternal
@@ -71,8 +69,8 @@ Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function, u
 contains
   
   function ETHOSDMConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{transferFunctionETHOSDM} transfer function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`transferFunctionETHOSDM` transfer function class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
@@ -94,62 +92,80 @@ contains
     if (.not.parameters%isPresent('transferFunction')) call Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
     ! Read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha</name>
       <source>parameters</source>
       <defaultValue>40.0d0</defaultValue>
-      <description>The parameter $\alpha$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+      <description>
+      The parameter :math:`\alpha` appearing in the ETHOS transfer function :cite:p:`cyr-racine_ethoseffective_2016`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <source>parameters</source>
       <defaultValue>1.5d0</defaultValue>
-      <description>The parameter $\beta$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+      <description>
+      The parameter :math:`\beta` appearing in the ETHOS transfer function :cite:p:`cyr-racine_ethoseffective_2016`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma</name>
       <source>parameters</source>
       <defaultValue>-10.0d0</defaultValue>
-      <description>The parameter $\gamma$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+      <description>
+      The parameter :math:`\gamma` appearing in the ETHOS transfer function :cite:p:`cyr-racine_ethoseffective_2016`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sigma</name>
       <source>parameters</source>
       <defaultValue>-10.0d0</defaultValue>
-      <description>The parameter $\sigma$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}, determines width of first peak in transfer function.</description>
+      <description>
+      The parameter :math:`\sigma` appearing in the ETHOS transfer function :cite:p:`cyr-racine_ethoseffective_2016`, determines width of first peak in transfer function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tau</name>
       <source>parameters</source>
       <defaultValue>-10.0d0</defaultValue>
-      <description>The parameter $\tau$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}, determines damping of DAO.</description>
+      <description>
+      The parameter :math:`\tau` appearing in the ETHOS transfer function :cite:p:`cyr-racine_ethoseffective_2016`, determines damping of DAO.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>kPeak</name>
       <source>parameters</source>
       <defaultValue>-10.0d0</defaultValue>
-      <description>The parameter $k_\mathrm{peak}$, the wavenumber of first peak in ETHOS transfer function, appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+      <description>
+      The parameter :math:`k_\mathrm{peak}`, the wavenumber of first peak in ETHOS transfer function, appearing in the ETHOS transfer function :cite:p:`cyr-racine_ethoseffective_2016`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>hPeak</name>
       <source>parameters</source>
       <defaultValue>-10.0d0</defaultValue>
-      <description>The parameter $h_\mathrm{peak}$, the amplitude of the first peak, appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+      <description>
+      The parameter :math:`h_\mathrm{peak}`, the amplitude of the first peak, appearing in the ETHOS transfer function :cite:p:`cyr-racine_ethoseffective_2016`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>h2</name>
       <source>parameters</source>
       <defaultValue>-10.0d0</defaultValue>
-      <description>The parameter $h_2$, the amplitude of the second peak, appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+      <description>
+      The parameter :math:`h_2`, the amplitude of the second peak, appearing in the ETHOS transfer function :cite:p:`cyr-racine_ethoseffective_2016`.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
       <source>parameters</source>
       <defaultValue>cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%equalityEpochMatterRadiation(requestTypeExpansionFactor))</defaultValue>
-      <description>The redshift of the epoch at which the transfer function is defined.</description>
+      <description>
+      The redshift of the epoch at which the transfer function is defined.
+      </description>
     </inputParameter>
     !!]
     self=transferFunctionETHOSDM(transferFunctionCDM,alpha,beta,gamma,sigma,tau,kPeak,hPeak,h2,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_)
@@ -163,8 +179,8 @@ contains
   end function ETHOSDMConstructorParameters
   
   function ETHOSDMConstructorInternal(transferFunctionCDM,alpha,beta,gamma,sigma,tau,kPeak,hPeak,h2,time,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{transferFunctionETHOSDM} transfer function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`transferFunctionETHOSDM` transfer function class.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     use :: Error               , only : Error_Report
@@ -187,8 +203,8 @@ contains
   end function ETHOSDMConstructorInternal
 
   subroutine ETHOSDMDestructor(self)
-    !!{
-    Destructor for the \refClass{transferFunctionETHOSDM} transfer function class.
+    !!{RST
+    Destructor for the :galacticus-class:`transferFunctionETHOSDM` transfer function class.
     !!}
     implicit none
     type(transferFunctionETHOSDM), intent(inout) :: self
@@ -202,8 +218,8 @@ contains
   end subroutine ETHOSDMDestructor
 
   double precision function ETHOSDMValue(self,wavenumber)
-    !!{
-    Return the transfer function at the given wavenumber, using the specific form given by \cite[][eqn.~3]{bohr_halo_2021}.
+    !!{RST
+    Return the transfer function at the given wavenumber, using the specific form given by :cite:t:`bohr_halo_2021`.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -272,8 +288,8 @@ contains
   end function ETHOSDMValue
 
   double precision function ETHOSDMLogarithmicDerivative(self,wavenumber)
-    !!{
-    Return the logarithmic derivative of the transfer function at the given wavenumber, using the specific form given by \cite[][eqn.~3]{bohr_halo_2021}.
+    !!{RST
+    Return the logarithmic derivative of the transfer function at the given wavenumber, using the specific form given by :cite:t:`bohr_halo_2021`.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -499,9 +515,8 @@ contains
   end function ETHOSDMLogarithmicDerivative
 
   double precision function ETHOSDMHalfModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    to a \gls{cdm} transfer function.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function.
     !!}
     implicit none
     class  (transferFunctionETHOSDM), intent(inout), target   :: self
@@ -512,9 +527,8 @@ contains
   end function ETHOSDMHalfModeMass
 
   double precision function ETHOSDMQuarterModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
-    to a \gls{cdm} transfer function.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative to a :term:`CDM` transfer function.
     !!}
     implicit none
     class  (transferFunctionETHOSDM), intent(inout), target   :: self
@@ -525,9 +539,8 @@ contains
   end function ETHOSDMQuarterModeMass
 
   double precision function ETHOSDMFractionModeMass(self,fraction,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    to a \gls{cdm} transfer function.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function.
     !!}
     use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
@@ -573,7 +586,7 @@ contains
   end function ETHOSDMFractionModeMass
   
   double precision function modeSolver(wavenumber)
-    !!{
+    !!{RST
     Function used in solving for half- and quarter-mode masses in the ETHOS transfer function.
     !!}
     implicit none
@@ -586,7 +599,7 @@ contains
   end function modeSolver
   
   double precision function ETHOSDMEpochTime(self)
-    !!{
+    !!{RST
     Return the cosmic time at the epoch at which this transfer function is defined.
     !!}
     implicit none

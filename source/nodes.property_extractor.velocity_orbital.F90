@@ -17,26 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an orbital velocity output analysis property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorVelocityOrbital">
+  <nodePropertyExtractor name="nodePropertyExtractorVelocityOrbital" docformat="rst">
    <description>
-    An orbital velocity output analysis property extractor class. Specifically, the orbital velocity is defined relative to the
-    top-level halo in any sub-halo hierarchy. That is, relative to the host halo which is itself not a sub-halo of any other
-    halo. If the velocity of a (sub)$^i$-halo with respect to the center of its (sub)$^{i-1}$-halo host is $\mathbf{v}_i$ then
-    the orbital velocity computed by this class is
-    \begin{equation}
-     \mathbf{v} = sum_{i=1}^N \mathbf{v}_i,
-    \end{equation}
-    where $N$ is the depth of the node in the sub-halo hierarchy.
+   An orbital velocity output analysis property extractor class. Specifically, the orbital velocity is defined relative to the top-level halo in any sub-halo hierarchy. That is, relative to the host halo which is itself not a sub-halo of any other halo. If the velocity of a (sub)\ :math:`^i`-halo with respect to the center of its (sub)\ :math:`^{i-1}`-halo host is :math:`\mathbf{v}_i` then the orbital velocity computed by this class is
+
+   .. math::
+
+      \mathbf{v} = sum_{i=1}^N \mathbf{v}_i,
+
+   where :math:`N` is the depth of the node in the sub-halo hierarchy.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorVelocityOrbital
-     !!{
+     !!{RST
      An orbital velocity property extractor output analysis class.
      !!}
      private
@@ -50,8 +49,8 @@ Implements an orbital velocity output analysis property extractor class.
   end type nodePropertyExtractorVelocityOrbital
 
   interface nodePropertyExtractorVelocityOrbital
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorVelocityOrbital} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorVelocityOrbital` property extractor class.
      !!}
      module procedure velocityOrbitalConstructorParameters
   end interface nodePropertyExtractorVelocityOrbital
@@ -59,8 +58,8 @@ Implements an orbital velocity output analysis property extractor class.
 contains
 
   function velocityOrbitalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorVelocityOrbital} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorVelocityOrbital` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -75,8 +74,8 @@ contains
   end function velocityOrbitalConstructorParameters
 
   integer function velocityOrbitalElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{velocityOrbital} property extractors.
+    !!{RST
+    Return the number of elements in the ``velocityOrbital`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorVelocityOrbital), intent(inout) :: self
@@ -88,7 +87,7 @@ contains
   end function velocityOrbitalElementCount
 
   function velocityOrbitalExtract(self,node,time,instance) result(velocity)
-    !!{
+    !!{RST
     Implement a velocityOrbital output analysis.
     !!}
     use :: Galacticus_Nodes    , only : nodeComponentSatellite, nodeComponentBasic
@@ -139,7 +138,7 @@ contains
   end function velocityOrbitalExtract
   
   subroutine velocityOrbitalNames(self,time,names)
-    !!{
+    !!{RST
     Return the name of the velocityOrbital property.
     !!}
     implicit none
@@ -156,7 +155,7 @@ contains
   end subroutine velocityOrbitalNames
 
   subroutine velocityOrbitalDescriptions(self,time,descriptions)
-    !!{
+    !!{RST
     Return a description of the velocityOrbital property.
     !!}
     implicit none
@@ -173,7 +172,7 @@ contains
   end subroutine velocityOrbitalDescriptions
 
   function velocityOrbitalUnitsInSI(self,time)
-    !!{
+    !!{RST
     Return the units of the velocityOrbital property in the SI system.
     !!}
     use :: Numerical_Constants_Prefixes, only : kilo
@@ -189,7 +188,7 @@ contains
   end function velocityOrbitalUnitsInSI
 
   function velocityOrbitalUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the velocityOrbital properties.
     !!}
     use :: Units_MetaData, only : unitType

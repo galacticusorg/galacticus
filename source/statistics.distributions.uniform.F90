@@ -17,27 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a uniform 1D distribution function.
   !!}
 
   !![
-  <distributionFunction1D name="distributionFunction1DUniform">
+  <distributionFunction1D name="distributionFunction1DUniform" docformat="rst">
    <description>
-    A uniform distribution over a finite range
-    \begin{equation}
-    P(x) \propto \left\{ \begin{array}{ll} 1 &amp; \hbox{ if } x_\mathrm{l} \leq x \leq x_\mathrm{u} \\ 0 &amp; \hbox{ otherwise.}  \end{array} \right.
-    \end{equation}
-    Specified using:
-    \begin{description}
-    \item[\mono{[minimum]}] The lower limit of the range, $x_\mathrm{l}$;
-    \item[\mono{[maximum]}] The upper limit of the range, $x_\mathrm{u}$.
-    \end{description}
+   A uniform distribution over a finite range
+
+   .. math::
+
+      P(x) \propto \left\{ \begin{array}{ll} 1 &amp; \hbox{ if } x_\mathrm{l} \leq x \leq x_\mathrm{u} \\ 0 &amp; \hbox{ otherwise.}  \end{array} \right.
+
+   Specified using:
+
+   ``[minimum]``
+      The lower limit of the range, :math:`x_\mathrm{l}`;
+
+   ``[maximum]``
+      The upper limit of the range, :math:`x_\mathrm{u}`.
    </description>
   </distributionFunction1D>
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DUniform
-     !!{
+     !!{RST
      Implementation of a uniform 1D distribution function.
      !!}
      private
@@ -51,8 +55,8 @@
   end type distributionFunction1DUniform
 
   interface distributionFunction1DUniform
-     !!{
-     Constructors for the \refClass{distributionFunction1DUniform} 1D distribution function class.
+     !!{RST
+     Constructors for the :galacticus-class:`distributionFunction1DUniform` 1D distribution function class.
      !!}
      module procedure uniformConstructorParameters
      module procedure uniformConstructorInternal
@@ -61,9 +65,8 @@
 contains
 
   function uniformConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DUniform} 1D distribution function class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DUniform` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,14 +76,18 @@ contains
     double precision                                               :: limitLower            , limitUpper
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>limitLower</name>
-      <description>The lower bound $x_\mathrm{l}$ of the uniform distribution, below which the probability density is zero; the distribution has constant density $1/(x_\mathrm{u} - x_\mathrm{l})$ over $[x_\mathrm{l}, x_\mathrm{u}]$.</description>
+      <description>
+      The lower bound :math:`x_\mathrm{l}` of the uniform distribution, below which the probability density is zero; the distribution has constant density :math:`1/(x_\mathrm{u} - x_\mathrm{l})` over :math:`[x_\mathrm{l}, x_\mathrm{u}]`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>limitUpper</name>
-      <description>The upper bound $x_\mathrm{u}$ of the uniform distribution, above which the probability density is zero; the distribution has constant density $1/(x_\mathrm{u} - x_\mathrm{l})$ over $[x_\mathrm{l}, x_\mathrm{u}]$.</description>
+      <description>
+      The upper bound :math:`x_\mathrm{u}` of the uniform distribution, above which the probability density is zero; the distribution has constant density :math:`1/(x_\mathrm{u} - x_\mathrm{l})` over :math:`[x_\mathrm{l}, x_\mathrm{u}]`.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -94,8 +101,8 @@ contains
   end function uniformConstructorParameters
 
   function uniformConstructorInternal(limitLower,limitUpper,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DUniform} 1D distribution function class.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DUniform` 1D distribution function class.
     !!}
     use :: Error, only : Error_Report
     type            (distributionFunction1DUniform)                                  :: self
@@ -111,7 +118,7 @@ contains
   end function uniformConstructorInternal
 
   double precision function uniformMinimum(self)
-    !!{
+    !!{RST
     Return the minimum possible value of a uniform distribution.
     !!}
     implicit none
@@ -122,7 +129,7 @@ contains
   end function uniformMinimum
 
   double precision function uniformMaximum(self)
-    !!{
+    !!{RST
     Return the maximum possible value of a uniform distribution.
     !!}
     implicit none
@@ -133,7 +140,7 @@ contains
   end function uniformMaximum
 
   double precision function uniformDensity(self,x)
-    !!{
+    !!{RST
     Return the density of a uniform distribution.
     !!}
     implicit none
@@ -149,7 +156,7 @@ contains
   end function uniformDensity
 
   double precision function uniformCumulative(self,x)
-    !!{
+    !!{RST
     Return the cumulative probability of a uniform distribution.
     !!}
     implicit none
@@ -167,7 +174,7 @@ contains
   end function uniformCumulative
 
   double precision function uniformInverse(self,p)
-    !!{
+    !!{RST
     Return the inverse of a uniform distribution.
     !!}
     use :: Error, only : Error_Report

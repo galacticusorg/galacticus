@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 An implementation of the hot halo outflow stripping class which gives zero stripping.
 !!}
 
   !![
-  <hotHaloOutflowStripping name="hotHaloOutflowStrippingZero">
-   <description>An implementation of the hot halo outflow stripping class which gives zero stripping.</description>
+  <hotHaloOutflowStripping name="hotHaloOutflowStrippingZero" docformat="rst">
+   <description>
+   An implementation of the hot halo outflow stripping class which gives zero stripping.
+   </description>
   </hotHaloOutflowStripping>
   !!]
   type, extends(hotHaloOutflowStrippingClass) :: hotHaloOutflowStrippingZero
-     !!{
+     !!{RST
      An implementation of the hot halo outflow stripping class which gives zero stripping.
      !!}
      private
@@ -37,8 +39,8 @@ An implementation of the hot halo outflow stripping class which gives zero strip
   end type hotHaloOutflowStrippingZero
 
   interface hotHaloOutflowStrippingZero
-     !!{
-     Constructors for the \refClass{hotHaloOutflowStrippingZero} hot halo outflow stripping class.
+     !!{RST
+     Constructors for the :galacticus-class:`hotHaloOutflowStrippingZero` hot halo outflow stripping class.
      !!}
      module procedure zeroConstructorParameters
   end interface hotHaloOutflowStrippingZero
@@ -46,9 +48,8 @@ An implementation of the hot halo outflow stripping class which gives zero strip
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{zero} hot halo outflow stripping class which takes a parameter set
-    as input.
+    !!{RST
+    Default constructor for the ``zero`` hot halo outflow stripping class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,7 +64,7 @@ contains
   end function zeroConstructorParameters
 
   logical function zeroNeverStripped(self,node) result(neverStripped)
-    !!{
+    !!{RST
     Return true indicating that outflowing mass is never stripped in the hot halo.
     !!}
     implicit none
@@ -76,7 +77,7 @@ contains
   end function zeroNeverStripped
 
   double precision function zeroFractionStripped(self,node) result(fractionStripped)
-    !!{
+    !!{RST
     Return the fraction of outflowing mass stripped in the hot halo.
     !!}
     implicit none

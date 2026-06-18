@@ -17,22 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module that defines the \mono{unitType} derived type for encoding unit metadata
-written to HDF5 output datasets.
+!!{RST
+Contains a module that defines the ``unitType`` derived type for encoding unit metadata written to HDF5 output datasets.
 !!}
 
 module Units_MetaData
-  !!{
-  Defines the \mono{unitType} derived type and associated constructor for encoding unit metadata as a compound HDF5
-  attribute. Each instance stores:
-  \begin{description}
-    \item[\mono{unitsInSI}] Multiplicative conversion factor to SI units.
-    \item[\mono{description}] Human-readable units description (e.g.\ ``Solar masses'').
-    \item[\mono{quantity}] \href{https://docs.astropy.org/en/stable/units/}{astropy}-parseable
-      units string (e.g.\ \mono{Msun}).
-    \item[\mono{isComoving}] \mono{0} for physical units, \mono{1} for comoving units.
-  \end{description}
+  !!{RST
+  Defines the ``unitType`` derived type and associated constructor for encoding unit metadata as a compound HDF5 attribute. Each instance stores:
+
+  ``unitsInSI``
+     Multiplicative conversion factor to SI units.
+
+  ``description``
+     Human-readable units description (e.g.\ "Solar masses").
+
+  ``quantity``
+     `astropy <https://docs.astropy.org/en/stable/units/>`_-parseable units string (e.g.\ ``Msun``).
+
+  ``isComoving``
+     ``0`` for physical units, ``1`` for comoving units.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_char, c_double, c_int
   implicit none
@@ -44,10 +47,8 @@ module Units_MetaData
   integer, parameter, public :: unitStringLength=512
 
   type, bind(C) :: unitType
-     !!{
-     A derived type that holds unit metadata for a single dataset property. The \mono{bind(C)} attribute ensures a predictable
-     memory layout so that the HDF5 compound-type member offsets obtained from it (via \mono{H5OFFSETOF}) when writing units
-     attributes are exact.
+     !!{RST
+     A derived type that holds unit metadata for a single dataset property. The ``bind(C)`` attribute ensures a predictable memory layout so that the HDF5 compound-type member offsets obtained from it (via ``H5OFFSETOF``) when writing units attributes are exact.
      !!}
      real     (c_double)                              :: unitsInSI  =0.0_c_double
      character(c_char  ), dimension(unitStringLength) :: description=c_char_""
@@ -62,10 +63,8 @@ module Units_MetaData
 contains
 
   function unitsConstructor(unitsInSI,description,quantity,isComoving) result(units)
-    !!{
-    Construct a \mono{unitType} value from its components. All arguments except \mono{unitsInSI} are optional and default to
-    empty strings / zero. Uses plain Fortran intrinsic types (not C-interoperable types) in the interface (double precision and
-    default logical) for convenience at call sites.
+    !!{RST
+    Construct a ``unitType`` value from its components. All arguments except ``unitsInSI`` are optional and default to empty strings / zero. Uses plain Fortran intrinsic types (not C-interoperable types) in the interface (double precision and default logical) for convenience at call sites.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_char, c_int, c_null_char
     implicit none

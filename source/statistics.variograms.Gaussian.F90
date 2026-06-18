@@ -17,23 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a Gaussian variogram model.
   !!}
 
   !![
-  <variogram name="variogramGaussian">
+  <variogram name="variogramGaussian" docformat="rst">
    <description>
    A Gaussian variogram model in which the variogram is given by:
-   \begin{equation}
-   C(r) = C_0 + C_1 \left[ 1 - \exp\left( - \frac{r^2}{C_\mathrm{r}^2} \right) \right],
-   \end{equation}
-   where $r$ is the separation, and $(C_0,C_1,C_\mathrm{r})$ are parameters of the model.
+
+   .. math::
+
+      C(r) = C_0 + C_1 \left[ 1 - \exp\left( - \frac{r^2}{C_\mathrm{r}^2} \right) \right],
+
+   where :math:`r` is the separation, and :math:`(C_0,C_1,C_\mathrm{r})` are parameters of the model.
    </description>
   </variogram>
   !!]
   type, extends(variogramClass) :: variogramGaussian
-     !!{
+     !!{RST
      Implementation of a gaussian variogram model.
      !!}
      private
@@ -54,8 +56,8 @@
   end type variogramGaussian
 
   interface variogramGaussian
-     !!{
-     Constructors for the \refClass{variogramGaussian} variogram class.
+     !!{RST
+     Constructors for the :galacticus-class:`variogramGaussian` variogram class.
      !!}
      module procedure gaussianConstructorParameters
      module procedure gaussianConstructorInternal
@@ -64,8 +66,8 @@
 contains
 
   function gaussianConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{variogramGaussian} variogram class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`variogramGaussian` variogram class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,17 +77,18 @@ contains
     type   (varying_string   )                :: variogramFitOption
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>variogramFitOption</name>
-      <description>Option controlling how the binned semi-variance data are aggregated before fitting the Gaussian variogram model; allowed values are \mono{mean}, \mono{median} (default), or \mono{maximum} of the residuals within each separation bin.</description>
+      <description>
+      Option controlling how the binned semi-variance data are aggregated before fitting the Gaussian variogram model; allowed values are ``mean``, ``median`` (default), or ``maximum`` of the residuals within each separation bin.
+      </description>
       <defaultValue>var_str('median')</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>assumeZeroVarianceAtZeroLag</name>
-      <description>      
-       If true, the variogram model is forced to go to zero for states with zero separation (as expected if the likelihood model
-       being emulated is fully deterministic). Otherwise, the variance at zero separation is treated as a free parameter.
+      <description>
+      If true, the variogram model is forced to go to zero for states with zero separation (as expected if the likelihood model being emulated is fully deterministic). Otherwise, the variance at zero separation is treated as a free parameter.
       </description>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
@@ -99,8 +102,8 @@ contains
   end function gaussianConstructorParameters
 
   function gaussianConstructorInternal(variogramFitOption,assumeZeroVarianceAtZeroLag) result(self)
-    !!{
-    Constructor for the \refClass{variogramGaussian} variogram class.
+    !!{RST
+    Constructor for the :galacticus-class:`variogramGaussian` variogram class.
     !!}
     implicit none
     type   (variogramGaussian                )                :: self
@@ -119,7 +122,7 @@ contains
   end function gaussianConstructorInternal
 
   function gaussianCountParameters(self)
-    !!{
+    !!{RST
     Return the number of parameters in the gaussian variogram model.
     !!}
     implicit none
@@ -131,12 +134,14 @@ contains
   end function gaussianCountParameters
 
   double precision function gaussianVariogram(self,separation)
-    !!{
-    Compute the variogram at the given \mono{separation}. Here we use the ``gaussian model'':
-    \begin{equation}
-      \gamma(h) =C_0 + C_1 [ 1 - \exp\left(-\frac{h^2}{a^2}\right)]
-    \end{equation}
-    where $h$ is the separation, and $C_0$, $C_1$, and $R_\mathrm{C}$ are parameters of the model.
+    !!{RST
+    Compute the variogram at the given ``separation``. Here we use the "gaussian model":
+
+    .. math::
+
+       \gamma(h) =C_0 + C_1 [ 1 - \exp\left(-\frac{h^2}{a^2}\right)]
+
+    where :math:`h` is the separation, and :math:`C_0`, :math:`C_1`, and :math:`R_\mathrm{C}` are parameters of the model.
     !!}
     implicit none
     class           (variogramGaussian), intent(inout)           :: self
@@ -163,7 +168,7 @@ contains
   end function gaussianVariogram
 
   double precision function gaussianCorrelation(self,separation)
-    !!{
+    !!{RST
     Compute correlation of the variogram model. This is just the variance at maximum separation minus the variogram.
     !!}
     implicit none
@@ -177,7 +182,7 @@ contains
   end function gaussianCorrelation
 
   function gaussianModelInitialGuess(self,separations,semiVariances) result(C)
-    !!{
+    !!{RST
     Provide an initial guess for parameters of the gaussian variogram model.
     !!}
     implicit none
@@ -197,7 +202,7 @@ contains
   end function gaussianModelInitialGuess
 
   subroutine gaussianFit(self,separations,semiVariances)
-    !!{
+    !!{RST
     Compute best fit coefficients for the gaussian variogram model.
     !!}
     implicit none
@@ -222,7 +227,7 @@ contains
   end subroutine gaussianFit
   
   double precision function gaussianModelF(self,C,separations,semiVariances)
-    !!{
+    !!{RST
     Function to be minimized when fitting the variogram.
     !!}
     implicit none
@@ -269,7 +274,7 @@ contains
   end function gaussianModelF
 
   function gaussianModeldF(self,C,separations,semiVariances) result(dfdC)
-    !!{
+    !!{RST
     Derivatives of the function to be minimized when fitting the variogram.
     !!}
     implicit none
@@ -334,7 +339,7 @@ contains
   end function gaussianModeldF
 
   subroutine gaussianModelFdF(self,C,separations,semiVariances,f,dfdC)
-    !!{
+    !!{RST
     Computes both function and derivatives to be minimized when fitting the variogram.
     !!}
     implicit none

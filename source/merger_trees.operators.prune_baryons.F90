@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a pruning operator on merger trees that removes all branches that can not contain any baryons.
 !!}
 
@@ -25,12 +25,14 @@ Implements a pruning operator on merger trees that removes all branches that can
   use :: Virial_Density_Contrast, only : virialDensityContrast, virialDensityContrastClass
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorPruneBaryons">
-   <description>Provides a pruning operator on merger trees that removes all branches that can not contain any baryons.</description>
+  <mergerTreeOperator name="mergerTreeOperatorPruneBaryons" docformat="rst">
+   <description>
+   Provides a pruning operator on merger trees that removes all branches that can not contain any baryons.
+   </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneBaryons
-     !!{
+     !!{RST
      A pruning operator on merger trees that removes all branches that can not contain any baryons.
      !!}
      private
@@ -42,7 +44,7 @@ Implements a pruning operator on merger trees that removes all branches that can
   end type mergerTreeOperatorPruneBaryons
 
   interface mergerTreeOperatorPruneBaryons
-     !!{
+     !!{RST
      Constructors for the pruning-by-mass merger tree operator class.
      !!}
      module procedure pruneBaryonsConstructorParameters
@@ -52,7 +54,7 @@ Implements a pruning operator on merger trees that removes all branches that can
 contains
 
   function pruneBaryonsConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the prune-baryons merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -76,7 +78,7 @@ contains
   end function pruneBaryonsConstructorParameters
 
   function pruneBaryonsConstructorInternal(accretionHalo_,virialDensityContrast_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the prune-baryons merger tree operator class.
     !!}
     implicit none
@@ -91,7 +93,7 @@ contains
   end function pruneBaryonsConstructorInternal
 
   subroutine pruneBaryonsDestructor(self)
-    !!{
+    !!{RST
     Destructor for the merger tree operator function class.
     !!}
     implicit none
@@ -105,8 +107,8 @@ contains
   end subroutine pruneBaryonsDestructor
 
   subroutine pruneBaryonsOperatePreEvolution(self,tree)
-    !!{
-    Prune branches from \mono{tree}.
+    !!{RST
+    Prune branches from ``tree``.
     !!}
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic             , treeNode
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
@@ -122,11 +124,9 @@ contains
     double precision                                                        :: densityContrast
 
     !![
-    <workaround type="unknown">
+    <workaround type="unknown" docformat="rst">
      <description>
-       When using the percolation virial density contrast type we run into problems with initialization if we do not
-       explicitly cause the percolation tables to be initialized here. The problem is a segmentation fault - I have not
-       understood why this happens.
+     When using the percolation virial density contrast type we run into problems with initialization if we do not explicitly cause the percolation tables to be initialized here. The problem is a segmentation fault - I have not understood why this happens.
      </description>
     !!]
     ! Compute a density contrast.

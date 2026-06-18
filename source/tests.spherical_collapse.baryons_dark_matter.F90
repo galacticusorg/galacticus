@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_Spherical_Collapse_Baryons_Dark_Matter
-  !!{
+  !!{RST
   Tests linear growth calculations.
   !!}
   use :: Cosmological_Density_Field           , only : cosmologicalMassVarianceFilteredPower                     , criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy      , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt

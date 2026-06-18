@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides computational domains.
 !!}
 
 module Computational_Domains
-  !!{
+  !!{RST
   Provides a class that implements computational domains.
   !!}
   use            :: IO_HDF5                         , only : hdf5Object
@@ -32,7 +32,7 @@ module Computational_Domains
   public :: domainIterator
 
   type, abstract :: domainIterator
-     !!{
+     !!{RST
      Parent class for iterators over computational domains.
      !!}
    contains
@@ -40,49 +40,57 @@ module Computational_Domains
   end type domainIterator
   
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>computationalDomain</name>
    <descriptiveName>Computational Domains</descriptiveName>
-   <description>Class providing computational domains for Monte Carlo radiative transfer calculations--- discretized spatial grids
-    that partition the simulation volume into cells, each carrying absorption and emission properties. A computational domain
-    supports iterating over cells, locating a position within its cell structure, computing ray path lengths to cell boundaries,
-    accumulating photon packet absorptions, and solving for the local ionization and temperature state. Implementations include
-    Cartesian and spherical grids.</description>
+   <description>
+   Class providing computational domains for Monte Carlo radiative transfer calculations--- discretized spatial grids that partition the simulation volume into cells, each carrying absorption and emission properties. A computational domain supports iterating over cells, locating a position within its cell structure, computing ray path lengths to cell boundaries, accumulating photon packet absorptions, and solving for the local ionization and temperature state. Implementations include Cartesian and spherical grids.
+   </description>
    <default>cartesian3D</default>
    <method name="iterator" >
-    <description>Return an iterator which can be used to iterate over the domain.</description>
+    <description>
+    Return an iterator which can be used to iterate over the domain.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>class(domainIterator), intent(inout), allocatable :: iterator</argument>
    </method>
    <method name="initialize" >
-    <description>Initialize the computational domain, setting up internal data structures and allocating resources required before
-    radiative transfer iterations begin.</description>
+    <description>
+    Initialize the computational domain, setting up internal data structures and allocating resources required before radiative transfer iterations begin.
+    </description>
     <type>void</type>
     <pass>yes</pass>
    </method>
    <method name="reset" >
-    <description>Reset the computational domain state prior to beginning a new radiative transfer iteration, clearing accumulated
-    photon packet statistics while preserving the domain geometry and cell structure.</description>
+    <description>
+    Reset the computational domain state prior to beginning a new radiative transfer iteration, clearing accumulated photon packet statistics while preserving the domain geometry and cell structure.
+    </description>
     <type>void</type>
     <pass>yes</pass>
    </method>
    <method name="indicesFromPosition" >
-    <description>Return a set of indices identifying the domain cell containing a position. For points outside the domain values of \mono{-huge(0)} will be returned.</description>
+    <description>
+    Return a set of indices identifying the domain cell containing a position. For points outside the domain values of ``-huge(0)`` will be returned.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision                       , dimension(3), intent(in   ) :: position</argument>
     <argument>integer         (c_size_t), allocatable, dimension(:), intent(inout) :: indices</argument>
    </method>
    <method name="absorptionCoefficient" >
-    <description>Return the absorption coefficient (in units of inverse length) in the domain cell identified by the given indices for a photon packet at its current wavelength, used to compute photon packet attenuation as it traverses the cell.</description>
+    <description>
+    Return the absorption coefficient (in units of inverse length) in the domain cell identified by the given indices for a photon packet at its current wavelength, used to compute photon packet attenuation as it traverses the cell.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class  (radiativeTransferPhotonPacketClass)              , intent(inout) :: photonPacket</argument>
     <argument>integer(c_size_t                          ), dimension(:), intent(in   ) :: indices</argument>
    </method>
    <method name="lengthToCellBoundary" >
-    <description>Return the length until a photon packet hits a cell boundary. Also return the indices of that neighboring cell.</description>
+    <description>
+    Return the length until a photon packet hits a cell boundary. Also return the indices of that neighboring cell.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class           (radiativeTransferPhotonPacketClass)                           , intent(inout) :: photonPacket</argument>
@@ -91,7 +99,9 @@ module Computational_Domains
     <argument>double precision                                                 , dimension(3), intent(  out) :: positionBoundary</argument>
    </method>
    <method name="accumulatePhotonPacket" >
-    <description>Accumulate ``absorptions'' from the photon packet as it traverses a cell of the computational domain.</description>
+    <description>
+    Accumulate "absorptions" from the photon packet as it traverses a cell of the computational domain.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>class           (radiativeTransferPhotonPacketClass)              , intent(inout) :: photonPacket</argument>
@@ -99,24 +109,32 @@ module Computational_Domains
     <argument>double precision                                                  , intent(in   ) :: absorptionCoefficient, lengthTraversed</argument>
    </method>
    <method name="interactWithPhotonPacket" >
-    <description>Interact the photon packet with matter in the computational domain, possibly modifying its properties. Return true if the photon packet is still alive, false if it is absorbed.</description>
+    <description>
+    Interact the photon packet with matter in the computational domain, possibly modifying its properties. Return true if the photon packet is still alive, false if it is absorbed.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <argument>class           (radiativeTransferPhotonPacketClass)              , intent(inout) :: photonPacket</argument>
     <argument>integer         (c_size_t                          ), dimension(:), intent(inout) :: indices</argument>
    </method>
    <method name="stateSolve" >
-    <description>Solve for the equilibrium state of matter throughout the computational domain given the accumulated radiation field, updating physical quantities such as temperature, ionization state, or chemical abundances in each cell.</description>
+    <description>
+    Solve for the equilibrium state of matter throughout the computational domain given the accumulated radiation field, updating physical quantities such as temperature, ionization state, or chemical abundances in each cell.
+    </description>
     <type>void</type>
     <pass>yes</pass>
    </method>
    <method name="converged" >
-    <description>Return true if the computational domain has reached a converged solution, meaning that the matter state (e.g. ionization, temperature) is no longer changing significantly between successive radiative transfer iterations.</description>
+    <description>
+    Return true if the computational domain has reached a converged solution, meaning that the matter state (e.g. ionization, temperature) is no longer changing significantly between successive radiative transfer iterations.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
    </method>
    <method name="output" >
-    <description>Output the current state of the computational domain (cell properties, radiation field, matter state) to the specified HDF5 group for post-processing analysis or diagnostic purposes.</description>
+    <description>
+    Output the current state of the computational domain (cell properties, radiation field, matter state) to the specified HDF5 group for post-processing analysis or diagnostic purposes.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type(hdf5Object), intent(inout) :: outputGroup</argument>
@@ -126,9 +144,8 @@ module Computational_Domains
   
   abstract interface
      logical function domainIteratorNext(self)
-       !!{
-       Function which steps a computational domain iterator to the next iteration, returning false if no more iterations
-       remain.
+       !!{RST
+       Function which steps a computational domain iterator to the next iteration, returning false if no more iterations remain.
        !!}
        import domainIterator
        class(domainIterator), intent(inout) :: self

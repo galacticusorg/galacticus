@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module of useful unit conversions.
 !!}
 
 module Numerical_Constants_Units
-  !!{
+  !!{RST
   Contains various useful unit conversions.
   !!}
   use :: Numerical_Constants_Math, only : Pi

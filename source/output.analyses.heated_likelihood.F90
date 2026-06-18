@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a merger trees analysis class which wraps another class and ``heats'' its likelihood to a given temperature.
+  !!{RST
+  Implements a merger trees analysis class which wraps another class and "heats" its likelihood to a given temperature.
   !!}
 
   !![
-  <outputAnalysis name="outputAnalysisHeatedLikelihood">
-   <description>Wraps another \refClass{outputAnalysisClass} and raises its log-likelihood to the power $1/T$ where $T$ is the \mono{temperature} parameter, effectively flattening the posterior for use in parallel tempering or annealing inference methods.</description>
+  <outputAnalysis name="outputAnalysisHeatedLikelihood" docformat="rst">
+   <description>
+   Wraps another :galacticus-class:`outputAnalysisClass` and raises its log-likelihood to the power :math:`1/T` where :math:`T` is the ``temperature`` parameter, effectively flattening the posterior for use in parallel tempering or annealing inference methods.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisHeatedLikelihood
-     !!{
-     Implementation of a merger tree analysis class which wraps another class and ``heats'' its likelihood to a given temperature.
+     !!{RST
+     Implementation of a merger tree analysis class which wraps another class and "heats" its likelihood to a given temperature.
      !!}
      private
      class           (outputAnalysisClass), pointer :: outputAnalysis_ => null()
@@ -43,8 +45,8 @@
   end type outputAnalysisHeatedLikelihood
 
   interface outputAnalysisHeatedLikelihood
-     !!{
-     Constructors for the \refClass{outputAnalysisHeatedLikelihood} merger tree analysis.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisHeatedLikelihood` merger tree analysis.
      !!}
      module procedure heatedLikelihoodConstructorParameters
      module procedure heatedLikelihoodConstructorInternal
@@ -53,8 +55,8 @@
 contains
 
   function heatedLikelihoodConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisHeatedLikelihood} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisHeatedLikelihood` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,9 +66,11 @@ contains
     double precision                                                :: temperature
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>temperature</name>
-      <description>The temperature to which to heat the likelihood.</description>
+      <description>
+      The temperature to which to heat the likelihood.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="outputAnalysis" name="outputAnalysis_" source="parameters"/>
@@ -80,8 +84,8 @@ contains
   end function heatedLikelihoodConstructorParameters
 
   function heatedLikelihoodConstructorInternal(temperature,outputAnalysis_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisHeatedLikelihood} output analysis class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisHeatedLikelihood` output analysis class.
     !!}
     implicit none
     type            (outputAnalysisHeatedLikelihood)                        :: self
@@ -94,8 +98,8 @@ contains
   end function heatedLikelihoodConstructorInternal
 
   subroutine heatedLikelihoodDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisHeatedLikelihood} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisHeatedLikelihood` output analysis class.
     !!}
     implicit none
     type(outputAnalysisHeatedLikelihood), intent(inout) :: self
@@ -107,7 +111,7 @@ contains
   end subroutine heatedLikelihoodDestructor
 
   subroutine heatedLikelihoodNewTree(self,tree,iOutput)
-    !!{
+    !!{RST
     Output from all analyses.
     !!}
     implicit none
@@ -120,7 +124,7 @@ contains
   end subroutine heatedLikelihoodNewTree
 
   subroutine heatedLikelihoodAnalyze(self,node,iOutput)
-    !!{
+    !!{RST
     Output from all analyses.
     !!}
     implicit none
@@ -133,7 +137,7 @@ contains
   end subroutine heatedLikelihoodAnalyze
 
   subroutine heatedLikelihoodFinalize(self,groupName)
-    !!{
+    !!{RST
     Finalize all analyses.
     !!}
     implicit none
@@ -145,7 +149,7 @@ contains
   end subroutine heatedLikelihoodFinalize
 
   double precision function heatedLikelihoodLogLikelihood(self)
-    !!{
+    !!{RST
     Find the log-likelihood over all analyses.
     !!}
     implicit none
@@ -157,7 +161,7 @@ contains
   end function heatedLikelihoodLogLikelihood
 
   subroutine heatedLikelihoodReduce(self,reduced)
-    !!{
+    !!{RST
     Reduce over the analysis.
     !!}
     use :: Error, only : Error_Report

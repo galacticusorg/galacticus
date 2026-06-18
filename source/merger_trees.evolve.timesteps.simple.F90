@@ -20,22 +20,21 @@
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
   !![
-  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSimple">
+  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSimple" docformat="rst">
    <description>
-    A merger tree evolution timestepping class enforces that
-    \begin{eqnarray}
-    \Delta t &amp;\le&amp; t_\mathrm{simple}, \\
-    \Delta t &amp;\le&amp; \epsilon_\mathrm{simple} (a/\dot{a}),
-    \end{eqnarray}
-    where $t_\mathrm{simple}=$\mono{[timestepSimpleAbsolute]}, $\epsilon_\mathrm{simple}=$\mono{[timestepSimpleRelative]}, and $a$ is expansion factor. These criteria are intended to prevent any one node evolving over an
-    excessively large time in one step. In general, these criteria are not necessary, as nodes should be free to evolve as far as
-    possible unless prevented by some physical requirement. These criteria are therefore present to provide a simple example of how
-    timestep criteria work.
+   A merger tree evolution timestepping class enforces that
+
+   .. math::
+
+      \Delta t &amp; \le t_\mathrm{simple}, \\
+      \Delta t &amp; \le \epsilon_\mathrm{simple} (a/\dot{a}),
+
+   where :math:`t_\mathrm{simple}=`\ ``[timestepSimpleAbsolute]``, :math:`\epsilon_\mathrm{simple}=`\ ``[timestepSimpleRelative]``, and :math:`a` is expansion factor. These criteria are intended to prevent any one node evolving over an excessively large time in one step. In general, these criteria are not necessary, as nodes should be free to evolve as far as possible unless prevented by some physical requirement. These criteria are therefore present to provide a simple example of how timestep criteria work.
    </description>
   </mergerTreeEvolveTimestep>
   !!]
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepSimple
-     !!{
+     !!{RST
      Implementation of an output times class which reads a simple of output times from a parameter.
      !!}
      private
@@ -47,8 +46,8 @@
   end type mergerTreeEvolveTimestepSimple
 
   interface mergerTreeEvolveTimestepSimple
-     !!{
-     Constructors for the \refClass{mergerTreeEvolveTimestepSimple} merger tree evolution timestep class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeEvolveTimestepSimple` merger tree evolution timestep class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -57,8 +56,8 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveTimestepSimple} merger tree evolution timestep class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepSimple` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -68,16 +67,20 @@ contains
     double precision                                                :: timeStepAbsolute   , timeStepRelative
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeStepRelative</name>
       <defaultValue>0.1d0</defaultValue>
-      <description>The maximum allowed relative change in time for a single step in the evolution of a node.</description>
+      <description>
+      The maximum allowed relative change in time for a single step in the evolution of a node.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeStepAbsolute</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The maximum allowed absolute change in time (in Gyr) for a single step in the evolution of a node.</description>
+      <description>
+      The maximum allowed absolute change in time (in Gyr) for a single step in the evolution of a node.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
@@ -91,8 +94,8 @@ contains
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(timeStepAbsolute,timeStepRelative,cosmologyFunctions_) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveTimestepSimple} merger tree evolution timestep class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepSimple` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     implicit none
     type            (mergerTreeEvolveTimestepSimple)                        :: self
@@ -106,8 +109,8 @@ contains
   end function simpleConstructorInternal
 
   subroutine simpleDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeEvolveTimestepSimple} merger tree evolution timestep class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeEvolveTimestepSimple` merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepSimple), intent(inout) :: self
@@ -119,8 +122,8 @@ contains
   end subroutine simpleDestructor
 
   double precision function simpleTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
-    !!{
-    Determine a suitable timestep for \mono{node} using the simple method. This simply selects the smaller of \mono{timeStepAbsolute} and \mono{timeStepRelative}$H^{-1}(t)$.
+    !!{RST
+    Determine a suitable timestep for ``node`` using the simple method. This simply selects the smaller of ``timeStepAbsolute`` and ``timeStepRelative``\ :math:`H^{-1}(t)`.
     !!}
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use :: Galacticus_Nodes      , only : nodeComponentBasic   , treeNode

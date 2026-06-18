@@ -28,12 +28,14 @@
   use :: Transfer_Functions             , only : transferFunctionClass
 
   !![
-  <task name="taskPowerSpectra">
-   <description>A task which computes and outputs the power spectrum and related quantities.</description>
+  <task name="taskPowerSpectra" docformat="rst">
+   <description>
+   A task which computes and outputs the power spectrum and related quantities.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskPowerSpectra
-     !!{
+     !!{RST
      Implementation of a task which computes and outputs the power spectrum and related quantities.
      !!}
      private
@@ -57,8 +59,8 @@
   end type taskPowerSpectra
 
   interface taskPowerSpectra
-     !!{
-     Constructors for the \refClass{taskPowerSpectra} task.
+     !!{RST
+     Constructors for the :galacticus-class:`taskPowerSpectra` task.
      !!}
      module procedure powerSpectraConstructorParameters
      module procedure powerSpectraConstructorInternal
@@ -67,8 +69,8 @@
 contains
 
   function powerSpectraConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskPowerSpectra} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskPowerSpectra` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Error           , only : Error_Report
@@ -93,51 +95,65 @@ contains
     if (parameters%isPresent('pointsPerUnit')) then
        if (parameters%isPresent('pointsPerDecade')) call Error_Report('can not specify both `pointsPerUnit` and `pointsPerDecade` '//{introspection:location})
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>pointsPerUnit</name>
-	 <description>The number of points per unit wavenumber at which to tabulate power spectra.</description>
+	 <description>
+	 The number of points per unit wavenumber at which to tabulate power spectra.
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
     else
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>pointsPerDecade</name>
 	 <defaultValue>10.0d0</defaultValue>
-	 <description>The number of points per decade of wavenumber at which to tabulate power spectra.</description>
+	 <description>
+	 The number of points per decade of wavenumber at which to tabulate power spectra.
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavenumberMinimum</name>
       <defaultValue>1.0d-3</defaultValue>
-      <description>The minimum wavenumber at which to tabulate power spectra.</description>
+      <description>
+      The minimum wavenumber at which to tabulate power spectra.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavenumberMaximum</name>
       <defaultValue>1.0d+3</defaultValue>
-      <description>The maximum wavenumber at which to tabulate power spectra.</description>
+      <description>
+      The maximum wavenumber at which to tabulate power spectra.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeNonLinear</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true the nonlinear power spectrum is also computed and output.</description>
+      <description>
+      If true the nonlinear power spectrum is also computed and output.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massSmoothingWindowFunction</name>
       <defaultValue>-1.0d0</defaultValue>
-      <description>If positive, the window function evaluated at this smoothing mass will be output.</description>
+      <description>
+      If positive, the window function evaluated at this smoothing mass will be output.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputGroup</name>
       <defaultValue>var_str('.')</defaultValue>
-      <description>The HDF5 output group within which to write power spectrum data.</description>
+      <description>
+      The HDF5 output group within which to write power spectrum data.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"         name="cosmologyParameters_"         source="parameters"/>
@@ -212,8 +228,8 @@ contains
        &                                    pointsPerDecade             , &
        &                                    pointsPerUnit                 &
        &                                   ) result(self)
-    !!{
-    Internal constructor for the \refClass{taskPowerSpectra} task class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`taskPowerSpectra` task class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -243,8 +259,8 @@ contains
   end function powerSpectraConstructorInternal
 
   subroutine powerSpectraDestructor(self)
-    !!{
-    Destructor for the \refClass{taskPowerSpectra} task class.
+    !!{RST
+    Destructor for the :galacticus-class:`taskPowerSpectra` task class.
     !!}
     implicit none
     type(taskPowerSpectra), intent(inout) :: self
@@ -264,7 +280,7 @@ contains
   end subroutine powerSpectraDestructor
 
   subroutine powerSpectraPerform(self,status)
-    !!{
+    !!{RST
     Compute and output the halo mass function.
     !!}
     use            :: Display                         , only : displayIndent     , displayUnindent
@@ -432,7 +448,7 @@ contains
   contains
 
     double precision function varianceIntegrand(wavenumber)
-      !!{
+      !!{RST
       Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
       !!}
       implicit none

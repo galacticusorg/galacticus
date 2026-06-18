@@ -19,10 +19,8 @@
 
 !+    Contributions to this file made by: Charles Gannon, Andrew Benson.
 
-  !!{  
-  Implements a node operator that inserts an empirical model of the formation history of a galaxy. Mass evolution is modeled
-  using the \textsc{UniverseMachine} \citep{behroozi_universemachine_2019} correlation between galaxy growth and dark matter halo
-  assembly.
+  !!{RST
+  Implements a node operator that inserts an empirical model of the formation history of a galaxy. Mass evolution is modeled using the **UniverseMachine** :cite:p:`behroozi_universemachine_2019` correlation between galaxy growth and dark matter halo assembly.
   !!}
 
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
@@ -30,12 +28,9 @@
   use :: Virial_Density_Contrast, only : virialDensityContrastClass, virialDensityContrastBryanNorman1998
   
   !![
-  <nodeOperator name="nodeOperatorEmpiricalGalaxyUniverseMachine">
+  <nodeOperator name="nodeOperatorEmpiricalGalaxyUniverseMachine" docformat="rst">
    <description>
-     A node operator that inserts an empirical model of the formation history of a galaxy. Mass evolution is modeled using the
-     \textsc{UniverseMachine} \citep{behroozi_universemachine_2019} correlation between galaxy growth and dark matter halo
-     assembly. The \textsc{UniverseMachine} fits are used only for redshifts less than \mono{[redshiftMaximum]},
-     and for halo masses above \mono{[massHaloMinimum]}. Outside of those ranges, no galaxy is inserted.
+   A node operator that inserts an empirical model of the formation history of a galaxy. Mass evolution is modeled using the **UniverseMachine** :cite:p:`behroozi_universemachine_2019` correlation between galaxy growth and dark matter halo assembly. The **UniverseMachine** fits are used only for redshifts less than ``[redshiftMaximum]``, and for halo masses above ``[massHaloMinimum]``. Outside of those ranges, no galaxy is inserted.
    </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_"/>
@@ -46,10 +41,8 @@
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorEmpiricalGalaxyUniverseMachine
-     !!{     
-     A \mono{nodeOperator} class that inserts an empirical model of the formation history of a galaxy.  At each
-     time step and during mergers, the mass of the central galaxy is computed using the stellar mass--halo mass relation using
-     \textsc{UniverseMachine} \citep{behroozi_universemachine_2019} fits.
+     !!{RST
+     A ``nodeOperator`` class that inserts an empirical model of the formation history of a galaxy.  At each time step and during mergers, the mass of the central galaxy is computed using the stellar mass--halo mass relation using **UniverseMachine** :cite:p:`behroozi_universemachine_2019` fits.
      !!}
      private
      double precision                                       :: massStellarFinal                          , fractionMassSpheroid, fractionMassDisk           , &
@@ -67,8 +60,8 @@
      type   (virialDensityContrastBryanNorman1998), pointer :: virialDensityContrastDefinition_ => null()
    contains
      !![
-     <methods>
-       <method method="scaling"                     description="Compute the scaling of \textsc{UniverseMachine} parameters with redshift."/>
+     <methods docformat="rst">
+       <method method="scaling"                     description="Compute the scaling of **UniverseMachine** parameters with redshift."/>
        <method method="stellarMassHaloMassRelation" description="Evaluate the stellar mass--halo mass relation."                           />
        <method method="update"                      description="Update the stellar mass of the galaxy."                                   />
      </methods>
@@ -84,8 +77,8 @@
   end type nodeOperatorEmpiricalGalaxyUniverseMachine
   
   interface nodeOperatorEmpiricalGalaxyUniverseMachine
-     !!{
-     Constructors for the \refClass{nodeOperatorEmpiricalGalaxyUniverseMachine} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorEmpiricalGalaxyUniverseMachine` node operator class.
      !!}
      module procedure empiricalGalaxyUniverseMachineConstructorParameters
      module procedure empiricalGalaxyUniverseMachineConstructorInternal
@@ -94,8 +87,8 @@
 contains
 
   function empiricalGalaxyUniverseMachineConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorEmpiricalGalaxyUniverseMachine} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorEmpiricalGalaxyUniverseMachine` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -114,177 +107,260 @@ contains
     class           (virialDensityContrastClass               ), pointer        :: virialDensityContrast_
 
     !![ 
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massStellarFinal</name>
       <source>parameters</source>
       <description>
-        If positive, rescale the \textsc{UniverseMachine} fitting functions to match this final mass. A negative value indicates
-        the final mass of the galaxy will be determined by \textsc{UniverseMachine} fits.
+      If positive, rescale the **UniverseMachine** fitting functions to match this final mass. A negative value indicates the final mass of the galaxy will be determined by **UniverseMachine** fits.
       </description>
       <defaultValue>-1.0d0</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionMassSpheroid</name>
       <source>parameters</source>
       <description>
-        Sets the fraction of galaxy mass belonging to the spheroid component.
+      Sets the fraction of galaxy mass belonging to the spheroid component.
       </description>
       <defaultValue>1.0d0</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionMassDisk</name>
       <source>parameters</source>
       <description>
-        Sets the fraction of galaxy mass belonging to the disk component.
+      Sets the fraction of galaxy mass belonging to the disk component.
       </description>
       <defaultValue>0.0d0</defaultValue>
     </inputParameter>       
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>epsilon_0</name>
       <source>parameters</source>
-      <description>Parameter $\epsilon_0$ of the \textsc{UniverseMachine} fits.</description>
+      <description>
+      Parameter :math:`\epsilon_0` of the **UniverseMachine** fits.
+      </description>
       <defaultValue>-1.435d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>epsilon_a</name>
       <source>parameters</source>
       <defaultValue>+1.831d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-      <description>Parameter $\epsilon_a$ of the \textsc{UniverseMachine} fits.</description>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
+      <description>
+      Parameter :math:`\epsilon_a` of the **UniverseMachine** fits.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>epsilon_lna</name>
       <source>parameters</source>
       <defaultValue>+1.368d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-      <description>Parameter $\epsilon_{\ln a}$ of the \textsc{UniverseMachine} fits.</description>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
+      <description>
+      Parameter :math:`\epsilon_{\ln a}` of the **UniverseMachine** fits.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>epsilon_z</name>
       <source>parameters</source>
       <defaultValue>-0.217d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-      <description>Parameter $\epsilon_0$ of the \textsc{UniverseMachine} fits.</description>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
+      <description>
+      Parameter :math:`\epsilon_0` of the **UniverseMachine** fits.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>M_0</name>
       <source>parameters</source>
-      <description>Parameter $M_0$ of the \textsc{UniverseMachine} fits.</description>
+      <description>
+      Parameter :math:`M_0` of the **UniverseMachine** fits.
+      </description>
       <defaultValue>+12.04d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>M_a</name>
       <source>parameters</source>
       <defaultValue>+4.556d0</defaultValue>
-       <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-     <description>Parameter $M_a$ of the \textsc{UniverseMachine} fits.</description>
+       <defaultSource>
+       :cite:t:`behroozi_universemachine_2019`
+       </defaultSource>
+     <description>
+     Parameter :math:`M_a` of the **UniverseMachine** fits.
+     </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>M_lna</name>
       <source>parameters</source>
       <defaultValue>+4.417d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-      <description>Parameter $M_{\ln a}$ of the \textsc{UniverseMachine} fits.</description>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
+      <description>
+      Parameter :math:`M_{\ln a}` of the **UniverseMachine** fits.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>M_z</name>
       <source>parameters</source>
       <defaultValue>-0.731d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-      <description>Parameter $M_z$ of the \textsc{UniverseMachine} fits.</description>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
+      <description>
+      Parameter :math:`M_z` of the **UniverseMachine** fits.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha_0</name>
       <source>parameters</source>
       <defaultValue>+1.963d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-      <description>Parameter $\alpha_0$ of the \textsc{UniverseMachine} fits.</description>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
+      <description>
+      Parameter :math:`\alpha_0` of the **UniverseMachine** fits.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha_a</name>
       <source>parameters</source>
       <defaultValue>-2.316d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-      <description>Parameter $\alpha_a$ of the \textsc{UniverseMachine} fits.</description>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
+      <description>
+      Parameter :math:`\alpha_a` of the **UniverseMachine** fits.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha_lna</name>
       <source>parameters</source>
       <defaultValue>-1.732d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-      <description>Parameter $\alpha_{\ln a}$ of the \textsc{UniverseMachine} fits.</description>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
+      <description>
+      Parameter :math:`\alpha_{\ln a}` of the **UniverseMachine** fits.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha_z</name>
       <source>parameters</source>
       <defaultValue>+0.178d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-      <description>Parameter $\alpha_z$ of the \textsc{UniverseMachine} fits.</description>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
+      <description>
+      Parameter :math:`\alpha_z` of the **UniverseMachine** fits.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta_0</name>
       <source>parameters</source>
       <defaultValue>+0.482d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-      <description>Parameter $\beta_0$ of the \textsc{UniverseMachine} fits.</description>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
+      <description>
+      Parameter :math:`\beta_0` of the **UniverseMachine** fits.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta_a</name>
       <source>parameters</source>
       <defaultValue>-0.841d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-      <description>Parameter $\beta_a$ of the \textsc{UniverseMachine} fits.</description>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
+      <description>
+      Parameter :math:`\beta_a` of the **UniverseMachine** fits.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta_z</name>
       <source>parameters</source>
       <defaultValue>-0.471d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-      <description>Parameter $\beta_0$ of the \textsc{UniverseMachine} fits.</description>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
+      <description>
+      Parameter :math:`\beta_0` of the **UniverseMachine** fits.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>delta_0</name>
       <source>parameters</source>
       <defaultValue>+0.411d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-      <description>Parameter $\delta_0$ of the \textsc{UniverseMachine} fits.</description>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
+      <description>
+      Parameter :math:`\delta_0` of the **UniverseMachine** fits.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma_0</name>
       <source>parameters</source>
       <defaultValue>-1.034d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-      <description>Parameter $\gamma_0$ of the \textsc{UniverseMachine} fits.</description>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
+      <description>
+      Parameter :math:`\gamma_0` of the **UniverseMachine** fits.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma_a</name>
       <source>parameters</source>
       <defaultValue>-3.100d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-      <description>Parameter $\gamma_a$ of the \textsc{UniverseMachine} fits.</description>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
+      <description>
+      Parameter :math:`\gamma_a` of the **UniverseMachine** fits.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma_z</name>
       <source>parameters</source>
       <defaultValue>-1.055d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-      <description>Parameter $\gamma_z$ of the \textsc{UniverseMachine} fits.</description>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
+      <description>
+      Parameter :math:`\gamma_z` of the **UniverseMachine** fits.
+      </description>
     </inputParameter> 
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMaximum</name>
       <source>parameters</source>
       <defaultValue>10.0d0</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-      <description>The maximum redshift at which UniverseMachine fits will be applied.</description>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
+      <description>
+      The maximum redshift at which UniverseMachine fits will be applied.
+      </description>
     </inputParameter> 
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massHaloMinimum</name>
       <source>parameters</source>
       <defaultValue>1.0d10</defaultValue>
-      <defaultSource>\cite[][Table J1]{behroozi_universemachine_2019}</defaultSource>
-      <description>The minimum halo mass at which UniverseMachine fits will be applied.</description>
+      <defaultSource>
+      :cite:t:`behroozi_universemachine_2019`
+      </defaultSource>
+      <description>
+      The minimum halo mass at which UniverseMachine fits will be applied.
+      </description>
     </inputParameter> 
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
@@ -319,8 +395,8 @@ contains
          &                                                   redshiftMaximum     ,massHaloMinimum                                      , &
          &                                                   cosmologyParameters_,cosmologyFunctions_ ,virialDensityContrast_            &
          &                                                  ) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorEmpiricalGalaxyUniverseMachine} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorEmpiricalGalaxyUniverseMachine` node operator class.
     !!}
     use :: Error               , only : Error_Report
     use :: Numerical_Comparison, only : Values_Agree
@@ -358,8 +434,8 @@ contains
   end function empiricalGalaxyUniverseMachineConstructorInternal
 
   subroutine empiricalGalaxyUniverseMachineDestructor(self)    
-    !!{
-    Destructor for the \refClass{nodeOperatorEmpiricalGalaxyUniverseMachine} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorEmpiricalGalaxyUniverseMachine` node operator class.
     !!}
     implicit none
     type(nodeOperatorEmpiricalGalaxyUniverseMachine), intent(inout) :: self
@@ -374,8 +450,8 @@ contains
   end subroutine empiricalGalaxyUniverseMachineDestructor
 
   double precision function empiricalGalaxyUniverseMachineScaling(self,redshift,y0,ya,ylna,yz) result(parameterScaled)
-    !!{
-    Implements the scaling relations provided in equations J3--J8 of \cite{behroozi_universemachine_2019}.
+    !!{RST
+    Implements the scaling relations provided in equations J3--J8 of :cite:t:`behroozi_universemachine_2019`.
     !!}
     implicit none
     class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(in) :: self
@@ -393,8 +469,8 @@ contains
   end function empiricalGalaxyUniverseMachineScaling
 
   double precision function empiricalGalaxyUniverseMachineStellarMassHaloMassRelation(self,massHalo,redshift) result(massStellar)
-    !!{
-    Implements the stellar mass--halo mass relationship provided in equation J1 of \cite{behroozi_universemachine_2019}.
+    !!{RST
+    Implements the stellar mass--halo mass relationship provided in equation J1 of :cite:t:`behroozi_universemachine_2019`.
     !!}
     implicit none  
     class           (nodeOperatorEmpiricalGalaxyUniverseMachine), intent(in) :: self 
@@ -451,7 +527,7 @@ contains
   end function empiricalGalaxyUniverseMachineStellarMassHaloMassRelation
 
   subroutine empiricalGalaxyUniverseMachineUpdate(self,node)
-    !!{
+    !!{RST
     Updates the stellar mass of the node.
     !!} 
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -534,7 +610,7 @@ contains
   end subroutine empiricalGalaxyUniverseMachineUpdate
 
   subroutine empiricalGalaxyUniverseMachineNodeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize the galaxy.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
@@ -552,7 +628,7 @@ contains
   end subroutine empiricalGalaxyUniverseMachineNodeInitialize
   
   subroutine empiricalGalaxyUniverseMachineAnalytics(self,node)
-    !!{
+    !!{RST
     Mark disk and spheroid stellar masses as analytically-solvable.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
@@ -580,7 +656,7 @@ contains
   end subroutine empiricalGalaxyUniverseMachineAnalytics
   
   subroutine empiricalGalaxyUniverseMachineSolveAnalytics(self,node,time)
-    !!{
+    !!{RST
     Update galactic properties at each timestep
     !!}
     implicit none
@@ -594,7 +670,7 @@ contains
   end subroutine empiricalGalaxyUniverseMachineSolveAnalytics
   
   subroutine empiricalGalaxyUniverseMachineNodesMerge(self,node)
-    !!{
+    !!{RST
     Update galactic properties at each merger.
     !!}
     implicit none

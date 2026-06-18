@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that simply evolves the cosmic time of a node.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorCosmicTime">
-   <description>Evolves the cosmic time property of each node analytically during differential evolution, providing a fundamental time-tracking mechanism used by other node operators and analyses.</description>
+  <nodeOperator name="nodeOperatorCosmicTime" docformat="rst">
+   <description>
+   Evolves the cosmic time property of each node analytically during differential evolution, providing a fundamental time-tracking mechanism used by other node operators and analyses.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorCosmicTime
-     !!{
+     !!{RST
      A node operator class that simply evolves the cosmic time of a node.
      !!}
      private
@@ -39,8 +41,8 @@
   end type nodeOperatorCosmicTime
   
   interface nodeOperatorCosmicTime
-     !!{
-     Constructors for the \refClass{nodeOperatorCosmicTime} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorCosmicTime` node operator class.
      !!}
      module procedure cosmicTimeConstructorParameters
   end interface nodeOperatorCosmicTime
@@ -48,8 +50,8 @@
 contains
   
   function cosmicTimeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorCosmicTime} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorCosmicTime` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +66,7 @@ contains
   end function cosmicTimeConstructorParameters
 
   subroutine cosmicTimeDifferentialEvolutionAnalytics(self,node)
-    !!{
+    !!{RST
     Mark analytically-solvable properties.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -79,7 +81,7 @@ contains
   end subroutine cosmicTimeDifferentialEvolutionAnalytics
 
   subroutine cosmicTimeSolveAnalytics(self,node,time)
-    !!{
+    !!{RST
     Set values of analytically-solvable properties.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -96,7 +98,7 @@ contains
   end subroutine cosmicTimeSolveAnalytics
 
   subroutine cosmicTimeNodesMerge(self,node)
-    !!{
+    !!{RST
     Act on a merger between nodes.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

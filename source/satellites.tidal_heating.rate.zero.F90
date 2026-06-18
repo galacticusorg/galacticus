@@ -19,17 +19,19 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-  !!{
+  !!{RST
   Contains a class which implements a tidal heating rate model in which the heating rate is always zero.
   !!}
 
   !![
-  <satelliteTidalHeatingRate name="satelliteTidalHeatingRateZero">
-   <description>A satellite tidal heating rate class which implements a tidal heating rate model in which the heating rate is always zero.</description>
+  <satelliteTidalHeatingRate name="satelliteTidalHeatingRateZero" docformat="rst">
+   <description>
+   A satellite tidal heating rate class which implements a tidal heating rate model in which the heating rate is always zero.
+   </description>
   </satelliteTidalHeatingRate>
   !!]
   type, extends(satelliteTidalHeatingRateClass) :: satelliteTidalHeatingRateZero
-     !!{
+     !!{RST
      A satellite tidal heating rate class which implements a tidal heating rate model in which the heating rate is always zero.
      !!}
      private
@@ -38,7 +40,7 @@
   end type satelliteTidalHeatingRateZero
 
   interface satelliteTidalHeatingRateZero
-     !!{
+     !!{RST
      Constructors for the zero satellite tidal heating rate class.
      !!}
      module procedure zeroConstructorParameters
@@ -47,8 +49,8 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{satelliteTidalHeatingRateZero} satellite tidal heating rate class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`satelliteTidalHeatingRateZero` satellite tidal heating rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,7 +65,7 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroHeatingRate(self,node)
-    !!{
+    !!{RST
     Return the the tidal heating rate for the given node.
     !!}
     implicit none

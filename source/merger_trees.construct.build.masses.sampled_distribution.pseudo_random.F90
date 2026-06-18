@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a merger tree masses class which samples masses from a distribution using pseudo-random sampling.
   !!}
 
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
-  <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionPseudoRandom">
-   <description>A merger tree masses class which samples masses from a distribution using pseudo-random sampling.</description>
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionPseudoRandom" docformat="rst">
+   <description>
+   A merger tree masses class which samples masses from a distribution using pseudo-random sampling.
+   </description>
   </mergerTreeBuildMasses>
   !!]
   type, extends(mergerTreeBuildMassesSampledDistribution) :: mergerTreeBuildMassesSampledDistributionPseudoRandom
-     !!{
+     !!{RST
      Implementation of a merger tree masses class which samples masses from a distribution with pseudo-random sampling.
      !!}
      private
@@ -47,9 +49,8 @@
 contains
 
   function sampledDistributionPseudoRandomConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildMassesSampledDistributionPseudoRandom} merger tree masses class which takes a parameter set
-    as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeBuildMassesSampledDistributionPseudoRandom` merger tree masses class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,22 +62,28 @@ contains
          &                                                                                   treesPerDecade
 
     !![
-     <inputParameter>
+     <inputParameter docformat="rst">
       <name>massTreeMinimum</name>
       <defaultValue>1.0d10</defaultValue>
-      <description>The minimum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
+      <description>
+      The minimum mass of merger tree base halos to consider when sampled masses from a distribution, in units of :math:`M_\odot`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massTreeMaximum</name>
       <defaultValue>1.0d15</defaultValue>
-      <description>The maximum mass of merger tree base halos to consider when sampled masses from a distribution, in units of $M_\odot$.</description>
+      <description>
+      The maximum mass of merger tree base halos to consider when sampled masses from a distribution, in units of :math:`M_\odot`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>treesPerDecade</name>
       <defaultValue>10.0d0</defaultValue>
-      <description>The number of merger trees masses to sample per decade of base halo mass.</description>
+      <description>
+      The number of merger trees masses to sample per decade of base halo mass.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="mergerTreeBuildMassDistribution" name="mergerTreeBuildMassDistribution_" source="parameters"/>
@@ -92,8 +99,8 @@ contains
   end function sampledDistributionPseudoRandomConstructorParameters
 
   function sampledDistributionPseudoRandomConstructorInternal(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_,randomNumberGenerator_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildMassesSampledDistributionPseudoRandom} merger tree masses class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeBuildMassesSampledDistributionPseudoRandom` merger tree masses class.
     !!}
     use :: Display, only : displayMessage, verbosityLevelWarn
     use :: Error  , only : Error_Report
@@ -122,8 +129,8 @@ contains
   end function sampledDistributionPseudoRandomConstructorInternal
 
   subroutine sampledDistributionPseudoRandomDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBuildMassesSampledDistributionPseudoRandom} merger tree masses class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeBuildMassesSampledDistributionPseudoRandom` merger tree masses class.
     !!}
     implicit none
     type(mergerTreeBuildMassesSampledDistributionPseudoRandom), intent(inout) :: self
@@ -136,7 +143,7 @@ contains
   end subroutine sampledDistributionPseudoRandomDestructor
 
   subroutine sampledDistributionPseudoRandomSampleCMF(self,x)
-    !!{
+    !!{RST
     Generate a pseudo-random sample of points from the merger tree mass distribution.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

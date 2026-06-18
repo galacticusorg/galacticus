@@ -17,26 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of critical overdensity for collapse based on spherical collapse in a
-  matter plus dark energy universe.
+  !!{RST
+  An implementation of critical overdensity for collapse based on spherical collapse in a matter plus dark energy universe.
   !!}
 
   !![
-  <criticalOverdensity name="criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy">
-   <description>Critical overdensity for gravitational collapse of dark matter halos, computed numerically via the spherical collapse model in a universe containing collisionless matter and dark energy. The normalization of the result can be adjusted via \mono{[normalization]}, and tabulated solutions can be stored to and restored from file for computational efficiency.</description>
+  <criticalOverdensity name="criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy" docformat="rst">
+   <description>
+   Critical overdensity for gravitational collapse of dark matter halos, computed numerically via the spherical collapse model in a universe containing collisionless matter and dark energy. The normalization of the result can be adjusted via ``[normalization]``, and tabulated solutions can be stored to and restored from file for computational efficiency.
+   </description>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt) :: criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy
-     !!{
+     !!{RST
      A dark matter halo virial density contrast class based on spherical collapse in a matter plus dark energy universe.
      !!}
      private
   end type criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy
 
   interface criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy
-     !!{
-     Constructors for the \refClass{criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy} critical overdensity for collapse class.
+     !!{RST
+     Constructors for the :galacticus-class:`criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy` critical overdensity for collapse class.
      !!}
      module procedure sphericalCollapseClsnlssMttrDrkEnrgyConstructorParameters
      module procedure sphericalCollapseClsnlssMttrDrkEnrgyConstructorInternal
@@ -45,9 +46,8 @@
 contains
 
   function sphericalCollapseClsnlssMttrDrkEnrgyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy} critical overdensity class
-    which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy` critical overdensity class which takes a parameter set as input.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticle, darkMatterParticleClass
     use :: Error                , only : Error_Report
@@ -63,17 +63,21 @@ contains
     logical                                                                                  :: tableStore
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>normalization</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>A multiplicative normalization factor applied to the spherical collapse critical overdensity $\delta_\mathrm{c}$ returned by this class, allowing calibration against simulations or fitting functions.</description>
+      <description>
+      A multiplicative normalization factor applied to the spherical collapse critical overdensity :math:`\delta_\mathrm{c}` returned by this class, allowing calibration against simulations or fitting functions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tableStore</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, store the tabulated spherical collapse solutions to a file and restore them on subsequent runs to avoid recomputing the numerical ODE integration from scratch.</description>
+      <description>
+      If true, store the tabulated spherical collapse solutions to a file and restore them on subsequent runs to avoid recomputing the numerical ODE integration from scratch.
+      </description>
     </inputParameter>
     <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -82,10 +86,12 @@ contains
     !!]
     if (parameters%isPresent('countTimeCollapsePerUnit')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>countTimeCollapsePerUnit</name>
 	 <source>parameters</source>
-	 <description>The number of points per unit $w(t)=\delta_\mathrm{c}(t)/D(t)$ at which to tabulate the time of collapse.</description>
+	 <description>
+	 The number of points per unit :math:`w(t)=\delta_\mathrm{c}(t)/D(t)` at which to tabulate the time of collapse.
+	 </description>
        </inputParameter>
        !!]
     end if
@@ -104,8 +110,8 @@ contains
   end function sphericalCollapseClsnlssMttrDrkEnrgyConstructorParameters
 
   function sphericalCollapseClsnlssMttrDrkEnrgyConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,tableStore,normalization,countTimeCollapsePerUnit) result(self)
-    !!{
-    Internal constructor for the \refClass{criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy} critical overdensity class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy` critical overdensity class.
     !!}
     use :: Dark_Matter_Particles     , only : darkMatterParticleCDM                 , darkMatterParticleClass
     use :: Error                     , only : Error_Report

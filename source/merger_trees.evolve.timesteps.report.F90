@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which reports on timestepping criteria.
 !!}
 
 module Evolve_To_Time_Reports
-  !!{
+  !!{RST
   Contains functions which report on timestepping criteria.
   !!}
   implicit none
@@ -32,7 +32,7 @@ module Evolve_To_Time_Reports
 contains
 
   subroutine Evolve_To_Time_Report(message,time,index)
-    !!{
+    !!{RST
     Display a report on evolution timestep criteria.
     !!}
     use :: Display           , only : displayMessage

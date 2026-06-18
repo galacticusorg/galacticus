@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a dark matter profile scale radius class that uses simple power-law scalings.
   !!}
 
@@ -25,27 +25,27 @@
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !![
-  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusPowerLaw">
+  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusPowerLaw" docformat="rst">
     <description>
-      A dark matter profile scale radius class that uses simple power-law scalings. Specifically, the scale radius is given by:
-      \begin{equation}
-      r_\mathrm{s} = r(\nu) \left(\frac{M}{M_0}\right)^{\alpha(\nu)} (1+z)^{-\beta(\nu)}
-      \end{equation}      
-      where $r(\nu)$, $\alpha(\nu)$, and $\beta(\nu)$ are sigmoid functions of the peak height, $\nu$, of the form:
-      \begin{equation}
+    A dark matter profile scale radius class that uses simple power-law scalings. Specifically, the scale radius is given by:
+
+    .. math::
+
+       r_\mathrm{s} = r(\nu) \left(\frac{M}{M_0}\right)^{\alpha(\nu)} (1+z)^{-\beta(\nu)}
+
+    where :math:`r(\nu)`, :math:`\alpha(\nu)`, and :math:`\beta(\nu)` are sigmoid functions of the peak height, :math:`\nu`, of the form:
+
+    .. math::
+
        y(x) = y_0+(y_1-y_0)/(1+\exp[-(x-x_\nu)/\Delta x]),
-      \end{equation}
-      where $r_0=$\mono{[radiusLow]}, $r_1=$\mono{[radiusHigh]}, $r_\nu=$\mono{[radiusTransition]}, $\Delta r=$\mono{[radiusWidth]}, $\alpha_0=$\mono{[massLow]},
-      $\alpha_1=$\mono{[massHigh]}, $\alpha_\nu=$\mono{[massTransition]}, $\Delta
-      \alpha=$\mono{[massWidth]}, $\beta_0=$\mono{[expansionFactorLow]}, $\beta_1=$\mono{[expansionFactorHigh]}, $\beta_\nu=$\mono{[expansionFactorTransition]}, and $\Delta
-      \beta=$\mono{[expansionFactorWidth]} , plus a random log-normal scatter of \mono{[scatter]}~dex.
+
+    where :math:`r_0=`\ ``[radiusLow]``, :math:`r_1=`\ ``[radiusHigh]``, :math:`r_\nu=`\ ``[radiusTransition]``, :math:`\Delta r=`\ ``[radiusWidth]``, :math:`\alpha_0=`\ ``[massLow]``, :math:`\alpha_1=`\ ``[massHigh]``, :math:`\alpha_\nu=`\ ``[massTransition]``, :math:`\Delta \alpha=`\ ``[massWidth]``, :math:`\beta_0=`\ ``[expansionFactorLow]``, :math:`\beta_1=`\ ``[expansionFactorHigh]``, :math:`\beta_\nu=`\ ``[expansionFactorTransition]``, and :math:`\Delta \beta=`\ ``[expansionFactorWidth]`` , plus a random log-normal scatter of ``[scatter]`` dex.
     </description>
   </darkMatterProfileScaleRadius>
   !!]
   type, extends(darkMatterProfileScaleRadiusClass) :: darkMatterProfileScaleRadiusPowerLaw
-     !!{
-     A dark matter profile scale radius class that assigns dark matter profile scale radii using the energy-based model of
-     \cite{johnson_random_2021}.
+     !!{RST
+     A dark matter profile scale radius class that assigns dark matter profile scale radii using the energy-based model of :cite:t:`johnson_random_2021`.
      !!}
      private
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_           => null()
@@ -64,8 +64,8 @@
   end type darkMatterProfileScaleRadiusPowerLaw
   
   interface darkMatterProfileScaleRadiusPowerLaw
-     !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusPowerLaw} dark matter halo profile scale radius class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileScaleRadiusPowerLaw` dark matter halo profile scale radius class.
      !!}
      module procedure darkMatterProfileScalePowerLawConstructorParameters
      module procedure darkMatterProfileScalePowerLawConstructorInternal
@@ -74,9 +74,8 @@
 contains
   
   function darkMatterProfileScalePowerLawConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusPowerLaw} dark matter halo profile scale radius class which
-    takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileScaleRadiusPowerLaw` dark matter halo profile scale radius class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -94,83 +93,109 @@ contains
           &                                                                  scatter
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusLow</name>
       <defaultValue>+0.0154d0</defaultValue>
       <source>parameters</source>
-      <description>The low-mass limit of the characteristic scale radius $r_0$ (in Mpc) in the power-law scale radius model, giving the scale radius normalization for low-mass halos as a function of peak height and expansion factor.</description>
+      <description>
+      The low-mass limit of the characteristic scale radius :math:`r_0` (in Mpc) in the power-law scale radius model, giving the scale radius normalization for low-mass halos as a function of peak height and expansion factor.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusHigh</name>
       <defaultValue>+0.0962d0</defaultValue>
       <source>parameters</source>
-      <description>The high-mass limit of the characteristic scale radius $r_1$ (in Mpc) in the power-law scale radius model, giving the scale radius normalization for high-mass halos.</description>
+      <description>
+      The high-mass limit of the characteristic scale radius :math:`r_1` (in Mpc) in the power-law scale radius model, giving the scale radius normalization for high-mass halos.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusTransition</name>
       <defaultValue>+1.2137d0</defaultValue>
       <source>parameters</source>
-      <description>The peak height $\nu$ at which the characteristic scale radius transitions between its low-mass and high-mass limiting values in the power-law scale radius model.</description>
+      <description>
+      The peak height :math:`\nu` at which the characteristic scale radius transitions between its low-mass and high-mass limiting values in the power-law scale radius model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusWidth</name>
       <defaultValue>+0.5482d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $\Delta r$ in the power-law scale radius model.</description>
+      <description>
+      The parameter :math:`\Delta r` in the power-law scale radius model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massLow</name>
       <defaultValue>+0.3895d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $\alpha_0$ in the power-law scale radius model.</description>
+      <description>
+      The parameter :math:`\alpha_0` in the power-law scale radius model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massHigh</name>
       <defaultValue>+0.2984d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $\alpha_1$ in the power-law scale radius model.</description>
+      <description>
+      The parameter :math:`\alpha_1` in the power-law scale radius model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massTransition</name>
       <defaultValue>-0.2583d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $\alpha_\nu$ in the power-law scale radius model.</description>
+      <description>
+      The parameter :math:`\alpha_\nu` in the power-law scale radius model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massWidth</name>
       <defaultValue>+16.6050d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $\Delta \alpha$ in the power-law scale radius model.</description>
+      <description>
+      The parameter :math:`\Delta \alpha` in the power-law scale radius model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>expansionFactorLow</name>
       <defaultValue>-0.6977d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $\beta_0$ in the power-law scale radius model.</description>
+      <description>
+      The parameter :math:`\beta_0` in the power-law scale radius model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>expansionFactorHigh</name>
       <defaultValue>+0.7972d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $\beta_1$ in the power-law scale radius model.</description>
+      <description>
+      The parameter :math:`\beta_1` in the power-law scale radius model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>expansionFactorTransition</name>
       <defaultValue>+0.5395d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $\beta_\nu$ in the power-law scale radius model.</description>
+      <description>
+      The parameter :math:`\beta_\nu` in the power-law scale radius model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>expansionFactorWidth</name>
       <defaultValue>+0.4282d0</defaultValue>
       <source>parameters</source>
-      <description>The parameter $\Delta \beta$ in the power-law scale radius model.</description>
+      <description>
+      The parameter :math:`\Delta \beta` in the power-law scale radius model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scatter</name>
       <defaultValue>+0.1513d0</defaultValue>
       <source>parameters</source>
-      <description>The scatter (in dex) in the scale radius at fixed halo mass and redshift in the power-law scale radius model, representing the intrinsic halo-to-halo variation in concentration.</description>
+      <description>
+      The scatter (in dex) in the scale radius at fixed halo mass and redshift in the power-law scale radius model, representing the intrinsic halo-to-halo variation in concentration.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     <objectBuilder class="criticalOverdensity"          name="criticalOverdensity_"          source="parameters"/>
@@ -187,8 +212,8 @@ contains
   end function darkMatterProfileScalePowerLawConstructorParameters
 
   function darkMatterProfileScalePowerLawConstructorInternal(radiusLow,radiusHigh,radiusTransition,radiusWidth,massLow,massHigh,massTransition,massWidth,expansionFactorLow,expansionFactorHigh,expansionFactorTransition,expansionFactorWidth,scatter,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileScaleRadiusPowerLaw} dark matter halo profile scale radius class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterProfileScaleRadiusPowerLaw` dark matter halo profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusPowerLaw)                        :: self
@@ -210,8 +235,8 @@ contains
   end function darkMatterProfileScalePowerLawConstructorInternal
 
   subroutine darkMatterProfileScalePowerLawDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileScaleRadiusPowerLaw} dark matter halo profile scale radius class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileScaleRadiusPowerLaw` dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusPowerLaw), intent(inout) :: self
@@ -225,7 +250,7 @@ contains
   end subroutine darkMatterProfileScalePowerLawDestructor
 
   double precision function darkMatterProfileScalePowerLawRadius(self,node) result(radiusScale)
-    !!{
+    !!{RST
     Initialize dark matter profile scale radii.
     !!}
     implicit none
@@ -252,11 +277,12 @@ contains
   contains
 
     double precision function sigmoid(y0,y1,xNu,DeltaX,x)
-      !!{
+      !!{RST
       A sigmoid function,
-      \begin{equation}
-       y(x) = y_0+(y_1-y_0)/(1+\exp[-(x-x_\nu)/\Delta x]).
-      \end{equation}
+
+      .. math::
+
+         y(x) = y_0+(y_1-y_0)/(1+\exp[-(x-x_\nu)/\Delta x]).
       !!}
       implicit none
       double precision, intent(in   ) :: y0 , y1    , &

@@ -17,27 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class implementing atomic collisional ionization rates.
 !!}
 
 module Atomic_Rates_Ionization_Collisional
-  !!{
+  !!{RST
   Provides a class implementing radiative recombination rates.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>atomicIonizationRateCollisional</name>
    <descriptiveName>Atomic Collisional Ionization</descriptiveName>
-   <description>Class providing collisional ionization rate coefficients (in cm$^3$ s$^{-1}$) for atoms of given
-    atomic number and ionization state at a specified electron temperature. Collisional ionization by free
-    electrons competes with photoionization and recombination to set the ionization balance of gas in
-    H\textsc{ii} regions, the \gls{igm}, and the \gls{cgm}.</description>
+   <description>
+   Class providing collisional ionization rate coefficients (in cm\ :math:`^3` s\ :math:`^{-1}`) for atoms of given atomic number and ionization state at a specified electron temperature. Collisional ionization by free electrons competes with photoionization and recombination to set the ionization balance of gas in H**ii** regions, the :term:`IGM`, and the :term:`CGM`.
+   </description>
    <default>verner1996</default>
    <method name="rate" >
-    <description>Returns the radiative recombination rate in units of cm$^3$ s$^{-1}$.</description>
+    <description>
+    Returns the radiative recombination rate in units of cm\ :math:`^3` s\ :math:`^{-1}`.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer         , intent(in   ) :: atomicNumber, ionizationState</argument>

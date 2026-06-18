@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that provides a class implementing the chemical state.
 !!}
 
 module Chemical_States
-  !!{
+  !!{RST
   Provides a class implementing the chemical state.
   !!}
   use :: Abundances_Structure         , only : abundances
@@ -31,18 +31,17 @@ module Chemical_States
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>chemicalState</name>
    <descriptiveName>Chemical State</descriptiveName>
-   <description>Class providing the chemical state of gas, specifically the free electron number density (in
-    cm$^{-3}$) and its logarithmic gradients with respect to temperature and total density, as functions of hydrogen
-    number density, temperature, elemental abundances, and an ambient radiation field. The electron density enters
-    cooling rates, recombination rates, and the Jeans mass, while the logarithmic slopes are needed for implicit
-    solvers and stability analyses. Implementations range from collisional ionization equilibrium (\gls{cie}) tables
-    to non-equilibrium photoionization models.</description>
+   <description>
+   Class providing the chemical state of gas, specifically the free electron number density (in cm\ :math:`^{-3}`) and its logarithmic gradients with respect to temperature and total density, as functions of hydrogen number density, temperature, elemental abundances, and an ambient radiation field. The electron density enters cooling rates, recombination rates, and the Jeans mass, while the logarithmic slopes are needed for implicit solvers and stability analyses. Implementations range from collisional ionization equilibrium (:term:`CIE`) tables to non-equilibrium photoionization models.
+   </description>
    <default>atomicCIECloudy</default>
    <method name="electronDensity" >
-    <description>Return the electron density at the given temperature and hydrogen density for the specified set of abundances and radiation field. Units of the returned electron density are cm$^-3$.</description>
+    <description>
+    Return the electron density at the given temperature and hydrogen density for the specified set of abundances and radiation field. Units of the returned electron density are cm\ :math:`^-3`.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision                     , intent(in   ) :: numberDensityHydrogen, temperature</argument>
@@ -50,7 +49,9 @@ module Chemical_States
     <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>
    </method>
    <method name="electronDensityTemperatureLogSlope" >
-    <description>Return the logarithmic gradient of electron density with temperature at the given temperature and hydrogen density for the specified set of abundances and radiation field.</description>
+    <description>
+    Return the logarithmic gradient of electron density with temperature at the given temperature and hydrogen density for the specified set of abundances and radiation field.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision                     , intent(in   ) :: numberDensityHydrogen, temperature</argument>
@@ -58,7 +59,9 @@ module Chemical_States
     <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>
    </method>
    <method name="electronDensityDensityLogSlope" >
-    <description>Return the logarithmic gradient of electron density with respect to density at the given temperature and hydrogen density for the specified set of abundances and radiation field.</description>
+    <description>
+    Return the logarithmic gradient of electron density with respect to density at the given temperature and hydrogen density for the specified set of abundances and radiation field.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision                     , intent(in   ) :: numberDensityHydrogen, temperature</argument>
@@ -66,7 +69,9 @@ module Chemical_States
     <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>
    </method>
    <method name="chemicalDensities" >
-    <description>Return the densities of chemical species at the given temperature and hydrogen density for the specified set of abundances and radiation field. Units of the returned electron density are cm$^-3$.</description>
+    <description>
+    Return the densities of chemical species at the given temperature and hydrogen density for the specified set of abundances and radiation field. Units of the returned electron density are cm\ :math:`^-3`.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type            (chemicalAbundances ), intent(inout) :: chemicalDensities</argument>

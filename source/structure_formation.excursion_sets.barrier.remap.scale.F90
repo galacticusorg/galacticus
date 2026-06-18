@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an excursion set barrier class which remaps another class by multiplying by a constant.
 !!}
 
   !![
-  <excursionSetBarrier name="excursionSetBarrierRemapScale">
+  <excursionSetBarrier name="excursionSetBarrierRemapScale" docformat="rst">
    <description>
-    An excursion set barrier class which remaps the barrier values from another class by multiplying by a constant scaling factor given by \mono{[factor]}, allowing the effective collapse threshold to be rescaled uniformly. The rescaling can be applied selectively to barrier evaluations used in rate calculations, other calculations, or both, as controlled by \mono{[applyTo]}.
+   An excursion set barrier class which remaps the barrier values from another class by multiplying by a constant scaling factor given by ``[factor]``, allowing the effective collapse threshold to be rescaled uniformly. The rescaling can be applied selectively to barrier evaluations used in rate calculations, other calculations, or both, as controlled by ``[applyTo]``.
    </description>
   </excursionSetBarrier>
   !!]
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierRemapScale
-     !!{
+     !!{RST
      An excursion set barrier class which remaps another class by multiplying by a constant.
      !!}
      private
@@ -43,7 +43,7 @@ Implements an excursion set barrier class which remaps another class by multiply
   end type excursionSetBarrierRemapScale
 
   interface excursionSetBarrierRemapScale
-     !!{
+     !!{RST
      Constructors for the remap scale excursion set barrier class.
      !!}
      module procedure remapScaleConstructorParameters
@@ -53,7 +53,7 @@ Implements an excursion set barrier class which remaps another class by multiply
 contains
 
   function remapScaleConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the critical overdensity excursion set class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -65,19 +65,23 @@ contains
     type            (varying_string                  )                :: applyTo
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factor</name>
       <source>parameters</source>
       <variable>factor</variable>
       <defaultValue>1.0d0</defaultValue>
-      <description>The multiplicative factor applied to the underlying excursion-set barrier value $B(\sigma^2)$, uniformly rescaling the collapse threshold across all mass scales to adjust branching rates or halo abundances.</description>
+      <description>
+      The multiplicative factor applied to the underlying excursion-set barrier value :math:`B(\sigma^2)`, uniformly rescaling the collapse threshold across all mass scales to adjust branching rates or halo abundances.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>applyTo</name>
       <source>parameters</source>
       <variable>applyTo</variable>
       <defaultValue>var_str('nonRates')</defaultValue>
-      <description>Specifies whether rescaling is to be applied to the barrier when used for rate calculation, for other calculations, or both.</description>
+      <description>
+      Specifies whether rescaling is to be applied to the barrier when used for rate calculation, for other calculations, or both.
+      </description>
     </inputParameter>
     <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
     !!]
@@ -90,7 +94,7 @@ contains
   end function remapScaleConstructorParameters
 
   function remapScaleConstructorInternal(factor,applyTo,excursionSetBarrier_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the critical overdensity excursion set class.
     !!}
     use :: Error, only : Error_Report
@@ -108,7 +112,7 @@ contains
   end function remapScaleConstructorInternal
 
   subroutine remapScaleDestructor(self)
-    !!{
+    !!{RST
     Destructor for the critical overdensity excursion set barrier class.
     !!}
     implicit none
@@ -121,7 +125,7 @@ contains
   end subroutine remapScaleDestructor
 
   double precision function remapScaleBarrier(self,variance,time,node,rateCompute)
-    !!{
+    !!{RST
     Return the excursion set barrier at the given variance and time.
     !!}
     implicit none
@@ -144,7 +148,7 @@ contains
   end function remapScaleBarrier
 
   double precision function remapScaleBarrierGradient(self,variance,time,node,rateCompute)
-    !!{
+    !!{RST
     Return the gradient with respect to variance of the excursion set barrier at the given variance and time.
     !!}
     implicit none

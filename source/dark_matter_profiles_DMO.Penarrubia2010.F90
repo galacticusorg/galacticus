@@ -17,15 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of \cite{penarrubia_impact_2010} dark matter halo profiles.
+  !!{RST
+  An implementation of :cite:t:`penarrubia_impact_2010` dark matter halo profiles.
   !!}
 
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOPenarrubia2010">
+  <darkMatterProfileDMO name="darkMatterProfileDMOPenarrubia2010" docformat="rst">
    <description>
-    A dark matter profile DMO class which builds \refClass{massDistributionZhao1996} to implement the
-    \cite{penarrubia_impact_2010} density profile.
+   A dark matter profile DMO class which builds :galacticus-class:`massDistributionZhao1996` to implement the :cite:t:`penarrubia_impact_2010` density profile.
    </description>
    <deepCopy>
     <functionClass variables="massDistributionStripped, massDistributionUnstripped"/>
@@ -36,8 +35,8 @@
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOZhao1996) :: darkMatterProfileDMOPenarrubia2010
-     !!{
-     A dark matter halo profile class implementing \cite{penarrubia_impact_2010} dark matter halos.
+     !!{RST
+     A dark matter halo profile class implementing :cite:t:`penarrubia_impact_2010` dark matter halos.
      !!}
      private
      double precision                                   :: betaStripped                                     , muRadius                                       , &
@@ -53,8 +52,8 @@
   end type darkMatterProfileDMOPenarrubia2010
 
   interface darkMatterProfileDMOPenarrubia2010
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMOPenarrubia2010} dark matter halo profile class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileDMOPenarrubia2010` dark matter halo profile class.
      !!}
      module procedure penarrubia2010ConstructorParameters
      module procedure penarrubia2010ConstructorInternal
@@ -66,8 +65,8 @@
 contains
 
   function penarrubia2010ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{penarrubia2010} dark matter halo profile class.
+    !!{RST
+    Default constructor for the ``penarrubia2010`` dark matter halo profile class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,51 +79,69 @@ contains
          &                                                                 muVelocity          , etaVelocity
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha</name>
       <source>parameters</source>
-      <description>The parameter $\alpha$ of the \cite{zhao_analytical_1996} dark matter density profile.</description>
+      <description>
+      The parameter :math:`\alpha` of the :cite:t:`zhao_analytical_1996` dark matter density profile.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <source>parameters</source>
-      <description>The parameter $\beta$ of the \cite{zhao_analytical_1996} dark matter density profile.</description>
+      <description>
+      The parameter :math:`\beta` of the :cite:t:`zhao_analytical_1996` dark matter density profile.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>betaStripped</name>
       <source>parameters</source>
       <defaultValue>5.0d0</defaultValue>
-      <description>The parameter $\beta_\mathrm{stripped}$ of the \cite{penarrubia_impact_2010} dark matter density profile. This is the $\beta$ exponent of the \cite{zhao_analytical_1996} dark matter density profile for cases where significant stripping of the profile has occurred.</description>
+      <description>
+      The parameter :math:`\beta_\mathrm{stripped}` of the :cite:t:`penarrubia_impact_2010` dark matter density profile. This is the :math:`\beta` exponent of the :cite:t:`zhao_analytical_1996` dark matter density profile for cases where significant stripping of the profile has occurred.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma</name>
       <source>parameters</source>
-      <description>The parameter $\gamma$ of the \cite{zhao_analytical_1996} dark matter density profile.</description>
+      <description>
+      The parameter :math:`\gamma` of the :cite:t:`zhao_analytical_1996` dark matter density profile.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>muRadius</name>
       <source>parameters</source>
-      <description>The parameter $\mu$ of the \cite{penarrubia_impact_2010} tidal track for $r_\mathrm{max}$.</description>
+      <description>
+      The parameter :math:`\mu` of the :cite:t:`penarrubia_impact_2010` tidal track for :math:`r_\mathrm{max}`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>etaRadius</name>
       <source>parameters</source>
-      <description>The parameter $\eta$ of the \cite{penarrubia_impact_2010} tidal track for $r_\mathrm{max}$.</description>
+      <description>
+      The parameter :math:`\eta` of the :cite:t:`penarrubia_impact_2010` tidal track for :math:`r_\mathrm{max}`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>muVelocity</name>
       <source>parameters</source>
-      <description>The parameter $\mu$ of the \cite{penarrubia_impact_2010} tidal track for $V_\mathrm{max}$.</description>
+      <description>
+      The parameter :math:`\mu` of the :cite:t:`penarrubia_impact_2010` tidal track for :math:`V_\mathrm{max}`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>etaVelocity</name>
       <source>parameters</source>
-      <description>The parameter $\eta$ of the \cite{penarrubia_impact_2010} tidal track for $V_\mathrm{max}$.</description>
+      <description>
+      The parameter :math:`\eta` of the :cite:t:`penarrubia_impact_2010` tidal track for :math:`V_\mathrm{max}`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>etaVelocity</name>
       <source>parameters</source>
-      <description>The parameter $\eta$ of the \cite{penarrubia_impact_2010} tidal track for $V_\mathrm{max}$.</description>
+      <description>
+      The parameter :math:`\eta` of the :cite:t:`penarrubia_impact_2010` tidal track for :math:`V_\mathrm{max}`.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
@@ -137,8 +154,8 @@ contains
   end function penarrubia2010ConstructorParameters
 
   function penarrubia2010ConstructorInternal(alpha,beta,gamma,betaStripped,muRadius,etaRadius,muVelocity,etaVelocity,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOPenarrubia2010} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOPenarrubia2010` dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : massDistributionZhao1996
     implicit none
@@ -167,8 +184,8 @@ contains
   end function penarrubia2010ConstructorInternal
 
   subroutine penarrubia2010Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMOPenarrubia2010} dark matter halo profile class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileDMOPenarrubia2010` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOPenarrubia2010), intent(inout) :: self
@@ -181,8 +198,8 @@ contains
   end subroutine penarrubia2010Destructor
   
   subroutine penarrubia2010Exponents(self,node,alpha,beta,gamma)
-    !!{
-    Compute the exponents of the \mono{penarrubia2010} dark matter halo profile.
+    !!{RST
+    Compute the exponents of the ``penarrubia2010`` dark matter halo profile.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic
     implicit none
@@ -208,8 +225,8 @@ contains
   end subroutine penarrubia2010Exponents
   
   double precision function penarrubia2010ScaleRadius(self,node) result(radiusScale)
-    !!{
-    Compute the scale radius of the \mono{penarrubia2010} dark matter halo profile.
+    !!{RST
+    Compute the scale radius of the ``penarrubia2010`` dark matter halo profile.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
@@ -245,8 +262,8 @@ contains
   end function penarrubia2010ScaleRadius
 
   double precision function penarrubia2010Normalization(self,node)
-    !!{
-    Compute the mass normalization of the \mono{penarrubia2010} dark matter halo profile.
+    !!{RST
+    Compute the mass normalization of the ``penarrubia2010`` dark matter halo profile.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none

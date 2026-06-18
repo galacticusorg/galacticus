@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a time available for cooling class using the model of \cite{benson_galaxy_2010-1}.
+  !!{RST
+  Implementation of a time available for cooling class using the model of :cite:t:`benson_galaxy_2010-1`.
   !!}
   
   use :: Radiation_Fields   , only : radiationFieldCosmicMicrowaveBackground
@@ -27,9 +27,9 @@
   use :: Chemical_States    , only : chemicalStateClass
 
   !![
-  <coolingTimeAvailable name="coolingTimeAvailableBensonBower2010">
+  <coolingTimeAvailable name="coolingTimeAvailableBensonBower2010" docformat="rst">
    <description>
-    A time available for cooling class implementing the model of \cite{benson_galaxy_2010-1}.
+   A time available for cooling class implementing the model of :cite:t:`benson_galaxy_2010-1`.
    </description>
    <deepCopy>
     <functionClass variables="radiation"/>
@@ -40,8 +40,8 @@
   </coolingTimeAvailable>
   !!]
   type, extends(coolingTimeAvailableClass) :: coolingTimeAvailableBensonBower2010
-     !!{
-     Implementation of a time available for cooling class using the model of \cite{benson_galaxy_2010-1}.
+     !!{RST
+     Implementation of a time available for cooling class using the model of :cite:t:`benson_galaxy_2010-1`.
      !!}
      private
      class  (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_ => null()
@@ -57,8 +57,8 @@
   end type coolingTimeAvailableBensonBower2010
 
   interface coolingTimeAvailableBensonBower2010
-     !!{
-     Constructors for the \cite{white_galaxy_1991} time available for cooling class.
+     !!{RST
+     Constructors for the :cite:t:`white_galaxy_1991` time available for cooling class.
      !!}
      module procedure bensonBower2010ConstructorParameters
      module procedure bensonBower2010ConstructorInternal
@@ -67,8 +67,8 @@
 contains
 
   function bensonBower2010ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \cite{benson_galaxy_2010-1} time available for cooling class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :cite:t:`benson_galaxy_2010-1` time available for cooling class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -94,8 +94,8 @@ contains
   end function bensonBower2010ConstructorParameters
 
   function bensonBower2010ConstructorInternal(cosmologyFunctions_,coolingFunction_,chemicalState_) result(self)
-    !!{
-    Internal constructor for the \cite{benson_galaxy_2010-1} cooling rate class.
+    !!{RST
+    Internal constructor for the :cite:t:`benson_galaxy_2010-1` cooling rate class.
     !!}
     implicit none
     type (coolingTimeAvailableBensonBower2010)                        :: self
@@ -115,7 +115,7 @@ contains
   end function bensonBower2010ConstructorInternal
 
   subroutine bensonBower2010Destructor(self)
-    !!{
+    !!{RST
     Destructor for the simple cooling radius class.
     !!}
     implicit none
@@ -131,7 +131,7 @@ contains
   end subroutine bensonBower2010Destructor
 
   double precision function bensonBower2010TimeAvailable(self,node)
-    !!{
+    !!{RST
     Returns the time available for cooling (in units of Gyr).
     !!}
     use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , nodeComponentHotHalo
@@ -260,7 +260,7 @@ contains
   end function bensonBower2010TimeAvailable
 
   double precision function bensonBower2010TimeAvailableIncreaseRate(self,node)
-    !!{
+    !!{RST
     Compute the rate of increase of the time available for cooling. We return a rate of 1.
     !!}
     implicit none

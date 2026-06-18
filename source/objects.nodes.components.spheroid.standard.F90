@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements the standard spheroid component.
 !!}
 
 module Node_Component_Spheroid_Standard
-  !!{
+  !!{RST
   Implements the standard spheroid component.
   !!}
   use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
@@ -192,7 +192,7 @@ contains
   <nodeComponentInitializationTask function="Node_Component_Spheroid_Standard_Initialize"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the tree node standard spheroid methods module.
     !!}
     use :: Abundances_Structure, only : Abundances_Property_Count
@@ -219,34 +219,44 @@ contains
        subParameters=parameters%subParameters('componentSpheroid')
        ! Read parameters controlling the physical implementation.
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>efficiencyEnergeticOutflow</name>
          <defaultValue>1.0d-2</defaultValue>
-         <description>The proportionality factor relating mass outflow rate from the spheroid to the energy input rate divided by $V_\mathrm{spheroid}^2$.</description>
+         <description>
+         The proportionality factor relating mass outflow rate from the spheroid to the energy input rate divided by :math:`V_\mathrm{spheroid}^2`.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>toleranceRelativeMetallicity</name>
          <defaultValue>1.0d-4</defaultValue>
-         <description>The metallicity tolerance for ODE solution.</description>
+         <description>
+         The metallicity tolerance for ODE solution.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>toleranceAbsoluteMass</name>
          <defaultValue>1.0d-6</defaultValue>
-         <description>The mass tolerance used to judge whether the spheroid is physically plausible.</description>
+         <description>
+         The mass tolerance used to judge whether the spheroid is physically plausible.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>inactiveLuminositiesStellar</name>
          <defaultValue>.false.</defaultValue>
-         <description>Specifies whether or not spheroid stellar luminosities are inactive properties (i.e. do not appear in any ODE being solved).</description>
+         <description>
+         Specifies whether or not spheroid stellar luminosities are inactive properties (i.e. do not appear in any ODE being solved).
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>postStepZeroNegativeMasses</name>
          <defaultValue>.true.</defaultValue>
-         <description>If true, negative masses will be zeroed after each ODE step. Note that this can lead to non-conservation of mass.</description>
+         <description>
+         If true, negative masses will be zeroed after each ODE step. Note that this can lead to non-conservation of mass.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -258,7 +268,7 @@ contains
   <nodeComponentThreadInitializationTask function="Node_Component_Spheroid_Standard_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Thread_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the standard spheroid module for each thread.
     !!}
     use :: Events_Hooks                         , only : dependencyDirectionAfter , dependencyRegEx           , openMPThreadBindingAtLevel, postEvolveEvent, &
@@ -341,11 +351,15 @@ contains
        end if
        !$omp critical (spheroidStandardInitializeAngularMomentum)
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>ratioAngularMomentumScaleRadius</name>
-         <defaultSource>($I_2/I_3$ where $I_n=\int_0^\infty \rho(r) r^n \mathrm{d}r$, where $\rho(r)$ is the spheroid density profile, unless either $I_2$ or $I_3$ is infinite, in which case a default of $1/2$ is used instead.)</defaultSource>
+         <defaultSource>
+         (:math:`I_2/I_3` where :math:`I_n=\int_0^\infty \rho(r) r^n \mathrm{d}r`, where :math:`\rho(r)` is the spheroid density profile, unless either :math:`I_2` or :math:`I_3` is infinite, in which case a default of :math:`1/2` is used instead.)
+         </defaultSource>
          <defaultValue>ratioAngularMomentumScaleRadiusDefault</defaultValue>
-         <description>The assumed ratio of the specific angular momentum at the scale radius to the mean specific angular momentum of the standard spheroid component.</description>
+         <description>
+         The assumed ratio of the specific angular momentum at the scale radius to the mean specific angular momentum of the standard spheroid component.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -358,7 +372,7 @@ contains
   <nodeComponentThreadUninitializationTask function="Node_Component_Spheroid_Standard_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Thread_Uninitialize()
-    !!{
+    !!{RST
     Uninitializes the standard spheroid module for each thread.
     !!}
     use :: Events_Hooks                         , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeExtraOutputEvent
@@ -388,7 +402,7 @@ contains
   <preEvolveTask function="Node_Component_Spheroid_Standard_Pre_Evolve"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Pre_Evolve(node)
-    !!{
+    !!{RST
     Ensure the spheroid has been initialized.
     !!}
     use :: Galacticus_Nodes, only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
@@ -410,7 +424,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Pre_Evolve
 
   subroutine postEvolve(self,node)
-    !!{
+    !!{RST
     Trim histories attached to the spheroid.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
@@ -441,7 +455,7 @@ contains
   <postStepTask function="Node_Component_Spheroid_Standard_Post_Step"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Post_Step(node,status)
-    !!{
+    !!{RST
     Trim histories attached to the spheroid.
     !!}
     use :: Abundances_Structure          , only : abs                     , zeroAbundances
@@ -615,7 +629,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Post_Step
 
   subroutine Node_Component_Spheroid_Standard_Mass_Gas_Sink_Rate(self,rate,interrupt,interruptProcedure)
-    !!{
+    !!{RST
     Account for a sink of gaseous material in the standard spheroid.
     !!}
     use :: Abundances_Structure, only : operator(*)
@@ -650,9 +664,8 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Mass_Gas_Sink_Rate
 
   subroutine Node_Component_Spheroid_Standard_Energy_Gas_Input_Rate(self,rate,interrupt,interruptProcedure)
-    !!{
-    Handles input of energy into the spheroid gas from other components (e.g. black holes). The energy input rate should be in
-    units of $\mathrm{M}_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$.
+    !!{RST
+    Handles input of energy into the spheroid gas from other components (e.g. black holes). The energy input rate should be in units of :math:`\mathrm{M}_\odot` km\ :math:`^2` s\ :math:`^{-2}` Gyr\ :math:`^{-1}`.
     !!}
     use :: Abundances_Structure, only : abundances   , operator(*)
     use :: Error               , only : Error_Report
@@ -705,7 +718,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Energy_Gas_Input_Rate
 
   subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Rate(self,rate,interrupt,interruptProcedure)
-    !!{
+    !!{RST
     Adjust the rates for the star formation history.
     !!}
     use :: Galacticus_Nodes , only : interruptTask, nodeComponentSpheroid, nodeComponentSpheroidStandard
@@ -737,7 +750,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Rate
 
   subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Rate(self,rate,interrupt,interruptProcedure)
-    !!{
+    !!{RST
     Adjust the rates for the stellar properties history.
     !!}
     use :: Error            , only : Error_Report
@@ -782,9 +795,8 @@ contains
   <scaleSetTask function="Node_Component_Spheroid_Standard_Scale_Set"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Scale_Set(node)
-    !!{
-    Set scales for properties of \mono{node}. Note that gas masses get an additional scaling down since they can approach
-    zero and we'd like to prevent them from becoming negative.
+    !!{RST
+    Set scales for properties of ``node``. Note that gas masses get an additional scaling down since they can approach zero and we'd like to prevent them from becoming negative.
     !!}
     use :: Abundances_Structure          , only : abs                     , max              , operator(*)          , unitAbundances               , &
          &                                        abundances
@@ -881,8 +893,8 @@ contains
   <inactiveSetTask function="Node_Component_Spheroid_Standard_Inactive"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Inactive(node)
-    !!{
-    Set Jacobian zero status for properties of \mono{node}.
+    !!{RST
+    Set Jacobian zero status for properties of ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
     implicit none
@@ -900,8 +912,8 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Inactive
 
   subroutine satelliteMerger(self,node)
-    !!{
-    Transfer any standard spheroid associated with \mono{node} to its host halo.
+    !!{RST
+    Transfer any standard spheroid associated with ``node`` to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
@@ -1228,7 +1240,7 @@ contains
   <radiusSolverPlausibility function="Node_Component_Spheroid_Standard_Radius_Solver_Plausibility" after="Node_Component_Basic_Standard_Plausibility"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility(node)
-    !!{
+    !!{RST
     Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
     !!}
     use :: Galacticus_Nodes, only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
@@ -1277,7 +1289,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility
 
   double precision function Node_Component_Spheroid_Standard_Radius_Solve(node)
-    !!{
+    !!{RST
     Return the circular radius of the standard spheroid.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
@@ -1291,7 +1303,7 @@ contains
   end function Node_Component_Spheroid_Standard_Radius_Solve
 
   double precision function Node_Component_Spheroid_Standard_Velocity_Solve(node)
-    !!{
+    !!{RST
     Return the circular velocity of the standard spheroid.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
@@ -1305,7 +1317,7 @@ contains
   end function Node_Component_Spheroid_Standard_Velocity_Solve
 
   subroutine Node_Component_Spheroid_Standard_Radius_Solve_Set(node,radius)
-    !!{
+    !!{RST
     Set the scale radius of the standard spheroid.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
@@ -1320,7 +1332,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Radius_Solve_Set
 
   subroutine Node_Component_Spheroid_Standard_Velocity_Solve_Set(node,velocity)
-    !!{
+    !!{RST
     Set the scale velocity of the standard spheroid.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
@@ -1339,7 +1351,7 @@ contains
   !!]
   subroutine Node_Component_Spheroid_Standard_Radius_Solver(node,componentActive,component,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
        &,Velocity_Set)
-    !!{
+    !!{RST
     Interface for the size solver algorithm.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentSpheroid       , nodeComponentSpheroidStandard, treeNode
@@ -1388,7 +1400,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Radius_Solver
 
   subroutine Node_Component_Spheroid_Standard_Initializor(self,timeEnd)
-    !!{
+    !!{RST
     Initializes a standard spheroid component.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroidStandard, treeNode
@@ -1439,8 +1451,8 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Initializor
 
   subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend(node,timeEnd)
-    !!{
-    Extend the range of a star formation history in a standard spheroid component for \mono{node}.
+    !!{RST
+    Extend the range of a star formation history in a standard spheroid component for ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
@@ -1460,8 +1472,8 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend
 
   subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Extend(node,timeEnd)
-    !!{
-    Extend the range of a stellar properties history in a standard spheroid component for \mono{node}.
+    !!{RST
+    Extend the range of a stellar properties history in a standard spheroid component for ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
@@ -1481,7 +1493,7 @@ contains
   end subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Extend
 
   subroutine mergerTreeExtraOutput(self,node,iOutput,treeIndex,nodePassesFilter,treeLock)
-    !!{
+    !!{RST
     Update the star formation history after an output time is reached.
     !!}
     use            :: Galacticus_Nodes          , only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
@@ -1519,7 +1531,7 @@ contains
   <stateStoreTask function="Node_Component_Spheroid_Standard_State_Store"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Write the tabulation state to file.
     !!}
     use            :: Display                              , only : displayMessage          , verbosityLevelInfo
@@ -1542,7 +1554,7 @@ contains
   <stateRetrieveTask function="Node_Component_Spheroid_Standard_State_Retrieve"/>
   !!]
   subroutine Node_Component_Spheroid_Standard_State_Retrieve(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Retrieve the tabulation state from the file.
     !!}
     use            :: Display                              , only : displayMessage          , verbosityLevelInfo

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree build controller class which builds constrained trees.
 !!}
 
@@ -27,16 +27,20 @@ Implements a merger tree build controller class which builds constrained trees.
   use :: Merger_Trees_Build_Mass_Resolution, only : mergerTreeMassResolutionClass
 
   !![
-  <mergerTreeBuildController name="mergerTreeBuildControllerConstrained">
-   <description>A merger tree build controller class which builds constrained merger trees using a Brownian bridge approach, enforcing specified overdensity and mass constraints at a target redshift. Controls which branches are built via the \mono{[constructionOption]} parameter, with Brownian bridge endpoints set by \mono{[criticalOverdensity]}, \mono{[variance]}, \mono{[redshift]}, and \mono{[haloMass]}.</description>
+  <mergerTreeBuildController name="mergerTreeBuildControllerConstrained" docformat="rst">
+   <description>
+   A merger tree build controller class which builds constrained merger trees using a Brownian bridge approach, enforcing specified overdensity and mass constraints at a target redshift. Controls which branches are built via the ``[constructionOption]`` parameter, with Brownian bridge endpoints set by ``[criticalOverdensity]``, ``[variance]``, ``[redshift]``, and ``[haloMass]``.
+   </description>
   </mergerTreeBuildController>
   !!]
 
   ! Enumeration for different fitting function types.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>constructionOption</name>
-   <description>Specifies option for constructing merger tree.</description>
+   <description>
+   Specifies option for constructing merger tree.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -47,7 +51,7 @@ Implements a merger tree build controller class which builds constrained trees.
   !!]
 
   type, extends(mergerTreeBuildControllerClass) :: mergerTreeBuildControllerConstrained
-     !!{     
+     !!{RST
      A merger tree build controller class which builds constrained trees.
      !!}
      private
@@ -74,8 +78,8 @@ Implements a merger tree build controller class which builds constrained trees.
   end type mergerTreeBuildControllerConstrained
   
   interface mergerTreeBuildControllerConstrained
-     !!{
-     Constructors for the \refClass{mergerTreeBuildControllerConstrained} merger tree build controller class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeBuildControllerConstrained` merger tree build controller class.
      !!}
      module procedure constrainedConstructorParameters
      module procedure constrainedConstructorInternal
@@ -84,8 +88,8 @@ Implements a merger tree build controller class which builds constrained trees.
 contains
 
   function constrainedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildControllerConstrained} merger tree build controller class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeBuildControllerConstrained` merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
 
@@ -106,20 +110,24 @@ contains
     type            (varying_string                      )                :: label                                       , labelDescription
   
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <source>parameters</source>
       <defaultValue>var_str(' ')</defaultValue>
-      <description>A label to apply to the constrained node.</description>
+      <description>
+      A label to apply to the constrained node.
+      </description>
     </inputParameter>
     !!]
     if (label == '') label=' '
     if (trim(label) /= '') then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>labelDescription</name>
          <source>parameters</source>
-         <description>A human-readable description of the label applied to constrained nodes in the merger tree, used to document what physical property or criterion the label represents.</description>
+         <description>
+         A human-readable description of the label applied to constrained nodes in the merger tree, used to document what physical property or criterion the label represents.
+         </description>
        </inputParameter>
        !!]
     end if
@@ -131,10 +139,12 @@ contains
     <objectBuilder class="criticalOverdensity"            name="criticalOverdensity_"                                                                                     source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance"       name="cosmologicalMassVariance_"                                                                                source="parameters"/>
     <objectBuilder class="mergerTreeMassResolution"       name="mergerTreeMassResolution_"                                                                                source="parameters"/>
-     <inputParameter>
+     <inputParameter docformat="rst">
       <name>constructionOption</name>
       <source>parameters</source>
-      <description>Controls which branches of the tree to build.</description>
+      <description>
+      Controls which branches of the tree to build.
+      </description>
     </inputParameter>
     !!]
     timePresent=cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0)
@@ -148,15 +158,19 @@ contains
             &       parameters%isPresent('massConstrained'               )                                                                                                            &
             & ) call Error_Report('can not mix "criticalOverdensityConstrained/varianceConstrained" and "redshiftConstrained/massConstrained" constraints'//{introspection:location})
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>criticalOverdensityConstrained</name>
          <source>parameters</source>
-         <description>The critical overdensity at the end of the Brownian bridge.</description>
+         <description>
+         The critical overdensity at the end of the Brownian bridge.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>varianceConstrained</name>
          <source>parameters</source>
-         <description>The variance at the end of the Brownian bridge.</description>
+         <description>
+         The variance at the end of the Brownian bridge.
+         </description>
        </inputParameter>
        !!]
        massConstrained=self%cosmologicalMassVariance_%mass          (time               =timePresent                   ,rootVariance=sqrt(varianceConstrained))
@@ -171,15 +185,19 @@ contains
             &       parameters%isPresent('varianceConstrained'           )                                                                                                            &
             & ) call Error_Report('can not mix "criticalOverdensityConstrained/varianceConstrained" and "redshiftConstrained/massConstrained" constraints'//{introspection:location})
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>redshiftConstrained</name>
          <source>parameters</source>
-         <description>The redshift at the end of the Brownian bridge.</description>
+         <description>
+         The redshift at the end of the Brownian bridge.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massConstrained</name>
          <source>parameters</source>
-         <description>The halo mass at the end of the Brownian bridge.</description>
+         <description>
+         The halo mass at the end of the Brownian bridge.
+         </description>
        </inputParameter>
        !!]
        expansionFactor               =+cosmologyFunctions_      %expansionFactorFromRedshift(redshift       =redshiftConstrained                 )
@@ -209,8 +227,8 @@ contains
   end function constrainedConstructorParameters
 
   function constrainedConstructorInternal(criticalOverdensityConstrained,varianceConstrained,constructionOption,label,labelDescription,mergerTreeBranchingProbabilityUnconstrained_,mergerTreeBranchingProbabilityConstrained_,cosmologyFunctions_,linearGrowth_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeMassResolution_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildControllerConstrained} merger tree build controller class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeBuildControllerConstrained` merger tree build controller class.
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
@@ -250,8 +268,8 @@ contains
   end function constrainedConstructorInternal
 
   subroutine constrainedDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBuildControllerConstrained} merger tree build controller class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeBuildControllerConstrained` merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerConstrained), intent(inout) :: self
@@ -269,7 +287,7 @@ contains
   end subroutine constrainedDestructor
 
   logical function constrainedControl(self,node,treeWalker_)
-    !!{
+    !!{RST
     Apply control to merger tree building.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -324,7 +342,7 @@ contains
   end function constrainedControl
 
   double precision function constrainedTimeMaximum(self,node,massBranch,criticalOverdensityBranch,timeReference,insertNode)
-    !!{
+    !!{RST
     Return the maximum allowed time for this node.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -350,7 +368,7 @@ contains
   end function constrainedTimeMaximum
   
   logical function constrainedControlTimeMaximum(self,node,massBranch,criticalOverdensityBranch,nodeIndex)
-    !!{
+    !!{RST
     Control when the maximum time is reached.
     !!}
     use :: Error           , only : Error_Report
@@ -427,7 +445,7 @@ contains
   end function constrainedControlTimeMaximum
   
   function constrainedBranchingProbabilityObject(self,node) result(mergerTreeBranchingProbability_)
-    !!{
+    !!{RST
     Return a pointer the the merger tree branching probability object to use.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -449,7 +467,7 @@ contains
   end function constrainedBranchingProbabilityObject
 
   subroutine constrainedNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2,didBranch)
-    !!{
+    !!{RST
     Act on the insertion of nodes into the merger tree.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

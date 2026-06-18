@@ -19,32 +19,29 @@
 
 !+    Contributions to this file made by: Sachi Weerasooriya
 
-!!{
+!!{RST
 Provides a class that implements the distribution of HII region densities.
 !!}
 
 module HII_Region_Density_Distributions
-  !!{
+  !!{RST
   Provides a class that implements calculations for hydrogen density distribution in a HII region.
   !!}
 
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>hiiRegionDensityDistribution</name>
    <descriptiveName>HII Region Density Distributions</descriptiveName>
    <description>
-    Class providing models for the distribution of hydrogen number density $n_\mathrm{H}$ within
-    H\textsc{ii} regions---the probability distribution of gas density within the photoionized nebula.
-    The cumulative density distribution is returned between specified minimum and maximum $n_\mathrm{H}$
-    values, and is used to model the density-dependent emission line ratios and ionization structure of
-    the nebula. Different implementations (e.g.\ log-normal) capture the clumpy, inhomogeneous nature
-    of real H\textsc{ii} regions, which affects nebular line luminosities and the ionizing photon budget.
+   Class providing models for the distribution of hydrogen number density :math:`n_\mathrm{H}` within H**ii** regions---the probability distribution of gas density within the photoionized nebula. The cumulative density distribution is returned between specified minimum and maximum :math:`n_\mathrm{H}` values, and is used to model the density-dependent emission line ratios and ionization structure of the nebula. Different implementations (e.g.\ log-normal) capture the clumpy, inhomogeneous nature of real H**ii** regions, which affects nebular line luminosities and the ionizing photon budget.
    </description>
    <default>logNormal</default>
    <method name="cumulativeDensityDistribution">
-    <description>Return the cumulative distribution of HII region hydrogen density between a minimum and maximum $n_\mathrm{H}$.</description>
+    <description>
+    Return the cumulative distribution of HII region hydrogen density between a minimum and maximum :math:`n_\mathrm{H}`.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: densityHydrogenMinimum, densityHydrogenMaximum</argument>

@@ -17,39 +17,43 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements a class for merger tree evolution concurrency.
 !!}
 
 module Merger_Trees_Evolve_Concurrency
-  !!{
+  !!{RST
   Provides a class that implements merger tree evolution concurrency.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>mergerTreeEvolveConcurrency</name>
    <descriptiveName>Merger Tree Evolution Concurrency</descriptiveName>
-   <description>Class providing logic that controls which nodes in a merger tree are evolved in each phase
-    of a multi-phase evolution scheme. When halo and subhalo evolution are decoupled, different sets of
-    nodes (e.g.\ isolated halos vs.\ satellite subhalos) can be evolved in separate phases to maintain
-    consistency. Each implementation specifies how many phases to use and which nodes participate in
-    each phase, enabling flexible parallelism and ordering of the ODE integration.</description>
+   <description>
+   Class providing logic that controls which nodes in a merger tree are evolved in each phase of a multi-phase evolution scheme. When halo and subhalo evolution are decoupled, different sets of nodes (e.g.\ isolated halos vs.\ satellite subhalos) can be evolved in separate phases to maintain consistency. Each implementation specifies how many phases to use and which nodes participate in each phase, enabling flexible parallelism and ordering of the ODE integration.
+   </description>
    <default>halosSubhalos</default>
    <method name="initializeTree">
-    <description>Initialize concurrency for a new tree.</description>
+    <description>
+    Initialize concurrency for a new tree.
+    </description>
     <type>void</type>
     <pass>yes</pass>
    </method>
    <method name="countPhases">
-    <description>Return a count of the number of evolution phases.</description>
+    <description>
+    Return a count of the number of evolution phases.
+    </description>
     <type>integer</type>
     <pass>yes</pass>
    </method>
    <method name="includeInEvolution">
-    <description>Return true if the node should be included in the given phase of merger tree evolution.</description>
+    <description>
+    Return true if the node should be included in the given phase of merger tree evolution.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <argument>integer          , intent(in   )         :: evolutionPhase</argument>

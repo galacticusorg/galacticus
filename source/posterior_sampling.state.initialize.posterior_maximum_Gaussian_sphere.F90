@@ -17,25 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a posterior sampling state initializer class which initializes chains to the the maximum posterior point from
-  a set of chain files, with a Gaussian sphere scatter around that point.
+  !!{RST
+  Implementation of a posterior sampling state initializer class which initializes chains to the the maximum posterior point from a set of chain files, with a Gaussian sphere scatter around that point.
   !!}
 
   use :: ISO_Varying_String, only : varying_string
 
   !![
-  <posteriorSampleStateInitialize name="posteriorSampleStateInitializePosteriorMaximumGaussianSphere">
+  <posteriorSampleStateInitialize name="posteriorSampleStateInitializePosteriorMaximumGaussianSphere" docformat="rst">
     <description>
-      Initializes chains to the the maximum posterior point from a set of chain files, with a Gaussian sphere scatter around that
-      point.
+    Initializes chains to the the maximum posterior point from a set of chain files, with a Gaussian sphere scatter around that point.
     </description>
   </posteriorSampleStateInitialize>
   !!]
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializePosteriorMaximumGaussianSphere
-     !!{
-     Implementation of a posterior sampling state initialization class that initializes state to the maximum posterior point from
-     a set of chain files, with a Gaussian sphere scatter around that point.
+     !!{RST
+     Implementation of a posterior sampling state initialization class that initializes state to the maximum posterior point from a set of chain files, with a Gaussian sphere scatter around that point.
      !!}
      private
      type            (varying_string                     )          :: logFileRoot
@@ -49,8 +46,8 @@
   end type posteriorSampleStateInitializePosteriorMaximumGaussianSphere
 
   interface posteriorSampleStateInitializePosteriorMaximumGaussianSphere
-     !!{
-     Constructors for the \mono{posteriorMaximumGaussianSphere} posterior sampling state initialization class.
+     !!{RST
+     Constructors for the ``posteriorMaximumGaussianSphere`` posterior sampling state initialization class.
      !!}
      module procedure posteriorMaximumGaussianSphereConstructorParameters
      module procedure posteriorMaximumGaussianSphereConstructorInternal
@@ -59,8 +56,8 @@
 contains
 
   function posteriorMaximumGaussianSphereConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \mono{posteriorMaximumGaussianSphere} posterior sampling state initialization class.
+    !!{RST
+    Constructor for the ``posteriorMaximumGaussianSphere`` posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,19 +70,25 @@ contains
     type            (varying_string                                              )                :: logFileRoot
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logFileRoot</name>
-      <description>The root file name of the state files from which to resume.</description>
+      <description>
+      The root file name of the state files from which to resume.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusSphere</name>
-      <description>The radius of the Gaussian sphere.</description>
+      <description>
+      The radius of the Gaussian sphere.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusIsRelative</name>
-      <description>If true, the radius of the sphere is assumed to be relative to the extent of the prior, otherwise it is assumed to be an absolute radius.</description>
+      <description>
+      If true, the radius of the sphere is assumed to be relative to the extent of the prior, otherwise it is assumed to be an absolute radius.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator"          name="randomNumberGenerator_"          source="parameters"/>
@@ -99,8 +102,8 @@ contains
   end function posteriorMaximumGaussianSphereConstructorParameters
 
   function posteriorMaximumGaussianSphereConstructorInternal(logFileRoot,radiusSphere,radiusIsRelative,posteriorSampleStateInitialize_,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \mono{posteriorMaximumGaussianSphere} posterior sampling state initialization class.
+    !!{RST
+    Constructor for the ``posteriorMaximumGaussianSphere`` posterior sampling state initialization class.
     !!}
     implicit none
     type            (posteriorSampleStateInitializePosteriorMaximumGaussianSphere)                        :: self
@@ -117,8 +120,8 @@ contains
   end function posteriorMaximumGaussianSphereConstructorInternal
 
   subroutine posteriorMaximumGaussianSphereDestructor(self)
-    !!{
-    Destructor for the  \mono{posteriorMaximumGaussianSphere} posterior sampling state initialization class.
+    !!{RST
+    Destructor for the  ``posteriorMaximumGaussianSphere`` posterior sampling state initialization class.
     !!}
     implicit none
     type(posteriorSampleStateInitializePosteriorMaximumGaussianSphere), intent(inout) :: self
@@ -131,7 +134,7 @@ contains
   end subroutine posteriorMaximumGaussianSphereDestructor
 
   subroutine posteriorMaximumGaussianSphereInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
-    !!{
+    !!{RST
     Initialize simulation state by reading parameter values from a parameter file.
     !!}
     use :: Models_Likelihoods_Constants, only : logImpossible

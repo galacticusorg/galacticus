@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a property extractor class for the dark matter only density at a set of radii.
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleClass
@@ -25,12 +25,14 @@
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorDensityDMOProfile">
-   <description>A property extractor class for the dark matter only density at a set of radii.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorDensityDMOProfile" docformat="rst">
+   <description>
+   A property extractor class for the dark matter only density at a set of radii.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorDensityDMOProfile
-     !!{
+     !!{RST
      A property extractor class for the dark matter only density at a set of radii.
      !!}
      private
@@ -57,8 +59,8 @@
   end type nodePropertyExtractorDensityDMOProfile
 
   interface nodePropertyExtractorDensityDMOProfile
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorDensityDMOProfile} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorDensityDMOProfile` output analysis class.
      !!}
      module procedure densityDMOProfileConstructorParameters
      module procedure densityDMOProfileConstructorInternal
@@ -67,8 +69,8 @@
 contains
 
   function densityDMOProfileConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorDensityDMOProfile} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorDensityDMOProfile` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,15 +83,19 @@ contains
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusSpecifiers</name>
-      <description>A list of radius specifiers at which to output the density profile.</description>
+      <description>
+      A list of radius specifiers at which to output the density profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeRadii</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not the radii at which density data are output should also be included in the output file.</description>
+      <description>
+      Specifies whether or not the radii at which density data are output should also be included in the output file.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
@@ -105,8 +111,8 @@ contains
   end function densityDMOProfileConstructorParameters
 
   function densityDMOProfileConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorDensityDMOProfile} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorDensityDMOProfile` property extractor class.
     !!}
     use :: Error                               , only : Error_Report
     use :: Galactic_Structure_Options          , only : componentTypeDarkMatterOnly               , massTypeDark, massTypeAll    
@@ -144,8 +150,8 @@ contains
   end function densityDMOProfileConstructorInternal
 
   subroutine densityDMOProfileDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorDensityDMOProfile} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorDensityDMOProfile` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDensityDMOProfile), intent(inout) :: self
@@ -158,8 +164,8 @@ contains
   end subroutine densityDMOProfileDestructor
 
   integer function densityDMOProfileElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{densityDMOProfile} property extractors.
+    !!{RST
+    Return the number of elements in the ``densityDMOProfile`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityDMOProfile), intent(inout) :: self
@@ -171,8 +177,8 @@ contains
   end function densityDMOProfileElementCount
 
   function densityDMOProfileSize(self,time)
-    !!{
-    Return the number of array elements in the \mono{densityDMOProfile} property extractors.
+    !!{RST
+    Return the number of array elements in the ``densityDMOProfile`` property extractors.
     !!}
     implicit none
     integer         (c_size_t                              )                :: densityDMOProfileSize
@@ -185,8 +191,8 @@ contains
   end function densityDMOProfileSize
 
   function densityDMOProfileExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{densityDMOProfile} property extractor.
+    !!{RST
+    Implement a ``densityDMOProfile`` property extractor.
     !!}
     use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic            , massTypeStellar
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius                      , radiusTypeGalacticLightFraction   , &
@@ -292,8 +298,8 @@ contains
   end function densityDMOProfileExtract
 
   subroutine densityDMOProfileNames(self,names,time)
-    !!{
-    Return the names of the \mono{densityDMOProfile} properties.
+    !!{RST
+    Return the names of the ``densityDMOProfile`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityDMOProfile), intent(inout)                             :: self
@@ -308,8 +314,8 @@ contains
   end subroutine densityDMOProfileNames
 
   subroutine densityDMOProfileDescriptions(self,descriptions,time)
-    !!{
-    Return descriptions of the \mono{densityDMOProfile} property.
+    !!{RST
+    Return descriptions of the ``densityDMOProfile`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityDMOProfile), intent(inout)                             :: self
@@ -325,8 +331,8 @@ contains
   end subroutine densityDMOProfileDescriptions
 
   subroutine densityDMOProfileColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
-    !!{
-    Return column descriptions of the \mono{densityDMOProfile} property.
+    !!{RST
+    Return column descriptions of the ``densityDMOProfile`` property.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
@@ -347,8 +353,8 @@ contains
   end subroutine densityDMOProfileColumnDescriptions
 
   function densityDMOProfileUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{densityDMOProfile} properties in the SI system.
+    !!{RST
+    Return the units of the ``densityDMOProfile`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
@@ -365,8 +371,8 @@ contains
   end function densityDMOProfileUnitsInSI
 
   function densityDMOProfileUnits(self,time) result(units)
-    !!{
-    Return the units of the \mono{densityDMOProfile} properties.
+    !!{RST
+    Return the units of the ``densityDMOProfile`` properties.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     use :: Units_MetaData                  , only : unitType

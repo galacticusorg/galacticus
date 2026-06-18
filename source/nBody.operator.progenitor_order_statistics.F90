@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements an N-body data operator which computes progenitor halo order statistics.
 !!}
 
@@ -25,12 +25,14 @@ Contains a module which implements an N-body data operator which computes progen
   use, intrinsic :: ISO_C_Binding       , only : c_size_t
 
   !![
-  <nbodyOperator name="nbodyOperatorProgenitorOrderStatistics">
-   <description>An N-body data operator which computes progenitor halo order statistics.</description>
+  <nbodyOperator name="nbodyOperatorProgenitorOrderStatistics" docformat="rst">
+   <description>
+   An N-body data operator which computes progenitor halo order statistics.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorProgenitorOrderStatistics
-     !!{
+     !!{RST
      An N-body data operator which computes progenitor halo order statistics.
      !!}
      private
@@ -48,8 +50,8 @@ Contains a module which implements an N-body data operator which computes progen
   end type nbodyOperatorProgenitorOrderStatistics
 
   interface nbodyOperatorProgenitorOrderStatistics
-     !!{
-     Constructors for the ``progenitorOrderStatistics'' N-body operator class.
+     !!{RST
+     Constructors for the "progenitorOrderStatistics" N-body operator class.
      !!}
      module procedure progenitorOrderStatisticsConstructorParameters
      module procedure progenitorOrderStatisticsConstructorInternal
@@ -58,8 +60,8 @@ Contains a module which implements an N-body data operator which computes progen
 contains
 
   function progenitorOrderStatisticsConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the ``progenitorOrderStatistics'' N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the "progenitorOrderStatistics" N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,68 +77,92 @@ contains
          &                                                                                   description
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParentMinimum</name>
       <source>parameters</source>
-      <description>The minimum parent mass to consider.</description>
+      <description>
+      The minimum parent mass to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParentMaximum</name>
       <source>parameters</source>
-      <description>The maximum parent mass to consider.</description>
+      <description>
+      The maximum parent mass to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParentCountPerDecade</name>
       <source>parameters</source>
-      <description>The number of bins per decade of parent mass.</description>
+      <description>
+      The number of bins per decade of parent mass.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massRatioProgenitorMinimum</name>
       <source>parameters</source>
-      <description>The minimum mass ratio to consider.</description>
+      <description>
+      The minimum mass ratio to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massRatioProgenitorMaximum</name>
       <source>parameters</source>
-      <description>The maximum mass ratio to consider.</description>
+      <description>
+      The maximum mass ratio to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massRatioProgenitorCountPerDecade</name>
       <source>parameters</source>
-      <description>The number of bins per decade of mass ratio.</description>
+      <description>
+      The number of bins per decade of mass ratio.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>snapshotParents</name>
       <source>parameters</source>
-      <description>The snapshot at which to select parent halos.</description>
+      <description>
+      The snapshot at which to select parent halos.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>orderMaximum</name>
       <source>parameters</source>
-      <description>The maximum order for which to compute the distribution.</description>
+      <description>
+      The maximum order for which to compute the distribution.
+      </description>
     </inputParameter>
     !!]
     allocate(snapshotsProgenitors(parameters%count('snapshotsProgenitors')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>snapshotsProgenitors</name>
       <source>parameters</source>
-      <description>The snapshots at which to select progenitor halos.</description>
+      <description>
+      The snapshots at which to select progenitor halos.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>description</name>
       <source>parameters</source>
-      <description>A description of this mass function.</description>
+      <description>
+      A description of this mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>simulationReference</name>
       <source>parameters</source>
-      <description>A reference for the simulation.</description>
+      <description>
+      A reference for the simulation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>simulationURL</name>
       <source>parameters</source>
-      <description>A URL for the simulation.</description>
+      <description>
+      A URL for the simulation.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
@@ -149,8 +175,8 @@ contains
   end function progenitorOrderStatisticsConstructorParameters
 
   function progenitorOrderStatisticsConstructorInternal(massParentMinimum,massParentMaximum,massParentCountPerDecade,massRatioProgenitorMinimum,massRatioProgenitorMaximum,massRatioProgenitorCountPerDecade,snapshotParents,snapshotsProgenitors,orderMaximum,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
-    !!{
-    Internal constructor for the ``progenitorOrderStatistics'' N-body operator class.
+    !!{RST
+    Internal constructor for the "progenitorOrderStatistics" N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorProgenitorOrderStatistics)                              :: self
@@ -170,8 +196,8 @@ contains
   end function progenitorOrderStatisticsConstructorInternal
   
   subroutine progenitorOrderStatisticsDestructor(self)
-    !!{
-    Destructor for the ``progenitorOrderStatistics'' N-body operator class.
+    !!{RST
+    Destructor for the "progenitorOrderStatistics" N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorProgenitorOrderStatistics), intent(inout) :: self
@@ -183,7 +209,7 @@ contains
   end subroutine progenitorOrderStatisticsDestructor
 
   subroutine progenitorOrderStatisticsOperate(self,simulations)
-    !!{
+    !!{RST
     Compute mass functions of particles.
     !!}
     use    :: Arrays_Search     , only : searchArray            , searchIndexed

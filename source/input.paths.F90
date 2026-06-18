@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which provides the path for \glc\ inputs and scripts.
+!!{RST
+Contains a module which provides the path for Galacticus inputs and scripts.
 !!}
 
 module Input_Paths
-  !!{
-  Provides the path for \glc\ inputs and scripts.
+  !!{RST
+  Provides the path for Galacticus inputs and scripts.
   !!}
   use :: ISO_Varying_String, only : varying_string
   implicit none
@@ -31,9 +31,11 @@ module Input_Paths
   public :: inputPath
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>pathType</name>
-   <description>Enumeration of various paths used by Galacticus.</description>
+   <description>
+   Enumeration of various paths used by Galacticus.
+   </description>
    <validator>yes</validator>
    <entry label="exec"       />
    <entry label="dataStatic" />
@@ -47,8 +49,8 @@ module Input_Paths
 contains
 
   function inputPath(pathType)
-    !!{
-    Returns the path to various \glc\ resources.
+    !!{RST
+    Returns the path to various Galacticus resources.
     !!}
     use :: ISO_Varying_String, only : assignment(=)  , operator(//), trim, char
     implicit none
@@ -87,8 +89,8 @@ contains
   end function inputPath
 
   subroutine pathsRetrieve(pathType,pathName,pathLength)
-    !!{
-    Retrieve the \glc\ input data path from the environment.
+    !!{RST
+    Retrieve the Galacticus input data path from the environment.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none

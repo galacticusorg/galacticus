@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements subhalo mass functions.
 !!}
 
@@ -26,24 +26,25 @@ module Unevolved_Subhalo_Mass_Functions
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>unevolvedSubhaloMassFunction</name>
    <descriptiveName>Unevolved Subhalo Mass Function</descriptiveName>
-   <description>Class providing unevolved subhalo mass functions $\mathrm{d}N/\mathrm{d}m$---the mass spectrum of
-    subhalos at the time they first fell into their host, before tidal stripping has reduced their mass.
-    The unevolved subhalo mass function represents the initial conditions for subhalo evolution and is predicted from
-    the extended Press-Schechter formalism or calibrated to N-body simulations. Both differential
-    (per unit mass per host halo) and integrated (between two mass limits) forms are provided, as
-    functions of the subhalo mass, host mass, and cosmic time.</description>
+   <description>
+   Class providing unevolved subhalo mass functions :math:`\mathrm{d}N/\mathrm{d}m`---the mass spectrum of subhalos at the time they first fell into their host, before tidal stripping has reduced their mass. The unevolved subhalo mass function represents the initial conditions for subhalo evolution and is predicted from the extended Press-Schechter formalism or calibrated to N-body simulations. Both differential (per unit mass per host halo) and integrated (between two mass limits) forms are provided, as functions of the subhalo mass, host mass, and cosmic time.
+   </description>
    <default>giocoli2008</default>
    <method name="differential" >
-    <description>Return the differential unevolved subhalo mass function per halo for \mono{mass} [$\mathrm{M}_\odot$] subhalos in \mono{massHost} [$\mathrm{M}_\odot$] hosts at \mono{time} [Gyr].</description>
+    <description>
+    Return the differential unevolved subhalo mass function per halo for ``mass`` [:math:`\mathrm{M}_\odot`] subhalos in ``massHost`` [:math:`\mathrm{M}_\odot`] hosts at ``time`` [Gyr].
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time, mass, massHost</argument>
    </method>
    <method name="integrated" >
-    <description>Return the unevolved subhalo mass function per host at \mono{time} [Gyr] in hosts of mass \mono{massHost} [$\mathrm{M}_\odot$] integrated between \mono{massLow} and \mono{massHigh} [$\mathrm{M}_\odot$].</description>
+    <description>
+    Return the unevolved subhalo mass function per host at ``time`` [Gyr] in hosts of mass ``massHost`` [:math:`\mathrm{M}_\odot`] integrated between ``massLow`` and ``massHigh`` [:math:`\mathrm{M}_\odot`].
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time, massLow, massHigh, massHost</argument>

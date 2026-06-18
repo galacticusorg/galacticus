@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an output analysis property extractor class that extracts a property from the host node of the given node.
 !!}
   
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorHostNode">
-   <description>An output analysis property extractor class that extracts a property from the host node of the given node.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorHostNode" docformat="rst">
+   <description>
+   An output analysis property extractor class that extracts a property from the host node of the given node.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorHostNode
-     !!{
+     !!{RST
      A property extractor output analysis class that extracts a property from the host node of the given node.
      !!}
      private
@@ -42,8 +44,8 @@ Implements an output analysis property extractor class that extracts a property 
   end type nodePropertyExtractorHostNode
 
   interface nodePropertyExtractorHostNode
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorHostNode} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorHostNode` property extractor class.
      !!}
      module procedure hostNodeConstructorParameters
      module procedure hostNodeConstructorInternal
@@ -52,8 +54,8 @@ Implements an output analysis property extractor class that extracts a property 
 contains
 
   function hostNodeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorHostNode} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorHostNode` property extractor class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -79,8 +81,8 @@ contains
   end function hostNodeConstructorParameters
 
   function hostNodeConstructorInternal(nodePropertyExtractor_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorHostNode} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorHostNode` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorHostNode)                        :: self
@@ -93,8 +95,8 @@ contains
   end function hostNodeConstructorInternal
   
   subroutine hostNodeDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorHostNode} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorHostNode` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHostNode), intent(inout) :: self
@@ -106,7 +108,7 @@ contains
   end subroutine hostNodeDestructor
   
   double precision function hostNodeExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a hostNode output analysis.
     !!}
     implicit none
@@ -124,7 +126,7 @@ contains
   end function hostNodeExtract
 
   function hostNodeName(self)
-    !!{
+    !!{RST
     Return the name of the hostNode property.
     !!}
     use :: String_Handling, only : String_Upper_Case_First
@@ -137,7 +139,7 @@ contains
   end function hostNodeName
 
   function hostNodeDescription(self)
-    !!{
+    !!{RST
     Return a description of the hostNode property.
     !!}
     implicit none
@@ -149,7 +151,7 @@ contains
   end function hostNodeDescription
 
   double precision function hostNodeUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the hostNode property in the SI system.
     !!}
     implicit none
@@ -160,7 +162,7 @@ contains
   end function hostNodeUnitsInSI
 
   function hostNodeUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the hostNode property.
     !!}
     use :: Units_MetaData, only : unitType

@@ -19,12 +19,12 @@
 
 !+    Contributions to this file made by: Niusha Ahvazi
 
-!!{
+!!{RST
 Contains a module that provides simple analytic test integrand functions used by the two-dimensional integration unit tests.
 !!}
 
 module Test_Integration2D_Functions
-  !!{
+  !!{RST
   Provides simple analytic test integrand functions used by the two-dimensional integration unit tests.
   !!}
   implicit none
@@ -33,7 +33,7 @@ module Test_Integration2D_Functions
 contains
   
   double precision function integrand1(x, y)
-    !!{
+    !!{RST
     Integrand function used in tests.
     !!}
     implicit none
@@ -44,7 +44,7 @@ contains
   end function integrand1
   
   double precision function integrand2(x, y)
-    !!{
+    !!{RST
     Integrand function used in tests.
     !!}
     implicit none
@@ -55,7 +55,7 @@ contains
   end function integrand2
   
   double precision function integrand3(x, y)
-    !!{
+    !!{RST
     Integrand function used in tests.
     !!}
     implicit none
@@ -66,7 +66,7 @@ contains
   end function integrand3
   
   double precision function integrand4(x, y)
-    !!{
+    !!{RST
     Integrand function used in tests.
     !!}
     implicit none

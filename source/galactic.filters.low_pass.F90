@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a low-pass filter on any node property.
 !!}
 
   use :: Node_Property_Extractors, only : nodePropertyExtractorScalar
 
   !![
-  <galacticFilter name="galacticFilterLowPass">
-   <description>A low-pass galactic filter that passes only nodes for which a scalar property, extracted via \mono{[nodePropertyExtractor]}, is less than or equal to the specified \mono{[threshold]} value. This allows selection of galaxies or halos below any quantitative threshold in any extractable property.</description>
+  <galacticFilter name="galacticFilterLowPass" docformat="rst">
+   <description>
+   A low-pass galactic filter that passes only nodes for which a scalar property, extracted via ``[nodePropertyExtractor]``, is less than or equal to the specified ``[threshold]`` value. This allows selection of galaxies or halos below any quantitative threshold in any extractable property.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterLowPass
-     !!{
+     !!{RST
      A low-pass galactic filter class on any node property.
      !!}
      private
@@ -41,8 +43,8 @@ Implements a low-pass filter on any node property.
   end type galacticFilterLowPass
 
   interface galacticFilterLowPass
-     !!{
-     Constructors for the \refClass{galacticFilterLowPass} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterLowPass` galactic filter class.
      !!}
      module procedure lowPassConstructorParameters
      module procedure lowPassConstructorInternal
@@ -51,8 +53,8 @@ Implements a low-pass filter on any node property.
 contains
   
   function lowPassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterLowPass} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterLowPass` galactic filter class which takes a parameter set as input.
     !!}
     use :: Error                   , only : Error_Report
     use :: Input_Parameters        , only : inputParameter            , inputParameters
@@ -64,10 +66,12 @@ contains
     double precision                                            :: threshold
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>threshold</name>
       <source>parameters</source>
-      <description>The threshold value below which to pass.</description>
+      <description>
+      The threshold value below which to pass.
+      </description>
     </inputParameter>
     <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
     !!]
@@ -85,8 +89,8 @@ contains
   end function lowPassConstructorParameters
 
   function lowPassConstructorInternal(threshold,nodePropertyExtractor_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterLowPass} galactic filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticFilterLowPass` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterLowPass      )                        :: self
@@ -100,8 +104,8 @@ contains
   end function lowPassConstructorInternal
 
   subroutine lowPassDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterLowPass} galactic filter class.
+    !!{RST
+    Destructor for the :galacticus-class:`galacticFilterLowPass` galactic filter class.
     !!}
     implicit none
     type(galacticFilterLowPass), intent(inout) :: self
@@ -113,7 +117,7 @@ contains
   end subroutine lowPassDestructor
 
   logical function lowPassPasses(self,node)
-    !!{
+    !!{RST
     Implement a low-pass galactic filter.
     !!}
     implicit none

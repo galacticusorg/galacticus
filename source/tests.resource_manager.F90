@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program for testing the \mono{resourceManager} class.
+!!{RST
+Contains a program for testing the ``resourceManager`` class.
 !!}
   
 program Test_Resource_Manager
-  !!{
-  Test the \mono{resourceManager} class.
+  !!{RST
+  Test the ``resourceManager`` class.
   !!}
   use :: Test_Resource_Manager_Wrapper, only : resourceHolder
   use :: Display                      , only : displayVerbositySet, verbosityLevelStandard

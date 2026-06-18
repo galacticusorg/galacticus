@@ -17,13 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a null gravitational lensing distribution.
 !!}
 
   !![
-  <gravitationalLensing name="gravitationalLensingNull">
-   <description>A gravitational lensing class that returns a delta-function magnification distribution peaked at $\mu=1$ (i.e., no lensing), used as a null model to disable lensing corrections in luminosity or flux calculations.</description>
+  <gravitationalLensing name="gravitationalLensingNull" docformat="rst">
+   <description>
+   A gravitational lensing class that returns a delta-function magnification distribution peaked at :math:`\mu=1` (i.e., no lensing), used as a null model to disable lensing corrections in luminosity or flux calculations.
+   </description>
   </gravitationalLensing>
   !!]
   type, extends(gravitationalLensingClass) :: gravitationalLensingNull
@@ -34,7 +36,7 @@ Implements a null gravitational lensing distribution.
    end type gravitationalLensingNull
 
   interface gravitationalLensingNull
-     !!{
+     !!{RST
      Constructors for the null gravitational lensing class.
      !!}
      module procedure nullConstructorParameters
@@ -43,8 +45,8 @@ Implements a null gravitational lensing distribution.
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \cite{takahashi_probability_2011} gravitational lensing class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :cite:t:`takahashi_probability_2011` gravitational lensing class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -59,7 +61,7 @@ contains
   end function nullConstructorParameters
 
   double precision function nullMagnificationPDF(self,magnification,redshift,scaleSource)
-    !!{
+    !!{RST
     Compute the magnification probability density function for a null lensing case.
     !!}
     use :: Error, only : Error_Report
@@ -74,8 +76,8 @@ contains
   end function nullMagnificationPDF
 
   double precision function nullMagnificationCDF(self,magnification,redshift,scaleSource)
-    !!{
-    Compute the magnification probability density function at the given \mono{magnification} and \mono{redshift} for a null lensing case.
+    !!{RST
+    Compute the magnification probability density function at the given ``magnification`` and ``redshift`` for a null lensing case.
     !!}
     implicit none
     class           (gravitationalLensingNull), intent(inout) :: self

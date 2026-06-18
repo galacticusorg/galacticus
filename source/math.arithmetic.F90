@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides basic arithmetic functions.
 !!}
 
 module Math_Arithmetic
-  !!{
+  !!{RST
   Provides basic arithmetic functions, often handling floating point issues.
   !!}
   implicit none
@@ -33,9 +33,8 @@ contains
 
 
   pure double precision function divideSafe(x,y)
-    !!{
-    Compute $x/y$ but avoiding floating point overflow. Where overflow would occur the result is limited to the largest
-    representable value.    
+    !!{RST
+    Compute :math:`x/y` but avoiding floating point overflow. Where overflow would occur the result is limited to the largest representable value.
     !!}
     implicit none
     double precision, intent(in   ) :: x, y

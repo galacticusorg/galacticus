@@ -17,29 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a normal 1D distribution function.
   !!}
 
   !![
-  <distributionFunction1D name="distributionFunction1DNormal">
+  <distributionFunction1D name="distributionFunction1DNormal" docformat="rst">
    <description>
-    A normal distribution, optionally with lower and upper limits:
-    \begin{equation}
-     P(x) \propto \left\{ \begin{array}{ll} \exp[-(x-\mu)^2/2S] &amp; \hbox{ if } x_\mathrm{l} \leq x \leq x_\mathrm{u} \\ 0 &amp; \hbox{ otherwise.}  \end{array} \right.
-    \end{equation}
-    Specified using:
-    \begin{description}
-    \item[\mono{[mean]}] The mean, $\mu$;
-    \item[\mono{[variance]}] The variance, $S$;
-    \item[\mono{[minimum]}] The lower limit of the range, $x_\mathrm{l}$;
-    \item[\mono{[maximum]}] The upper limit of the range, $x_\mathrm{u}$.
-    \end{description}
+   A normal distribution, optionally with lower and upper limits:
+
+   .. math::
+
+      P(x) \propto \left\{ \begin{array}{ll} \exp[-(x-\mu)^2/2S] &amp; \hbox{ if } x_\mathrm{l} \leq x \leq x_\mathrm{u} \\ 0 &amp; \hbox{ otherwise.}  \end{array} \right.
+
+   Specified using:
+
+   ``[mean]``
+      The mean, :math:`\mu`;
+
+   ``[variance]``
+      The variance, :math:`S`;
+
+   ``[minimum]``
+      The lower limit of the range, :math:`x_\mathrm{l}`;
+
+   ``[maximum]``
+      The upper limit of the range, :math:`x_\mathrm{u}`.
    </description>
   </distributionFunction1D>
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DNormal
-     !!{
+     !!{RST
      Implementation of a normal 1D distribution function.
      !!}
      private
@@ -56,8 +64,8 @@
   end type distributionFunction1DNormal
 
   interface distributionFunction1DNormal
-     !!{
-     Constructors for the \refClass{distributionFunction1DNormal} 1D distribution function class.
+     !!{RST
+     Constructors for the :galacticus-class:`distributionFunction1DNormal` 1D distribution function class.
      !!}
      module procedure normalConstructorParameters
      module procedure normalConstructorInternal
@@ -66,9 +74,8 @@
 contains
 
   function normalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DNormal} 1D distribution function class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DNormal` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,31 +86,39 @@ contains
          &                                                           limitLower            , limitUpper
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mean</name>
-      <description>The mean $\mu$ of the normal (Gaussian) distribution, specifying the location of the peak of the probability density function; optionally constrained within $[x_\mathrm{l}, x_\mathrm{u}]$.</description>
+      <description>
+      The mean :math:`\mu` of the normal (Gaussian) distribution, specifying the location of the peak of the probability density function; optionally constrained within :math:`[x_\mathrm{l}, x_\mathrm{u}]`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>variance</name>
-      <description>The variance $S = \sigma^2 > 0$ of the normal distribution, controlling the width of the Gaussian bell curve; the standard deviation is $\sigma = \sqrt{S}$ and the FWHM is $2\sqrt{2\ln 2}\,\sigma$.</description>
+      <description>
+      The variance :math:`S = \sigma^2 &gt; 0` of the normal distribution, controlling the width of the Gaussian bell curve; the standard deviation is :math:`\sigma = \sqrt{S}` and the FWHM is :math:`2\sqrt{2\ln 2}\,\sigma`.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
     if (parameters%isPresent('limitLower')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>limitLower</name>
-         <description>The lower truncation limit $x_\mathrm{l}$ of the normal distribution; when set, the distribution is renormalized over $[x_\mathrm{l}, x_\mathrm{u}]$ rather than $(-\infty, +\infty)$.</description>
+         <description>
+         The lower truncation limit :math:`x_\mathrm{l}` of the normal distribution; when set, the distribution is renormalized over :math:`[x_\mathrm{l}, x_\mathrm{u}]` rather than :math:`(-\infty, +\infty)`.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
     end if
     if (parameters%isPresent('limitUpper')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>limitUpper</name>
-         <description>The upper truncation limit $x_\mathrm{u}$ of the normal distribution; when set, the distribution is renormalized over $[x_\mathrm{l}, x_\mathrm{u}]$ rather than $(-\infty, +\infty)$.</description>
+         <description>
+         The upper truncation limit :math:`x_\mathrm{u}` of the normal distribution; when set, the distribution is renormalized over :math:`[x_\mathrm{l}, x_\mathrm{u}]` rather than :math:`(-\infty, +\infty)`.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -122,8 +137,8 @@ contains
   end function normalConstructorParameters
 
   function normalConstructorInternal(mean,variance,limitLower,limitUpper,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DNormal} 1D distribution function class.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DNormal` 1D distribution function class.
     !!}
     use :: Error          , only : Error_Report
     use :: Error_Functions, only : Error_Function
@@ -158,7 +173,7 @@ contains
   end function normalConstructorInternal
 
   double precision function normalMinimum(self)
-    !!{
+    !!{RST
     Return the minimum possible value of a uniform distribution.
     !!}
     use :: Error, only : Error_Report
@@ -175,7 +190,7 @@ contains
   end function normalMinimum
 
   double precision function normalMaximum(self)
-    !!{
+    !!{RST
     Return the maximum possible value of a uniform distribution.
     !!}
     use :: Error, only : Error_Report
@@ -192,7 +207,7 @@ contains
   end function normalMaximum
 
   double precision function normalDensity(self,x)
-    !!{
+    !!{RST
     Return the density of a normal distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -227,7 +242,7 @@ contains
   end function normalDensity
 
   double precision function normalCumulative(self,x)
-    !!{
+    !!{RST
     Return the cumulative probability of a normal distribution.
     !!}
     use :: Error_Functions, only : Error_Function
@@ -253,7 +268,7 @@ contains
   end function normalCumulative
 
   double precision function normalInverse(self,p)
-    !!{
+    !!{RST
     Return the inverse of a normal distribution.
     !!}
     use :: Error, only : Error_Report
@@ -280,10 +295,8 @@ contains
   end function normalInverse
 
   double precision function normalStandardInverse(p)
-    !!{
-    Evaluates the inverse of the standard normal cumulative distribution function. Based on the Fortran90 version by John
-    Burkardt (itself based on the original Fortran 77 version by Michael Wichura), using the algorithm of
-    \cite{wichura_percentage_1988}.
+    !!{RST
+    Evaluates the inverse of the standard normal cumulative distribution function. Based on the Fortran90 version by John Burkardt (itself based on the original Fortran 77 version by Michael Wichura), using the algorithm of :cite:t:`wichura_percentage_1988`.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -393,14 +406,12 @@ contains
   end function normalStandardInverse
 
   double precision function normalPolynomialEvaluate(n,a,x)
-    !!{
-    Evaluates a polynomial based on the implementation by John Burkardt. For sanity's sake, the value of N indicates the
-    \emph{number} of coefficients, or more precisely, the \emph{order} of the polynomial, rather than the \emph{degree} of the
-    polynomial. The two quantities differ by 1, but cause a great deal of confusion. Given \mono{n} and \mono{a}, the form of the
-    polynomial is:
-    \begin{equation}
-    p(x) = a(1) + a(2) * x + \ldots + a(n-1) * x^{n-2} + a(n) * x^{n-1}.
-    \end{equation}
+    !!{RST
+    Evaluates a polynomial based on the implementation by John Burkardt. For sanity's sake, the value of N indicates the *number* of coefficients, or more precisely, the *order* of the polynomial, rather than the *degree* of the polynomial. The two quantities differ by 1, but cause a great deal of confusion. Given ``n`` and ``a``, the form of the polynomial is:
+
+    .. math::
+
+       p(x) = a(1) + a(2) * x + \ldots + a(n-1) * x^{n-2} + a(n) * x^{n-1}.
     !!}
     implicit none
     integer         , intent(in   )               :: n

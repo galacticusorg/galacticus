@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a timescale for star formation which scales with the circular velocity of the host halo.
   !!}
 
@@ -25,18 +25,20 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <starFormationTimescale name="starFormationTimescaleHaloScaling">
+  <starFormationTimescale name="starFormationTimescaleHaloScaling" docformat="rst">
    <description>
-    A star formation timescale class in which the timescale scales with halo properties. Specifically,
-    \begin{equation}
-     \tau_\star = \tau_\mathrm{\star,0} \left( {V_\mathrm{vir} \over 200\hbox{km/s}} \right)^{\alpha_\star} (1+z)^{\beta_\star},
-    \end{equation}
-    where $\tau_\mathrm{\star,0}=$\mono{[timescale]}, $\alpha_\star=$\mono{[exponentVelocityVirial]}, and $\beta_\star=$\mono{[exponentRedshift]}.
+   A star formation timescale class in which the timescale scales with halo properties. Specifically,
+
+   .. math::
+
+      \tau_\star = \tau_\mathrm{\star,0} \left( {V_\mathrm{vir} \over 200\hbox{km/s}} \right)^{\alpha_\star} (1+z)^{\beta_\star},
+
+   where :math:`\tau_\mathrm{\star,0}=`\ ``[timescale]``, :math:`\alpha_\star=`\ ``[exponentVelocityVirial]``, and :math:`\beta_\star=`\ ``[exponentRedshift]``.
    </description>
   </starFormationTimescale>
   !!]
   type, extends(starFormationTimescaleClass) :: starFormationTimescaleHaloScaling
-     !!{
+     !!{RST
      Implementation of a haloScaling timescale for star formation.
      !!}
      private
@@ -51,7 +53,7 @@
      integer         (kind_int8                        ) :: lastUniqueID
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset memoized calculations." method="calculationReset" />
      </methods>
      !!]
@@ -62,8 +64,8 @@
   end type starFormationTimescaleHaloScaling
 
   interface starFormationTimescaleHaloScaling
-     !!{
-     Constructors for the \refClass{starFormationTimescaleHaloScaling} timescale for star formation class.
+     !!{RST
+     Constructors for the :galacticus-class:`starFormationTimescaleHaloScaling` timescale for star formation class.
      !!}
      module procedure haloScalingConstructorParameters
      module procedure haloScalingConstructorInternal
@@ -74,9 +76,8 @@
 contains
 
   function haloScalingConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{starFormationTimescaleHaloScaling} timescale for star formation class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`starFormationTimescaleHaloScaling` timescale for star formation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,22 +89,28 @@ contains
          &                                                                exponentRedshift
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescale</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The timescale for star formation in the halo scaling timescale model.</description>
+      <description>
+      The timescale for star formation in the halo scaling timescale model.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentVelocityVirial</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The exponent of virial velocity in the timescale for star formation in the halo scaling timescale model.</description>
+      <description>
+      The exponent of virial velocity in the timescale for star formation in the halo scaling timescale model.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentRedshift</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The exponent of redshift in the timescale for star formation in the halo scaling timescale model.</description>
+      <description>
+      The exponent of redshift in the timescale for star formation in the halo scaling timescale model.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -119,8 +126,8 @@ contains
   end function haloScalingConstructorParameters
 
   function haloScalingConstructorInternal(timescale,exponentVelocityVirial,exponentRedshift,cosmologyFunctions_,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{starFormationTimescaleHaloScaling} timescale for star formation class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`starFormationTimescaleHaloScaling` timescale for star formation class.
     !!}
     implicit none
     type            (starFormationTimescaleHaloScaling)                        :: self
@@ -146,7 +153,7 @@ contains
   end function haloScalingConstructorInternal
 
   subroutine haloScalingAutoHook(self)
-    !!{
+    !!{RST
     Attach to the calculation reset event.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
@@ -158,8 +165,8 @@ contains
   end subroutine haloScalingAutoHook
 
   subroutine haloScalingDestructor(self)
-    !!{
-    Destructor for the \refClass{starFormationTimescaleHaloScaling} timescale for star formation class.
+    !!{RST
+    Destructor for the :galacticus-class:`starFormationTimescaleHaloScaling` timescale for star formation class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
@@ -174,7 +181,7 @@ contains
   end subroutine haloScalingDestructor
 
   subroutine haloScalingCalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the halo scaling star formation timescale calculation.
     !!}
     use :: Galacticus_Nodes, only : treeNode
@@ -191,9 +198,8 @@ contains
   end subroutine haloScalingCalculationReset
 
   double precision function haloScalingTimescale(self,component) result(timescale)
-    !!{
-    Returns the timescale (in Gyr) for star formation in the given \mono{component} in the halo scaling
-    timescale model.
+    !!{RST
+    Returns the timescale (in Gyr) for star formation in the given ``component`` in the halo scaling timescale model.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

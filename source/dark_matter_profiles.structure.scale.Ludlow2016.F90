@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo profile concentrations using the \cite{ludlow_mass-concentration-redshift_2016}
-  algorithm.
+  !!{RST
+  An implementation of dark matter halo profile concentrations using the :cite:t:`ludlow_mass-concentration-redshift_2016` algorithm.
   !!}
 
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass
@@ -30,20 +29,15 @@
   use :: Root_Finder             , only : rootFinder
 
   !![
-  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusLudlow2016">
+  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusLudlow2016" docformat="rst">
    <description>
-    Dark matter halo scale radii are computed using the algorithm of \cite{ludlow_mass-concentration-redshift_2016}. While
-    \cite{ludlow_mass-concentration-redshift_2016} used $\Delta = 200 \rho_\mathrm{crit}$ to define halos, their model actually
-    predicts the scale radius, $r_{-2}$, rather than the concentration. Therefore, here we report that the
-    \cite{ludlow_mass-concentration-redshift_2016} concentrations are defined using the model's own virial density contrast
-    definition --- this ensures that the predicted scale radii are applied directly to model halos.
+   Dark matter halo scale radii are computed using the algorithm of :cite:t:`ludlow_mass-concentration-redshift_2016`. While :cite:t:`ludlow_mass-concentration-redshift_2016` used :math:`\Delta = 200 \rho_\mathrm{crit}` to define halos, their model actually predicts the scale radius, :math:`r_{-2}`, rather than the concentration. Therefore, here we report that the :cite:t:`ludlow_mass-concentration-redshift_2016` concentrations are defined using the model's own virial density contrast definition --- this ensures that the predicted scale radii are applied directly to model halos.
    </description>
   </darkMatterProfileScaleRadius>
   !!]
   type, extends(darkMatterProfileScaleRadiusClass) :: darkMatterProfileScaleRadiusLudlow2016
-     !!{
-     A dark matter halo profile concentration class implementing the algorithm of
-     \cite{ludlow_mass-concentration-redshift_2016}.
+     !!{RST
+     A dark matter halo profile concentration class implementing the algorithm of :cite:t:`ludlow_mass-concentration-redshift_2016`.
      !!}
      private
      class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_           => null()
@@ -56,7 +50,7 @@
           &                                                          timeFormationSeekDelta                 , densityContrast
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Evaluate a function which goes to zero at the formation time of the tree."          method="formationTimeRoot"           />
        <method description="Initialize a root finder object for use in finding the formation time of the tree." method="formationTimeRootFunctionSet"/>
        <method description="Specifies if a branch history is required for application of the algorithm."        method="requireBranchHistory"        />
@@ -70,8 +64,8 @@
   end type darkMatterProfileScaleRadiusLudlow2016
 
   interface darkMatterProfileScaleRadiusLudlow2016
-     !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusLudlow2016} dark matter halo profile scale radius class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileScaleRadiusLudlow2016` dark matter halo profile scale radius class.
      !!}
      module procedure ludlow2016ConstructorParameters
      module procedure ludlow2016ConstructorInternal
@@ -95,8 +89,8 @@
 contains
 
   function ludlow2016ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{ludlow2016} dark matter halo profile concentration class.
+    !!{RST
+    Default constructor for the ``ludlow2016`` dark matter halo profile concentration class.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -114,23 +108,29 @@ contains
 
     if (.not.parameters%isPresent('darkMatterProfileScaleRadius')) call Error_Report('a fallback scale radius method must be specified'//{introspection:location})
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>C</name>
       <source>parameters</source>
       <defaultValue>400.0d0</defaultValue>
-      <description>The parameter $C$ appearing in the halo concentration algorithm of \cite{ludlow_mass-concentration-redshift_2016}.</description>
+      <description>
+      The parameter :math:`C` appearing in the halo concentration algorithm of :cite:t:`ludlow_mass-concentration-redshift_2016`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>f</name>
       <source>parameters</source>
       <defaultValue>0.02d0</defaultValue>
-      <description>The parameter $f$ appearing in the halo concentration algorithm of \cite{ludlow_mass-concentration-redshift_2016}.</description>
+      <description>
+      The parameter :math:`f` appearing in the halo concentration algorithm of :cite:t:`ludlow_mass-concentration-redshift_2016`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeFormationSeekDelta</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The parameter $\Delta \log t$ by which the logarithm of the trial formation time is incremented when stepping through the formation history of a node to find the formation time. If set to zero (or a negative value) the cumulative mass histories of nodes are assumed to be monotonic functions of time, and the formation time is instead found by a root finding algorithm,</description>
+      <description>
+      The parameter :math:`\Delta \log t` by which the logarithm of the trial formation time is incremented when stepping through the formation history of a node to find the formation time. If set to zero (or a negative value) the cumulative mass histories of nodes are assumed to be monotonic functions of time, and the formation time is instead found by a root finding algorithm,
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
@@ -153,8 +153,8 @@ contains
   end function ludlow2016ConstructorParameters
 
   function ludlow2016ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,virialDensityContrast_,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusLudlow2016} dark matter halo profile scale radius class.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileScaleRadiusLudlow2016` dark matter halo profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusLudlow2016)                        :: self
@@ -176,8 +176,8 @@ contains
   end function ludlow2016ConstructorInternal
 
   subroutine ludlow2016Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileScaleRadiusLudlow2016} dark matter halo profile scale radius class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileScaleRadiusLudlow2016` dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusLudlow2016), intent(inout) :: self
@@ -194,9 +194,8 @@ contains
   end subroutine ludlow2016Destructor
 
   double precision function ludlow2016Radius(self,node)
-    !!{
-    Return the scale radius of the dark matter halo profile of \mono{node} using the
-    \cite{ludlow_mass-concentration-redshift_2016} algorithm.
+    !!{RST
+    Return the scale radius of the dark matter halo profile of ``node`` using the :cite:t:`ludlow_mass-concentration-redshift_2016` algorithm.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Calculations_Resets                 , only : Calculations_Reset
@@ -445,7 +444,7 @@ contains
   end function ludlow2016Radius
 
   subroutine ludlow2016FormationTimeRootFunctionSet(self,finder)
-    !!{
+    !!{RST
     Initialize the finder object to compute the relevant formation history.
     !!}
     use :: Root_Finder, only : rootFinder
@@ -464,8 +463,8 @@ contains
   end subroutine ludlow2016FormationTimeRootFunctionSet
 
   double precision function ludlow2016FormationTimeRoot(timeFormation)
-    !!{
-    Function used to find the formation time of a halo in the \mono{ludlow2016} concentration algorithm.
+    !!{RST
+    Function used to find the formation time of a halo in the ``ludlow2016`` concentration algorithm.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
@@ -568,7 +567,7 @@ contains
   end function ludlow2016FormationTimeRoot
 
   double precision function ludlow2016DensityContrast(state,time)
-    !!{
+    !!{RST
     Compute the density contrast for this epoch.
     !!}
     implicit none
@@ -589,7 +588,7 @@ contains
   end function ludlow2016DensityContrast
 
   logical function ludlow2016RequireBranchHistory(self) result(requireBranchHistory)
-    !!{
+    !!{RST
     Specify if the branch history is required for the scale radius calculation.
     !!}
     implicit none

@@ -18,17 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorSatelliteVirialOrbit">
-   <description>A property extractor that outputs selected orbital elements of the virial orbit of
-    satellite nodes---the Keplerian orbit at the time the satellite first crosses the host virial
-    radius. The \mono{properties} parameter specifies the list of orbital quantities to extract
-    (e.g.\ radial velocity, tangential velocity, specific energy, angular momentum), returning one
-    output column per selected property per satellite. This is used to characterize the infall
-    conditions of satellite galaxies and dark matter subhalos.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorSatelliteVirialOrbit" docformat="rst">
+   <description>
+   A property extractor that outputs selected orbital elements of the virial orbit of satellite nodes---the Keplerian orbit at the time the satellite first crosses the host virial radius. The ``properties`` parameter specifies the list of orbital quantities to extract (e.g.\ radial velocity, tangential velocity, specific energy, angular momentum), returning one output column per selected property per satellite. This is used to characterize the infall conditions of satellite galaxies and dark matter subhalos.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorKeplerOrbit) :: nodePropertyExtractorSatelliteVirialOrbit
-     !!{
+     !!{RST
      A property extractor for satellite node virial orbits.
      !!}
      private
@@ -37,8 +34,8 @@
   end type nodePropertyExtractorSatelliteVirialOrbit
 
   interface nodePropertyExtractorSatelliteVirialOrbit
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorSatelliteVirialOrbit} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorSatelliteVirialOrbit` property extractor class.
      !!}
      module procedure satelliteVirialOrbitConstructorParameters
      module procedure satelliteVirialOrbitConstructorInternal
@@ -47,8 +44,8 @@
 contains
 
   function satelliteVirialOrbitConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorSatelliteVirialOrbit} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorSatelliteVirialOrbit` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -58,10 +55,12 @@ contains
 
     allocate(properties(parameters%count('properties')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>properties</name>
       <source>parameters</source>
-      <description>The set of properties of the orbit to output.</description>
+      <description>
+      The set of properties of the orbit to output.
+      </description>
     </inputParameter>
     !!]
     self=nodePropertyExtractorSatelliteVirialOrbit(properties)
@@ -72,8 +71,8 @@ contains
   end function satelliteVirialOrbitConstructorParameters
 
   function satelliteVirialOrbitConstructorInternal(properties) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSatelliteVirialOrbit} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorSatelliteVirialOrbit` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteVirialOrbit)                              :: self
@@ -84,7 +83,7 @@ contains
   end function satelliteVirialOrbitConstructorInternal
 
   function satelliteVirialOrbitExtract(self,node,time,instance)
-    !!{
+    !!{RST
     Implement a descendantNode output analysis.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite

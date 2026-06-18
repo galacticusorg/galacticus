@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a concentration distribution output analysis class for COCO CDM data.
   !!}
 
   !![
-  <outputAnalysis name="outputAnalysisConcentrationDistributionCDMCOCO">
-    <description>Computes the halo concentration distribution function for comparison with the COCO cold dark matter N-body simulation data, selecting one of 7 mass bin distributions via \mono{distributionNumber} and setting a minimum fractional root variance floor via \mono{rootVarianceFractionalMinimum}.</description>
+  <outputAnalysis name="outputAnalysisConcentrationDistributionCDMCOCO" docformat="rst">
+    <description>
+    Computes the halo concentration distribution function for comparison with the COCO cold dark matter N-body simulation data, selecting one of 7 mass bin distributions via ``distributionNumber`` and setting a minimum fractional root variance floor via ``rootVarianceFractionalMinimum``.
+    </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisConcentrationDistribution) :: outputAnalysisConcentrationDistributionCDMCOCO
-     !!{
+     !!{RST
      A concentration distribution output analysis class for COCO CDM data.
      !!}
      private
@@ -36,8 +38,8 @@
   end type outputAnalysisConcentrationDistributionCDMCOCO
 
   interface outputAnalysisConcentrationDistributionCDMCOCO
-     !!{
-     Constructors for the \refClass{outputAnalysisConcentrationDistributionCDMCOCO} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisConcentrationDistributionCDMCOCO` output analysis class.
      !!}
      module procedure concentrationDistributionCDMCOCOConstructorParameters
      module procedure concentrationDistributionCDMCOCOConstructorInternal
@@ -46,8 +48,8 @@
 contains
 
   function concentrationDistributionCDMCOCOConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisConcentrationDistributionCDMCOCO} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisConcentrationDistributionCDMCOCO` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctions , cosmologyFunctionsClass
     use :: Cosmology_Parameters             , only : cosmologyParameters, cosmologyParametersClass
@@ -66,16 +68,20 @@ contains
     double precision                                                                :: rootVarianceFractionalMinimum
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rootVarianceFractionalMinimum</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum fractional root variance (relative to the target dataset).</description>
+      <description>
+      The minimum fractional root variance (relative to the target dataset).
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>distributionNumber</name>
       <source>parameters</source>
-      <description>The number (1-7) of the distribution to compute.</description>
+      <description>
+      The number (1-7) of the distribution to compute.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
@@ -98,8 +104,8 @@ contains
   end function concentrationDistributionCDMCOCOConstructorParameters
 
   function concentrationDistributionCDMCOCOConstructorInternal(distributionNumber,rootVarianceFractionalMinimum,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_,virialDensityContrast_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisConcentrationDistributionCDMCOCO} output analysis class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisConcentrationDistributionCDMCOCO` output analysis class.
     !!}
     use :: Error                            , only : Error_Report
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass

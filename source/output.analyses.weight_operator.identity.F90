@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an identity analysis weight operator class.
 !!}
 
   !![
-  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorIdentity">
-   <description>Returns a weight of unity for every node without modification, serving as a no-op weight operator in output analysis pipelines where uniform weighting is desired.</description>
+  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorIdentity" docformat="rst">
+   <description>
+   Returns a weight of unity for every node without modification, serving as a no-op weight operator in output analysis pipelines where uniform weighting is desired.
+   </description>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorIdentity
-     !!{
+     !!{RST
      An identity weight operator class.
      !!}
      private
@@ -36,8 +38,8 @@ Implements an identity analysis weight operator class.
   end type outputAnalysisWeightOperatorIdentity
 
   interface outputAnalysisWeightOperatorIdentity
-     !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorIdentity} output analysis weight operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisWeightOperatorIdentity` output analysis weight operator class.
      !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisWeightOperatorIdentity
@@ -45,8 +47,8 @@ Implements an identity analysis weight operator class.
 contains
 
   function identityConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisWeightOperatorIdentity} output analysis weight operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisWeightOperatorIdentity` output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,7 +64,7 @@ contains
   end function identityConstructorParameters
 
   double precision function identityOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
-    !!{
+    !!{RST
     Implement an identity output analysis weight operator.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

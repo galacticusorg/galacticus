@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a square output analysis property operator class.
 !!}
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSquare">
-   <description>Applies a squaring transformation ($x^2$) to a property value, useful for converting linear quantities to squared quantities (e.g., velocity to velocity-squared) in output analysis pipelines.</description>
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSquare" docformat="rst">
+   <description>
+   Applies a squaring transformation (:math:`x^2`) to a property value, useful for converting linear quantities to squared quantities (e.g., velocity to velocity-squared) in output analysis pipelines.
+   </description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorSquare
-     !!{
+     !!{RST
      An square root output property operator class.
      !!}
      private
@@ -36,8 +38,8 @@ Implements a square output analysis property operator class.
   end type outputAnalysisPropertyOperatorSquare
 
   interface outputAnalysisPropertyOperatorSquare
-     !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorSquare} output analysis property operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorSquare` output analysis property operator class.
      !!}
      module procedure squareConstructorParameters
   end interface outputAnalysisPropertyOperatorSquare
@@ -45,8 +47,8 @@ Implements a square output analysis property operator class.
 contains
 
   function squareConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisPropertyOperatorSquare} output analysis property operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorSquare` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function squareConstructorParameters
 
   double precision function squareOperate(self,propertyValue,node,propertyType,outputIndex)
-    !!{
+    !!{RST
     Implement an square root output analysis property operator.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

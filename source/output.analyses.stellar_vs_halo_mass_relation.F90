@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a stellar vs halo mass relation analysis class.
   !!}
 
@@ -25,53 +25,43 @@
   use            :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <outputAnalysis name="outputAnalysisStellarVsHaloMassRelation">
+  <outputAnalysis name="outputAnalysisStellarVsHaloMassRelation" docformat="rst">
     <description>
-      A stellar vs. halo mass relation output analysis class. Target data is read from an \gls{hdf5} file specified by the
-      \mono{[fileNameTarget]} parameter. This file must contain one or more groups named \mono{redshiftIntervalN} where \mono{N} is an integer. Each such group specifies the stellar mass--halo mass
-      relation in one redshift interval, and must contain the following datasets and attributes:
-      \begin{itemize}
-       \item dataset \mono{massHalo}: halo mass in units of $\mathrm{M}_\odot$;
-       \item dataset \mono{massStellar}: stellar mass in units of $\mathrm{M}_\odot$;
-       \item dataset \mono{massStellarError}: uncertainty in stellar mass in units of $\mathrm{M}_\odot$;
-       \item dataset \mono{massStellarScatter}: scatter in stellar mass in units of dex;
-       \item dataset \mono{massStellarScatterError}: uncertainty in scatter in stellar mass in units of dex;
-       \item attribute \mono{redshiftMinimum}: the minimum redshift associated with this redshift interval;
-       \item attribute \mono{redshiftMaximum}: the maximum redshift associated with this redshift interval.
-      \end{itemize}
-      While not required, it is recommended that each of these datasets has attributes \mono{description} and
-      \mono{unitsInSI} that provide a description of the dataset, and the multiplicative factor needed to convert
-      them to SI standard units, respectively.
+    A stellar vs. halo mass relation output analysis class. Target data is read from an :term:`HDF5` file specified by the ``[fileNameTarget]`` parameter. This file must contain one or more groups named ``redshiftIntervalN`` where ``N`` is an integer. Each such group specifies the stellar mass--halo mass relation in one redshift interval, and must contain the following datasets and attributes:
 
-      Additionally, the file must contain a \mono{cosmology} group that specifies the cosmological model assumed
-      in constructing the dataset, and which has attributes:
-      \begin{itemize}
-       \item \mono{OmegaMatter}: the matter density in units of the critical density, $\Omega_\mathrm{M}$;
-       \item \mono{OmegaDarkEnergy}: the dark energy density in units of the critical density, $\Omega_\Lambda$;
-       \item \mono{OmegaBaryon}: the baryon density in units of the critical density, $\Omega_\mathrm{b}$;
-       \item \mono{HubbleConstant}: the Hubble constant in units of km/s/Mpc.
-      \end{itemize}
+    * dataset ``massHalo``: halo mass in units of :math:`\mathrm{M}_\odot`;
+    * dataset ``massStellar``: stellar mass in units of :math:`\mathrm{M}_\odot`;
+    * dataset ``massStellarError``: uncertainty in stellar mass in units of :math:`\mathrm{M}_\odot`;
+    * dataset ``massStellarScatter``: scatter in stellar mass in units of dex;
+    * dataset ``massStellarScatterError``: uncertainty in scatter in stellar mass in units of dex;
+    * attribute ``redshiftMinimum``: the minimum redshift associated with this redshift interval;
+    * attribute ``redshiftMaximum``: the maximum redshift associated with this redshift interval.
 
-      The file must have an attribute \mono{haloMassDefinition} which specifies the halo mass definition assumed
-      in constructing the dataset. Allowed values are:
-      \begin{itemize}
-       \item \mono{`spherical collapse'} or \mono{`virial'}: halos are defined as have mean
-             density contrasts given by spherical collapse calculations, e.g. \cite{percival_cosmological_2005};
-       \item \mono{`Bryan \&amp; Norman (1998)'}: halos are defined as have mean density contrasts given by the
-             fitting formula of \cite{bryan_statistical_1998};
-       \item \mono{`X * mean density'}: halos are defined as having mean densities equal to ;\mono{X} times the mean density of the universe;
-       \item \mono{`X * critical density'}: halos are defined as having mean densities equal to ;\mono{X} times the critical density of the universe;
-      \end{itemize}
-      Lastly, the file must have two attributes used to identify and level the dataset:
-      \begin{itemize}
-       \item \mono{label}: a space-free label that will be appended to the analysis group in the output, e.g. \mono{Leauthaud2012};
-       \item \mono{reference}: a reference for the dataset suitable for inclusion in figures, e.g. \mono{Leauthaud et al. (2012)}.
-      \end{itemize}
+    While not required, it is recommended that each of these datasets has attributes ``description`` and ``unitsInSI`` that provide a description of the dataset, and the multiplicative factor needed to convert them to SI standard units, respectively.
+
+    Additionally, the file must contain a ``cosmology`` group that specifies the cosmological model assumed in constructing the dataset, and which has attributes:
+
+    * ``OmegaMatter``: the matter density in units of the critical density, :math:`\Omega_\mathrm{M}`;
+    * ``OmegaDarkEnergy``: the dark energy density in units of the critical density, :math:`\Omega_\Lambda`;
+    * ``OmegaBaryon``: the baryon density in units of the critical density, :math:`\Omega_\mathrm{b}`;
+    * ``HubbleConstant``: the Hubble constant in units of km/s/Mpc.
+
+    The file must have an attribute ``haloMassDefinition`` which specifies the halo mass definition assumed in constructing the dataset. Allowed values are:
+
+    * ``'spherical collapse'`` or ``'virial'``: halos are defined as have mean density contrasts given by spherical collapse calculations, e.g. :cite:t:`percival_cosmological_2005`;
+    * ``'Bryan &amp; Norman (1998)'``: halos are defined as have mean density contrasts given by the fitting formula of :cite:t:`bryan_statistical_1998`;
+    * ``'X * mean density'``: halos are defined as having mean densities equal to ;\ ``X`` times the mean density of the universe;
+    * ``'X * critical density'``: halos are defined as having mean densities equal to ;\ ``X`` times the critical density of the universe;
+
+    Lastly, the file must have two attributes used to identify and level the dataset:
+
+    * ``label``: a space-free label that will be appended to the analysis group in the output, e.g. ``Leauthaud2012``;
+    * ``reference``: a reference for the dataset suitable for inclusion in figures, e.g. ``Leauthaud et al. (2012)``.
     </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisStellarVsHaloMassRelation
-     !!{
+     !!{RST
      A stellar vs halo mass relation output analysis class.
      !!}
      private
@@ -98,8 +88,8 @@
   end type outputAnalysisStellarVsHaloMassRelation
 
   interface outputAnalysisStellarVsHaloMassRelation
-     !!{
-     Constructors for the \refClass{outputAnalysisStellarVsHaloMassRelation} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisStellarVsHaloMassRelation` output analysis class.
      !!}
      module procedure stellarVsHaloMassRelationConstructorParameters
      module procedure stellarVsHaloMassRelationConstructorInternal
@@ -108,8 +98,8 @@
 contains
 
   function stellarVsHaloMassRelationConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisStellarVsHaloMassRelation} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisStellarVsHaloMassRelation` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions     , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters    , only : cosmologyParametersClass
@@ -150,16 +140,15 @@ contains
           allocate(likelihoodBins(parameters%count('likelihoodBins')))
           likelihoodBinsAutomatic=.false.
           !![
-	  <inputParameter>
+	  <inputParameter docformat="rst">
 	    <name>likelihoodBins</name>
 	    <source>parameters</source>
 	    <description>
-	      Controls which bins in the stellar mass--halo mass relation will be used in computing the likelihood:
-	      \begin{itemize}
-	      \item \emph{not present}: all bins are included in the likelihood calculation;
-	      \item \emph{list of integers}: use only the mass bin(s) given in this list in the likelihood calculation;
-	      \item \mono{auto}: use only bins which have a non-zero number of halos contributing to them in the likelihood calculation.
-	      \end{itemize}
+	    Controls which bins in the stellar mass--halo mass relation will be used in computing the likelihood:
+
+	    * *not present*: all bins are included in the likelihood calculation;
+	    * *list of integers*: use only the mass bin(s) given in this list in the likelihood calculation;
+	    * ``auto``: use only bins which have a non-zero number of halos contributing to them in the likelihood calculation.
 	    </description>
 	  </inputParameter>
           !!]
@@ -169,40 +158,52 @@ contains
        likelihoodBinsAutomatic   =.false.
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileNameTarget</name>
       <source>parameters</source>
-      <description>The name of the file containing the target data.</description>
+      <description>
+      The name of the file containing the target data.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftInterval</name>
       <source>parameters</source>
       <defaultValue>1</defaultValue>
-      <description>The redshift interval to use.</description>
+      <description>
+      The redshift interval to use.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>likelihoodNormalize</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, then normalize the likelihood to make it a probability density.</description>
+      <description>
+      If true, then normalize the likelihood to make it a probability density.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>computeScatter</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, the scatter in log10(stellar mass) is computed. Otherwise, the mean is computed.</description>
+      <description>
+      If true, the scatter in log10(stellar mass) is computed. Otherwise, the mean is computed.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for stellar mass in the stellar vs halo mass relation.</description>
+      <description>
+      The coefficients of the systematic error polynomial for stellar mass in the stellar vs halo mass relation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorMassHaloPolynomialCoefficient</name>
       <source>parameters</source>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for halo mass in the stellar vs halo mass relation.</description>
+      <description>
+      The coefficients of the systematic error polynomial for halo mass in the stellar vs halo mass relation.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
@@ -223,8 +224,8 @@ contains
   end function stellarVsHaloMassRelationConstructorParameters
 
   function stellarVsHaloMassRelationConstructorInternal(fileNameTarget,redshiftInterval,likelihoodBinsAutomatic,likelihoodBins,likelihoodNormalize,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassHaloPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisStellarVsHaloMassRelation} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisStellarVsHaloMassRelation` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                                       , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                                      , cosmologyParametersSimple
@@ -667,7 +668,7 @@ contains
   contains
     
     double precision function densityValueParse(densityValueText) result(densityValue)
-      !!{
+      !!{RST
       Parse and return the density multiplier value in a halo mass definition.
       !!}
       implicit none
@@ -680,7 +681,7 @@ contains
     end function densityValueParse
   
     function densityTypeParse(densityTypeText) result(densityType)
-      !!{
+      !!{RST
       Parse and return the density type in a halo mass definition.
       !!}
       use :: Virial_Density_Contrast, only : fixedDensityTypeMean,fixedDensityTypeCritical
@@ -703,7 +704,7 @@ contains
   end function stellarVsHaloMassRelationConstructorInternal
 
   subroutine stellarVsHaloMassRelationAnalyze(self,node,iOutput)
-    !!{
+    !!{RST
     Implement a stellarVsHaloMassRelation output analysis.
     !!}
     implicit none
@@ -716,8 +717,8 @@ contains
   end subroutine stellarVsHaloMassRelationAnalyze
 
   subroutine stellarVsHaloMassRelationDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisStellarVsHaloMassRelation} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisStellarVsHaloMassRelation` output analysis class.
     !!}
     implicit none
     type(outputAnalysisStellarVsHaloMassRelation), intent(inout) :: self
@@ -734,8 +735,8 @@ contains
   end subroutine stellarVsHaloMassRelationDestructor
 
   subroutine stellarVsHaloMassRelationReduce(self,reduced)
-    !!{
-    Implement reduction for the \mono{stellarVsHaloMassRelation} output analysis class.
+    !!{RST
+    Implement reduction for the ``stellarVsHaloMassRelation`` output analysis class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -752,8 +753,8 @@ contains
   end subroutine stellarVsHaloMassRelationReduce
 
   subroutine stellarVsHaloMassRelationFinalize(self,groupName)
-    !!{
-    Implement a \mono{stellarVsHaloMassRelation} output analysis finalization.
+    !!{RST
+    Implement a ``stellarVsHaloMassRelation`` output analysis finalization.
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
@@ -781,8 +782,8 @@ contains
   end subroutine stellarVsHaloMassRelationFinalize
 
   double precision function stellarVsHaloMassRelationLogLikelihood(self) result(logLikelihood)
-    !!{
-    Return the log-likelihood of a \mono{stellarVsHaloMassRelation} output analysis.
+    !!{RST
+    Return the log-likelihood of a ``stellarVsHaloMassRelation`` output analysis.
     !!}
     use :: Error                       , only : Error_Report
     use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector

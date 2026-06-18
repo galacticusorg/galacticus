@@ -17,15 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program which tests spherical collapse calculations for a dark energy Universe, specifically using an Einstein-de
-Sitter cosmology (e.g. \citealt{kitayama_semianalytic_1996}; eqn.~A2).
+!!{RST
+Contains a program which tests spherical collapse calculations for a dark energy Universe, specifically using an Einstein-de Sitter cosmology (e.g. :cite:author:`kitayama_semianalytic_1996` :cite:year:`kitayama_semianalytic_1996`; eqn. A2).
 !!}
 
 program Tests_Spherical_Collapse_Dark_Energy_EdS
-  !!{
-  Tests spherical collapse calculations for a dark energy Universe, specifically using an Einstein-de
-  Sitter cosmology. Compares results to the analytic solution.
+  !!{RST
+  Tests spherical collapse calculations for a dark energy Universe, specifically using an Einstein-de Sitter cosmology. Compares results to the analytic solution.
   !!}
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterDarkEnergy
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple

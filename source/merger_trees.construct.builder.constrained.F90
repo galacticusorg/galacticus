@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   A merger tree builder class that enforces constraints on the merger tree built by some other builder.
   !!}
 
@@ -31,15 +31,15 @@
   end type constrainedBuilderList
 
   !![
-  <mergerTreeBuilder name="mergerTreeBuilderConstrained">
+  <mergerTreeBuilder name="mergerTreeBuilderConstrained" docformat="rst">
    <description>
-    A merger tree builder class that enforces physical constraints on merger trees constructed by a delegate builder class, repeatedly rebuilding trees until all filter criteria are satisfied. Multiple builder-filter pairs can be specified, with \mono{[trialCountMaximum]} setting the maximum number of rebuild attempts before the process fails.
+   A merger tree builder class that enforces physical constraints on merger trees constructed by a delegate builder class, repeatedly rebuilding trees until all filter criteria are satisfied. Multiple builder-filter pairs can be specified, with ``[trialCountMaximum]`` setting the maximum number of rebuild attempts before the process fails.
    </description>
    <linkedList type="constrainedBuilderList" variable="mergerTreeBuilders" next="next" object="mergerTreeBuilder_ mergerTreeFilter_" objectType="mergerTreeBuilderClass mergerTreeFilterClass"/>
   </mergerTreeBuilder>
   !!]
   type, extends(mergerTreeBuilderClass) :: mergerTreeBuilderConstrained
-     !!{
+     !!{RST
      A merger tree builder class that enforces constraints on the merger tree built by some other builder.
      !!}
      private
@@ -51,8 +51,8 @@
   end type mergerTreeBuilderConstrained
 
   interface mergerTreeBuilderConstrained
-     !!{
-     Constructors for the \refClass{mergerTreeBuilderConstrained} merger tree builder class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeBuilderConstrained` merger tree builder class.
      !!}
      module procedure constrainedConstructorParameters
      module procedure constrainedConstructorInternal
@@ -63,7 +63,7 @@
 contains
 
   function constrainedConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the constrained merger tree building class which reads parameters from a provided parameter list.
     !!}
     implicit none
@@ -97,11 +97,13 @@ contains
        mergerTreeBuilder_ => mergerTreeBuilder_%next
     end do
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>trialCountMaximum</name>
       <variable>self%trialCountMaximum</variable>
       <source>parameters</source>
-      <description>The maximum number of trials to attempt before failing.</description>
+      <description>
+      The maximum number of trials to attempt before failing.
+      </description>
       <defaultValue>huge(1_c_size_t)</defaultValue>
     </inputParameter>
     <inputParametersValidate source="parameters" multiParameters="mergerTreeBuilder, mergerTreeFilter"/>
@@ -110,7 +112,7 @@ contains
   end function constrainedConstructorParameters
 
   function constrainedConstructorInternal(mergerTreeBuilders,trialCountMaximum) result(self)
-    !!{
+    !!{RST
     Internal constructor for the constrained merger tree building class.
     !!}
     implicit none
@@ -135,8 +137,8 @@ contains
   end function constrainedConstructorInternal
 
   subroutine constrainedDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBuilderConstrained} merger tree builder class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeBuilderConstrained` merger tree builder class.
     !!}
     implicit none
     type(mergerTreeBuilderConstrained), intent(inout) :: self
@@ -159,7 +161,7 @@ contains
   end subroutine constrainedDestructor
 
   subroutine constrainedBuild(self,tree)
-    !!{
+    !!{RST
     Build a constrained merger tree.
     !!}
     use            :: Display            , only : displayMessage          , displayIndent, displayUnindent, verbosityLevelWorking

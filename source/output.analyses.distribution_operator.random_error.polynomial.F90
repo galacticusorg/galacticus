@@ -17,20 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a random error output analysis distribution operator class with an error magnitude that is
-  a polynomial function of the property value.
+  !!{RST
+  Implements a random error output analysis distribution operator class with an error magnitude that is a polynomial function of the property value.
   !!}
 
   !![
-  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorPlynml">
-   <description>An output analysis distribution operator that convolves a property distribution with a Gaussian random error whose width is a polynomial function of the property value, with configurable polynomial coefficients, zero-point, and minimum/maximum error clamps.</description>
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorPlynml" docformat="rst">
+   <description>
+   An output analysis distribution operator that convolves a property distribution with a Gaussian random error whose width is a polynomial function of the property value, with configurable polynomial coefficients, zero-point, and minimum/maximum error clamps.
+   </description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRandomErrorPlynml
-     !!{
-     A random error output distribution operator class which has an error magnitude that is a polynomial function of the
-     property value.
+     !!{RST
+     A random error output distribution operator class which has an error magnitude that is a polynomial function of the property value.
      !!}
      private
      double precision                            :: zeroPoint, errorMinimum, &
@@ -41,8 +41,8 @@
   end type outputAnalysisDistributionOperatorRandomErrorPlynml
 
   interface outputAnalysisDistributionOperatorRandomErrorPlynml
-     !!{
-     Constructors for the \refClass{outputAnalysisDistributionOperatorRandomErrorPlynml} output analysis distribution operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorPlynml` output analysis distribution operator class.
      !!}
      module procedure randomErrorPolynomialConstructorParameters
      module procedure randomErrorPolynomialConstructorInternal
@@ -51,8 +51,8 @@
 contains
 
   function randomErrorPolynomialConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisDistributionOperatorRandomErrorPlynml} output analysis distribution operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorPlynml` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,29 +65,37 @@ contains
     ! Check and read parameters.
     allocate(coefficient(parameters%count('coefficient')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>zeroPoint</name>
       <source>parameters</source>
       <variable>zeroPoint</variable>
-      <description>The zero-point of the property value used in the polynomial random error distribution class.</description>
+      <description>
+      The zero-point of the property value used in the polynomial random error distribution class.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>coefficient</name>
       <source>parameters</source>
       <variable>coefficient</variable>
-      <description>The coefficients in the polynomial random error distribution class.</description>
+      <description>
+      The coefficients in the polynomial random error distribution class.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>errorMinimum</name>
       <source>parameters</source>
       <variable>errorMinimum</variable>
-      <description>The minimum error in the polynomial random error distribution class.</description>
+      <description>
+      The minimum error in the polynomial random error distribution class.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>errorMaximum</name>
       <source>parameters</source>
       <variable>errorMaximum</variable>
-      <description>The maximum error in the polynomial random error distribution class.</description>
+      <description>
+      The maximum error in the polynomial random error distribution class.
+      </description>
     </inputParameter>
     !!]
     ! Construct the object.
@@ -99,8 +107,8 @@ contains
   end function randomErrorPolynomialConstructorParameters
 
   function randomErrorPolynomialConstructorInternal(errorMinimum,errorMaximum,zeroPoint,coefficient) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisDistributionOperatorRandomErrorPlynml} output analysis distribution operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorPlynml` output analysis distribution operator class.
     !!}
     implicit none
     type            (outputAnalysisDistributionOperatorRandomErrorPlynml)                              :: self
@@ -115,7 +123,7 @@ contains
   end function randomErrorPolynomialConstructorInternal
 
   double precision function randomErrorPolynomialRootVariance(self,propertyValue,node)
-    !!{
+    !!{RST
     Return the root-variance in the polynomial random error distribution operator.
     !!}
     implicit none

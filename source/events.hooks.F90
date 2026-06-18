@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains module which handles hooking of objects into events.
 !!}
 
 module Events_Hooks
-  !!{
+  !!{RST
   Handles hooking of object function class into events.
   !!}
   use :: Regular_Expressions, only : regEx
@@ -32,9 +32,11 @@ module Events_Hooks
        &    eventsHooksInitialize, eventsHooksFutureThread, eventsHooksAtLevelToAllLevels
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>dependencyDirection</name>
-   <description>Used to specify direction of event hook dependencies.</description>
+   <description>
+   Used to specify direction of event hook dependencies.
+   </description>
    <visibility>public</visibility>
    <entry label="before"/>
    <entry label="after" />
@@ -59,9 +61,11 @@ module Events_Hooks
   ! (e.g. calculationResets) we do want to call this function in the case of the event being triggered even though it exists at a
   ! lower level. When default functionClass objects are removed this option should be deprecated.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>openMPThreadBinding</name>
-   <description>Used to specify how hooked functions are bound to OpenMP threads.</description>
+   <description>
+   Used to specify how hooked functions are bound to OpenMP threads.
+   </description>
    <visibility>public</visibility>
    <entry label="none"     />
    <entry label="atLevel"  />
@@ -70,7 +74,7 @@ module Events_Hooks
   !!]
 
   type :: dependency
-     !!{
+     !!{RST
      Base class for event hook dependencies.
      !!}
      private
@@ -79,20 +83,20 @@ module Events_Hooks
   end type dependency
 
   type, extends(dependency) :: dependencyExact
-     !!{
+     !!{RST
      Type for exactly matching event hook dependencies.
      !!}
   end type dependencyExact
 
   type, extends(dependency) :: dependencyRegEx
-     !!{
+     !!{RST
      Type for matching event hook dependencies via a regular expression.
      !!}
      private
      type(regEx) :: regEx_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="assignment(=)" description="Assign regular expression dependency objects."/>
      </methods>
      !!]
@@ -101,21 +105,21 @@ module Events_Hooks
   end type dependencyRegEx
 
   interface dependencyExact
-     !!{
+     !!{RST
      Constructor for exactly matching event hook dependencies.
      !!}
      module procedure dependencyExactConstructor
   end interface dependencyExact
 
   interface dependencyRegEx
-     !!{
+     !!{RST
      Constructor for matching event hook dependencies via a regular expression.
      !!}
      module procedure dependencyRegExConstructor
   end interface dependencyRegEx
 
   type :: hook
-     !!{
+     !!{RST
      Base class for individual hooked function calls. Stores the object to be passed as the first argument to the function.
      !!}
      class    (*                                 ), pointer                   :: object_             => null()
@@ -127,21 +131,21 @@ module Events_Hooks
   end type hook
 
   type, extends(hook) :: hookUnspecified
-     !!{
+     !!{RST
      Class for hooked function calls with unspecified interfaces.
      !!}
      procedure(), pointer, nopass :: function_ => null()
   end type hookUnspecified
 
   type :: hookList
-     !!{
+     !!{RST
      List of pointers to hooks.
      !!}
      class(hook), pointer :: hook_ => null()
   end type hookList
   
   type :: eventHook
-     !!{
+     !!{RST
      Class used to define a set of hooked function calls for a given event.
      !!}
      private
@@ -155,7 +159,7 @@ module Events_Hooks
      type               (hookList        ), allocatable, dimension(:), public :: hooks_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return a count of the number of hooks into this event."  method="count"              />
        <method description="Return a count of the number of hooks into this event, without taking the read/write lock. For use only on hot, read-only dispatch paths where the set of hooks is static (i.e.\ not attached/detached) during the period of concurrent access." method="countLockless"/>
        <method description="Reorder hooked functions to resolved any dependencies."  method="resolveDependencies"/>
@@ -176,7 +180,7 @@ module Events_Hooks
   end type eventHook
 
   type :: eventHookList
-     !!{
+     !!{RST
      List of event hooks.
      !!}
      class(eventHook    ), allocatable :: eventHook_
@@ -184,13 +188,13 @@ module Events_Hooks
   end type eventHookList
   
   type, extends(eventHook) :: eventHookUnspecified
-     !!{
+     !!{RST
      Class used to define a set of hooked function calls for a given event.
      !!}
      private
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Attach a hook to the event."                          method="attach"    />
        <method description="Return true if the object is attached to this event." method="isAttached"/>
        <method description="Detach a hook from the event."                        method="detach"    />
@@ -223,7 +227,7 @@ module Events_Hooks
 contains
 
   subroutine dependencyRegExAssign(self,from)
-    !!{
+    !!{RST
     Perform assignment of reg-ex dependencies.
     !!}
     implicit none
@@ -237,7 +241,7 @@ contains
   end subroutine dependencyRegExAssign
 
   subroutine eventsHooksFutureThread(futureThread)
-    !!{
+    !!{RST
     Set the future thread to which events will attach. If no argument is given, future threads are disabled.
     !!}
     implicit none
@@ -252,8 +256,8 @@ contains
   end subroutine eventsHooksFutureThread
 
   subroutine eventsHooksAtLevelToAllLevels(atLevelToAllLevels)
-    !!{
-    Set the promotion state for events attaching ``at-level''.
+    !!{RST
+    Set the promotion state for events attaching "at-level".
     !!}
     implicit none
     logical, intent(in   ) :: atLevelToAllLevels
@@ -263,7 +267,7 @@ contains
   end subroutine eventsHooksAtLevelToAllLevels
 
   subroutine eventHookUnspecifiedAttach(self,object_,function_,openMPThreadBinding,label,dependencies)
-    !!{
+    !!{RST
     Attach an object to an event hook.
     !!}
     use    :: Display           , only : displayMessage             , verbosityLevelInfo
@@ -347,7 +351,7 @@ contains
   end subroutine eventHookUnspecifiedAttach
 
   subroutine eventHookResolveDependencies(self,hookNew,dependencies)
-    !!{
+    !!{RST
     Resolve dependencies between hooked function calls.
     !!}
     use :: Error              , only : Error_Report    , errorStatusSuccess
@@ -449,7 +453,7 @@ contains
   end subroutine eventHookResolveDependencies
   
   logical function eventHookUnspecifiedIsAttached(self,object_,function_)
-    !!{
+    !!{RST
     Return true if an object is attached to an event hook.
     !!}
     use :: Error, only : Error_Report
@@ -478,7 +482,7 @@ contains
   end function eventHookUnspecifiedIsAttached
 
   subroutine eventHookUnspecifiedDetach(self,object_,function_)
-    !!{
+    !!{RST
     Attach an object to an event hook.
     !!}
     use    :: Display           , only : displayMessage             , verbosityLevelInfo
@@ -531,8 +535,8 @@ contains
   end subroutine eventHookUnspecifiedDetach
 
   subroutine eventHookAssign(to,from)
-    !!{
-    Assignment operator for \mono{eventHook} objects.
+    !!{RST
+    Assignment operator for ``eventHook`` objects.
     !!}
     implicit none
     class(eventHook), intent(  out) :: to
@@ -555,7 +559,7 @@ contains
   end subroutine eventHookAssign
   
   integer function eventHookCount(self)
-    !!{
+    !!{RST
     Return a count of the number of hooks into this event.
     !!}
     use :: Error, only : Error_Report
@@ -569,25 +573,10 @@ contains
   end function eventHookCount
 
   integer function eventHookCountLockless(self)
-    !!{
-    Return a count of the number of hooks into this event {\normalfont without} taking the
-    read/write lock.
+    !!{RST
+    Return a count of the number of hooks into this event without taking the read/write lock.
 
-    The locked {\normalfont \ttfamily count()} guards only this single-integer read: the
-    dispatch loops that follow it iterate {\normalfont \ttfamily hooks\_} {\normalfont
-    \itshape unlocked}, so the lock provides neither a consistent view of the hook set nor
-    protection of the traversal against a concurrent {\normalfont \ttfamily attach}/{\normalfont
-    \ttfamily detach} (which reallocates {\normalfont \ttfamily hooks\_}). It therefore buys
-    nothing that this lockless read does not, while costing an {\normalfont \ttfamily
-    OMP\_Set\_Lock}/{\normalfont \ttfamily OMP\_Unset\_Lock} round-trip on every call. On the
-    hot dispatch path (e.g.\ {\normalfont \ttfamily Calculations\_Reset}) hooks are attached
-    once during single-threaded initialization and are static thereafter, so this lockless
-    read is semantically equivalent to the locked {\normalfont \ttfamily count()} but without
-    the per-call lock. The read is made via {\normalfont \ttfamily !\$omp atomic read} (paired
-    with {\normalfont \ttfamily !\$omp atomic update} on the {\normalfont \ttfamily count\_}
-    updates in {\normalfont \ttfamily attach}/{\normalfont \ttfamily detach}) so it remains
-    well defined under the OpenMP memory model. See \ref{sec:eventHooksLocking} for the full
-    rationale.
+    The locked  count() guards only this single-integer read: the dispatch loops that follow it iterate  hooks_  unlocked, so the lock provides neither a consistent view of the hook set nor protection of the traversal against a concurrent  attach/ detach (which reallocates  hooks_). It therefore buys nothing that this lockless read does not, while costing an  OMP_Set_Lock/ OMP_Unset_Lock round-trip on every call. On the hot dispatch path (e.g.\  Calculations_Reset) hooks are attached once during single-threaded initialization and are static thereafter, so this lockless read is semantically equivalent to the locked  count() but without the per-call lock. The read is made via  !$omp atomic read (paired with  !$omp atomic update on the  count_ updates in  attach/ detach) so it remains well defined under the OpenMP memory model. See :galacticus-ref:`eventHooksLocking` for the full rationale.
     !!}
     implicit none
     class(eventHook), intent(in) :: self
@@ -598,7 +587,7 @@ contains
   end function eventHookCountLockless
 
   subroutine eventHookFilter(self)
-    !!{
+    !!{RST
     Filter hooked functions for the current OpenMP thread/level.
     !!}
     !$ use :: Error  , only : Error_Report
@@ -677,7 +666,7 @@ contains
   end subroutine eventHookFilter
   
   subroutine eventHookLock(self,writeLock)
-    !!{
+    !!{RST
     Lock the event to avoid race conditions between OpenMP threads.
     !!}
 #ifdef OMPPROFILE
@@ -720,7 +709,7 @@ contains
   end subroutine eventHookLock
 
   subroutine eventHookUnlock(self,writeLock)
-    !!{
+    !!{RST
     Unlock the event to avoid race conditions between OpenMP threads.
     !!}
     implicit none
@@ -739,7 +728,7 @@ contains
   end subroutine eventHookUnlock
   
   function dependencyExactConstructor(direction,label) result(self)
-    !!{
+    !!{RST
     Constructor for an exact dependency.
     !!}
     implicit none
@@ -754,7 +743,7 @@ contains
   end function dependencyExactConstructor
   
   function dependencyRegExConstructor(direction,label) result(self)
-    !!{
+    !!{RST
     Constructor for a regular expression dependency.
     !!}
     implicit none

@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which stores data for the very simple size disk node component.
 !!}
 
 module Node_Component_Disk_Very_Simple_Size_Data
-  !!{
+  !!{RST
   Stores data for the very simple size disk node component.
   !!}
   use :: Mass_Distributions, only : massDistributionClass

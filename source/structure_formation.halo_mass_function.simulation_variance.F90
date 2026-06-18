@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a dark matter halo mass function class which modifies another mass function by accounting for cosmic variance in a
-simulation cube.
+!!{RST
+Implements a dark matter halo mass function class which modifies another mass function by accounting for cosmic variance in a simulation cube.
 !!}
 
   use :: Dark_Matter_Halo_Biases, only : darkMatterHaloBiasClass
@@ -27,16 +26,15 @@ simulation cube.
   use :: Numerical_Integration  , only : integrator
 
   !![
-  <haloMassFunction name="haloMassFunctionSimulationVariance">
+  <haloMassFunction name="haloMassFunctionSimulationVariance" docformat="rst">
    <description>
-    The halo mass function is computed by modifying another mass function to account for cosmic variance in a simulation cube.
+   The halo mass function is computed by modifying another mass function to account for cosmic variance in a simulation cube.
    </description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionSimulationVariance
-     !!{
-     A halo mass function class that modifies another mass function by accounting for cosmic variance in a
-     simulation cube.
+     !!{RST
+     A halo mass function class that modifies another mass function by accounting for cosmic variance in a simulation cube.
      !!}
      private
      double precision                                   :: lengthSimulationCube          , varianceSimulation    , &
@@ -50,8 +48,8 @@ simulation cube.
   end type haloMassFunctionSimulationVariance
 
   interface haloMassFunctionSimulationVariance
-     !!{
-     Constructors for the \mono{simulationVariance} halo mass function class.
+     !!{RST
+     Constructors for the ``simulationVariance`` halo mass function class.
      !!}
      module procedure simulationVarianceConstructorParameters
      module procedure simulationVarianceConstructorInternal
@@ -81,8 +79,8 @@ simulation cube.
 contains
 
   function simulationVarianceConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \mono{simulationVariance} halo mass function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``simulationVariance`` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,14 +93,18 @@ contains
     double precision                                                    :: lengthSimulationCube, perturbationFractional
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lengthSimulationCube</name>
-      <description>The length of the simulation cube from which the target mass function was derived.</description>
+      <description>
+      The length of the simulation cube from which the target mass function was derived.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>perturbationFractional</name>
-      <description>The fractional perturbation (in units of the simulation cube root-variance) to apply.</description>
+      <description>
+      The fractional perturbation (in units of the simulation cube root-variance) to apply.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="haloMassFunction"    name="massFunction_"        source="parameters"/>
@@ -122,8 +124,8 @@ contains
   end function simulationVarianceConstructorParameters
 
   function simulationVarianceConstructorInternal(lengthSimulationCube,perturbationFractional,massFunction_,cosmologyParameters_,powerSpectrum_,darkMatterHaloBias_) result(self)
-    !!{
-    Internal constructor for the \mono{simulationVariance} halo mass function class.
+    !!{RST
+    Internal constructor for the ``simulationVariance`` halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionSimulationVariance)                        :: self
@@ -141,8 +143,8 @@ contains
   end function simulationVarianceConstructorInternal
 
   subroutine simulationVarianceDestructor(self)
-    !!{
-    Destructor for the \mono{simulationVariance} halo mass function class.
+    !!{RST
+    Destructor for the ``simulationVariance`` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionSimulationVariance), intent(inout) :: self
@@ -157,7 +159,7 @@ contains
   end subroutine simulationVarianceDestructor
 
   double precision function simulationVarianceDifferential(self,time,mass,node) result(massFunction)
-    !!{
+    !!{RST
     Return the differential halo mass function at the given time and mass.
     !!}
     use :: Display       , only : displayIndent, displayUnindent    , displayMessage, verbosityLevelWorking
@@ -260,8 +262,8 @@ contains
   end function simulationVarianceDifferential
 
   double precision function integrandVarianceSimulationX(wavenumber)
-    !!{
-    Integrand function for cosmic variance in a simulation cube: $x$-axis.
+    !!{RST
+    Integrand function for cosmic variance in a simulation cube: :math:`x`-axis.
     !!}
     implicit none
     double precision, intent(in   ) :: wavenumber
@@ -273,8 +275,8 @@ contains
   end function integrandVarianceSimulationX
   
   double precision function integrandVarianceSimulationY(wavenumber)
-    !!{
-    Integrand function for cosmic variance in a simulation cube: $y$-axis.
+    !!{RST
+    Integrand function for cosmic variance in a simulation cube: :math:`y`-axis.
     !!}
     implicit none
     double precision, intent(in   ) :: wavenumber
@@ -286,8 +288,8 @@ contains
   end function integrandVarianceSimulationY
   
   double precision function integrandVarianceSimulationZ(wavenumber)
-    !!{
-    Integrand function for cosmic variance in a simulation cube: $z$-axis.
+    !!{RST
+    Integrand function for cosmic variance in a simulation cube: :math:`z`-axis.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

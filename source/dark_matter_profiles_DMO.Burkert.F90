@@ -17,23 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of \cite{burkert_structure_1995} dark matter halo profiles.
+  !!{RST
+  An implementation of :cite:t:`burkert_structure_1995` dark matter halo profiles.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOBurkert">
+  <darkMatterProfileDMO name="darkMatterProfileDMOBurkert" docformat="rst">
    <description>
-    A dark matter only profile class which builds \refClass{massDistributionBurkert} objects to compute the
-    \citep{burkert_structure_1995} density profile.
+   A dark matter only profile class which builds :galacticus-class:`massDistributionBurkert` objects to compute the :cite:p:`burkert_structure_1995` density profile.
    </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOBurkert
-     !!{
-     A dark matter halo profile class implementing \cite{burkert_structure_1995} dark matter halos.
+     !!{RST
+     A dark matter halo profile class implementing :cite:t:`burkert_structure_1995` dark matter halos.
      !!}
      private
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
@@ -43,8 +42,8 @@
   end type darkMatterProfileDMOBurkert
 
   interface darkMatterProfileDMOBurkert
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMOBurkert} dark matter halo profile class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileDMOBurkert` dark matter halo profile class.
      !!}
      module procedure burkertConstructorParameters
      module procedure burkertConstructorInternal
@@ -53,8 +52,8 @@
 contains
 
   function burkertConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{burkert} dark matter halo profile class.
+    !!{RST
+    Default constructor for the ``burkert`` dark matter halo profile class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,8 +73,8 @@ contains
   end function burkertConstructorParameters
 
   function burkertConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOBurkert} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOBurkert` dark matter halo profile class.
     !!}
     use :: Error           , only : Component_List                   , Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
@@ -101,8 +100,8 @@ contains
   end function burkertConstructorInternal
 
   subroutine burkertDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMOBurkert} dark matter halo profile class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileDMOBurkert` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOBurkert), intent(inout) :: self
@@ -114,8 +113,8 @@ contains
   end subroutine burkertDestructor
 
   function burkertGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeComponentDarkMatterProfile
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo  , massTypeDark                  , weightByMass

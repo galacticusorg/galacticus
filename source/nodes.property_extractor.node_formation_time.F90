@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorNodeFormationTime">
-   <description>Extracts the cosmic formation time of each node, defined as the time at which the node first exceeded a specified mass threshold, providing a proxy for the assembly epoch of each halo.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorNodeFormationTime" docformat="rst">
+   <description>
+   Extracts the cosmic formation time of each node, defined as the time at which the node first exceeded a specified mass threshold, providing a proxy for the assembly epoch of each halo.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorNodeFormationTime
-     !!{
+     !!{RST
      A property extractor which extracts the formation time of each node.
      !!}
      private
@@ -37,8 +39,8 @@
   end type nodePropertyExtractorNodeFormationTime
 
   interface nodePropertyExtractorNodeFormationTime
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorNodeFormationTime} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorNodeFormationTime` property extractor class.
      !!}
      module procedure nodeFormationTimeConstructorParameters
      module procedure nodeFormationTimeConstructorInternal
@@ -47,8 +49,8 @@
 contains
 
   function nodeFormationTimeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorNodeFormationTime} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorNodeFormationTime` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -63,8 +65,8 @@ contains
   end function nodeFormationTimeConstructorParameters
 
   function nodeFormationTimeConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorNodeFormationTime} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorNodeFormationTime` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorNodeFormationTime) :: self
@@ -76,7 +78,7 @@ contains
   end function nodeFormationTimeConstructorInternal
 
   double precision function nodeFormationTimeExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a nodeFormationTime output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -93,8 +95,8 @@ contains
   end function nodeFormationTimeExtract
   
   function nodeFormationTimeName(self)
-    !!{
-    Return the names of the \mono{nodeFormationTime} properties.
+    !!{RST
+    Return the names of the ``nodeFormationTime`` properties.
     !!}
     implicit none
     type (varying_string                        )                :: nodeFormationTimeName
@@ -106,8 +108,8 @@ contains
   end function nodeFormationTimeName
 
   function nodeFormationTimeDescription(self)
-    !!{
-    Return the descriptions of the \mono{nodeFormationTime} properties.
+    !!{RST
+    Return the descriptions of the ``nodeFormationTime`` properties.
     !!}
     implicit none
     type (varying_string                        )                :: nodeFormationTimeDescription
@@ -119,8 +121,8 @@ contains
   end function nodeFormationTimeDescription
 
   double precision function nodeFormationTimeUnitsInSI(self)
-    !!{
-    Return the units of the \mono{nodeFormationTime} properties in the SI system.
+    !!{RST
+    Return the units of the ``nodeFormationTime`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
@@ -132,7 +134,7 @@ contains
   end function nodeFormationTimeUnitsInSI
 
   function nodeFormationTimeUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the nodeFormationTime property.
     !!}
     use :: Units_MetaData, only : unitType

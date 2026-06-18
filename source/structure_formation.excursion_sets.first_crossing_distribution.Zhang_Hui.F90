@@ -17,24 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.
+  !!{RST
+  Implements a excursion set first crossing statistics class utilizing the algorithm of :cite:t:`zhang_random_2006`.
   !!}
 
   use :: Excursion_Sets_Barriers, only : excursionSetBarrierClass
   use :: Numerical_Interpolation, only : interpolator
 
   !![
-  <excursionSetFirstCrossing name="excursionSetFirstCrossingZhangHui">
+  <excursionSetFirstCrossing name="excursionSetFirstCrossingZhangHui" docformat="rst">
    <description>
-    An excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}. First crossing (and
-    non-crossing) rates are not supported by this method.
+   An excursion set first crossing statistics class utilizing the algorithm of :cite:t:`zhang_random_2006`. First crossing (and non-crossing) rates are not supported by this method.
    </description>
   </excursionSetFirstCrossing>
   !!]
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingZhangHui
-     !!{
-     An excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.
+     !!{RST
+     An excursion set first crossing statistics class utilizing the algorithm of :cite:t:`zhang_random_2006`.
      !!}
      private
      class           (excursionSetBarrierClass), pointer                     :: excursionSetBarrier_         => null()
@@ -57,11 +56,11 @@
           &                                                                     timeIntegrand                          , varianceIntegrand
    contains
      !![
-     <methods>
-       <method description="Returns the function $g_1(S)$ \citep{zhang_random_2006}." method="g1" />
-       <method description="Returns the function $g_2(S,S^\prime)$ \citep{zhang_random_2006}." method="g2" />
-       <method description="Returns the function $g_2(S,S^\prime)$ integrated over a range $\Delta S$ \citep{zhang_random_2006}." method="g2Integrated" />
-       <method description="Returns the function $g_2(S,S^\prime)$ integrated over a range $\Delta S$ \citep{zhang_random_2006}." method="delta" />
+     <methods docformat="rst">
+       <method description="Returns the function :math:`g_1(S)` :cite:p:`zhang_random_2006`." method="g1" />
+       <method description="Returns the function :math:`g_2(S,S^\prime)` :cite:p:`zhang_random_2006`." method="g2" />
+       <method description="Returns the function :math:`g_2(S,S^\prime)` integrated over a range :math:`\Delta S` :cite:p:`zhang_random_2006`." method="g2Integrated" />
+       <method description="Returns the function :math:`g_2(S,S^\prime)` integrated over a range :math:`\Delta S` :cite:p:`zhang_random_2006`." method="delta" />
      </methods>
      !!]
      final     ::                    zhangHuiDestructor
@@ -75,8 +74,8 @@
   end type excursionSetFirstCrossingZhangHui
 
   interface excursionSetFirstCrossingZhangHui
-     !!{
-     Constructors for the \cite{zhang_random_2006} excursion set barrier class.
+     !!{RST
+     Constructors for the :cite:t:`zhang_random_2006` excursion set barrier class.
      !!}
      module procedure zhangHuiConstructorParameters
      module procedure zhangHuiConstructorInternal
@@ -88,7 +87,7 @@
 contains
 
   function zhangHuiConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -109,7 +108,7 @@ contains
   end function zhangHuiConstructorParameters
 
   function zhangHuiConstructorInternal(excursionSetBarrier_) result(self)
-    !!{
+    !!{RST
     Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
     !!}
     implicit none
@@ -132,7 +131,7 @@ contains
   end function zhangHuiConstructorInternal
 
   subroutine zhangHuiDestructor(self)
-    !!{
+    !!{RST
     Destructor for the critical overdensity excursion set barrier class.
     !!}
     implicit none
@@ -145,7 +144,7 @@ contains
   end subroutine zhangHuiDestructor
 
   double precision function zhangHuiProbability(self,variance,time,node)
-    !!{
+    !!{RST
     Return the excursion set barrier at the given variance and time.
     !!}
     use            :: Display          , only : displayCounter       , displayCounterClear, displayIndent       , displayUnindent, &
@@ -266,7 +265,7 @@ contains
   end function zhangHuiProbability
 
   double precision function zhangHuiRate(self,variance,varianceProgenitor,time,node)
-    !!{
+    !!{RST
     Return the excursion set barrier at the given variance and time. This method is not implemented.
     !!}
     use :: Error, only : Error_Report
@@ -283,7 +282,7 @@ contains
   end function zhangHuiRate
 
   double precision function zhangHuiRateNonCrossing(self,variance,massMinimum,time,node)
-    !!{
+    !!{RST
     Return the rate for excursion set non-crossing. This method is not implemented.
     !!}
     use :: Error, only : Error_Report
@@ -300,8 +299,8 @@ contains
   end function zhangHuiRateNonCrossing
 
   double precision function zhangHuiG1(self,variance,time,node)
-    !!{
-    Returns the function $g_1(S)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
+    !!{RST
+    Returns the function :math:`g_1(S)` in the :cite:t:`zhang_random_2006` algorithm for excursion set barrier crossing probabilities.
     !!}
     use :: Math_Distributions_Gaussian, only : Gaussian_Distribution
     implicit none
@@ -322,8 +321,8 @@ contains
   end function zhangHuiG1
 
   double precision function zhangHuiG2(self,variance,variancePrimed,time,node)
-    !!{
-    Returns the function $g_2(S,S^\prime)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
+    !!{RST
+    Returns the function :math:`g_2(S,S^\prime)` in the :cite:t:`zhang_random_2006` algorithm for excursion set barrier crossing probabilities.
     !!}
     use :: Math_Distributions_Gaussian, only : Gaussian_Distribution
     implicit none
@@ -352,8 +351,8 @@ contains
   end function zhangHuiG2
 
   double precision function zhangHuiDelta(self,i,j,iVariance,jVariance,deltaVariance,time,node)
-    !!{
-    Returns the factor $\Delta{i,j}$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
+    !!{RST
+    Returns the factor :math:`\Delta{i,j}` in the :cite:t:`zhang_random_2006` algorithm for excursion set barrier crossing probabilities.
     !!}
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
@@ -379,8 +378,8 @@ contains
   end function zhangHuiDelta
 
   double precision function zhangHuiG2Integrated(self,variance,deltaVariance,time,node)
-    !!{
-    Integrated function $g_2(S,S^\prime)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
+    !!{RST
+    Integrated function :math:`g_2(S,S^\prime)` in the :cite:t:`zhang_random_2006` algorithm for excursion set barrier crossing probabilities.
     !!}
     use :: Numerical_Comparison , only : Values_Differ
     use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
@@ -430,9 +429,8 @@ contains
   contains
 
     double precision function zhangHuiG2Integrand(variancePrimed)
-      !!{
-      Integrand function used in computing $\Delta_{i,i}$ in the \cite{zhang_random_2006} algorithm for excursion set barrier
-      crossing probabilities.
+      !!{RST
+      Integrand function used in computing :math:`\Delta_{i,i}` in the :cite:t:`zhang_random_2006` algorithm for excursion set barrier crossing probabilities.
       !!}
       use :: Math_Distributions_Gaussian, only : Gaussian_Distribution
       implicit none

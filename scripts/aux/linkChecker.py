@@ -5,13 +5,13 @@
 import sys
 import os
 import re
+import html
 import subprocess
 import json
 import random
 import time
 import xml.etree.ElementTree as ET
 import requests
-from PyPDF2 import PdfReader
 
 
 def load_failures(filename):
@@ -58,47 +58,29 @@ def record_success(url, failures):
     failures[url]['consecutiveFailures'] = 0
 
 
+# Match a URL up to the first whitespace or delimiter.  This naturally
+# terminates the forms the URLs appear in across the docs: RST hyperlinks
+# (`` `text <url>`_ ``), XML directive attributes (``referenceURL="url"``,
+# ``externalDescription="url"``, ``url="url"``), LaTeX ``\href{url}``, and bare
+# URLs in prose.  ``)`` is allowed (Wikipedia-style URLs); trailing sentence
+# punctuation is stripped afterwards.
+_URL_RE = re.compile(r'https?://[^\s<>"\'}\]]+')
+
+
 def scan_file(file_name, path, urls):
-    """Scan a TeX or Fortran source file for links."""
+    """Scan a source / RST / TeX file for ``http(s)`` URLs in any markup form."""
     line_number = 0
     try:
         with open(os.path.join(path, file_name), 'r', errors='replace') as f:
             for line in f:
                 line_number += 1
-                # \href{url} patterns
-                while True:
-                    m = re.search(r'\\href\{([^\}]+)\}', line)
-                    if not m:
-                        break
-                    url = m.group(1)
-                    line = line[:m.start()] + line[m.end():]
-                    url = re.sub(r'\\(.)', r'\1', url)  # remove LaTeX escapes
+                for m in _URL_RE.finditer(line):
+                    # Unescape XML/LaTeX (``&amp;``, ``&#x2F;``, ``\_`` …) and
+                    # drop trailing sentence punctuation.
+                    url = html.unescape(m.group(0)).rstrip('.,;:')
+                    url = re.sub(r'\\(.)', r'\1', url)
                     urls.setdefault(url, []).append(
                         {'file': file_name, 'path': path, 'lineNumber': line_number})
-                # \refPhysics{ref} patterns
-                while True:
-                    m = re.search(r'\\refPhysics\{([^\}]+)\}', line)
-                    if not m:
-                        break
-                    ref = m.group(1)
-                    url = ('https://github.com/galacticusorg/galacticus/releases/'
-                           'download/bleeding-edge/Galacticus_Physics.pdf#physics.' + ref)
-                    line = line[:m.start()] + line[m.end():]
-                    urls.setdefault(url, []).append(
-                        {'type': 'refPhysics', 'ref': ref,
-                         'file': file_name, 'path': path, 'lineNumber': line_number})
-                # \refClass{ref} patterns
-                while True:
-                    m = re.search(r'\\refClass\{([^\}]+)\}', line)
-                    if not m:
-                        break
-                    ref = m.group(1)
-                    url = ('https://github.com/galacticusorg/galacticus/releases/'
-                           'download/bleeding-edge/Galacticus_Development.pdf#class.' + ref)
-                    line = line[:m.start()] + line[m.end():]
-                    urls.setdefault(url, []).append(
-                        {'type': 'refClass', 'ref': ref,
-                         'file': file_name, 'path': path, 'lineNumber': line_number})
     except OSError as e:
         print(f"Warning: could not read {path}/{file_name}: {e}")
 
@@ -144,7 +126,7 @@ def scan_wiki(file_name, path, urls):
         print(f"Warning: could not read {path}/{file_name}: {e}")
 
 
-def check_urls(urls, pdf_destinations, api_token, failures):
+def check_urls(urls, api_token, failures):
     """Check all collected URLs. Returns (exit_status, list_of_bad_urls)."""
     status = 0
     bad_urls = []
@@ -153,9 +135,6 @@ def check_urls(urls, pdf_destinations, api_token, failures):
     url_keys = list(urls.keys())
     random.shuffle(url_keys)
 
-    _pdf_re = re.compile(
-        r'^https://github\.com/galacticusorg/galacticus/releases/download/bleeding-edge/'
-        r'Galacticus_(Usage|Physics|Development|Source)\.pdf#(.+)')
     _ads_re = re.compile(r'adsabs\.harvard\.edu/abs/([^/]+)')
 
     for url_key in url_keys:
@@ -164,22 +143,6 @@ def check_urls(urls, pdf_destinations, api_token, failures):
         if url.startswith('mailto:'):
             continue
         if url.startswith('#'):
-            continue
-
-        # --- PDF anchor links ---
-        m = _pdf_re.match(url)
-        if m:
-            suffix = m.group(1)
-            anchor = m.group(2)
-            if suffix not in pdf_destinations or anchor not in pdf_destinations[suffix]:
-                status = 1
-                source0 = urls[url_key][0]
-                bad_urls.append(source0.get('ref', url))
-                print(f"Broken {source0.get('type', 'link')}"
-                      f"{{{source0.get('ref', url)}}} link in:")
-                for source in urls[url_key]:
-                    print(f"\t {source['path']}/{source['file']}"
-                          f" line {source['lineNumber']}")
             continue
 
         # --- NASA ADS links ---
@@ -318,23 +281,6 @@ def main():
     api_token    = sys.argv[1]
     log_filename = sys.argv[2]
 
-    # Download PDFs and extract named destinations.
-    pdf_destinations = {}
-    for suffix in ('Usage', 'Physics', 'Development', 'Source'):
-        pdf_file   = f'Galacticus_{suffix}.pdf'
-        dests_file = f'Galacticus_{suffix}.dests'
-        subprocess.run([
-            'curl', '--silent', '-L', '--insecure', '--output', pdf_file,
-            f'https://github.com/galacticusorg/galacticus/releases/download/'
-            f'bleeding-edge/{pdf_file}',
-        ], check=False)
-
-        with open('Galacticus_'+suffix+'.pdf','rb') as file:
-            reader = PdfReader(file)
-            pdf_destinations[suffix] = {}
-            for dest in reader.named_destinations:
-                pdf_destinations[suffix][dest] = 1
-
     # Load existing consecutive-failure records.
     failures_file = 'linkCheckFailures.xml'
     failures = load_failures(failures_file)
@@ -346,17 +292,21 @@ def main():
     # Collect URLs from source files.
     urls = {}
 
-    doc_path = './doc'
-    if os.path.isdir(doc_path):
-        for file_name in os.listdir(doc_path):
-            if re.match(r'^[A-Z].*\.tex$', file_name):
-                scan_file(file_name, doc_path, urls)
-
+    # Embedded docstrings (RST) and constant/workaround directive attributes.
     source_path = './source'
     if os.path.isdir(source_path):
         for file_name in os.listdir(source_path):
             if re.search(r'\.(F90|Inc)$', file_name):
                 scan_file(file_name, source_path, urls)
+
+    # Committed RST documentation (manuals + landing page) and the glossary.
+    for base in ('./docs', './doc'):
+        for root, _dirs, files in os.walk(base):
+            if '_build' in root.split(os.sep):
+                continue
+            for file_name in files:
+                if file_name.endswith('.rst') or file_name.endswith('.tex'):
+                    scan_file(file_name, root, urls)
 
     wiki_path = './galacticus.wiki'
     subprocess.run(
@@ -369,7 +319,7 @@ def main():
                 scan_wiki(file_name, wiki_path, urls)
 
     # Check all collected URLs.
-    status, bad_urls = check_urls(urls, pdf_destinations, api_token, failures)
+    status, bad_urls = check_urls(urls, api_token, failures)
     
     # Persist updated failure records.
     save_failures(failures, failures_file)

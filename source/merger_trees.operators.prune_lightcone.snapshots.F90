@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a prune-by-lightcone operator on merger trees.
   !!}
   
@@ -26,25 +26,16 @@
   use :: Output_Times                  , only : outputTimesClass
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorPruneLightconeSnapshots">
+  <mergerTreeOperator name="mergerTreeOperatorPruneLightconeSnapshots" docformat="rst">
    <description>
-     Provides a pruning-by-lightcone operator on merger trees, \emph{intended for use with the older approach in which galaxies
-     were evolved to one of a fixed set of snapshots, and then output into the section of the lightcone corresponding to that
-     snapshot}. For the newer approach (in which galaxies are evolved to precisely the time of lightcone crossing) see the
-     \refClass{mergerTreeOperatorPruneLightcone} merger tree operator class.
+   Provides a pruning-by-lightcone operator on merger trees, *intended for use with the older approach in which galaxies were evolved to one of a fixed set of snapshots, and then output into the section of the lightcone corresponding to that snapshot*. For the newer approach (in which galaxies are evolved to precisely the time of lightcone crossing) see the :galacticus-class:`mergerTreeOperatorPruneLightcone` merger tree operator class.
 
-     Trees which have no nodes which lie within the lightcone are completely pruned away. If the parameter \mono{[splitTrees]} is
-     set to \mono{true} then any parts of a merger tree which does intersect the lightcone that exist after the latest time at which a
-     constituent node of the tree intersects the lightcone will be pruned away also (possibly causing the tree to be split into
-     multiple trees in a forest). If the parameter \mono{[bufferIsolatedHalos]} is set to \mono{true} then, when testing whether
-     an isolated halo intersects the lightcone a buffer radius equal in size to the extent of any possible orphan galaxies
-     associated with the halo is added around the lightcone---this ensures that if orphan galaxies of the halo might possibly
-     intersect the lightcone the halo will not be pruned away.
+   Trees which have no nodes which lie within the lightcone are completely pruned away. If the parameter ``[splitTrees]`` is set to ``true`` then any parts of a merger tree which does intersect the lightcone that exist after the latest time at which a constituent node of the tree intersects the lightcone will be pruned away also (possibly causing the tree to be split into multiple trees in a forest). If the parameter ``[bufferIsolatedHalos]`` is set to ``true`` then, when testing whether an isolated halo intersects the lightcone a buffer radius equal in size to the extent of any possible orphan galaxies associated with the halo is added around the lightcone---this ensures that if orphan galaxies of the halo might possibly intersect the lightcone the halo will not be pruned away.
    </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneLightconeSnapshots
-     !!{
+     !!{RST
      A pruning-by-lightcone merger tree operator class.
      !!}
      private
@@ -55,7 +46,7 @@
           &                                                splitTrees
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="processNode"   description="Return true if the current node is to be processed for intersection with the lightcone."/>
        <method method="timeIntersect" description="Return the latest time at which the current node intersects the lightcone."             />
      </methods>
@@ -67,7 +58,7 @@
   end type mergerTreeOperatorPruneLightconeSnapshots
 
   interface mergerTreeOperatorPruneLightconeSnapshots
-     !!{
+     !!{RST
      Constructors for the pruning-by-lightcone merger tree operator class.
      !!}
      module procedure pruneLightconeSnapshotsConstructorParameters
@@ -77,7 +68,7 @@
 contains
 
   function pruneLightconeSnapshotsConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the prune-by-lightcone merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -91,17 +82,21 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bufferIsolatedHalos</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, intersection of a tree with the lightcone will be determined using the positions of non-isolated (a.k.a. ``satellite'') halos, and of isolated halos (a.k.a ``centrals'') with a buffer region (with radius equal to the extent of the orphan satellite distribution---see \refPhysics{satelliteOrphanDistribution}) placed around each such halo, and any intersection of that region with the lightcone is sufficient to prevent pruning of the tree. If this parameter is \mono{false} then (unbuffered) positions of all halos are used for determining intersection with the lightcone---this requires complete (i.e. throughout the extent of their existence) knowledge of non-isolated halos prior to application of this operator.</description>
+      <description>
+      If true, intersection of a tree with the lightcone will be determined using the positions of non-isolated (a.k.a. "satellite") halos, and of isolated halos (a.k.a "centrals") with a buffer region (with radius equal to the extent of the orphan satellite distribution---see :galacticus-class:`satelliteOrphanDistribution`) placed around each such halo, and any intersection of that region with the lightcone is sufficient to prevent pruning of the tree. If this parameter is ``false`` then (unbuffered) positions of all halos are used for determining intersection with the lightcone---this requires complete (i.e. throughout the extent of their existence) knowledge of non-isolated halos prior to application of this operator.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>splitTrees</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, prune away any nodes of the tree that are not needed to determine evolution up to the latest time at which a node is present inside the lightcone. This typically leads to a tree splitting into a forest of trees.</description>
+      <description>
+      If true, prune away any nodes of the tree that are not needed to determine evolution up to the latest time at which a node is present inside the lightcone. This typically leads to a tree splitting into a forest of trees.
+      </description>
     </inputParameter>
     <objectBuilder class="geometryLightcone"           name="geometryLightcone_"           source="parameters"/>
     <objectBuilder class="satelliteOrphanDistribution" name="satelliteOrphanDistribution_" source="parameters"/>
@@ -118,7 +113,7 @@ contains
   end function pruneLightconeSnapshotsConstructorParameters
 
   function pruneLightconeSnapshotsConstructorInternal(geometryLightcone_,satelliteOrphanDistribution_,outputTimes_,bufferIsolatedHalos,splitTrees) result(self)
-    !!{
+    !!{RST
     Internal constructor for the prune-by-lightcone merger tree operator class.
     !!}
     implicit none
@@ -136,7 +131,7 @@ contains
   end function pruneLightconeSnapshotsConstructorInternal
 
   subroutine pruneLightconeSnapshotsDestructor(self)
-    !!{
+    !!{RST
     Destructor for the lightcone merger tree operator function class.
     !!}
     implicit none
@@ -151,7 +146,7 @@ contains
   end subroutine pruneLightconeSnapshotsDestructor
 
   subroutine pruneLightconeSnapshotsValidate(self)
-    !!{
+    !!{RST
     Validate the lightcone pruning operator.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
@@ -188,7 +183,7 @@ contains
   end subroutine pruneLightconeSnapshotsValidate
 
   subroutine pruneLightconeSnapshotsOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Perform a prune-by-lightcone operation on a merger tree.
     !!}
     use :: Display                       , only : displayMessage                , displayIndent           , displayUnindent       , verbosityLevelInfo
@@ -456,7 +451,7 @@ contains
   end subroutine pruneLightconeSnapshotsOperatePreEvolution
 
   logical function pruneLightconeSnapshotsProcessNode(self,node) result(processNode)
-    !!{
+    !!{RST
     Return true if the given node should be processed for intersection with the lightcone.
     !!}
     implicit none
@@ -469,7 +464,7 @@ contains
   end function pruneLightconeSnapshotsProcessNode
   
   double precision function pruneLightconeSnapshotsTimeIntersect(self,node) result(timeIntersect)
-    !!{
+    !!{RST
     Return the latest time at which the given node intersects the lightcone.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition, nodeComponentSatellite

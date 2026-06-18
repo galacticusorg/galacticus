@@ -17,22 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of an isothermal mass distribution class.
   !!}
 
   !![
-  <massDistribution name="massDistributionIsothermal">
+  <massDistribution name="massDistributionIsothermal" docformat="rst">
     <description>
-      An isothermal mass distribution class in which the density profile is given by:
-      \begin{equation}
-      \rho(r) \propto r^{-2}.
-      \end{equation}
-   </description>
+    An isothermal mass distribution class in which the density profile is given by:
+
+    .. math::
+
+       \rho(r) \propto r^{-2}.
+    </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionIsothermal
-     !!{
+     !!{RST
      The isothermal mass distribution.
      !!}
      private
@@ -63,8 +64,8 @@
   end type massDistributionIsothermal
 
   interface massDistributionIsothermal
-     !!{
-     Constructors for the \refClass{massDistributionIsothermal} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionIsothermal` mass distribution class.
      !!}
      module procedure massDistributionIsothermalConstructorParameters
      module procedure massDistributionIsothermalConstructorInternal
@@ -73,9 +74,8 @@
 contains
 
   function massDistributionIsothermalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionIsothermal} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionIsothermal` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -90,40 +90,52 @@ contains
     type            (varying_string            )                :: massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityNormalization</name>
       <defaultValue>0.25d0/Pi</defaultValue>
-      <description>The density normalization of the isothermal profile.</description>
+      <description>
+      The density normalization of the isothermal profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lengthReference</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The reference radius (in Mpc) of the isothermal profile at which \mono{densityNormalization} is evaluated; sets the physical length scale of the $\rho \propto r^{-2}$ profile.</description>
+      <description>
+      The reference radius (in Mpc) of the isothermal profile at which ``densityNormalization`` is evaluated; sets the physical length scale of the :math:`\rho \propto r^{-2}` profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The total mass (in $\mathrm{M}_\odot$) enclosed within the reference radius, used to normalize the $\rho \propto r^{-2}$ density profile when \mono{densityNormalization} is not supplied.</description>
+      <description>
+      The total mass (in :math:`\mathrm{M}_\odot`) enclosed within the reference radius, used to normalize the :math:`\rho \propto r^{-2}` density profile when ``densityNormalization`` is not supplied.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dimensionless</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true the isothermal profile is considered to be dimensionless.</description>
+      <description>
+      If true the isothermal profile is considered to be dimensionless.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <conditionalCall>
@@ -139,8 +151,8 @@ contains
   end function massDistributionIsothermalConstructorParameters
 
   function massDistributionIsothermalConstructorInternal(densityNormalization,mass,lengthReference,dimensionless,componentType,massType) result(self)
-    !!{
-    Internal constructor for ``isothermal'' mass distribution class.
+    !!{RST
+    Internal constructor for "isothermal" mass distribution class.
     !!}
     use :: Error                           , only : Error_Report
     use :: Numerical_Comparison            , only : Values_Differ
@@ -203,7 +215,7 @@ contains
   end function massDistributionIsothermalConstructorInternal
 
   double precision function isothermalMassTotal(self)
-    !!{
+    !!{RST
     Return the total mass in an isothermal mass distribution.
     !!}
     implicit none
@@ -214,8 +226,8 @@ contains
   end function isothermalMassTotal
 
   double precision function isothermalDensity(self,coordinates)
-    !!{
-    Return the density at the specified \mono{coordinates} in an isothermal mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in an isothermal mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
@@ -231,8 +243,8 @@ contains
   end function isothermalDensity
 
   double precision function isothermalDensityGradientRadial(self,coordinates,logarithmic)
-    !!{
-    Return the density at the specified \mono{coordinates} in an isothermal mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in an isothermal mass distribution.
     !!}
     implicit none
     class           (massDistributionIsothermal), intent(inout), target   :: self
@@ -259,8 +271,8 @@ contains
   end function isothermalDensityGradientRadial
 
   double precision function isothermalMassEnclosedBySphere(self,radius)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for isothermal mass distributions.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for isothermal mass distributions.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -276,7 +288,7 @@ contains
   end function isothermalMassEnclosedBySphere
 
   double precision function isothermalRadiusEnclosingMass(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mass or mass fraction for isothermal mass distributions.
     !!}
     use :: Error                   , only : Error_Report
@@ -303,7 +315,7 @@ contains
   end function isothermalRadiusEnclosingMass
   
   double precision function isothermalRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mean density for isothermal mass distributions.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -322,7 +334,7 @@ contains
   end function isothermalRadiusEnclosingDensity
   
   double precision function isothermalRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific) result(radius)
-    !!{
+    !!{RST
     Computes the radius corresponding to a given specific angular momentum for isothermal mass distributions.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
@@ -344,7 +356,7 @@ contains
   end function isothermalRadiusFromSpecificAngularMomentum
   
   double precision function isothermalDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
-    !!{
+    !!{RST
     Returns a radial density moment for the Isothermal mass distribution.
     !!}
     use :: Error, only : Error_Report
@@ -403,7 +415,7 @@ contains
   end function isothermalDensityRadialMoment
 
   double precision function isothermalRotationCurve(self,radius) result(rotationCurve)
-    !!{
+    !!{RST
     Return the rotation curve for an isothermal mass distribution.
     !!}
     implicit none
@@ -415,8 +427,8 @@ contains
   end function isothermalRotationCurve
 
   double precision function isothermalRotationCurveGradient(self,radius) result(rotationCurveGradient)
-    !!{
-    Return the rotation curve gradient (specifically, $\mathrm{d}V^2_\mathrm{c}/\mathrm{d}r$) for an isothermal mass distribution.
+    !!{RST
+    Return the rotation curve gradient (specifically, :math:`\mathrm{d}V^2_\mathrm{c}/\mathrm{d}r`) for an isothermal mass distribution.
     !!}
     implicit none
     class           (massDistributionIsothermal), intent(inout) :: self
@@ -428,7 +440,7 @@ contains
   end function isothermalRotationCurveGradient
 
   double precision function isothermalVelocityRotationCurveMaximum(self) result(velocity)
-    !!{
+    !!{RST
     Return the peak velocity in the rotation curve for an isothermal mass distribution.
     !!}
     implicit none
@@ -439,7 +451,7 @@ contains
   end function isothermalVelocityRotationCurveMaximum
 
   double precision function isothermalRadiusRotationCurveMaximum(self) result(radius)
-    !!{
+    !!{RST
     Return the peak velocity in the rotation curve for an isothermal mass distribution.
     !!}
     implicit none
@@ -451,7 +463,7 @@ contains
   end function isothermalRadiusRotationCurveMaximum
 
   logical function isothermalPotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return that the potential has an analytic form.
     !!}
     implicit none
@@ -462,8 +474,8 @@ contains
   end function isothermalPotentialIsAnalytic
 
   double precision function isothermalPotential(self,coordinates,status)
-    !!{
-    Return the potential at the specified \mono{coordinates} in an isothermal mass distribution.
+    !!{RST
+    Return the potential at the specified ``coordinates`` in an isothermal mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess     , structureErrorCodeInfinite
@@ -500,8 +512,8 @@ contains
   end function isothermalPotential
 
   double precision function isothermalFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
-    !!{
-    Compute the Fourier transform of the density profile at the given \mono{wavenumber} in an isothermal mass distribution.
+    !!{RST
+    Compute the Fourier transform of the density profile at the given ``wavenumber`` in an isothermal mass distribution.
     !!}
     use :: Exponential_Integrals, only : Sine_Integral
     implicit none
@@ -517,12 +529,12 @@ contains
   end function isothermalFourierTransform
   
   double precision function isothermalRadiusFreefall(self,time) result(radius)
-    !!{
-    Compute the freefall radius at the given \mono{time} in an isothermal mass distribution. For an isothermal
-    potential, the freefall radius, $r_\mathrm{ff}(t)$, is:
-    \begin{equation}
-    r_\mathrm{ff}(t) = \sqrt{{2 \over \pi}} V_\mathrm{virial} t.
-    \end{equation}
+    !!{RST
+    Compute the freefall radius at the given ``time`` in an isothermal mass distribution. For an isothermal potential, the freefall radius, :math:`r_\mathrm{ff}(t)`, is:
+
+    .. math::
+
+       r_\mathrm{ff}(t) = \sqrt{{2 \over \pi}} V_\mathrm{virial} t.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
@@ -541,12 +553,12 @@ contains
   end function isothermalRadiusFreefall
   
   double precision function isothermalRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
-    !!{
-    Compute the rate of increase of the freefall radius at the given \mono{time} in an isothermal mass
-    distribution. For an isothermal potential, the rate of increase of the freefall radius, $\dot{r}_\mathrm{ff}(t)$, is:
-    \begin{equation}
-    \dot{r}_\mathrm{ff}(t) = \sqrt{{2 \over \pi}} V_\mathrm{virial}.
-    \end{equation}
+    !!{RST
+    Compute the rate of increase of the freefall radius at the given ``time`` in an isothermal mass distribution. For an isothermal potential, the rate of increase of the freefall radius, :math:`\dot{r}_\mathrm{ff}(t)`, is:
+
+    .. math::
+
+       \dot{r}_\mathrm{ff}(t) = \sqrt{{2 \over \pi}} V_\mathrm{virial}.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
@@ -565,8 +577,8 @@ contains
   end function isothermalRadiusFreefallIncreaseRate
   
   double precision function isothermalEnergyPotential(self,radiusOuter) result(energy)
-    !!{
-    Compute the potential energy within a given \mono{radius} in an isothermal mass distribution.
+    !!{RST
+    Compute the potential energy within a given ``radius`` in an isothermal mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
@@ -584,8 +596,8 @@ contains
   end function isothermalEnergyPotential
 
   double precision function isothermalEnergyKinetic(self,radiusOuter,massDistributionEmbedding) result(energy)
-    !!{
-    Compute the kinetic energy within a given \mono{radius} in an isothermal mass distribution.
+    !!{RST
+    Compute the kinetic energy within a given ``radius`` in an isothermal mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
@@ -612,7 +624,7 @@ contains
   end function isothermalEnergyKinetic
   
   function isothermalPositionSample(self,randomNumberGenerator_) result(position)
-    !!{
+    !!{RST
     Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -627,7 +639,7 @@ contains
   end function isothermalPositionSample
 
   subroutine isothermalDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
-    !!{
+    !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
     use :: Input_Parameters, only : inputParameters

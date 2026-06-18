@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module of useful numerical prefixes.
 !!}
 
 module Numerical_Constants_Prefixes
-  !!{
+  !!{RST
   Contains useful numerical prefixes.
   !!}
   implicit none
@@ -60,7 +60,7 @@ module Numerical_Constants_Prefixes
 contains
 
   function siFormat(value_,format_)
-    !!{
+    !!{RST
     Format a value using SI prefixes.
     !!}   
     implicit none

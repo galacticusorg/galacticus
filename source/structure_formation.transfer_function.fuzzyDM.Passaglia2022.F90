@@ -17,22 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a transfer function class for fuzzy dark matter using the fitting function of
-  \cite{passaglia_accurate_2022}.
+  !!{RST
+  Implements a transfer function class for fuzzy dark matter using the fitting function of :cite:t:`passaglia_accurate_2022`.
   !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass
 
   !![
-  <transferFunction name="transferFunctionFuzzyDMPassaglia2022">
-   <description>A transfer function class for fuzzy dark matter using the fitting function of \cite{passaglia_accurate_2022}.</description>
+  <transferFunction name="transferFunctionFuzzyDMPassaglia2022" docformat="rst">
+   <description>
+   A transfer function class for fuzzy dark matter using the fitting function of :cite:t:`passaglia_accurate_2022`.
+   </description>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionFuzzyDMPassaglia2022
-     !!{
-     A transfer function class for fuzzy dark matter using the fitting function of \cite{passaglia_accurate_2022}.
+     !!{RST
+     A transfer function class for fuzzy dark matter using the fitting function of :cite:t:`passaglia_accurate_2022`.
      !!}
      private
      double precision                                   :: m22                          , time, &
@@ -53,8 +54,8 @@
   end type transferFunctionFuzzyDMPassaglia2022
    
   interface transferFunctionFuzzyDMPassaglia2022
-     !!{
-     Constructors for the \refClass{transferFunctionFuzzyDMPassaglia2022} transfer function class.
+     !!{RST
+     Constructors for the :galacticus-class:`transferFunctionFuzzyDMPassaglia2022` transfer function class.
      !!}
      module procedure fuzzyDMPassaglia2022ConstructorParameters
      module procedure fuzzyDMPassaglia2022ConstructorInternal
@@ -68,8 +69,8 @@
 contains
 
   function fuzzyDMPassaglia2022ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{transferFunctionFuzzyDMPassaglia2022} transfer function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`transferFunctionFuzzyDMPassaglia2022` transfer function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -101,8 +102,8 @@ contains
   end function fuzzyDMPassaglia2022ConstructorParameters
 
   function fuzzyDMPassaglia2022ConstructorInternal(transferFunctionCDM,darkMatterParticle_,cosmologyFunctions_,cosmologyParameters_) result(self)
-    !!{
-    Internal constructor for the \refClass{transferFunctionFuzzyDMPassaglia2022} transfer function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`transferFunctionFuzzyDMPassaglia2022` transfer function class.
     !!}
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
     use :: Dark_Matter_Particles         , only : darkMatterParticleFuzzyDarkMatter
@@ -142,8 +143,8 @@ contains
   end function fuzzyDMPassaglia2022ConstructorInternal
 
   subroutine fuzzyDMPassaglia2022Destructor(self)
-    !!{
-    Destructor for the \refClass{transferFunctionFuzzyDMPassaglia2022} transfer function class.
+    !!{RST
+    Destructor for the :galacticus-class:`transferFunctionFuzzyDMPassaglia2022` transfer function class.
     !!}
     implicit none
     type(transferFunctionFuzzyDMPassaglia2022), intent(inout) :: self
@@ -158,7 +159,7 @@ contains
   end subroutine fuzzyDMPassaglia2022Destructor
 
   double precision function fuzzyDMPassaglia2022Value(self,wavenumber)
-    !!{
+    !!{RST
     Return the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -189,7 +190,7 @@ contains
   end function fuzzyDMPassaglia2022Value
 
   double precision function fuzzyDMPassaglia2022LogarithmicDerivative(self,wavenumber)
-    !!{
+    !!{RST
     Return the logarithmic derivative of the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -207,9 +208,8 @@ contains
   end function fuzzyDMPassaglia2022LogarithmicDerivative
 
   double precision function fuzzyDMPassaglia2022HalfModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    to a \gls{cdm} transfer function.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function.
     !!}
     implicit none
     class  (transferFunctionfuzzyDMPassaglia2022), intent(inout), target   :: self
@@ -220,9 +220,8 @@ contains
   end function fuzzyDMPassaglia2022HalfModeMass
 
   double precision function fuzzyDMPassaglia2022QuarterModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
-    to a \gls{cdm} transfer function.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative to a :term:`CDM` transfer function.
     !!}
     implicit none
     class  (transferFunctionfuzzyDMPassaglia2022), intent(inout), target   :: self
@@ -233,9 +232,8 @@ contains
   end function fuzzyDMPassaglia2022QuarterModeMass
 
   double precision function fuzzyDMPassaglia2022FractionModeMass(self,fraction,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    to a \gls{cdm} transfer function.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function.
     !!}
     use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
@@ -281,8 +279,8 @@ contains
   end function fuzzyDMPassaglia2022FractionModeMass
   
   double precision function modeSolver(wavenumber)
-    !!{
-    Function used in solving for half- and quarter-mode masses in the \mono{fuzzyDMPassaglia2022} transfer function.
+    !!{RST
+    Function used in solving for half- and quarter-mode masses in the ``fuzzyDMPassaglia2022`` transfer function.
     !!}
     implicit none
     double precision, intent(in   ) :: wavenumber
@@ -293,7 +291,7 @@ contains
   end function modeSolver
 
   double precision function fuzzyDMPassaglia2022EpochTime(self)
-    !!{
+    !!{RST
     Return the cosmic time at the epoch at which this transfer function is defined.
     !!}
     implicit none

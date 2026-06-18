@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An accelerator class for non-dark-matter-only dark matter halo profiles.
   !!}
 
   !![
-  <darkMatterProfile name="darkMatterProfileAccelerator">
-   <description>An accelerator class for non-dark-matter-only dark matter halo profiles that caches and interpolates previously computed profile quantities to speed up repeated evaluations. The relative tolerance for accepting cached interpolations is set by \mono{[toleranceRelative]}, and the maximum interpolation factor in radius by \mono{[factorRadiusMaximum]}.</description>
+  <darkMatterProfile name="darkMatterProfileAccelerator" docformat="rst">
+   <description>
+   An accelerator class for non-dark-matter-only dark matter halo profiles that caches and interpolates previously computed profile quantities to speed up repeated evaluations. The relative tolerance for accepting cached interpolations is set by ``[toleranceRelative]``, and the maximum interpolation factor in radius by ``[factorRadiusMaximum]``.
+   </description>
   </darkMatterProfile>
   !!]
   type, extends(darkMatterProfileClass) :: darkMatterProfileAccelerator
-     !!{
+     !!{RST
      An accelerator class for non-dark-matter-only dark matter halo profiles.
      !!}
      private
@@ -39,8 +41,8 @@
   end type darkMatterProfileAccelerator
 
   interface darkMatterProfileAccelerator
-     !!{
-     Constructors for the \refClass{darkMatterProfileAccelerator} non-dark-matter-only dark matter halo profile class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileAccelerator` non-dark-matter-only dark matter halo profile class.
      !!}
      module procedure acceleratorConstructorParameters
      module procedure acceleratorConstructorInternal
@@ -49,9 +51,8 @@
 contains
 
   function acceleratorConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileAccelerator} non-dark-matter-only dark matter halo profile class which takes
-    a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileAccelerator` non-dark-matter-only dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -61,17 +62,21 @@ contains
     double precision                                              :: toleranceRelative , factorRadiusMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelative</name>
       <defaultValue>1.0d-2</defaultValue>
       <source>parameters</source>
-      <description>The toleranceRelative with which to accept accelerated estimates.</description>
+      <description>
+      The toleranceRelative with which to accept accelerated estimates.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorRadiusMaximum</name>
       <defaultValue>3.0d0</defaultValue>
       <source>parameters</source>
-      <description>The maximum radial extrapolation factor allowed when using cached profile values; if the requested radius differs from the cached radius by more than this factor, the full profile is recomputed rather than interpolated.</description>
+      <description>
+      The maximum radial extrapolation factor allowed when using cached profile values; if the requested radius differs from the cached radius by more than this factor, the full profile is recomputed rather than interpolated.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterProfile" name="darkMatterProfile_" source="parameters"/>
     !!]
@@ -84,8 +89,8 @@ contains
   end function acceleratorConstructorParameters
 
   function acceleratorConstructorInternal(toleranceRelative,factorRadiusMaximum,darkMatterProfile_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileAccelerator} non-dark-matter-only dark matter halo profile class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterProfileAccelerator` non-dark-matter-only dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileAccelerator)                        :: self
@@ -99,8 +104,8 @@ contains
   end function acceleratorConstructorInternal
 
   subroutine acceleratorDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileAccelerator} dnon-dark-matter-only ark matter halo profile class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileAccelerator` dnon-dark-matter-only ark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileAccelerator), intent(inout) :: self
@@ -112,8 +117,8 @@ contains
   end subroutine acceleratorDestructor
 
   function acceleratorGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo               , massTypeDark                       , weightByMass
     use :: Mass_Distributions        , only : massDistributionSphericalAccelerator, kinematicsDistributionCollisionless, massDistributionSpherical, nonAnalyticSolversNumerical

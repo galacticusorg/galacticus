@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a node property extractor class for parameters of the \cite{hearin_differentiable_2021} mass accretion history model.
+!!{RST
+Implements a node property extractor class for parameters of the :cite:t:`hearin_differentiable_2021` mass accretion history model.
 !!}!
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMassAccretionHistoryHearin2021">
-   <description>Extracts best-fit parameters of the \cite{hearin_differentiable_2021} differentiable model for halo mass accretion histories, fitting a smooth parametric form to each halo's MAH for use in empirical galaxy-halo connection models.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorMassAccretionHistoryHearin2021" docformat="rst">
+   <description>
+   Extracts best-fit parameters of the :cite:t:`hearin_differentiable_2021` differentiable model for halo mass accretion histories, fitting a smooth parametric form to each halo's MAH for use in empirical galaxy-halo connection models.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorMassAccretionHistoryHearin2021
-     !!{
-     A property extractor class for parameters of the \cite{hearin_differentiable_2021} mass accretion history model.
+     !!{RST
+     A property extractor class for parameters of the :cite:t:`hearin_differentiable_2021` mass accretion history model.
      !!}
      private
    contains
@@ -41,8 +43,8 @@ Implements a node property extractor class for parameters of the \cite{hearin_di
   end type nodePropertyExtractorMassAccretionHistoryHearin2021
 
   interface nodePropertyExtractorMassAccretionHistoryHearin2021
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMassAccretionHistoryHearin2021} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassAccretionHistoryHearin2021` property extractor class.
      !!}
      module procedure massAccretionHistoryHearin2021ConstructorParameters
   end interface nodePropertyExtractorMassAccretionHistoryHearin2021
@@ -50,8 +52,8 @@ Implements a node property extractor class for parameters of the \cite{hearin_di
 contains
 
   function massAccretionHistoryHearin2021ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMassAccretionHistoryHearin2021} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassAccretionHistoryHearin2021` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,8 +68,8 @@ contains
   end function massAccretionHistoryHearin2021ConstructorParameters
 
   integer function massAccretionHistoryHearin2021ElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{massAccretionHistoryHearin2021} property extractor.
+    !!{RST
+    Return the number of elements in the ``massAccretionHistoryHearin2021`` property extractor.
     !!}
     implicit none
     class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout) :: self
@@ -79,7 +81,7 @@ contains
   end function massAccretionHistoryHearin2021ElementCount
 
   function massAccretionHistoryHearin2021Extract(self,node,time,instance)
-    !!{
+    !!{RST
     Implement extraction of halo environment properties.
     !!}
     implicit none
@@ -120,8 +122,8 @@ contains
   end function massAccretionHistoryHearin2021Extract
 
   subroutine massAccretionHistoryHearin2021Names(self,time,names)
-    !!{
-    Return the name of the \mono{massAccretionHistoryHearin2021} property.
+    !!{RST
+    Return the name of the ``massAccretionHistoryHearin2021`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)                             :: self
@@ -137,8 +139,8 @@ contains
   end subroutine massAccretionHistoryHearin2021Names
 
   subroutine massAccretionHistoryHearin2021Descriptions(self,time,descriptions)
-    !!{
-    Return a description of the \mono{massAccretionHistoryHearin2021} property.
+    !!{RST
+    Return a description of the ``massAccretionHistoryHearin2021`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)                             :: self
@@ -154,8 +156,8 @@ contains
   end subroutine massAccretionHistoryHearin2021Descriptions
 
   function massAccretionHistoryHearin2021UnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{massAccretionHistoryHearin2021} property in the SI system.
+    !!{RST
+    Return the units of the ``massAccretionHistoryHearin2021`` property in the SI system.
     !!}
     implicit none
     double precision                                                     , allocatable  , dimension(:) :: massAccretionHistoryHearin2021UnitsInSI
@@ -169,7 +171,7 @@ contains
   end function massAccretionHistoryHearin2021UnitsInSI
 
   function massAccretionHistoryHearin2021Units(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the massAccretionHistoryHearin2021 properties.
     !!}
     use :: Units_MetaData, only : unitType

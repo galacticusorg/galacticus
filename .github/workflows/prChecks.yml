@@ -112,6 +112,22 @@ jobs:
             fi
           done
           exit $status
+  # Embedded docstrings must be reStructuredText (not the old LaTeX form).
+  Validate-Docstrings-RST:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Mark directory safe
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+      - name: Check embedded docstrings are reStructuredText
+        run: |
+          python3 scripts/doc/convertDocstringsToRST.py --check source
   # Fortran static analysis
   Fortran-Static-Analysis:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
@@ -143,8 +159,9 @@ jobs:
             fi
           done
           exit $status
-  # Embedded XML and LaTeX checks
-  Embedded-XML-LaTeX:
+  # Embedded XML directive validation (the LaTeX checks were retired with the
+  # migration of the embedded documentation to reStructuredText).
+  Validate-Embedded-XML:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
@@ -154,19 +171,14 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "DICTIONARY=en_US" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
-      - name: Mark directory safe        
+      - name: Mark directory safe
         run: |
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Install tools
         run: |
           apt -y update
-          apt install -y texlive texlive-latex-extra texlive-science texlive-extra-utils hunspell hunspell-en-us python3-lxml
-      - name: Build class information
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          make -j4 work/build/stateStorables.xml
+          apt install -y python3-lxml
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v47
@@ -174,18 +186,54 @@ jobs:
           files: |
             **/*.F90
             **/*.Inc
-      - name: Perform checks of embedded XML and LaTeX
+      - name: Validate embedded XML directives
         run: |
           status=0
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             if PYTHONPATH=$GITHUB_WORKSPACE/python python3 scripts/aux/embeddedAnalyzer.py $file warnings.md; then
-              echo "Embedded XML/LaTeX in file $file passes analysis"
+              echo "Embedded XML in file $file passes validation"
             else
-              echo "Embedded XML/LaTeX in file $file fails analysis"
+              echo "Embedded XML in file $file fails validation"
               status=1
             fi
           done
           exit $status
+  # Spell-check the reStructuredText documentation (advisory — does not fail the
+  # build). Builds the docs with sphinxcontrib-spelling and posts any possible
+  # misspellings as a PR comment; add legitimate technical terms to aux/words.dict.
+  Spell-Check-RST:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Mark directory safe
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+      - name: Install tools
+        run: |
+          sudo apt -y update
+          sudo apt install -y enchant-2 aspell aspell-en poppler-utils
+          pip install -r docs/requirements.txt sphinxcontrib-spelling pyenchant
+      - name: Build documentation and spell-check
+        run: |
+          PYTHONPATH=$GITHUB_WORKSPACE/python python scripts/doc/extractDocsRST.py source docs
+          SPHINX_SPELLING=1 python -m sphinx -b spelling docs docs/_spelling || true
+          if find docs/_spelling -name '*.spelling' -size +0 | grep -q .; then
+            {
+              printf '<details><summary>RST spell-check (advisory) — possible misspellings (click to expand)</summary>\n\n'
+              printf 'Add any legitimate technical terms to `aux/words.dict`.\n\n```\n'
+              cat $(find docs/_spelling -name '*.spelling') | sort -u
+              printf '```\n\n</details>\n'
+            } > warnings.md
+          fi
       - name: Check file existence
         id: check_files
         uses: andstor/file-existence-action@v3
@@ -195,67 +243,9 @@ jobs:
         if: steps.check_files.outputs.files_exists == 'true'
         run: |
           cat warnings.md >> $GITHUB_STEP_SUMMARY
-      - name: Wrap warnings in collapsible section
-        if: steps.check_files.outputs.files_exists == 'true'
-        run: |
-          printf '<details><summary>Embedded XML/LaTeX warnings (click to expand)</summary>\n\n' > warnings-collapsible.md
-          cat warnings.md >> warnings-collapsible.md
-          printf '\n\n</details>\n' >> warnings-collapsible.md
-      - name: Comment on the PR if any warnings were found
+      - name: Comment on the PR if any possible misspellings were found
         if: steps.check_files.outputs.files_exists == 'true' && github.event.pull_request.head.repo.full_name == github.repository
         continue-on-error: true
         uses: thollander/actions-comment-pull-request@v3
         with:
-          file-path: warnings-collapsible.md
-  # Spell check LaTeX files
-  Spell-Check-LaTeX:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v6
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "DICTIONARY=en_US" >> $GITHUB_ENV
-          echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
-      - name: Mark directory safe        
-        run: |
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-      - name: Install tools
-        run: |
-          apt -y update
-          apt install -y texlive texlive-latex-extra texlive-science texlive-extra-utils hunspell hunspell-en-us python3-lxml
-      - name: Build class information
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          make -j4 work/build/stateStorables.xml
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v47
-        with:
-          files: |
-            **/*.tex
-      - name: Perform checks of LaTeX files
-        run: |
-          status=0
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            PYTHONPATH=$GITHUB_WORKSPACE/python python3 scripts/aux/spellChecker.py $file warnings.md
-          done
-      - name: Check file existence
-        id: check_files
-        uses: andstor/file-existence-action@v3
-        with:
-          files: warnings.md
-      - name: Wrap warnings in collapsible section
-        if: steps.check_files.outputs.files_exists == 'true'
-        run: |
-          printf '<details><summary>Spell check warnings (click to expand)</summary>\n\n' > warnings-collapsible.md
-          cat warnings.md >> warnings-collapsible.md
-          printf '\n\n</details>\n' >> warnings-collapsible.md
-      - name: Comment on the PR if any warnings were found
-        if: steps.check_files.outputs.files_exists == 'true' && github.event.pull_request.head.repo.full_name == github.repository
-        uses: thollander/actions-comment-pull-request@v3
-        with:
-          file-path: warnings-collapsible.md
+          file-path: warnings.md

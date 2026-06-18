@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class for calculations for progenitor properties for mergers.
 !!}
 
 module Satellite_Merging_Progenitor_Properties
-  !!{
+  !!{RST
   Implements a class for calculations for progenitor properties for mergers.
   !!}
   use :: Galacticus_Nodes, only : treeNode
@@ -30,18 +30,17 @@ module Satellite_Merging_Progenitor_Properties
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>mergerProgenitorProperties</name>
    <descriptiveName>Merger Progenitor Properties</descriptiveName>
-   <description>Class providing models of the effective properties of merger progenitors---the masses, radii,
-    and angular momentum factors of the satellite and host galaxies immediately before a merger event,
-    which are passed to the remnant size calculator. The progenitor properties determine the energy
-    budget available to the merger remnant: the satellite mass, host spheroid mass, pre-merger host
-    spheroid mass, effective radii, angular momentum factor, and the expected remnant spheroid and
-    gas-spheroid masses used to compute the post-merger structure.</description>
+   <description>
+   Class providing models of the effective properties of merger progenitors---the masses, radii, and angular momentum factors of the satellite and host galaxies immediately before a merger event, which are passed to the remnant size calculator. The progenitor properties determine the energy budget available to the merger remnant: the satellite mass, host spheroid mass, pre-merger host spheroid mass, effective radii, angular momentum factor, and the expected remnant spheroid and gas-spheroid masses used to compute the post-merger structure.
+   </description>
    <default>standard</default>
    <method name="get" >
-    <description>Calculates the effective masses, radii, and angular momentum factors of the satellite and host galaxy progenitors immediately before a merger event, providing the energy budget inputs required by remnant size calculators.</description>
+    <description>
+    Calculates the effective masses, radii, and angular momentum factors of the satellite and host galaxy progenitors immediately before a merger event, providing the energy budget inputs required by remnant size calculators.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node property extractor which reports the formation channel for the central black hole of a given node.
   !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorBlackHoleFormationChannel">
-   <description>Extracts the formation channel identifier for black hole seeds in each node, enabling classification of black holes by their seeding mechanism (e.g., direct collapse, stellar remnants) for statistical analysis.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorBlackHoleFormationChannel" docformat="rst">
+   <description>
+   Extracts the formation channel identifier for black hole seeds in each node, enabling classification of black holes by their seeding mechanism (e.g., direct collapse, stellar remnants) for statistical analysis.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorBlackHoleFormationChannel
-     !!{
+     !!{RST
      A node property extractor class which extracts the formation channel for black hole seeds.
      !!}
      private
@@ -39,8 +41,8 @@
   end type nodePropertyExtractorBlackHoleFormationChannel
 
   interface nodePropertyExtractorBlackHoleFormationChannel
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorBlackHoleFormationChannel} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorBlackHoleFormationChannel` property extractor class.
      !!}
      module procedure blackHoleFormationChannelConstructorParameters
      module procedure blackHoleFormationChannelConstructorInternal
@@ -49,8 +51,8 @@
 contains
 
   function blackHoleFormationChannelConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorBlackHoleFormationChannel} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorBlackHoleFormationChannel` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,8 +67,8 @@ contains
   end function blackHoleFormationChannelConstructorParameters
 
   function blackHoleFormationChannelConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorBlackHoleFormationChannel} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorBlackHoleFormationChannel` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorBlackHoleFormationChannel) :: self
@@ -78,8 +80,8 @@ contains
   end function blackHoleFormationChannelConstructorInternal
 
   function blackHoleFormationChannelExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{blackHoleFormationChannel} node property extractor.
+    !!{RST
+    Implement a ``blackHoleFormationChannel`` node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole               , nodeComponentBlackHoleStandard
     use :: Black_Hole_Seeds, only : blackHoleFormationChannelUndetermined
@@ -105,7 +107,7 @@ contains
   end function blackHoleFormationChannelExtract
 
   function blackHoleFormationChannelName(self)
-    !!{
+    !!{RST
     Return the name of the blackHoleFormationChannel property.
     !!}
     implicit none
@@ -118,7 +120,7 @@ contains
   end function blackHoleFormationChannelName
   
   function blackHoleFormationChannelDescription(self) result(description)
-    !!{
+    !!{RST
     Return a description of the blackHoleFormationChannel property.
     !!}
     use :: Black_Hole_Seeds, only : blackHoleFormationChannelMin, blackHoleFormationChannelMax, enumerationBlackHoleFormationChannelDecode

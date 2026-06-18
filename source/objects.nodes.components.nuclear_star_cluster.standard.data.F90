@@ -19,12 +19,12 @@
 
   !+    Contributions to this file made by: Matías Liempi
 
-!!{
+!!{RST
 Contains a module which stores data for the standard nuclear star cluster node component.
 !!}
 
 module Node_Component_NSC_Standard_Data
-  !!{
+  !!{RST
   Stores data for the standard nuclear star cluster node component.
   !!}
   use :: Mass_Distributions, only : massDistributionClass, kinematicsDistributionLocal

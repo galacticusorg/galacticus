@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a code to test the radiative transfer state solver.
 !!}
 
 program Test_Radiative_Transfer_State_Solver
-  !!{
+  !!{RST
   Test the radiative transfer state solver.
   !!}
   use :: Atomic_Cross_Sections_Ionization_Photo      , only : atomicCrossSectionIonizationPhotoVerner

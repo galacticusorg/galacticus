@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a cooling rate class which modifies another cooling rate by cutting off cooling in satellites.
   !!}
 
 
   !![
-  <coolingRate name="coolingRateNoCoolingSatellites">
-   <description>Wraps a \refClass{coolingRateClass} object and suppresses cooling in satellite halos, restricting gas cooling to isolated (field) halos only, modeling strangulation of satellite gas supply after infall.</description>
+  <coolingRate name="coolingRateNoCoolingSatellites" docformat="rst">
+   <description>
+   Wraps a :galacticus-class:`coolingRateClass` object and suppresses cooling in satellite halos, restricting gas cooling to isolated (field) halos only, modeling strangulation of satellite gas supply after infall.
+   </description>
   </coolingRate>
   !!]
   type, extends(coolingRateClass) :: coolingRateNoCoolingSatellites
-     !!{
+     !!{RST
      Implementation of cooling rate class which modifies another cooling rate by cutting off cooling in satellites.
      !!}
      private
@@ -39,7 +41,7 @@
   end type coolingRateNoCoolingSatellites
 
   interface coolingRateNoCoolingSatellites
-     !!{
+     !!{RST
      Constructors for the cut off cooling rate class.
      !!}
      module procedure noCoolingSatellitesConstructorParameters
@@ -49,7 +51,7 @@
 contains
 
   function noCoolingSatellitesConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the cut off cooling rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -70,7 +72,7 @@ contains
   end function noCoolingSatellitesConstructorParameters
 
   function noCoolingSatellitesConstructorInternal(coolingRate_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the cut off cooling rate class.
     !!}
     type (coolingRateNoCoolingSatellites)                        :: self
@@ -83,7 +85,7 @@ contains
   end function noCoolingSatellitesConstructorInternal
 
   subroutine noCoolingSatellitesDestructor(self)
-    !!{
+    !!{RST
     Destructor for the cut off cooling rate class.
     !!}
     implicit none
@@ -96,9 +98,8 @@ contains
   end subroutine noCoolingSatellitesDestructor
 
   double precision function noCoolingSatellitesRate(self,node)
-    !!{
-    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is cut off
-    in satellites.
+    !!{RST
+    Returns the cooling rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) in the hot atmosphere for a model in which this rate is cut off in satellites.
     !!}
     implicit none
     class(coolingRateNoCoolingSatellites), intent(inout) :: self

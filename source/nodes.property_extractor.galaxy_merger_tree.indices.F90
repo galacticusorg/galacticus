@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergerTreeIndices">
-   <description>Extracts integer index properties (such as tree identifier, node identifier, and host node index) from galaxy merger trees, providing the structural metadata needed for cross-referencing merger tree outputs.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergerTreeIndices" docformat="rst">
+   <description>
+   Extracts integer index properties (such as tree identifier, node identifier, and host node index) from galaxy merger trees, providing the structural metadata needed for cross-referencing merger tree outputs.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerList) :: nodePropertyExtractorGalaxyMergerTreeIndices
-     !!{
+     !!{RST
      A property extractor which extracts the indices properties of galaxy merger trees.
      !!}
      private
@@ -38,8 +40,8 @@
   end type nodePropertyExtractorGalaxyMergerTreeIndices
 
   interface nodePropertyExtractorGalaxyMergerTreeIndices
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorGalaxyMergerTreeIndices} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorGalaxyMergerTreeIndices` property extractor class.
      !!}
      module procedure galaxyMergerTreeIndicesConstructorParameters
      module procedure galaxyMergerTreeIndicesConstructorInternal
@@ -48,8 +50,8 @@
 contains
 
   function galaxyMergerTreeIndicesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorGalaxyMergerTreeIndices} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorGalaxyMergerTreeIndices` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,8 +66,8 @@ contains
   end function galaxyMergerTreeIndicesConstructorParameters
 
   function galaxyMergerTreeIndicesConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergerTreeIndices} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorGalaxyMergerTreeIndices` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMergerTreeIndices) :: self
@@ -78,7 +80,7 @@ contains
   end function galaxyMergerTreeIndicesConstructorInternal
 
   integer function galaxyMergerTreeIndicesElementCount(self)
-    !!{
+    !!{RST
     Return a count of the number of properties extracted.
     !!}
     implicit none
@@ -89,7 +91,7 @@ contains
   end function galaxyMergerTreeIndicesElementCount
 
   function galaxyMergerTreeIndicesExtract(self,node,instance) result(galaxyMergerTree)
-    !!{
+    !!{RST
     Implement a galaxyMergerTreeIndices output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -113,8 +115,8 @@ contains
   end function galaxyMergerTreeIndicesExtract
   
   subroutine galaxyMergerTreeIndicesNames(self,names)
-    !!{
-    Return the names of the \mono{galaxyMergerTreeIndices} properties.
+    !!{RST
+    Return the names of the ``galaxyMergerTreeIndices`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyMergerTreeIndices), intent(inout)                             :: self
@@ -128,8 +130,8 @@ contains
   end subroutine galaxyMergerTreeIndicesNames
 
   subroutine galaxyMergerTreeIndicesDescriptions(self,descriptions)
-    !!{
-    Return the descriptions of the \mono{galaxyMergerTreeIndices} properties.
+    !!{RST
+    Return the descriptions of the ``galaxyMergerTreeIndices`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyMergerTreeIndices), intent(inout)                             :: self
@@ -143,8 +145,8 @@ contains
   end subroutine galaxyMergerTreeIndicesDescriptions
 
   function galaxyMergerTreeIndicesUnitsInSI(self) result(unitsInSI)
-    !!{
-    Return the units of the \mono{galaxyMergerTreeIndices} properties in the SI system.
+    !!{RST
+    Return the units of the ``galaxyMergerTreeIndices`` properties in the SI system.
     !!}
     implicit none
     double precision                                              , dimension(:) , allocatable :: unitsInSI
@@ -157,7 +159,7 @@ contains
   end function galaxyMergerTreeIndicesUnitsInSI
 
   function galaxyMergerTreeIndicesUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the galaxyMergerTreeIndices properties.
     !!}
     use :: Units_MetaData, only : unitType

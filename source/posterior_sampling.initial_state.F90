@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a posterior sampling simulation class which implements evaluation of the model likelihood in the initial state
-  only.
+  !!{RST
+  Implementation of a posterior sampling simulation class which implements evaluation of the model likelihood in the initial state only.
   !!}
 
   use :: Model_Parameters                   , only : modelParameterList
@@ -28,13 +27,15 @@
   use :: Posterior_Sampling_State_Initialize, only : posteriorSampleStateInitializeClass
 
   !![
-  <posteriorSampleSimulation name="posteriorSampleSimulationInitialState">
-   <description>A posterior sampling simulation class which implements evaluation of the model likelihood in the initial state only.</description>
+  <posteriorSampleSimulation name="posteriorSampleSimulationInitialState" docformat="rst">
+   <description>
+   A posterior sampling simulation class which implements evaluation of the model likelihood in the initial state only.
+   </description>
    <descriptorSpecial>descriptorSpecial</descriptorSpecial>
   </posteriorSampleSimulation>
   !!]
   type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationInitialState
-     !!{
+     !!{RST
      Implementation of a posterior sampling simulation class which implements evaluation of the model likelihood in the initial state only.
      !!}
      private
@@ -47,8 +48,8 @@
      type   (varying_string                     )                        :: logFileRoot
    contains
      !![
-     <methods>
-       <method method="posterior"         description="Return the log of posterior probability for the given \mono{simulationState}."/>
+     <methods docformat="rst">
+       <method method="posterior"         description="Return the log of posterior probability for the given ``simulationState``."/>
        <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."                          />
      </methods>
      !!]
@@ -59,8 +60,8 @@
   end type posteriorSampleSimulationInitialState
 
   interface posteriorSampleSimulationInitialState
-     !!{
-     Constructors for the \mono{initialState} posterior sampling convergence class.
+     !!{RST
+     Constructors for the ``initialState`` posterior sampling convergence class.
      !!}
      module procedure initialStateConstructorParameters
      module procedure initialStateConstructorInternal
@@ -69,9 +70,8 @@
 contains
 
   function initialStateConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \mono{initialState} posterior sampling simulation class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the ``initialState`` posterior sampling simulation class which builds the object from a parameter set.
     !!}
     use :: Display         , only : displayMessage      , displayVerbosity      , verbosityLevelInfo
     use :: Error           , only : Error_Report
@@ -94,14 +94,18 @@ contains
     logical                                                                    :: appendLogs
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logFileRoot</name>
-      <description>Root file name for log files.</description>
+      <description>
+      Root file name for log files.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>appendLogs</name>
-      <description>If true, do not overwrite existing log files, but instead append to them.</description>
+      <description>
+      If true, do not overwrite existing log files, but instead append to them.
+      </description>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
@@ -182,8 +186,8 @@ contains
   end function initialStateConstructorParameters
 
   function initialStateConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleState_,posteriorSampleStateInitialize_,logFileRoot,appendLogs) result(self)
-    !!{
-    Internal constructor for the ``initialState'' simulation class.
+    !!{RST
+    Internal constructor for the "initialState" simulation class.
     !!}
     implicit none
     type     (posteriorSampleSimulationInitialState)                                      :: self
@@ -218,7 +222,7 @@ contains
   end function initialStateConstructorInternal
 
   subroutine initialStateDestructor(self)
-    !!{
+    !!{RST
     Destroy a differential evolution simulation object.
     !!}
     implicit none
@@ -248,7 +252,7 @@ contains
   end subroutine initialStateDestructor
 
   subroutine initialStateSimulate(self)
-    !!{
+    !!{RST
     Perform a initialState simulation.
     !!}
     use :: Display        , only : displayIndent  , displayMagenta, displayMessage, displayReset, &
@@ -298,7 +302,7 @@ contains
   end subroutine initialStateSimulate
 
   subroutine initialStatePosterior(self,posteriorSampleState_,logPosterior,logLikelihood,timeEvaluate)
-    !!{
+    !!{RST
     Return the log of the posterior for the current state.
     !!}
     use :: Model_Parameters              , only : modelParameterListLogPrior
@@ -335,7 +339,7 @@ contains
   end subroutine initialStatePosterior
 
   subroutine initialStateDescriptorSpecial(self,descriptor)
-    !!{
+    !!{RST
     Add special parameters to the descriptor.
     !!}
     use :: Input_Parameters, only : inputParameters

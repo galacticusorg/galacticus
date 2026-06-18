@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an OpenMP threaded merger tree evolver.
   !!}
 
@@ -41,16 +41,14 @@
   end type nodeTask
   
   !![
-  <mergerTreeEvolver name="mergerTreeEvolverThreaded">
+  <mergerTreeEvolver name="mergerTreeEvolverThreaded" docformat="rst">
    <description>
-    An OpenMP threaded merger tree evolver. This class extends the \refClass{mergerTreeEvolverStandard} merger tree evolver class. To evolve the tree,
-    a list of evolvable nodes is constructed and then a set of parallel threads is spawned which take nodes from that list, evolve
-    them, and add them to a second list for postprocessing. This repeats until tree evolution is completed.
-    </description>
+   An OpenMP threaded merger tree evolver. This class extends the :galacticus-class:`mergerTreeEvolverStandard` merger tree evolver class. To evolve the tree, a list of evolvable nodes is constructed and then a set of parallel threads is spawned which take nodes from that list, evolve them, and add them to a second list for postprocessing. This repeats until tree evolution is completed.
+   </description>
   </mergerTreeEvolver>
   !!]
   type, extends(mergerTreeEvolverStandard) :: mergerTreeEvolverThreaded
-     !!{
+     !!{RST
      Implementation of an OpenMP threaded merger tree evolver.
      !!}
      private
@@ -65,8 +63,8 @@
   end type mergerTreeEvolverThreaded
 
   interface mergerTreeEvolverThreaded
-     !!{
-     Constructors for the \refClass{mergerTreeEvolverThreaded} merger tree evolver.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeEvolverThreaded` merger tree evolver.
      !!}
      module procedure threadedConstructorParameters
      module procedure threadedConstructorInternal
@@ -79,8 +77,8 @@
 contains
 
   function threadedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolverThreaded} merger tree evolver class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeEvolverThreaded` merger tree evolver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -101,47 +99,60 @@ contains
          &                                                                       fractionTimestepSatelliteMinimum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>allTreesExistAtFinalTime</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether or not all merger trees are expected to exist at the final requested output time. If set to false,
-         then trees which finish before a given output time will be ignored.</description>
+      <description>
+      Specifies whether or not all merger trees are expected to exist at the final requested output time. If set to false, then trees which finish before a given output time will be ignored.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dumpTreeStructure</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether merger tree structure should be dumped to a \href{http://www.graphviz.org/}{\normalfont \scshape dot} file.</description>
+      <description>
+      Specifies whether merger tree structure should be dumped to a `dot &lt;http://www.graphviz.org/&gt;`_ file.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timestepHostRelative</name>
       <defaultValue>0.1d0</defaultValue>
-      <description>The maximum allowed relative timestep for node evolution relative to the time of the host halo.</description>
+      <description>
+      The maximum allowed relative timestep for node evolution relative to the time of the host halo.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timestepHostAbsolute</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The maximum allowed absolute timestep (in Gyr) for node evolution relative to the time of the host halo.</description>
+      <description>
+      The maximum allowed absolute timestep (in Gyr) for node evolution relative to the time of the host halo.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionTimestepSatelliteMinimum</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum fraction of the timestep imposed by the ``satellite in host'' criterion to evolve over. If the timestep allowed is smaller than this fraction, the actual timestep will be reduced to zero. This avoids forcing satellites to take a large number of very small timesteps, and instead defers evolving a satellite until a large timestep can be taken.</description>
+      <description>
+      The minimum fraction of the timestep imposed by the "satellite in host" criterion to evolve over. If the timestep allowed is smaller than this fraction, the actual timestep will be reduced to zero. This avoids forcing satellites to take a large number of very small timesteps, and instead defers evolving a satellite until a large timestep can be taken.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>profileSteps</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not to profile the ODE evolver.</description>
+      <description>
+      Specifies whether or not to profile the ODE evolver.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>reportTiming</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, report on timing of serial and parallel sections.</description>
+      <description>
+      If true, report on timing of serial and parallel sections.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -178,8 +189,8 @@ contains
   end function threadedConstructorParameters
 
   function threadedConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,profileSteps,reportTiming,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,mergerTreeEvolveConcurrency_,metaTreeProcessingTime_,galacticStructureSolver_,mergerTreeEvolveProfiler_,parameters) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeEvolverThreaded} merger tree evolver class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeEvolverThreaded` merger tree evolver class.
     !!}
     implicit none
     type            (mergerTreeEvolverThreaded       )                        :: self
@@ -211,8 +222,8 @@ contains
   end function threadedConstructorInternal
 
   subroutine threadedDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeEvolverThreaded} merger tree evolver class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeEvolverThreaded` merger tree evolver class.
     !!}
     implicit none
     type   (mergerTreeEvolverThreaded), intent(inout) :: self
@@ -238,7 +249,7 @@ contains
   end subroutine threadedDestructor
 
   subroutine threadedEvolve(self,tree,timeEnd,treeDidEvolve,suspendTree,deadlockReporting,systemClockMaximum,initializationLock,status)
-    !!{
+    !!{RST
     Evolves all properties of a merger tree to the specified time.
     !!}
     use, intrinsic :: ISO_C_Binding                      , only : c_size_t

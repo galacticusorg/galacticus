@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that fixes the \gls{cgm} outer radius to the virial radius.
+  !!{RST
+  Implements a node operator class that fixes the :term:`CGM` outer radius to the virial radius.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <nodeOperator name="nodeOperatorCGMOuterRadiusVirialRadius">
-   <description>Sets the outer boundary of the circumgalactic medium (\gls{cgm}) equal to the halo virial radius as computed by a \refClass{darkMatterHaloScaleClass} object, analytically enforcing this constraint during differential evolution.</description>
+  <nodeOperator name="nodeOperatorCGMOuterRadiusVirialRadius" docformat="rst">
+   <description>
+   Sets the outer boundary of the circumgalactic medium (:term:`CGM`) equal to the halo virial radius as computed by a :galacticus-class:`darkMatterHaloScaleClass` object, analytically enforcing this constraint during differential evolution.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorCGMOuterRadiusVirialRadius
-     !!{
-     A node operator class that fixes the \gls{cgm} outer radius to the virial radius.
+     !!{RST
+     A node operator class that fixes the :term:`CGM` outer radius to the virial radius.
      !!}
      private
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
@@ -43,8 +45,8 @@
   end type nodeOperatorCGMOuterRadiusVirialRadius
   
   interface nodeOperatorCGMOuterRadiusVirialRadius
-     !!{
-     Constructors for the \refClass{nodeOperatorCGMOuterRadiusVirialRadius} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorCGMOuterRadiusVirialRadius` node operator class.
      !!}
      module procedure cgmOuterRadiusVirialRadiusConstructorParameters
      module procedure cgmOuterRadiusVirialRadiusConstructorInternal
@@ -53,8 +55,8 @@
 contains
   
   function cgmOuterRadiusVirialRadiusConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorCGMOuterRadiusVirialRadius} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorCGMOuterRadiusVirialRadius` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,8 +76,8 @@ contains
   end function cgmOuterRadiusVirialRadiusConstructorParameters
 
   function cgmOuterRadiusVirialRadiusConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorCGMOuterRadiusVirialRadius} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorCGMOuterRadiusVirialRadius` node operator class.
     !!}
     implicit none
     type (nodeOperatorCGMOuterRadiusVirialRadius)                        :: self
@@ -88,8 +90,8 @@ contains
   end function cgmOuterRadiusVirialRadiusConstructorInternal
 
   subroutine cgmOuterRadiusVirialRadiusDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorCGMOuterRadiusVirialRadius} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorCGMOuterRadiusVirialRadius` node operator class.
     !!}
     implicit none
     type(nodeOperatorCGMOuterRadiusVirialRadius), intent(inout) :: self
@@ -101,7 +103,7 @@ contains
   end subroutine cgmOuterRadiusVirialRadiusDestructor
   
   subroutine cgmOuterRadiusVirialRadiusDifferentialEvolutionAnalytics(self,node)
-    !!{
+    !!{RST
     Mark analytically-solvable properties.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo
@@ -121,7 +123,7 @@ contains
   end subroutine cgmOuterRadiusVirialRadiusDifferentialEvolutionAnalytics
 
   subroutine cgmOuterRadiusVirialRadiusSolveAnalytics(self,node,time)
-    !!{
+    !!{RST
     Set values of analytically-solvable properties.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo
@@ -143,7 +145,7 @@ contains
   end subroutine cgmOuterRadiusVirialRadiusSolveAnalytics
 
   subroutine cgmOuterRadiusVirialRadiusNodesMerge(self,node)
-    !!{
+    !!{RST
     Act on a merger between nodes.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo

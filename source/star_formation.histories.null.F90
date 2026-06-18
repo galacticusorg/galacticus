@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a null star formation histories class.
 !!}
 
   !![
-  <starFormationHistory name="starFormationHistoryNull">
-   <description>A null star formation histories class that performs no recording or tracking of star formation history, used when detailed star formation history information is not required in the simulation.</description>
+  <starFormationHistory name="starFormationHistoryNull" docformat="rst">
+   <description>
+   A null star formation histories class that performs no recording or tracking of star formation history, used when detailed star formation history information is not required in the simulation.
+   </description>
   </starFormationHistory>
   !!]
   type, extends(starFormationHistoryClass) :: starFormationHistoryNull
-     !!{
+     !!{RST
      A null star formation histories class.
      !!}
      private
@@ -39,8 +41,8 @@ Implements a null star formation histories class.
   end type starFormationHistoryNull
 
   interface starFormationHistoryNull
-     !!{
-     Constructors for the \refClass{starFormationHistoryNull} star formation history class.
+     !!{RST
+     Constructors for the :galacticus-class:`starFormationHistoryNull` star formation history class.
      !!}
      module procedure nullConstructorParameters
   end interface starFormationHistoryNull
@@ -48,8 +50,8 @@ Implements a null star formation histories class.
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{starFormationHistoryNull} star formation history class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`starFormationHistoryNull` star formation history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +66,7 @@ contains
   end function nullConstructorParameters
 
   subroutine nullCreate(self,node,historyStarFormation,timeBegin,timeEnd)
-    !!{
+    !!{RST
     Create the history required for storing star formation history.
     !!}
     implicit none
@@ -80,8 +82,8 @@ contains
   end subroutine nullCreate
 
   subroutine nullRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
-    !!{
-    Set the rate the star formation history for \mono{node}.
+    !!{RST
+    Set the rate the star formation history for ``node``.
     !!}
     implicit none
     class           (starFormationHistoryNull), intent(inout) :: self
@@ -97,7 +99,7 @@ contains
   end subroutine nullRate
 
   subroutine nullScales(self,historyStarFormation,node,massStellar,massGas,abundancesStellar)
-    !!{
+    !!{RST
     Set the scalings for error control on the absolute values of star formation histories.
     !!}
     implicit none
@@ -113,7 +115,7 @@ contains
   end subroutine nullScales
 
   function nullMetallicityBoundaries(self)
-    !!{
+    !!{RST
     Return the boundaries of the metallicities used in this tabulation.
     !!}
     implicit none

@@ -19,49 +19,51 @@
 
   !+ Contributions to this file made by: Sachi Weerasooriya
 
-  !!{
-  Implements a cooling function class which implements cooling from molecular hydrogen using the cooling function of
-  \cite{galli_chemistry_1998}.
+  !!{RST
+  Implements a cooling function class which implements cooling from molecular hydrogen using the cooling function of :cite:t:`galli_chemistry_1998`.
   !!}
 
   use :: Tables, only : table1DLinearLinear
 
   !![
-  <coolingFunction name="coolingFunctionMolecularHydrogenGalliPalla">
+  <coolingFunction name="coolingFunctionMolecularHydrogenGalliPalla" docformat="rst">
    <description>
-    A cooling function class that computes the cooling function due to molecular hydrogen using the results of
-    \cite{galli_chemistry_1998}. For the H--H$_2$ cooling function, the fitting functions from \cite{galli_chemistry_1998} are
-    used. For the H$_2^+$--e$^-$ and H--H$_2^+$ cooling functions fitting functions to the results plotted in
-    \cite{suchkov_cooling_1978} are used:
-    \begin{equation}
-    \log_{10}\left({\Lambda(T) \over \hbox{erg s}^{-1} \hbox{cm}^3}\right) = C_0 + C_1 \log_{10} \left({T\over\hbox{K}}\right)
-    + C_2 \left[\log_{10} \left({T\over\hbox{K}}\right)\right]^2,
-    \label{eq:H2CoolingFunction}
-    \end{equation}
-    where the coefficients $C_{0-2}$ are given in Table~\ref{tb:H2CoolingFunctionCoefficients}.
-    
-    \begin{table}
-     \begin{center}
-      \caption{Coefficients of H$_2^+$ cooling functions as appearing in the fitting function,
-      eq.~\protect\ref{eq:H2CoolingFunction}.}
-      \label{tb:H2CoolingFunctionCoefficients}
-      \begin{tabular}{lrrr}
-       \hline
-       &amp; \multicolumn{3}{c}{{\normalfont \bfseries Coefficient}} \\
-       {\normalfont \bfseries Interaction} &amp; \boldmath{$C_0$} &amp; \boldmath{$C_1$} &amp; \boldmath{$C_2$} \\
-       \hline
-       H$_2^+$--e$^-$ &amp; -33.33 &amp; 5.565 &amp; -0.4675 \\
-       H--H$_2^+$ &amp; -35.28 &amp; 5.862 &amp; -0.5124 \\
-       \hline
-      \end{tabular}
-     \end{center}
-    \end{table}
+   A cooling function class that computes the cooling function due to molecular hydrogen using the results of :cite:t:`galli_chemistry_1998`. For the H--H\ :math:`_2` cooling function, the fitting functions from :cite:t:`galli_chemistry_1998` are used. For the H\ :math:`_2^+`--e\ :math:`^-` and H--H\ :math:`_2^+` cooling functions fitting functions to the results plotted in :cite:t:`suchkov_cooling_1978` are used:
+
+   .. math::
+      :label: eq-H2CoolingFunction
+
+      \log_{10}\left({\Lambda(T) \over \hbox{erg s}^{-1} \hbox{cm}^3}\right) = C_0 + C_1 \log_{10} \left({T\over\hbox{K}}\right)
+      + C_2 \left[\log_{10} \left({T\over\hbox{K}}\right)\right]^2,
+
+   where the coefficients :math:`C_{0-2}` are given in Table :numref:`{number} &lt;tb-H2CoolingFunctionCoefficients&gt;`.
+
+   .. list-table:: Coefficients of H\ :math:`_2^+` cooling functions as appearing in the fitting function, eq. :eq:`eq-H2CoolingFunction`.
+      :name: tb-H2CoolingFunctionCoefficients
+      :header-rows: 2
+
+      * - ​
+        - Coefficient
+        - ​
+        - ​
+      * - Interaction
+        - :math:`C_0`
+        - :math:`C_1`
+        - :math:`C_2`
+      * - H\ :math:`_2^+`--e\ :math:`^-`
+        - -33.33
+        - 5.565
+        - -0.4675
+      * - H--H\ :math:`_2^+`
+        - -35.28
+        - 5.862
+        - -0.5124
    </description>
   </coolingFunction>
   !!]
   type, extends(coolingFunctionClass) :: coolingFunctionMolecularHydrogenGalliPalla
-     !!{
-     A cooling function class which implements cooling from molecular hydrogen using the cooling function of \cite{galli_chemistry_1998}.
+     !!{RST
+     A cooling function class which implements cooling from molecular hydrogen using the cooling function of :cite:t:`galli_chemistry_1998`.
      !!}
      private
      ! Indices of "chemical species" (includes atoms, atomic ions and electrons also) used in this cooling function.
@@ -80,10 +82,10 @@
     type            (table1DLinearLinear), allocatable :: interpolatorCoolingFunctionCommon
    contains
      !![
-     <methods>
-       <method description="Compute the cooling function due to H--H$_2$."       method="coolingFunctionH_H2"           />
-       <method description="Compute the cooling function due to H$_2^+$--e$^-$." method="coolingFunctionH2Plus_Electron"/>
-       <method description="Compute the cooling function due to H--H$_2^+$."     method="coolingFunctionH_H2Plus"       />
+     <methods docformat="rst">
+       <method description="Compute the cooling function due to H--H\ :math:`_2`."       method="coolingFunctionH_H2"           />
+       <method description="Compute the cooling function due to H\ :math:`_2^+`--e\ :math:`^-`." method="coolingFunctionH2Plus_Electron"/>
+       <method description="Compute the cooling function due to H--H\ :math:`_2^+`."     method="coolingFunctionH_H2Plus"       />
        <method description="Compute common factors."                             method="commonFactors"                 />
      </methods>
      !!]
@@ -98,8 +100,8 @@
   end type coolingFunctionMolecularHydrogenGalliPalla
 
   interface coolingFunctionMolecularHydrogenGalliPalla
-     !!{
-     Constructors for the \refClass{coolingFunctionMolecularHydrogenGalliPalla} cooling function class.
+     !!{RST
+     Constructors for the :galacticus-class:`coolingFunctionMolecularHydrogenGalliPalla` cooling function class.
      !!}
      module procedure molecularHydrogenGalliPallaConstructorParameters
      module procedure molecularHydrogenGalliPallaConstructorInternal
@@ -137,8 +139,8 @@
 contains
 
   function molecularHydrogenGalliPallaConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{coolingFunctionMolecularHydrogenGalliPalla} cooling function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`coolingFunctionMolecularHydrogenGalliPalla` cooling function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -153,8 +155,8 @@ contains
   end function molecularHydrogenGalliPallaConstructorParameters
 
   function molecularHydrogenGalliPallaConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{coolingFunctionMolecularHydrogenGalliPalla} cooling function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`coolingFunctionMolecularHydrogenGalliPalla` cooling function class.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     implicit none
@@ -180,11 +182,8 @@ contains
   end function molecularHydrogenGalliPallaConstructorInternal
 
   double precision function molecularHydrogenGalliPallaCoolingFunction(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !!{
-    Return the cooling function due to molecular hydrogen using the cooling function of \cite{galli_chemistry_1998} (which
-    refers to the local thermodynamic equilibrium cooling function of \cite{hollenbach_molecule_1979}). Cooling functions
-    involving H$_2^+$ are computed using polynomial fits to the results of \cite{suchkov_cooling_1978} found by Andrew
-    Benson by measuring curves from the original paper.
+    !!{RST
+    Return the cooling function due to molecular hydrogen using the cooling function of :cite:t:`galli_chemistry_1998` (which refers to the local thermodynamic equilibrium cooling function of :cite:t:`hollenbach_molecule_1979`). Cooling functions involving H\ :math:`_2^+` are computed using polynomial fits to the results of :cite:t:`suchkov_cooling_1978` found by Andrew Benson by measuring curves from the original paper.
     !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
@@ -211,7 +210,7 @@ contains
   end function molecularHydrogenGalliPallaCoolingFunction
 
   double precision function molecularHydrogenGalliPallaCoolingFunctionFractionInBand(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
-    !!{
+    !!{RST
     Return the fraction of the cooling function due to emission in the given band. This is currently unsupported.
     !!}
     use :: Abundances_Structure         , only : abundances
@@ -234,9 +233,8 @@ contains
   end function molecularHydrogenGalliPallaCoolingFunctionFractionInBand
 
   double precision function molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !!{
-    Return the gradient with respect to density of the cooling function due to molecular hydrogen using the cooling function
-    of \cite{galli_chemistry_1998}.
+    !!{RST
+    Return the gradient with respect to density of the cooling function due to molecular hydrogen using the cooling function of :cite:t:`galli_chemistry_1998`.
     !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
@@ -309,9 +307,8 @@ contains
   end function molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope
 
   double precision function molecularHydrogenGalliPallaCoolingFunctionTemperatureLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !!{
-    Return the gradient with respect to temperature of the cooling function due to molecular hydrogen using the cooling
-    function of \cite{galli_chemistry_1998}.
+    !!{RST
+    Return the gradient with respect to temperature of the cooling function due to molecular hydrogen using the cooling function of :cite:t:`galli_chemistry_1998`.
     !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
@@ -512,7 +509,7 @@ contains
   end function molecularHydrogenGalliPallaCoolingFunctionTemperatureLogSlope
 
   subroutine molecularHydrogenGalliPallaCommonFactors(self,numberDensityHydrogen,temperature,numberDensityCriticalOverNumberDensityHydrogen,coolingFunctionLocalThermodynamicEquilibrium,coolingFunctionLowDensityLimit)
-    !!{
+    !!{RST
     Compute the ratio of critical number density to the hydrogen number density for use in molecular hydrogen cooling functions.
     !!}
     use :: Numerical_Constants_Prefixes, only : milli
@@ -630,8 +627,8 @@ contains
   end subroutine molecularHydrogenGalliPallaCommonFactors
 
   double precision function molecularHydrogenGalliPallaCoolingFunctionH2Plus_Electron(self,temperature,chemicalDensities)
-    !!{
-    Compute the cooling function due to H$_2^+$--e$^-$ interactions.
+    !!{RST
+    Compute the cooling function due to H\ :math:`_2^+`--e\ :math:`^-` interactions.
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
@@ -678,8 +675,8 @@ contains
   end function molecularHydrogenGalliPallaCoolingFunctionH2Plus_Electron
 
   double precision function molecularHydrogenGalliPallaCoolingFunctionH_H2Plus(self,temperature,chemicalDensities)
-    !!{
-    Compute the cooling function due to H--H$_2^+$ interactions.
+    !!{RST
+    Compute the cooling function due to H--H\ :math:`_2^+` interactions.
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
@@ -725,8 +722,8 @@ contains
   end function molecularHydrogenGalliPallaCoolingFunctionH_H2Plus
 
   double precision function molecularHydrogenGalliPallaCoolingFunctionH_H2(self,numberDensityHydrogen,temperature,chemicalDensities)
-    !!{
-    Compute the cooling function due to H--H$_2$ interactions.
+    !!{RST
+    Compute the cooling function due to H--H\ :math:`_2` interactions.
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none

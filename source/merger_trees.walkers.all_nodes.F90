@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a depth-first merger tree walker over all all nodes.
   !!}
   use :: Galacticus_Nodes, only : mergerTree, treeNode
 
   !![
-  <mergerTreeWalker name="mergerTreeWalkerAllNodes">
-   <description>Provides a merger tree walker which iterates depth-first over all all nodes.</description>
+  <mergerTreeWalker name="mergerTreeWalkerAllNodes" docformat="rst">
+   <description>
+   Provides a merger tree walker which iterates depth-first over all all nodes.
+   </description>
   </mergerTreeWalker>
   !!]
   type, extends(mergerTreeWalkerClass) :: mergerTreeWalkerAllNodes
-     !!{
+     !!{RST
      A merger tree walker which iterates depth-first over all all nodes.
      !!}
      private
@@ -37,7 +39,7 @@
      logical                      :: spanForest          , nodesRemain_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Step back to the previously visited node (if possible)."                     method="previous"/>
        <method description="Set the walker to the given node."                                           method="setNode" />
        <method description="Descend through the hierarchy to the deepest node along the current branch." method="descend" />
@@ -51,8 +53,8 @@
   end type mergerTreeWalkerAllNodes
 
   interface mergerTreeWalkerAllNodes
-     !!{
-     Constructors for the \refClass{mergerTreeWalkerAllNodes} merger tree walker class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeWalkerAllNodes` merger tree walker class.
      !!}
      module procedure allNodesParameters
      module procedure allNodesInternal
@@ -61,8 +63,8 @@
 contains
 
   function allNodesParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeWalkerAllNodes} merger tree walker class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeWalkerAllNodes` merger tree walker class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -76,8 +78,8 @@ contains
   end function allNodesParameters
 
   function allNodesInternal(tree,spanForest) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeWalkerAllNodes} merger tree walker class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeWalkerAllNodes` merger tree walker class.
     !!}
     implicit none
     type   (mergerTreeWalkerAllNodes)                          :: self
@@ -97,13 +99,8 @@ contains
   end function allNodesInternal
 
   logical function allNodesNext(self,node)
-    !!{
-    This function will update to given \mono{node} to the next node which should be visited in a tree to
-    perform a depth-first walk, including satellite nodes. Once the entire tree has been walked, a \mono{null()} pointer will be set, and a value of \mono{false} returned indicating that there are no more nodes
-    to walk. Each node will be visited once and once only if the tree is walked in this way. Note that it is important that the
-    walk descends to satellites before descending to children: the routines that destroy merger tree branches rely on this
-    since child nodes are used in testing whether a node is a satellite---if they are destroyed prior to the test being made
-    then problems with dangling pointers will occur.
+    !!{RST
+    This function will update to given ``node`` to the next node which should be visited in a tree to perform a depth-first walk, including satellite nodes. Once the entire tree has been walked, a ``null()`` pointer will be set, and a value of ``false`` returned indicating that there are no more nodes to walk. Each node will be visited once and once only if the tree is walked in this way. Note that it is important that the walk descends to satellites before descending to children: the routines that destroy merger tree branches rely on this since child nodes are used in testing whether a node is a satellite---if they are destroyed prior to the test being made then problems with dangling pointers will occur.
     !!}
     implicit none
     class(mergerTreeWalkerAllNodes), intent(inout)          :: self
@@ -188,7 +185,7 @@ contains
   end function allNodesNext
 
   subroutine allNodesPrevious(self,node)
-    !!{
+    !!{RST
     Step back to the previously visited node.
     !!}
     use :: Error, only : Error_Report
@@ -209,7 +206,7 @@ contains
   end subroutine allNodesPrevious
 
   subroutine allNodesDescend(self)
-    !!{
+    !!{RST
     Descend to the deepest progenitor (satellites and children) of the current branch.
     !!}
     implicit none
@@ -227,7 +224,7 @@ contains
   end subroutine allNodesDescend
 
   logical function allNodesNodesRemain(self)
-    !!{
+    !!{RST
     Returns true if more nodes remain to be walked to.
     !!}
     implicit none
@@ -238,7 +235,7 @@ contains
   end function allNodesNodesRemain
 
   subroutine allNodesSetNode(self,node)
-    !!{
+    !!{RST
     Set the current node for the walker.
     !!}
     implicit none

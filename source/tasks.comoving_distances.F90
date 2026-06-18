@@ -21,12 +21,14 @@
   use :: Output_Times       , only : outputTimesClass
 
   !![
-  <task name="taskComovingDistances">
-   <description>A task which computes and outputs the comoving distance to each output.</description>
+  <task name="taskComovingDistances" docformat="rst">
+   <description>
+   A task which computes and outputs the comoving distance to each output.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskComovingDistances
-     !!{
+     !!{RST
      Implementation of a task which computes and outputs the comoving distance to each output.
      !!}
      private
@@ -38,8 +40,8 @@
   end type taskComovingDistances
 
   interface taskComovingDistances
-     !!{
-     Constructors for the \refClass{taskComovingDistances} task.
+     !!{RST
+     Constructors for the :galacticus-class:`taskComovingDistances` task.
      !!}
      module procedure comovingDistancesConstructorParameters
      module procedure comovingDistancesConstructorInternal
@@ -48,8 +50,8 @@
 contains
 
   function comovingDistancesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskComovingDistances} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskComovingDistances` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,8 +74,8 @@ contains
   end function comovingDistancesConstructorParameters
 
   function comovingDistancesConstructorInternal(cosmologyFunctions_,outputTimes_) result(self)
-    !!{
-    Internal constructor for the \refClass{taskComovingDistances} task class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`taskComovingDistances` task class.
     !!}
     implicit none
     type (taskComovingDistances  )                        :: self
@@ -87,8 +89,8 @@ contains
   end function comovingDistancesConstructorInternal
 
   subroutine comovingDistancesDestructor(self)
-    !!{
-    Destructor for the \refClass{taskComovingDistances} task class.
+    !!{RST
+    Destructor for the :galacticus-class:`taskComovingDistances` task class.
     !!}
     implicit none
     type(taskComovingDistances), intent(inout) :: self
@@ -101,7 +103,7 @@ contains
   end subroutine comovingDistancesDestructor
 
   subroutine comovingDistancesPerform(self,status)
-    !!{
+    !!{RST
     Compute and output the comoving distances to each output.
     !!}
     use            :: Display         , only : displayIndent     , displayUnindent

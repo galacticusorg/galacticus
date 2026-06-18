@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of an ``null'' solver for galactic structure.
+  !!{RST
+  Implementation of an "null" solver for galactic structure.
   !!}
 
   !![
-  <galacticStructureSolver name="galacticStructureSolverNull">
-   <description>A no-op galactic structure solver that performs no radius solving, useful as a placeholder when galactic structure calculations are not needed or as a baseline for testing.</description>
+  <galacticStructureSolver name="galacticStructureSolverNull" docformat="rst">
+   <description>
+   A no-op galactic structure solver that performs no radius solving, useful as a placeholder when galactic structure calculations are not needed or as a baseline for testing.
+   </description>
   </galacticStructureSolver>
   !!]
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverNull
-     !!{
-     Implementation of an ``null'' solver for galactic structure.
+     !!{RST
+     Implementation of an "null" solver for galactic structure.
      !!}
      private
    contains
@@ -38,8 +40,8 @@
   end type galacticStructureSolverNull
 
   interface galacticStructureSolverNull
-     !!{
-     Constructors for the \refClass{galacticStructureSolverNull} galactic structure solver class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticStructureSolverNull` galactic structure solver class.
      !!}
      module procedure nullConstructorParameters
   end interface galacticStructureSolverNull
@@ -47,9 +49,8 @@
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticStructureSolverNull} galactic structure solver class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticStructureSolverNull` galactic structure solver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +65,7 @@ contains
   end function nullConstructorParameters
 
   subroutine nullAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : nodePromotionEvent  , openMPThreadBindingAtLevel, postEvolveEvent, preDerivativeEvent, &
@@ -80,8 +81,8 @@ contains
   end subroutine nullAutoHook
 
   subroutine nullDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticStructureSolverNull} galactic structure solver class.
+    !!{RST
+    Destructor for the :galacticus-class:`galacticStructureSolverNull` galactic structure solver class.
     !!}
     use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none
@@ -95,7 +96,7 @@ contains
   end subroutine nullDestructor
 
   subroutine nullSolveHook(self,node)
-    !!{
+    !!{RST
     Hookable wrapper around the solver.
     !!}
     use :: Error, only : Error_Report
@@ -113,7 +114,7 @@ contains
   end subroutine nullSolveHook
 
   subroutine nullSolvePreDeriativeHook(self,node,propertyType)
-    !!{
+    !!{RST
     Hookable wrapper around the solver.
     !!}
     use :: Error, only : Error_Report
@@ -133,7 +134,7 @@ contains
   end subroutine nullSolvePreDeriativeHook
 
   subroutine nullSolve(self,node,plausibilityOnly)
-    !!{
+    !!{RST
     Solve for the structure of galactic components.
     !!}
     use :: Galactic_Structure_Radius_Solver_Utilities, only : radiusSolverPlausibilities

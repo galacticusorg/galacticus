@@ -17,30 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-An implementation of the hot halo mass distribution class for $\beta$-profile distributions.
+!!{RST
+An implementation of the hot halo mass distribution class for :math:`\beta`-profile distributions.
 !!}
 
   use :: Hot_Halo_Cold_Mode_Density_Core_Radii, only : hotHaloColdModeCoreRadiiClass
   use :: Mass_Distributions                   , only : massDistributionBetaProfile
 
   !![
-  <hotHaloColdModeMassDistribution name="hotHaloColdModeMassDistributionBetaProfile">
+  <hotHaloColdModeMassDistribution name="hotHaloColdModeMassDistributionBetaProfile" docformat="rst">
    <description>
-    A hot halo cold mode mass distribution class which adopts a spherically symmetric $\beta$-profile density profile for the hot
-    halo. Specifically,
-    \begin{equation}
-     \rho_\mathrm{hot halo}(r) \propto \left[ r^2 + r_\mathrm{core}^2 \right]^{3\beta/2},
-    \end{equation}
-    where the core radius, $r_\mathrm{core}$, is set using the selected cored profile core radius method (see
-    \refPhysics{hotHaloColdModeCoreRadii}). The value of $\beta$ is specified by the \mono{[beta]} parameter. The profile is normalized such that the current mass in the hot gas profile is contained
-    within the outer radius of the hot halo, $r_\mathrm{hot, outer}$.
+   A hot halo cold mode mass distribution class which adopts a spherically symmetric :math:`\beta`-profile density profile for the hot halo. Specifically,
+
+   .. math::
+
+      \rho_\mathrm{hot halo}(r) \propto \left[ r^2 + r_\mathrm{core}^2 \right]^{3\beta/2},
+
+   where the core radius, :math:`r_\mathrm{core}`, is set using the selected cored profile core radius method (see :galacticus-class:`hotHaloColdModeCoreRadii`). The value of :math:`\beta` is specified by the ``[beta]`` parameter. The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, :math:`r_\mathrm{hot, outer}`.
    </description>
   </hotHaloColdModeMassDistribution>
   !!]
   type, extends(hotHaloColdModeMassDistributionClass) :: hotHaloColdModeMassDistributionBetaProfile
-     !!{
-     A $\beta$-profile implementation of the hot halo mass distribution class.
+     !!{RST
+     A :math:`\beta`-profile implementation of the hot halo mass distribution class.
      !!}
      private
      double precision                                         :: beta
@@ -51,8 +50,8 @@ An implementation of the hot halo mass distribution class for $\beta$-profile di
   end type hotHaloColdModeMassDistributionBetaProfile
 
   interface hotHaloColdModeMassDistributionBetaProfile
-     !!{
-     Constructors for the $\beta$-profile hot halo cold mode mass distribution class.
+     !!{RST
+     Constructors for the :math:`\beta`-profile hot halo cold mode mass distribution class.
      !!}
      module procedure betaProfileConstructorParameters
      module procedure betaProfileConstructorInternal
@@ -61,8 +60,8 @@ An implementation of the hot halo mass distribution class for $\beta$-profile di
 contains
 
   function betaProfileConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{hotHaloColdModeMassDistributionBetaProfile} hot halo cold mode mass distribution class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`hotHaloColdModeMassDistributionBetaProfile` hot halo cold mode mass distribution class which takes a parameter set as input.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Component_List          , Error_Report
@@ -102,10 +101,12 @@ contains
     end if
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <defaultValue>2.0d0/3.0d0</defaultValue>
-      <description>The value of $\beta$ in $\beta$-profile hot halo cold mode mass distributions.</description>
+      <description>
+      The value of :math:`\beta` in :math:`\beta`-profile hot halo cold mode mass distributions.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="hotHaloColdModeCoreRadii" name="hotHaloColdModeCoreRadii_" source="parameters"/>
@@ -119,8 +120,8 @@ contains
   end function betaProfileConstructorParameters
 
   function betaProfileConstructorInternal(beta,hotHaloColdModeCoreRadii_) result(self)
-    !!{
-    Internal constructor for the \refClass{hotHaloColdModeMassDistributionBetaProfile} hot halo cold mode mass distribution class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`hotHaloColdModeMassDistributionBetaProfile` hot halo cold mode mass distribution class.
     !!}
     implicit none
     type            (hotHaloColdModeMassDistributionBetaProfile)                        :: self
@@ -134,8 +135,8 @@ contains
   end function betaProfileConstructorInternal
 
   subroutine betaProfileDestructor(self)
-    !!{
-    Destructor for the \refClass{hotHaloColdModeMassDistributionBetaProfile} hot halo cold mode mass distribution class.
+    !!{RST
+    Destructor for the :galacticus-class:`hotHaloColdModeMassDistributionBetaProfile` hot halo cold mode mass distribution class.
     !!}
     implicit none
     type(hotHaloColdModeMassDistributionBetaProfile), intent(inout) :: self
@@ -147,8 +148,8 @@ contains
   end subroutine betaProfileDestructor
 
   function betaProfileGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the $\beta$-profile hot halo mass distribution for the given \mono{node}.
+    !!{RST
+    Return the :math:`\beta`-profile hot halo mass distribution for the given ``node``.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentHotHalo , treeNode
     use :: Galactic_Structure_Options, only : componentTypeColdHalo, massTypeGaseous, weightByMass

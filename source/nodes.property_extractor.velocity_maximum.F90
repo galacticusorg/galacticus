@@ -17,23 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a cooling rate property extractor class.
 !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorVelocityMaximum">
-   <description>A property extractor that returns the maximum circular velocity (in km~s$^{-1}$) of the
-    dark-matter-only halo profile, $V_\mathrm{max} = \max_r \sqrt{GM(&lt; r)/r}$, computed from the
-    supplied \refClass{darkMatterProfileDMOClass} object. The output dataset is named
-    \mono{darkMatterProfileDMO}\mono{propertyName}, where \mono{propertyName} (default:
-    \mono{VelocityMaximum}) can be set to distinguish multiple instances of this extractor.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorVelocityMaximum" docformat="rst">
+   <description>
+   A property extractor that returns the maximum circular velocity (in km s\ :math:`^{-1}`) of the dark-matter-only halo profile, :math:`V_\mathrm{max} = \max_r \sqrt{GM(&lt; r)/r}`, computed from the supplied :galacticus-class:`darkMatterProfileDMOClass` object. The output dataset is named ``darkMatterProfileDMO``\ ``propertyName``, where ``propertyName`` (default: ``VelocityMaximum``) can be set to distinguish multiple instances of this extractor.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorVelocityMaximum
-     !!{
+     !!{RST
      A velocityMaximum property extractor class.
      !!}
      private
@@ -50,8 +48,8 @@ Implements a cooling rate property extractor class.
   end type nodePropertyExtractorVelocityMaximum
 
   interface nodePropertyExtractorVelocityMaximum
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorVelocityMaximum} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorVelocityMaximum` property extractor class.
      !!}
      module procedure velocityMaximumConstructorParameters
      module procedure velocityMaximumConstructorInternal
@@ -60,8 +58,8 @@ Implements a cooling rate property extractor class.
 contains
 
   function velocityMaximumConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorVelocityMaximum} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorVelocityMaximum` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -71,11 +69,13 @@ contains
     type (varying_string                      )                :: propertyName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyName</name>
       <defaultValue>var_str('VelocityMaximum')</defaultValue>
       <source>parameters</source>
-      <description>Name of the property.</description>
+      <description>
+      Name of the property.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
@@ -88,8 +88,8 @@ contains
   end function velocityMaximumConstructorParameters
 
   function velocityMaximumConstructorInternal(propertyName,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorVelocityMaximum} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorVelocityMaximum` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorVelocityMaximum)                        :: self
@@ -103,8 +103,8 @@ contains
   end function velocityMaximumConstructorInternal
 
   subroutine velocityMaximumDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorVelocityMaximum} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorVelocityMaximum` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorVelocityMaximum), intent(inout) :: self
@@ -116,7 +116,7 @@ contains
   end subroutine velocityMaximumDestructor
 
   double precision function velocityMaximumExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a last isolated redshift output analysis.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentBasic
@@ -137,7 +137,7 @@ contains
   end function velocityMaximumExtract
 
   function velocityMaximumName(self)
-    !!{
+    !!{RST
     Return the name of the last isolated redshift property.
     !!}
     implicit none
@@ -150,7 +150,7 @@ contains
   end function velocityMaximumName
 
   function velocityMaximumDescription(self)
-    !!{
+    !!{RST
     Return a description of the velocityMaximum property.
     !!}
     implicit none
@@ -163,7 +163,7 @@ contains
   end function velocityMaximumDescription
 
   double precision function velocityMaximumUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the last isolated redshift property in the SI system.
     !!}
     use :: Numerical_Constants_Prefixes, only : kilo
@@ -176,7 +176,7 @@ contains
   end function velocityMaximumUnitsInSI
 
   function velocityMaximumUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the velocityMaximum property.
     !!}
     use :: Units_MetaData, only : unitType

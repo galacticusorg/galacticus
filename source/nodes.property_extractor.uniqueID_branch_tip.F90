@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a node branch tip index property extractor.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorUniqueIDBranchTip">
-   <description>Extracts the unique global identifier of the tip (earliest progenitor) node on the current merger tree branch, providing a persistent cross-snapshot identifier that enables tracking of branch origins across different output times and tree realizations.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorUniqueIDBranchTip" docformat="rst">
+   <description>
+   Extracts the unique global identifier of the tip (earliest progenitor) node on the current merger tree branch, providing a persistent cross-snapshot identifier that enables tracking of branch origins across different output times and tree realizations.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorUniqueIDBranchTip
-     !!{
+     !!{RST
      A node branch tip index property extractor.
      !!}
      private
@@ -40,8 +42,8 @@ Implements a node branch tip index property extractor.
   end type nodePropertyExtractorUniqueIDBranchTip
 
   interface nodePropertyExtractorUniqueIDBranchTip
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorUniqueIDBranchTip} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorUniqueIDBranchTip` property extractor class.
      !!}
      module procedure uniqueIDBranchTipConstructorParameters
      module procedure uniqueIDBranchTipConstructorInternal
@@ -50,8 +52,8 @@ Implements a node branch tip index property extractor.
 contains
 
   function uniqueIDBranchTipConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorUniqueIDBranchTip} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorUniqueIDBranchTip` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,8 +68,8 @@ contains
   end function uniqueIDBranchTipConstructorParameters
 
   function uniqueIDBranchTipConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorUniqueIDBranchTip} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorUniqueIDBranchTip` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorUniqueIDBranchTip) :: self
@@ -79,8 +81,8 @@ contains
   end function uniqueIDBranchTipConstructorInternal
 
   function uniqueIDBranchTipExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{uniqueIDBranchTip} node property extractor.
+    !!{RST
+    Implement a ``uniqueIDBranchTip`` node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -99,7 +101,7 @@ contains
 
 
   function uniqueIDBranchTipName(self)
-    !!{
+    !!{RST
     Return the name of the branch tip index property.
     !!}
     implicit none
@@ -112,7 +114,7 @@ contains
   end function uniqueIDBranchTipName
 
   function uniqueIDBranchTipDescription(self)
-    !!{
+    !!{RST
     Return a description of the branch tip index property.
     !!}
     implicit none
@@ -125,7 +127,7 @@ contains
   end function uniqueIDBranchTipDescription
 
   function uniqueIDBranchTipUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the uniqueIDBranchTip property.
     !!}
     use :: Units_MetaData, only : unitType

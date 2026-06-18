@@ -17,21 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of the merger tree importer class for ``Sussing Merger Trees'' format merger tree files.
+  !!{RST
+  An implementation of the merger tree importer class for "Sussing Merger Trees" format merger tree files.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: IO_HDF5                   , only : hdf5Object
 
   !![
-  <mergerTreeImporter name="mergerTreeImporterSussingHDF5">
-   <description>Importer for ``Sussing Merger Trees'' HDF5 format merger tree files \citep{srisawat_sussing_2013}.</description>
+  <mergerTreeImporter name="mergerTreeImporterSussingHDF5" docformat="rst">
+   <description>
+   Importer for "Sussing Merger Trees" HDF5 format merger tree files :cite:p:`srisawat_sussing_2013`.
+   </description>
   </mergerTreeImporter>
   !!]
   type, extends(mergerTreeImporterSussing) :: mergerTreeImporterSussingHDF5
-     !!{
-     A merger tree importer class for ``Sussing Merger Trees'' HDF5 format merger tree files \citep{srisawat_sussing_2013}.
+     !!{RST
+     A merger tree importer class for "Sussing Merger Trees" HDF5 format merger tree files :cite:p:`srisawat_sussing_2013`.
      !!}
      private
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
@@ -43,8 +45,8 @@
   end type mergerTreeImporterSussingHDF5
 
   interface mergerTreeImporterSussingHDF5
-     !!{
-     Constructors for the \refClass{mergerTreeImporterSussingHDF5} HDF5 format merger tree importer class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeImporterSussingHDF5` HDF5 format merger tree importer class.
      !!}
      module procedure sussingHDF5ConstructorParameters
      module procedure sussingHDF5ConstructorInternal
@@ -53,8 +55,8 @@
 contains
 
   function sussingHDF5ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeImporterSussingHDF5} merger tree importer class that takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeImporterSussingHDF5` merger tree importer class that takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,8 +75,8 @@ contains
   end function sussingHDF5ConstructorParameters
 
   function sussingHDF5ConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,randomNumberGenerator_) result(self)
-    !!{
-    Default constructor for the ``Sussing Merger Trees'' HDF5 format (Thomas et al.; in prep.) merger tree importer.
+    !!{RST
+    Default constructor for the "Sussing Merger Trees" HDF5 format (Thomas et al.; in prep.) merger tree importer.
     !!}
     implicit none
     type            (mergerTreeImporterSussingHDF5     )                              :: self
@@ -98,8 +100,8 @@ contains
   end function sussingHDF5ConstructorInternal
 
   subroutine sussingHDF5Destructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeImporterSussingHDF5} HDF5 format merger tree importer class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeImporterSussingHDF5` HDF5 format merger tree importer class.
     !!}
     implicit none
     type(mergerTreeImporterSussingHDF5), intent(inout) :: self
@@ -111,8 +113,8 @@ contains
   end subroutine sussingHDF5Destructor
 
   subroutine sussingHDF5Open(self,fileName)
-    !!{
-    Validate a \mono{sussing} HDF5 format merger tree file.
+    !!{RST
+    Validate a ``sussing`` HDF5 format merger tree file.
     !!}
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
     use :: Display                         , only : displayMessage    , verbosityLevelWarn
@@ -228,8 +230,8 @@ contains
   end subroutine sussingHDF5Open
 
   subroutine sussingHDF5Load(self,nodeSelfIndices,nodeIndexRanks,nodeDescendantLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
-    !!{
-    Load a \mono{sussing} HDF5 format merger tree data.
+    !!{RST
+    Load a ``sussing`` HDF5 format merger tree data.
     !!}
     use            :: Arrays_Search    , only : searchIndexed
     use            :: Display          , only : displayCounter         , displayCounterClear, displayIndent, displayUnindent, &
@@ -468,7 +470,7 @@ contains
   contains
 
     function decodeUnits(unitString)
-      !!{
+      !!{RST
       Decode a textual unit definition and construct an importer units object from it.
       !!}
       use :: Display                         , only : displayMagenta, displayReset

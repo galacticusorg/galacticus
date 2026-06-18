@@ -19,8 +19,8 @@
 
   !+    Contributions to this file made by: Xiaolong Du, Andrew Benson.
 
-  !!{
-  Implements a merger tree operator which creates particle representations of \glc\ halos.
+  !!{RST
+  Implements a merger tree operator which creates particle representations of Galacticus halos.
   !!}
 
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass
@@ -36,9 +36,11 @@
   use :: Tables                  , only : table1D                  , table1DLogarithmicCSpline
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>selection</name>
-   <description>Options for selection of nodes to particulate.</description>
+   <description>
+   Options for selection of nodes to particulate.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -49,9 +51,11 @@
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>particulateKernel</name>
-   <description>Options for softening kernel in particulate.</description>
+   <description>
+   Options for softening kernel in particulate.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -62,13 +66,15 @@
   !!]
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorParticulate">
-   <description>Provides a merger tree operator which creates particle representations of \glc\ dark matter halos by sampling N-body particles from the halo density profile at a specified snapshot time. Particle mass is set by \mono{[massParticle]}, the snapshot time by \mono{[time]}, the truncation radius by \mono{[radiusTruncateOverRadiusVirial]}, and output by \mono{[outputFileName]}.</description>
+  <mergerTreeOperator name="mergerTreeOperatorParticulate" docformat="rst">
+   <description>
+   Provides a merger tree operator which creates particle representations of Galacticus dark matter halos by sampling N-body particles from the halo density profile at a specified snapshot time. Particle mass is set by ``[massParticle]``, the snapshot time by ``[time]``, the truncation radius by ``[radiusTruncateOverRadiusVirial]``, and output by ``[outputFileName]``.
+   </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorParticulate
-     !!{
-     A merger tree operator which create particle representations of \glc\ halos.
+     !!{RST
+     A merger tree operator which create particle representations of Galacticus halos.
      !!}
      private
      class           (cosmologyParametersClass        ), pointer :: cosmologyParameters_  => null()
@@ -96,7 +102,7 @@
   end type mergerTreeOperatorParticulate
 
   interface mergerTreeOperatorParticulate
-     !!{
+     !!{RST
      Constructors for the particulate merger tree operator class.
      !!}
      module procedure particulateConstructorParameters
@@ -126,7 +132,7 @@
 contains
 
   function particulateConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the particulate merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -154,126 +160,166 @@ contains
     type            (varying_string                  )                :: selection                      , kernelSoftening
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputFileName</name>
       <source>parameters</source>
-      <description>Name of the file to which particle data should be written.</description>
+      <description>
+      Name of the file to which particle data should be written.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>idMultiplier</name>
       <source>parameters</source>
       <defaultValue>0_kind_int8</defaultValue>
-      <description>If this parameter is greater than zero, particle IDs begin at \mono{nodeIndex\*[idMultiplier]} for each node. The multiplier should be chosen to be large enough that duplicate IDs can not occur.</description>
+      <description>
+      If this parameter is greater than zero, particle IDs begin at ``nodeIndex\*[idMultiplier]`` for each node. The multiplier should be chosen to be large enough that duplicate IDs can not occur.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParticle</name>
       <source>parameters</source>
-      <description>Mass of particles to be used to represent halos.</description>
+      <description>
+      Mass of particles to be used to represent halos.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeSnapshot</name>
       <source>parameters</source>
-      <description>The time at which to snapshot the tree.</description>
+      <description>
+      The time at which to snapshot the tree.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusTruncateOverRadiusVirial</name>
       <source>parameters</source>
-      <description>Radius (in units of the virial radius) at which to truncate halo profiles.</description>
+      <description>
+      Radius (in units of the virial radius) at which to truncate halo profiles.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>satelliteOffset</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, offset particle representations to the positions/velocities of satellites.</description>
+      <description>
+      If true, offset particle representations to the positions/velocities of satellites.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>positionOffset</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, offset particle representations to the positions/velocities of nodes.</description>
+      <description>
+      If true, offset particle representations to the positions/velocities of nodes.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>subtractRandomOffset</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, the center-of-mass positions and velocities of the host and satellite are enforced to be matched with the values specified by the offset parameters. If false, due to limited number of particles in the representations, the center-of-mass positions and velocities may deviate slightly from the specified values, i.e. have small random offsets.</description>
+      <description>
+      If true, the center-of-mass positions and velocities of the host and satellite are enforced to be matched with the values specified by the offset parameters. If false, due to limited number of particles in the representations, the center-of-mass positions and velocities may deviate slightly from the specified values, i.e. have small random offsets.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>energyDistributionPointsPerDecade</name>
       <source>parameters</source>
       <defaultValue>30.0d0</defaultValue>
-      <description>The number of points per decade of radius to use when building the table of energy distribution function.</description>
+      <description>
+      The number of points per decade of radius to use when building the table of energy distribution function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeSmoothing</name>
       <source>parameters</source>
       <defaultValue>1.0d-7</defaultValue>
-      <description>The relative tolerance to use in the integrals used in finding the smoothed density profile defined by \cite{barnes_gravitational_2012} to account for gravitational softening.</description>
+      <description>
+      The relative tolerance to use in the integrals used in finding the smoothed density profile defined by :cite:t:`barnes_gravitational_2012` to account for gravitational softening.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceMass</name>
       <source>parameters</source>
       <defaultValue>1.0d-8</defaultValue>
-      <description>The relative tolerance to use in the integrals over the mass distribution used in finding the smoothed density profile defined by \cite{barnes_gravitational_2012} to account for gravitational softening.</description>
+      <description>
+      The relative tolerance to use in the integrals over the mass distribution used in finding the smoothed density profile defined by :cite:t:`barnes_gravitational_2012` to account for gravitational softening.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerancePotential</name>
       <source>parameters</source>
       <defaultValue>1.0d-9</defaultValue>
-      <description>The relative tolerance to use in the integrals over the potential used in finding the smoothed density profile defined by \cite{barnes_gravitational_2012} to account for gravitational softening.</description>
+      <description>
+      The relative tolerance to use in the integrals over the potential used in finding the smoothed density profile defined by :cite:t:`barnes_gravitational_2012` to account for gravitational softening.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>selection</name>
       <source>parameters</source>
       <defaultValue>var_str('all')</defaultValue>
-      <description>Selects the type of halo to output. Allowed options are ``\mono{all}'', ``\mono{hosts}'', and ``\mono{satellites}''.</description>
+      <description>
+      Selects the type of halo to output. Allowed options are "``all``", "``hosts``", and "``satellites``".
+      </description>
     </inputParameter>
     !!]
     selection_=enumerationSelectionEncode(char(selection),includesPrefix=.false.)
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>kernelSoftening</name>
       <source>parameters</source>
       <defaultValue>var_str('plummer')</defaultValue>
-      <description>Selects the softening kernel to use. Allowed options are ``\mono{plummer}'', and ``\mono{gadget}''.</description>
+      <description>
+      Selects the softening kernel to use. Allowed options are "``plummer``", and "``gadget``".
+      </description>
     </inputParameter>
     !!]
     kernelSoftening_=enumerationParticulateKernelEncode(char(kernelSoftening),includesPrefix=.false.)
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonCosmological</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, a non-cosmological snapshot file will be created.</description>
+      <description>
+      If true, a non-cosmological snapshot file will be created.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>addHubbleFlow</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, Hubble flow will be added to velocity offsets of halos (if applied).</description>
+      <description>
+      If true, Hubble flow will be added to velocity offsets of halos (if applied).
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>haloIdToParticleType</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, the halo ID will be used to assign particles from each halo to a different Gadget particle type group.</description>
+      <description>
+      If true, the halo ID will be used to assign particles from each halo to a different Gadget particle type group.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sampleParticleNumber</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, the number of particles in each halo will be sampled from a Poisson distribution with the expected mean. Otherwise, the number is set equal to that expectation.</description>
+      <description>
+      If true, the number of particles in each halo will be sampled from a Poisson distribution with the expected mean. Otherwise, the number is set equal to that expectation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lengthSoftening</name>
       <source>parameters</source>
-      <description>The Plummer-equivalent softening length. That is, the parameter $\epsilon$ in the softening gravitational potential $\phi(r) = -\mathrm{G}m/\sqrt{r^2+\epsilon^2}$. If set to zero, softening is ignored when constructing the particle representation of the halo. For non-zero values softening is accounted for when constructing the velocity distribution following the procedure of \cite{barnes_gravitational_2012}.</description>
+      <description>
+      The Plummer-equivalent softening length. That is, the parameter :math:`\epsilon` in the softening gravitational potential :math:`\phi(r) = -\mathrm{G}m/\sqrt{r^2+\epsilon^2}`. If set to zero, softening is ignored when constructing the particle representation of the halo. For non-zero values softening is accounted for when constructing the velocity distribution following the procedure of :cite:t:`barnes_gravitational_2012`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>chunkSize</name>
       <source>parameters</source>
       <defaultValue>-1</defaultValue>
-      <description>The HDF5 dataset chunk size (in number of particles) used when writing particle data to the output file; set to $-1$ to disable chunking and write all particles in a single contiguous dataset.</description>
+      <description>
+      The HDF5 dataset chunk size (in number of particles) used when writing particle data to the output file; set to :math:`-1` to disable chunking and write all particles in a single contiguous dataset.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
@@ -300,7 +346,7 @@ contains
   end function particulateConstructorParameters
 
   function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,tolerancePotential,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parameters) result(self)
-    !!{
+    !!{RST
     Internal constructor for the particulate merger tree operator class.
     !!}
     use :: Error, only : Error_Report
@@ -335,7 +381,7 @@ contains
   end function particulateConstructorInternal
 
   subroutine particulateDestructor(self)
-    !!{
+    !!{RST
     Destructor for the particulate merger tree operator class.
     !!}
     implicit none
@@ -351,7 +397,7 @@ contains
   end subroutine particulateDestructor
 
   subroutine particulateOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Perform a particulation operation on a merger tree (i.e. create a particle representation of the tree).
     !!}
     use    :: Coordinates               , only : assignment(=)                    , coordinateCartesian                , coordinateSpherical
@@ -776,17 +822,19 @@ contains
   end subroutine particulateOperatePreEvolution
 
   subroutine particulateTabulateEnergyDistribution(radius,energyDistributionPointsPerDecade)
-    !!{
-    Construct the energy distribution function assuming a spherical dark matter halo with
-    isotropic velocity dispersion. We solve Eddington's formula
-    \citep[][eqn. 4.43a]{binney_galactic_2008}.
-    \begin{equation}
-     f(E) = {1 \over \sqrt{8} \pi^2} {\mathrm{d}\over \mathrm{d}E} \int_E^0 {\mathrm{d}\Phi \over \sqrt{\Phi-E}} {\mathrm{d}\rho \over \mathrm{d} \Phi}.
-    \end{equation}
+    !!{RST
+    Construct the energy distribution function assuming a spherical dark matter halo with isotropic velocity dispersion. We solve Eddington's formula :cite:p:`binney_galactic_2008`.
+
+    .. math::
+
+       f(E) = {1 \over \sqrt{8} \pi^2} {\mathrm{d}\over \mathrm{d}E} \int_E^0 {\mathrm{d}\Phi \over \sqrt{\Phi-E}} {\mathrm{d}\rho \over \mathrm{d} \Phi}.
+
     In practice, we tabulate:
-    \begin{equation}
-     F(E) = \int_E^0 {\mathrm{d}\Phi \over \sqrt{\Phi-E}} {\mathrm{d}\rho \over \mathrm{d} \Phi},
-    \end{equation}
+
+    .. math::
+
+       F(E) = \int_E^0 {\mathrm{d}\Phi \over \sqrt{\Phi-E}} {\mathrm{d}\rho \over \mathrm{d} \Phi},
+
     which we can then take the derivative of numerically to obtain the distribution function.
     !!}
     use :: Coordinates          , only : coordinateSpherical  , assignment(=)
@@ -1036,7 +1084,7 @@ contains
   end subroutine particulateTabulateEnergyDistribution
 
   double precision function particulateEddingtonIntegrand(radiusLogarithmic)
-    !!{
+    !!{RST
     The integrand appearing in Eddington's formula for the distribution function.
     !!}
     implicit none
@@ -1054,9 +1102,8 @@ contains
   end function particulateEddingtonIntegrand
 
   double precision function particulateSmoothingIntegrandZ(height)
-    !!{
-    The integrand over cylindrical coordinate $z$ used in finding the smoothed density profile defined by
-    \cite{barnes_gravitational_2012} to account for gravitational softening.
+    !!{RST
+    The integrand over cylindrical coordinate :math:`z` used in finding the smoothed density profile defined by :cite:t:`barnes_gravitational_2012` to account for gravitational softening.
     !!}
     use :: Numerical_Integration, only : integrator
     implicit none
@@ -1085,9 +1132,8 @@ contains
   end function particulateSmoothingIntegrandZ
 
   double precision function particulateSmoothingIntegrandR(radiusCylindrical)
-    !!{
-    The integrand over cylindrical coordinate $R$ used in finding the smoothed density profile defined by
-    \cite{barnes_gravitational_2012} to account for gravitational softening.
+    !!{RST
+    The integrand over cylindrical coordinate :math:`R` used in finding the smoothed density profile defined by :cite:t:`barnes_gravitational_2012` to account for gravitational softening.
     !!}
     use :: Coordinates       , only : coordinateSpherical  , assignment(=)
     use :: Mass_Distributions, only : massDistributionClass
@@ -1159,9 +1205,8 @@ contains
   end function particulateSmoothingIntegrandR
 
   double precision function particulateMassIntegrand(radius)
-    !!{
-    The integrand used to find the enclosed mass in the smoothed density profile defined by \cite{barnes_gravitational_2012} to
-    account for gravitational softening.
+    !!{RST
+    The integrand used to find the enclosed mass in the smoothed density profile defined by :cite:t:`barnes_gravitational_2012` to account for gravitational softening.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -1179,9 +1224,8 @@ contains
   end function particulateMassIntegrand
 
   double precision function particulatePotentialIntegrand(radius)
-    !!{
-    The integrand used to find the gravitational potential in the smoothed density profile defined by
-    \cite{barnes_gravitational_2012} to account for gravitational softening.
+    !!{RST
+    The integrand used to find the gravitational potential in the smoothed density profile defined by :cite:t:`barnes_gravitational_2012` to account for gravitational softening.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none

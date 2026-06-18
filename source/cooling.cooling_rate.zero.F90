@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a zero cooling rate class.
   !!}
 
   !![
-  <coolingRate name="coolingRateZero">
-   <description>Returns a cooling rate of exactly zero for all nodes at all times, effectively disabling gas cooling and useful for testing, debugging, or modeling scenarios where cooling is artificially suppressed.</description>
+  <coolingRate name="coolingRateZero" docformat="rst">
+   <description>
+   Returns a cooling rate of exactly zero for all nodes at all times, effectively disabling gas cooling and useful for testing, debugging, or modeling scenarios where cooling is artificially suppressed.
+   </description>
   </coolingRate>
   !!]
   type, extends(coolingRateClass) :: coolingRateZero
-     !!{
+     !!{RST
      Implementation of cooling rate class in which the cooling rate is always zero.
      !!}
      private
@@ -36,7 +38,7 @@
   end type coolingRateZero
 
   interface coolingRateZero
-     !!{
+     !!{RST
      Constructors for the zero cooling rate class.
      !!}
      module procedure zeroConstructorParameters
@@ -45,7 +47,7 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the zero cooling rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -61,8 +63,8 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroRate(self,node)
-    !!{
-    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is always zero.
+    !!{RST
+    Returns the cooling rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) in the hot atmosphere for a model in which this rate is always zero.
     !!}
     implicit none
     class           (coolingRateZero), intent(inout) :: self

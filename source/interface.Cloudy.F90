@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which provides various interfaces to the \gls{cloudy} code.
+!!{RST
+Contains a module which provides various interfaces to the :term:`Cloudy` code.
 !!}
 
 module Interfaces_Cloudy
-  !!{
-  Provides various interfaces to the \gls{cloudy} code.
+  !!{RST
+  Provides various interfaces to the :term:`Cloudy` code.
   !!}
 
   !![
-  <workaround type="gfortran" PR="94463" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94463">
-  <description>Failure of name mangling on module read.</description>
+  <workaround type="gfortran" PR="94463" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94463" docformat="rst">
+  <description>
+  Failure of name mangling on module read.
+  </description>
     !!]
     use :: ISO_Varying_String
     !![
@@ -41,7 +43,7 @@ module Interfaces_Cloudy
 contains
 
   subroutine Interface_Cloudy_Initialize(cloudyPath,cloudyVersion,static)
-    !!{
+    !!{RST
     Initialize the interface with Cloudy, including downloading and compiling Cloudy if necessary.
     !!}
     use :: Dependencies      , only : dependencyVersion

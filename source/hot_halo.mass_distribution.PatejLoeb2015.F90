@@ -17,21 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-An implementation of the hot halo mass distribution class which uses the model of \cite{patej_simple_2015}.
+!!{RST
+An implementation of the hot halo mass distribution class which uses the model of :cite:t:`patej_simple_2015`.
 !!}
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <hotHaloMassDistribution name="hotHaloMassDistributionPatejLoeb2015">
-   <description>Provides an implementation of the hot halo mass distribution class using the circumgalactic medium model of \cite{patej_simple_2015}, in which the gas density follows a power-law profile tied to the dark matter distribution. The density slope is controlled by \mono{[gamma]}, and the shock radius by \mono{[radiusShock]}.</description>
+  <hotHaloMassDistribution name="hotHaloMassDistributionPatejLoeb2015" docformat="rst">
+   <description>
+   Provides an implementation of the hot halo mass distribution class using the circumgalactic medium model of :cite:t:`patej_simple_2015`, in which the gas density follows a power-law profile tied to the dark matter distribution. The density slope is controlled by ``[gamma]``, and the shock radius by ``[radiusShock]``.
+   </description>
   </hotHaloMassDistribution>
   !!]
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionPatejLoeb2015
-     !!{
-     An implementation of the hot halo mass distribution class which uses the model of \cite{patej_simple_2015}.
+     !!{RST
+     An implementation of the hot halo mass distribution class which uses the model of :cite:t:`patej_simple_2015`.
      !!}
      private
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
@@ -43,8 +45,8 @@ An implementation of the hot halo mass distribution class which uses the model o
   end type hotHaloMassDistributionPatejLoeb2015
 
   interface hotHaloMassDistributionPatejLoeb2015
-     !!{
-     Constructors for the \refClass{hotHaloMassDistributionPatejLoeb2015} hot halo mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`hotHaloMassDistributionPatejLoeb2015` hot halo mass distribution class.
      !!}
      module procedure patejLoeb2015ConstructorParameters
      module procedure patejLoeb2015ConstructorInternal
@@ -53,8 +55,8 @@ An implementation of the hot halo mass distribution class which uses the model o
 contains
 
   function patejLoeb2015ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{patejLoeb2015} hot halo mass distribution class.
+    !!{RST
+    Default constructor for the ``patejLoeb2015`` hot halo mass distribution class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,16 +67,20 @@ contains
     double precision                                                      :: gamma               , radiusShock
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma</name>
       <defaultValue>1.15d0</defaultValue>
-      <description>The parameter $\Gamma$ in the \cite{patej_simple_2015} hot halo gas mass distribution model.</description>
+      <description>
+      The parameter :math:`\Gamma` in the :cite:t:`patej_simple_2015` hot halo gas mass distribution model.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusShock</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The shock radius, $s$, (in units of the halo virial radius) in the \cite{patej_simple_2015} hot halo gas mass distribution model.</description>
+      <description>
+      The shock radius, :math:`s`, (in units of the halo virial radius) in the :cite:t:`patej_simple_2015` hot halo gas mass distribution model.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
@@ -90,8 +96,8 @@ contains
   end function patejLoeb2015ConstructorParameters
 
   function patejLoeb2015ConstructorInternal(gamma,radiusShock,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{hotHaloMassDistributionPatejLoeb2015} hot halo mass distribution class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`hotHaloMassDistributionPatejLoeb2015` hot halo mass distribution class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Component_List                   , Error_Report
@@ -148,8 +154,8 @@ contains
   end function patejLoeb2015ConstructorInternal
 
   subroutine patejLoeb2015Destructor(self)
-    !!{
-    Destructor for the \refClass{hotHaloMassDistributionPatejLoeb2015} hot halo mass distribution class.
+    !!{RST
+    Destructor for the :galacticus-class:`hotHaloMassDistributionPatejLoeb2015` hot halo mass distribution class.
     !!}
     implicit none
     type(hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
@@ -162,8 +168,8 @@ contains
   end subroutine patejLoeb2015Destructor
 
   function patejLoeb2015Get(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the \cite{patej_simple_2015} hot halo mass distribution for the given \mono{node}.
+    !!{RST
+    Return the :cite:t:`patej_simple_2015` hot halo mass distribution for the given ``node``.
     !!}
     use :: Mass_Distributions        , only : massDistributionPatejLoeb2015
     use :: Galacticus_Nodes          , only : nodeComponentHotHalo, treeNode

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a property extractor class for the star formation history of a component.
   !!}
   
@@ -25,12 +25,14 @@
   use :: Star_Formation_Histories  , only : starFormationHistoryClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorStarFormationHistoryTimes">
-    <description>A property extractor that returns the lookback-time bin boundaries (in Gyr) used to tabulate the star formation history for a specified galaxy \mono{component} (disk, spheroid, or nuclearStarCluster). These time values define the age axis of the star formation history grid and are needed to reconstruct the full star formation history from the mass array returned by \refClass{nodePropertyExtractorStarFormationHistoryMass}. The number of returned times depends on the specific \refClass{starFormationHistoryClass} implementation.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorStarFormationHistoryTimes" docformat="rst">
+    <description>
+    A property extractor that returns the lookback-time bin boundaries (in Gyr) used to tabulate the star formation history for a specified galaxy ``component`` (disk, spheroid, or nuclearStarCluster). These time values define the age axis of the star formation history grid and are needed to reconstruct the full star formation history from the mass array returned by :galacticus-class:`nodePropertyExtractorStarFormationHistoryMass`. The number of returned times depends on the specific :galacticus-class:`starFormationHistoryClass` implementation.
+    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorStarFormationHistoryTimes
-     !!{
+     !!{RST
      A property extractor class for the star formation history tabulation times of a component.
      !!}
      private
@@ -47,8 +49,8 @@
   end type nodePropertyExtractorStarFormationHistoryTimes
   
   interface nodePropertyExtractorStarFormationHistoryTimes
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorStarFormationHistoryTimes} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorStarFormationHistoryTimes` property extractor class.
      !!}
      module procedure starFormationHistoryTimesConstructorParameters
      module procedure starFormationHistoryTimesConstructorInternal
@@ -57,8 +59,8 @@
 contains
 
   function starFormationHistoryTimesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorStarFormationHistoryTimes} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorStarFormationHistoryTimes` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -69,10 +71,12 @@ contains
     type (varying_string                                )                :: component
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>component</name>
       <source>parameters</source>
-      <description>The component from which to extract star formation history.</description>
+      <description>
+      The component from which to extract star formation history.
+      </description>
     </inputParameter>
     <objectBuilder class="starFormationHistory" name="starFormationHistory_" source="parameters"/>
     !!]
@@ -85,8 +89,8 @@ contains
   end function starFormationHistoryTimesConstructorParameters
 
   function starFormationHistoryTimesConstructorInternal(component,starFormationHistory_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorStarFormationHistoryTimes} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorStarFormationHistoryTimes` property extractor class.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNuclearStarCluster
     use :: Error                     , only : Error_Report
@@ -109,8 +113,8 @@ contains
   end function starFormationHistoryTimesConstructorInternal
 
   subroutine starFormationHistoryTimesDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorStarFormationHistoryTimes} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorStarFormationHistoryTimes` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorStarFormationHistoryTimes), intent(inout) :: self
@@ -122,8 +126,8 @@ contains
   end subroutine starFormationHistoryTimesDestructor
 
   integer function starFormationHistoryTimesElementCount(self)
-    !!{
-    Return the number of elements in the \mono{starFormationHistoryTimes} property extractors.
+    !!{RST
+    Return the number of elements in the ``starFormationHistoryTimes`` property extractors.
     !!}
     implicit none
     class(nodePropertyExtractorStarFormationHistoryTimes), intent(inout) :: self
@@ -133,8 +137,8 @@ contains
   end function starFormationHistoryTimesElementCount
 
   function starFormationHistoryTimesExtract(self,node,instance)
-    !!{
-    Implement a \mono{starFormationHistoryTimes} property extractor.
+    !!{RST
+    Implement a ``starFormationHistoryTimes`` property extractor.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNuclearStarCluster
@@ -174,8 +178,8 @@ contains
   end function starFormationHistoryTimesExtract
 
   subroutine starFormationHistoryTimesNames(self,names)
-    !!{
-    Return the names of the \mono{starFormationHistoryTimes} properties.
+    !!{RST
+    Return the names of the ``starFormationHistoryTimes`` properties.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
@@ -188,8 +192,8 @@ contains
   end subroutine starFormationHistoryTimesNames
 
   subroutine starFormationHistoryTimesDescriptions(self,descriptions)
-    !!{
-    Return descriptions of the \mono{starFormationHistoryTimes} property.
+    !!{RST
+    Return descriptions of the ``starFormationHistoryTimes`` property.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
@@ -202,8 +206,8 @@ contains
   end subroutine starFormationHistoryTimesDescriptions
 
   function starFormationHistoryTimesUnitsInSI(self)
-    !!{
-    Return the units of the \mono{starFormationHistoryTimes} properties in the SI system.
+    !!{RST
+    Return the units of the ``starFormationHistoryTimes`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
@@ -216,7 +220,7 @@ contains
   end function starFormationHistoryTimesUnitsInSI
 
   function starFormationHistoryTimesUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the starFormationHistoryTimes properties.
     !!}
     use :: Units_MetaData, only : unitType

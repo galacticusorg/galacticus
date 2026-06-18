@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements conversions of total halo mass between different definitions.
 !!}
 
 module Dark_Matter_Profile_Mass_Definitions
-  !!{
+  !!{RST
   Implements calculations of dark matter profile scale radii from concentrations.
   !!}
   private
@@ -31,8 +31,8 @@ module Dark_Matter_Profile_Mass_Definitions
 contains
 
   function Dark_Matter_Profile_Mass_Definition(node,densityContrast,radius,velocity,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,useLastIsolatedTime) result(massHalo)
-    !!{
-    Compute the mass of \mono{node} under the given density contrast definition.
+    !!{RST
+    Compute the mass of ``node`` under the given density contrast definition.
     !!}
     use :: Cosmology_Functions             , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters            , only : cosmologyParametersClass

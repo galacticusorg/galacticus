@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class that performs calculations of stellar feedback.
 !!}
 
 module Stellar_Feedback
-  !!{
+  !!{RST
   Implements a class that performs calculations of stellar feedback.
   !!}
   use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionClass
@@ -30,18 +30,17 @@ module Stellar_Feedback
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>stellarFeedback</name>
    <descriptiveName>Stellar Feedback</descriptiveName>
    <description>
-    Class providing models of the cumulative energy input from stellar populations as a function of population age
-    and metallicity. Stellar feedback encompasses energy injection from supernovae, stellar winds, and radiation
-    pressure. The cumulative energy input is integrated over the initial mass function and used to drive outflows
-    from galactic disks and spheroids.
+   Class providing models of the cumulative energy input from stellar populations as a function of population age and metallicity. Stellar feedback encompasses energy injection from supernovae, stellar winds, and radiation pressure. The cumulative energy input is integrated over the initial mass function and used to drive outflows from galactic disks and spheroids.
    </description>
    <default>standard</default>
    <method name="energyInputCumulative" >
-    <description>Return the cumulative energy input from a stellar population of the given \mono{initialMass}, \mono{age}, and \mono{metallicity}.</description>
+    <description>
+    Return the cumulative energy input from a stellar population of the given ``initialMass``, ``age``, and ``metallicity``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

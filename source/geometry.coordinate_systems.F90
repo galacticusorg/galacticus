@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements calculations related to coordinate systems and transformations.
 !!}
 
 module Coordinate_Systems
-  !!{
+  !!{RST
   Implements calculations related to coordinate systems and transformations.
   !!}
   implicit none
@@ -32,9 +32,8 @@ module Coordinate_Systems
 contains
 
   function Coordinates_Cartesian_To_Spherical(cartesianPosition)
-    !!{
-    Convert $(x,y,z)$ in Cartesian coordinates into $(r,\theta,\phi)$ in spherical coordinates, with $\theta=0$ corresponding
-    to the $z$-axis and $\phi=0$ corresponding to the $x$-axis.
+    !!{RST
+    Convert :math:`(x,y,z)` in Cartesian coordinates into :math:`(r,\theta,\phi)` in spherical coordinates, with :math:`\theta=0` corresponding to the :math:`z`-axis and :math:`\phi=0` corresponding to the :math:`x`-axis.
     !!}
     implicit none
     double precision, dimension(3)                :: Coordinates_Cartesian_To_Spherical
@@ -56,8 +55,8 @@ contains
   end function Coordinates_Cartesian_To_Spherical
 
   function Coordinates_Cartesian_To_Cylindrical(cartesianPosition)
-    !!{
-    Convert $(x,y,z)$ in Cartesian coordinates into $(r,\phi,z)$ in cylindrical coordinates, with $\phi=0$ corresponding to the $x$-axis.
+    !!{RST
+    Convert :math:`(x,y,z)` in Cartesian coordinates into :math:`(r,\phi,z)` in cylindrical coordinates, with :math:`\phi=0` corresponding to the :math:`x`-axis.
     !!}
     implicit none
     double precision, dimension(3)                :: Coordinates_Cartesian_To_Cylindrical
@@ -73,9 +72,8 @@ contains
   end function Coordinates_Cartesian_To_Cylindrical
 
   function Coordinates_Cylindrical_To_Spherical(cylindricalPosition)
-    !!{
-    Convert $(R,\phi,z)$ in cylindrical coordinates into $(r,\theta,\phi)$ in spherical coordinates, with $\phi=0$
-    corresponding to the $x$-axis.
+    !!{RST
+    Convert :math:`(R,\phi,z)` in cylindrical coordinates into :math:`(r,\theta,\phi)` in spherical coordinates, with :math:`\phi=0` corresponding to the :math:`x`-axis.
     !!}
     implicit none
     double precision, dimension(3)                :: Coordinates_Cylindrical_To_Spherical
@@ -97,9 +95,8 @@ contains
   end function Coordinates_Cylindrical_To_Spherical
 
   function Coordinates_Spherical_To_Cylindrical(sphericalPosition)
-    !!{
-    Convert $(r,\theta,\phi)$ in spherical coordinates into $(R,\phi,z)$ in cylindrical coordinates, with $\phi=0$
-    corresponding to the $x$-axis.
+    !!{RST
+    Convert :math:`(r,\theta,\phi)` in spherical coordinates into :math:`(R,\phi,z)` in cylindrical coordinates, with :math:`\phi=0` corresponding to the :math:`x`-axis.
     !!}
     implicit none
     double precision, dimension(3)                :: Coordinates_Spherical_To_Cylindrical

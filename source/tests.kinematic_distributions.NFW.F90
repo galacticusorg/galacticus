@@ -17,16 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program to test the accuracy of the series-approximation branch of the NFW kinematics distribution against the
-exact (dilogarithm-based) form. Both branches evaluate the 1D velocity dispersion of a self-gravitating NFW profile via the
-Jeans equation, but the \mono{useSeriesApproximation=.true.} path avoids the dilogarithm by expanding around five anchor
-points in scale-free radius. This test quantifies the relative error between the two paths across the radius range
-encountered in subhalo evolution.
+!!{RST
+Contains a program to test the accuracy of the series-approximation branch of the NFW kinematics distribution against the exact (dilogarithm-based) form. Both branches evaluate the 1D velocity dispersion of a self-gravitating NFW profile via the Jeans equation, but the ``useSeriesApproximation=.true.`` path avoids the dilogarithm by expanding around five anchor points in scale-free radius. This test quantifies the relative error between the two paths across the radius range encountered in subhalo evolution.
 !!}
 
 program Test_Kinematic_Distributions_NFW
-  !!{
+  !!{RST
   Tests the series-approximation branch of the NFW kinematics distribution against the exact form.
   !!}
   use :: Coordinates       , only : assignment(=)         , coordinateSpherical

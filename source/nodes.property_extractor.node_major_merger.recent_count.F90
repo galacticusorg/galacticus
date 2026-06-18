@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node property extractor which extracts the number of recent node major mergers.
   !!}
 
   use :: Output_Times, only : outputTimesClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorNodeMajorMergerRecentCount">
-   <description>Extracts the count of major halo merger events that occurred within a configurable lookback time window, enabling statistical analysis of recent merger activity across the halo population.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorNodeMajorMergerRecentCount" docformat="rst">
+   <description>
+   Extracts the count of major halo merger events that occurred within a configurable lookback time window, enabling statistical analysis of recent merger activity across the halo population.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorNodeMajorMergerRecentCount
-     !!{
+     !!{RST
      A  node property extractor which extracts the number of recent node major mergers.
      !!}
      private
@@ -43,8 +45,8 @@
   end type nodePropertyExtractorNodeMajorMergerRecentCount
 
   interface nodePropertyExtractorNodeMajorMergerRecentCount
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorNodeMajorMergerRecentCount} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorNodeMajorMergerRecentCount` property extractor class.
      !!}
      module procedure nodeMajorMergerRecentCountConstructorParameters
      module procedure nodeMajorMergerRecentCountConstructorInternal
@@ -53,8 +55,8 @@
 contains
 
   function nodeMajorMergerRecentCountConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorNodeMajorMergerRecentCount} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorNodeMajorMergerRecentCount` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,8 +76,8 @@ contains
   end function nodeMajorMergerRecentCountConstructorParameters
 
   function nodeMajorMergerRecentCountConstructorInternal(outputTimes_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorNodeMajorMergerRecentCount} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorNodeMajorMergerRecentCount` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorNodeMajorMergerRecentCount)                        :: self
@@ -91,8 +93,8 @@ contains
   end function nodeMajorMergerRecentCountConstructorInternal
 
   subroutine nodeMajorMergerRecentCountDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorNodeMajorMergerRecentCount} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorNodeMajorMergerRecentCount` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorNodeMajorMergerRecentCount), intent(inout) :: self
@@ -104,8 +106,8 @@ contains
   end subroutine nodeMajorMergerRecentCountDestructor
 
   function nodeMajorMergerRecentCountExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{nodeMajorMergerRecentCount} node property extractor.
+    !!{RST
+    Implement a ``nodeMajorMergerRecentCount`` node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -127,7 +129,7 @@ contains
 
 
   function nodeMajorMergerRecentCountName(self)
-    !!{
+    !!{RST
     Return the name of the recent node major merger count property.
     !!}
     implicit none
@@ -140,7 +142,7 @@ contains
   end function nodeMajorMergerRecentCountName
 
   function nodeMajorMergerRecentCountDescription(self)
-    !!{
+    !!{RST
     Return a description of the recent node major merger count property.
     !!}
     implicit none

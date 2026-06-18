@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <universeOperator name="universeOperatorIdentity">
-   <description>An identity operator on universes.</description>
+  <universeOperator name="universeOperatorIdentity" docformat="rst">
+   <description>
+   An identity operator on universes.
+   </description>
   </universeOperator>
   !!]
   type, extends(universeOperatorClass) :: universeOperatorIdentity
-     !!{
+     !!{RST
      Implementation of an identity operator on universes.
      !!}
      private
@@ -32,8 +34,8 @@
   end type universeOperatorIdentity
 
   interface universeOperatorIdentity
-     !!{
-     Constructors for the \refClass{universeOperatorIdentity} universe operator.
+     !!{RST
+     Constructors for the :galacticus-class:`universeOperatorIdentity` universe operator.
      !!}
      module procedure identityConstructorParameters
   end interface universeOperatorIdentity
@@ -41,8 +43,8 @@
 contains
 
   function identityConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{universeOperatorIdentity} universe operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`universeOperatorIdentity` universe operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -58,7 +60,7 @@ contains
   end function identityConstructorParameters
 
    subroutine identityOperate(self,universe_)
-     !!{
+     !!{RST
      Perform an identity operation on a universe.
      !!}
      implicit none

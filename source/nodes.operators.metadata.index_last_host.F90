@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a node operator class that records the index of the node in which a node was last a satellite.
 !!}
 
   !![
-  <nodeOperator name="nodeOperatorIndexLastHost">
-   <description>Records and maintains the index of the host node in which a satellite was most recently hosted, tracking this metadata through mergers and promotions to enable identification of a node's last host halo.</description>
+  <nodeOperator name="nodeOperatorIndexLastHost" docformat="rst">
+   <description>
+   Records and maintains the index of the host node in which a satellite was most recently hosted, tracking this metadata through mergers and promotions to enable identification of a node's last host halo.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorIndexLastHost
-     !!{
+     !!{RST
      A node operator class that records the index of the node in which a node was last a satellite.
      !!}
      private
@@ -41,8 +43,8 @@ Implements a node operator class that records the index of the node in which a n
   end type nodeOperatorIndexLastHost
 
   interface nodeOperatorIndexLastHost
-     !!{
-     Constructors for the \refClass{nodeOperatorIndexLastHost} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorIndexLastHost` node operator class.
      !!}
      module procedure indexLastHostConstructorParameters
      module procedure indexLastHostConstructorInternal
@@ -51,8 +53,8 @@ Implements a node operator class that records the index of the node in which a n
 contains
 
   function indexLastHostConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorIndexLastHost} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorIndexLastHost` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,8 +69,8 @@ contains
   end function indexLastHostConstructorParameters
 
   function indexLastHostConstructorInternal() result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorIndexLastHost} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorIndexLastHost` node operator class which takes a parameter set as input.
     !!}
     implicit none
     type(nodeOperatorIndexLastHost) :: self
@@ -80,7 +82,7 @@ contains
   end function indexLastHostConstructorInternal
 
   subroutine indexLastHostAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : openMPThreadBindingAtLevel, satelliteHostChangeEvent
@@ -92,8 +94,8 @@ contains
   end subroutine indexLastHostAutoHook
 
   subroutine indexLastHostDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorIndexLastHost} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorIndexLastHost` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent
     implicit none
@@ -104,7 +106,7 @@ contains
   end subroutine indexLastHostDestructor
 
   subroutine indexLastHostNodeTreeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize host node indices.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -122,7 +124,7 @@ contains
   end subroutine indexLastHostNodeTreeInitialize
 
   subroutine indexLastHostSatelliteHostChange(self,node)
-    !!{
+    !!{RST
     Update the host halo index of this node in response to a change in host.
     !!}
     use :: Error           , only : Error_Report
@@ -143,7 +145,7 @@ contains
   end subroutine indexLastHostSatelliteHostChange
 
   subroutine indexLastHostNodePromote(self,node)
-    !!{
+    !!{RST
     Update the maximum host mass of this node as a result of node promotion.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -163,7 +165,7 @@ contains
   end subroutine indexLastHostNodePromote
   
   subroutine indexLastHostNodesMerge(self,node)
-    !!{
+    !!{RST
     Update the maximum host mass of this node as a result of node merging.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

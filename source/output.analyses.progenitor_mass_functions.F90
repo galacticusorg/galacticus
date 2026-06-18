@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a concentration distribution output analysis class for dark matter halo progenitor mass functions.
   !!}
   
@@ -27,8 +27,10 @@
   use :: Output_Analysis_Weight_Operators, only : outputAnalysisWeightOperatorNbodyMass
 
   !![
-  <outputAnalysis name="outputAnalysisProgenitorMassFunction">
-   <description>Computes the dark matter halo progenitor mass function (distribution of progenitor-to-descendant mass ratios at a given parent redshift) and compares to target data, with options for log-space likelihood, mass ratio range, covariance diagonalization, and restriction to always-isolated progenitors.</description>
+  <outputAnalysis name="outputAnalysisProgenitorMassFunction" docformat="rst">
+   <description>
+   Computes the dark matter halo progenitor mass function (distribution of progenitor-to-descendant mass ratios at a given parent redshift) and compares to target data, with options for log-space likelihood, mass ratio range, covariance diagonalization, and restriction to always-isolated progenitors.
+   </description>
    <deepCopy>
     <functionClass variables="galacticFilterParentMass_, outputAnalysisWeightOperatorNbodyMass_, nodePropertyExtractorMassParent_"/>
    </deepCopy>
@@ -39,7 +41,7 @@
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisProgenitorMassFunction
-     !!{
+     !!{RST
      A dark matter halo progenitor mass function output analysis class.
      !!}
      private
@@ -77,8 +79,8 @@
   end type outputAnalysisProgenitorMassFunction
 
   interface outputAnalysisProgenitorMassFunction
-     !!{
-     Constructors for the \refClass{outputAnalysisProgenitorMassFunction} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisProgenitorMassFunction` output analysis class.
      !!}
      module procedure progenitorMassFunctionConstructorParameters
      module procedure progenitorMassFunctionConstructorFile
@@ -88,8 +90,8 @@
 contains
   
   function progenitorMassFunctionConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisProgenitorMassFunction} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisProgenitorMassFunction` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: Input_Parameters                 , only : inputParameter            , inputParameters
@@ -131,28 +133,36 @@ contains
     <objectBuilder class="outputTimes"           name="outputTimes_"                     source="parameters"                                                />
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"            source="parameters"                                                />
     <objectBuilder class="virialDensityContrast" name="virialDensityContrastDefinition_" source="parameters" parameterName="virialDensityContrastDefinition"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>likelihoodNormalize</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true then normalize the likelihood to make it a probability density.</description>
+      <description>
+      If true then normalize the likelihood to make it a probability density.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceDiagonalize</name>
       <source>parameters</source>
-      <description>If true, all off-diagonal elements of the covariance matrix are set to zero.</description>
+      <description>
+      If true, all off-diagonal elements of the covariance matrix are set to zero.
+      </description>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceTargetOnly</name>
       <source>parameters</source>
-      <description>If true, only the covariance of the target dataset is accounted for (otherwise the model covariance is added).</description>
+      <description>
+      If true, only the covariance of the target dataset is accounted for (otherwise the model covariance is added).
+      </description>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fillInZeroBins</name>
       <source>parameters</source>
-      <description>If true, fill in values of empty bins to avoid improbable likelihoods.</description>
+      <description>
+      If true, fill in values of empty bins to avoid improbable likelihoods.
+      </description>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
     !!]
@@ -160,19 +170,23 @@ contains
        if (parameters%count('rootVarianceTargetFractional') == 1) then
           ! For a single value, read as a scalar to allow processing of math in the parameter value.
           !![
-	  <inputParameter>	    
+	  <inputParameter docformat="rst">	    
 	    <name>rootVarianceTargetFractional</name>
 	    <variable>rootVarianceTargetFractional(1)</variable>
 	    <source>parameters</source>
-	    <description>The diagonal of the covariance matrix is forced to be at least equal to this fraction multiplied by the target dataset squared. This may be a list of values corresponding to each element of the target dataset. If the list is shorter than the target dataset the final value in the list is applied to all remaining elements in the target dataset.</description>
+	    <description>
+	    The diagonal of the covariance matrix is forced to be at least equal to this fraction multiplied by the target dataset squared. This may be a list of values corresponding to each element of the target dataset. If the list is shorter than the target dataset the final value in the list is applied to all remaining elements in the target dataset.
+	    </description>
 	  </inputParameter>
           !!]
        else
           !![
-	  <inputParameter>
+	  <inputParameter docformat="rst">
 	    <name>rootVarianceTargetFractional</name>
 	    <source>parameters</source>
-	    <description>The diagonal of the covariance matrix is forced to be at least equal to this fraction multiplied by the target dataset squared. This may be a list of values corresponding to each element of the target dataset. If the list is shorter than the target dataset the final value in the list is applied to all remaining elements in the target dataset.</description>
+	    <description>
+	    The diagonal of the covariance matrix is forced to be at least equal to this fraction multiplied by the target dataset squared. This may be a list of values corresponding to each element of the target dataset. If the list is shorter than the target dataset the final value in the list is applied to all remaining elements in the target dataset.
+	    </description>
 	  </inputParameter>
           !!]
        end if
@@ -180,142 +194,188 @@ contains
        rootVarianceTargetFractional=0.0d0
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>likelihoodInCounts</name>
       <source>parameters</source>
-      <description>If true, the likelihood is computed using the discrete counts instead of $\phi$.</description>
+      <description>
+      If true, the likelihood is computed using the discrete counts instead of :math:`\phi`.
+      </description>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>likelihoodInLog</name>
       <source>parameters</source>
-      <description>If true, the likelihood is computed in $\log\phi$ instead of in $\phi$.</description>
+      <description>
+      If true, the likelihood is computed in :math:`\log\phi` instead of in :math:`\phi`.
+      </description>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massRatioLikelihoodMinimum</name>
       <source>parameters</source>
-      <description>The minimum mass ratio to include in likelihood calculations.</description>
+      <description>
+      The minimum mass ratio to include in likelihood calculations.
+      </description>
       <defaultValue>0.0d0</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massRatioLikelihoodMaximum</name>
       <source>parameters</source>
-      <description>The maximum mass ratio to include in likelihood calculations.</description>
+      <description>
+      The maximum mass ratio to include in likelihood calculations.
+      </description>
       <defaultValue>huge(0.0d0)</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alwaysIsolatedOnly</name>
       <source>parameters</source>
-      <description>If true, include only progenitors which have been always isolated halos.</description>
+      <description>
+      If true, include only progenitors which have been always isolated halos.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftParent</name>
       <source>parameters</source>
-      <description>Redshift of the parent halos.</description>
+      <description>
+      Redshift of the parent halos.
+      </description>
     </inputParameter>
     !!]
     if (parameters%isPresent('fileName')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>fileName</name>
          <source>parameters</source>
-         <description>The name of the file from which to read progenitor mass function parameters.</description>
+         <description>
+         The name of the file from which to read progenitor mass function parameters.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>indexParent</name>
          <source>parameters</source>
-         <description>The parent mass index to use from the file.</description>
+         <description>
+         The parent mass index to use from the file.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>indexRedshift</name>
          <source>parameters</source>
-         <description>The progenitor redshift index to use from the file.</description>
+         <description>
+         The progenitor redshift index to use from the file.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>comment</name>
          <source>parameters</source>
-         <description>A comment describing this analysis.</description>
+         <description>
+         A comment describing this analysis.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>label</name>
          <source>parameters</source>
-         <description>A label for this analysis.</description>
+         <description>
+         A label for this analysis.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>targetLabel</name>
          <source>parameters</source>
-         <description>Label for the target dataset.</description>
+         <description>
+         Label for the target dataset.
+         </description>
        </inputParameter>
        !!]
        self=outputAnalysisProgenitorMassFunction(char(fileName),label,comment,targetLabel,indexParent,indexRedshift,redshiftParent,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,fillInZeroBins,rootVarianceTargetFractional,likelihoodInLog,likelihoodInCounts,likelihoodNormalize,alwaysIsolatedOnly,darkMatterProfileDMO_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_)
     else
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>label</name>
          <source>parameters</source>
          <variable>label</variable>
-         <description>A label for the progenitor mass function.</description>
+         <description>
+         A label for the progenitor mass function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>comment</name>
          <source>parameters</source>
          <variable>comment</variable>
-         <description>A descriptive comment for the progenitor mass function.</description>
+         <description>
+         A descriptive comment for the progenitor mass function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massRatioMinimum</name>
          <source>parameters</source>
-         <description>Minimum mass ratio for the progenitor mass function.</description>
+         <description>
+         Minimum mass ratio for the progenitor mass function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massRatioMaximum</name>
          <source>parameters</source>
-         <description>Maximum mass ratio for the progenitor mass function.</description>
+         <description>
+         Maximum mass ratio for the progenitor mass function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>countMassRatio</name>
          <source>parameters</source>
-         <description>Number of mass ratios at which to compute the progenitor mass function.</description>
+         <description>
+         Number of mass ratios at which to compute the progenitor mass function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massParentMinimum</name>
          <source>parameters</source>
-         <description>Minimum mass of the parent halo for the progenitor mass function.</description>
+         <description>
+         Minimum mass of the parent halo for the progenitor mass function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massParentMaximum</name>
          <source>parameters</source>
-         <description>Maximum mass of the parent halo for the progenitor mass function.</description>
+         <description>
+         Maximum mass of the parent halo for the progenitor mass function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>redshiftProgenitor</name>
          <source>parameters</source>
-         <description>Redshift of the progenitor halos.</description>
+         <description>
+         Redshift of the progenitor halos.
+         </description>
        </inputParameter>
        !!]
        if (parameters%isPresent('targetLabel')) then
           !![
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>targetLabel</name>
             <source>parameters</source>
-            <description>Label for the target dataset.</description>
+            <description>
+            Label for the target dataset.
+            </description>
           </inputParameter>
           !!]
        end if
        if (parameters%isPresent('functionValueTarget')) then
           if (parameters%isPresent('functionCovarianceTarget')) then
              !![
-             <inputParameter>
+             <inputParameter docformat="rst">
                <name>functionValueTarget</name>
                <source>parameters</source>
-               <description>The target function for likelihood calculations.</description>
+               <description>
+               The target function for likelihood calculations.
+               </description>
              </inputParameter>
-             <inputParameter>
+             <inputParameter docformat="rst">
                <name>functionCovarianceTarget</name>
                <source>parameters</source>
                <variable>functionCovarianceTarget1D</variable>
-               <description>The target function covariance for likelihood calculations.</description>
+               <description>
+               The target function covariance for likelihood calculations.
+               </description>
              </inputParameter>
              !!]
              if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
@@ -332,10 +392,12 @@ contains
        end if
        if (parameters%isPresent('functionCountTarget')) then
           !![
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>functionCountTarget</name>
             <source>parameters</source>
-            <description>The target count for likelihood calculations.</description>
+            <description>
+            The target count for likelihood calculations.
+            </description>
           </inputParameter>
           !!]
        end if
@@ -393,8 +455,8 @@ contains
   end function progenitorMassFunctionConstructorParameters
   
   function progenitorMassFunctionConstructorFile(fileName,label,comment,targetLabel,indexParent,indexRedshift,redshiftParent,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,fillInZeroBins,rootVarianceTargetFractional,likelihoodInLog,likelihoodInCounts,likelihoodNormalize,alwaysIsolatedOnly,darkMatterProfileDMO_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisProgenitorMassFunction} output analysis class which reads all required properties from file.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisProgenitorMassFunction` output analysis class which reads all required properties from file.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: HDF5_Access                      , only : hdf5Access
@@ -481,8 +543,8 @@ contains
   end function progenitorMassFunctionConstructorFile
 
   function progenitorMassFunctionConstructorInternal(label,comment,massRatioMinimum,massRatioMaximum,countMassRatio,massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,fillInZeroBins,rootVarianceTargetFractional,likelihoodInLog,likelihoodInCounts,likelihoodNormalize,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget,functionCountTarget) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisProgenitorMassFunction} output analysis class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisProgenitorMassFunction` output analysis class.
     !!}
     use :: Error                                   , only : Error_Report
     use :: Galactic_Filters                        , only : filterList                                      , galacticFilterDescendantNode                , galacticFilterHaloAlwaysIsolated              , galacticFilterHaloIsolated                  , &
@@ -799,8 +861,8 @@ contains
   end function progenitorMassFunctionConstructorInternal
 
   subroutine progenitorMassFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisProgenitorMassFunction} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisProgenitorMassFunction` output analysis class.
     !!}
     implicit none
     type(outputAnalysisProgenitorMassFunction), intent(inout) :: self
@@ -820,7 +882,7 @@ contains
   end subroutine progenitorMassFunctionDestructor
   
   subroutine progenitorMassFunctionNewTree(self,tree,iOutput)
-    !!{
+    !!{RST
     Record the weight of parent nodes.
     !!}
     use :: Galacticus_Nodes       , only : nodeComponentBasic
@@ -860,7 +922,7 @@ contains
   end subroutine progenitorMassFunctionNewTree
 
   subroutine progenitorMassFunctionReduce(self,reduced)
-    !!{
+    !!{RST
     Implement reduction over progenitor mass functions.
     !!}
     use :: Error, only : Error_Report
@@ -882,7 +944,7 @@ contains
   end subroutine progenitorMassFunctionReduce
 
   subroutine progenitorMassFunctionFinalizeAnalysis(self)
-    !!{
+    !!{RST
     Implement analysis finalization for progenitor mass functions. We simply normalize the accumulated weight of parent nodes.
     !!}
 #ifdef USEMPI
@@ -953,11 +1015,8 @@ contains
   end subroutine progenitorMassFunctionFinalizeAnalysis
 
   subroutine progenitorMassFunctionLogLikelihoodWrite(self,analysisGroup)
-    !!{
-    Write the log-likelihood of the progenitor mass function to the output group. This overrides the
-    \refClass{outputAnalysisVolumeFunction1D} default so that our own {\normalfont \ttfamily logLikelihood} method is used, and
-    the parent-class {\normalfont \ttfamily logLikelihood} method (which requires a covariance matrix that we do not construct)
-    is never evaluated.
+    !!{RST
+    Write the log-likelihood of the progenitor mass function to the output group. This overrides the :galacticus-class:`outputAnalysisVolumeFunction1D` default so that our own  logLikelihood method is used, and the parent-class  logLikelihood method (which requires a covariance matrix that we do not construct) is never evaluated.
     !!}
     use :: IO_HDF5, only : hdf5Object
     implicit none
@@ -969,9 +1028,8 @@ contains
   end subroutine progenitorMassFunctionLogLikelihoodWrite
 
   subroutine progenitorMassFunctionMetadataWrite(self,analysisGroup)
-    !!{
-    Write progenitor-mass-function-specific metadata to the analysis output group, namely the ranges of mass ratio and parent
-    mass considered, together with the parent and progenitor redshifts.
+    !!{RST
+    Write progenitor-mass-function-specific metadata to the analysis output group, namely the ranges of mass ratio and parent mass considered, together with the parent and progenitor redshifts.
     !!}
     use :: IO_HDF5, only : hdf5Object
     implicit none
@@ -988,7 +1046,7 @@ contains
   end subroutine progenitorMassFunctionMetadataWrite
 
   double precision function progenitorMassFunctionLogLikelihood(self)
-    !!{
+    !!{RST
     Return the log-likelihood of the progenitor mass function.
     !!}
     use, intrinsic :: ISO_C_Binding               , only : c_size_t

@@ -17,21 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic filter which applies another filter to a child node of the given node.
 !!}
   
   !![
-  <galacticFilter name="galacticFilterChildNode">
+  <galacticFilter name="galacticFilterChildNode" docformat="rst">
    <description>
-     Applies a filter to a child node of the given node. The \mono{[childRank]} parameter specifies which child
-     to use---a rank of 1 means the first child, a rank of $N$ means the sibling of the $N-1$ rank child. If a child of the
-     specified rank does not exist this filter fails to pass.
+   Applies a filter to a child node of the given node. The ``[childRank]`` parameter specifies which child to use---a rank of 1 means the first child, a rank of :math:`N` means the sibling of the :math:`N-1` rank child. If a child of the specified rank does not exist this filter fails to pass.
    </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterChildNode
-     !!{
+     !!{RST
      A galactic filter which applies another filter to a child node of the given node.
      !!}
      private
@@ -43,8 +41,8 @@ Implements a galactic filter which applies another filter to a child node of the
   end type galacticFilterChildNode
 
   interface galacticFilterChildNode
-     !!{
-     Constructors for the \refClass{galacticFilterChildNode} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterChildNode` galactic filter class.
      !!}
      module procedure childNodeConstructorParameters
      module procedure childNodeConstructorInternal
@@ -53,8 +51,8 @@ Implements a galactic filter which applies another filter to a child node of the
 contains
 
   function childNodeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterChildNode} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterChildNode` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,10 +62,12 @@ contains
     integer                                         :: childRank
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>childRank</name>
       <source>parameters</source>
-      <description>The rank of the child to use---a rank of 1 means the first child, a rank of $N$ means the sibling of the $N-1$ rank child.</description>
+      <description>
+      The rank of the child to use---a rank of 1 means the first child, a rank of :math:`N` means the sibling of the :math:`N-1` rank child.
+      </description>
     </inputParameter>
     <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
     !!]
@@ -80,8 +80,8 @@ contains
   end function childNodeConstructorParameters
   
   function childNodeConstructorInternal(childRank,galacticFilter_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterChildNode} galactic filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticFilterChildNode` galactic filter class.
     !!}
     implicit none
     type   (galacticFilterChildNode)                        :: self
@@ -95,8 +95,8 @@ contains
   end function childNodeConstructorInternal
   
   subroutine childNodeDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterChildNode} galactic filter class.
+    !!{RST
+    Destructor for the :galacticus-class:`galacticFilterChildNode` galactic filter class.
     !!}
     implicit none
     type(galacticFilterChildNode), intent(inout) :: self
@@ -108,7 +108,7 @@ contains
   end subroutine childNodeDestructor
   
   logical function childNodePasses(self,node)
-    !!{
+    !!{RST
     Implement a filter on child node properties.
     !!}
     implicit none

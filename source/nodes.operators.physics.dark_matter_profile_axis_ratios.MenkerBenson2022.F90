@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that initializes halo axis ratios using the model of \cite{menker_random_2022}.
+  !!{RST
+  Implements a node operator class that initializes halo axis ratios using the model of :cite:t:`menker_random_2022`.
   !!}
   
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
@@ -26,19 +26,15 @@
   use :: Virial_Orbits           , only : virialOrbitClass
 
   !![
-  <nodeOperator name="nodeOperatorHaloAxisRatiosMenkerBenson2022">
+  <nodeOperator name="nodeOperatorHaloAxisRatiosMenkerBenson2022" docformat="rst">
    <description>
-    A node operator class that initializes ellipsoidal halo axis ratios by tracking the energy tensor eigenvalues along
-    merger tree branches using the model of \cite{menker_random_2022}. \mono{timescaleSphericalizationFractional} sets the
-    sphericalization timescale in units of the halo dynamical time (default from \citealt{menker_random_2022});
-    \mono{energyBoost} scales the orbital energy contribution (default from \citealt{johnson_random_2021});
-    \mono{exponentMass} controls the mass-ratio power-law dependence of orbital angular momentum contributions.
+   A node operator class that initializes ellipsoidal halo axis ratios by tracking the energy tensor eigenvalues along merger tree branches using the model of :cite:t:`menker_random_2022`. ``timescaleSphericalizationFractional`` sets the sphericalization timescale in units of the halo dynamical time (default from :cite:author:`menker_random_2022` :cite:year:`menker_random_2022`); ``energyBoost`` scales the orbital energy contribution (default from :cite:author:`johnson_random_2021` :cite:year:`johnson_random_2021`); ``exponentMass`` controls the mass-ratio power-law dependence of orbital angular momentum contributions.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorHaloAxisRatiosMenkerBenson2022
-     !!{
-     A node operator class that initializes halo axis ratios using the model of \cite{menker_random_2022}.
+     !!{RST
+     A node operator class that initializes halo axis ratios using the model of :cite:t:`menker_random_2022`.
      !!}
      private
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_               => null()
@@ -49,7 +45,7 @@
      integer                                              :: ellipsoidEigenvaluesID
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="energyTensorEigenvalues" description="Compute the energy tensor eigenvalues of a given node."/>
        <method method="energyTensor"            description="Compute the energy tensor of a given node."            />
        <method method="energyTensorOrbital"     description="Compute the orbital energy tensor of a given node."    />
@@ -63,8 +59,8 @@
   end type nodeOperatorHaloAxisRatiosMenkerBenson2022
   
   interface nodeOperatorHaloAxisRatiosMenkerBenson2022
-     !!{
-     Constructors for the \refClass{nodeOperatorHaloAxisRatiosMenkerBenson2022} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorHaloAxisRatiosMenkerBenson2022` node operator class.
      !!}
      module procedure haloAxisRatiosMenkerBenson2022ConstructorParameters
      module procedure haloAxisRatiosMenkerBenson2022ConstructorInternal
@@ -73,8 +69,8 @@
 contains
   
   function haloAxisRatiosMenkerBenson2022ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorHaloAxisRatiosMenkerBenson2022} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorHaloAxisRatiosMenkerBenson2022` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -87,25 +83,35 @@ contains
          &                                                                         energyBoost
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>energyBoost</name>
       <defaultValue>0.673d0</defaultValue>
-      <defaultSource>\citep{johnson_random_2021}</defaultSource>
+      <defaultSource>
+      :cite:p:`johnson_random_2021`
+      </defaultSource>
       <source>parameters</source>
-      <description>A boost to the energy.</description>
+      <description>
+      A boost to the energy.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentMass</name>
       <defaultValue>1.518d0</defaultValue>
       <source>parameters</source>
-      <description>The exponent of mass ratio appearing in the orbital angular momentum term in the axis ratio model.</description>
+      <description>
+      The exponent of mass ratio appearing in the orbital angular momentum term in the axis ratio model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescaleSphericalizationFractional</name>
       <defaultValue>1.75d-3</defaultValue>
-      <defaultSource>\citep{menker_random_2022}</defaultSource>
+      <defaultSource>
+      :cite:p:`menker_random_2022`
+      </defaultSource>
       <source>parameters</source>
-      <description>The timescale (in units of the halo dynamical time) for sphericalization.</description>
+      <description>
+      The timescale (in units of the halo dynamical time) for sphericalization.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
@@ -121,8 +127,8 @@ contains
   end function haloAxisRatiosMenkerBenson2022ConstructorParameters
 
   function haloAxisRatiosMenkerBenson2022ConstructorInternal(timescaleSphericalizationFractional,energyBoost,exponentMass,darkMatterProfileDMO_,darkMatterHaloScale_,virialOrbit_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorHaloAxisRatiosMenkerBenson2022} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorHaloAxisRatiosMenkerBenson2022` node operator class.
     !!}
     use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMONFW
     use :: Error                   , only : Error_Report
@@ -151,8 +157,8 @@ contains
   end function haloAxisRatiosMenkerBenson2022ConstructorInternal
 
   subroutine haloAxisRatiosMenkerBenson2022Destructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorHaloAxisRatiosMenkerBenson2022} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorHaloAxisRatiosMenkerBenson2022` node operator class.
     !!}
     implicit none
     type(nodeOperatorHaloAxisRatiosMenkerBenson2022), intent(inout) :: self
@@ -166,8 +172,8 @@ contains
   end subroutine haloAxisRatiosMenkerBenson2022Destructor
 
   subroutine haloAxisRatiosMenkerBenson2022NodeTreeInitialize(self,node)
-    !!{
-    Initialize the spin of \mono{node}.
+    !!{RST
+    Initialize the spin of ``node``.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfile, nodeComponentBasic
     use :: Linear_Algebra            , only : matrix                        , vector            , matrixRotationRandom, assignment(=), &
@@ -300,7 +306,7 @@ contains
   contains
     
     double precision function axisRatioCost(axisRatios_)
-      !!{
+      !!{RST
       Evaluate the cost function used in solving for the ellipsoidal axis ratios given the eigenvalues of the energy tensor.
       !!}
       implicit none
@@ -316,9 +322,8 @@ contains
   end subroutine haloAxisRatiosMenkerBenson2022NodeTreeInitialize
 
   function coefficientsA(axisRatios)
-    !!{
-    Evaluate the coefficients, $A_i$ appearing in the expression for the potential energy tensor. We follow the convention of
-    \cite[][their equation~12]{menker_random_2022}.
+    !!{RST
+    Evaluate the coefficients, :math:`A_i` appearing in the expression for the potential energy tensor. We follow the convention of :cite:t:`menker_random_2022`.
     !!}
     use :: Elliptic_Integrals, only : Incomplete_Elliptic_Integral_E , Incomplete_Elliptic_Integral_F
     implicit none
@@ -367,7 +372,7 @@ contains
   end function coefficientsA
   
   function haloAxisRatiosMenkerBenson2022EnergyTensorEigenvalues(self,node) result(eigenvalues)
-    !!{
+    !!{RST
     Compute the energy tensor eigenvalues of the given node.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
@@ -433,7 +438,7 @@ contains
   end function haloAxisRatiosMenkerBenson2022EnergyTensorEigenvalues
 
   function haloAxisRatiosMenkerBenson2022EnergyTensor(self,node) result(energyTensor)
-    !!{
+    !!{RST
     Compute the energy tensor of the given node.
     !!}
     use :: Linear_Algebra  , only : matrix
@@ -459,7 +464,7 @@ contains
   end function haloAxisRatiosMenkerBenson2022EnergyTensor
 
   function haloAxisRatiosMenkerBenson2022EnergyTensorOrbital(self,node) result(energyTensorOrbital)
-    !!{
+    !!{RST
     Compute the orbital energy tensor of the given node.
     !!}
     use :: Numerical_Constants_Math        , only : Pi

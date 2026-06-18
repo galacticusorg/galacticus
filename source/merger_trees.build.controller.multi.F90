@@ -17,13 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree build controller class which applies multiple other controllers.
 !!}
 
   !![
-  <mergerTreeBuildController name="mergerTreeBuildControllerMulti">
-   <description>A merger tree build controller class which applies multiple other controllers.</description>
+  <mergerTreeBuildController name="mergerTreeBuildControllerMulti" docformat="rst">
+   <description>
+   A merger tree build controller class which applies multiple other controllers.
+   </description>
    <linkedList type="controllerList" variable="controllers" next="next" object="controller_" objectType="mergerTreeBuildControllerClass"/>
   </mergerTreeBuildController>
   !!]
@@ -34,7 +36,7 @@ Implements a merger tree build controller class which applies multiple other con
   end type controllerList
 
   type, extends(mergerTreeBuildControllerClass) :: mergerTreeBuildControllerMulti
-     !!{     
+     !!{RST
      A merger tree build controller class which applies multiple other controllers.
      !!}
      private
@@ -51,8 +53,8 @@ Implements a merger tree build controller class which applies multiple other con
   end type mergerTreeBuildControllerMulti
 
   interface mergerTreeBuildControllerMulti
-     !!{
-     Constructors for the \refClass{mergerTreeBuildControllerMulti} merger tree build controller class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeBuildControllerMulti` merger tree build controller class.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -61,8 +63,8 @@ Implements a merger tree build controller class which applies multiple other con
 contains
 
   function multiConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildControllerMulti} merger tree build controller class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeBuildControllerMulti` merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -92,8 +94,8 @@ contains
   end function multiConstructorParameters
 
   function multiConstructorInternal(controllers) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildControllerMulti} merger tree build controller class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeBuildControllerMulti` merger tree build controller class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -114,8 +116,8 @@ contains
   end function multiConstructorInternal
 
   subroutine multiDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBuildControllerMulti} merger tree build controller class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeBuildControllerMulti` merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerMulti), intent(inout) :: self
@@ -136,7 +138,7 @@ contains
   end subroutine multiDestructor
 
   logical function multiControl(self,node,treeWalker_) result(control)
-    !!{
+    !!{RST
     Apply control from multiple controllers to a tree under construction.
     !!}
     implicit none
@@ -156,7 +158,7 @@ contains
   end function multiControl
 
   double precision function multiTimeMinimum(self,node,massBranch,criticalOverdensityBranch) result(timeMinimum)
-    !!{
+    !!{RST
     Return the maximum allowed time for this node.
     !!}
     implicit none
@@ -177,7 +179,7 @@ contains
   end function multiTimeMinimum
   
   double precision function multiTimeMaximum(self,node,massBranch,criticalOverdensityBranch,timeReference,insertNode) result(timeMaximum)
-    !!{
+    !!{RST
     Return the maximum allowed time for this node.
     !!}
     implicit none
@@ -206,7 +208,7 @@ contains
   end function multiTimeMaximum
   
   logical function multiControlTimeMaximum(self,node,massBranch,criticalOverdensityBranch,nodeIndex) result(control)
-    !!{
+    !!{RST
     Control when the maximum time is reached.
     !!}
     implicit none
@@ -221,7 +223,7 @@ contains
   end function multiControlTimeMaximum
 
   function multiBranchingProbabilityObject(self,node) result(mergerTreeBranchingProbability_)
-    !!{
+    !!{RST
     Return a pointer the the merger tree branching probability object to use.
     !!}
     use :: Error, only : Error_Report
@@ -248,7 +250,7 @@ contains
   end function multiBranchingProbabilityObject
 
   subroutine multiNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2,didBranch)
-    !!{
+    !!{RST
     Act on the insertion of nodes into the merger tree.
     !!}
     implicit none

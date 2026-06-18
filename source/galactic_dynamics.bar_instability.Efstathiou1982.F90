@@ -17,38 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
+  !!{RST
+  Implementation of the :cite:t:`efstathiou_stability_1982` model for galactic disk bar instability.
   !!}
 
   !![
-  <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityEfstathiou1982">
+  <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityEfstathiou1982" docformat="rst">
    <description>
-    A galactic dynamics bar instability class that uses the stability criterion of \cite{efstathiou_stability_1982} to estimate
-    when disks are unstable to bar formation:
-    \begin{equation}
-     \epsilon \left( \equiv {V_\mathrm{peak} \over \sqrt{\G M_\mathrm{disk}/r_\mathrm{disk}}} \right) &lt; \epsilon_\mathrm{c},
-    \end{equation}
-    for stability, where $V_\mathrm{peak}$ is the peak velocity in the rotation curve\footnote{In practice, the velocity is
-    evaluated at the disk scale radius and multiplied by the factor $1.1800237580$ which relates this velocity to the peak
-    rotation velocity for an isolated, thin exponential disk.}, $M_\mathrm{disk}$ is the mass of the disk and $r_\mathrm{disk}$ is
-    its scale length (assuming an exponential disk). The value of $\epsilon_\mathrm{c}$ is linearly interpolated in the disk gas
-    fraction between values for purely gaseous and stellar disks as specified by \mono{[stabilityThresholdStellar]} and \mono{[stabilityThresholdGaseous]} respectively. For disks which are judged
-    to be unstable, the timescale for bar formation is estimated to be
-    \begin{equation}
-     t_\mathrm{bar} = t_\mathrm{disk} \left( {\epsilon_\mathrm{c} - \epsilon_\mathrm{iso} \over \epsilon_\mathrm{c} - \epsilon}
-     \right)^2,
-    \end{equation}
-    where $\epsilon_\mathrm{iso}$ is the value of $\epsilon$ for an isolated disk and $t_\mathrm{disk}$ is the disk dynamical
-    time, defined as $r/V$, at one scale length. This form gives an infinite timescale at the stability threshold, reducing to
-    a dynamical time for highly unstable disks, while also ensuring that the slope of $t_\mathrm{bar}$ is continuous at the
-    instability threshold. This method returns zero external driving torque.
+   A galactic dynamics bar instability class that uses the stability criterion of :cite:t:`efstathiou_stability_1982` to estimate when disks are unstable to bar formation:
+
+   .. math::
+
+      \epsilon \left( \equiv {V_\mathrm{peak} \over \sqrt{\G M_\mathrm{disk}/r_\mathrm{disk}}} \right) &lt; \epsilon_\mathrm{c},
+
+   for stability, where :math:`V_\mathrm{peak}` is the peak velocity in the rotation curve\footnoteIn practice, the velocity is evaluated at the disk scale radius and multiplied by the factor :math:`1.1800237580` which relates this velocity to the peak rotation velocity for an isolated, thin exponential disk., :math:`M_\mathrm{disk}` is the mass of the disk and :math:`r_\mathrm{disk}` is its scale length (assuming an exponential disk). The value of :math:`\epsilon_\mathrm{c}` is linearly interpolated in the disk gas fraction between values for purely gaseous and stellar disks as specified by ``[stabilityThresholdStellar]`` and ``[stabilityThresholdGaseous]`` respectively. For disks which are judged to be unstable, the timescale for bar formation is estimated to be
+
+   .. math::
+
+      t_\mathrm{bar} = t_\mathrm{disk} \left( {\epsilon_\mathrm{c} - \epsilon_\mathrm{iso} \over \epsilon_\mathrm{c} - \epsilon}
+      \right)^2,
+
+   where :math:`\epsilon_\mathrm{iso}` is the value of :math:`\epsilon` for an isolated disk and :math:`t_\mathrm{disk}` is the disk dynamical time, defined as :math:`r/V`, at one scale length. This form gives an infinite timescale at the stability threshold, reducing to a dynamical time for highly unstable disks, while also ensuring that the slope of :math:`t_\mathrm{bar}` is continuous at the instability threshold. This method returns zero external driving torque.
    </description>
   </galacticDynamicsBarInstability>
   !!]
   type, extends(galacticDynamicsBarInstabilityClass) :: galacticDynamicsBarInstabilityEfstathiou1982
-     !!{
-     Implementation of the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
+     !!{RST
+     Implementation of the :cite:t:`efstathiou_stability_1982` model for galactic disk bar instability.
      !!}
      private
      double precision :: stabilityThresholdStellar          , stabilityThresholdGaseous              , &
@@ -56,8 +51,8 @@
           &              timescaleMinimum
    contains
      !![
-     <methods>
-       <method description="Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability." method="estimator" />
+     <methods docformat="rst">
+       <method description="Compute the stability estimator for the :cite:t:`efstathiou_stability_1982` model for galactic disk bar instability." method="estimator" />
      </methods>
      !!]
      procedure :: timescale => efstathiou1982Timescale
@@ -65,8 +60,8 @@
   end type galacticDynamicsBarInstabilityEfstathiou1982
 
   interface galacticDynamicsBarInstabilityEfstathiou1982
-     !!{
-     Constructors for the \refClass{galacticDynamicsBarInstabilityEfstathiou1982} model for galactic disk bar instability class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticDynamicsBarInstabilityEfstathiou1982` model for galactic disk bar instability class.
      !!}
      module procedure efstathiou1982ConstructorParameters
      module procedure efstathiou1982ConstructorInternal
@@ -77,9 +72,8 @@
 contains
 
   function efstathiou1982ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticDynamicsBarInstabilityEfstathiou1982} model for galactic disk bar instability class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticDynamicsBarInstabilityEfstathiou1982` model for galactic disk bar instability class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,34 +84,44 @@ contains
          &                                                                           timescaleMinimum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>stabilityThresholdStellar</name>
       <defaultValue>1.1d0</defaultValue>
-      <description>The stability threshold in the \cite{efstathiou_stability_1982} algorithm for purely stellar disks.</description>
+      <description>
+      The stability threshold in the :cite:t:`efstathiou_stability_1982` algorithm for purely stellar disks.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>stabilityThresholdGaseous</name>
       <defaultValue>0.7d0</defaultValue>
-      <description>The stability threshold in the \cite{efstathiou_stability_1982} algorithm for purely gaseous disks.</description>
+      <description>
+      The stability threshold in the :cite:t:`efstathiou_stability_1982` algorithm for purely gaseous disks.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescaleMinimum</name>
       <defaultValue>1.0d-9</defaultValue>
-      <description>The minimum absolute dynamical timescale (in Gyr) to use in the \cite{efstathiou_stability_1982} algorithm.</description>
+      <description>
+      The minimum absolute dynamical timescale (in Gyr) to use in the :cite:t:`efstathiou_stability_1982` algorithm.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionAngularMomentumRetainedDisk</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The fraction of angular momentum of material depleted from the disk by bar instability which is retained in the disk.</description>
+      <description>
+      The fraction of angular momentum of material depleted from the disk by bar instability which is retained in the disk.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionAngularMomentumRetainedSpheroid</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The fraction of angular momentum of material depleted from the disk by bar instability which is retained in the spheroid.</description>
+      <description>
+      The fraction of angular momentum of material depleted from the disk by bar instability which is retained in the spheroid.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -129,8 +133,8 @@ contains
   end function efstathiou1982ConstructorParameters
 
   function efstathiou1982ConstructorInternal(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum,fractionAngularMomentumRetainedDisk,fractionAngularMomentumRetainedSpheroid) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticDynamicsBarInstabilityEfstathiou1982} model for galactic disk bar instability class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticDynamicsBarInstabilityEfstathiou1982` model for galactic disk bar instability class.
     !!}
     implicit none
     type            (galacticDynamicsBarInstabilityEfstathiou1982)                :: self
@@ -145,9 +149,8 @@ contains
   end function efstathiou1982ConstructorInternal
 
   subroutine efstathiou1982Timescale(self,node,timescale,externalDrivingSpecificTorque,fractionAngularMomentumRetainedDisk,fractionAngularMomentumRetainedSpheroid)
-    !!{
-    Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
-    \cite{efstathiou_stability_1982}.
+    !!{RST
+    Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of :cite:t:`efstathiou_stability_1982`.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentDisk, treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear         , megaParsec
@@ -207,8 +210,8 @@ contains
   end subroutine efstathiou1982Timescale
 
   double precision function efstathiou1982Estimator(self,node)
-    !!{
-    Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
+    !!{RST
+    Compute the stability estimator for the :cite:t:`efstathiou_stability_1982` model for galactic disk bar instability.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentDisk             , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal

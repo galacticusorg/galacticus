@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a position component in Cartesian coordinates.
 !!}
 
 module Node_Component_Position_Cartesian
-  !!{
+  !!{RST
   Implements a position component in Cartesian coordinates.
   !!}
   implicit none
@@ -71,7 +71,7 @@ contains
   <nodeComponentThreadInitializationTask function="Node_Component_Position_Cartesian_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Position_Cartesian_Thread_Initialize(parameters_)
-    !!{
+    !!{RST
     Initializes the tree node scale dark matter profile module.
     !!}
     use :: Events_Hooks    , only : nodePromotionEvent      , openMPThreadBindingAtLevel
@@ -90,7 +90,7 @@ contains
   <nodeComponentThreadUninitializationTask function="Node_Component_Position_Cartesian_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Position_Cartesian_Thread_Uninitialize()
-    !!{
+    !!{RST
     Uninitializes the tree node scale dark matter profile module.
     !!}
     use :: Events_Hooks    , only : nodePromotionEvent
@@ -103,8 +103,8 @@ contains
   end subroutine Node_Component_Position_Cartesian_Thread_Uninitialize
 
   subroutine nodePromotion(self,node)
-    !!{
-    Ensure that \mono{node} is ready for promotion to its parent. In this case, update the position of \mono{node} to that of the parent.
+    !!{RST
+    Ensure that ``node`` is ready for promotion to its parent. In this case, update the position of ``node`` to that of the parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentPosition, nodeComponentPositionCartesian, treeNode
     implicit none
@@ -130,9 +130,8 @@ contains
   </interTreePositionInsert>
   !!]
   subroutine Node_Component_Position_Cartesian_Inter_Tree_Insert(node,replaceNode)
-    !!{
-    A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been
-    assigned to the \mono{replaceNode} so must be transferred.
+    !!{RST
+    A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been assigned to the ``replaceNode`` so must be transferred.
     !!}
     use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentBasic, nodeComponentPosition, treeNode
     use :: Histories       , only : history

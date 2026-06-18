@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   A spherical collapse solver class for universes consisting of collisionless matter and a cosmological constant.
   !!}
 
@@ -26,12 +26,14 @@
   use :: ISO_Varying_String , only : varying_string
 
   !![
-  <sphericalCollapseSolver name="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt">
-   <description>A spherical collapse solver for universes consisting of collisionless matter and a cosmological constant.</description>
+  <sphericalCollapseSolver name="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt" docformat="rst">
+   <description>
+   A spherical collapse solver for universes consisting of collisionless matter and a cosmological constant.
+   </description>
   </sphericalCollapseSolver>
   !!]
   type, extends(sphericalCollapseSolverClass) :: sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
-     !!{
+     !!{RST
      A spherical collapse solver for universes consisting of collisionless matter and a cosmological constant.
      !!}
      private
@@ -41,7 +43,7 @@
           &                                     fileNameRadiusTurnaround             , fileNameNonLinearMap
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Get the requested table."                method="getTable"    />
        <method description="Restore a tabulated solution from file." method="restoreTable"/>
        <method description="Store a tabulated solution to file."     method="storeTable"  />
@@ -60,8 +62,8 @@
   end type sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
 
   interface sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
-     !!{
-     Constructors for the \refClass{sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt} spherical collapse solver class.
+     !!{RST
+     Constructors for the :galacticus-class:`sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt` spherical collapse solver class.
      !!}
      module procedure cllsnlssMttCsmlgclCnstntConstructorParameters
      module procedure cllsnlssMttCsmlgclCnstntConstructorInternal
@@ -69,9 +71,11 @@
 
   ! Enumeration of types of calculation to perform.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>cllsnlssMttCsmlgclCnstntClcltn</name>
-   <description>Enumeration of calculation types to be performed by the spherical collapse solver.</description>
+   <description>
+   Enumeration of calculation types to be performed by the spherical collapse solver.
+   </description>
    <validator>yes</validator>
    <entry label="criticalOverdensity"  />
    <entry label="virialDensityContrast"/>
@@ -108,9 +112,8 @@
 contains
 
   function cllsnlssMttCsmlgclCnstntConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt} spherical collapse solver class that takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the :galacticus-class:`sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt` spherical collapse solver class that takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -133,8 +136,8 @@ contains
   end function cllsnlssMttCsmlgclCnstntConstructorParameters
 
   function cllsnlssMttCsmlgclCnstntConstructorInternal(cosmologyFunctions_,linearGrowth_) result(self)
-    !!{
-    Internal constructor for the \refClass{sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt} spherical collapse solver class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt` spherical collapse solver class.
     !!}
     use :: Input_Paths       , only : inputPath   , pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
@@ -174,8 +177,8 @@ contains
   end function cllsnlssMttCsmlgclCnstntConstructorInternal
 
   subroutine cllsnlssMttCsmlgclCnstntDestructor(self)
-    !!{
-    Destructor for the \refClass{sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt} spherical collapse solver class.
+    !!{RST
+    Destructor for the :galacticus-class:`sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt` spherical collapse solver class.
     !!}
     implicit none
     type(sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), intent(inout) :: self
@@ -188,7 +191,7 @@ contains
   end subroutine cllsnlssMttCsmlgclCnstntDestructor
 
   subroutine cllsnlssMttCsmlgclCnstntGetTable(self,time,fileName,tableStore,calculationType,table_)
-    !!{
+    !!{RST
     Get the requested table for collapse for the spherical collapse model---either restoring from cache, from file, or computing as necessary.
     !!}
     use :: Error         , only : errorStatusSuccess
@@ -287,7 +290,7 @@ contains
   end subroutine cllsnlssMttCsmlgclCnstntGetTable
 
   subroutine cllsnlssMttCsmlgclCnstntCriticalOverdensity(self,time,tableStore,criticalOverdensity_)
-    !!{
+    !!{RST
     Compute the critical overdensity for collapse for the spherical collapse model.
     !!}
     implicit none
@@ -301,7 +304,7 @@ contains
   end subroutine cllsnlssMttCsmlgclCnstntCriticalOverdensity
 
   subroutine cllsnlssMttCsmlgclCnstntVirialDensityContrast(self,time,tableStore,virialDensityContrast_)
-    !!{
+    !!{RST
     Tabulate the virial density contrast for the spherical collapse model.
     !!}
     implicit none
@@ -315,7 +318,7 @@ contains
   end subroutine cllsnlssMttCsmlgclCnstntVirialDensityContrast
 
   subroutine cllsnlssMttCsmlgclCnstntRadiusTurnaround(self,time,tableStore,radiusTurnaround_)
-    !!{
+    !!{RST
     Tabulate the ratio of turnaround to virial radii for the spherical collapse model.
     !!}
     implicit none
@@ -329,8 +332,8 @@ contains
   end subroutine cllsnlssMttCsmlgclCnstntRadiusTurnaround
 
   subroutine cllsnlssMttCsmlgclCnstntTabulate(self,time,sphericalCollapse_,calculationType)
-    !!{
-    Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
+    !!{RST
+    Tabulate spherical collapse solutions for :math:`\delta_\mathrm{crit}`, :math:`\Delta_\mathrm{vir}`, or :math:`R_\mathrm{ta}/R_\mathrm{vir}` vs. time.
     !!}
     use :: Cosmology_Functions, only : timeToleranceRelativeBigCrunch
     use :: Error              , only : Error_Report
@@ -492,8 +495,8 @@ contains
   end subroutine cllsnlssMttCsmlgclCnstntTabulate
 
   double precision function cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot(epsilonPerturbation)
-    !!{
-    Root function used to determine when the collapse time for a perturbation of amplitude \mono{epsilonPerturbation} collapses at the current time.
+    !!{RST
+    Root function used to determine when the collapse time for a perturbation of amplitude ``epsilonPerturbation`` collapses at the current time.
     !!}
     implicit none
     double precision, intent(in   ) :: epsilonPerturbation
@@ -504,8 +507,8 @@ contains
   end function cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot
 
   double precision function cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum(epsilonPerturbation)
-    !!{
-    Find the maximum radius of a perturbation with initial curvature \mono{epsilonPerturbation}.
+    !!{RST
+    Find the maximum radius of a perturbation with initial curvature ``epsilonPerturbation``.
     !!}
     use :: Root_Finder, only : rootFinder
     implicit none
@@ -556,9 +559,8 @@ contains
   end function cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum
 
   double precision function cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot(radiusMaximum)
-    !!{
-    Function used in root finding to determine the maximum expansion radius of the perturbation. Evaluates the expansion speed
-    of the perturbation which must be zero at the maximum radius.
+    !!{RST
+    Function used in root finding to determine the maximum expansion radius of the perturbation. Evaluates the expansion speed of the perturbation which must be zero at the maximum radius.
     !!}
     double precision, intent(in   ) :: radiusMaximum
 
@@ -619,8 +621,8 @@ contains
   end function time_Collapse
 
   double precision function cllsnlssMttCsmlgclCnstntPerturbationIntegrand(radius)
-    !!{
-    Integrand function giving the $\mathrm{d}t/\mathrm{d}r$ for the perturbation.
+    !!{RST
+    Integrand function giving the :math:`\mathrm{d}t/\mathrm{d}r` for the perturbation.
     !!}
     implicit none
     double precision, intent(in   ) :: radius
@@ -642,7 +644,7 @@ contains
   end function cllsnlssMttCsmlgclCnstntPerturbationIntegrand
 
   subroutine cllsnlssMttCsmlgclCnstntLinearNonlinearMap(self,time,linearNonlinearMap_)
-    !!{
+    !!{RST
     Tabulate the mapping between linear and nonlinear overdensity for the spherical collapse model.
     !!}
     use :: Array_Utilities      , only : Array_Reverse
@@ -935,7 +937,7 @@ contains
   end subroutine cllsnlssMttCsmlgclCnstntLinearNonlinearMap
 
   double precision function cllsnlssMttCsmlgclCnstntRadiusRoot(radiusNow)
-    !!{
+    !!{RST
     Root function used in solving for the radius of a perturbation.
     !!}
     use :: Numerical_Integration, only : integrator
@@ -968,7 +970,7 @@ contains
   end function cllsnlssMttCsmlgclCnstntRadiusRoot
 
   subroutine cllsnlssMttCsmlgclCnstntRestoreTable(self,time,restoredTable,fileName,tableStore,status)
-    !!{
+    !!{RST
     Attempt to restore a table from file.
     !!}
     use :: Error             , only : errorStatusFail, errorStatusSuccess
@@ -1019,7 +1021,7 @@ contains
   end subroutine cllsnlssMttCsmlgclCnstntRestoreTable
 
   subroutine cllsnlssMttCsmlgclCnstntStoreTable(self,storeTable,fileName,tableStore)
-    !!{
+    !!{RST
     Store a table to file.
     !!}
     use :: File_Utilities    , only : Directory_Make, File_Path

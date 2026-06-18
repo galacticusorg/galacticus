@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of an abstract mass distribution class for spherically symmetric distributions.
   !!}
 
   !![
-  <massDistribution name="massDistributionSpherical" abstract="yes">
-   <description>An abstract mass distribution class for spherically symmetric distributions.</description>
+  <massDistribution name="massDistributionSpherical" abstract="yes" docformat="rst">
+   <description>
+   An abstract mass distribution class for spherically symmetric distributions.
+   </description>
   </massDistribution>
   !!]
   type, extends(massDistributionClass), abstract :: massDistributionSpherical
-     !!{
+     !!{RST
      Implementation of an abstract mass distribution class for spherically symmetric distributions.
      !!}
      private
@@ -47,7 +49,7 @@
      logical                                                   :: chandrasekharIntegralComputeVelocityDispersion=.true.
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Returns the radius enclosing half of the mass of the mass distribution."                               method="radiusHalfMass"                     />
        <method description="Compute the potential energy of mass distribution."                                                    method="energyPotential"                    />
        <method description="Compute the kinetic energy of the mass distribution."                                                  method="energyKinetic"                      />
@@ -123,10 +125,8 @@
 contains
 
   subroutine sphericalTabulationReset(self)
-    !!{
-    Reset memoized enclosed-mass and potential tabulations, so that an object which
-    is re-initialized for a different mass distribution (e.g. when re-used from a
-    pool) never returns stale, cached results.
+    !!{RST
+    Reset memoized enclosed-mass and potential tabulations, so that an object which is re-initialized for a different mass distribution (e.g. when re-used from a pool) never returns stale, cached results.
     !!}
     implicit none
     class(massDistributionSpherical), intent(inout) :: self
@@ -147,7 +147,7 @@ contains
   end subroutine sphericalTabulationReset
 
   function sphericalSymmetry(self)
-    !!{
+    !!{RST
     Returns symmetry label for mass distributions with spherical symmetry.
     !!}
     implicit none
@@ -160,7 +160,7 @@ contains
   end function sphericalSymmetry
 
   logical function sphericalIsSphericallySymmetric(self) result(isSphericallySymmetric)
-    !!{
+    !!{RST
     Return true if the distribution is spherically symmetric.
     !!}
     implicit none
@@ -171,8 +171,8 @@ contains
   end function sphericalIsSphericallySymmetric
 
   double precision function sphericalDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
-    !!{
-    Return the radial density gradient at the specified \mono{coordinates} in a spherical mass distribution.
+    !!{RST
+    Return the radial density gradient at the specified ``coordinates`` in a spherical mass distribution.
     !!}
     implicit none
     class  (massDistributionSpherical), intent(inout), target   :: self
@@ -184,8 +184,8 @@ contains
   end function sphericalDensityGradientRadial
 
   double precision function sphericalDensityGradientRadialNumerical(self,coordinates,logarithmic) result(densityGradient)
-    !!{
-    Return the radial density gradient at the specified \mono{coordinates} in a spherical mass distribution using a numerical calculation.
+    !!{RST
+    Return the radial density gradient at the specified ``coordinates`` in a spherical mass distribution using a numerical calculation.
     !!}
     use :: Numerical_Differentiation, only : differentiator
     implicit none
@@ -212,7 +212,7 @@ contains
   end function sphericalDensityGradientRadialNumerical
 
   double precision function densityEvaluate(radiusLogarithmic) result(density)
-    !!{
+    !!{RST
     GSL-callable function to evaluate the density of the dark matter profile.
     !!}
       use :: Coordinates, only : coordinateSpherical, assignment(=)
@@ -226,9 +226,8 @@ contains
   end function densityEvaluate
 
   double precision function sphericalMassEnclosedBySphere(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for spherically-symmetric mass
-    distributions.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for spherically-symmetric mass distributions.
     !!}
     implicit none
     class           (massDistributionSpherical), intent(inout), target :: self
@@ -239,9 +238,8 @@ contains
   end function sphericalMassEnclosedBySphere
 
   double precision function sphericalMassEnclosedBySphereNumerical(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for spherically-symmetric mass
-    distributions using numerical integration.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for spherically-symmetric mass distributions using numerical integration.
     !!}
     use, intrinsic :: ISO_C_Binding           , only : c_size_t
     use            :: Numerical_Constants_Math, only : Pi
@@ -423,7 +421,7 @@ contains
   end function sphericalMassEnclosedBySphereNumerical
 
   double precision function sphericalMassEnclosedBySphereIntegrand(radius) result(integrand)
-    !!{
+    !!{RST
     Enclosed mass integrand for spherical mass distributions.
     !!}
     use :: Coordinates, only : assignment(=), coordinateSpherical
@@ -442,7 +440,7 @@ contains
   end function sphericalMassEnclosedBySphereIntegrand
 
   double precision function sphericalRadiusEnclosingMassNumerical(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Return the radius enclosing a specified mass using a numerical calculation.
     !!}
     use :: Root_Finder, only : rootFinder                   , GSL_Root_fSolver_Brent, rangeExpandMultiplicative, rangeExpandSignExpectNegative, &
@@ -492,7 +490,7 @@ contains
   end function sphericalRadiusEnclosingMassNumerical
   
   double precision function sphericalMassEnclosedRoot(radius) result(root)
-    !!{
+    !!{RST
     Root function used in finding radii enclosing a target mass.
     !!}
     implicit none
@@ -504,7 +502,7 @@ contains
   end function sphericalMassEnclosedRoot
   
   double precision function sphericalDensitySphericalAverage(self,radius)
-    !!{
+    !!{RST
     Computes the density averaged over a spherical shell.
     !!}
     use :: Coordinates, only : assignment(=), coordinateSpherical
@@ -520,7 +518,7 @@ contains
   end function sphericalDensitySphericalAverage
 
   double precision function sphericalRadiusHalfMass(self)
-    !!{
+    !!{RST
     Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
     !!}
     implicit none
@@ -531,8 +529,8 @@ contains
   end function sphericalRadiusHalfMass
 
   double precision function sphericalPotential(self,coordinates,status) result(potential)
-    !!{
-    Return the potential at the specified \mono{coordinates} in a spherical mass distribution.
+    !!{RST
+    Return the potential at the specified ``coordinates`` in a spherical mass distribution.
     !!}
     implicit none
     class(massDistributionSpherical        ), intent(inout), target   :: self
@@ -544,8 +542,8 @@ contains
   end function sphericalPotential
 
   double precision function sphericalPotentialNumerical(self,coordinates,status) result(potential)
-    !!{
-    Return the potential at the specified \mono{coordinates} in a spherical mass distribution.
+    !!{RST
+    Return the potential at the specified ``coordinates`` in a spherical mass distribution.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Coordinates                     , only : assignment(=)
@@ -736,9 +734,8 @@ contains
   end function sphericalPotentialNumerical
 
   double precision function sphericalPotentialDifferenceNumerical(self,coordinates1,coordinates2,status) result(potential)
-    !!{
-    Return the potential difference between the two specified \mono{coordinates} in a spherical mass distribution
-    using a numerical calculation.
+    !!{RST
+    Return the potential difference between the two specified ``coordinates`` in a spherical mass distribution using a numerical calculation.
     !!}
     use :: Coordinates                     , only : assignment(=)
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
@@ -767,7 +764,7 @@ contains
   end function sphericalPotentialDifferenceNumerical
   
   double precision function integrandPotential(radius)
-    !!{
+    !!{RST
     Integrand for gravitational potential in a generic dark matter profile.
     !!}
     implicit none
@@ -784,7 +781,7 @@ contains
   end function integrandPotential
 
   double precision function sphericalPotentialSolverIntegrand(self,radius) result(integrandPotential)
-    !!{
+    !!{RST
     Integrand for gravitational potential in a spherical mass distribution.
     !!}
     implicit none
@@ -801,10 +798,8 @@ contains
   end function sphericalPotentialSolverIntegrand
 
   double precision function sphericalPotentialSolverRadius(self,radius) result(radiusSolver)
-    !!{
-    Return the radius variable used in computing the potential that corresponds to a given physical radius.
-    In some cases, it is easier to do the integration with respect to another variable which is a function of
-    the physical radius.
+    !!{RST
+    Return the radius variable used in computing the potential that corresponds to a given physical radius. In some cases, it is easier to do the integration with respect to another variable which is a function of the physical radius.
     !!}
     implicit none
     class           (massDistributionSpherical), intent(inout) :: self
@@ -816,9 +811,8 @@ contains
   end function sphericalPotentialSolverRadius
 
   function sphericalAcceleration(self,coordinates) result(acceleration)
-    !!{
-    Computes the gravitational acceleration at \mono{coordinates} for spherically-symmetric mass
-    distributions.
+    !!{RST
+    Computes the gravitational acceleration at ``coordinates`` for spherically-symmetric mass distributions.
     !!}
     use :: Coordinates                     , only : assignment(=), coordinateSpherical, coordinateCartesian
     use :: Numerical_Constants_Astronomical, only : gigaYear     , megaParsec         , gravitationalConstant_internal
@@ -855,9 +849,8 @@ contains
   end function sphericalAcceleration
 
   function sphericalTidalTensor(self,coordinates)
-    !!{
-    Computes the gravitational tidal tensor at \mono{coordinates} for spherically-symmetric mass
-    distributions.
+    !!{RST
+    Computes the gravitational tidal tensor at ``coordinates`` for spherically-symmetric mass distributions.
     !!}
     use :: Coordinates                     , only : assignment(=)                 , coordinateSpherical, coordinateCartesian
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -896,7 +889,7 @@ contains
   end function sphericalTidalTensor
 
   double precision function sphericalRotationCurve(self,radius)
-    !!{
+    !!{RST
     Return the rotation curve for a spherical mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -920,7 +913,7 @@ contains
   end function sphericalRotationCurve
 
   double precision function sphericalRotationCurveGradient(self,radius)
-    !!{
+    !!{RST
     Return the rotation curve gradient for a spherical mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)                 , coordinateSpherical
@@ -946,7 +939,7 @@ contains
   end function sphericalRotationCurveGradient
 
   function sphericalPositionSample(self,randomNumberGenerator_)
-    !!{
+    !!{RST
     Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -974,8 +967,8 @@ contains
   end function sphericalPositionSample
 
   double precision function sphericalSurfaceDensity(self,coordinates)
-    !!{
-    Return the surface density at the specified \mono{coordinates} in an exponential disk mass distribution.
+    !!{RST
+    Return the surface density at the specified ``coordinates`` in an exponential disk mass distribution.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -988,8 +981,8 @@ contains
   end function sphericalSurfaceDensity
 
   function sphericalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity) result(integral)
-    !!{
-    Compute the Chandrasekhar integral at the specified \mono{coordinates} in a spherical mass distribution.
+    !!{RST
+    Compute the Chandrasekhar integral at the specified ``coordinates`` in a spherical mass distribution.
     !!}
     use :: Coordinates               , only : coordinateCartesian  , assignment(=)
     use :: Numerical_Constants_Math  , only : Pi
@@ -1053,8 +1046,8 @@ contains
   end function sphericalChandrasekharIntegral
 
   double precision function sphericalFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
-    !!{
-    Compute the Fourier transform of the density profile at the given \mono{wavenumber} in a spherical mass distribution.
+    !!{RST
+    Compute the Fourier transform of the density profile at the given ``wavenumber`` in a spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSpherical), intent(inout) :: self
@@ -1065,9 +1058,8 @@ contains
   end function sphericalFourierTransform
 
   double precision function sphericalFourierTransformNumerical(self,radiusOuter,wavenumber) result(fourierTransform)
-    !!{   
-    Compute the Fourier transform of the density profile at the given \mono{wavenumber} in a spherical mass
-    distribution using a numerical calculation.
+    !!{RST
+    Compute the Fourier transform of the density profile at the given ``wavenumber`` in a spherical mass distribution using a numerical calculation.
     !!}
     use :: Numerical_Integration, only : integrator
     implicit none
@@ -1084,7 +1076,7 @@ contains
   contains
 
     double precision function integrandFourierTransform(radius)
-      !!{
+      !!{RST
       Integrand for Fourier transform of a spherical mass distribution.
       !!}
       use :: Numerical_Constants_Math, only : Pi
@@ -1110,8 +1102,8 @@ contains
   end function sphericalFourierTransformNumerical
   
   double precision function sphericalRadiusFreefall(self,time) result(radius)
-    !!{
-    Compute the freefall radius at the given \mono{time} in a spherical mass distribution.
+    !!{RST
+    Compute the freefall radius at the given ``time`` in a spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSpherical), intent(inout) :: self
@@ -1122,9 +1114,8 @@ contains
   end function sphericalRadiusFreefall
   
   double precision function sphericalRadiusFreefallNumerical(self,time) result(radius)
-    !!{
-    Compute the freefall radius at the given \mono{time} in a spherical mass distribution using a numerical
-    calculation.
+    !!{RST
+    Compute the freefall radius at the given ``time`` in a spherical mass distribution using a numerical calculation.
     !!}
     use :: Root_Finder                     , only : rangeExpandMultiplicative     , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
@@ -1173,7 +1164,7 @@ contains
   end function sphericalRadiusFreefallNumerical
   
   double precision function rootRadiusFreefall(radiusFreefall)
-    !!{
+    !!{RST
     Root function used in finding the radius corresponding to a given freefall time.
     !!}
     use :: Numerical_Integration, only : integrator
@@ -1189,7 +1180,7 @@ contains
   end function rootRadiusFreefall
 
   double precision function integrandTimeFreefall(radius)
-    !!{
+    !!{RST
     Integrand for freefall time in a spherical mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)    , coordinateSpherical
@@ -1216,9 +1207,8 @@ contains
   end function integrandTimeFreefall
 
   double precision function sphericalRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
-    !!{
-    Compute the rate of increase of the freefall radius at the given \mono{time} in an spherical mass
-    distribution.
+    !!{RST
+    Compute the rate of increase of the freefall radius at the given ``time`` in an spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSpherical), intent(inout) :: self
@@ -1229,9 +1219,8 @@ contains
   end function sphericalRadiusFreefallIncreaseRate
 
   double precision function sphericalRadiusFreefallIncreaseRateNumerical(self,time) result(radiusIncreaseRate)
-    !!{
-    Compute the rate of increase of the freefall radius at the given \mono{time} in an spherical mass
-    distribution using a numerical calculation.
+    !!{RST
+    Compute the rate of increase of the freefall radius at the given ``time`` in an spherical mass distribution using a numerical calculation.
     !!}
     use :: Numerical_Differentiation, only : differentiator
     implicit none
@@ -1249,7 +1238,7 @@ contains
   end function sphericalRadiusFreefallIncreaseRateNumerical
 
   double precision function radiusFreefallEvaluate(timeLogarithmic)
-    !!{
+    !!{RST
     GSL-callable function to evaluate the freefall radius of the mass distribution.
     !!}
     implicit none
@@ -1260,8 +1249,8 @@ contains
   end function radiusFreefallEvaluate
 
   double precision function sphericalEnergy(self,radiusOuter,massDistributionEmbedding) result(energy)
-    !!{
-    Compute the energy within a given \mono{radius} in a spherical mass distribution.
+    !!{RST
+    Compute the energy within a given ``radius`` in a spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSpherical), intent(inout), target :: self
@@ -1273,8 +1262,8 @@ contains
   end function sphericalEnergy
 
   double precision function sphericalEnergyNumerical(self,radiusOuter,massDistributionEmbedding) result(energy)
-    !!{
-    Compute the energy within a given \mono{radius} in a spherical mass distribution using a numerical calculation.
+    !!{RST
+    Compute the energy within a given ``radius`` in a spherical mass distribution using a numerical calculation.
     !!}
     implicit none
     class           (massDistributionSpherical), intent(inout) :: self
@@ -1287,8 +1276,8 @@ contains
   end function sphericalEnergyNumerical
 
   double precision function sphericalEnergyPotential(self,radiusOuter) result(energy)
-    !!{
-    Compute the potential energy within a given \mono{radius} in a spherical mass distribution.
+    !!{RST
+    Compute the potential energy within a given ``radius`` in a spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSpherical), intent(inout) :: self
@@ -1299,8 +1288,8 @@ contains
   end function sphericalEnergyPotential
 
   double precision function sphericalEnergyKinetic(self,radiusOuter,massDistributionEmbedding) result(energy)
-    !!{
-    Compute the kinetic energy within a given \mono{radius} in a spherical mass distribution.
+    !!{RST
+    Compute the kinetic energy within a given ``radius`` in a spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSpherical), intent(inout) :: self
@@ -1312,8 +1301,8 @@ contains
   end function sphericalEnergyKinetic
   
   double precision function sphericalEnergyPotentialNumerical(self,radiusOuter) result(energy)
-    !!{
-    Compute (numerically) the potential energy within a given \mono{radius} in a spherical mass distribution.
+    !!{RST
+    Compute (numerically) the potential energy within a given ``radius`` in a spherical mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Integration           , only : integrator
@@ -1335,7 +1324,7 @@ contains
   contains
 
     double precision function integrandEnergyPotential(radius)
-      !!{
+      !!{RST
       Integrand for potential energy of a spherical mass distribution.
       !!}
       implicit none
@@ -1355,8 +1344,8 @@ contains
   end function sphericalEnergyPotentialNumerical
 
   double precision function sphericalEnergyKineticNumerical(self,radiusOuter,massDistributionEmbedding) result(energy)
-    !!{
-    Compute (numerically) the kinetic energy within a given \mono{radius} in a spherical mass distribution.
+    !!{RST
+    Compute (numerically) the kinetic energy within a given ``radius`` in a spherical mass distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
@@ -1375,7 +1364,7 @@ contains
   contains
 
     double precision function integrandEnergyKinetic(radius)
-      !!{
+      !!{RST
       Integrand for kinetic energy of the halo.
       !!}
       use :: Coordinates, only : coordinateSpherical, assignment(=)
@@ -1397,7 +1386,7 @@ contains
   end function sphericalEnergyKineticNumerical
 
   double precision function sphericalDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
-    !!{
+    !!{RST
     Returns a radial density moment for a spherical mass distribution.
     !!}
     implicit none
@@ -1411,7 +1400,7 @@ contains
   end function sphericalDensityRadialMoment
 
   double precision function sphericalDensityRadialMomentNumerical(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
-    !!{
+    !!{RST
     Returns a radial density moment for a spherical mass distribution using a numerical calculation.
     !!}
     use :: Error                , only : Error_Report
@@ -1436,7 +1425,7 @@ contains
   contains
 
     double precision function integrandMoment(radius)
-      !!{
+      !!{RST
       Integrand for radial density moment in a spherical mass distribution.
       !!}
       use :: Coordinates, only : assignment(=), coordinateSpherical
@@ -1457,7 +1446,7 @@ contains
   end function sphericalDensityRadialMomentNumerical
 
   subroutine sphericalSolverSphericalSet(self,time)
-    !!{
+    !!{RST
     Unset a sub-module scope pointers on the stack.
     !!}
     implicit none
@@ -1486,7 +1475,7 @@ contains
   end subroutine sphericalSolverSphericalSet
 
   subroutine sphericalSolverSphericalUnset(self)
-    !!{
+    !!{RST
     Unset a sub-module scope pointers on the stack.
     !!}
     implicit none

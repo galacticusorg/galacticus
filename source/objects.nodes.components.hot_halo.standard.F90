@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements the standard hot halo node component.
 !!}
 
 module Node_Component_Hot_Halo_Standard
-  !!{
+  !!{RST
   Implements the standard hot halo node component.
   !!}
   use :: Accretion_Halos                           , only : accretionHaloClass
@@ -239,7 +239,7 @@ contains
   <nodeComponentInitializationTask function="Node_Component_Hot_Halo_Standard_Initialize"/>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the standard hot halo component module.
     !!}
     use :: Abundances_Structure                 , only : Abundances_Property_Count      , abundances
@@ -267,29 +267,35 @@ contains
        subParameters=parameters%subParameters('componentHotHalo')
        ! Determine whether satellite nodes will be starved of gas.
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>starveSatellites</name>
          <defaultValue>.false.</defaultValue>
-         <description>Specifies whether or not the hot halo should be removed (``starved'') when a node becomes a satellite.</description>
+         <description>
+         Specifies whether or not the hot halo should be removed ("starved") when a node becomes a satellite.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
 
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>starveSatellitesOutflowed</name>
          <defaultValue>.false.</defaultValue>
-         <description>Specifies whether or not the outflowed hot halo should be removed (``starved'') when a node becomes a satellite.</description>
+         <description>
+         Specifies whether or not the outflowed hot halo should be removed ("starved") when a node becomes a satellite.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
 
        ! Determine whether outflowed gas should be restored to the hot reservoir on halo formation events.
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>outflowReturnOnFormation</name>
          <defaultValue>.false.</defaultValue>
-         <description>Specifies whether or not outflowed gas should be returned to the hot reservoir on halo formation events.</description>
+         <description>
+         Specifies whether or not outflowed gas should be returned to the hot reservoir on halo formation events.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -297,24 +303,24 @@ contains
        ! Determine whether negative angular momentum accretion rates onto the halo should be treated as positive for the purposes
        ! of computing the hot halo angular momentum.
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>angularMomentumAlwaysGrows</name>
          <defaultValue>.false.</defaultValue>
-         <description>Specifies whether or not negative rates of accretion of angular momentum into the hot halo will be treated as positive
-            for the purposes of computing the hot halo angular momentum.</description>
+         <description>
+         Specifies whether or not negative rates of accretion of angular momentum into the hot halo will be treated as positive for the purposes of computing the hot halo angular momentum.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
 
        ! Get option controlling limiting of baryon fraction during node mergers.
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>fractionBaryonLimitInNodeMerger</name>
          <defaultValue>.false.</defaultValue>
-         <description>Controls whether the hot gas content of nodes should be limited to not exceed the universal baryon fraction at node
-           merger events. If set to \mono{true}, hot gas (and angular momentum, abundances, and chemicals proportionally) will be
-           removed from the merged halo to the unaccreted gas reservoir to limit the baryonic mass to the universal baryon
-           fraction where possible.</description>
+         <description>
+         Controls whether the hot gas content of nodes should be limited to not exceed the universal baryon fraction at node merger events. If set to ``true``, hot gas (and angular momentum, abundances, and chemicals proportionally) will be removed from the merged halo to the unaccreted gas reservoir to limit the baryonic mass to the universal baryon fraction where possible.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -338,7 +344,7 @@ contains
   <nodeComponentThreadInitializationTask function="Node_Component_Hot_Halo_Standard_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the tree node hot halo methods module.
     !!}
     use :: Events_Hooks    , only : haloFormationEvent      , postEvolveEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
@@ -394,7 +400,7 @@ contains
   <nodeComponentThreadUninitializationTask function="Node_Component_Hot_Halo_Standard_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_Thread_Uninitialize()
-    !!{
+    !!{RST
     Uninitializes the tree node hot halo methods module.
     !!}
     use :: Events_Hooks    , only : haloFormationEvent     , postEvolveEvent
@@ -424,7 +430,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Thread_Uninitialize
 
   double precision function Node_Component_Hot_Halo_Standard_Outer_Radius(self)
-    !!{
+    !!{RST
     Return the outer radius in the standard hot halo.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHaloStandard, treeNode
@@ -449,7 +455,7 @@ contains
   <postStepTask function="Node_Component_Hot_Halo_Standard_Post_Step"/>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_Post_Step(node,status)
-    !!{
+    !!{RST
     Do processing of the node required after evolution.
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
@@ -526,7 +532,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Post_Step
 
   subroutine postEvolve(self,node)
-    !!{
+    !!{RST
     Do processing of the node required after evolution.
     !!}
     use :: Abundances_Structure         , only : zeroAbundances
@@ -592,7 +598,7 @@ contains
   end subroutine postEvolve
 
   subroutine Node_Component_Hot_Halo_Standard_Outflowing_Mass_Rate(self,rate,interrupt,interruptProcedure)
-    !!{
+    !!{RST
     Accept outflowing gas from a galaxy and deposit it into the outflowed and stripped reservoirs.
     !!}
     use :: Abundances_Structure             , only : abundances
@@ -655,7 +661,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Outflowing_Mass_Rate
 
   subroutine Node_Component_Hot_Halo_Standard_Outflowing_Ang_Mom_Rate(self,rate,interrupt,interruptProcedure)
-    !!{
+    !!{RST
     Accept outflowing gas angular momentum from a galaxy and deposit it into the outflowed reservoir.
     !!}
     use :: Galacticus_Nodes, only : interruptTask, nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode
@@ -684,7 +690,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Outflowing_Ang_Mom_Rate
 
   subroutine Node_Component_Hot_Halo_Standard_Outflowing_Abundances_Rate(self,rate,interrupt,interruptProcedure)
-    !!{
+    !!{RST
     Accept outflowing gas abundances from a galaxy and deposit it into the outflowed reservoir.
     !!}
     use :: Abundances_Structure, only : abundances
@@ -712,7 +718,7 @@ contains
   <preEvolveTask function="Node_Component_Hot_Halo_Standard_Pre_Evolve"/>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_Pre_Evolve(node)
-    !!{
+    !!{RST
     Ensure the standard hot halo has been initialized.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode, defaultHotHaloComponent
@@ -734,7 +740,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Pre_Evolve
 
   subroutine Node_Component_Hot_Halo_Standard_Mass_Sink(self,setValue,interrupt,interruptProcedure)
-    !!{
+    !!{RST
     Account for a sink of gaseous material in the standard hot halo hot gas.
     !!}
     use :: Error           , only : Error_Report
@@ -756,9 +762,8 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Mass_Sink
 
   subroutine Node_Component_Hot_Halo_Standard_Hot_Gas_All_Rate(self,gasMassRate,interrupt,interruptProcedure)
-    !!{
-    Adjusts the rates of all components of the hot gas reservoir under the assumption of uniformly distributed properties
-    (e.g. fully-mixed metals).
+    !!{RST
+    Adjusts the rates of all components of the hot gas reservoir under the assumption of uniformly distributed properties (e.g. fully-mixed metals).
     !!}
     use :: Galacticus_Nodes, only : interruptTask, nodeComponentHotHaloStandard
     implicit none
@@ -790,8 +795,8 @@ contains
   <scaleSetTask function="Node_Component_Hot_Halo_Standard_Scale_Set"/>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_Scale_Set(node)
-    !!{
-    Set scales for properties of \mono{node}.
+    !!{RST
+    Set scales for properties of ``node``.
     !!}
     use :: Abundances_Structure         , only : unitAbundances
     use :: Chemical_Abundances_Structure, only : unitChemicalAbundances
@@ -841,9 +846,8 @@ contains
   <mergerTreeInitializeTask function="Node_Component_Hot_Halo_Standard_Tree_Initialize"/>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_Tree_Initialize(node)
-    !!{
-    Initialize the contents of the hot halo component for any sub-resolution accretion (i.e. the gas that would have been
-    accreted if the merger tree had infinite resolution).
+    !!{RST
+    Initialize the contents of the hot halo component for any sub-resolution accretion (i.e. the gas that would have been accreted if the merger tree had infinite resolution).
     !!}
     use :: Accretion_Halos , only : accretionModeHot         , accretionModeTotal
     use :: Galacticus_Nodes, only : defaultHotHaloComponent  , nodeComponentBasic, nodeComponentHotHalo, nodeEvent, &
@@ -890,8 +894,8 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Tree_Initialize
 
   subroutine Node_Component_Hot_Halo_Standard_Create(node)
-    !!{
-    Creates a hot halo component for \mono{node}.
+    !!{RST
+    Creates a hot halo component for ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode
     implicit none
@@ -909,7 +913,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Create
 
   subroutine Node_Component_Hot_Halo_Standard_Initializor(self,timeEnd)
-    !!{
+    !!{RST
     Initializes a standard hot halo component.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHaloStandard, treeNode
@@ -931,7 +935,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_Initializor
 
   subroutine haloFormation(self,node)
-    !!{
+    !!{RST
     Updates the hot halo gas distribution at a formation event, if requested.
     !!}
     use :: Abundances_Structure                 , only : abundances                          , zeroAbundances
@@ -1021,7 +1025,7 @@ contains
   <stateStoreTask function="Node_Component_Hot_Halo_Standard_State_Store"/>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Store object state,
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo
@@ -1042,7 +1046,7 @@ contains
   <stateRetrieveTask function="Node_Component_Hot_Halo_Standard_State_Restore"/>
   !!]
   subroutine Node_Component_Hot_Halo_Standard_State_Restore(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Retrieve object state.
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo
@@ -1060,7 +1064,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Standard_State_Restore
 
   function Node_Component_Hot_Halo_Standard_Mass_Distribution(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
-    !!{
+    !!{RST
     Return the mass distribution associated with the hot halo.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentHotHaloStandard

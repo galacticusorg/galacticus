@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a merger tree branching probability class.
 !!}
 
 module Merger_Tree_Branching
-  !!{
+  !!{RST
   Implements a merger tree branching probability class.
   !!}
   use :: Galacticus_Nodes        , only : treeNode
@@ -31,26 +31,28 @@ module Merger_Tree_Branching
   private
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>mergerTreeBranchingBound</name>
-   <description>Upper/lower bound labels used in merger tree branching calculations.</description>
+   <description>
+   Upper/lower bound labels used in merger tree branching calculations.
+   </description>
    <entry label="lower"/>
    <entry label="upper"/>
   </enumeration>
   !!]
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>mergerTreeBranchingProbability</name>
    <descriptiveName>Merger Tree Branching Probabilities</descriptiveName>
-   <description>Class providing merger tree branching probabilities---the differential probability per unit ``time'' (specifically
-    the variable $w(t) = \delta_\mathrm{c}(t)/D(t)$) that a halo of given mass splits into a more massive progenitor and a smaller
-    branch. These probabilities are typically derived from the extended Press-Schechter formalism and its extensions. They control
-    the statistical properties of the stochastically built merger trees and determine the mass spectrum of progenitors as a
-    function of redshift.</description>
+   <description>
+   Class providing merger tree branching probabilities---the differential probability per unit "time" (specifically the variable :math:`w(t) = \delta_\mathrm{c}(t)/D(t)`) that a halo of given mass splits into a more massive progenitor and a smaller branch. These probabilities are typically derived from the extended Press-Schechter formalism and its extensions. They control the statistical properties of the stochastically built merger trees and determine the mass spectrum of progenitors as a function of redshift.
+   </description>
    <default>parkinsonColeHelly</default>
    <method name="rate" >
-    <description>Computes the probability per unit ``time'' of branching at the given mass.</description>
+    <description>
+    Computes the probability per unit "time" of branching at the given mass.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -58,7 +60,9 @@ module Merger_Tree_Branching
     <argument>type            (treeNode), intent(inout), target :: node</argument>
    </method>
    <method name="probability" >
-    <description>Computes the probability per unit ``time'' that a branching event occurs.</description>
+    <description>
+    Computes the probability per unit "time" that a branching event occurs.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -66,7 +70,9 @@ module Merger_Tree_Branching
     <argument>type            (treeNode), intent(inout), target :: node</argument>
    </method>
    <method name="probabilityBound" >
-    <description>Computes a bound (upper or lower) to the probability per unit ``time'' that a branching event occurs.</description>
+    <description>
+    Computes a bound (upper or lower) to the probability per unit "time" that a branching event occurs.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision                                         , intent(in   )         :: haloMass, deltaCritical, time, massResolution</argument>
@@ -74,7 +80,9 @@ module Merger_Tree_Branching
     <argument>type            (treeNode                               ), intent(inout), target :: node</argument>
    </method>
    <method name="fractionSubresolution" >
-    <description>Computes the fraction of subresolution mass accreted per unit ``time''</description>
+    <description>
+    Computes the fraction of subresolution mass accreted per unit "time"
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -82,7 +90,9 @@ module Merger_Tree_Branching
     <argument>type            (treeNode), intent(inout), target :: node</argument>
    </method>
    <method name="massBranch" >
-    <description>Returns the mass of a new halo created by a branching event.</description>
+    <description>
+    Returns the mass of a new halo created by a branching event.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -91,7 +101,9 @@ module Merger_Tree_Branching
     <argument>type            (treeNode                  ), intent(inout), target :: node</argument>
    </method>
    <method name="stepMaximum" >
-    <description>Returns the maximum step in ``time'' allowed by this algorithm.</description>
+    <description>
+    Returns the maximum step in "time" allowed by this algorithm.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: haloMass, deltaCritical, time, massResolution</argument>

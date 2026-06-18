@@ -17,35 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements two-point correlation functions.
 !!}
 
 module Correlation_Functions_Two_Point
-  !!{
+  !!{RST
   Implements two-point correlation functions.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>correlationFunctionTwoPoint</name>
    <descriptiveName>Two-point Correlation Functions</descriptiveName>
-   <description>Class providing two-point correlation functions $\xi(r,t)$---the excess probability above
-    Poisson of finding a pair of dark matter particles or galaxies separated by comoving distance $r$ at
-    cosmic time $t$. The correlation function is the Fourier transform of the matter power spectrum
-    $P(k)$, and both its volume-averaged form $\bar{\xi}(r)$ and point form are used in analyses of
-    large-scale structure clustering. It is used, for example, in computing the survey window functions
-    required for two-point statistics of galaxy samples.</description>
+   <description>
+   Class providing two-point correlation functions :math:`\xi(r,t)`---the excess probability above Poisson of finding a pair of dark matter particles or galaxies separated by comoving distance :math:`r` at cosmic time :math:`t`. The correlation function is the Fourier transform of the matter power spectrum :math:`P(k)`, and both its volume-averaged form :math:`\bar{\xi}(r)` and point form are used in analyses of large-scale structure clustering. It is used, for example, in computing the survey window functions required for two-point statistics of galaxy samples.
+   </description>
    <default>powerSpectrumTransform</default>
    <method name="correlation" >
-    <description>Return the two-point correlation function for $r=$\mono{separation} [Mpc].</description>
+    <description>
+    Return the two-point correlation function for :math:`r=`\ ``separation`` [Mpc].
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: separation, time</argument>
    </method>
    <method name="correlationVolumeAveraged" >
-    <description>Return the volume-averaged two-point correlation function for $r=$\mono{separation} [Mpc].</description>
+    <description>
+    Return the volume-averaged two-point correlation function for :math:`r=`\ ``separation`` [Mpc].
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: separation, time</argument>

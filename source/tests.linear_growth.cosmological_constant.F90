@@ -18,9 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_Linear_Growth_Cosmological_Constant
-  !!{
-  Tests linear growth calculations for a cosmological constant Universe. Growth rates are compared to calculations taken from
-  Andrew Hamilton's \href{https://jila.colorado.edu/~ajsh/growl/index.html}{growl}.
+  !!{RST
+  Tests linear growth calculations for a cosmological constant Universe. Growth rates are compared to calculations taken from Andrew Hamilton's `growl <https://jila.colorado.edu/~ajsh/growl/index.html>`_.
   !!}
   use :: Cosmology_Parameters, only : cosmologyParametersSimple
   use :: Cosmology_Functions , only : cosmologyFunctionsMatterLambda

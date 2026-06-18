@@ -19,8 +19,8 @@
 
   !+    Contributions to this file made by: Niusha Ahvazi
 
-  !!{
-  Implements a node operator class that maps the CDM solution to SIDM based on the parametric model of \cite{yang_parametric_2024}.
+  !!{RST
+  Implements a node operator class that maps the CDM solution to SIDM based on the parametric model of :cite:t:`yang_parametric_2024`.
   !!}
   
   use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistory       , darkMatterHaloMassAccretionHistoryClass
@@ -37,15 +37,15 @@
        &                                                   radiusScale                              , radiusCore
 
   !![
-  <nodeOperator name="nodeOperatorSIDMParametric">
+  <nodeOperator name="nodeOperatorSIDMParametric" docformat="rst">
    <description>
-     A node operator class that maps the CDM solution to SIDM based on the parametric model of \cite{yang_parametric_2024}.
+   A node operator class that maps the CDM solution to SIDM based on the parametric model of :cite:t:`yang_parametric_2024`.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSIDMParametric
-     !!{
-     A node operator class that maps the CDM solution to SIDM based on the parametric model of \cite{yang_parametric_2024}.
+     !!{RST
+     A node operator class that maps the CDM solution to SIDM based on the parametric model of :cite:t:`yang_parametric_2024`.
      !!}
      private
      class(darkMatterParticleClass                ), pointer :: darkMatterParticle_                 => null()
@@ -72,8 +72,8 @@
   end type nodeOperatorSIDMParametric
   
   interface nodeOperatorSIDMParametric
-     !!{
-     Constructors for the \mono{SIDMParametric} node operator class.
+     !!{RST
+     Constructors for the ``SIDMParametric`` node operator class.
      !!}
      module procedure SIDMParametricConstructorParameters
      module procedure SIDMParametricConstructorInternal
@@ -82,8 +82,8 @@
 contains
   
   function SIDMParametricConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \mono{SIDMParametric} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``SIDMParametric`` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -100,16 +100,20 @@ contains
     double precision                                              :: alpha                              , C
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha</name>
       <defaultValue>2.0d0</defaultValue>
-      <description>The coefficient $\alpha$ of the halo mass-growth term in the gravothermal $\tau$ evolution, $\dot\tau = 1/t_\mathrm{c} - \alpha \, (\dot{M}/M) \, \tau$. The default value of $2.0$ is the best-fit value found by \cite{raut_extended_2026}.</description>
+      <description>
+      The coefficient :math:`\alpha` of the halo mass-growth term in the gravothermal :math:`\tau` evolution, :math:`\dot\tau = 1/t_\mathrm{c} - \alpha \, (\dot{M}/M) \, \tau`. The default value of :math:`2.0` is the best-fit value found by :cite:t:`raut_extended_2026`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>C</name>
       <defaultValue>0.75d0</defaultValue>
-      <description>The calibration constant $C$ relating the gravothermal collapse timescale $t_\mathrm{c}$ to the relaxation time (eqn.~2.2 of \cite{yang_parametric_2024}). The default value of $0.75$ is the best-fit value found by \cite{raut_extended_2026}.</description>
+      <description>
+      The calibration constant :math:`C` relating the gravothermal collapse timescale :math:`t_\mathrm{c}` to the relaxation time (eqn. 2.2 of :cite:t:`yang_parametric_2024`). The default value of :math:`0.75` is the best-fit value found by :cite:t:`raut_extended_2026`.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterParticle"                 name="darkMatterParticle_"                 source="parameters"/>
@@ -137,8 +141,8 @@ contains
   end function SIDMParametricConstructorParameters
 
   function SIDMParametricConstructorInternal(alpha,C,darkMatterParticle_,darkMatterHaloMassAccretionHistory_,darkMatterProfileDMO_,cosmologyFunctions_,cosmologyParameters_,darkMatterHaloScale_,virialDensityContrast_,darkMatterProfileConcentration_) result(self)
-    !!{
-    Internal constructor for the \mono{SIDMParametric} node operator class.
+    !!{RST
+    Internal constructor for the ``SIDMParametric`` node operator class.
     !!}
 
     implicit none
@@ -170,8 +174,8 @@ contains
   end function SIDMParametricConstructorInternal
 
   subroutine SIDMParametricDestructor(self)
-    !!{
-    Destructor for the \mono{SIDMParametric} node operator class.
+    !!{RST
+    Destructor for the ``SIDMParametric`` node operator class.
     !!}
     implicit none
     type(nodeOperatorSIDMParametric), intent(inout) :: self
@@ -190,8 +194,8 @@ contains
   end subroutine SIDMParametricDestructor
 
   subroutine SIDMParametricNodeTreeInitialize(self,node)
-    !!{
-    Initialize the SIDMParametric of all nodes in the tree.    
+    !!{RST
+    Initialize the SIDMParametric of all nodes in the tree.
     !!}
 
     use :: Galacticus_Nodes                , only : mergerTree                     , nodeComponentBasic         , nodeComponentDarkMatterProfile
@@ -396,7 +400,7 @@ contains
   end subroutine SIDMParametricNodeTreeInitialize
 
   subroutine SIDMParametriDifferentialVmaxAnalytics(self,node)
-    !!{
+    !!{RST
     Mark analytically-solvable properties.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
@@ -413,8 +417,8 @@ contains
   end subroutine SIDMParametriDifferentialVmaxAnalytics
 
   subroutine SIDMParametriDifferentialVmaxSolveAnalytics(self,node,time)
-    !!{
-    Evolve ``\gls{dmou}'' mass at a constant rate, to achieve linear interpolation in time.
+    !!{RST
+    Evolve ":term:`dark matter-only universe`" mass at a constant rate, to achieve linear interpolation in time.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentBasic   , nodeComponentDarkMatterProfile
     use :: Mass_Distributions, only : massDistributionClass
@@ -450,8 +454,8 @@ contains
   end subroutine SIDMParametriDifferentialVmaxSolveAnalytics
 
   subroutine SIDMParametricNodePromote(self,node)
-    !!{
-    Ensure that \mono{node} is ready for promotion to its parent.
+    !!{RST
+    Ensure that ``node`` is ready for promotion to its parent.
     !!}
     use :: Error             , only : Error_Report
     use :: Galacticus_Nodes  , only : nodeComponentBasic, nodeComponentDarkMatterProfile
@@ -485,8 +489,8 @@ contains
   end subroutine SIDMParametricNodePromote
 
   subroutine SIDMParametriCalculateTauDifferentialEvolutionScale(self, node)
-    !!{
-    Set the ODE solver scales for the $\tau$ parameter.
+    !!{RST
+    Set the ODE solver scales for the :math:`\tau` parameter.
     !!}
     use Galacticus_Nodes, only: treeNode, nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
@@ -500,7 +504,7 @@ contains
   end subroutine SIDMParametriCalculateTauDifferentialEvolutionScale
 
   subroutine SIDMParametriCalculateTauDifferentialEvolution(self, node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Perform differential evolution of the parameters of the SIDM parametric model.
     !!}
     use :: Galacticus_Nodes                , only : treeNode                       , nodeComponentBasic         , nodeComponentDarkMatterProfile

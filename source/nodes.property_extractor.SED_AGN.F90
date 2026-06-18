@@ -17,29 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a property extractor class for the SED of the AGN.
   !!}
   use :: Cosmology_Functions   , only : cosmologyFunctionsClass
   use :: Accretion_Disk_Spectra, only : accretionDiskSpectraClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorSEDAGN">
+  <nodePropertyExtractor name="nodePropertyExtractorSEDAGN" docformat="rst">
     <description>
-      A property extractor class for the SED of the AGN. The spectrum is computed using the provided
-      \refClass{accretionDiskSpectraClass} object, and will be output between wavelengths \mono{[wavelengthMinimum]} and \mono{[wavelengthMaximum]}. If \mono{[resolution]} is set to a
-      positive value then this specifies the resolution, $\lambda/\Delta\lambda$, at which to compute the SED. If \mono{[resolution]} is non-positive then the SED will be output at the full native resolution provided by the
-      \refClass{accretionDiskSpectraClass} object. The frame for the SED, \mono{rest} or \mono{observed}, is specified by \mono{[frame]}. Note that using \mono{observed} merely means
-      that the extracted spectrum is evaluated at wavelength $\lambda_\mathrm{r} = \lambda_\mathrm{o} / (1+z)$ where
-      $\lambda_\mathrm{o}$ is the observed wavelength (and is the wavelength returned by the `columnDescriptions` method),
-      $\lambda_\mathrm{r}$ is the rest-frame wavelength, and $z$ is redshift---\emph{no adjustment} is made for the boost in observed
-      flux due to the $\mathrm{d}\lambda_\mathrm{o}/\mathrm{d}\lambda_\mathrm{r}$ term which appears when computing observed-frame
-      fluxes.
+    A property extractor class for the SED of the AGN. The spectrum is computed using the provided :galacticus-class:`accretionDiskSpectraClass` object, and will be output between wavelengths ``[wavelengthMinimum]`` and ``[wavelengthMaximum]``. If ``[resolution]`` is set to a positive value then this specifies the resolution, :math:`\lambda/\Delta\lambda`, at which to compute the SED. If ``[resolution]`` is non-positive then the SED will be output at the full native resolution provided by the :galacticus-class:`accretionDiskSpectraClass` object. The frame for the SED, ``rest`` or ``observed``, is specified by ``[frame]``. Note that using ``observed`` merely means that the extracted spectrum is evaluated at wavelength :math:`\lambda_\mathrm{r} = \lambda_\mathrm{o} / (1+z)` where :math:`\lambda_\mathrm{o}` is the observed wavelength (and is the wavelength returned by the `columnDescriptions` method), :math:`\lambda_\mathrm{r}` is the rest-frame wavelength, and :math:`z` is redshift---*no adjustment* is made for the boost in observed flux due to the :math:`\mathrm{d}\lambda_\mathrm{o}/\mathrm{d}\lambda_\mathrm{r}` term which appears when computing observed-frame fluxes.
     </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorSEDAGN
-     !!{
+     !!{RST
      A property extractor class for the SED of the AGN.
      !!}
      private
@@ -52,7 +44,7 @@
      type            (enumerationFrameType     )                            :: frame
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return an array of the wavelengths at which the SED is computed." method="wavelengths"/>
      </methods>
      !!]
@@ -69,8 +61,8 @@
   end type nodePropertyExtractorSEDAGN
   
   interface nodePropertyExtractorSEDAGN
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorSEDAGN} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorSEDAGN` property extractor class.
      !!}
      module procedure sedAGNConstructorParameters
      module procedure sedAGNConstructorInternal
@@ -79,8 +71,8 @@
 contains
 
   function sedAGNConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorSEDAGN} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorSEDAGN` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters              , only : inputParameters
     use :: Stellar_Luminosities_Structure, only : enumerationFrameEncode
@@ -94,29 +86,37 @@ contains
          &                                                          resolution
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>frame</name>
       <source>parameters</source>
       <defaultValue>var_str('rest')</defaultValue>
-      <description>The frame (\mono{rest} or \mono{observed}) for which to compute the SED.</description>
+      <description>
+      The frame (``rest`` or ``observed``) for which to compute the SED.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavelengthMinimum</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum wavelength at which to compute the SED.</description>
+      <description>
+      The minimum wavelength at which to compute the SED.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavelengthMaximum</name>
       <source>parameters</source>
       <defaultValue>huge(0.0d0)</defaultValue>
-      <description>The maximum wavelength at which to compute the SED.</description>
+      <description>
+      The maximum wavelength at which to compute the SED.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>resolution</name>
       <source>parameters</source>
       <defaultValue>-1.0d0</defaultValue>
-      <description>The resolution, $\lambda/\Delta\lambda$, at which to compute the SED. If a negative value is given the SED will be computed at the full resolution provided by the \refClass{accretionDiskSpectraClass} object.</description>
+      <description>
+      The resolution, :math:`\lambda/\Delta\lambda`, at which to compute the SED. If a negative value is given the SED will be computed at the full resolution provided by the :galacticus-class:`accretionDiskSpectraClass` object.
+      </description>
     </inputParameter>
     <objectBuilder class="accretionDiskSpectra" name="accretionDiskSpectra_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
@@ -131,8 +131,8 @@ contains
   end function sedAGNConstructorParameters
 
   function sedAGNConstructorInternal(frame,wavelengthMinimum,wavelengthMaximum,resolution,cosmologyFunctions_,accretionDiskSpectra_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSEDAGN} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorSEDAGN` property extractor class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -157,8 +157,8 @@ contains
   end function sedAGNConstructorInternal
 
   subroutine sedAGNDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorSEDAGN} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorSEDAGN` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSEDAGN), intent(inout) :: self
@@ -171,8 +171,8 @@ contains
   end subroutine sedAGNDestructor
 
   integer function sedAGNElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{sedAGN} property extractors.
+    !!{RST
+    Return the number of elements in the ``sedAGN`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorSEDAGN), intent(inout) :: self
@@ -184,8 +184,8 @@ contains
   end function sedAGNElementCount
 
   function sedAGNSize(self,time) result(size)
-    !!{
-    Return the number of array elements in the \mono{sedAGN} property extractors.
+    !!{RST
+    Return the number of array elements in the ``sedAGN`` property extractors.
     !!}
     use :: Error                         , only : Error_Report
     use :: Stellar_Luminosities_Structure, only : frameRest   , frameObserved 
@@ -226,8 +226,8 @@ contains
   end function sedAGNSize
 
   function sedAGNExtract(self,node,time,instance) result(sed)
-    !!{
-    Implement a \mono{sedAGN} property extractor.
+    !!{RST
+    Implement a ``sedAGN`` property extractor.
     !!}
     use :: Error                         , only : Error_Report
     use :: Stellar_Luminosities_Structure, only : frameRest   , frameObserved
@@ -265,8 +265,8 @@ contains
   end function sedAGNExtract
 
   subroutine sedAGNNames(self,names,time)
-    !!{
-    Return the names of the \mono{sedAGN} properties.
+    !!{RST
+    Return the names of the ``sedAGN`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorSEDAGN), intent(inout)                             :: self
@@ -280,8 +280,8 @@ contains
   end subroutine sedAGNNames
 
   subroutine sedAGNDescriptions(self,descriptions,time)
-    !!{
-    Return descriptions of the \mono{agnSED} property.
+    !!{RST
+    Return descriptions of the ``agnSED`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorSEDAGN), intent(inout)                             :: self
@@ -295,7 +295,7 @@ contains
   end subroutine sedAGNDescriptions
 
   function sedAGNWavelengths(self,time) result(wavelengths)
-    !!{
+    !!{RST
     Return wavelengths at which the SED is tabulated.
     !!}
     use :: Error                         , only : Error_Report
@@ -342,8 +342,8 @@ contains
   end function sedAGNWavelengths
 
   subroutine sedAGNColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
-    !!{
-    Return column descriptions of the \mono{sedAGN} property.
+    !!{RST
+    Return column descriptions of the ``sedAGN`` property.
     !!}
     use :: Numerical_Constants_Units, only : metersToAngstroms
     implicit none
@@ -370,8 +370,8 @@ contains
   end subroutine sedAGNColumnDescriptions
 
   function sedAGNUnitsInSI(self,time) result(unitsInSI)
-    !!{
-    Return the units of the \mono{sedAGN} properties in the SI system.
+    !!{RST
+    Return the units of the ``sedAGN`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : luminositySolar
     implicit none
@@ -386,7 +386,7 @@ contains
   end function sedAGNUnitsInSI
 
   function sEDAGNUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the sEDAGN properties.
     !!}
     use :: Numerical_Constants_Astronomical, only : luminositySolar

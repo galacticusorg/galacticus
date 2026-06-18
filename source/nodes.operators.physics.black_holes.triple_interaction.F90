@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that implements triple interactions between black holes.
   !!}
   
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <nodeOperator name="nodeOperatorBlackHolesTripleInteraction">
-   <description>Handles gravitational interactions between three black holes when a third black hole is present in a system already containing a binary, computing hardening of the inner binary and the ejection or capture of the third black hole.</description>
+  <nodeOperator name="nodeOperatorBlackHolesTripleInteraction" docformat="rst">
+   <description>
+   Handles gravitational interactions between three black holes when a third black hole is present in a system already containing a binary, computing hardening of the inner binary and the ejection or capture of the third black hole.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorBlackHolesTripleInteraction
-     !!{
+     !!{RST
      A node operator class that implements triple interactions between black holes.
      !!}
      private
@@ -40,8 +42,8 @@
   end type nodeOperatorBlackHolesTripleInteraction
   
   interface nodeOperatorBlackHolesTripleInteraction
-     !!{
-     Constructors for the \refClass{nodeOperatorBlackHolesTripleInteraction} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorBlackHolesTripleInteraction` node operator class.
      !!}
      module procedure blackHolesTripleInteractionConstructorParameters
      module procedure blackHolesTripleInteractionConstructorInternal
@@ -55,8 +57,8 @@
 contains
 
   function blackHolesTripleInteractionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorBlackHolesTripleInteraction} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorBlackHolesTripleInteraction` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,8 +78,8 @@ contains
   end function blackHolesTripleInteractionConstructorParameters
 
   function blackHolesTripleInteractionConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorBlackHolesTripleInteraction} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorBlackHolesTripleInteraction` node operator class.
     !!}
     implicit none
     type (nodeOperatorBlackHolesTripleInteraction)                        :: self
@@ -90,8 +92,8 @@ contains
   end function blackHolesTripleInteractionConstructorInternal
 
   subroutine blackHolesTripleInteractionDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorBlackHolesTripleInteraction} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorBlackHolesTripleInteraction` node operator class.
     !!}
     implicit none
     type(nodeOperatorBlackHolesTripleInteraction), intent(inout) :: self
@@ -103,7 +105,7 @@ contains
   end subroutine blackHolesTripleInteractionDestructor
 
   subroutine blackHolesTripleInteractionDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Account for accretion onto black holes.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole        , propertyInactive
@@ -184,8 +186,8 @@ contains
   end subroutine blackHolesTripleInteractionDifferentialEvolution
   
   subroutine interactionTriple(node,timeEnd)
-    !!{
-    Handles triple black holes interactions, using conditions similar to those of \cite{volonteri_assembly_2003}.
+    !!{RST
+    Handles triple black holes interactions, using conditions similar to those of :cite:t:`volonteri_assembly_2003`.
     !!}
     use :: Galacticus_Nodes                     , only : nodeComponentBasic            , nodeComponentBlackHole, treeNode
     use :: Numerical_Constants_Astronomical     , only : gravitationalConstant_internal

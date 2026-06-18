@@ -17,23 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum
-correctly normalized to $z=0$.
+!!{RST
+Implements a linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum correctly normalized to :math:`z=0`.
 !!}
 
   use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceClass
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredClass
 
   !![
-  <powerSpectrum name="powerSpectrumStandard">
-   <description>Provides a linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum correctly normalized to $z=0$.</description>
+  <powerSpectrum name="powerSpectrumStandard" docformat="rst">
+   <description>
+   Provides a linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum correctly normalized to :math:`z=0`.
+   </description>
   </powerSpectrum>
   !!]
   type, extends(powerSpectrumClass) :: powerSpectrumStandard
-     !!{
-     A linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum
-     correctly normalized to $z=0$.
+     !!{RST
+     A linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum correctly normalized to :math:`z=0`.
      !!}
      private
      class(cosmologicalMassVarianceClass          ), pointer :: cosmologicalMassVariance_           => null()
@@ -47,7 +47,7 @@ correctly normalized to $z=0$.
   end type powerSpectrumStandard
 
   interface powerSpectrumStandard
-     !!{
+     !!{RST
      Constructors for the standard power spectrum class.
      !!}
      module procedure standardConstructorParameters
@@ -57,7 +57,7 @@ correctly normalized to $z=0$.
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the standard nonstandard power spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -81,7 +81,7 @@ contains
   end function standardConstructorParameters
 
   function standardConstructorInternal(cosmologicalMassVariance_,powerSpectrumPrimordialTransferred_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the standard power spectrum class.
     !!}
     implicit none
@@ -96,7 +96,7 @@ contains
   end function standardConstructorInternal
 
   subroutine standardDestructor(self)
-    !!{
+    !!{RST
     Destructor for the standard power spectrum class.
     !!}
     implicit none
@@ -110,8 +110,8 @@ contains
   end subroutine standardDestructor
 
   double precision function standardPower(self,wavenumber,time)
-    !!{
-    Return the cosmological power spectrum for $k=$\mono{wavenumber} [Mpc$^{-1}$].
+    !!{RST
+    Return the cosmological power spectrum for :math:`k=`\ ``wavenumber`` [Mpc\ :math:`^{-1}`].
     !!}
     implicit none
     class           (powerSpectrumStandard), intent(inout) :: self
@@ -124,8 +124,8 @@ contains
   end function standardPower
 
   double precision function standardPowerLogarithmicDerivative(self,wavenumber,time)
-    !!{
-    Return the logarithmic derivative of the power spectrum, $\mathrm{d}\ln P(k)/\mathrm{d}\ln k$, for $k=$\mono{wavenumber} [Mpc$^{-1}$].
+    !!{RST
+    Return the logarithmic derivative of the power spectrum, :math:`\mathrm{d}\ln P(k)/\mathrm{d}\ln k`, for :math:`k=`\ ``wavenumber`` [Mpc\ :math:`^{-1}`].
     !!}
     implicit none
     class           (powerSpectrumStandard), intent(inout) :: self
@@ -136,8 +136,8 @@ contains
   end function standardPowerLogarithmicDerivative
 
   double precision function standardPowerDimensionless(self,wavenumber,time)
-    !!{
-    Return the dimensionless power spectrum, $\Delta^2(k)$, for $k=$\mono{wavenumber} [Mpc$^{-1}$].
+    !!{RST
+    Return the dimensionless power spectrum, :math:`\Delta^2(k)`, for :math:`k=`\ ``wavenumber`` [Mpc\ :math:`^{-1}`].
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -156,7 +156,7 @@ contains
   end function standardPowerDimensionless
 
   subroutine standardDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
-      !!{
+      !!{RST
       Generate a descriptor for the standard power spectrum class.
       !!}
       use Input_Parameters, only : inputParameters

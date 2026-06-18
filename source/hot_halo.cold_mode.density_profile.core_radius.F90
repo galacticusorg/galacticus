@@ -17,29 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements core radii for cored cold mode hot halo mass distributions.
 !!}
 
 module Hot_Halo_Cold_Mode_Density_Core_Radii
-  !!{
+  !!{RST
   Provides a module which provides a class that implements core radii for cored cold mode hot halo mass distributions.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>hotHaloColdModeCoreRadii</name>
    <descriptiveName>Cold Mode Hot Halo Mass Distributions Core Radii</descriptiveName>
-   <description>Class providing the core radius (in Mpc) for cored cold-mode hot halo density profiles.
-    Analogous to the \refClass{hotHaloMassDistributionCoreRadiusClass} for the hot component, this sets the
-    inner flattening radius for the cold-mode gas distribution. The core radius mayb be expressed, for example, as a
-    fraction of a characteristic halo length scale (e.g.\ virial radius) and affects the central density and
-    cooling rate of the cold-mode component.</description>
+   <description>
+   Class providing the core radius (in Mpc) for cored cold-mode hot halo density profiles. Analogous to the :galacticus-class:`hotHaloMassDistributionCoreRadiusClass` for the hot component, this sets the inner flattening radius for the cold-mode gas distribution. The core radius mayb be expressed, for example, as a fraction of a characteristic halo length scale (e.g.\ virial radius) and affects the central density and cooling rate of the cold-mode component.
+   </description>
    <default>virialFraction</default>
    <method name="radius" >
-    <description>Return the core radius of the hot halo mass distribution.</description>
+    <description>
+    Return the core radius of the hot halo mass distribution.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

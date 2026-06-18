@@ -20,12 +20,14 @@
   use :: Kepler_Orbits, only : keplerOrbitCount
   
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMergedSubhaloProperties">
-   <description>Extracts orbital properties (such as orbital energy, angular momentum, and pericentric distance) of subhalos at the time they merged, enabling analysis of merger dynamics and post-merger evolution.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorMergedSubhaloProperties" docformat="rst">
+   <description>
+   Extracts orbital properties (such as orbital energy, angular momentum, and pericentric distance) of subhalos at the time they merged, enabling analysis of merger dynamics and post-merger evolution.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorMergedSubhaloProperties
-     !!{
+     !!{RST
      A property extractor which extracts properties of merged subhalo orbits.
      !!}
      private
@@ -40,8 +42,8 @@
   end type nodePropertyExtractorMergedSubhaloProperties
 
   interface nodePropertyExtractorMergedSubhaloProperties
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMergedSubhaloProperties} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorMergedSubhaloProperties` property extractor class.
      !!}
      module procedure mergedSubhaloPropertiesConstructorParameters
      module procedure mergedSubhaloPropertiesConstructorInternal
@@ -50,8 +52,8 @@
 contains
 
   function mergedSubhaloPropertiesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMergedSubhaloProperties} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorMergedSubhaloProperties` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,8 +68,8 @@ contains
   end function mergedSubhaloPropertiesConstructorParameters
 
   function mergedSubhaloPropertiesConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMergedSubhaloProperties} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMergedSubhaloProperties` property extractor class.
     !!}
     use :: Kepler_Orbits, only : keplerOrbitTimeInitial     , keplerOrbitMassSatellite, keplerOrbitMassHost, keplerOrbitRadius, &
          &                       keplerOrbitRadiusPericenter, keplerOrbitTimeCurrent
@@ -86,7 +88,7 @@ contains
   end function mergedSubhaloPropertiesConstructorInternal
 
   integer function mergedSubhaloPropertiesElementCount(self)
-    !!{
+    !!{RST
     Return a count of the number of properties extracted.
     !!}
     implicit none
@@ -97,7 +99,7 @@ contains
   end function mergedSubhaloPropertiesElementCount
 
   function mergedSubhaloPropertiesExtract(self,node,instance) result(propertiesOrbitalMergedSubhalos)
-    !!{
+    !!{RST
     Implement a mergedSubhaloProperties output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -139,8 +141,8 @@ contains
   end function mergedSubhaloPropertiesExtract
   
   subroutine mergedSubhaloPropertiesNames(self,names)
-    !!{
-    Return the names of the \mono{mergedSubhaloProperties} properties.
+    !!{RST
+    Return the names of the ``mergedSubhaloProperties`` properties.
     !!}
     use :: Kepler_Orbits  , only : enumerationKeplerOrbitDecode, keplerOrbitTimeInitial, keplerOrbitMassSatellite, keplerOrbitMassHost, &
          &                         keplerOrbitRadiusPericenter ,  keplerOrbitRadius    , keplerOrbitTimeCurrent
@@ -173,8 +175,8 @@ contains
   end subroutine mergedSubhaloPropertiesNames
 
   subroutine mergedSubhaloPropertiesDescriptions(self,descriptions)
-    !!{
-    Return the descriptions of the \mono{mergedSubhaloProperties} properties.
+    !!{RST
+    Return the descriptions of the ``mergedSubhaloProperties`` properties.
     !!}
     use :: Kepler_Orbits, only : enumerationKeplerOrbitDescription, keplerOrbitTimeInitial, keplerOrbitMassSatellite, keplerOrbitMassHost, &
          &                       keplerOrbitRadiusPericenter      , keplerOrbitRadius     , keplerOrbitTimeCurrent
@@ -206,8 +208,8 @@ contains
   end subroutine mergedSubhaloPropertiesDescriptions
 
   function mergedSubhaloPropertiesUnitsInSI(self) result(unitsInSI)
-    !!{
-    Return the units of the \mono{mergedSubhaloProperties} properties in the SI system.
+    !!{RST
+    Return the units of the ``mergedSubhaloProperties`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar, megaParsec
     implicit none
@@ -221,7 +223,7 @@ contains
   end function mergedSubhaloPropertiesUnitsInSI
 
   function mergedSubhaloPropertiesUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the mergedSubhaloProperties properties.
     !!}
     use :: Units_MetaData, only : unitType

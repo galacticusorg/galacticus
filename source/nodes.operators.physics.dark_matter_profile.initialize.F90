@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that simply initializes the dark matter profile.
   !!}
   
   !![
-  <nodeOperator name="nodeOperatorDarkMatterProfileInitialize">
-   <description>Initializes the dark matter profile of each halo node at tree initialization time, setting up the profile state required by downstream physics calculations that depend on halo structure.</description>
+  <nodeOperator name="nodeOperatorDarkMatterProfileInitialize" docformat="rst">
+   <description>
+   Initializes the dark matter profile of each halo node at tree initialization time, setting up the profile state required by downstream physics calculations that depend on halo structure.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDarkMatterProfileInitialize
-     !!{
+     !!{RST
      A node operator class that simply initializes the dark matter profile in halos.
      !!}
      private
@@ -36,8 +38,8 @@
   end type nodeOperatorDarkMatterProfileInitialize
   
   interface nodeOperatorDarkMatterProfileInitialize
-     !!{
-     Constructors for the \refClass{nodeOperatorDarkMatterProfileInitialize} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorDarkMatterProfileInitialize` node operator class.
      !!}
      module procedure darkMatterProfileInitializeConstructorParameters
   end interface nodeOperatorDarkMatterProfileInitialize
@@ -45,8 +47,8 @@
 contains
   
   function darkMatterProfileInitializeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorDarkMatterProfileInitialize} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorDarkMatterProfileInitialize` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function darkMatterProfileInitializeConstructorParameters
 
   subroutine darkMatterProfileInitializeNodeTreeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize dark matter profile scale radii.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile

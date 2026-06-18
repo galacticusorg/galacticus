@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a null operator on merger trees.
 !!}
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorNull">
-   <description>Provides a null operator on merger trees.</description>
+  <mergerTreeOperator name="mergerTreeOperatorNull" docformat="rst">
+   <description>
+   Provides a null operator on merger trees.
+   </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorNull
-     !!{
+     !!{RST
      A null merger tree operator class.
      !!}
      private
@@ -35,7 +37,7 @@ Implements a null operator on merger trees.
   end type mergerTreeOperatorNull
 
   interface mergerTreeOperatorNull
-     !!{
+     !!{RST
      Constructors for the null merger tree operator class.
      !!}
      module procedure nullConstructorParameters
@@ -44,7 +46,7 @@ Implements a null operator on merger trees.
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the null merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters

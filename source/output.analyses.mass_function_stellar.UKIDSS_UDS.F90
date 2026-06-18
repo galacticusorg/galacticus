@@ -17,39 +17,40 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a stellar mass function output analysis class for the UKIDSS UDS survey of \cite{caputi_stellar_2011}.
+!!{RST
+Implements a stellar mass function output analysis class for the UKIDSS UDS survey of :cite:t:`caputi_stellar_2011`.
 !!}
 
 
   !![
-  <outputAnalysis name="outputAnalysisMassFunctionStellarUKIDSSUDS">
-   <description> 
-    A UKIDSS UDS stellar mass function output analysis class, for $z = 3$ to 5 galaxies measured by \cite{caputi_stellar_2011},
-    
-    Given a \glc\ model, total stellar masses of model galaxies are adjusted using:
-    \begin{equation}
-     M_\star \rightarrow \mathbf{C} \mathbf{L} \mathbf{G} \mathbf{S} M_\star 
-    \end{equation}
-    where the $\mathbf{S}$ operator is a multiplicative factor accounting for systematic errors in stellar mass determination and is
-    equal to \citep{behroozi_comprehensive_2010}
-    \begin{equation}
-     \log_\mathrm{10} S = \sum_{i=0}^N s_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}\mathrm{M}_\odot}\right),
-    \end{equation}
-    where $s=$\mono{[systematicErrorPolynomialCoefficient]}, the {\normalfont \bfseries G} operator is a
-    multiplicative factor drawn from a log-normal distribution of width $\sigma(M)$~dex for each galaxy to mimic the effects of random
-    errors on stellar masses (motivated by the discussion of \cite{behroozi_comprehensive_2010}), the {\normalfont \bfseries L}
-    operator accounts for gravitational lensing, and the {\normalfont \bfseries C} operator accounts for the difference between model
-    and observed cosmologies. The random error model is given by:
-    \begin{equation}
-     \sigma(M) = \hbox{min}\left[\sigma_\mathrm{max},\hbox{max}\left[\sigma_\mathrm{min},\sum_{i=0}^N r_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}\mathrm{M}_\odot}\right)\right]\right],
-    \end{equation}
-    where $r=$\mono{[randomErrorPolynomialCoefficient]}, $\sigma_\mathrm{min}$=\mono{[randomErrorMinimum]}, and $\sigma_\mathrm{max}$=\mono{[randomErrorMaximum]}.
+  <outputAnalysis name="outputAnalysisMassFunctionStellarUKIDSSUDS" docformat="rst">
+   <description>
+   A UKIDSS UDS stellar mass function output analysis class, for :math:`z = 3` to 5 galaxies measured by :cite:t:`caputi_stellar_2011`,
+
+   Given a Galacticus model, total stellar masses of model galaxies are adjusted using:
+
+   .. math::
+
+      M_\star \rightarrow \mathbf{C} \mathbf{L} \mathbf{G} \mathbf{S} M_\star
+
+   where the :math:`\mathbf{S}` operator is a multiplicative factor accounting for systematic errors in stellar mass determination and is equal to :cite:p:`behroozi_comprehensive_2010`
+
+   .. math::
+
+      \log_\mathrm{10} S = \sum_{i=0}^N s_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}\mathrm{M}_\odot}\right),
+
+   where :math:`s=`\ ``[systematicErrorPolynomialCoefficient]``, the  G operator is a multiplicative factor drawn from a log-normal distribution of width :math:`\sigma(M)` dex for each galaxy to mimic the effects of random errors on stellar masses (motivated by the discussion of :cite:t:`behroozi_comprehensive_2010`), the  L operator accounts for gravitational lensing, and the  C operator accounts for the difference between model and observed cosmologies. The random error model is given by:
+
+   .. math::
+
+      \sigma(M) = \hbox{min}\left[\sigma_\mathrm{max},\hbox{max}\left[\sigma_\mathrm{min},\sum_{i=0}^N r_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}\mathrm{M}_\odot}\right)\right]\right],
+
+   where :math:`r=`\ ``[randomErrorPolynomialCoefficient]``, :math:`\sigma_\mathrm{min}`\ =\ ``[randomErrorMinimum]``, and :math:`\sigma_\mathrm{max}`\ =\ ``[randomErrorMaximum]``.
    </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMassFunctionStellar) :: outputAnalysisMassFunctionStellarUKIDSSUDS
-     !!{
+     !!{RST
      A UKIDSS UDS stellar mass function output analysis class.
      !!}
      private
@@ -63,8 +64,8 @@ Implements a stellar mass function output analysis class for the UKIDSS UDS surv
   end type outputAnalysisMassFunctionStellarUKIDSSUDS
 
   interface outputAnalysisMassFunctionStellarUKIDSSUDS
-     !!{
-     Constructors for the \refClass{outputAnalysisMassFunctionStellarUKIDSSUDS} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisMassFunctionStellarUKIDSSUDS` output analysis class.
      !!}
      module procedure massFunctionStellarUKIDSSUDSConstructorParameters
      module procedure massFunctionStellarUKIDSSUDSConstructorInternal
@@ -73,8 +74,8 @@ Implements a stellar mass function output analysis class for the UKIDSS UDS surv
 contains
 
   function massFunctionStellarUKIDSSUDSConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMassFunctionStellarUKIDSSUDS} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellarUKIDSSUDS` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -101,67 +102,85 @@ contains
        allocate(systematicErrorPolynomialCoefficient(1                                                       ))
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftInterval</name>
       <source>parameters</source>
       <variable>redshiftInterval</variable>
-      <description>The redshift interval (0-2) to use.</description>
+      <description>
+      The redshift interval (0-2) to use.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.1d0</defaultValue>
-      <description>The minimum random error for UKIDSSUDS stellar masses.</description>
+      <description>
+      The minimum random error for UKIDSSUDS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.1d0</defaultValue>
-      <description>The minimum random error for UKIDSS UDS stellar masses.</description>
+      <description>
+      The minimum random error for UKIDSS UDS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.1d0]</defaultValue>
-      <description>The coefficients of the random error polynomial for UKIDSS UDS stellar masses.</description>
+      <description>
+      The coefficients of the random error polynomial for UKIDSS UDS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for UKIDSS UDS stellar masses.</description>
+      <description>
+      The coefficients of the systematic error polynomial for UKIDSS UDS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sizeSourceLensing</name>
       <source>parameters</source>
       <variable>sizeSourceLensing</variable>
       <defaultValue>2.0d-3</defaultValue>
-      <description>The characteristic source size for gravitational lensing calculations.</description>
+      <description>
+      The characteristic source size for gravitational lensing calculations.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <variable>covarianceBinomialBinsPerDecade</variable>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing UKIDSS UDS stellar mass function covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing UKIDSS UDS stellar mass function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMinimum</variable>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing UKIDSS UDS stellar mass function covariance matrices for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing UKIDSS UDS stellar mass function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMaximum</variable>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing UKIDSS UDS stellar mass function covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing UKIDSS UDS stellar mass function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
@@ -179,8 +198,8 @@ contains
   end function massFunctionStellarUKIDSSUDSConstructorParameters
 
   function massFunctionStellarUKIDSSUDSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMassFunctionStellarUKIDSSUDS} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellarUKIDSSUDS` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -348,8 +367,8 @@ contains
   end function massFunctionStellarUKIDSSUDSConstructorInternal
 
   subroutine massFunctionStellarUKIDSSUDSDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisMassFunctionStellarUKIDSSUDS} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisMassFunctionStellarUKIDSSUDS` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassFunctionStellarUKIDSSUDS), intent(inout) :: self

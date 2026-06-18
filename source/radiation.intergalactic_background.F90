@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a class for intergalactic background light.
   !!}
 
   !![
-  <radiationField name="radiationFieldIntergalacticBackground" abstract="yes">
+  <radiationField name="radiationFieldIntergalacticBackground" abstract="yes" docformat="rst">
    <description>
-    An abstract radiation field class for intergalactic background light.
+   An abstract radiation field class for intergalactic background light.
    </description>
   </radiationField>
   !!]
   type, extends(radiationFieldClass), abstract :: radiationFieldIntergalacticBackground
-     !!{
+     !!{RST
      A radiation field class for intergalactic background light.
      !!}
      private

@@ -17,23 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements an N-body dark matter halo mass error class which
-implements a model for errors in spherical overdensity halo finders.
+!!{RST
+Implements an N-body dark matter halo mass error class which implements a model for errors in spherical overdensity halo finders.
 !!}
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScale , darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
   !![
-  <nbodyHaloMassError name="nbodyHaloMassErrorSOHaloFinder">
-   <description>An N-body dark matter halo mass error class that models the statistical errors in halo masses measured by spherical overdensity halo finders, accounting for shot noise due to the finite particle mass of the simulation. The simulation particle mass is set by the \mono{[massParticle]} parameter.</description>
+  <nbodyHaloMassError name="nbodyHaloMassErrorSOHaloFinder" docformat="rst">
+   <description>
+   An N-body dark matter halo mass error class that models the statistical errors in halo masses measured by spherical overdensity halo finders, accounting for shot noise due to the finite particle mass of the simulation. The simulation particle mass is set by the ``[massParticle]`` parameter.
+   </description>
   </nbodyHaloMassError>
   !!]
   type, extends(nbodyHaloMassErrorClass) :: nbodyHaloMassErrorSOHaloFinder
-     !!{
-     An N-body halo mass error class which implements a model for errors in spherical
-     overdensity halo finders.
+     !!{RST
+     An N-body halo mass error class which implements a model for errors in spherical overdensity halo finders.
      !!}
      private
      double precision                                     :: massParticle
@@ -46,8 +46,8 @@ implements a model for errors in spherical overdensity halo finders.
   end type nbodyHaloMassErrorSOHaloFinder
 
   interface nbodyHaloMassErrorSOHaloFinder
-     !!{
-     Constructors for the \refClass{nbodyHaloMassErrorSOHaloFinder} N-body halo mass error class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyHaloMassErrorSOHaloFinder` N-body halo mass error class.
      !!}
      module procedure soHaloFinderConstructorParameters
      module procedure soHaloFinderConstructorInternal
@@ -56,8 +56,8 @@ implements a model for errors in spherical overdensity halo finders.
 contains
 
   function soHaloFinderConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nbodyHaloMassErrorSOHaloFinder} N-body halo mass error class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyHaloMassErrorSOHaloFinder` N-body halo mass error class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,10 +69,12 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParticle</name>
       <source>parameters</source>
-      <description>Mass of particle in the simulation to which the spherical overdensity algorithm was applied.</description>
+      <description>
+      Mass of particle in the simulation to which the spherical overdensity algorithm was applied.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
@@ -87,8 +89,8 @@ contains
   end function soHaloFinderConstructorParameters
 
   function soHaloFinderConstructorInternal(darkMatterHaloScale_,darkMatterProfileDMO_,massParticle) result(self)
-    !!{
-    Internal constructor for the \refClass{nbodyHaloMassErrorSOHaloFinder} N-body halo mass error class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyHaloMassErrorSOHaloFinder` N-body halo mass error class.
     !!}
     implicit none
     type            (nbodyHaloMassErrorSOHaloFinder)                        :: self
@@ -103,8 +105,8 @@ contains
   end function soHaloFinderConstructorInternal
 
   subroutine soHaloFinderDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyHaloMassErrorSOHaloFinder} N-body halo mass error class.
+    !!{RST
+    Destructor for the :galacticus-class:`nbodyHaloMassErrorSOHaloFinder` N-body halo mass error class.
     !!}
     implicit none
     type(nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
@@ -117,7 +119,7 @@ contains
   end subroutine soHaloFinderDestructor
 
   double precision function soHaloFinderErrorFractional(self,node)
-    !!{
+    !!{RST
     Return the fractional error on the mass of an N-body halo in the power-law error model.
     !!}
     use :: Coordinates             , only : coordinateSpherical  , assignment(=)
@@ -177,7 +179,7 @@ contains
   end function soHaloFinderErrorFractional
 
   double precision function soHaloFinderCorrelation(self,node1,node2)
-    !!{
+    !!{RST
     Return the correlation of the masses of a pair of N-body halos.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode

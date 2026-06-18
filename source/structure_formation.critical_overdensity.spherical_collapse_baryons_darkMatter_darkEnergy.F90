@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of critical overdensity for collapse based on spherical collapse accounting for non-clustering of baryons.
   !!}
 
@@ -28,8 +28,10 @@
   use :: Tables                               , only : table1D
 
   !![
-  <criticalOverdensity name="criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy">
-   <description>Critical overdensity for the gravitational collapse of dark matter halos, computed by numerically solving the spherical collapse model in a universe containing baryons, collisionless dark matter, and dark energy. Baryons may be treated as non-clustering relative to dark matter. The normalization of the result can be adjusted via \mono{[normalization]}, and tabulation can be stored to file for efficiency.</description>
+  <criticalOverdensity name="criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy" docformat="rst">
+   <description>
+   Critical overdensity for the gravitational collapse of dark matter halos, computed by numerically solving the spherical collapse model in a universe containing baryons, collisionless dark matter, and dark energy. Baryons may be treated as non-clustering relative to dark matter. The normalization of the result can be adjusted via ``[normalization]``, and tabulation can be stored to file for efficiency.
+   </description>
    <deepCopy>
     <functionClass variables="sphericalCollapseSolverClustered_, sphericalCollapseSolverUnclustered_"/>
    </deepCopy>
@@ -39,7 +41,7 @@
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy
-     !!{
+     !!{RST
      A critical overdensity class based on spherical collapse accounting for non-clustering of baryons.
      !!}
      private
@@ -57,7 +59,7 @@
      type            (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy), pointer     :: sphericalCollapseSolverClustered_ => null() , sphericalCollapseSolverUnclustered_ => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulate spherical collapse critical overdensity." method="retabulate" />
      </methods>
      !!]
@@ -72,8 +74,8 @@
   end type criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy
 
   interface criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy
-     !!{
-     Constructors for the \refClass{criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity for collapse class.
+     !!{RST
+     Constructors for the :galacticus-class:`criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy` critical overdensity for collapse class.
      !!}
      module procedure sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters
      module procedure sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal
@@ -82,9 +84,8 @@
 contains
 
   function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity class
-    which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy` critical overdensity class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                                , inputParameters
     use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
@@ -102,31 +103,37 @@ contains
     integer                                                                                   :: tablePointsPerOctave
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>normalization</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>A multiplicative normalization factor applied to the spherical collapse critical overdensity $\delta_\mathrm{c}$ returned by this class, allowing calibration against simulations or fitting functions.</description>
+      <description>
+      A multiplicative normalization factor applied to the spherical collapse critical overdensity :math:`\delta_\mathrm{c}` returned by this class, allowing calibration against simulations or fitting functions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tableStore</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, store the tabulated spherical collapse solutions to a file and restore them on subsequent runs to avoid recomputing the numerical ODE integration from scratch.</description>
+      <description>
+      If true, store the tabulated spherical collapse solutions to a file and restore them on subsequent runs to avoid recomputing the numerical ODE integration from scratch.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>energyFixedAt</name>
       <defaultValue>var_str('turnaround')</defaultValue>
-      <description>Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
-        ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
-        \citealt{percival_cosmological_2005}; \S8.)</description>
+      <description>
+      Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be "fixed" for the purposes of computing virial density contrasts. (See the discussion in :cite:author:`percival_cosmological_2005` :cite:year:`percival_cosmological_2005`; Section 8.)
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tablePointsPerOctave</name>
       <source>parameters</source>
       <defaultValue>300</defaultValue>
-      <description>The number of evenly-spaced tabulation points per octave of cosmic time used when building the look-up table of spherical collapse critical overdensity vs.\ time; higher values give greater interpolation accuracy at the cost of longer initialization time.</description>
+      <description>
+      The number of evenly-spaced tabulation points per octave of cosmic time used when building the look-up table of spherical collapse critical overdensity vs.\ time; higher values give greater interpolation accuracy at the cost of longer initialization time.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"               name="cosmologyFunctions_"               source="parameters"/>
     <objectBuilder class="cosmologyParameters"              name="cosmologyParameters_"              source="parameters"/>
@@ -136,10 +143,12 @@ contains
     !!]
     if (parameters%isPresent('countTimeCollapsePerUnit')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>countTimeCollapsePerUnit</name>
 	 <source>parameters</source>
-	 <description>The number of points per unit $w(t)=\delta_\mathrm{c}(t)/D(t)$ at which to tabulate the time of collapse.</description>
+	 <description>
+	 The number of points per unit :math:`w(t)=\delta_\mathrm{c}(t)/D(t)` at which to tabulate the time of collapse.
+	 </description>
        </inputParameter>
        !!]
     end if
@@ -159,8 +168,8 @@ contains
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters
 
   function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,tablePointsPerOctave,energyFixedAt,normalization,countTimeCollapsePerUnit) result(self)
-    !!{
-    Internal constructor for the \refClass{criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy` critical overdensity class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
     use :: Error                , only : Error_Report
@@ -198,8 +207,8 @@ contains
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal
 
   subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyDestructor(self)
-    !!{
-    Destructor for the \refClass{criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity for collapse class.
+    !!{RST
+    Destructor for the :galacticus-class:`criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy` critical overdensity for collapse class.
     !!}
     implicit none
     type(criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout) :: self
@@ -223,7 +232,7 @@ contains
   end subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyDestructor
 
   subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyRetabulate(self,time)
-    !!{
+    !!{RST
     Recompute the look-up tables for critical overdensity for collapse.
     !!}
     implicit none
@@ -250,7 +259,7 @@ contains
   end subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyRetabulate
 
   double precision function sphericalCollapseBrynsDrkMttrDrkEnrgyValue(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the critical overdensity at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     !!}
     implicit none
@@ -280,9 +289,8 @@ contains
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyValue
 
   double precision function sphericalCollapseBrynsDrkMttrDrkEnrgyGradientTime(self,time,expansionFactor,collapsing,mass,node)
-    !!{
-    Return the time derivative of the critical overdensity at the given epoch, based spherical collapse in a matter plus
-    cosmological constant universe.
+    !!{RST
+    Return the time derivative of the critical overdensity at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     !!}
     implicit none
     class           (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout)           :: self
@@ -317,7 +325,7 @@ contains
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyGradientTime
 
   double precision function sphericalCollapseBrynsDrkMttrDrkEnrgyGradientMass(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the gradient with respect to mass of critical overdensity at the given time and mass.
     !!}
     implicit none
@@ -341,7 +349,7 @@ contains
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyGradientMass
 
   logical function sphericalCollapseBrynsDrkMttrDrkEnrgyIsMassDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is mass dependent.
     !!}
     implicit none
@@ -353,7 +361,7 @@ contains
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyIsMassDependent
 
   logical function sphericalCollapseBrynsDrkMttrDrkEnrgyIsNodeDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is node dependent.
     !!}
     implicit none
@@ -365,7 +373,7 @@ contains
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyIsNodeDependent
 
   logical function sphericalCollapseBrynsDrkMttrDrkEnrgyIsTreeDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is tree dependent.
     !!}
     implicit none

@@ -17,39 +17,40 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements an output analysis class for the \cite{baldry_galaxy_2012} stellar mass function.
+!!{RST
+Implements an output analysis class for the :cite:t:`baldry_galaxy_2012` stellar mass function.
 !!}
 
   !![
-  <outputAnalysis name="outputAnalysisMassFunctionStellarBaldry2012GAMA">
+  <outputAnalysis name="outputAnalysisMassFunctionStellarBaldry2012GAMA" docformat="rst">
    <description>
-    A GAMA stellar mass function output analysis class, for $z&lt; 0.06$ galaxies measured by \cite{baldry_galaxy_2012}.
-    
-    Given a \glc\ model, total stellar masses of model galaxies are adjusted using:
-    \begin{equation}
-     M_\star \rightarrow \mathbf{C} \mathbf{L} \mathbf{G} \mathbf{S} M_\star,
-    \end{equation}
-    where the $\mathbf{S}$ operator is a multiplicative factor accounting for systematic errors in stellar mass determination and is
-    equal to \citep{behroozi_comprehensive_2010}
-    \begin{equation}
-     \log_\mathrm{10} S = \sum_{i=0}^N s_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}\mathrm{M}_\odot}\right),
-    \end{equation}
-    where $s=$\mono{[systematicErrorPolynomialCoefficient]}, the {\normalfont \bfseries G} operator is a
-    multiplicative factor drawn from a log-normal distribution of width $\sigma(M)$~dex for each galaxy to mimic the effects of random
-    errors on stellar masses (motivated by the discussion of \cite{behroozi_comprehensive_2010}), the {\normalfont \bfseries L}
-    operator accounts for gravitational lensing, and the {\normalfont \bfseries C} operator accounts for the difference between model
-    and observed cosmologies. The random error model is given by:
-    \begin{equation}
-     \sigma(M) = \hbox{min}\left[\sigma_\mathrm{max},\hbox{max}\left[\sigma_\mathrm{min},\sum_{i=0}^N r_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}\mathrm{M}_\odot}\right)\right]\right],
-    \end{equation}
-    where $r=$\mono{[randomErrorPolynomialCoefficient]}, $\sigma_\mathrm{min}$=\mono{[randomErrorMinimum]}, and $\sigma_\mathrm{max}$=\mono{[randomErrorMaximum]}.
+   A GAMA stellar mass function output analysis class, for :math:`z&lt; 0.06` galaxies measured by :cite:t:`baldry_galaxy_2012`.
+
+   Given a Galacticus model, total stellar masses of model galaxies are adjusted using:
+
+   .. math::
+
+      M_\star \rightarrow \mathbf{C} \mathbf{L} \mathbf{G} \mathbf{S} M_\star,
+
+   where the :math:`\mathbf{S}` operator is a multiplicative factor accounting for systematic errors in stellar mass determination and is equal to :cite:p:`behroozi_comprehensive_2010`
+
+   .. math::
+
+      \log_\mathrm{10} S = \sum_{i=0}^N s_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}\mathrm{M}_\odot}\right),
+
+   where :math:`s=`\ ``[systematicErrorPolynomialCoefficient]``, the  G operator is a multiplicative factor drawn from a log-normal distribution of width :math:`\sigma(M)` dex for each galaxy to mimic the effects of random errors on stellar masses (motivated by the discussion of :cite:t:`behroozi_comprehensive_2010`), the  L operator accounts for gravitational lensing, and the  C operator accounts for the difference between model and observed cosmologies. The random error model is given by:
+
+   .. math::
+
+      \sigma(M) = \hbox{min}\left[\sigma_\mathrm{max},\hbox{max}\left[\sigma_\mathrm{min},\sum_{i=0}^N r_i \log_\mathrm{10}^i \left({M_\star \over 10^{11.3}\mathrm{M}_\odot}\right)\right]\right],
+
+   where :math:`r=`\ ``[randomErrorPolynomialCoefficient]``, :math:`\sigma_\mathrm{min}`\ =\ ``[randomErrorMinimum]``, and :math:`\sigma_\mathrm{max}`\ =\ ``[randomErrorMaximum]``.
    </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMassFunctionStellar) :: outputAnalysisMassFunctionStellarBaldry2012GAMA
-     !!{
-     A \cite{baldry_galaxy_2012} stellar mass function output analysis class.
+     !!{RST
+     A :cite:t:`baldry_galaxy_2012` stellar mass function output analysis class.
      !!}
      private
      class           (gravitationalLensingClass      ), pointer                   :: gravitationalLensing_            => null()
@@ -62,8 +63,8 @@ Implements an output analysis class for the \cite{baldry_galaxy_2012} stellar ma
   end type outputAnalysisMassFunctionStellarBaldry2012GAMA
 
   interface outputAnalysisMassFunctionStellarBaldry2012GAMA
-     !!{
-     Constructors for the \refClass{outputAnalysisMassFunctionStellarBaldry2012GAMA} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisMassFunctionStellarBaldry2012GAMA` output analysis class.
      !!}
      module procedure massFunctionStellarBaldry2012GAMAConstructorParameters
      module procedure massFunctionStellarBaldry2012GAMAConstructorInternal
@@ -72,8 +73,8 @@ Implements an output analysis class for the \cite{baldry_galaxy_2012} stellar ma
 contains
 
   function massFunctionStellarBaldry2012GAMAConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMassFunctionStellarBaldry2012GAMA} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellarBaldry2012GAMA` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -101,61 +102,77 @@ contains
        allocate(systematicErrorPolynomialCoefficient(1                                                   ))
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for \cite{baldry_galaxy_2012} GAMA stellar masses.</description>
+      <description>
+      The minimum random error for :cite:t:`baldry_galaxy_2012` GAMA stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for \cite{baldry_galaxy_2012} GAMA stellar masses.</description>
+      <description>
+      The minimum random error for :cite:t:`baldry_galaxy_2012` GAMA stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.07d0]</defaultValue>
-      <description>The coefficients of the random error polynomial for \cite{baldry_galaxy_2012} GAMA stellar masses.</description>
+      <description>
+      The coefficients of the random error polynomial for :cite:t:`baldry_galaxy_2012` GAMA stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for \cite{baldry_galaxy_2012} GAMA stellar masses.</description>
+      <description>
+      The coefficients of the systematic error polynomial for :cite:t:`baldry_galaxy_2012` GAMA stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sizeSourceLensing</name>
       <source>parameters</source>
       <variable>sizeSourceLensing</variable>
       <defaultValue>2.0d-3</defaultValue>
-      <description>The characteristic source size for gravitational lensing calculations.</description>
+      <description>
+      The characteristic source size for gravitational lensing calculations.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <variable>covarianceBinomialBinsPerDecade</variable>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing \cite{baldry_galaxy_2012} GAMA stellar mass function covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing :cite:t:`baldry_galaxy_2012` GAMA stellar mass function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMinimum</variable>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing \cite{baldry_galaxy_2012} GAMA stellar mass function covariance matrices for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing :cite:t:`baldry_galaxy_2012` GAMA stellar mass function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMaximum</variable>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing \cite{baldry_galaxy_2012} GAMA stellar mass function covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing :cite:t:`baldry_galaxy_2012` GAMA stellar mass function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
     <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
@@ -175,8 +192,8 @@ contains
   end function massFunctionStellarBaldry2012GAMAConstructorParameters
 
   function massFunctionStellarBaldry2012GAMAConstructorInternal(cosmologyFunctions_,gravitationalLensing_,massFunctionIncompleteness_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMassFunctionStellarBaldry2012GAMA} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellarBaldry2012GAMA` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                             , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -342,8 +359,8 @@ contains
   end function massFunctionStellarBaldry2012GAMAConstructorInternal
 
   subroutine massFunctionStellarBaldry2012GAMADestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisMassFunctionStellarBaldry2012GAMA} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisMassFunctionStellarBaldry2012GAMA` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassFunctionStellarBaldry2012GAMA), intent(inout) :: self

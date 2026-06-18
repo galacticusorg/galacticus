@@ -17,26 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{  
-  Implements a node operator class that implements starvation of subhalos by removal of their \gls{cgm}.
+  !!{RST
+  Implements a node operator class that implements starvation of subhalos by removal of their :term:`CGM`.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !![
-  <nodeOperator name="nodeOperatorCGMStarvation">
+  <nodeOperator name="nodeOperatorCGMStarvation" docformat="rst">
    <description>
-    A node operator class that removes \gls{cgm} gas from subhalos at node merger events, simulating environmental gas
-    starvation. \mono{starveOutflowsOnly} limits removal to outflowing gas only, transferring it to the host halo's
-    \gls{cgm} instead of destroying it. \mono{fractionBaryonLimitInNodeMerger} optionally trims the merged halo's \gls{cgm}
-    hot gas (and associated angular momentum, abundances, and chemicals proportionally) to enforce the universal baryon
-    fraction at node mergers.
+   A node operator class that removes :term:`CGM` gas from subhalos at node merger events, simulating environmental gas starvation. ``starveOutflowsOnly`` limits removal to outflowing gas only, transferring it to the host halo's :term:`CGM` instead of destroying it. ``fractionBaryonLimitInNodeMerger`` optionally trims the merged halo's :term:`CGM` hot gas (and associated angular momentum, abundances, and chemicals proportionally) to enforce the universal baryon fraction at node mergers.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorCGMStarvation
-     !!{
-     A node operator class that implements starvation of subhalos by removal of their \gls{cgm}.
+     !!{RST
+     A node operator class that implements starvation of subhalos by removal of their :term:`CGM`.
      !!}
      private
      class  (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
@@ -48,8 +44,8 @@
   end type nodeOperatorCGMStarvation
   
   interface nodeOperatorCGMStarvation
-     !!{
-     Constructors for the \refClass{nodeOperatorCGMStarvation} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorCGMStarvation` node operator class.
      !!}
      module procedure cgmStarvationConstructorParameters
      module procedure cgmStarvationConstructorInternal
@@ -58,8 +54,8 @@
 contains
   
   function cgmStarvationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorCGMStarvation} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorCGMStarvation` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -69,22 +65,19 @@ contains
     logical                                           :: starveOutflowsOnly  , fractionBaryonLimitInNodeMerger
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>starveOutflowsOnly</name>
       <defaultValue>.false.</defaultValue>
       <description>
-	If true, only starve outflowing gas by transferring it to the \gls{cgm} of the host halo.
+      If true, only starve outflowing gas by transferring it to the :term:`CGM` of the host halo.
       </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionBaryonLimitInNodeMerger</name>
       <defaultValue>.false.</defaultValue>
       <description>
-	Controls whether the \gls{cgm} gas content of nodes should be limited to not exceed the universal baryon fraction at node
-        merger events. If set to \mono{true}, \gls{cgm} hot gas (and angular momentum, abundances, and chemicals
-        proportionally) will be removed from the merged halo to the unaccreted gas reservoir to limit the baryonic mass to the
-        universal baryon fraction where possible.
+      Controls whether the :term:`CGM` gas content of nodes should be limited to not exceed the universal baryon fraction at node merger events. If set to ``true``, :term:`CGM` hot gas (and angular momentum, abundances, and chemicals proportionally) will be removed from the merged halo to the unaccreted gas reservoir to limit the baryonic mass to the universal baryon fraction where possible.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -99,8 +92,8 @@ contains
   end function cgmStarvationConstructorParameters
 
   function cgmStarvationConstructorInternal(starveOutflowsOnly,fractionBaryonLimitInNodeMerger,cosmologyParameters_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorCGMStarvation} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorCGMStarvation` node operator class.
     !!}
     implicit none
     type   (nodeOperatorCGMStarvation)                        :: self
@@ -114,8 +107,8 @@ contains
   end function cgmStarvationConstructorInternal
 
   subroutine cgmStarvationDestructor(self)    
-    !!{
-    Destructor for the \refClass{nodeOperatorCGMStarvation} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorCGMStarvation` node operator class.
     !!}
     implicit none
     type(nodeOperatorCGMStarvation), intent(inout) :: self
@@ -127,8 +120,8 @@ contains
   end subroutine cgmStarvationDestructor
 
   subroutine cgmStarvationNodesMerge(self,node)
-    !!{
-    Update the \gls{cgm} content of a node as a result of a merger.
+    !!{RST
+    Update the :term:`CGM` content of a node as a result of a merger.
     !!}
     use :: Abundances_Structure         , only : zeroAbundances
     use :: Accretion_Halos              , only : accretionModeHot      , accretionModeTotal  , accretionModeCold
@@ -308,7 +301,7 @@ contains
   end subroutine cgmStarvationNodesMerge
 
   subroutine cgmStarvationDifferentialEvolutionPost(self,node)
-    !!{
+    !!{RST
     Starve subhalos at the end of each differential evolution step.
     !!}
     use :: Abundances_Structure                 , only : zeroAbundances

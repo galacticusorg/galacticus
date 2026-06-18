@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a cooling rate class which modifies another cooling rate by cutting off cooling above some virial velocity.
   !!}
 
@@ -26,9 +26,11 @@
 
   ! Enumeration for whether cut off is before or after the given epoch.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>cutOffWhen</name>
-   <description>Specifies whether cooling is cut off before or after the given epoch.</description>
+   <description>
+   Specifies whether cooling is cut off before or after the given epoch.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <entry label="before" />
@@ -37,14 +39,14 @@
   !!]
 
   !![
-  <coolingRate name="coolingRateCutOff">
+  <coolingRate name="coolingRateCutOff" docformat="rst">
    <description>
-    A cooling rate class which sets the cooling rate to zero in halos with virial velocities below \mono{[velocityCutOff]} at redshifts below/above \mono{[redshiftCutOff]} for \mono{[whenCutOff]}$=$\mono{after/before}. In other halos the cooling rate is not modified.
+   A cooling rate class which sets the cooling rate to zero in halos with virial velocities below ``[velocityCutOff]`` at redshifts below/above ``[redshiftCutOff]`` for ``[whenCutOff]``\ :math:`=`\ ``after/before``. In other halos the cooling rate is not modified.
    </description>
   </coolingRate>
   !!]
   type, extends(coolingRateClass) :: coolingRateCutOff
-     !!{
+     !!{RST
      Implementation of cooling rate class which modifies another cooling rate by cutting off cooling above some virial velocity.
      !!}
      private
@@ -62,7 +64,7 @@
   end type coolingRateCutOff
 
   interface coolingRateCutOff
-     !!{
+     !!{RST
      Constructors for the cut off cooling rate class.
      !!}
      module procedure cutOffConstructorParameters
@@ -72,7 +74,7 @@
 contains
 
   function cutOffConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the cut off cooling rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -87,29 +89,37 @@ contains
     type            (varying_string          )                :: whenCutOff
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>useFormationNode</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>Specifies whether to use the virial velocity of the formation node or current node in the cooling rate ``cut-off'' modifier.</description>
+      <description>
+      Specifies whether to use the virial velocity of the formation node or current node in the cooling rate "cut-off" modifier.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityCutOff</name>
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
-      <description>The velocity below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.</description>
+      <description>
+      The velocity below which cooling is suppressed in the "cut-off" cooling rate modifier method.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftCutOff</name>
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
-      <description>The redshift below which cooling is suppressed in the ``cut-off'' cooling rate modifier method.</description>
+      <description>
+      The redshift below which cooling is suppressed in the "cut-off" cooling rate modifier method.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>whenCutOff</name>
       <defaultValue>var_str('after')</defaultValue>
       <source>parameters</source>
-      <description>Specifies whether cooling is cut off before or after \mono{[redshiftCutOff]}.</description>
+      <description>
+      Specifies whether cooling is cut off before or after ``[redshiftCutOff]``.
+      </description>
     </inputParameter>
     <objectBuilder class="coolingRate"         name="coolingRate_"         source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -141,7 +151,7 @@ contains
   end function cutOffConstructorParameters
 
   function cutOffConstructorInternal(velocityCutOff,timeCutOff,whenCutOff,useFormationNode,cosmologyFunctions_,darkMatterHaloScale_,coolingRate_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the cut off cooling rate class.
     !!}
     use :: Error, only : Error_Report
@@ -164,7 +174,7 @@ contains
   end function cutOffConstructorInternal
 
   subroutine cutOffDestructor(self)
-    !!{
+    !!{RST
     Destructor for the cut off cooling rate class.
     !!}
     implicit none
@@ -179,9 +189,8 @@ contains
   end subroutine cutOffDestructor
 
   double precision function cutOffRate(self,node)
-    !!{
-    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is cut off
-    before/after a given epoch and below a given virial velocity.
+    !!{RST
+    Returns the cooling rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) in the hot atmosphere for a model in which this rate is cut off before/after a given epoch and below a given virial velocity.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none

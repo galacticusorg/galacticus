@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements class for the random jump component in differential evolution algorithms.
 !!}
 
 module Posterior_Sample_Differential_Random_Jump
-  !!{
+  !!{RST
   Implements a class for the random jump component in differential evolution algorithms.
   !!}
   use :: Model_Parameters        , only : modelParameterList
@@ -30,18 +30,16 @@ module Posterior_Sample_Differential_Random_Jump
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>posteriorSampleDffrntlEvltnRandomJump</name>
    <descriptiveName>Posterior Sampling Differential Evolution Random Jumps</descriptiveName>
-   <description>Class providing the stochastic random-jump component added to proposals in differential
-    evolution Markov chain Monte Carlo (DE-MCMC) posterior samplers---a small perturbation vector
-    drawn from some distribution (e.g.\ uniform or Gaussian) that is added to the deterministic
-    differential evolution proposal to ensure ergodicity and prevent the chain from becoming trapped
-    in a lower-dimensional subspace. The \mono{sample} method returns a jump vector in parameter space,
-    scaled according to the parameter priors or step sizes, for each active chain state in the
-    ensemble.</description>
+   <description>
+   Class providing the stochastic random-jump component added to proposals in differential evolution Markov chain Monte Carlo (DE-MCMC) posterior samplers---a small perturbation vector drawn from some distribution (e.g.\ uniform or Gaussian) that is added to the deterministic differential evolution proposal to ensure ergodicity and prevent the chain from becoming trapped in a lower-dimensional subspace. The ``sample`` method returns a jump vector in parameter space, scaled according to the parameter priors or step sizes, for each active chain state in the ensemble.
+   </description>
    <method name="sample" >
-    <description>Draw and return a random perturbation vector in parameter space from the jump distribution, added to the deterministic differential evolution proposal to ensure ergodicity and prevent chain collapse to a lower-dimensional subspace.</description>
+    <description>
+    Draw and return a random perturbation vector in parameter space from the jump distribution, added to the deterministic differential evolution proposal to ensure ergodicity and prevent chain collapse to a lower-dimensional subspace.
+    </description>
     <type>double precision, dimension(size(modelParameters_))</type>
     <pass>yes</pass>
     <argument>type (modelParameterList       ), dimension(:), intent(in   ) :: modelParameters_</argument>

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a stellar mass property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMassStellar">
-   <description>Extracts the total stellar mass of a galaxy node by summing the stellar masses of disk and spheroid components, for comparison with stellar mass functions and stellar-to-halo mass relations from photometric surveys.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorMassStellar" docformat="rst">
+   <description>
+   Extracts the total stellar mass of a galaxy node by summing the stellar masses of disk and spheroid components, for comparison with stellar mass functions and stellar-to-halo mass relations from photometric surveys.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassStellar
-     !!{
+     !!{RST
      A stellar mass property extractor class.
      !!}
      private
@@ -41,8 +43,8 @@ Implements a stellar mass property extractor class.
   end type nodePropertyExtractorMassStellar
 
   interface nodePropertyExtractorMassStellar
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMassStellar} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassStellar` property extractor class.
      !!}
      module procedure massStellarConstructorParameters
   end interface nodePropertyExtractorMassStellar
@@ -50,8 +52,8 @@ Implements a stellar mass property extractor class.
 contains
 
   function massStellarConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMassStellar} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassStellar` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +68,7 @@ contains
   end function massStellarConstructorParameters
 
   double precision function massStellarExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a massStellar output analysis.
     !!}
     use :: Galactic_Structure_Options, only : massTypeStellar
@@ -87,7 +89,7 @@ contains
   end function massStellarExtract
 
   function massStellarName(self)
-    !!{
+    !!{RST
     Return the name of the massStellar property.
     !!}
     implicit none
@@ -100,7 +102,7 @@ contains
   end function massStellarName
 
   function massStellarDescription(self)
-    !!{
+    !!{RST
     Return a description of the massStellar property.
     !!}
     implicit none
@@ -113,7 +115,7 @@ contains
   end function massStellarDescription
 
   double precision function massStellarUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the stellar mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
@@ -127,7 +129,7 @@ contains
 
 
   function massStellarQuantity(self)
-    !!{
+    !!{RST
     Return the class of the stellar mass property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
@@ -141,7 +143,7 @@ contains
   end function massStellarQuantity
 
   function massStellarUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the stellar mass property.
     !!}
     use :: Units_MetaData, only : unitType

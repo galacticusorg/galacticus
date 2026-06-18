@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a cooling rate class which modifies another cooling rate by cutting off cooling in satellites.
   !!}
 
 
   !![
-  <coolingRate name="coolingRateMultiplier">
-   <description>A cooling rate class which modifies the cooling rate from another class by multiplying it by a fixed constant factor specified via \mono{[multiplier]}. This allows a simple rescaling of any existing cooling rate model without altering its physical dependencies.</description>
+  <coolingRate name="coolingRateMultiplier" docformat="rst">
+   <description>
+   A cooling rate class which modifies the cooling rate from another class by multiplying it by a fixed constant factor specified via ``[multiplier]``. This allows a simple rescaling of any existing cooling rate model without altering its physical dependencies.
+   </description>
   </coolingRate>
   !!]
   type, extends(coolingRateClass) :: coolingRateMultiplier
-     !!{
+     !!{RST
      Implementation of cooling rate class which modifies another cooling rate by multiplying the rate by a fixed value.
      !!}
      private
@@ -40,7 +42,7 @@
   end type coolingRateMultiplier
 
   interface coolingRateMultiplier
-     !!{
+     !!{RST
      Constructors for the cut off cooling rate class.
      !!}
      module procedure multiplierConstructorParameters
@@ -50,7 +52,7 @@
 contains
 
   function multiplierConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the cut off cooling rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -61,11 +63,13 @@ contains
     double precision                                       :: multiplier
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
      <name>multiplier</name>
      <source>parameters</source>
      <defaultValue>0.0d0</defaultValue>
-     <description>A constant multiplicative factor applied to cooling rates computed by the wrapped cooling rate object, allowing uniform rescaling of all cooling rates (e.g. to model suppressed or enhanced cooling).</description>
+     <description>
+     A constant multiplicative factor applied to cooling rates computed by the wrapped cooling rate object, allowing uniform rescaling of all cooling rates (e.g. to model suppressed or enhanced cooling).
+     </description>
     </inputParameter>
     <objectBuilder class="coolingRate" name="coolingRate_" source="parameters"/>
     !!]
@@ -78,7 +82,7 @@ contains
   end function multiplierConstructorParameters
 
   function multiplierConstructorInternal(multiplier,coolingRate_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the cut off cooling rate class.
     !!}
     type            (coolingRateMultiplier)                        :: self
@@ -92,7 +96,7 @@ contains
   end function multiplierConstructorInternal
 
   subroutine multiplierDestructor(self)
-    !!{
+    !!{RST
     Destructor for the cut off cooling rate class.
     !!}
     implicit none
@@ -105,9 +109,8 @@ contains
   end subroutine multiplierDestructor
 
   double precision function multiplierRate(self,node)
-    !!{
-    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is multiplied by
-    some fixed value.
+    !!{RST
+    Returns the cooling rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) in the hot atmosphere for a model in which this rate is multiplied by some fixed value.
     !!}
     implicit none
     class(coolingRateMultiplier), intent(inout) :: self

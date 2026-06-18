@@ -17,30 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements tidal stripping.
 !!}
 
 module Tidal_Stripping_Mass_Loss_Rate
-  !!{
+  !!{RST
   Provides a class that implements calculations of tidal stripping.
   !!}
   use :: Galacticus_Nodes, only : nodeComponent
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>tidalStripping</name>
    <descriptiveName>Tidal Stripping Mass Loss Rates</descriptiveName>
-   <description>Class providing models of tidal stripping of galactic components (disc gas and stars)---the
-    removal of cold interstellar material from a satellite galaxy's disk as the galaxy orbits within
-    its host halo's tidal field. Unlike dark matter tidal stripping (handled by
-    \refClass{satelliteTidalStrippingClass}), this class operates on individual galaxy components and
-    returns the mass loss rate (in $\mathrm{M}_\odot$~Gyr$^{-1}$) for the given component, based on whether the
-    component extends beyond the satellite's tidal radius.</description>
+   <description>
+   Class providing models of tidal stripping of galactic components (disc gas and stars)---the removal of cold interstellar material from a satellite galaxy's disk as the galaxy orbits within its host halo's tidal field. Unlike dark matter tidal stripping (handled by :galacticus-class:`satelliteTidalStrippingClass`), this class operates on individual galaxy components and returns the mass loss rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) for the given component, based on whether the component extends beyond the satellite's tidal radius.
+   </description>
    <default>simple</default>
    <method name="rateMassLoss" >
-    <description>Returns the rate of mass loss (in $\mathrm{M}_\odot$~Gyr$^{-1}$) due to tidal stripping of \mono{component}.</description>
+    <description>
+    Returns the rate of mass loss (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) due to tidal stripping of ``component``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(nodeCOmponent), intent(inout) :: component</argument>

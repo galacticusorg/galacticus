@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a thermal Sunyaev-Zeldovich cosmological scaling corrector analysis property operator class.
 !!}
 
@@ -26,16 +26,14 @@ Implements a thermal Sunyaev-Zeldovich cosmological scaling corrector analysis p
   use :: Output_Times        , only : outputTimesClass
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCosmologySZ">
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCosmologySZ" docformat="rst">
    <description>
-    An output analysis property operator class which scales thermal Sunyaev-Zeldovich properties to $z=0$ using the expected
-    cosmological scalings. Specifically, the property is multiplied by a factor of $E^{-2/3}(t)$ where $H(t) = E(t) H_0$ is the
-    epoch-dependent Hubble parameter \citep{planck_collaboration_planck_2013}.
-  </description>
+   An output analysis property operator class which scales thermal Sunyaev-Zeldovich properties to :math:`z=0` using the expected cosmological scalings. Specifically, the property is multiplied by a factor of :math:`E^{-2/3}(t)` where :math:`H(t) = E(t) H_0` is the epoch-dependent Hubble parameter :cite:p:`planck_collaboration_planck_2013`.
+   </description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorCosmologySZ
-     !!{
+     !!{RST
      A cosmological angular distance corrector analysis property operator class.
      !!}
      private
@@ -49,8 +47,8 @@ Implements a thermal Sunyaev-Zeldovich cosmological scaling corrector analysis p
   end type outputAnalysisPropertyOperatorCosmologySZ
 
   interface outputAnalysisPropertyOperatorCosmologySZ
-     !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorCosmologySZ} output analysis property operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorCosmologySZ` output analysis property operator class.
      !!}
      module procedure csmlgySZConstructorParameters
      module procedure csmlgySZConstructorInternal
@@ -59,8 +57,8 @@ Implements a thermal Sunyaev-Zeldovich cosmological scaling corrector analysis p
 contains
 
   function csmlgySZConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisPropertyOperatorCosmologySZ} output analysis property operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorCosmologySZ` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,8 +85,8 @@ contains
   end function csmlgySZConstructorParameters
 
   function csmlgySZConstructorInternal(cosmologyParameters_,cosmologyFunctions_,outputTimes_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorCosmologySZ} output analysis property operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisPropertyOperatorCosmologySZ` output analysis property operator class.
     !!}
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     implicit none
@@ -112,8 +110,8 @@ contains
   end function csmlgySZConstructorInternal
 
   subroutine csmlgySZDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisPropertyOperatorCosmologySZ} output analysis property operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisPropertyOperatorCosmologySZ` output analysis property operator class.
     !!}
     implicit none
     type(outputAnalysisPropertyOperatorCosmologySZ), intent(inout) :: self
@@ -128,7 +126,7 @@ contains
   end subroutine csmlgySZDestructor
 
   double precision function csmlgySZOperate(self,propertyValue,node,propertyType,outputIndex)
-    !!{
+    !!{RST
     Implement an csmlgySZ output analysis property operator.
     !!}
     use :: Error, only : Error_Report

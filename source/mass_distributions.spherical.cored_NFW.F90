@@ -17,24 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a cored NFW \citep{navarro_structure_1996} mass distribution class.
+  !!{RST
+  Implementation of a cored NFW :cite:p:`navarro_structure_1996` mass distribution class.
   !!}
 
   !![
-  <massDistribution name="massDistributionCoredNFW">
+  <massDistribution name="massDistributionCoredNFW" docformat="rst">
     <description>
-      A cored NFW \citep{navarro_structure_1996} mass distribution class. The density profile is given by:
-      \begin{equation}
-       \rho_\mathrm{dark matter}(r) \propto \left({r_\mathrm{c}\over r_\mathrm{s}}+{r\over r_\mathrm{s}}\right)^{-1} \left[1 + \left({r\over r_\mathrm{s}}\right)
-      \right]^{-2}.
-      \end{equation}
+    A cored NFW :cite:p:`navarro_structure_1996` mass distribution class. The density profile is given by:
+
+    .. math::
+
+        \rho_\mathrm{dark matter}(r) \propto \left({r_\mathrm{c}\over r_\mathrm{s}}+{r\over r_\mathrm{s}}\right)^{-1} \left[1 + \left({r\over r_\mathrm{s}}\right)
+       \right]^{-2}.
     </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSphericalTabulated) :: massDistributionCoredNFW
-     !!{
-     The cored NFW \citep{navarro_structure_1996} mass distribution.
+     !!{RST
+     The cored NFW :cite:p:`navarro_structure_1996` mass distribution.
      !!}
      private
      double precision :: densityNormalization, radiusScale        , &
@@ -49,8 +50,8 @@
   end type massDistributionCoredNFW
   
   interface massDistributionCoredNFW
-     !!{
-     Constructors for the \refClass{massDistributionCoredNFW} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionCoredNFW` mass distribution class.
      !!}
      module procedure coredNFWConstructorParameters
      module procedure coredNFWConstructorInternal
@@ -69,9 +70,8 @@
 contains
 
   function coredNFWConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionCoredNFW} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionCoredNFW` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -88,65 +88,85 @@ contains
     type            (varying_string          )                :: massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityNormalization</name>
       <defaultValue>1.0d0/2.0d0/Pi/(log(4.0d0)-1.0d0)</defaultValue>
-      <description>The density normalization of the cored NFW profile.</description>
+      <description>
+      The density normalization of the cored NFW profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusScale</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The scale radius of the cored NFW profile.</description>
+      <description>
+      The scale radius of the cored NFW profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusCore</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The core radius of the cored NFW profile.</description>
+      <description>
+      The core radius of the cored NFW profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The total mass (in $\mathrm{M}_\odot$) of the cored NFW halo, used to set the density normalization when the concentration and virial radius are provided instead of \mono{densityNormalization}.</description>
+      <description>
+      The total mass (in :math:`\mathrm{M}_\odot`) of the cored NFW halo, used to set the density normalization when the concentration and virial radius are provided instead of ``densityNormalization``.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>concentration</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The concentration of the cored NFW profile.</description>
+      <description>
+      The concentration of the cored NFW profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusVirial</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The virial radius of the cored NFW profile.</description>
+      <description>
+      The virial radius of the cored NFW profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dimensionless</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true the cored NFW profile is considered to be dimensionless.</description>
+      <description>
+      If true the cored NFW profile is considered to be dimensionless.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativePotential</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The relative tolerance to use in numerical solutions for the gravitational potential.</description>
+      <description>
+      The relative tolerance to use in numerical solutions for the gravitational potential.
+      </description>
     </inputParameter>
     <conditionalCall>
      <call>self=massDistributionCoredNFW(radiusCore=radiusCore,toleranceRelativePotential=toleranceRelativePotential,componentType=enumerationComponentTypeEncode(componentType,includesPrefix=.false.),massType=enumerationMassTypeEncode(massType,includesPrefix=.false.){conditions})</call>
@@ -163,8 +183,8 @@ contains
   end function coredNFWConstructorParameters
 
   function coredNFWConstructorInternal(radiusScale,radiusCore,concentration,densityNormalization,mass,radiusVirial,dimensionless,componentType,massType,toleranceRelativePotential) result(self)
-    !!{
-    Internal constructor for \refClass{massDistributionCoredNFW} mass distribution class.
+    !!{RST
+    Internal constructor for :galacticus-class:`massDistributionCoredNFW` mass distribution class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
@@ -243,7 +263,7 @@ contains
   end function coredNFWConstructorInternal
 
   function coredNFWFactoryTabulation(self,parameters) result(instance)
-    !!{
+    !!{RST
     Construct an instance of this class using tabulation parameters.
     !!}
     implicit none
@@ -261,8 +281,8 @@ contains
   end function coredNFWFactoryTabulation
   
   double precision function coredNFWDensity(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in a cored NFW mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a cored NFW mass distribution.
     !!}
     implicit none
     class           (massDistributionCoredNFW), intent(inout) :: self
@@ -279,8 +299,8 @@ contains
   end function coredNFWDensity
   
   double precision function coredNFWDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
-    !!{
-    Return the radial density gradient at the specified \mono{coordinates} in a cored NFW mass distribution.
+    !!{RST
+    Return the radial density gradient at the specified ``coordinates`` in a cored NFW mass distribution.
     !!}
     implicit none
     class           (massDistributionCoredNFW), intent(inout), target   :: self
@@ -308,7 +328,7 @@ contains
   end function coredNFWDensityGradientRadial
 
   subroutine coredNFWParameters(self,densityNormalization,radiusNormalization,parameters,container)
-    !!{
+    !!{RST
     Establish parameters for tabulation.
     !!}
     implicit none
@@ -361,7 +381,7 @@ contains
   end subroutine coredNFWParameters
 
   subroutine coredNFWDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
-    !!{
+    !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -385,7 +405,7 @@ contains
   end subroutine coredNFWDescriptor
 
   function coredNFWSuffix(self) result(suffix)
-    !!{
+    !!{RST
     Return a suffix for tabulated file names.
     !!}
     use :: String_Handling, only : String_C_To_Fortran

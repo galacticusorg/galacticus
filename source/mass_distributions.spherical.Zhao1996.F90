@@ -17,16 +17,18 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of the \cite{zhao_analytical_1996} mass distribution class.
+  !!{RST
+  Implementation of the :cite:t:`zhao_analytical_1996` mass distribution class.
   !!}
 
   use :: Numerical_Interpolation , only : interpolator
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>specialCase</name>
-   <description>Special cases for \mono{zhao1996} dark matter halo profile class.</description>
+   <description>
+   Special cases for ``zhao1996`` dark matter halo profile class.
+   </description>
    <entry label="general"    />
    <entry label="coredNFW"   />
    <entry label="gamma0_5NFW"/>
@@ -36,26 +38,31 @@
   !!]
   
   !![
-  <massDistribution name="massDistributionZhao1996">
+  <massDistribution name="massDistributionZhao1996" docformat="rst">
     <description>
-    A mass distribution class which implements the \citep{zhao_analytical_1996} density profile:
-    \begin{equation}
-      \rho_\mathrm{dark matter}(r) = \rho_0 \left({r\over r_\mathrm{s}}\right)^{-\gamma} \left(1+[{r\over r_\mathrm{s}}]^\alpha\right)^{-(\beta-\gamma)/\alpha}.
-    \end{equation}
-    The mass enclosed within radius $r$ is given by
-    \begin{equation}
-    M(&lt;r) = \frac{4 \pi}{3-\gamma} \rho_0 r_\mathrm{s}^{3-\gamma} {}_2F_1\left[\left(\frac{3-\gamma}{\alpha}\right),\left(\frac{-\beta+\gamma}{\alpha},1+\frac{3-\gamma}{\alpha}\right),-r^\alpha\right]
-    \end{equation}
-    where $R=r/r_\mathrm{s}$. The associated gravitational potential is
-    \begin{equation}
-    \Phi(r) = - \frac{4 \pi \mathrm{G}}{-3+\gamma} \rho_0 r^{2-\gamma} \frac{\Gamma[(3+\alpha-\gamma)/\alpha]}{\Gamma[(3-\gamma)/\alpha]} \left( \Gamma\left[\frac{2-\gamma}{\alpha}\right] {}_p\tilde{F}F_q\left[\left\{\frac{2-\gamma}{\alpha},\frac{\beta-\gamma}{\alpha}\right\},\left\{\frac{2+\alpha-\gamma}{\alpha}\right\},-r\alpha\right] -  \Gamma\left[\frac{3-\gamma}{\alpha}\right] {}_p\tilde{F}F_q\left[\left\{\frac{3-\gamma}{\alpha},\frac{\beta-\gamma}{\alpha}\right\},\left\{\frac{3+\alpha-\gamma}{\alpha}\right\},-r\alpha\right] \right).
-    \end{equation}
+    A mass distribution class which implements the :cite:p:`zhao_analytical_1996` density profile:
+
+    .. math::
+
+       \rho_\mathrm{dark matter}(r) = \rho_0 \left({r\over r_\mathrm{s}}\right)^{-\gamma} \left(1+[{r\over r_\mathrm{s}}]^\alpha\right)^{-(\beta-\gamma)/\alpha}.
+
+    The mass enclosed within radius :math:`r` is given by
+
+    .. math::
+
+       M(&lt;r) = \frac{4 \pi}{3-\gamma} \rho_0 r_\mathrm{s}^{3-\gamma} {}_2F_1\left[\left(\frac{3-\gamma}{\alpha}\right),\left(\frac{-\beta+\gamma}{\alpha},1+\frac{3-\gamma}{\alpha}\right),-r^\alpha\right]
+
+    where :math:`R=r/r_\mathrm{s}`. The associated gravitational potential is
+
+    .. math::
+
+       \Phi(r) = - \frac{4 \pi \mathrm{G}}{-3+\gamma} \rho_0 r^{2-\gamma} \frac{\Gamma[(3+\alpha-\gamma)/\alpha]}{\Gamma[(3-\gamma)/\alpha]} \left( \Gamma\left[\frac{2-\gamma}{\alpha}\right] {}_p\tilde{F}F_q\left[\left\{\frac{2-\gamma}{\alpha},\frac{\beta-\gamma}{\alpha}\right\},\left\{\frac{2+\alpha-\gamma}{\alpha}\right\},-r\alpha\right] -  \Gamma\left[\frac{3-\gamma}{\alpha}\right] {}_p\tilde{F}F_q\left[\left\{\frac{3-\gamma}{\alpha},\frac{\beta-\gamma}{\alpha}\right\},\left\{\frac{3+\alpha-\gamma}{\alpha}\right\},-r\alpha\right] \right).
     </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionZhao1996
-     !!{
-     The \citep{zhao_analytical_1996} mass distribution.
+     !!{RST
+     The :cite:p:`zhao_analytical_1996` mass distribution.
      !!}
      private
      type            (enumerationSpecialCaseType)              :: specialCase
@@ -76,7 +83,7 @@
      type            (interpolator              ), allocatable :: timeFreefallScaleFree_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="timeFreefallTabulate" description="Tabulate the freefall time as a function of radius in a scale-free Zhao1996 mass distribution."/>
      </methods>
      !!]
@@ -102,8 +109,8 @@
   end type massDistributionZhao1996
   
   interface massDistributionZhao1996
-     !!{
-     Constructors for the \refClass{massDistributionZhao1996} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionZhao1996` mass distribution class.
      !!}
      module procedure massDistributionZhao1996ConstructorParameters
      module procedure massDistributionZhao1996ConstructorInternal
@@ -118,9 +125,8 @@
 contains
 
   function massDistributionZhao1996ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionZhao1996} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionZhao1996` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -138,60 +144,80 @@ contains
     type            (varying_string          )                :: massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha</name>
-      <description>The parameter $\alpha$ of the Zhao1996 profile.</description>
+      <description>
+      The parameter :math:`\alpha` of the Zhao1996 profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
-      <description>The parameter $\beta$ of the Zhao1996 profile.</description>
+      <description>
+      The parameter :math:`\beta` of the Zhao1996 profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma</name>
-      <description>The parameter $\gamma$ of the Zhao1996 profile.</description>
+      <description>
+      The parameter :math:`\gamma` of the Zhao1996 profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityNormalization</name>
       <defaultValue>(3.0d0-gamma)/4.0d0/Pi/Hypergeometric_2F1([(3.0d0-gamma)/alpha,(beta-gamma)/alpha],[1.0d0+(3.0d0-gamma)/alpha],-1.0d0)</defaultValue>
-      <description>The density normalization of the Zhao1996 profile.</description>
+      <description>
+      The density normalization of the Zhao1996 profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scaleLength</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The scale radius of the Zhao1996 profile.</description>
+      <description>
+      The scale radius of the Zhao1996 profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The total mass (in $\mathrm{M}_\odot$) of the \cite{zhao_analytical_1996} profile, used to set the density normalization $\rho_0$ when \mono{densityNormalization} is not supplied directly.</description>
+      <description>
+      The total mass (in :math:`\mathrm{M}_\odot`) of the :cite:t:`zhao_analytical_1996` profile, used to set the density normalization :math:`\rho_0` when ``densityNormalization`` is not supplied directly.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusOuter</name>
-      <description>The outer radius of the Zhao1996 profile.</description>
+      <description>
+      The outer radius of the Zhao1996 profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dimensionless</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true the Zhao1996 profile is considered to be dimensionless.</description>
+      <description>
+      If true the Zhao1996 profile is considered to be dimensionless.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <conditionalCall>
@@ -207,8 +233,8 @@ contains
   end function massDistributionZhao1996ConstructorParameters
 
   function massDistributionZhao1996ConstructorInternal(alpha,beta,gamma,scaleLength,densityNormalization,mass,radiusOuter,dimensionless,componentType,massType) result(self)
-    !!{
-    Internal constructor for ``zhao1996'' mass distribution class.
+    !!{RST
+    Internal constructor for "zhao1996" mass distribution class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
@@ -313,7 +339,7 @@ contains
   end function massDistributionZhao1996ConstructorInternal
 
   double precision function zhao1996MassTotal(self) result(massTotal)
-    !!{
+    !!{RST
     Return the total mass in an Zhao1996 mass distribution.
     !!}
     use :: Gamma_Functions, only : Gamma_Function
@@ -335,8 +361,8 @@ contains
   end function zhao1996MassTotal
 
   double precision function zhao1996Density(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in a Zhao1996 mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a Zhao1996 mass distribution.
     !!}
     implicit none
     class           (massDistributionZhao1996), intent(inout) :: self
@@ -389,8 +415,8 @@ contains
   end function zhao1996Density
 
   double precision function zhao1996DensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
-    !!{
-    Return the density at the specified \mono{coordinates} in an Zhao1996 \citep{zhao_analytical_1996} mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in an Zhao1996 :cite:p:`zhao_analytical_1996` mass distribution.
     !!}
     implicit none
     class           (massDistributionZhao1996), intent(inout), target   :: self
@@ -418,8 +444,8 @@ contains
   end function zhao1996DensityGradientRadial
 
   double precision function zhao1996DensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
-    !!{
-    Computes radial moments of the density in an Zhao1996 \citep{zhao_analytical_1996} mass distribution.
+    !!{RST
+    Computes radial moments of the density in an Zhao1996 :cite:p:`zhao_analytical_1996` mass distribution.
     !!}
     implicit none
     class           (massDistributionZhao1996), intent(inout)           :: self
@@ -470,7 +496,7 @@ contains
   contains
 
     double precision function radialMomentIndefinite(radiusScaleFree)
-      !!{
+      !!{RST
       Compute the indefinite radial moment.
       !!}
       use :: Hypergeometric_Functions, only : Hypergeometric_2F1
@@ -486,8 +512,8 @@ contains
   end function zhao1996DensityRadialMoment
 
   double precision function zhao1996MassEnclosedBySphere(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for zhao1996 mass distributions.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for zhao1996 mass distributions.
     !!}
     implicit none
     class           (massDistributionZhao1996), intent(inout), target :: self
@@ -504,7 +530,7 @@ contains
   end function zhao1996MassEnclosedBySphere
 
   double precision function zhao1996VelocityRotationCurveMaximum(self) result(velocity)
-    !!{
+    !!{RST
     Return the peak velocity in the rotation curve for a Zhao1996 mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -539,7 +565,7 @@ contains
   end function zhao1996VelocityRotationCurveMaximum
 
   double precision function zhao1996RadiusRotationCurveMaximum(self) result(radius)
-    !!{
+    !!{RST
     Return the peak velocity in the rotation curve for a Zhao1996 mass distribution.
     !!}
     implicit none
@@ -567,7 +593,7 @@ contains
   end function zhao1996RadiusRotationCurveMaximum
   
   double precision function zhao1996RadiusEnclosingMass(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mass or mass fraction for zhao1996 mass distributions.
     !!}    
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
@@ -620,7 +646,7 @@ contains
   end function zhao1996RadiusEnclosingMass
   
   double precision function zhao1996RadiusEnclosingDensity(self,density,radiusGuess) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mean density for zhao1996 mass distributions.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
@@ -664,7 +690,7 @@ contains
   end function zhao1996RadiusEnclosingDensity
 
   impure elemental double precision function massEnclosedScaleFree(radius) result(mass)
-    !!{
+    !!{RST
     Evaluate the mass enclosed by a given radius in a scale-free Zhao1996 mass distribution.
     !!}
     use :: Error                   , only : Error_Report
@@ -767,7 +793,7 @@ contains
   end function massEnclosedScaleFree
 
   impure elemental double precision function densityEnclosedScaleFree(radius) result(density)
-    !!{
+    !!{RST
     Evaluate the mean enclosed density at a given radius in a scale-free Zhao1996 mass distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -783,7 +809,7 @@ contains
   end function densityEnclosedScaleFree
   
   double precision function zhao1996RadiusFromSpecificAngularMomentum(self,angularMomentumSpecific) result(radius)
-    !!{
+    !!{RST
     Computes the radius corresponding to a given specific angular momentum for zhao1996 mass distributions.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -835,7 +861,7 @@ contains
   end function zhao1996RadiusFromSpecificAngularMomentum
 
   impure elemental double precision function angularMomentumSpecificEnclosedScaleFree(radius) result(angularMomentumSpecific)
-    !!{
+    !!{RST
     Evaluate the specific angular momentum at a given radius in a scale-free Zhao1996 mass distribution.
     !!}
     implicit none
@@ -849,7 +875,7 @@ contains
   end function angularMomentumSpecificEnclosedScaleFree
 
   logical function zhao1996PotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return that the potential has an analytic form.
     !!}
     implicit none
@@ -860,8 +886,8 @@ contains
   end function zhao1996PotentialIsAnalytic
 
   double precision function zhao1996Potential(self,coordinates,status) result(potential)
-    !!{
-    Return the potential at the specified \mono{coordinates} in an zhao1996 mass distribution.
+    !!{RST
+    Return the potential at the specified ``coordinates`` in an zhao1996 mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess     , structureErrorCodeInfinite
@@ -886,7 +912,7 @@ contains
   end function zhao1996Potential
 
   impure elemental double precision function potentialScaleFree(radius) result(potential)
-    !!{
+    !!{RST
     Compute the potential in a scale-free Zhao1996 mass distribution.
     !!}
     use :: Gamma_Functions         , only : Gamma_Function
@@ -951,7 +977,7 @@ contains
   end function potentialScaleFree
 
  double precision function potentialDifferenceScaleFree(radius1,radius2) result(potential)
-    !!{
+    !!{RST
     Compute the potential difference in a scale-free Zhao1996 mass distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -1064,8 +1090,8 @@ contains
   end function potentialDifferenceScaleFree
     
   double precision function zhao1996RadiusFreefall(self,time) result(radius)
-    !!{
-    Compute the freefall radius at the given \mono{time} in an Zhao1996 mass distribution.
+    !!{RST
+    Compute the freefall radius at the given ``time`` in an Zhao1996 mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
@@ -1091,9 +1117,8 @@ contains
   end function zhao1996RadiusFreefall
   
   double precision function zhao1996RadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
-    !!{
-    Compute the rate of increase of the freefall radius at the given \mono{time} in an zhao1996 mass
-    distribution.
+    !!{RST
+    Compute the rate of increase of the freefall radius at the given ``time`` in an zhao1996 mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr, gravitationalConstant_internal
     implicit none
@@ -1120,8 +1145,8 @@ contains
   end function zhao1996RadiusFreefallIncreaseRate
   
   subroutine zhao1996TimeFreefallTabulate(self,timeScaleFree)
-    !!{
-    Tabulate the freefall radius at the given \mono{time} in an Zhao1996 mass distribution.
+    !!{RST
+    Tabulate the freefall radius at the given ``time`` in an Zhao1996 mass distribution.
     !!}
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range, rangeTypeLogarithmic
@@ -1165,7 +1190,7 @@ contains
   contains
     
     double precision function timeFreefallScaleFree(radius)
-      !!{
+      !!{RST
       Evaluate the freefall time from a given radius in a scale-free Zhao1996 mass distribution.
       !!}
       implicit none
@@ -1177,7 +1202,7 @@ contains
     end function timeFreefallScaleFree
     
     double precision function timeFreeFallIntegrand(radius)
-      !!{
+      !!{RST
       Integrand used to find the freefall time in a scale-free Zhao1996 mass distribution.
       !!}
       implicit none
@@ -1204,9 +1229,8 @@ contains
   end subroutine zhao1996TimeFreefallTabulate
 
   double precision function zhao1996FourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
-    !!{
-    Compute the Fourier transform of the density profile at the given \mono{wavenumber} in an Zhao1996 mass
-    distribution.
+    !!{RST
+    Compute the Fourier transform of the density profile at the given ``wavenumber`` in an Zhao1996 mass distribution.
     !!}
     use :: Exponential_Integrals   , only : Exponential_Integral
     use :: Numerical_Constants_Math, only : Pi
@@ -1282,11 +1306,12 @@ contains
   end function zhao1996FourierTransform
 
   double precision function zhao1996EnergyPotential(self,radiusOuter) result(energy)
-    !!{
-    Compute the potential energy within a given \mono{radius} in a Zhao1996 mass distribution.
-    \begin{eqnarray}
-    \end{eqnarray}
-    where $x=r/r_\mathrm{s}$ and $\mathrm{G}$ is Catalan's constant.
+    !!{RST
+    Compute the potential energy within a given ``radius`` in a Zhao1996 mass distribution.
+
+    .. math::
+
+    where :math:`x=r/r_\mathrm{s}` and :math:`\mathrm{G}` is Catalan's constant.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
@@ -1398,8 +1423,8 @@ contains
   end function zhao1996EnergyPotential
 
   double precision function zhao1996EnergyKinetic(self,radiusOuter,massDistributionEmbedding) result(energy)
-    !!{
-    Compute the kinetic energy within a given \mono{radius} in a Zhao1996 mass distribution.
+    !!{RST
+    Compute the kinetic energy within a given ``radius`` in a Zhao1996 mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
@@ -1537,7 +1562,7 @@ contains
   end function zhao1996EnergyKinetic
   
   subroutine zhao1996Descriptor(self,descriptor,includeClass,includeFileModificationTimes)
-    !!{
+    !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
     use :: Input_Parameters, only : inputParameters

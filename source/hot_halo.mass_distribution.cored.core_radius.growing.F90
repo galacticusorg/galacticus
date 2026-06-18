@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.
   !!}
 
@@ -26,16 +26,14 @@
   use :: Tables                 , only : table1D                 , table1DLogarithmicLinear
 
   !![
-  <hotHaloMassDistributionCoreRadius name="hotHaloMassDistributionCoreRadiusGrowing">
+  <hotHaloMassDistributionCoreRadius name="hotHaloMassDistributionCoreRadiusGrowing" docformat="rst">
    <description>
-    A hot halo mass distribution core radius class which implements a core radius equal to a fraction \mono{[coreRadiusOverScaleRadius]} of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to
-    the universal baryon fraction times their total mass. For nodes containing less hot gas mass, the core radius is expanded
-    to maintain the same gas density at the virial radius, with a maximum core radius of \mono{[coreRadiusOverVirialRadiusMaximum]} times the node's virial radius.
+   A hot halo mass distribution core radius class which implements a core radius equal to a fraction ``[coreRadiusOverScaleRadius]`` of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to the universal baryon fraction times their total mass. For nodes containing less hot gas mass, the core radius is expanded to maintain the same gas density at the virial radius, with a maximum core radius of ``[coreRadiusOverVirialRadiusMaximum]`` times the node's virial radius.
    </description>
   </hotHaloMassDistributionCoreRadius>
   !!]
   type, extends(hotHaloMassDistributionCoreRadiusClass) :: hotHaloMassDistributionCoreRadiusGrowing
-     !!{
+     !!{RST
      An implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.
      !!}
      private
@@ -55,8 +53,8 @@
   end type hotHaloMassDistributionCoreRadiusGrowing
 
   interface hotHaloMassDistributionCoreRadiusGrowing
-     !!{
-     Constructors for the \refClass{hotHaloMassDistributionCoreRadiusGrowing} hot halo mass distribution core radius class.
+     !!{RST
+     Constructors for the :galacticus-class:`hotHaloMassDistributionCoreRadiusGrowing` hot halo mass distribution core radius class.
      !!}
      module procedure growingConstructorParameters
      module procedure growingConstructorInternal
@@ -67,9 +65,8 @@
 contains
 
   function growingConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{hotHaloMassDistributionCoreRadiusGrowing} hot halo mass distribution core radius class which builds the object
-    from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`hotHaloMassDistributionCoreRadiusGrowing` hot halo mass distribution core radius class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,16 +77,20 @@ contains
     double precision                                                          :: coreRadiusOverScaleRadius, coreRadiusOverVirialRadiusMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>coreRadiusOverScaleRadius</name>
       <defaultValue>0.1d0</defaultValue>
-      <description>The core radius in the hot halo density profile in units of the dark matter profile scale radius.</description>
+      <description>
+      The core radius in the hot halo density profile in units of the dark matter profile scale radius.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>coreRadiusOverVirialRadiusMaximum</name>
       <defaultValue>10.0d0</defaultValue>
-      <description>The maximum core radius in the ``growing'' hot halo density profile in units of the virial radius.</description>
+      <description>
+      The maximum core radius in the "growing" hot halo density profile in units of the virial radius.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
@@ -105,8 +106,8 @@ contains
   end function growingConstructorParameters
 
   function growingConstructorInternal(coreRadiusOverScaleRadius,coreRadiusOverVirialRadiusMaximum,darkMatterHaloScale_,cosmologyParameters_) result(self)
-    !!{
-    Default constructor for the \mono{growing} hot halo mass distribution core radius class.
+    !!{RST
+    Default constructor for the ``growing`` hot halo mass distribution core radius class.
     !!}
     use :: Error           , only : Component_List                   , Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
@@ -139,8 +140,8 @@ contains
   end function growingConstructorInternal
 
   subroutine growingDestructor(self)
-    !!{
-    Destructor for the \refClass{hotHaloMassDistributionCoreRadiusGrowing} hot halo mass distribution core radius class.
+    !!{RST
+    Destructor for the :galacticus-class:`hotHaloMassDistributionCoreRadiusGrowing` hot halo mass distribution core radius class.
     !!}
     implicit none
     type(hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
@@ -154,7 +155,7 @@ contains
   end subroutine growingDestructor
 
   double precision function growingRadius(self,node)
-    !!{
+    !!{RST
     Return the core radius of the hot halo mass distribution.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, nodeComponentHotHalo, treeNode
@@ -229,9 +230,8 @@ contains
   end function growingRadius
 
   elemental double precision function growingCoreVirialDensityFunction(radiusOverVirialRadius)
-    !!{
-    Returns the function $(1+r_\mathrm{c}^2)[1-r_\mathrm{c} \tan^{-1}(1/r_\mathrm{c}]$ which is proportional to the density at the
-    virial radius of a cored isothermal profile with core radius $r_\mathrm{c}$ (in units of the virial radius) per unit mass.
+    !!{RST
+    Returns the function :math:`(1+r_\mathrm{c}^2)[1-r_\mathrm{c} \tan^{-1}(1/r_\mathrm{c}]` which is proportional to the density at the virial radius of a cored isothermal profile with core radius :math:`r_\mathrm{c}` (in units of the virial radius) per unit mass.
     !!}
     implicit none
     double precision, intent(in   ) :: radiusOverVirialRadius

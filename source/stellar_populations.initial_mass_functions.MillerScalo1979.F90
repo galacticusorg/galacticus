@@ -17,28 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a stellar initial mass function class for the \cite{miller_initial_1979} \gls{imf}.
+  !!{RST
+  Implements a stellar initial mass function class for the :cite:t:`miller_initial_1979` :term:`IMF`.
   !!}
 
   !![
-  <initialMassFunction name="initialMassFunctionMillerScalo1979">
+  <initialMassFunction name="initialMassFunctionMillerScalo1979" docformat="rst">
    <description>
-    A stellar initial mass function class for the \cite{miller_initial_1979} \gls{imf}:
-    \begin{equation}
-     \phi(M) \propto \left\{ \begin{array}{ll}
-     M^{-1.25} &amp; \hbox{ for } 0.10\mathrm{M}_\odot &lt; M &lt; 1.00\mathrm{M}_\odot \\
-     M^{-2.00} &amp; \hbox{ for } 1.00\mathrm{M}_\odot &lt; M &lt; 2.00\mathrm{M}_\odot \\
-     M^{-2.30} &amp; \hbox{ for } 2.00\mathrm{M}_\odot &lt; M &lt; 10.0\mathrm{M}_\odot \\
-     M^{-3.30} &amp; \hbox{ for } 10.0\mathrm{M}_\odot &lt; M &lt; 125\mathrm{M}_\odot \\
-     0 &amp; \hbox {otherwise.} \end{array} \right.
-    \end{equation}
+   A stellar initial mass function class for the :cite:t:`miller_initial_1979` :term:`IMF`:
+
+   .. math::
+
+      \phi(M) \propto \left\{ \begin{array}{ll}
+      M^{-1.25} &amp; \hbox{ for } 0.10\mathrm{M}_\odot &lt; M &lt; 1.00\mathrm{M}_\odot \\
+      M^{-2.00} &amp; \hbox{ for } 1.00\mathrm{M}_\odot &lt; M &lt; 2.00\mathrm{M}_\odot \\
+      M^{-2.30} &amp; \hbox{ for } 2.00\mathrm{M}_\odot &lt; M &lt; 10.0\mathrm{M}_\odot \\
+      M^{-3.30} &amp; \hbox{ for } 10.0\mathrm{M}_\odot &lt; M &lt; 125\mathrm{M}_\odot \\
+      0 &amp; \hbox {otherwise.} \end{array} \right.
    </description>
   </initialMassFunction>
   !!]
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionMillerScalo1979
-     !!{
-     A stellar initial mass function class for the \cite{miller_initial_1979} \gls{imf}.
+     !!{RST
+     A stellar initial mass function class for the :cite:t:`miller_initial_1979` :term:`IMF`.
      !!}
      private
    contains
@@ -46,8 +47,8 @@
   end type initialMassFunctionMillerScalo1979
 
   interface initialMassFunctionMillerScalo1979
-     !!{
-     Constructors for the \refClass{initialMassFunctionMillerScalo1979} initial mass function class.
+     !!{RST
+     Constructors for the :galacticus-class:`initialMassFunctionMillerScalo1979` initial mass function class.
      !!}
      module procedure millerScalo1979ConstructorParameters
      module procedure millerScalo1979ConstructorInternal
@@ -56,8 +57,8 @@
 contains
 
   function millerScalo1979ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{initialMassFunctionMillerScalo1979} initial mass function class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`initialMassFunctionMillerScalo1979` initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,8 +73,8 @@ contains
   end function millerScalo1979ConstructorParameters
 
   function millerScalo1979ConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{initialMassFunctionMillerScalo1979} initial mass function.
+    !!{RST
+    Internal constructor for the :galacticus-class:`initialMassFunctionMillerScalo1979` initial mass function.
     !!}
     implicit none
     type(initialMassFunctionMillerScalo1979):: self
@@ -86,8 +87,8 @@ contains
   end function millerScalo1979ConstructorInternal
 
   function millerScalo1979Label(self)
-    !!{
-    Return a label for this \gls{imf}.
+    !!{RST
+    Return a label for this :term:`IMF`.
     !!}
     implicit none
     class(initialMassFunctionMillerScalo1979), intent(inout) :: self

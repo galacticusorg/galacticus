@@ -19,12 +19,12 @@
 
 !+    Contributions to this file made by:  Andrew Benson, Jianling Gan.
 
-!!{
+!!{RST
 Contains a module which implements a preset satellite orbit component.
 !!}
 
 module Node_Component_Satellite_Preset
-  !!{
+  !!{RST
   Implements a preset satellite orbit component.
   !!}
   implicit none
@@ -101,7 +101,7 @@ contains
   <nodeComponentThreadInitializationTask function="Node_Component_Satellite_Preset_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Satellite_Preset_Thread_Initialize(parameters_)
-    !!{
+    !!{RST
     Initializes the tree node scale dark matter profile module.
     !!}
     use :: Events_Hooks    , only : nodePromotionEvent       , interTreeSatelliteInsertEvent, interTreeSatelliteAttachEvent, openMPThreadBindingAtLevel
@@ -123,7 +123,7 @@ contains
   <nodeComponentThreadUninitializationTask function="Node_Component_Satellite_Preset_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Satellite_Preset_Thread_Uninitialize()
-    !!{
+    !!{RST
     Uninitializes the tree node scale dark matter profile module.
     !!}
     use :: Events_Hooks    , only : nodePromotionEvent       , interTreeSatelliteInsertEvent, interTreeSatelliteAttachEvent
@@ -139,9 +139,8 @@ contains
   end subroutine Node_Component_Satellite_Preset_Thread_Uninitialize
 
   subroutine nodePromotion(self,node)
-    !!{
-    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply copy any preset satellite orbit
-    from the parent.
+    !!{RST
+    Ensure that ``node`` is ready for promotion to its parent. In this case, we simply copy any preset satellite orbit from the parent.
     !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
@@ -155,9 +154,8 @@ contains
   end subroutine nodePromotion
   
   subroutine interTreeSatelliteInsert(self,node,replaceNode)
-    !!{
-    A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been
-    assigned to the \mono{replaceNode} so must be transferred.
+    !!{RST
+    A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been assigned to the ``replaceNode`` so must be transferred.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentBasic, nodeComponentSatellite, treeNode
     use :: Histories       , only : history                  , longIntegerHistory
@@ -203,9 +201,8 @@ contains
   end subroutine interTreeSatelliteInsert
 
   subroutine interTreeSatelliteAttach(self,node)
-    !!{
-    A satellite node is being moved between trees and attached as the primary progenitor of an existing satellite node. Ensure
-    that preset satellite properties are correctly handled.
+    !!{RST
+    A satellite node is being moved between trees and attached as the primary progenitor of an existing satellite node. Ensure that preset satellite properties are correctly handled.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentBasic, nodeComponentSatellite, treeNode
     use :: Histories       , only : history                  , longIntegerHistory

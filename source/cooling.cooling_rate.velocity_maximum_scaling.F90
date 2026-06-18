@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.
   !!}
 
@@ -26,29 +26,29 @@
   use :: Math_Exponentiation     , only : fastExponentiator
 
   !![
-  <coolingRate name="coolingRateVelocityMaximumScaling">
+  <coolingRate name="coolingRateVelocityMaximumScaling" docformat="rst">
    <description>
-    A cooling rate class in which the cooling rate scales with the peak circular velocity in the halo. Specifically, the
-    cooling rate is given by
-    \begin{equation}
-    \dot{M}_\mathrm{cool} = M_\mathrm{hot}/\tau_\mathrm{cool}(V_\mathrm{max,halo},z) ,
-    \end{equation}
-    where 
-    \begin{equation}
-    \tau_\mathrm{cool}=\hbox{max}\left[ \tau_\mathrm{infall} \left({V_\mathrm{max} \over 200
-    \hbox{km/s}}\right)^{-\gamma_\mathrm{infall}} (1+z)^{\alpha_\mathrm{infall}} \left( 1 + \exp\left[
-    {\log_{10}(V_\mathrm{max}/(1+z)^{\delta_\mathrm{infall}}\mathcal{V}_\mathrm{infall})] \over \Delta \log_{10}
-    \mathcal{V}_\mathrm{infall}}\right]\right)^{\beta_\mathrm{infall}}, \tau_\mathrm{infall,min} \right],
-    \end{equation}
-    with $\tau_\mathrm{infall}=$\mono{[timescale]}, $\tau_\mathrm{infall,min}=$\mono{[timescaleMinimum]}, $\alpha_\mathrm{infall}=$\mono{[exponentRedshift]},
-    $\beta_\mathrm{infall}=$\mono{[exponentCutOff]}, $\gamma_\mathrm{infall}=$\mono{[exponentVelocity]}, $\delta_\mathrm{infall}=$\mono{[velocityCutOffExponentRedshift},
-    $\mathcal{V}_\mathrm{infall}=$\mono{[velocityCutOff]}, and $\Delta \log_{10}
-    \mathcal{V}_\mathrm{infall}=$\mono{[widthCutOff]}.
+   A cooling rate class in which the cooling rate scales with the peak circular velocity in the halo. Specifically, the cooling rate is given by
+
+   .. math::
+
+      \dot{M}_\mathrm{cool} = M_\mathrm{hot}/\tau_\mathrm{cool}(V_\mathrm{max,halo},z) ,
+
+   where
+
+   .. math::
+
+      \tau_\mathrm{cool}=\hbox{max}\left[ \tau_\mathrm{infall} \left({V_\mathrm{max} \over 200
+      \hbox{km/s}}\right)^{-\gamma_\mathrm{infall}} (1+z)^{\alpha_\mathrm{infall}} \left( 1 + \exp\left[
+      {\log_{10}(V_\mathrm{max}/(1+z)^{\delta_\mathrm{infall}}\mathcal{V}_\mathrm{infall})] \over \Delta \log_{10}
+      \mathcal{V}_\mathrm{infall}}\right]\right)^{\beta_\mathrm{infall}}, \tau_\mathrm{infall,min} \right],
+
+   with :math:`\tau_\mathrm{infall}=`\ ``[timescale]``, :math:`\tau_\mathrm{infall,min}=`\ ``[timescaleMinimum]``, :math:`\alpha_\mathrm{infall}=`\ ``[exponentRedshift]``, :math:`\beta_\mathrm{infall}=`\ ``[exponentCutOff]``, :math:`\gamma_\mathrm{infall}=`\ ``[exponentVelocity]``, :math:`\delta_\mathrm{infall}=`\ ``[velocityCutOffExponentRedshift``, :math:`\mathcal{V}_\mathrm{infall}=`\ ``[velocityCutOff]``, and :math:`\Delta \log_{10} \mathcal{V}_\mathrm{infall}=`\ ``[widthCutOff]``.
    </description>
   </coolingRate>
   !!]
   type, extends(coolingRateClass) :: coolingRateVelocityMaximumScaling
-     !!{
+     !!{RST
      Implementation of cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.
      !!}
      private
@@ -72,7 +72,7 @@
   end type coolingRateVelocityMaximumScaling
 
   interface coolingRateVelocityMaximumScaling
-     !!{
+     !!{RST
      Constructors for the velocity maximum scaling cooling rate class.
      !!}
      module procedure velocityMaximumScalingConstructorParameters
@@ -82,7 +82,7 @@
 contains
 
   function velocityMaximumScalingConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the velocity maximum scaling cooling rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -97,53 +97,69 @@ contains
          &                                                                widthCutOff          , exponentCutOff
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescale</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The timescale (in Gyr) for cooling in low mass halos at $z=0$ in the velocity maximum scaling scaling cooling rate model.</description>
+      <description>
+      The timescale (in Gyr) for cooling in low mass halos at :math:`z=0` in the velocity maximum scaling scaling cooling rate model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescaleMinimum</name>
       <source>parameters</source>
       <defaultValue>0.001d0</defaultValue>
-      <description>The minimum timescale (in Gyr) for cooling the velocity maximum scaling scaling cooling rate model.</description>
+      <description>
+      The minimum timescale (in Gyr) for cooling the velocity maximum scaling scaling cooling rate model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentRedshift</name>
       <source>parameters</source>
       <defaultValue>-1.5d0</defaultValue>
-      <description>The exponent of $(1+z)$ in the cooling timescale for low mass halos in the velocity maximum scaling scaling cooling rate model.</description>
+      <description>
+      The exponent of :math:`(1+z)` in the cooling timescale for low mass halos in the velocity maximum scaling scaling cooling rate model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentVelocity</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The exponent of velocity in the cooling timescale for low mass halos in the velocity maximum scaling scaling cooling rate model.</description>
+      <description>
+      The exponent of velocity in the cooling timescale for low mass halos in the velocity maximum scaling scaling cooling rate model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityCutOff</name>
       <source>parameters</source>
       <defaultValue>200.0d0</defaultValue>
-      <description>The halo maximum velocity scale appearing in the exponential term for cooling timescale in the velocity maximum scaling cooling rate model.</description>
+      <description>
+      The halo maximum velocity scale appearing in the exponential term for cooling timescale in the velocity maximum scaling cooling rate model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityCutOffExponentRedshift</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The exponent of $(1+z)$ in the velocity scale appearing in the exponential term for cooling timescale in the velocity maximum scaling cooling rate model.</description>
+      <description>
+      The exponent of :math:`(1+z)` in the velocity scale appearing in the exponential term for cooling timescale in the velocity maximum scaling cooling rate model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>widthCutOff</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The width appearing in the exponential term for cooling timescale in the velocity maximum scaling scaling cooling rate model.</description>
+      <description>
+      The width appearing in the exponential term for cooling timescale in the velocity maximum scaling scaling cooling rate model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentCutOff</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The exponent appearing in the exponential term for cooling timescale in the velocity maximum scaling scaling cooling rate model.</description>
+      <description>
+      The exponent appearing in the exponential term for cooling timescale in the velocity maximum scaling scaling cooling rate model.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
@@ -158,7 +174,7 @@ contains
   end function velocityMaximumScalingConstructorParameters
 
   function velocityMaximumScalingConstructorInternal(timeScale,timescaleMinimum,exponentRedshift,exponentVelocity,velocityCutOff,velocityCutOffExponentRedshift,widthCutOff,exponentCutOff,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the velocity maximum scaling cooling rate class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
@@ -219,7 +235,7 @@ contains
   end function velocityMaximumScalingConstructorInternal
 
   subroutine velocityMaximumScalingDestructor(self)
-    !!{
+    !!{RST
     Destructor for the velocity maximum scaling cooling rate class.
     !!}
     implicit none
@@ -233,8 +249,8 @@ contains
   end subroutine velocityMaximumScalingDestructor
 
   double precision function velocityMaximumScalingRate(self,node)
-    !!{
-    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate scales with the maximum circular velocity of the halo.
+    !!{RST
+    Returns the cooling rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) in the hot atmosphere for a model in which this rate scales with the maximum circular velocity of the halo.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentBasic   , nodeComponentHotHalo, treeNode
     use :: Mass_Distributions, only : massDistributionClass

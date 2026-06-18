@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a node operator class that shifts node indices at node promotion.
 !!}
 
   !![
-  <nodeOperator name="nodeOperatorIndexShift">
-   <description>Updates node index metadata when a node is promoted (i.e., when a satellite becomes a new isolated halo), shifting stored index values to reflect the node's new position in the evolving merger tree structure.</description>
+  <nodeOperator name="nodeOperatorIndexShift" docformat="rst">
+   <description>
+   Updates node index metadata when a node is promoted (i.e., when a satellite becomes a new isolated halo), shifting stored index values to reflect the node's new position in the evolving merger tree structure.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorIndexShift
-     !!{
+     !!{RST
      A node operator class that shifts node indices at node promotion.
      !!}
      private
@@ -36,8 +38,8 @@ Implements a node operator class that shifts node indices at node promotion.
   end type nodeOperatorIndexShift
 
   interface nodeOperatorIndexShift
-     !!{
-     Constructors for the \refClass{nodeOperatorIndexShift} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorIndexShift` node operator class.
      !!}
      module procedure indexShiftConstructorParameters
   end interface nodeOperatorIndexShift
@@ -45,8 +47,8 @@ Implements a node operator class that shifts node indices at node promotion.
 contains
 
   function indexShiftConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorIndexShift} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorIndexShift` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function indexShiftConstructorParameters
 
   subroutine indexShiftNodePromote(self,node)
-    !!{
+    !!{RST
     Act on node promotion.
     !!}
     implicit none

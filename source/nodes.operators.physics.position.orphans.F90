@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that sets the positions of orphaned subhalos.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorPositionOrphans">
-   <description>Assigns spatial positions to orphaned satellite galaxies (subhalos that have lost their dark matter through tidal stripping below the resolution limit), typically by continuing the orbital trajectory or placing them at the last known position.</description>
+  <nodeOperator name="nodeOperatorPositionOrphans" docformat="rst">
+   <description>
+   Assigns spatial positions to orphaned satellite galaxies (subhalos that have lost their dark matter through tidal stripping below the resolution limit), typically by continuing the orbital trajectory or placing them at the last known position.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorPositionDiscrete) :: nodeOperatorPositionOrphans
-     !!{
+     !!{RST
      A node operator class that sets the positions of orphaned subhalos.
      !!}
      private
@@ -37,8 +39,8 @@
   end type nodeOperatorPositionOrphans
   
   interface nodeOperatorPositionOrphans
-     !!{
-     Constructors for the \refClass{nodeOperatorPositionOrphans} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorPositionOrphans` node operator class.
      !!}
      module procedure positionOrphansConstructorParameters
      module procedure positionOrphansConstructorInternal
@@ -47,8 +49,8 @@
 contains
   
   function positionOrphansConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorPositionOrphans} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorPositionOrphans` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -68,8 +70,8 @@ contains
   end function positionOrphansConstructorParameters
 
   function positionOrphansConstructorInternal(satelliteOrphanDistribution_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorPositionOrphans} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorPositionOrphans` node operator class.
     !!}
     implicit none
     type (nodeOperatorPositionOrphans     )                        :: self
@@ -82,8 +84,8 @@ contains
   end function positionOrphansConstructorInternal
 
   subroutine positionOrphansDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorPositionOrphans} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorPositionOrphans` node operator class.
     !!}
     implicit none
     type(nodeOperatorPositionOrphans), intent(inout) :: self
@@ -95,7 +97,7 @@ contains
   end subroutine positionOrphansDestructor
 
   subroutine positionOrphansDifferentialEvolutionStepFinalState(self,node)
-    !!{
+    !!{RST
     Assign a position to orphaned galaxies after each successful differential evolution step.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentPosition, nodeComponentBasic

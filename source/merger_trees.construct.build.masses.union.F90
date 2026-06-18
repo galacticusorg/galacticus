@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a merger tree masses class which constructs the union of other classes.
   !!}
 
@@ -27,13 +27,15 @@
   end type mergerTreeBuildMassesList
 
   !![
-  <mergerTreeBuildMasses name="mergerTreeBuildMassesUnion">
-   <description>A merger tree masses class which constructs the union of other classes.</description>
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesUnion" docformat="rst">
+   <description>
+   A merger tree masses class which constructs the union of other classes.
+   </description>
    <linkedList type="mergerTreeBuildMassesList" variable="mergerTreeBuildMasses_" next="next" object="mergerTreeBuildMasses_" objectType="mergerTreeBuildMassesClass"/>
   </mergerTreeBuildMasses>
   !!]
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesUnion
-     !!{
+     !!{RST
      Implementation of a merger tree masses class which constructs the union of other classes.
      !!}
      private
@@ -51,9 +53,8 @@
 contains
 
   function unionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildMassesUnion} merger tree masses class which takes a parameter set
-    as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeBuildMassesUnion` merger tree masses class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -81,8 +82,8 @@ contains
   end function unionConstructorParameters
 
   function unionConstructorInternal(mergerTreeBuildMasses_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildMassesUnion} merger tree masses class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeBuildMassesUnion` merger tree masses class.
     !!}
     implicit none
     type(mergerTreeBuildMassesUnion)                        :: self
@@ -95,7 +96,7 @@ contains
   end function unionConstructorInternal
 
   elemental subroutine unionDestructor(self)
-    !!{
+    !!{RST
     Destructor for the merger tree mergerTreeBuildMasses function class.
     !!}
     implicit none
@@ -115,7 +116,7 @@ contains
   end subroutine unionDestructor
 
   subroutine unionConstruct(self,time,mass,massMinimum,massMaximum,weight)
-    !!{
+    !!{RST
     Construct a set of merger tree masses by sampling from a distribution.
     !!}
     use            :: Error            , only : Error_Report

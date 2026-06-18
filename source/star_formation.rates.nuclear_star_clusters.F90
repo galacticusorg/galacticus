@@ -19,31 +19,29 @@
 
   !+    Contributions to this file made by: Matías Liempi
 
-!!{
+!!{RST
 Contains a module which provides a class that implements rates of star formation in nuclear star clusters.
 !!}
 
 module Star_Formation_Rates_Nuclear_Star_Clusters
-  !!{
+  !!{RST
   Provides a class that implements calculations of rates of formation in nuclear star clusters.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>starFormationRateNuclearStarClusters</name>
    <descriptiveName>Star Formation Rates in Nuclear Star Clusters</descriptiveName>
-   <description>Class providing models of the star formation rate (in $\mathrm{M}_\odot \, \mathrm{Gyr}^{-1}$)
-    in the nuclear star cluster component of a galaxy---the compact, dense stellar system residing at
-    the galactic center. Nuclear star cluster star formation is fuelled by gas inflows driven by disk
-    instabilities and dynamical processes, and is governed by local gas conditions analogous to, but
-    more extreme than, those in the main disk. Implementations may apply the same star formation
-    prescription as the disk but evaluated at the nuclear cluster's characteristic density and
-    dynamical time.</description>
+   <description>
+   Class providing models of the star formation rate (in :math:`\mathrm{M}_\odot \, \mathrm{Gyr}^{-1}`) in the nuclear star cluster component of a galaxy---the compact, dense stellar system residing at the galactic center. Nuclear star cluster star formation is fuelled by gas inflows driven by disk instabilities and dynamical processes, and is governed by local gas conditions analogous to, but more extreme than, those in the main disk. Implementations may apply the same star formation prescription as the disk but evaluated at the nuclear cluster's characteristic density and dynamical time.
+   </description>
    <default>krumholz2009</default>
    <method name="rate" >
-    <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the nuclear star cluster component of \mono{node}.</description>
+    <description>
+    Returns the rate (in units of :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) for star formation in the nuclear star cluster component of ``node``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

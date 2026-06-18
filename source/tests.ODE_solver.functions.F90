@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module of ODEs for unit tests.
 !!}
 
 module Test_ODE_Solver_Functions
-  !!{
+  !!{RST
   Contains ODEs for unit tests.
   !!}
   use :: Interface_GSL, only : GSL_Success
@@ -35,7 +35,7 @@ module Test_ODE_Solver_Functions
 contains
 
   integer function ODE_Set_1(x,y,dydx)
-    !!{
+    !!{RST
     A set of ODEs for unit tests.
     !!}
     double precision              , intent(in   ) :: x
@@ -49,7 +49,7 @@ contains
   end function ODE_Set_1
 
   integer function Jacobian_Set_1(x,y,dfdy,dfdx)
-    !!{
+    !!{RST
     Jacobian for a set of ODEs for unit tests.
     !!}
     double precision              , intent(in   ) :: x
@@ -64,7 +64,7 @@ contains
   end function Jacobian_Set_1
 
   integer function ODE_Set_2(x,y,dydx)
-    !!{
+    !!{RST
     A set of ODEs for unit tests.
     !!}
     double precision              , intent(in   ) :: x
@@ -79,7 +79,7 @@ contains
   end function ODE_Set_2
 
   integer function Jacobian_Set_2(x,y,dfdy,dfdx)
-    !!{
+    !!{RST
     Jacobian for a set of ODEs for unit tests.
     !!}
     double precision              , intent(in   ) :: x
@@ -97,7 +97,7 @@ contains
   end function Jacobian_Set_2
 
   subroutine Integrands_Set_2(x,y,dydx,z0,e,dzdx)
-    !!{
+    !!{RST
     A set of integrands for unit tests.
     !!}
     double precision, intent(in   ), dimension(        : ) :: x

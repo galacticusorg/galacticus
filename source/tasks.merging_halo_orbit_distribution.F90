@@ -27,12 +27,14 @@
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
 
   !![
-  <task name="taskMergingHaloOrbitDistribution">
-   <description>A task which tabulates the joint distribution of orbital parameters (velocity at virial radius and tangential-to-total velocity ratio) for halos merging into host halos, sampled from the virial orbit model weighted by the merger tree branching probability and halo mass function, and outputs the resulting distribution for analysis.</description>
+  <task name="taskMergingHaloOrbitDistribution" docformat="rst">
+   <description>
+   A task which tabulates the joint distribution of orbital parameters (velocity at virial radius and tangential-to-total velocity ratio) for halos merging into host halos, sampled from the virial orbit model weighted by the merger tree branching probability and halo mass function, and outputs the resulting distribution for analysis.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskMergingHaloOrbitDistribution
-     !!{
+     !!{RST
      A task which tabulates the orbital parameter distribution for merging halos.
      !!}
      private
@@ -56,8 +58,8 @@
   end type taskMergingHaloOrbitDistribution
 
   interface taskMergingHaloOrbitDistribution
-     !!{
-     Constructors for the \refClass{taskMergingHaloOrbitDistribution} task.
+     !!{RST
+     Constructors for the :galacticus-class:`taskMergingHaloOrbitDistribution` task.
      !!}
      module procedure mergingHaloOrbitDistributionConstructorParameters
      module procedure mergingHaloOrbitDistributionConstructorInternal
@@ -66,8 +68,8 @@
 contains
   
   function mergingHaloOrbitDistributionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskMergingHaloOrbitDistribution} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskMergingHaloOrbitDistribution` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes   , only : nodeClassHierarchyInitialize
     use :: Input_Parameters   , only : inputParameter              , inputParameters
@@ -107,52 +109,66 @@ contains
     end if
     self%nodeComponentsInitialized=.true.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityMinimum</name>
       <source>parameters</source>
-      <description>The minimum velocity (in units of the host virial velocity) for which to compute velocity distributions.</description>
+      <description>
+      The minimum velocity (in units of the host virial velocity) for which to compute velocity distributions.
+      </description>
       <type>real</type>
       <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityMaximum</name>
       <source>parameters</source>
-      <description>The maximum velocity (in units of the host virial velocity) for which to compute velocity distributions.</description>
+      <description>
+      The maximum velocity (in units of the host virial velocity) for which to compute velocity distributions.
+      </description>
       <type>real</type>
       <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countVelocitiesPerUnit</name>
       <source>parameters</source>
-      <description>The number of points per unit of velocity (in units of the host virial velocity) for which to compute velocity distributions.</description>
+      <description>
+      The number of points per unit of velocity (in units of the host virial velocity) for which to compute velocity distributions.
+      </description>
       <type>real</type>
       <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <source>parameters</source>
-      <description>The minimum mass halo for which to compute mergingHaloOrbitDistribution properties.</description>
+      <description>
+      The minimum mass halo for which to compute mergingHaloOrbitDistribution properties.
+      </description>
       <type>real</type>
       <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMaximum</name>
       <source>parameters</source>
-      <description>The maximum mass halo for which to compute mergingHaloOrbitDistribution properties.</description>
+      <description>
+      The maximum mass halo for which to compute mergingHaloOrbitDistribution properties.
+      </description>
       <type>real</type>
       <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countMassesPerDecade</name>
       <source>parameters</source>
-      <description>The number of points per decade of mass for which to compute mergingHaloOrbitDistribution properties.</description>
+      <description>
+      The number of points per decade of mass for which to compute mergingHaloOrbitDistribution properties.
+      </description>
       <type>real</type>
       <cardinality>0..1</cardinality>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
       <source>parameters</source>
-      <description>The redshift.</description>
+      <description>
+      The redshift.
+      </description>
       <type>real</type>
       <cardinality>0..1</cardinality>
     </inputParameter>
@@ -184,8 +200,8 @@ contains
   end function mergingHaloOrbitDistributionConstructorParameters
 
   function mergingHaloOrbitDistributionConstructorInternal(time,velocityMinimum,velocityMaximum,countVelocitiesPerUnit,massMinimum,massMaximum,countMassesPerDecade,virialOrbit_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,mergerTreeBranchingProbability_,criticalOverdensity_,cosmologicalMassVariance_,haloMassFunction_,randomNumberGenerator_) result(self)
-    !!{
-    Internal constructor for the \refClass{taskMergingHaloOrbitDistribution} task class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`taskMergingHaloOrbitDistribution` task class.
     !!}
     implicit none
     type            (taskMergingHaloOrbitDistribution   )                        :: self
@@ -211,8 +227,8 @@ contains
   end function mergingHaloOrbitDistributionConstructorInternal
 
   subroutine mergingHaloOrbitDistributionDestructor(self)
-    !!{
-    Destructor for the \refClass{taskMergingHaloOrbitDistribution} task class.
+    !!{RST
+    Destructor for the :galacticus-class:`taskMergingHaloOrbitDistribution` task class.
     !!}
     use :: Node_Components, only : Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
     implicit none
@@ -237,7 +253,7 @@ contains
   end subroutine mergingHaloOrbitDistributionDestructor
 
   subroutine mergingHaloOrbitDistributionPerform(self,status)
-    !!{
+    !!{RST
     Compute orbital properties of merging halos.
     !!}
     use :: Display            , only : displayIndent        , displayUnindent     , displayCounter, displayCounterClear, &

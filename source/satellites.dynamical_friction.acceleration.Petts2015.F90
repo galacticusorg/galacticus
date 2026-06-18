@@ -17,29 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a satellite dynamical friction class which uses the model of \cite{petts_semi-analytic_2015} for the
-  Coulomb logarithm.
+  !!{RST
+  Implementation of a satellite dynamical friction class which uses the model of :cite:t:`petts_semi-analytic_2015` for the Coulomb logarithm.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !![
-  <satelliteDynamicalFriction name="satelliteDynamicalFrictionPetts2015">
-   <description>A satellite dynamical friction class which computes the Coulomb logarithm following the model of
-    \cite{petts_semi-analytic_2015}. The minimum impact parameter is taken to be $b_\mathrm{min} = \max(r_{1/2,\mathrm{sat}},
-    G M_\mathrm{sat} / v_\mathrm{orbital}^2)$, where $r_{1/2,\mathrm{sat}}$ is the half-mass radius of the dark matter
-    component of the satellite, and the maximum is $b_\mathrm{max} = r_\mathrm{orbital}/|\gamma|$ for $|\gamma| > 1$
-    (where $\gamma$ is the logarithmic density slope of the host at the satellite position), or $r_\mathrm{orbital}$
-    otherwise. The \mono{[logarithmCoulombApproximate]} parameter controls whether the Coulomb logarithm is evaluated as
-    $\ln\Lambda$ (for $\Lambda \geq 1$, else zero) or the approximate form $\frac{1}{2}\ln(1+\Lambda^2)$.
+  <satelliteDynamicalFriction name="satelliteDynamicalFrictionPetts2015" docformat="rst">
+   <description>
+   A satellite dynamical friction class which computes the Coulomb logarithm following the model of :cite:t:`petts_semi-analytic_2015`. The minimum impact parameter is taken to be :math:`b_\mathrm{min} = \max(r_{1/2,\mathrm{sat}}, G M_\mathrm{sat} / v_\mathrm{orbital}^2)`, where :math:`r_{1/2,\mathrm{sat}}` is the half-mass radius of the dark matter component of the satellite, and the maximum is :math:`b_\mathrm{max} = r_\mathrm{orbital}/|\gamma|` for :math:`|\gamma| &gt; 1` (where :math:`\gamma` is the logarithmic density slope of the host at the satellite position), or :math:`r_\mathrm{orbital}` otherwise. The ``[logarithmCoulombApproximate]`` parameter controls whether the Coulomb logarithm is evaluated as :math:`\ln\Lambda` (for :math:`\Lambda \geq 1`, else zero) or the approximate form :math:`\frac{1}{2}\ln(1+\Lambda^2)`.
    </description>
   </satelliteDynamicalFriction>
   !!]
   type, extends(satelliteDynamicalFrictionChandrasekhar1943) :: satelliteDynamicalFrictionPetts2015
-     !!{
-     Implementation of a satellite dynamical friction class which uses the model of \cite{petts_semi-analytic_2015} for the
-     Coulomb logarithm.
+     !!{RST
+     Implementation of a satellite dynamical friction class which uses the model of :cite:t:`petts_semi-analytic_2015` for the Coulomb logarithm.
      !!}
      private
      class  (cosmologyParametersClass), pointer :: cosmologyParameters_        => null()
@@ -50,7 +43,7 @@
   end type satelliteDynamicalFrictionPetts2015
 
   interface satelliteDynamicalFrictionPetts2015
-     !!{
+     !!{RST
      Constructors for the petts2015 satellite dynamical friction class.
      !!}
      module procedure petts2015ConstructorParameters
@@ -60,8 +53,8 @@
 contains
 
   function petts2015ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{satelliteDynamicalFrictionPetts2015} satellite dynamical friction class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`satelliteDynamicalFrictionPetts2015` satellite dynamical friction class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,10 +66,12 @@ contains
     logical                                                     :: logarithmCoulombApproximate
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logarithmCoulombApproximate</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, the Coulomb logarithm term is evaluated as $\frac{1}{2}\log(1+\Lambda^2)$. Otherwise, it is evaluated as $\log\Lambda$ for $\Lambda \ge 1$ and set to zero otherwise.</description>
+      <description>
+      If true, the Coulomb logarithm term is evaluated as :math:`\frac{1}{2}\log(1+\Lambda^2)`. Otherwise, it is evaluated as :math:`\log\Lambda` for :math:`\Lambda \ge 1` and set to zero otherwise.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
@@ -94,8 +89,8 @@ contains
   end function petts2015ConstructorParameters
 
   function petts2015ConstructorInternal(logarithmCoulombApproximate,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{satelliteDynamicalFrictionPetts2015} satellite dynamical friction class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`satelliteDynamicalFrictionPetts2015` satellite dynamical friction class.
     !!}
     implicit none
     type   (satelliteDynamicalFrictionPetts2015)                        :: self
@@ -111,8 +106,8 @@ contains
   end function petts2015ConstructorInternal
 
   subroutine petts2015Destructor(self)
-    !!{
-    Destructor for the \refClass{satelliteDynamicalFrictionPetts2015} satellite dynamical friction class.
+    !!{RST
+    Destructor for the :galacticus-class:`satelliteDynamicalFrictionPetts2015` satellite dynamical friction class.
     !!}
     implicit none
     type(satelliteDynamicalFrictionPetts2015), intent(inout) :: self
@@ -126,8 +121,8 @@ contains
   end subroutine petts2015Destructor
   
   double precision function petts2015CoulombLogarithm(self,node) result(coulombLogarithm)
-    !!{
-    Evaluate the Coulomb logarithm for the \cite{petts_semi-analytic_2015} dynamical friction model.
+    !!{RST
+    Evaluate the Coulomb logarithm for the :cite:t:`petts_semi-analytic_2015` dynamical friction model.
     !!}
     use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
     use :: Galacticus_Nodes                , only : nodeComponentBasic            , nodeComponentSatellite, treeNode

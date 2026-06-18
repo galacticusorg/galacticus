@@ -17,11 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program which wraps the \mono{dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
-\href{https://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} to produce a table of X-ray absorption cross-sections in the
-\gls{ism}. This program assumes that various files from \href{https://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have been
-downloaded into the \mono{aux/XSpec} folder---usually this program will be run automatically as needed by the \mono{Galacticus::ISMCrossSections} module.
+!!{RST
+Contains a program which wraps the ``dotbvabs`` function (which implements the model of :cite:author:`wilms_absorption_2000` :cite:year:`wilms_absorption_2000`) from `XSpec <https://heasarc.gsfc.nasa.gov/xanadu/xspec/>`_ to produce a table of X-ray absorption cross-sections in the :term:`ISM`. This program assumes that various files from `XSpec <https://heasarc.gsfc.nasa.gov/xanadu/xspec/>`_ have been downloaded into the ``aux/XSpec`` folder---usually this program will be run automatically as needed by the ``Galacticus::ISMCrossSections`` module.
 !!}
 
 ! Add explicit dependencies on the XSpec files.
@@ -29,12 +26,8 @@ downloaded into the \mono{aux/XSpec} folder---usually this program will be run a
 !/ exclude
 
 program XRay_Absorption_ISM_Wilms2000
-  !!{
-  Wraps the \mono{dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
-  \href{https://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} to produce a table of X-ray absorption
-  cross-sections in the \gls{ism}. This program assumes that various files from
-  \href{https://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have been downloaded into the \mono{aux/XSpec}
-  folder---usually this program will be run automatically as needed by the \mono{Galacticus::ISMColumnDensity} module.
+  !!{RST
+  Wraps the ``dotbvabs`` function (which implements the model of :cite:author:`wilms_absorption_2000` :cite:year:`wilms_absorption_2000`) from `XSpec <https://heasarc.gsfc.nasa.gov/xanadu/xspec/>`_ to produce a table of X-ray absorption cross-sections in the :term:`ISM`. This program assumes that various files from `XSpec <https://heasarc.gsfc.nasa.gov/xanadu/xspec/>`_ have been downloaded into the ``aux/XSpec`` folder---usually this program will be run automatically as needed by the ``Galacticus::ISMColumnDensity`` module.
   !!}
   use :: Atomic_Cross_Sections_Compton, only : Atomic_Cross_Section_Compton
   use :: Dates_and_Times              , only : Formatted_Date_and_Time
@@ -114,8 +107,8 @@ program XRay_Absorption_ISM_Wilms2000
 end program XRay_Absorption_ISM_Wilms2000
 
 subroutine xwrite(msg,i)
-  !!{
-  Message display function required by \mono{dotbvabs}.
+  !!{RST
+  Message display function required by ``dotbvabs``.
   !!}
   implicit none
   character(len=*), intent(in   ) :: msg
@@ -126,8 +119,8 @@ subroutine xwrite(msg,i)
 end subroutine xwrite
 
 subroutine xermsg(a,b,c,i,j)
-  !!{
-  Error message function required by \mono{dotbvabs}.
+  !!{RST
+  Error message function required by ``dotbvabs``.
   !!}
   use, intrinsic :: ISO_Fortran_Env, only : output_unit
   use :: Error, only : Error_Report
@@ -143,8 +136,8 @@ subroutine xermsg(a,b,c,i,j)
 end subroutine xermsg
 
 real function fgabnd(c)
-  !!{
-  Function to return the abundance (relative to hydrogen) of elements. Required by \mono{dotbvabs}.
+  !!{RST
+  Function to return the abundance (relative to hydrogen) of elements. Required by ``dotbvabs``.
   !!}
   use :: Error, only : Error_Report
   implicit none

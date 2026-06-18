@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo profile concentrations using the
-  \cite{zhao_accurate_2009} algorithm.
+  !!{RST
+  An implementation of dark matter halo profile concentrations using the :cite:t:`zhao_accurate_2009` algorithm.
   !!}
 
   use :: Cosmology_Functions                      , only : cosmologyFunctionsClass
@@ -29,18 +28,15 @@
   use :: Virial_Density_Contrast                  , only : virialDensityContrastBryanNorman1998
 
   !![
-  <darkMatterProfileConcentration name="darkMatterProfileConcentrationZhao2009">
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationZhao2009" docformat="rst">
    <description>
-    A dark matter profile concentration class in which the concentration is computed using a fitting function from
-    \cite{zhao_accurate_2009}:
-    \begin{equation}
-     c = 4 \left(1 + \left[ {t  \over 3.75 t_\mathrm{form}}\right]^{8.4}\right)^{1/8},
-    \end{equation}
-    where $t$ is the time for the halo and $t_\mathrm{form}$ is a formation time defined by \cite{zhao_accurate_2009} as the
-    time at which the main branch progenitor of the halo had a mass equal to $0.04$ of the current halo mass. This formation
-    time is computed directly from the merger tree branch associated with each halo. If the no branch exists or does not extend
-    to the formation time then the formation time is computed by extrapolating the mass of the earliest resolved main branch
-    progenitor to earlier times using the selected \refClass{darkMatterHaloMassAccretionHistoryClass}.
+   A dark matter profile concentration class in which the concentration is computed using a fitting function from :cite:t:`zhao_accurate_2009`:
+
+   .. math::
+
+      c = 4 \left(1 + \left[ {t  \over 3.75 t_\mathrm{form}}\right]^{8.4}\right)^{1/8},
+
+   where :math:`t` is the time for the halo and :math:`t_\mathrm{form}` is a formation time defined by :cite:t:`zhao_accurate_2009` as the time at which the main branch progenitor of the halo had a mass equal to :math:`0.04` of the current halo mass. This formation time is computed directly from the merger tree branch associated with each halo. If the no branch exists or does not extend to the formation time then the formation time is computed by extrapolating the mass of the earliest resolved main branch progenitor to earlier times using the selected :galacticus-class:`darkMatterHaloMassAccretionHistoryClass`.
    </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
@@ -51,9 +47,8 @@
   </darkMatterProfileConcentration>
   !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationZhao2009
-     !!{
-     A dark matter halo profile concentration class implementing the algorithm of
-     \cite{zhao_accurate_2009}.
+     !!{RST
+     A dark matter halo profile concentration class implementing the algorithm of :cite:t:`zhao_accurate_2009`.
      !!}
      private
      class(cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_                 => null()
@@ -69,9 +64,8 @@
   end type darkMatterProfileConcentrationZhao2009
 
   interface darkMatterProfileConcentrationZhao2009
-     !!{
-     Constructors for the \refClass{darkMatterProfileConcentrationZhao2009} dark matter halo profile
-     concentration class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationZhao2009` dark matter halo profile concentration class.
      !!}
      module procedure zhao2009ConstructorParameters
      module procedure zhao2009ConstructorInternal
@@ -80,9 +74,8 @@
 contains
 
   function zhao2009ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileConcentrationZhao2009} dark matter halo profile
-    concentration class which takes an input parameter list.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationZhao2009` dark matter halo profile concentration class which takes an input parameter list.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -110,9 +103,8 @@ contains
   end function zhao2009ConstructorParameters
 
   function zhao2009ConstructorInternal(cosmologyFunctions_,cosmologyParameters_,darkMatterHaloMassAccretionHistory_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileConcentrationZhao2009} dark matter halo profile
-    concentration class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterProfileConcentrationZhao2009` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     implicit none
@@ -161,8 +153,8 @@ contains
   end function zhao2009ConstructorInternal
 
   subroutine zhao2009Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileConcentrationZhao2009} dark matter halo profile concentration class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationZhao2009` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationZhao2009), intent(inout) :: self
@@ -178,9 +170,8 @@ contains
   end subroutine zhao2009Destructor
 
   double precision function zhao2009Concentration(self,node)
-    !!{
-    Return the concentration of the dark matter halo profile of \mono{node}
-    using the \cite{zhao_accurate_2009} algorithm.
+    !!{RST
+    Return the concentration of the dark matter halo profile of ``node`` using the :cite:t:`zhao_accurate_2009` algorithm.
     !!}
     use :: Dark_Matter_Halo_Formation_Times, only : Dark_Matter_Halo_Formation_Time
     use :: Galacticus_Nodes                , only : nodeComponentBasic             , treeNode
@@ -204,9 +195,8 @@ contains
   end function zhao2009Concentration
 
   function zhao2009DensityContrastDefinition(self)
-    !!{
-    Return a virial density contrast object defining that used in the definition of
-    concentration in the \cite{zhao_accurate_2009} algorithm.
+    !!{RST
+    Return a virial density contrast object defining that used in the definition of concentration in the :cite:t:`zhao_accurate_2009` algorithm.
     !!}
     implicit none
     class(virialDensityContrastClass            ), pointer       :: zhao2009DensityContrastDefinition
@@ -217,9 +207,8 @@ contains
   end function zhao2009DensityContrastDefinition
 
   function zhao2009DarkMatterProfileDefinition(self)
-    !!{
-    Return a dark matter density profile object defining that used in the definition of
-    concentration in the \cite{zhao_accurate_2009} algorithm.
+    !!{RST
+    Return a dark matter density profile object defining that used in the definition of concentration in the :cite:t:`zhao_accurate_2009` algorithm.
     !!}
     implicit none
     class(darkMatterProfileDMOClass             ), pointer       :: zhao2009DarkMatterProfileDefinition

@@ -17,26 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements an output analysis class for the star forming main sequence measurements of \cite{wagner_evolution_2016}.
+  !!{RST
+  Implements an output analysis class for the star forming main sequence measurements of :cite:t:`wagner_evolution_2016`.
   !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
    
   ! Enumerations of analyses.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>wagner2016SSFRRedshiftRange</name>
-   <description>Specifies the redshift range for the \cite{wagner_evolution_2016} analysis</description>
+   <description>
+   Specifies the redshift range for the :cite:t:`wagner_evolution_2016` analysis
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
    <entry label="low" />
    <entry label="high"/>
   </enumeration>
-  <enumeration>
+  <enumeration docformat="rst">
    <name>wagner2016SSFRGalaxyType</name>
-   <description>Specifies the galaxy type for the \cite{wagner_evolution_2016} analysis</description>
+   <description>
+   Specifies the galaxy type for the :cite:t:`wagner_evolution_2016` analysis
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -46,13 +50,15 @@
   !!]
   
   !![
-  <outputAnalysis name="outputAnalysisStarFormingMainSequenceWagner2016">
-    <description>Computes the star-forming main sequence (mean specific star formation rate vs. stellar mass) for a specified redshift range and galaxy type (quiescent or star-forming) from \cite{wagner_evolution_2016}, with stellar mass and specific SFR random/systematic error polynomial coefficients.</description>
+  <outputAnalysis name="outputAnalysisStarFormingMainSequenceWagner2016" docformat="rst">
+    <description>
+    Computes the star-forming main sequence (mean specific star formation rate vs. stellar mass) for a specified redshift range and galaxy type (quiescent or star-forming) from :cite:t:`wagner_evolution_2016`, with stellar mass and specific SFR random/systematic error polynomial coefficients.
+    </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisStarFormingMainSequence) :: outputAnalysisStarFormingMainSequenceWagner2016
-     !!{
-     An output analysis class for the star forming main sequence measurements of \cite{wagner_evolution_2016}.
+     !!{RST
+     An output analysis class for the star forming main sequence measurements of :cite:t:`wagner_evolution_2016`.
      !!}
      private
      class           (cosmologyParametersClass                  ), pointer                     :: cosmologyParameters_             => null()
@@ -67,8 +73,8 @@
   end type outputAnalysisStarFormingMainSequenceWagner2016
 
   interface outputAnalysisStarFormingMainSequenceWagner2016
-     !!{
-     Constructors for the \refClass{outputAnalysisStarFormingMainSequenceWagner2016} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisStarFormingMainSequenceWagner2016` output analysis class.
      !!}
      module procedure starFormingMainSequenceWagner2016ConstructorParameters
      module procedure starFormingMainSequenceWagner2016ConstructorInternal
@@ -77,8 +83,8 @@
 contains
 
   function starFormingMainSequenceWagner2016ConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisStarFormingMainSequenceWagner2016} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisStarFormingMainSequenceWagner2016` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Parameters   , only : cosmologyParameters       , cosmologyParametersClass
     use :: Cosmology_Functions    , only : cosmologyFunctions        , cosmologyFunctionsClass
@@ -116,43 +122,55 @@ contains
        allocate(weightSystematicErrorPolynomialCoefficient(1                                                   ))
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for SDSS stellar masses.</description>
+      <description>
+      The minimum random error for SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for SDSS stellar masses.</description>
+      <description>
+      The minimum random error for SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.07d0]</defaultValue>
-      <description>The coefficients of the random error polynomial for SDSS stellar masses.</description>
+      <description>
+      The coefficients of the random error polynomial for SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for SDSS stellar masses.</description>
+      <description>
+      The coefficients of the systematic error polynomial for SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftRange</name>
       <source>parameters</source>
-      <description>The redshift range (``\mono{low}'' or ``\mono{high}'') for this analysis.</description>
+      <description>
+      The redshift range ("``low``" or "``high``") for this analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>galaxyType</name>
       <source>parameters</source>
-      <description>The galaxy type (``\mono{quiescent}'' or ``\mono{starForming}'') for this analysis.</description>
+      <description>
+      The galaxy type ("``quiescent``" or "``starForming``") for this analysis.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"                  name="cosmologyParameters_"                  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"                   name="cosmologyFunctions_"                   source="parameters"/>
@@ -179,8 +197,8 @@ contains
   end function starFormingMainSequenceWagner2016ConstructorParameters
 
   function starFormingMainSequenceWagner2016ConstructorInternal(redshiftRange,galaxyType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisStarFormingMainSequenceWagner2016} output analysis class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisStarFormingMainSequenceWagner2016` output analysis class.
     !!}
     use :: Error                                 , only : Error_Report
     use :: Cosmology_Functions                   , only : cosmologyFunctionsMatterLambda
@@ -434,8 +452,8 @@ contains
   end function starFormingMainSequenceWagner2016ConstructorInternal
 
   subroutine starFormingMainSequenceWagner2016Destructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisStarFormingMainSequenceWagner2016} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisStarFormingMainSequenceWagner2016` output analysis class.
     !!}
     implicit none
     type(outputAnalysisStarFormingMainSequenceWagner2016), intent(inout) :: self

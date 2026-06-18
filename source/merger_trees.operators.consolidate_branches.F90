@@ -17,23 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree operator that consolidates branches spanning a given amount of time or mass growth.
   !!}
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorConsolidateBranches">
+  <mergerTreeOperator name="mergerTreeOperatorConsolidateBranches" docformat="rst">
    <description>
-    A merger tree operator class that consolidates branches spanning a given amount of time or mass growth. Starting from the tip
-    of each branch, the branch is broken into segments for which the mass growth is less than $1+$\mono{[fractionGrowthMass]} and the time growth is less than $1+$\mono{[fractionGrowthTime]}. Any intermediate
-    nodes in each segment are removed, with their siblings (if any) being made siblings of the node at the end of the
-    segment. This reduces the time resolution along branches which can make evolution more efficient (at the cost of some loss of
-    precision.
+   A merger tree operator class that consolidates branches spanning a given amount of time or mass growth. Starting from the tip of each branch, the branch is broken into segments for which the mass growth is less than :math:`1+`\ ``[fractionGrowthMass]`` and the time growth is less than :math:`1+`\ ``[fractionGrowthTime]``. Any intermediate nodes in each segment are removed, with their siblings (if any) being made siblings of the node at the end of the segment. This reduces the time resolution along branches which can make evolution more efficient (at the cost of some loss of precision).
    </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorConsolidateBranches
-     !!{
+     !!{RST
      A merger tree operator class that consolidates branches spanning a given amount of time or mass growth.
      !!}
      private
@@ -43,8 +39,8 @@
   end type mergerTreeOperatorConsolidateBranches
 
   interface mergerTreeOperatorConsolidateBranches
-     !!{
-     Constructors for the \refClass{mergerTreeOperatorConsolidateBranches} merger tree operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeOperatorConsolidateBranches` merger tree operator class.
      !!}
      module procedure consolidateBranchesConstructorParameters
      module procedure consolidateBranchesConstructorInternal
@@ -53,9 +49,8 @@
 contains
 
   function consolidateBranchesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeOperatorConsolidateBranches} merger tree operator class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeOperatorConsolidateBranches` merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,14 +59,18 @@ contains
     double precision                                                       :: fractionGrowthMass, fractionGrowthTime
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionGrowthMass</name>
-      <description>The fraction of growth in mass over which branches may be consolidated.</description>
+      <description>
+      The fraction of growth in mass over which branches may be consolidated.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionGrowthTime</name>
-      <description>The fraction of growth in time over which branches may be consolidated.</description>
+      <description>
+      The fraction of growth in time over which branches may be consolidated.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -83,8 +82,8 @@ contains
   end function consolidateBranchesConstructorParameters
 
   function consolidateBranchesConstructorInternal(fractionGrowthMass,fractionGrowthTime) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeOperatorConsolidateBranches} merger tree operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeOperatorConsolidateBranches` merger tree operator class.
     !!}
     implicit none
     type            (mergerTreeOperatorConsolidateBranches)                :: self
@@ -97,7 +96,7 @@ contains
   end function consolidateBranchesConstructorInternal
 
   subroutine consolidateBranchesOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Perform a mass growth monotonizing operation on a merger tree.
     !!}
     use :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode

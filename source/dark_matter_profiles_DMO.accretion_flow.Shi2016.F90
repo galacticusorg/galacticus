@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of a dark matter density profile which includes the accretion flow surrounding the halo.
   !!}
 
@@ -28,17 +28,15 @@
   use :: Dark_Matter_Halo_Scales                  , only : darkMatterHaloScaleClass  
   
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOAccretionFlowShi2016">
+  <darkMatterProfileDMO name="darkMatterProfileDMOAccretionFlowShi2016" docformat="rst">
     <description>
-       A dark matter profile class which builds \refClass{massDistributionShi2016} objects to model accretion flows using the
-       model of \cite{shi_outer_2016}.
+    A dark matter profile class which builds :galacticus-class:`massDistributionShi2016` objects to model accretion flows using the model of :cite:t:`shi_outer_2016`.
     </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOAccretionFlowShi2016
-     !!{
-     A dark matter halo profile class which implements a dark matter density profile which includes the accretion flow using the
-     2-halo correlation function.
+     !!{RST
+     A dark matter halo profile class which implements a dark matter density profile which includes the accretion flow using the 2-halo correlation function.
      !!}
      private
      class           (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_                => null()
@@ -55,8 +53,8 @@
   end type darkMatterProfileDMOAccretionFlowShi2016
 
   interface darkMatterProfileDMOAccretionFlowShi2016
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMOAccretionFlowShi2016} dark matter halo profile class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileDMOAccretionFlowShi2016` dark matter halo profile class.
      !!}
      module procedure accretionFlowShi2016ConstructorParameters
      module procedure accretionFlowShi2016ConstructorInternal
@@ -65,8 +63,8 @@
 contains
 
   function accretionFlowShi2016ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileDMOAccretionFlowShi2016} dark matter halo profile class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileDMOAccretionFlowShi2016` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,11 +80,13 @@ contains
     double precision                                                          :: scaleFactorVelocity
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scaleFactorVelocity</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>A dimensionless multiplicative scale factor applied to the inflow velocities computed from the \cite{shi_outer_2016} splashback and accretion flow model, allowing calibration of the infall velocity amplitude relative to the theoretical prediction.</description>
+      <description>
+      A dimensionless multiplicative scale factor applied to the inflow velocities computed from the :cite:t:`shi_outer_2016` splashback and accretion flow model, allowing calibration of the infall velocity amplitude relative to the theoretical prediction.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
     <objectBuilder class="criticalOverdensity"                name="criticalOverdensity_"                source="parameters"/>
@@ -111,8 +111,8 @@ contains
   end function accretionFlowShi2016ConstructorParameters
 
   function accretionFlowShi2016ConstructorInternal(scaleFactorVelocity,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterHaloMassAccretionHistory_,sphericalCollapseSolver_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOAccretionFlowShi2016} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOAccretionFlowShi2016` dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOAccretionFlowShi2016)                        :: self
@@ -132,8 +132,8 @@ contains
   end function accretionFlowShi2016ConstructorInternal
 
   subroutine accretionFlowShi2016Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMOAccretionFlowShi2016} dark matter halo profile class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileDMOAccretionFlowShi2016` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOAccretionFlowShi2016), intent(inout) :: self
@@ -150,8 +150,8 @@ contains
   end subroutine accretionFlowShi2016Destructor
 
   function accretionFlowShi2016Get(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo      , massTypeDark                          , weightByMass

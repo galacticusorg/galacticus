@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program which tests cooling function functionality.
 !!}
 
 program Test_Cooling_Functions
-  !!{
+  !!{RST
   Tests cooling function functionality.
   !!}
   use :: Abundances_Structure            , only : abundances                             , metallicityTypeLinearByMassSolar

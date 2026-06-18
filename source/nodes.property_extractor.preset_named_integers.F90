@@ -18,15 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorPresetNamedIntegers">
+  <nodePropertyExtractor name="nodePropertyExtractorPresetNamedIntegers" docformat="rst">
    <description>
-    A node property extractor which extracts ``preset'' named integer quantities. These are typically used to provide additional
-    quantities read from N-body merger trees.
+   A node property extractor which extracts "preset" named integer quantities. These are typically used to provide additional quantities read from N-body merger trees.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerTuple) :: nodePropertyExtractorPresetNamedIntegers
-     !!{
+     !!{RST
      A property extractor which extracts presetNamedIntegers properties.
      !!}
      private
@@ -42,8 +41,8 @@
   end type nodePropertyExtractorPresetNamedIntegers
 
   interface nodePropertyExtractorPresetNamedIntegers
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorPresetNamedIntegers} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorPresetNamedIntegers` property extractor class.
      !!}
      module procedure presetNamedIntegersConstructorParameters
      module procedure presetNamedIntegersConstructorInternal
@@ -52,8 +51,8 @@
 contains
 
   function presetNamedIntegersConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorPresetNamedIntegers} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorPresetNamedIntegers` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,9 +62,11 @@ contains
 
     allocate(presetNames(parameters%count('presetNames')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presetNames</name>
-      <description>The names of preset properties to extract.</description>
+      <description>
+      The names of preset properties to extract.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -77,8 +78,8 @@ contains
   end function presetNamedIntegersConstructorParameters
 
   function presetNamedIntegersConstructorInternal(presetnames) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorPresetNamedIntegers} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorPresetNamedIntegers` property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorPresetNamedIntegers)                              :: self
@@ -98,8 +99,8 @@ contains
   end function presetNamedIntegersConstructorInternal
 
   integer function presetNamedIntegersElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{presetNamedIntegers} property extractors.
+    !!{RST
+    Return the number of elements in the ``presetNamedIntegers`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorPresetNamedIntegers), intent(inout) :: self
@@ -111,7 +112,7 @@ contains
   end function presetNamedIntegersElementCount
 
   function presetNamedIntegersExtract(self,node,time,instance)
-    !!{
+    !!{RST
     Implement a presetNamedIntegers output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -134,8 +135,8 @@ contains
   end function presetNamedIntegersExtract
 
   subroutine presetNamedIntegersNames(self,time,names)
-    !!{
-    Return the names of the \mono{presetNamedIntegers} properties.
+    !!{RST
+    Return the names of the ``presetNamedIntegers`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorPresetNamedIntegers), intent(inout)                             :: self
@@ -149,8 +150,8 @@ contains
   end subroutine presetNamedIntegersNames
 
   subroutine presetNamedIntegersDescriptions(self,time,descriptions)
-    !!{
-    Return the descriptions of the \mono{presetNamedIntegers} properties.
+    !!{RST
+    Return the descriptions of the ``presetNamedIntegers`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorPresetNamedIntegers), intent(inout)                             :: self
@@ -164,8 +165,8 @@ contains
   end subroutine presetNamedIntegersDescriptions
 
   function presetNamedIntegersUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{presetNamedIntegers} properties in the SI system.
+    !!{RST
+    Return the units of the ``presetNamedIntegers`` properties in the SI system.
     !!}
     implicit none
     double precision                                          , dimension(:) , allocatable :: presetNamedIntegersUnitsInSI
@@ -179,7 +180,7 @@ contains
   end function presetNamedIntegersUnitsInSI
 
   function presetNamedIntegersUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the presetNamedIntegers properties.
     !!}
     use :: Units_MetaData, only : unitType

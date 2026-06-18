@@ -18,10 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 module Thermodynamics_Radiation
-  !!{
-  Implements calculations of Planck blackbody thermal radiation. Provides the spectral radiance per unit wavelength or per
-  unit frequency (the Planck function) as a function of wavelength and temperature, and the total bolometric radiance
-  integrated over all frequencies using the Stefan-Boltzmann law.
+  !!{RST
+  Implements calculations of Planck blackbody thermal radiation. Provides the spectral radiance per unit wavelength or per unit frequency (the Planck function) as a function of wavelength and temperature, and the total bolometric radiance integrated over all frequencies using the Stefan-Boltzmann law.
   !!}
   implicit none
   private
@@ -34,9 +32,8 @@ module Thermodynamics_Radiation
 contains
 
   double precision function Blackbody_Emission(wavelength,temperature,radianceType)
-    !!{
-    Compute the Planck blackbody spectral radiance (defined per unit wavelength, in units of J s$^{-1}$ m$^{-2}$ sr$^{-1}$
-    \AA$^{-1}$) or J s$^{-1}$ m$^{-2}$ sr$^{-1}$ Hz$^{-1}$ depending on the optional \mono{radianceType} argument). Input \mono{wavelength} is in Angstroms, input temperature is in Kelvin.
+    !!{RST
+    Compute the Planck blackbody spectral radiance (defined per unit wavelength, in units of J s\ :math:`^{-1}` m\ :math:`^{-2}` sr\ :math:`^{-1}` \AA\ :math:`^{-1}`, or J s\ :math:`^{-1}` m\ :math:`^{-2}` sr\ :math:`^{-1}` Hz\ :math:`^{-1}` depending on the optional ``radianceType`` argument). Input ``wavelength`` is in Angstroms, input temperature is in Kelvin.
     !!}
     use :: Numerical_Constants_Physical, only : boltzmannsConstant, plancksConstant, speedLight
     use :: Numerical_Constants_Units   , only : metersToAngstroms
@@ -77,9 +74,8 @@ contains
   end function Blackbody_Emission
 
   double precision function Blackbody_Radiance(temperature)
-    !!{
-    Compute the Planck blackbody spectral radiance integrated over all frequencies (in units of J s$^{-1}$ m$^{-2}$
-    sr$^{-1}$). Input temperature is in Kelvin.
+    !!{RST
+    Compute the Planck blackbody spectral radiance integrated over all frequencies (in units of J s\ :math:`^{-1}` m\ :math:`^{-2}` sr\ :math:`^{-1}`). Input temperature is in Kelvin.
     !!}
     use :: Numerical_Constants_Math    , only : Pi
     use :: Numerical_Constants_Physical, only : stefanBoltzmannConstant

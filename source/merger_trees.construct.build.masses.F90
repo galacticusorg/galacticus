@@ -17,28 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class for creating sets of tree masses to use when building merger trees.
 !!}
 
 module Merger_Trees_Build_Masses
-  !!{
+  !!{RST
   Implements a class for creating sets of tree masses to use when building merger trees.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>mergerTreeBuildMasses</name>
    <descriptiveName>Merger Tree Build Masses</descriptiveName>
-   <description>Class providing methods for generating the set of root halo masses for which merger trees
-    will be built in a \glc\ simulation. Each implementation returns an array of masses (and associated
-    weights or mass intervals) sampled from a chosen distribution---typically the halo mass function---at
-    the desired output redshift. The mass sampling determines which part of the halo mass function is
-    represented and how accurately the galaxy population is sampled.</description>
+   <description>
+   Class providing methods for generating the set of root halo masses for which merger trees will be built in a Galacticus simulation. Each implementation returns an array of masses (and associated weights or mass intervals) sampled from a chosen distribution---typically the halo mass function---at the desired output redshift. The mass sampling determines which part of the halo mass function is represented and how accurately the galaxy population is sampled.
+   </description>
    <default>sampledDistributionUniform</default>
    <method name="construct" >
-    <description>Returns a set of merger tree masses (and either their weights, or corresponding mass interval) to be built.</description>
+    <description>
+    Returns a set of merger tree masses (and either their weights, or corresponding mass interval) to be built.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )                            :: time                                  </argument>

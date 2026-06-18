@@ -17,22 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an ISM mass output analysis property extractor class.
 !!}
 
   use :: Dark_Matter_Halo_Biases, only : darkMatterHaloBias, darkMatterHaloBiasClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorHaloBias">
+  <nodePropertyExtractor name="nodePropertyExtractorHaloBias" docformat="rst">
    <description>
-    A node property extractor which extracts the large scale, linearly theory bias for each node. For satellite nodes, this
-    corresponds to the bias of their host halo.
+   A node property extractor which extracts the large scale, linearly theory bias for each node. For satellite nodes, this corresponds to the bias of their host halo.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorHaloBias
-     !!{
+     !!{RST
      A node property extractor for halo bias.
      !!}
      private
@@ -47,8 +46,8 @@ Implements an ISM mass output analysis property extractor class.
   end type nodePropertyExtractorHaloBias
 
   interface nodePropertyExtractorHaloBias
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorHaloBias} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorHaloBias` property extractor class.
      !!}
      module procedure haloBiasConstructorParameters
      module procedure haloBiasConstructorInternal
@@ -57,8 +56,8 @@ Implements an ISM mass output analysis property extractor class.
 contains
 
   function haloBiasConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorHaloBias} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorHaloBias` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,8 +77,8 @@ contains
   end function haloBiasConstructorParameters
 
   function haloBiasConstructorInternal(darkMatterHaloBias_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorHaloBias} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorHaloBias` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorHaloBias)                        :: self
@@ -92,8 +91,8 @@ contains
   end function haloBiasConstructorInternal
 
   subroutine haloBiasDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorHaloBias} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorHaloBias` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHaloBias), intent(inout) :: self
@@ -105,8 +104,8 @@ contains
   end subroutine haloBiasDestructor
 
   double precision function haloBiasExtract(self,node,instance)
-    !!{
-    Implement a \mono{haloBias} node property extractor.
+    !!{RST
+    Implement a ``haloBias`` node property extractor.
     !!}
     implicit none
     class           (nodePropertyExtractorHaloBias), intent(inout), target   :: self
@@ -125,7 +124,7 @@ contains
 
 
   function haloBiasName(self)
-    !!{
+    !!{RST
     Return the name of the haloBias property.
     !!}
     implicit none
@@ -138,7 +137,7 @@ contains
   end function haloBiasName
 
   function haloBiasDescription(self)
-    !!{
+    !!{RST
     Return a description of the haloBias property.
     !!}
     implicit none
@@ -151,8 +150,8 @@ contains
   end function haloBiasDescription
 
   double precision function haloBiasUnitsInSI(self)
-    !!{
-    Return the units of the \mono{haloBias} property in the SI system.
+    !!{RST
+    Return the units of the ``haloBias`` property in the SI system.
     !!}
     implicit none
     class(nodePropertyExtractorHaloBias), intent(inout) :: self
@@ -163,7 +162,7 @@ contains
   end function haloBiasUnitsInSI
 
   function haloBiasUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the haloBias property.
     !!}
     use :: Units_MetaData, only : unitType

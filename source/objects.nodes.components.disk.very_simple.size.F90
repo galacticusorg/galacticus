@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements a very simple disk component.
 !!}
 
 module Node_Component_Disk_Very_Simple_Size
-  !!{
+  !!{RST
   Implements a very simple disk component.
   !!}
   implicit none
@@ -80,7 +80,7 @@ contains
   <nodeComponentInitializationTask function="Node_Component_Disk_Very_Simple_Size_Initialize"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Size_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the tree node exponential disk methods module.
     !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent
@@ -94,10 +94,12 @@ contains
        subParameters=parameters%subParameters('componentDisk')
        ! Read parameters controlling the physical implementation.
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>toleranceAbsoluteMass</name>
          <defaultValue>1.0d-6</defaultValue>
-         <description>The mass tolerance used to judge whether the disk is physically plausible.</description>
+         <description>
+         The mass tolerance used to judge whether the disk is physically plausible.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -109,7 +111,7 @@ contains
   <nodeComponentThreadInitializationTask function="Node_Component_Disk_Very_Simple_Size_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the tree node very simple size disk module.
     !!}
     use :: Error                                    , only : Error_Report
@@ -161,7 +163,7 @@ contains
   <nodeComponentThreadUninitializationTask function="Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize()
-    !!{
+    !!{RST
     Uninitializes the tree node standard merging statistics module.
     !!}
     use :: Galacticus_Nodes                         , only : defaultDiskComponent
@@ -181,7 +183,7 @@ contains
   <radiusSolverPlausibility function="Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility(node)
-    !!{
+    !!{RST
     Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass.
     !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent, nodeComponentDisk, nodeComponentDiskVerySimpleSize, treeNode
@@ -206,7 +208,7 @@ contains
   !!]
   subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver(node,componentActive,component,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get&
        &,Radius_Set,Velocity_Get,Velocity_Set)
-    !!{
+    !!{RST
     Interface for the size solver algorithm.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic          , nodeComponentDisk, nodeComponentDiskVerySimpleSize, treeNode, &
@@ -248,7 +250,7 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver
 
   double precision function Node_Component_Disk_Very_Simple_Size_Radius(node)
-    !!{
+    !!{RST
     Return the radius of the disk used in structure solvers.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, treeNode
@@ -262,7 +264,7 @@ contains
   end function Node_Component_Disk_Very_Simple_Size_Radius
 
   subroutine Node_Component_Disk_Very_Simple_Size_Radius_Set(node,radius)
-    !!{
+    !!{RST
     Set the radius of the disk used in structure solvers.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, treeNode
@@ -277,7 +279,7 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Size_Radius_Set
 
   double precision function Node_Component_Disk_Very_Simple_Size_Velocity(node)
-    !!{
+    !!{RST
     Return the circular velocity of the disk.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, treeNode
@@ -291,7 +293,7 @@ contains
   end function Node_Component_Disk_Very_Simple_Size_Velocity
 
   subroutine Node_Component_Disk_Very_Simple_Size_Velocity_Set(node,velocity)
-    !!{
+    !!{RST
     Set the circular velocity of the disk.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, treeNode
@@ -309,7 +311,7 @@ contains
   <stateStoreTask function="Node_Component_Disk_Very_Simple_Size_State_Store"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Size_State_Store(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Write the tabulation state to file.
     !!}
     use            :: Display                                  , only : displayMessage          , verbosityLevelInfo
@@ -331,7 +333,7 @@ contains
   <stateRetrieveTask function="Node_Component_Disk_Very_Simple_Size_State_Retrieve"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Size_State_Retrieve(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Retrieve the tabulation state from the file.
     !!}
     use            :: Display                                  , only : displayMessage          , verbosityLevelInfo

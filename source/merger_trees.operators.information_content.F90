@@ -17,30 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a merger tree operator which computes the cladistic
-  information content \cite{thorley_information_1998} of merger trees.
+  !!{RST
+  Implements a merger tree operator which computes the cladistic information content :cite:t:`thorley_information_1998` of merger trees.
   !!}
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   use            :: Kind_Numbers , only : kind_int8
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorInformationContent">
+  <mergerTreeOperator name="mergerTreeOperatorInformationContent" docformat="rst">
    <description>
-    A merger tree operator which computes the cladistic information content
-    \cite{thorley_information_1998} of merger trees. This is output to a group in the output
-    file with name specified by the \mono{[outputGroupName]} parameter. Two
-    datasets are written to this group: \mono{treeIndex} which gives the
-    index of each tree, and \mono{informationContent} which gives the
-    cladistic information content in units of bits.
-  </description>
+   A merger tree operator which computes the cladistic information content :cite:t:`thorley_information_1998` of merger trees. This is output to a group in the output file with name specified by the ``[outputGroupName]`` parameter. Two datasets are written to this group: ``treeIndex`` which gives the index of each tree, and ``informationContent`` which gives the cladistic information content in units of bits.
+   </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorInformationContent
-     !!{
-     A merger tree operator class which computes the cladistic information content
-     \cite{thorley_information_1998} of merger trees.
+     !!{RST
+     A merger tree operator class which computes the cladistic information content :cite:t:`thorley_information_1998` of merger trees.
      !!}
      private
      type            (varying_string)                            :: outputGroupName
@@ -53,7 +46,7 @@
   end type mergerTreeOperatorInformationContent
 
   interface mergerTreeOperatorInformationContent
-     !!{
+     !!{RST
      Constructors for the prune-hierarchy merger tree operator class.
      !!}
      module procedure informationContentConstructorParameters
@@ -63,7 +56,7 @@
 contains
 
   function informationContentConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the information content merger tree operator class which takes a parameter set as input.
     !!}
     implicit none
@@ -72,11 +65,13 @@ contains
     type(varying_string                      )                :: outputGroupName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputGroupName</name>
       <source>parameters</source>
       <defaultValue>var_str('treeInformationContent')</defaultValue>
-      <description>The name of an \gls{hdf5} group to which tree information content should be written.</description>
+      <description>
+      The name of an :term:`HDF5` group to which tree information content should be written.
+      </description>
     </inputParameter>
     !!]
     self=mergerTreeOperatorInformationContent(outputGroupName)
@@ -87,7 +82,7 @@ contains
   end function informationContentConstructorParameters
 
   function informationContentConstructorInternal(outputGroupName) result(self)
-    !!{
+    !!{RST
     Internal constructor for the information content merger tree operator class.
     !!}
     implicit none
@@ -102,7 +97,7 @@ contains
   end function informationContentConstructorInternal
 
   subroutine informationContentOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Perform a information content operation on a merger tree.
     !!}
     use :: Factorials         , only : Logarithmic_Double_Factorial
@@ -173,7 +168,7 @@ contains
   end subroutine informationContentOperatePreEvolution
 
   subroutine informationContentFinalize(self)
-    !!{
+    !!{RST
     Outputs tree information content function.
     !!}
     use :: Output_HDF5, only : outputFile

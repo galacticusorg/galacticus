@@ -17,22 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
-algorithm of \cite{peacock_non-linear_1996}.
+!!{RST
+Implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the algorithm of :cite:t:`peacock_non-linear_1996`.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
   use :: Power_Spectra      , only : powerSpectrumClass
 
   !![
-  <powerSpectrumNonlinear name="powerSpectrumNonlinearPeacockDodds1996">
-   <description>Provides a nonlinear power spectrum class in which the power spectrum is computed using the algorithm of \cite{peacock_non-linear_1996}.</description>
+  <powerSpectrumNonlinear name="powerSpectrumNonlinearPeacockDodds1996" docformat="rst">
+   <description>
+   Provides a nonlinear power spectrum class in which the power spectrum is computed using the algorithm of :cite:t:`peacock_non-linear_1996`.
+   </description>
   </powerSpectrumNonlinear>
   !!]
   type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearPeacockDodds1996
-     !!{
-     A nonlinear power spectrum class in which the power spectrum is computed using the algorithm of \cite{peacock_non-linear_1996}.
+     !!{RST
+     A nonlinear power spectrum class in which the power spectrum is computed using the algorithm of :cite:t:`peacock_non-linear_1996`.
      !!}
      private
      double precision                         , dimension(2) :: waveNumberPrevious           , fNLPrevious
@@ -45,8 +46,8 @@ algorithm of \cite{peacock_non-linear_1996}.
   end type powerSpectrumNonlinearPeacockDodds1996
 
   interface powerSpectrumNonlinearPeacockDodds1996
-     !!{
-     Constructors for the \refClass{powerSpectrumNonlinearPeacockDodds1996} nonlinear power spectrum class.
+     !!{RST
+     Constructors for the :galacticus-class:`powerSpectrumNonlinearPeacockDodds1996` nonlinear power spectrum class.
      !!}
      module procedure peacockDodds1996ConstructorParameters
      module procedure peacockDodds1996ConstructorInternal
@@ -55,7 +56,7 @@ algorithm of \cite{peacock_non-linear_1996}.
 contains
 
   function peacockDodds1996ConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the peacockDodds1996 nonlinear power spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -82,8 +83,8 @@ contains
   end function peacockDodds1996ConstructorParameters
 
   function peacockDodds1996ConstructorInternal(cosmologyFunctions_,powerSpectrum_) result(self)
-    !!{
-    Internal constructor for the \refClass{powerSpectrumNonlinearPeacockDodds1996} nonlinear power spectrum class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`powerSpectrumNonlinearPeacockDodds1996` nonlinear power spectrum class.
     !!}
     implicit none
     type (powerSpectrumNonlinearPeacockDodds1996)                        :: self
@@ -100,8 +101,8 @@ contains
   end function peacockDodds1996ConstructorInternal
 
   subroutine peacockDodds1996Destructor(self)
-    !!{
-    Destructor for the \refClass{powerSpectrumNonlinearPeacockDodds1996} nonlinear power spectrum class.
+    !!{RST
+    Destructor for the :galacticus-class:`powerSpectrumNonlinearPeacockDodds1996` nonlinear power spectrum class.
     !!}
     implicit none
     type(powerSpectrumNonlinearPeacockDodds1996), intent(inout) :: self
@@ -114,8 +115,8 @@ contains
   end subroutine peacockDodds1996Destructor
 
   double precision function peacockDodds1996Value(self,wavenumber,time)
-    !!{
-    Return a nonlinear power spectrum equal using the algorithm of \cite{peacock_non-linear_1996}.
+    !!{RST
+    Return a nonlinear power spectrum equal using the algorithm of :cite:t:`peacock_non-linear_1996`.
     !!}
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi

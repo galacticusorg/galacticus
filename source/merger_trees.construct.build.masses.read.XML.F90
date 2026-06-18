@@ -17,38 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a merger tree masses class which reads masses from an XML file.
   !!}
 
   !![
-  <mergerTreeBuildMasses name="mergerTreeBuildMassesReadXML">
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesReadXML" docformat="rst">
    <description>
-    A merger tree build masses class which reads masses from an XML file. The XML file should have the following form:
-    \begin{verbatim}
-     &lt;mergerTrees>
-      &lt;treeRootMass>13522377303.5998&lt;/treeRootMass>
-      &lt;treeRootMass>19579530191.8709&lt;/treeRootMass>
-      &lt;treeRootMass>21061025282.9613&lt;/treeRootMass>
-      .
-      .
-      .
-      &lt;treeWeight>13522377303.5998&lt;/treeWeight>
-      &lt;treeWeight>19579530191.8709&lt;/treeWeight>
-      &lt;treeWeight>21061025282.9613&lt;/treeWeight>
-      .
-      .
-      .
-     &lt;/mergerTrees>
-    \end{verbatim}
-    where each \mono{treeRootMass} element gives the mass (in Solar masses) of the root halo of a tree to
-    generate, and the (optional) \mono{treeWeight} elements give the corresponding weight (in units of
-    Mpc$^{-3}$) to assign to each tree.
+   A merger tree build masses class which reads masses from an XML file. The XML file should have the following form:
+
+   .. code-block:: none
+
+       &lt;mergerTrees&gt;
+        &lt;treeRootMass&gt;13522377303.5998&lt;/treeRootMass&gt;
+        &lt;treeRootMass&gt;19579530191.8709&lt;/treeRootMass&gt;
+        &lt;treeRootMass&gt;21061025282.9613&lt;/treeRootMass&gt;
+        .
+        .
+        .
+        &lt;treeWeight&gt;13522377303.5998&lt;/treeWeight&gt;
+        &lt;treeWeight&gt;19579530191.8709&lt;/treeWeight&gt;
+        &lt;treeWeight&gt;21061025282.9613&lt;/treeWeight&gt;
+        .
+        .
+        .
+       &lt;/mergerTrees&gt;
+
+   where each ``treeRootMass`` element gives the mass (in Solar masses) of the root halo of a tree to generate, and the (optional) ``treeWeight`` elements give the corresponding weight (in units of Mpc\ :math:`^{-3}`) to assign to each tree.
    </description>
   </mergerTreeBuildMasses>
   !!]
   type, extends(mergerTreeBuildMassesRead) :: mergerTreeBuildMassesReadXML
-     !!{
+     !!{RST
      Implementation of a merger tree masses class which reads masses from an XML file.
      !!}
      private
@@ -64,9 +64,8 @@
 contains
 
   function readXMLConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildMassesReadXML} merger tree masses class which takes a parameter set
-    as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeBuildMassesReadXML` merger tree masses class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,15 +75,19 @@ contains
     double precision                                              :: massIntervalFractional
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
-      <description>The name of the file from which to read merger tree masses.</description>
+      <description>
+      The name of the file from which to read merger tree masses.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massIntervalFractional</name>
       <defaultValue>0.1d0</defaultValue>
-      <description>The fractional mass interval occupied by the trees. Where the intervals of trees of different mass would overlap this interval will be truncated.</description>
+      <description>
+      The fractional mass interval occupied by the trees. Where the intervals of trees of different mass would overlap this interval will be truncated.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -96,8 +99,8 @@ contains
   end function readXMLConstructorParameters
 
   function readXMLConstructorInternal(fileName,massIntervalFractional) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildMassesReadXML} merger tree masses class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeBuildMassesReadXML` merger tree masses class.
     !!}
     implicit none
     type            (mergerTreeBuildMassesReadXML)                :: self
@@ -111,7 +114,7 @@ contains
   end function readXMLConstructorInternal
 
   subroutine readXMLRead(self,mass,weight)
-    !!{
+    !!{RST
     Read merger tree masses from file.
     !!}
     use :: FoX_DOM, only : destroy       , getDocumentElement   , node

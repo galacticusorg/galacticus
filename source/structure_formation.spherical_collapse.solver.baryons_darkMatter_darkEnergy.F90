@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   A spherical collapse solver class for universes consisting of baryons, collisionless matter, and dark energy.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
 
   !![
-  <sphericalCollapseSolver name="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy">
-   <description>A spherical collapse solver for universes consisting of baryons, collisionless dark matter, and dark energy, computing the evolution of a spherical top-hat overdensity through turnaround and virialization. Baryons can be treated as either clustering or non-clustering via \mono{[baryonsClustering]}, and the energy-fixing radius for dark energy is set by \mono{[radiusFixed]}.</description>
+  <sphericalCollapseSolver name="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy" docformat="rst">
+   <description>
+   A spherical collapse solver for universes consisting of baryons, collisionless dark matter, and dark energy, computing the evolution of a spherical top-hat overdensity through turnaround and virialization. Baryons can be treated as either clustering or non-clustering via ``[baryonsClustering]``, and the energy-fixing radius for dark energy is set by ``[radiusFixed]``.
+   </description>
   </sphericalCollapseSolver>
   !!]
   type, extends(sphericalCollapseSolverCllsnlssMttrDarkEnergy) :: sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
-     !!{
+     !!{RST
      A spherical collapse solver for universes consisting of baryons, collisionless matter, and dark energy.
      !!}
      private
@@ -42,8 +44,8 @@
   end type sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
 
   interface sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
-     !!{
-     Constructors for the \refClass{sphericalCollapseSolverBaryonsDarkMatterDarkEnergy} spherical collapse solver class.
+     !!{RST
+     Constructors for the :galacticus-class:`sphericalCollapseSolverBaryonsDarkMatterDarkEnergy` spherical collapse solver class.
      !!}
      module procedure baryonsDarkMatterDarkEnergyConstructorParameters
      module procedure baryonsDarkMatterDarkEnergyConstructorInternal
@@ -57,9 +59,8 @@
 contains
 
   function baryonsDarkMatterDarkEnergyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{sphericalCollapseSolverBaryonsDarkMatterDarkEnergy} spherical collapse solver class that takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the :galacticus-class:`sphericalCollapseSolverBaryonsDarkMatterDarkEnergy` spherical collapse solver class that takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,22 +73,28 @@ contains
     integer                                                                    :: tablePointsPerOctave
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>baryonsCluster</name>
       <source>parameters</source>
-      <description>If true baryons are assumed to cluster in the same way as collisionless matter. If false, baryons are assumed not to cluster at all.</description>
+      <description>
+      If true baryons are assumed to cluster in the same way as collisionless matter. If false, baryons are assumed not to cluster at all.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>energyFixedAt</name>
       <source>parameters</source>
       <defaultValue>var_str('turnaround')</defaultValue>
-      <description>The radius at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.</description>
+      <description>
+      The radius at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tablePointsPerOctave</name>
       <source>parameters</source>
       <defaultValue>300</defaultValue>
-      <description>The number of points per octave of time at which to tabulate solutions.</description>
+      <description>
+      The number of points per octave of time at which to tabulate solutions.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -102,8 +109,8 @@ contains
   end function baryonsDarkMatterDarkEnergyConstructorParameters
 
   function baryonsDarkMatterDarkEnergyConstructorInternal(baryonsCluster,tablePointsPerOctave,energyFixedAt,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{sphericalCollapseSolverBaryonsDarkMatterDarkEnergy} spherical collapse solver class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`sphericalCollapseSolverBaryonsDarkMatterDarkEnergy` spherical collapse solver class.
     !!}
     use :: Error             , only : Error_Report
     use :: Input_Paths       , only : inputPath                      , pathTypeDataDynamic
@@ -158,8 +165,8 @@ contains
   end function baryonsDarkMatterDarkEnergyConstructorInternal
 
   subroutine baryonsDarkMatterDarkEnergyDestructor(self)
-    !!{
-    Destructor for the \refClass{sphericalCollapseSolverBaryonsDarkMatterDarkEnergy} spherical collapse solver class.
+    !!{RST
+    Destructor for the :galacticus-class:`sphericalCollapseSolverBaryonsDarkMatterDarkEnergy` spherical collapse solver class.
     !!}
     implicit none
     type(sphericalCollapseSolverBaryonsDarkMatterDarkEnergy), intent(inout) :: self
@@ -171,8 +178,8 @@ contains
   end subroutine baryonsDarkMatterDarkEnergyDestructor
 
   subroutine baryonsDarkMatterDarkEnergyTabulate(self,time,sphericalCollapse_,calculationType)
-    !!{
-    Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
+    !!{RST
+    Tabulate spherical collapse solutions for :math:`\delta_\mathrm{crit}`, :math:`\Delta_\mathrm{vir}`, or :math:`R_\mathrm{ta}/R_\mathrm{vir}` vs. time.
     !!}
     !$ use :: OMP_Lib    , only : OMP_Get_Thread_Num       , OMP_Get_Max_Threads
     use    :: Display    , only : displayCounter           , displayCounterClear          , displayIndent                , displayUnindent, &
@@ -485,9 +492,8 @@ contains
   end subroutine baryonsDarkMatterDarkEnergyTabulate
 
   double precision function baryonsDarkMatterDarkEnergyRadiusPerturbation(epsilonPerturbation)
-    !!{
-    Return the radius of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    amplitude \mono{epsilonPerturbation}.
+    !!{RST
+    Return the radius of a spherical top-hat perturbation in a dark energy universe given an initial perturbation amplitude ``epsilonPerturbation``.
     !!}
     implicit none
     double precision, intent(in   ) :: epsilonPerturbation
@@ -497,9 +503,8 @@ contains
   end function baryonsDarkMatterDarkEnergyRadiusPerturbation
 
   double precision function baryonsDarkMatterDarkEnergyExpansionRatePerturbation(time)
-    !!{
-    Return the expansion rate of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    amplitude \mono{epsilonPerturbation}.
+    !!{RST
+    Return the expansion rate of a spherical top-hat perturbation in a dark energy universe given an initial perturbation amplitude ``epsilonPerturbation``.
     !!}
     implicit none
     double precision, intent(in   ) :: time
@@ -509,9 +514,8 @@ contains
   end function baryonsDarkMatterDarkEnergyExpansionRatePerturbation
 
   subroutine baryonsDarkMatterDarkEnergyPerturbationDynamicsSolver(perturbationOverdensityInitial,time,radiusPerturbation,expansionRatePerturbation)
-    !!{
-    Integrate the dynamics of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
-    amplitude \mono{epsilonPerturbation}.
+    !!{RST
+    Integrate the dynamics of a spherical top-hat perturbation in a dark energy universe given an initial perturbation amplitude ``epsilonPerturbation``.
     !!}
     use :: Error                , only : Error_Report
     use :: Interface_GSL        , only : GSL_Success
@@ -604,7 +608,7 @@ contains
   end subroutine baryonsDarkMatterDarkEnergyPerturbationDynamicsSolver
 
   integer function baryonsDarkMatterDarkEnergyPerturbationODEs(time,y,dydt)
-    !!{
+    !!{RST
     Differential equations describing the evolution of spherical perturbations in a universe containing baryons, collisionless dark matter and dark energy.
     !!}
     use :: Interface_GSL, only : GSL_Success

@@ -17,21 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides an object that implements cosmological parameters.
 !!}
 
 module Cosmology_Parameters
-  !!{
+  !!{RST
   Provides an object that implements cosmological parameters.
   !!}
   private
 
   ! Enumeration for Hubble constant units.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>hubbleUnits</name>
-   <description>Enumeration of supported unit systems for the Hubble constant: standard cosmolgical units (km/s/Mpc), time units (inverse time), or the dimensionless little-$h$ convention where $H_0 = 100 h$ km/s/Mpc.</description>
+   <description>
+   Enumeration of supported unit systems for the Hubble constant: standard cosmolgical units (km/s/Mpc), time units (inverse time), or the dimensionless little-:math:`h` convention where :math:`H_0 = 100 h` km/s/Mpc.
+   </description>
    <visibility>public</visibility>
    <entry label="standard" />
    <entry label="time"     />
@@ -40,52 +42,67 @@ module Cosmology_Parameters
   !!]
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>cosmologyParameters</name>
    <descriptiveName>Cosmological Parameters</descriptiveName>
-   <description>Object providing the fundamental cosmological parameters that describe the background Universe: matter density
-    $\Omega_\mathrm{m}$, dark energy density $\Omega_\Lambda$, baryon density $\Omega_\mathrm{b}$, radiation density
-    $\Omega_\mathrm{r}$, curvature $\Omega_k$, Hubble constant $H_0$, and CMB temperature $T_\mathrm{CMB}$.
-    These parameters are used throughout \glc\ to compute cosmological distances, times, and densities.</description>
+   <description>
+   Object providing the fundamental cosmological parameters that describe the background Universe: matter density :math:`\Omega_\mathrm{m}`, dark energy density :math:`\Omega_\Lambda`, baryon density :math:`\Omega_\mathrm{b}`, radiation density :math:`\Omega_\mathrm{r}`, curvature :math:`\Omega_k`, Hubble constant :math:`H_0`, and CMB temperature :math:`T_\mathrm{CMB}`. These parameters are used throughout Galacticus to compute cosmological distances, times, and densities.
+   </description>
    <default>simple</default>
    <method name="OmegaMatter" >
-    <description>Return the cosmological matter density in units of the critical density at the present day.</description>
+    <description>
+    Return the cosmological matter density in units of the critical density at the present day.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="OmegaDarkEnergy" >
-    <description>Return the cosmological dark energy density in units of the critical density at the present day.</description>
+    <description>
+    Return the cosmological dark energy density in units of the critical density at the present day.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="OmegaBaryon" >
-    <description>Return the cosmological baryon density in units of the critical density at the present day.</description>
+    <description>
+    Return the cosmological baryon density in units of the critical density at the present day.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="OmegaRadiation" >
-    <description>Return the cosmological radiation density in units of the critical density at the present day.</description>
+    <description>
+    Return the cosmological radiation density in units of the critical density at the present day.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="OmegaCurvature" >
-    <description>Return the cosmological curvature density in units of the critical density at the present day.</description>
+    <description>
+    Return the cosmological curvature density in units of the critical density at the present day.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="HubbleConstant" >
-    <description>Return the Hubble constant at the present day. The optional \mono{units} argument specifies if the return value should be in units of km/s/Mpc (hubbleUnitsStandard), Gyr$^{-1}$ (hubbleUnitsTime), or 100 km/s/Mpc (hubbleUnitsLittleH).</description>
+    <description>
+    Return the Hubble constant at the present day. The optional ``units`` argument specifies if the return value should be in units of km/s/Mpc (hubbleUnitsStandard), Gyr\ :math:`^{-1}` (hubbleUnitsTime), or 100 km/s/Mpc (hubbleUnitsLittleH).
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(enumerationHubbleUnitsType), intent(in   ), optional :: units</argument>
    </method>
    <method name="temperatureCMB" >
-    <description>Return the temperature of the cosmic microwave background radiation (in units of Kelvin) at the present day.</description>
+    <description>
+    Return the temperature of the cosmic microwave background radiation (in units of Kelvin) at the present day.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="densityCritical" >
-    <description>Return the critical density at the present day in units of $\mathrm{M}_\odot/$Mpc$^3$.</description>
+    <description>
+    Return the critical density at the present day in units of :math:`\mathrm{M}_\odot/`\ Mpc\ :math:`^3`.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>

@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains functions used in debugging tests.
 !!}
 
 module Test_Debugging_Functions
-  !!{
+  !!{RST
   Contains functions used in debugging tests.
   !!}
   private
@@ -31,7 +31,7 @@ module Test_Debugging_Functions
 contains
 
   subroutine dummyCaller(caller)
-    !!{
+    !!{RST
     Callable function to generate a backtrace.
     !!}
     use :: ISO_Varying_String, only : varying_string

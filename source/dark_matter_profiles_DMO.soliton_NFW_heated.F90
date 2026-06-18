@@ -19,7 +19,7 @@
 
   !+    Contributions to this file made by: Yu Zhao
 
-  !!{
+  !!{RST
   An implementation of fuzzy dark matter halo profiles using the soliton and NFW mass distribution.
   !!}
 
@@ -31,12 +31,9 @@
   use :: Virial_Density_Contrast , only : virialDensityContrastClass
   use :: Statistics_Distributions, only : distributionFunction1DNormal
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOSolitonNFWHeated">
+  <darkMatterProfileDMO name="darkMatterProfileDMOSolitonNFWHeated" docformat="rst">
    <description>
-    A dark matter profile DMO class which builds \refClass{massDistributionSolitonNFWHeated} objects to implement the \gls{fdm}
-    profile. The inner region follows the soliton solution, while the outer region transitions to a heated NFW envelope.
-    The core-halo mass relation and core radius are computed following \cite{chan_diversity_2022}, while the core
-    density normalization follows \cite{schive_understanding_2014}.
+   A dark matter profile DMO class which builds :galacticus-class:`massDistributionSolitonNFWHeated` objects to implement the :term:`FDM` profile. The inner region follows the soliton solution, while the outer region transitions to a heated NFW envelope. The core-halo mass relation and core radius are computed following :cite:t:`chan_diversity_2022`, while the core density normalization follows :cite:t:`schive_understanding_2014`.
    </description>
    <deepCopy>
     <functionClass variables="massDistributionHeated_"/>
@@ -47,8 +44,8 @@
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOSolitonNFWHeated
-     !!{
-     A dark matter halo profile class implementing \gls{fdm} dark matter halos.
+     !!{RST
+     A dark matter halo profile class implementing :term:`FDM` dark matter halos.
      !!}
      private
      double precision                                             :: massParticle
@@ -77,7 +74,7 @@
           &                                                          zetaID
    contains    
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="computeProperties" description="Compute properties of the mass distribution."/>
        <method method="calculationReset"  description="Reset memoized calculations."                />
      </methods>
@@ -90,8 +87,8 @@
   end type darkMatterProfileDMOSolitonNFWHeated
 
   interface darkMatterProfileDMOSolitonNFWHeated
-     !!{
-     Constructors for the \mono{solitonNFWHeated} dark matter halo profile class.
+     !!{RST
+     Constructors for the ``solitonNFWHeated`` dark matter halo profile class.
      !!}
      module procedure solitonNFWHeatedConstructorParameters
      module procedure solitonNFWHeatedConstructorInternal
@@ -105,8 +102,8 @@
 contains
 
   function solitonNFWHeatedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileDMOSolitonNFWHeated} dark matter halo profile class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileDMOSolitonNFWHeated` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
     use :: Input_Parameters  , only : inputParameter                     , inputParameters
@@ -127,65 +124,85 @@ contains
          &                                                                   scatterFractional
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>
+      Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring heating is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerateEnclosedMassIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, tolerate failures to find the mass enclosed as a function of radius.</description>
+      <description>
+      If ``true``, tolerate failures to find the mass enclosed as a function of radius.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerateVelocityMaximumFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, tolerate failures to find the radius of the maximum circular velocity.</description>
+      <description>
+      If ``true``, tolerate failures to find the radius of the maximum circular velocity.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleratePotentialIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, tolerate numerical failures when computing the gravitational potential of the heated soliton-NFW dark matter profile (e.g. due to extreme heating), allowing the calculation to proceed with a fallback result.</description>
+      <description>
+      If ``true``, tolerate numerical failures when computing the gravitational potential of the heated soliton-NFW dark matter profile (e.g. due to extreme heating), allowing the calculation to proceed with a fallback result.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityDispersionApproximate</name>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, radial velocity dispersion is computed using an approximate method in which we assume that $\sigma_\mathrm{r}^2(r) \rightarrow \sigma_\mathrm{r}^2(r) - (2/3) \epsilon(r)$, where $\epsilon(r)$ is the specific heating energy. If \mono{false} then radial velocity dispersion is computed by numerically solving the Jeans equation.</description>
+      <description>
+      If ``true``, radial velocity dispersion is computed using an approximate method in which we assume that :math:`\sigma_\mathrm{r}^2(r) \rightarrow \sigma_\mathrm{r}^2(r) - (2/3) \epsilon(r)`, where :math:`\epsilon(r)` is the specific heating energy. If ``false`` then radial velocity dispersion is computed by numerically solving the Jeans equation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersion</name>
       <defaultValue>1.0d-6</defaultValue>
       <source>parameters</source>
-      <description>The relative tolerance to use in numerical solutions for the velocity dispersion.</description>
+      <description>
+      The relative tolerance to use in numerical solutions for the velocity dispersion.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersionMaximum</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion.</description>
+      <description>
+      The maximum relative tolerance to use in numerical solutions for the velocity dispersion.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionRadiusFinalSmall</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The initial radius is limited to be no smaller than this fraction of the final radius. This can help avoid problems in profiles that are extremely close to being disrupted.</description>
+      <description>
+      The initial radius is limited to be no smaller than this fraction of the final radius. This can help avoid problems in profiles that are extremely close to being disrupted.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativePotential</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The maximum allowed relative tolerance to use in numerical solutions for the gravitational potential in dark-matter-only density profiles before aborting.</description>
+      <description>
+      The maximum allowed relative tolerance to use in numerical solutions for the gravitational potential in dark-matter-only density profiles before aborting.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scatterFractional</name>
       <defaultValue>0.5d0</defaultValue>
       <source>parameters</source>
-      <description>The fractional scatter in the solitonic core-halo mass relation (default corresponds to a 50\% fractional scatter).</description>
+      <description>
+      The fractional scatter in the solitonic core-halo mass relation (default corresponds to a 50% fractional scatter).
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
     <objectBuilder class="darkMatterParticle"       name="darkMatterParticle_"       source="parameters"/>
@@ -208,8 +225,8 @@ contains
   end function solitonNFWHeatedConstructorParameters
 
   function solitonNFWHeatedConstructorInternal(nonAnalyticSolver,darkMatterHaloScale_,darkMatterParticle_,darkMatterProfileHeating_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,tolerateEnclosedMassIntegrationFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,velocityDispersionApproximate,fractionRadiusFinalSmall,toleranceRelativePotential,scatterFractional) result(self)
-    !!{
-    Generic constructor for the \refClass{darkMatterProfileDMOSolitonNFWHeated} dark matter halo profile class.
+    !!{RST
+    Generic constructor for the :galacticus-class:`darkMatterProfileDMOSolitonNFWHeated` dark matter halo profile class.
     !!}
     use :: Mass_Distributions          , only : enumerationNonAnalyticSolversIsValid
     use :: Error                       , only : Component_List                      , Error_Report
@@ -280,7 +297,7 @@ contains
   end function solitonNFWHeatedConstructorInternal
 
   subroutine solitonNFWHeatedAutoHook(self)
-    !!{
+    !!{RST
     Attach to the calculation reset event.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
@@ -292,8 +309,8 @@ contains
   end subroutine solitonNFWHeatedAutoHook
 
   subroutine solitonNFWHeatedDestructor(self)
-    !!{
-    Destructor for the \mono{solitonNFWHeated} dark matter halo profile class.
+    !!{RST
+    Destructor for the ``solitonNFWHeated`` dark matter halo profile class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
@@ -314,7 +331,7 @@ contains
   end subroutine solitonNFWHeatedDestructor
 
   subroutine solitonNFWHeatedCalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the dark matter profile calculation.
     !!}
     use :: Kind_Numbers, only : kind_int8
@@ -336,8 +353,8 @@ contains
   end subroutine solitonNFWHeatedCalculationReset
 
   function solitonNFWHeatedGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the soliton plus NFW fuzzy dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the soliton plus NFW fuzzy dark matter mass distribution for the given ``node``.
     !!}
     use :: Error                     , only : Error_Report
     use :: Galacticus_Nodes          , only : nodeComponentBasic
@@ -673,7 +690,7 @@ contains
   end subroutine solitonNFWHeatedComputeProperties
 
   double precision function radiusTransitionRoot(radius) result(f)
-    !!{
+    !!{RST
     Root function used in seeking the transition radius in fuzzy dark matter profiles.
     !!}
     use :: Coordinates, only : coordinateCartesian, assignment(=)

@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo profile concentrations using the \cite{klypin_multidark_2014} algorithm.
+  !!{RST
+  An implementation of dark matter halo profile concentrations using the :cite:t:`klypin_multidark_2014` algorithm.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
@@ -29,9 +29,11 @@
 
   ! Labels for virial density contrast definition.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>klypin2015DensityContrast</name>
-   <description>Enumeration of density contrasts in the \mono{klypin2015} dark matter halo profile concentration class.</description>
+   <description>
+   Enumeration of density contrasts in the ``klypin2015`` dark matter halo profile concentration class.
+   </description>
    <visibility>private</visibility>
    <entry label="fixed" />
    <entry label="virial"/>
@@ -40,9 +42,11 @@
 
   ! Labels for fitting function type.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>klypin2015FittingFunction</name>
-   <description>Enumeration of fitting functions in the \mono{klypin2015} dark matter halo profile concentration class.</description>
+   <description>
+   Enumeration of fitting functions in the ``klypin2015`` dark matter halo profile concentration class.
+   </description>
    <visibility>private</visibility>
    <entry label="eqn24"/>
    <entry label="eqn25"/>
@@ -51,9 +55,11 @@
 
   ! Labels for sample selection.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>klypin2015Sample</name>
-   <description>Enumeration of sample choices available in the \mono{klypin2015} dark matter halo profile concentration class.</description>
+   <description>
+   Enumeration of sample choices available in the ``klypin2015`` dark matter halo profile concentration class.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <visibility>public</visibility>
    <entry label="planck200CritRelaxedMass"   />
@@ -78,8 +84,10 @@
   !!]
 
   !![
-  <darkMatterProfileConcentration name="darkMatterProfileConcentrationKlypin2015">
-   <description>Computes dark matter halo concentrations using the fitting functions calibrated from the MultiDark simulations by \cite{klypin_multidark_2014}. The specific fitting function applied depends on the halo sample selected via \mono{[sample]}, which controls the density contrast definition and the simulation suite used for calibration.</description>
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationKlypin2015" docformat="rst">
+   <description>
+   Computes dark matter halo concentrations using the fitting functions calibrated from the MultiDark simulations by :cite:t:`klypin_multidark_2014`. The specific fitting function applied depends on the halo sample selected via ``[sample]``, which controls the density contrast definition and the simulation suite used for calibration.
+   </description>
    <deepCopy>
     <functionClass variables="darkMatterProfileDMODefinition_"/>
    </deepCopy>
@@ -89,8 +97,8 @@
   </darkMatterProfileConcentration>
   !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationKlypin2015
-     !!{
-     A dark matter halo profile concentration class implementing the algorithm of \cite{klypin_multidark_2014}.
+     !!{RST
+     A dark matter halo profile concentration class implementing the algorithm of :cite:t:`klypin_multidark_2014`.
      !!}
      private
      class(cosmologyFunctionsClass                 ), pointer :: cosmologyFunctions_              => null()
@@ -110,8 +118,8 @@
   end type darkMatterProfileConcentrationKlypin2015
 
   interface darkMatterProfileConcentrationKlypin2015
-     !!{
-     Constructors for the \refClass{darkMatterProfileConcentrationKlypin2015} dark matter halo profile concentration class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationKlypin2015` dark matter halo profile concentration class.
      !!}
      module procedure klypin2015ConstructorParameters
      module procedure klypin2015ConstructorInternal
@@ -120,8 +128,8 @@
 contains
 
   function klypin2015ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{klypin2015} dark matter halo profile concentration class.
+    !!{RST
+    Default constructor for the ``klypin2015`` dark matter halo profile concentration class.
     !!}
     implicit none
     type (darkMatterProfileConcentrationKlypin2015)                :: self
@@ -133,11 +141,13 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sample</name>
       <source>parameters</source>
       <defaultValue>var_str('planck200CritRelaxedMass')</defaultValue>
-      <description>The sample to use for the halo concentration algorithm of \cite{klypin_multidark_2014}.</description>
+      <description>
+      The sample to use for the halo concentration algorithm of :cite:t:`klypin_multidark_2014`.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -155,8 +165,8 @@ contains
   end function klypin2015ConstructorParameters
 
   function klypin2015ConstructorInternal(sample,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileConcentrationKlypin2015} dark matter halo profile concentration class.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationKlypin2015` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Table_Labels           , only : extrapolationTypeFix
@@ -716,8 +726,8 @@ contains
   end function klypin2015ConstructorInternal
 
   subroutine klypin2015Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileConcentrationKlypin2015} dark matter halo profile concentration class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationKlypin2015` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationKlypin2015), intent(inout) :: self
@@ -734,9 +744,8 @@ contains
   end subroutine klypin2015Destructor
 
   double precision function klypin2015Concentration(self,node)
-    !!{
-    Return the concentration of the dark matter halo profile of \mono{node} using the
-    \cite{klypin_multidark_2014} algorithm.
+    !!{RST
+    Return the concentration of the dark matter halo profile of ``node`` using the :cite:t:`klypin_multidark_2014` algorithm.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     use :: Error               , only : Error_Report
@@ -807,9 +816,8 @@ contains
   end function klypin2015Concentration
 
   function klypin2015DensityContrastDefinition(self)
-    !!{
-    Return a virial density contrast object defining that used in the definition of concentration in the
-    \cite{klypin_multidark_2014} algorithm.
+    !!{RST
+    Return a virial density contrast object defining that used in the definition of concentration in the :cite:t:`klypin_multidark_2014` algorithm.
     !!}
     implicit none
     class(virialDensityContrastClass              ), pointer       :: klypin2015DensityContrastDefinition
@@ -820,9 +828,8 @@ contains
   end function klypin2015DensityContrastDefinition
 
   function klypin2015DarkMatterProfileDefinition(self)
-    !!{
-    Return a dark matter density profile object defining that used in the definition of concentration in the
-    \cite{klypin_multidark_2014} algorithm.
+    !!{RST
+    Return a dark matter density profile object defining that used in the definition of concentration in the :cite:t:`klypin_multidark_2014` algorithm.
     !!}
     implicit none
     class(darkMatterProfileDMOClass               ), pointer       :: klypin2015DarkMatterProfileDefinition

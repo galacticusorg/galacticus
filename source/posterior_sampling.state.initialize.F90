@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class for posterior sampling state initialization.
 !!}
 
 module Posterior_Sampling_State_Initialize
-  !!{
+  !!{RST
   Implements a class for posterior sampling state initialization.
   !!}
   use :: Model_Parameters        , only : modelParameterList
@@ -31,18 +31,17 @@ module Posterior_Sampling_State_Initialize
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>posteriorSampleStateInitialize</name>
    <descriptiveName>Posterior Sampling State Initialization</descriptiveName>
-   <description>Class providing state initialization for Bayesian posterior sampling simulations---the strategy
-    for choosing the starting point of each Markov chain before the main sampling loop begins. Implementations
-    draw initial parameter vectors from the prior (random prior sampling), from a multivariate Gaussian
-    centered on a maximum-likelihood estimate, or from a user-supplied restart file. Proper initialization
-    helps the chains reach the high-probability region quickly and avoids premature convergence or
-    long burn-in periods.</description>
+   <description>
+   Class providing state initialization for Bayesian posterior sampling simulations---the strategy for choosing the starting point of each Markov chain before the main sampling loop begins. Implementations draw initial parameter vectors from the prior (random prior sampling), from a multivariate Gaussian centered on a maximum-likelihood estimate, or from a user-supplied restart file. Proper initialization helps the chains reach the high-probability region quickly and avoids premature convergence or long burn-in periods.
+   </description>
    <default>priorRandom</default>
    <method name="initialize" >
-    <description>Set the initial parameter vector of the simulation state before the main sampling loop begins, also returning the initial log-likelihood, log-posterior, and elapsed evaluation time for the starting point.</description>
+    <description>
+    Set the initial parameter vector of the simulation state before the main sampling loop begins, also returning the initial log-likelihood, log-posterior, and elapsed evaluation time for the starting point.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>class           (posteriorSampleStateClass     ), intent(inout)               :: simulationState</argument>

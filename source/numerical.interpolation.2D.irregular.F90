@@ -17,24 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements bivariate interpolation on irregularly distributed points using the Akima algorithm \citep{akima_algorithm_1978}.
+!!{RST
+Contains a module which implements bivariate interpolation on irregularly distributed points using the Akima algorithm :cite:p:`akima_algorithm_1978`.
 !!}
 
 module Numerical_Interpolation_2D_Irregular
-  !!{
-  Implements bivariate interpolation on irregularly distributed points \citep{akima_algorithm_1978}.  All state is encapsulated in
-  \mono{interpolator2DIrregular} so that separate instances are fully independent and thread-safe without any critical
-  sections.
+  !!{RST
+  Implements bivariate interpolation on irregularly distributed points :cite:p:`akima_algorithm_1978`.  All state is encapsulated in ``interpolator2DIrregular`` so that separate instances are fully independent and thread-safe without any critical sections.
   !!}
   implicit none
   private
   public :: Interpolate_2D_Irregular, interpolator2DIrregular
 
   type :: interpolator2DIrregular
-     !!{
-     Type encapsulating all state for a 2-D irregular-grid interpolation.  Each instance is self-contained; operations on
-     different instances have no shared mutable state and are therefore safe to call from concurrent OpenMP threads.
+     !!{RST
+     Type encapsulating all state for a 2-D irregular-grid interpolation.  Each instance is self-contained; operations on different instances have no shared mutable state and are therefore safe to call from concurrent OpenMP threads.
      !!}
      private
      ! ── input data points ─────────────────────────────────────────────────────
@@ -77,15 +74,8 @@ contains
 
   function Interpolate_2D_Irregular_Array(dataX,dataY,dataZ,interpolateX,interpolateY,workspace,numberComputePoints,reset) &
        result(zi)
-    !!{
-    Perform interpolation on a set of points irregularly spaced on a 2D surface.
-    On \mono{reset=.true.} (or the first call) the triangulation, closest-neighbour
-    indices, partial derivatives, and 9-section lookup grid are all rebuilt from scratch.
-    On subsequent calls (\mono{reset=.false.}) the triangulation and closest-neighbour
-    indices are reused but the partial derivatives are re-estimated, which correctly handles the case
-    where the Z values change between calls while the XY positions do not.
-    The function is fully thread-safe: all state is held in \mono{workspace} and
-    no global or module-level variables are accessed.
+    !!{RST
+    Perform interpolation on a set of points irregularly spaced on a 2D surface. On ``reset=.true.`` (or the first call) the triangulation, closest-neighbour indices, partial derivatives, and 9-section lookup grid are all rebuilt from scratch. On subsequent calls (``reset=.false.``) the triangulation and closest-neighbour indices are reused but the partial derivatives are re-estimated, which correctly handles the case where the Z values change between calls while the XY positions do not. The function is fully thread-safe: all state is held in ``workspace`` and no global or module-level variables are accessed.
     !!}
     implicit none
     type            (interpolator2DIrregular)                               , intent(inout)           :: workspace
@@ -128,7 +118,7 @@ contains
 
   double precision function Interpolate_2D_Irregular_Scalar(dataX,dataY,dataZ,interpolateX,interpolateY,workspace, &
        &                                                     numberComputePoints,reset)
-    !!{
+    !!{RST
     Scalar wrapper: interpolate at a single point.
     !!}
     implicit none
@@ -150,7 +140,7 @@ contains
   ! ════════════════════════════════════════════════════════════════════════════
 
   subroutine initializeWorkspace(ws, xd, yd, zd)
-    !!{
+    !!{RST
     Build triangulation, find closest neighbours, estimate derivatives, and build the 9-section lookup grid.
     !!}
     implicit none
@@ -183,8 +173,8 @@ contains
   end subroutine initializeWorkspace
 
   double precision function interpolateOne(ws, xii, yii)
-    !!{
-    Locate the triangle containing \mono{(xii,yii)} and interpolate.
+    !!{RST
+    Locate the triangle containing ``(xii,yii)`` and interpolate.
     !!}
     implicit none
     type            (interpolator2DIrregular), intent(inout) :: ws
@@ -200,11 +190,8 @@ contains
   ! ════════════════════════════════════════════════════════════════════════════
 
   subroutine buildTriangulation(ws)
-    !!{
-    Triangulate the data points stored in \mono{ws}.  Produces a Delaunay-like triangulation using
-    the max-min-angle criterion (Lawson).  On return, \mono{ws\%ipt}, \mono{ws\%ipl},
-    \mono{ws\%nTriangles} and \mono{ws\%nBorder} are set.
-    Port of \mono{idtang} from the original BIVAR package \citep{akima_algorithm_1978}.
+    !!{RST
+    Triangulate the data points stored in ``ws``.  Produces a Delaunay-like triangulation using the max-min-angle criterion (Lawson).  On return, ``ws%ipt``, ``ws%ipl``, ``ws%nTriangles`` and ``ws%nBorder`` are set. Port of ``idtang`` from the original BIVAR package :cite:p:`akima_algorithm_1978`.
     !!}
     implicit none
     type(interpolator2DIrregular), intent(inout) :: ws
@@ -502,10 +489,8 @@ contains
   end subroutine buildTriangulation
 
   integer function triangleSwapCheck(x, y, i1, i2, i3, i4)
-    !!{
-    Determine whether swapping the shared diagonal of the quadrilateral formed by points \mono{i1}--\mono{i4}
-    improves the minimum angle (Lawson max-min-angle criterion).  Returns 1 if a swap is recommended, 0 otherwise.
-    Port of \mono{idxchg} from the original BIVAR package \citep{akima_algorithm_1978}.
+    !!{RST
+    Determine whether swapping the shared diagonal of the quadrilateral formed by points ``i1``--``i4`` improves the minimum angle (Lawson max-min-angle criterion).  Returns 1 if a swap is recommended, 0 otherwise. Port of ``idxchg`` from the original BIVAR package :cite:p:`akima_algorithm_1978`.
     !!}
     implicit none
     double precision, dimension(:), intent(in) :: x, y
@@ -544,11 +529,8 @@ contains
   ! ════════════════════════════════════════════════════════════════════════════
 
   subroutine findClosestNeighbors(ndp, xd, yd, ncp, ipc)
-    !!{
-    For each of the \mono{ndp} data points, select the \mono{ncp} closest neighbours,
-    ensuring they are not all collinear.  Output is stored in \mono{ipc(ncp*ndp)}, with the \mono{ncp}
-    neighbours of point \mono{ip1} at indices \mono{(ip1-1)*ncp+1 .. ip1*ncp}.  On error \mono{ipc(1)} is set to 0.
-    Port of \mono{idcldp} from the original BIVAR package \citep{akima_algorithm_1978}.
+    !!{RST
+    For each of the ``ndp`` data points, select the ``ncp`` closest neighbours, ensuring they are not all collinear.  Output is stored in ``ipc(ncp*ndp)``, with the ``ncp`` neighbours of point ``ip1`` at indices ``(ip1-1)*ncp+1 .. ip1*ncp``.  On error ``ipc(1)`` is set to 0. Port of ``idcldp`` from the original BIVAR package :cite:p:`akima_algorithm_1978`.
     !!}
     implicit none
     integer                       , intent(in ) :: ndp, ncp
@@ -655,11 +637,8 @@ contains
   end subroutine findClosestNeighbors
 
   subroutine estimateDerivatives(ndp, xd, yd, zd, ncp, ipc, pd)
-    !!{
-    Estimate first- and second-order partial derivatives at each data point using the \mono{ncp} closest
-    neighbours.  Output \mono{pd(5*ndp)} stores ZX, ZY, ZXX, ZXY, ZYY for point \mono{ip0}
-    at indices \mono{5*ip0-4 .. 5*ip0}.
-    Port of \mono{idpdrv} from the original BIVAR package \citep{akima_algorithm_1978}.
+    !!{RST
+    Estimate first- and second-order partial derivatives at each data point using the ``ncp`` closest neighbours.  Output ``pd(5*ndp)`` stores ZX, ZY, ZXX, ZXY, ZYY for point ``ip0`` at indices ``5*ip0-4 .. 5*ip0``. Port of ``idpdrv`` from the original BIVAR package :cite:p:`akima_algorithm_1978`.
     !!}
     implicit none
     integer                       , intent(in ) :: ndp, ncp
@@ -747,13 +726,8 @@ contains
   ! ════════════════════════════════════════════════════════════════════════════
 
   subroutine buildSectionGrid(ws)
-    !!{
-    Build the 9-section spatial lookup grid over the triangulation stored in \mono{ws}.
-    On return \mono{ws\%xs1}, \mono{ws\%xs2}, \mono{ws\%ys1},
-    \mono{ws\%ys2}, \mono{ws\%ntsc}, \mono{ws\%sectionData},
-    and \mono{ws\%triBounds} are populated and \mono{ws\%gridReady} is set to
-    \mono{.true.}.
-    Port of the initialisation block of \mono{idlctn} from the original BIVAR package \citep{akima_algorithm_1978}.
+    !!{RST
+    Build the 9-section spatial lookup grid over the triangulation stored in ``ws``. On return ``ws%xs1``, ``ws%xs2``, ``ws%ys1``, ``ws%ys2``, ``ws%ntsc``, ``ws%sectionData``, and ``ws%triBounds`` are populated and ``ws%gridReady`` is set to ``.true.``. Port of the initialisation block of ``idlctn`` from the original BIVAR package :cite:p:`akima_algorithm_1978`.
     !!}
     implicit none
     type            (interpolator2DIrregular), intent(inout) :: ws
@@ -834,12 +808,8 @@ contains
   end subroutine buildSectionGrid
 
   integer function locatePoint(ws, xii, yii)
-    !!{
-    Locate the triangle or border-segment region containing \mono{(xii,yii)}.
-    Returns \mono{iti} in \mono{1..nTriangles} for interior points;
-    returns \mono{il1*(nTriangles+nBorder)+il2} for exterior points, encoding the
-    nearest border-segment pair.  Updates \mono{ws\%lastTriangle} for subsequent calls.
-    Port of the lookup block of \mono{idlctn} from the original BIVAR package \citep{akima_algorithm_1978}.
+    !!{RST
+    Locate the triangle or border-segment region containing ``(xii,yii)``. Returns ``iti`` in ``1..nTriangles`` for interior points; returns ``il1*(nTriangles+nBorder)+il2`` for exterior points, encoding the nearest border-segment pair.  Updates ``ws%lastTriangle`` for subsequent calls. Port of the lookup block of ``idlctn`` from the original BIVAR package :cite:p:`akima_algorithm_1978`.
     !!}
     implicit none
     type            (interpolator2DIrregular), intent(inout) :: ws
@@ -962,21 +932,19 @@ contains
   ! ════════════════════════════════════════════════════════════════════════════
 
   double precision function interpolatePoint(ws, xii, yii, iti)
-    !!{
-    Evaluate the interpolated (or extrapolated) Z value at \mono{(xii,yii)} given the
-    location code \mono{iti} returned by \mono{locatePoint}.
-    Three cases are handled:
-    \begin{description}
-      \item[Interior triangle \mono{(iti <= nTriangles+nBorder)}]
-        5th-degree quintic Bézier surface in barycentric UV coordinates \citep{akima_algorithm_1978}.
-      \item[Border segment \mono{(il1==il2)}]
-        Quadratic extrapolation perpendicular to the segment, 5th-degree along it.
-      \item[Exterior corner \mono{(il1/=il2)}]
-        2nd-degree Taylor expansion centred on the shared corner vertex.
-    \end{description}
-    Port of \mono{idptip} from the original BIVAR package \citep{akima_algorithm_1978}.
-    Coefficient caching (the original \mono{itpv} flag) is omitted since in
-    Galacticus usage the cache was never effective.
+    !!{RST
+    Evaluate the interpolated (or extrapolated) Z value at ``(xii,yii)`` given the location code ``iti`` returned by ``locatePoint``. Three cases are handled:
+
+    Interior triangle ``(iti <= nTriangles+nBorder)``
+       5th-degree quintic Bézier surface in barycentric UV coordinates :cite:p:`akima_algorithm_1978`.
+
+    Border segment ``(il1==il2)``
+       Quadratic extrapolation perpendicular to the segment, 5th-degree along it.
+
+    Exterior corner ``(il1/=il2)``
+       2nd-degree Taylor expansion centred on the shared corner vertex.
+
+    Port of ``idptip`` from the original BIVAR package :cite:p:`akima_algorithm_1978`. Coefficient caching (the original ``itpv`` flag) is omitted since in Galacticus usage the cache was never effective.
     !!}
     implicit none
     type            (interpolator2DIrregular), intent(in) :: ws

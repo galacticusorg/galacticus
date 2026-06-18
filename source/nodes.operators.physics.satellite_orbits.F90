@@ -19,7 +19,7 @@
 
   !+    Contributions to this file made by: Andrew Benson, Xiaolong Du.
 
-  !!{
+  !!{RST
   Implements a node operator class that propagates satellite halos along their orbits.
   !!}
 
@@ -27,12 +27,14 @@
   use :: Virial_Orbits                   , only : virialOrbitClass
 
   !![
-  <nodeOperator name="nodeOperatorSatelliteOrbit">
-   <description>A node operator class that integrates the orbital motion of satellite halos through the potential of their host halo, updating position and velocity at each ODE timestep via the equations of motion in the host potential. \mono{trackPreInfallOrbit} enables approximate orbit integration before formal infall, which is useful for modeling pre-infall tidal effects and environmental processes.</description>
+  <nodeOperator name="nodeOperatorSatelliteOrbit" docformat="rst">
+   <description>
+   A node operator class that integrates the orbital motion of satellite halos through the potential of their host halo, updating position and velocity at each ODE timestep via the equations of motion in the host potential. ``trackPreInfallOrbit`` enables approximate orbit integration before formal infall, which is useful for modeling pre-infall tidal effects and environmental processes.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteOrbit
-     !!{
+     !!{RST
      A node operator class that propagates satellite halos along their orbits.
      !!}
      private
@@ -52,8 +54,8 @@
   end type nodeOperatorSatelliteOrbit
   
   interface nodeOperatorSatelliteOrbit
-     !!{
-     Constructors for the \refClass{nodeOperatorSatelliteOrbit} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteOrbit` node operator class.
      !!}
      module procedure satelliteOrbitConstructorParameters
      module procedure satelliteOrbitConstructorInternal
@@ -70,8 +72,8 @@
 contains
 
   function satelliteOrbitConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorSatelliteOrbit} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteOrbit` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -83,22 +85,28 @@ contains
          &                                                        initializeOnly
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>trackPreInfallOrbit</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, (approximately) track the orbits of halos prior to infall.</description>
+      <description>
+      If true, (approximately) track the orbits of halos prior to infall.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>acceptUnboundOrbits</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, accept unbound virial orbits for satellites, otherwise reject them.</description>
+      <description>
+      If true, accept unbound virial orbits for satellites, otherwise reject them.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>initializeOnly</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, orbits are initialized, but not evolved.</description>
+      <description>
+      If true, orbits are initialized, but not evolved.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="virialOrbit"                   name="virialOrbit_"                   source="parameters"/>
@@ -114,8 +122,8 @@ contains
   end function satelliteOrbitConstructorParameters
   
   function satelliteOrbitConstructorInternal(trackPreInfallOrbit,acceptUnboundOrbits,initializeOnly,virialOrbit_,satelliteMassBoundInitializor_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorSatelliteOrbit} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteOrbit` node operator class.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -142,7 +150,7 @@ contains
   end function satelliteOrbitConstructorInternal
 
   subroutine satelliteOrbitAutoHook(self)
-    !!{
+    !!{RST
     Attach to the subhalo orbit initialization event.
     !!}
     use :: Events_Hooks, only : subhaloOrbitInitializationEvent, openMPThreadBindingAtLevel
@@ -154,8 +162,8 @@ contains
   end subroutine satelliteOrbitAutoHook
 
   subroutine satelliteOrbitDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorSatelliteOrbit} node operator function class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteOrbit` node operator function class.
     !!}
     use :: Events_Hooks, only : subhaloOrbitInitializationEvent
     implicit none
@@ -170,7 +178,7 @@ contains
   end subroutine satelliteOrbitDestructor
 
   subroutine subhaloOrbitInitialize(self,node,orbitIsDefined)
-    !!{
+    !!{RST
     Initialize a new subhalo orbit.
     !!}
     use :: Error           , only : Error_Report
@@ -225,7 +233,7 @@ contains
   end subroutine subhaloOrbitInitialize
 
   subroutine satelliteOrbitNodeTreeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize orbits for any initial subhalos.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
@@ -240,7 +248,7 @@ contains
   end subroutine satelliteOrbitNodeTreeInitialize
   
   subroutine satelliteOrbitNodeInitialize(self,node)
-    !!{
+    !!{RST
     Estimate the position of nodes relative to their hosts prior to infall.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentSatellite
@@ -319,7 +327,7 @@ contains
   end subroutine satelliteOrbitNodeInitialize
   
   integer function orbitalODEs(time,phaseSpaceCoordinates,phaseSpaceCoordinatesRateOfChange)
-    !!{
+    !!{RST
     ODEs describing a halo orbit.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic
@@ -415,7 +423,7 @@ contains
   end function orbitalODEs
 
   subroutine satelliteOrbitNodePromote(self,node)
-    !!{
+    !!{RST
     Act on promotion of a node. Set the position and velocity to those of the parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
@@ -437,7 +445,7 @@ contains
   end subroutine satelliteOrbitNodePromote
 
   subroutine satelliteOrbitNodeMerge(self,node)
-    !!{
+    !!{RST
     Act on a merger between nodes.
     !!}
     implicit none
@@ -449,7 +457,7 @@ contains
   end subroutine satelliteOrbitNodeMerge
 
   subroutine satelliteOrbitDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Perform evolution of a satellite orbit due to its velocity and the acceleration of its host's potential.
     !!}
     use :: Error                           , only : Error_Report

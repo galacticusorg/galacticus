@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of an isothermal kinematic distribution class.
   !!}
 
   !![
-  <kinematicsDistribution name="kinematicsDistributionIsothermal">
-   <description>An isothermal kinematic distribution class for collisional gas components in which all particles share a single uniform temperature. The 1D velocity dispersion is derived from the gas temperature \mono{[temperature]} and mean atomic mass \mono{[massAtomicMean]}, appropriate for modelling thermally supported gas in hydrostatic equilibrium.</description>
+  <kinematicsDistribution name="kinematicsDistributionIsothermal" docformat="rst">
+   <description>
+   An isothermal kinematic distribution class for collisional gas components in which all particles share a single uniform temperature. The 1D velocity dispersion is derived from the gas temperature ``[temperature]`` and mean atomic mass ``[massAtomicMean]``, appropriate for modelling thermally supported gas in hydrostatic equilibrium.
+   </description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionIsothermal
-     !!{
+     !!{RST
      An isothermal kinematic distribution.
      !!}
      double precision :: temperature_       , massAtomicMean, &
@@ -40,8 +42,8 @@
   end type kinematicsDistributionIsothermal
 
   interface kinematicsDistributionIsothermal
-     !!{
-     Constructors for the \refClass{kinematicsDistributionIsothermal} kinematic distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`kinematicsDistributionIsothermal` kinematic distribution class.
      !!}
      module procedure isothermalConstructorParameters
      module procedure isothermalConstructorInternal
@@ -50,9 +52,8 @@
 contains
 
   function isothermalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionIsothermal} kinematic distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`kinematicsDistributionIsothermal` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,23 +64,29 @@ contains
 
     if (parameters%isPresent('temperature')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>temperature</name>
-	 <description>The temperature (in Kelvin) of the isothermal gas distribution; used with \mono{massAtomicMean} to compute the 1D velocity dispersion via $\sigma^2 = k_\mathrm{B} T / (\mu m_\mathrm{H})$.</description>
+	 <description>
+	 The temperature (in Kelvin) of the isothermal gas distribution; used with ``massAtomicMean`` to compute the 1D velocity dispersion via :math:`\sigma^2 = k_\mathrm{B} T / (\mu m_\mathrm{H})`.
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>massAtomicMean</name>
-	 <description>The mean atomic mass (in atomic mass units) of the distribution.</description>
+	 <description>
+	 The mean atomic mass (in atomic mass units) of the distribution.
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
        self=kinematicsDistributionIsothermal(temperature_=temperature,massAtomicMean=massAtomicMean)
     else
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>velocityDispersion</name>
-	 <description>The 1D velocity dispersion (in km/s) of the isothermal distribution, used directly when no \mono{temperature} is specified; sets the thermally broadened line-of-sight velocity spread.</description>
+	 <description>
+	 The 1D velocity dispersion (in km/s) of the isothermal distribution, used directly when no ``temperature`` is specified; sets the thermally broadened line-of-sight velocity spread.
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
@@ -92,8 +99,8 @@ contains
   end function isothermalConstructorParameters
   
   function isothermalConstructorInternal(temperature_,massAtomicMean,velocityDispersion_) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionIsothermal} kinematic distribution class.
+    !!{RST
+    Constructor for the :galacticus-class:`kinematicsDistributionIsothermal` kinematic distribution class.
     !!}
     use :: Error                       , only : Error_Report
     use :: Numerical_Constants_Atomic  , only : atomicMassUnit
@@ -134,7 +141,7 @@ contains
   end function isothermalConstructorInternal
 
   logical function isothermalIsCollisional(self)
-    !!{
+    !!{RST
     Return true indicating that the isothermal kinematic distribution represents collisional particles.
     !!}
     implicit none
@@ -145,8 +152,8 @@ contains
   end function isothermalIsCollisional
 
   double precision function isothermalTemperature(self,coordinates)
-    !!{
-    Return the temperature at the specified \mono{coordinates} in an isothermal kinematic distribution.
+    !!{RST
+    Return the temperature at the specified ``coordinates`` in an isothermal kinematic distribution.
     !!}
     implicit none
     class(kinematicsDistributionIsothermal), intent(inout) :: self
@@ -158,8 +165,8 @@ contains
   end function isothermalTemperature
 
   double precision function isothermalTemperatureGradientLogarithmic(self,coordinates)
-    !!{
-    Return the logarithmic gradient of temperature at the specified \mono{coordinates} in an isothermal kinematic distribution.
+    !!{RST
+    Return the logarithmic gradient of temperature at the specified ``coordinates`` in an isothermal kinematic distribution.
     !!}
     implicit none
     class(kinematicsDistributionIsothermal), intent(inout) :: self
@@ -171,8 +178,8 @@ contains
   end function isothermalTemperatureGradientLogarithmic
 
   double precision function isothermalVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
-    !!{
-    Return the 1D velocity dispersion at the specified \mono{coordinates} in an isothermal kinematic distribution.
+    !!{RST
+    Return the 1D velocity dispersion at the specified ``coordinates`` in an isothermal kinematic distribution.
     !!}
     implicit none
     class(kinematicsDistributionIsothermal), intent(inout)          :: self

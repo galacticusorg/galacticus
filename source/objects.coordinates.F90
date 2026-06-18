@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements the coordinates class.
 !!}
 
 module Coordinates
-  !!{
+  !!{RST
   Implements the coordinates class.
   !!}
   implicit none
@@ -37,13 +37,13 @@ module Coordinates
   end interface assignment(=)
 
   type, abstract, public :: coordinate
-     !!{
+     !!{RST
      The base coordinate object class.
      !!}
      double precision :: position(3)
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the coordinates in a Cartesian system as a 3-element array."          method="toCartesian"      />
        <method description="Set the coordinates from a Cartesian system specified as a 3-element array." method="fromCartesian"    />
        <method description="Return the cylindrical radial coordinate."                                   method="rCylindrical"     />
@@ -69,18 +69,18 @@ module Coordinates
   end type coordinate
 
   type, public, extends(coordinate) :: coordinateCartesian
-     !!{
+     !!{RST
      A Cartesian coordinate object class.
      !!}
    contains
      !![
-     <methods>
-       <method description="Get the $x$-coordinate." method="x"   />
-       <method description="Get the $y$-coordinate." method="y"   />
-       <method description="Get the $z$-coordinate." method="z"   />
-       <method description="set the $x$-coordinate." method="xSet"/>
-       <method description="set the $y$-coordinate." method="ySet"/>
-       <method description="set the $z$-coordinate." method="zSet"/>
+     <methods docformat="rst">
+       <method description="Get the :math:`x`-coordinate." method="x"   />
+       <method description="Get the :math:`y`-coordinate." method="y"   />
+       <method description="Get the :math:`z`-coordinate." method="z"   />
+       <method description="set the :math:`x`-coordinate." method="xSet"/>
+       <method description="set the :math:`y`-coordinate." method="ySet"/>
+       <method description="set the :math:`z`-coordinate." method="zSet"/>
      </methods>
      !!]
      procedure :: toCartesian       => Coordinates_Cartesian_To_Cartesian
@@ -98,18 +98,18 @@ module Coordinates
   end type coordinateCartesian
 
   type, public, extends(coordinate) :: coordinateSpherical
-     !!{
+     !!{RST
      A spherical coordinate object class.
      !!}
    contains
      !![
-     <methods>
-       <method description="Get the $r$-coordinate."      method="r"       />
-       <method description="Get the $\theta$-coordinate." method="theta"   />
-       <method description="Get the $\phi$-coordinate."   method="phi"     />
-       <method description="set the $r$-coordinate."      method="rSet"    />
-       <method description="set the $\theta$-coordinate." method="thetaSet"/>
-       <method description="set the $\phi$-coordinate."   method="phiSet"  />
+     <methods docformat="rst">
+       <method description="Get the :math:`r`-coordinate."      method="r"       />
+       <method description="Get the :math:`\theta`-coordinate." method="theta"   />
+       <method description="Get the :math:`\phi`-coordinate."   method="phi"     />
+       <method description="set the :math:`r`-coordinate."      method="rSet"    />
+       <method description="set the :math:`\theta`-coordinate." method="thetaSet"/>
+       <method description="set the :math:`\phi`-coordinate."   method="phiSet"  />
      </methods>
      !!]
      procedure :: toCartesian       => Coordinates_Spherical_To_Cartesian
@@ -128,18 +128,18 @@ module Coordinates
   end type coordinateSpherical
 
   type, public, extends(coordinate) :: coordinateCylindrical
-     !!{
+     !!{RST
      A cylindrical coordinate object class.
      !!}
    contains
      !![
-     <methods>
-       <method description="Get the $r$-coordinate."    method="r"     />
-       <method description="Get the $\phi$-coordinate." method="phi"   />
-       <method description="Get the $z$-coordinate."    method="z"     />
-       <method description="set the $r$-coordinate."    method="rSet"  />
-       <method description="set the $\phi$-coordinate." method="phiSet"/>
-       <method description="set the $z$-coordinate."    method="zSet"  />
+     <methods docformat="rst">
+       <method description="Get the :math:`r`-coordinate."    method="r"     />
+       <method description="Get the :math:`\phi`-coordinate." method="phi"   />
+       <method description="Get the :math:`z`-coordinate."    method="z"     />
+       <method description="set the :math:`r`-coordinate."    method="rSet"  />
+       <method description="set the :math:`\phi`-coordinate." method="phiSet"/>
+       <method description="set the :math:`z`-coordinate."    method="zSet"  />
      </methods>
      !!]
      procedure :: toCartesian       => Coordinates_Cylindrical_To_Cartesian
@@ -198,7 +198,7 @@ module Coordinates
 contains
 
   subroutine Coordinates_Null_From(self,x)
-    !!{
+    !!{RST
     Set generic coordinate object from Cartesian point. Simply quits with an error.
     !!}
     use :: Error, only : Error_Report
@@ -212,7 +212,7 @@ contains
   end subroutine Coordinates_Null_From
 
   function Coordinates_Null_To(self)
-    !!{
+    !!{RST
     Convert generic coordinate object to Cartesian point. Simply quits with an error.
     !!}
     use :: Error, only : Error_Report
@@ -227,7 +227,7 @@ contains
   end function Coordinates_Null_To
 
   subroutine Coordinates_Assign(coordinatesTo,coordinatesFrom)
-    !!{
+    !!{RST
     Assign one coordinate object to another, automatically handling the conversion between coordinate systems.
     !!}
     implicit none
@@ -247,8 +247,8 @@ contains
   end subroutine Coordinates_Assign
 
   subroutine Coordinates_Assign_To(coordinates,x)
-    !!{
-    Assign a 3-component vector to a \mono{coordinate} object.
+    !!{RST
+    Assign a 3-component vector to a ``coordinate`` object.
     !!}
     implicit none
     class           (coordinate)              , intent(  out) :: coordinates
@@ -259,8 +259,8 @@ contains
   end subroutine Coordinates_Assign_To
 
   subroutine Coordinates_Assign_From(x,coordinates)
-    !!{
-    Return a 3-component vector from a \mono{coordinate} object.
+    !!{RST
+    Return a 3-component vector from a ``coordinate`` object.
     !!}
     implicit none
     class           (coordinate)              , intent(in   ) :: coordinates
@@ -272,8 +272,8 @@ contains
 
   ! Cartesian coordinate object.
   subroutine Coordinates_Cartesian_From_Cartesian(self,x)
-    !!{
-    Create a Cartesian \mono{coordinate} object from a Cartesian vector.
+    !!{RST
+    Create a Cartesian ``coordinate`` object from a Cartesian vector.
     !!}
     implicit none
     class           (coordinateCartesian)              , intent(  out) :: self
@@ -284,8 +284,8 @@ contains
   end subroutine Coordinates_Cartesian_From_Cartesian
 
   function Coordinates_Cartesian_To_Cartesian(self)
-    !!{
-    Return a Cartesian vector from a Cartesian \mono{coordinate} object.
+    !!{RST
+    Return a Cartesian vector from a Cartesian ``coordinate`` object.
     !!}
     implicit none
     class           (coordinateCartesian), intent(in   ) :: self
@@ -296,8 +296,8 @@ contains
   end function Coordinates_Cartesian_To_Cartesian
 
   double precision function Coordinates_Cartesian_X(self)
-    !!{
-    Return the $x$-component of a Cartesian \mono{coordinate} object.
+    !!{RST
+    Return the :math:`x`-component of a Cartesian ``coordinate`` object.
     !!}
     implicit none
     class(coordinateCartesian), intent(in   ) :: self
@@ -307,8 +307,8 @@ contains
   end function Coordinates_Cartesian_X
 
   double precision function Coordinates_Cartesian_Y(self)
-    !!{
-    Return the $y$-component of a Cartesian \mono{coordinate} object.
+    !!{RST
+    Return the :math:`y`-component of a Cartesian ``coordinate`` object.
     !!}
     implicit none
     class(coordinateCartesian), intent(in   ) :: self
@@ -318,8 +318,8 @@ contains
   end function Coordinates_Cartesian_Y
 
   double precision function Coordinates_Cartesian_Z(self)
-    !!{
-    Return the $z$-component of a Cartesian \mono{coordinate} object.
+    !!{RST
+    Return the :math:`z`-component of a Cartesian ``coordinate`` object.
     !!}
     implicit none
     class(coordinateCartesian), intent(in   ) :: self
@@ -329,8 +329,8 @@ contains
   end function Coordinates_Cartesian_Z
 
   subroutine Coordinates_Cartesian_Set_X(self,x)
-    !!{
-    Return the $x$-component of a Cartesian \mono{coordinate} object.
+    !!{RST
+    Return the :math:`x`-component of a Cartesian ``coordinate`` object.
     !!}
     implicit none
     class           (coordinateCartesian), intent(inout) :: self
@@ -341,8 +341,8 @@ contains
   end subroutine Coordinates_Cartesian_Set_X
 
   subroutine Coordinates_Cartesian_Set_Y(self,y)
-    !!{
-    Return the $y$-component of a Cartesian \mono{coordinate} object.
+    !!{RST
+    Return the :math:`y`-component of a Cartesian ``coordinate`` object.
     !!}
     implicit none
     class           (coordinateCartesian), intent(inout) :: self
@@ -353,8 +353,8 @@ contains
   end subroutine Coordinates_Cartesian_Set_Y
 
   subroutine Coordinates_Cartesian_Set_Z(self,z)
-    !!{
-    Return the $z$-component of a Cartesian \mono{coordinate} object.
+    !!{RST
+    Return the :math:`z`-component of a Cartesian ``coordinate`` object.
     !!}
     implicit none
     class           (coordinateCartesian), intent(inout) :: self
@@ -365,8 +365,8 @@ contains
   end subroutine Coordinates_Cartesian_Set_Z
 
   function Coordinates_Cartesian_Scalar_Multiply(self,multiplier) result(scaled)
-    !!{
-    Multiply a Cartesian \mono{coordinate} object by a scalar.
+    !!{RST
+    Multiply a Cartesian ``coordinate`` object by a scalar.
     !!}
     implicit none
     class           (coordinate         ), allocatable   :: scaled
@@ -380,8 +380,8 @@ contains
   end function Coordinates_Cartesian_Scalar_Multiply
 
   function Coordinates_Cartesian_Scalar_Divide(self,divisor) result(scaled)
-    !!{
-    Divide a Cartesian \mono{coordinate} object by a scalar.
+    !!{RST
+    Divide a Cartesian ``coordinate`` object by a scalar.
     !!}
     implicit none
     class           (coordinate         ), allocatable   :: scaled
@@ -395,17 +395,15 @@ contains
   end function Coordinates_Cartesian_Scalar_Divide
   
   !![
-  <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
+  <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336" docformat="rst">
     <description>
-      This function is needed to allow scaling of coordinate objects. It should not be needed as we overload the * and / operators
-      for coordinate objects. But, until finalization is completed, function results are not finalized causing the overloaded *
-      and / operators to leak memory. This is a workaround to avoid that.
+    This function is needed to allow scaling of coordinate objects. It should not be needed as we overload the * and / operators for coordinate objects. But, until finalization is completed, function results are not finalized causing the overloaded * and / operators to leak memory. This is a workaround to avoid that.
     </description>
   </workaround>
   !!]
   subroutine Coordinates_Cartesian_Scale(self,scalar,selfScaled)
-    !!{
-    Scale a Cartesian \mono{coordinate} object by a scalar.
+    !!{RST
+    Scale a Cartesian ``coordinate`` object by a scalar.
     !!}
     implicit none
     class           (coordinateCartesian), intent(in   )              :: self
@@ -419,8 +417,8 @@ contains
   end subroutine Coordinates_Cartesian_Scale
 
   double precision function Coordinates_Cartesian_R_Spherical_Squared(self)
-    !!{
-    Return the squared spherical radius, $r^2$ of a Cartesian \mono{coordinate} object.
+    !!{RST
+    Return the squared spherical radius, :math:`r^2` of a Cartesian ``coordinate`` object.
     !!}
     implicit none
     class(coordinateCartesian), intent(in   ) :: self
@@ -431,8 +429,8 @@ contains
 
   ! Spherical coordinate object.
   subroutine Coordinates_Spherical_From_Cartesian(self,x)
-    !!{
-    Create a spherical \mono{coordinate} object from a Cartesian vector.
+    !!{RST
+    Create a spherical ``coordinate`` object from a Cartesian vector.
     !!}
     implicit none
     class           (coordinateSpherical)              , intent(  out) :: self
@@ -453,8 +451,8 @@ contains
   end subroutine Coordinates_Spherical_From_Cartesian
 
   function Coordinates_Spherical_To_Cartesian(self)
-    !!{
-    Return a Cartesian vector from a spherical \mono{coordinate} object.
+    !!{RST
+    Return a Cartesian vector from a spherical ``coordinate`` object.
     !!}
     implicit none
     class           (coordinateSpherical), intent(in   ) :: self
@@ -476,8 +474,8 @@ contains
   end function Coordinates_Spherical_To_Cartesian
 
   double precision function Coordinates_Spherical_R(self)
-    !!{
-    Return the $r$-component of a Spherical \mono{coordinate} object.
+    !!{RST
+    Return the :math:`r`-component of a Spherical ``coordinate`` object.
     !!}
     implicit none
     class(coordinateSpherical), intent(in   ) :: self
@@ -487,8 +485,8 @@ contains
   end function Coordinates_Spherical_R
 
   double precision function Coordinates_Spherical_Theta(self)
-    !!{
-    Return the $\theta$-component of a Spherical \mono{coordinate} object.
+    !!{RST
+    Return the :math:`\theta`-component of a Spherical ``coordinate`` object.
     !!}
     implicit none
     class(coordinateSpherical), intent(in   ) :: self
@@ -498,8 +496,8 @@ contains
   end function Coordinates_Spherical_Theta
 
   double precision function Coordinates_Spherical_Phi(self)
-    !!{
-    Return the $\phi$-component of a Spherical \mono{coordinate} object.
+    !!{RST
+    Return the :math:`\phi`-component of a Spherical ``coordinate`` object.
     !!}
     implicit none
     class(coordinateSpherical), intent(in   ) :: self
@@ -509,8 +507,8 @@ contains
   end function Coordinates_Spherical_Phi
 
   subroutine Coordinates_Spherical_Set_R(self,r)
-    !!{
-    Return the $r$-component of a Spherical \mono{coordinate} object.
+    !!{RST
+    Return the :math:`r`-component of a Spherical ``coordinate`` object.
     !!}
     implicit none
     class           (coordinateSpherical), intent(inout) :: self
@@ -521,8 +519,8 @@ contains
   end subroutine Coordinates_Spherical_Set_R
 
   subroutine Coordinates_Spherical_Set_Theta(self,theta)
-    !!{
-    Return the $\theta$-component of a Spherical \mono{coordinate} object.
+    !!{RST
+    Return the :math:`\theta`-component of a Spherical ``coordinate`` object.
     !!}
     implicit none
     class           (coordinateSpherical), intent(inout) :: self
@@ -533,8 +531,8 @@ contains
   end subroutine Coordinates_Spherical_Set_Theta
 
   subroutine Coordinates_Spherical_Set_Phi(self,phi)
-    !!{
-    Return the $\phi$-component of a Spherical \mono{coordinate} object.
+    !!{RST
+    Return the :math:`\phi`-component of a Spherical ``coordinate`` object.
     !!}
     implicit none
     class           (coordinateSpherical), intent(inout) :: self
@@ -545,8 +543,8 @@ contains
   end subroutine Coordinates_Spherical_Set_Phi
 
   double precision function Coordinates_Spherical_R_Spherical(self)
-    !!{
-    Return the spherical radius, $r$ of a spherical \mono{coordinate} object.
+    !!{RST
+    Return the spherical radius, :math:`r` of a spherical ``coordinate`` object.
     !!}
     implicit none
     class(coordinateSpherical), intent(in   ) :: self
@@ -556,8 +554,8 @@ contains
   end function Coordinates_Spherical_R_Spherical
 
   double precision function Coordinates_Spherical_R_Spherical_Squared(self)
-    !!{
-    Return the squared spherical radius, $r^2$ of a spherical \mono{coordinate} object.
+    !!{RST
+    Return the squared spherical radius, :math:`r^2` of a spherical ``coordinate`` object.
     !!}
     implicit none
     class(coordinateSpherical), intent(in   ) :: self
@@ -567,8 +565,8 @@ contains
   end function Coordinates_Spherical_R_Spherical_Squared
 
   function Coordinates_Spherical_Scalar_Multiply(self,multiplier) result(scaled)
-    !!{
-    Multiply a spherical \mono{coordinate} object by a scalar.
+    !!{RST
+    Multiply a spherical ``coordinate`` object by a scalar.
     !!}
     implicit none
     class           (coordinate         ), allocatable   :: scaled
@@ -583,8 +581,8 @@ contains
   end function Coordinates_Spherical_Scalar_Multiply
 
   function Coordinates_Spherical_Scalar_Divide(self,divisor) result(scaled)
-    !!{
-    Divide a spherical \mono{coordinate} object by a scalar.
+    !!{RST
+    Divide a spherical ``coordinate`` object by a scalar.
     !!}
     implicit none
     class           (coordinate         ), allocatable   :: scaled
@@ -598,17 +596,15 @@ contains
   end function Coordinates_Spherical_Scalar_Divide
 
   !![
-  <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
+  <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336" docformat="rst">
     <description>
-      This function is needed to allow scaling of coordinate objects. It should not be needed as we overload the * and / operators
-      for coordinate objects. But, until finalization is completed, function results are not finalized causing the overloaded *
-      and / operators to leak memory. This is a workaround to avoid that.
+    This function is needed to allow scaling of coordinate objects. It should not be needed as we overload the * and / operators for coordinate objects. But, until finalization is completed, function results are not finalized causing the overloaded * and / operators to leak memory. This is a workaround to avoid that.
     </description>
   </workaround>
   !!]
   subroutine Coordinates_Spherical_Scale(self,scalar,selfScaled)
-    !!{
-    Scale a spherical \mono{coordinate} object by a scalar.
+    !!{RST
+    Scale a spherical ``coordinate`` object by a scalar.
     !!}
     implicit none
     class           (coordinateSpherical), intent(in   )              :: self
@@ -623,8 +619,8 @@ contains
 
   ! Cylindrical coordinate object.
   subroutine Coordinates_Cylindrical_From_Cartesian(self,x)
-    !!{
-    Create a cylindrical \mono{coordinate} object from a Cartesian vector.
+    !!{RST
+    Create a cylindrical ``coordinate`` object from a Cartesian vector.
     !!}
     implicit none
     class           (coordinateCylindrical)              , intent(  out) :: self
@@ -639,8 +635,8 @@ contains
   end subroutine Coordinates_Cylindrical_From_Cartesian
 
   function Coordinates_Cylindrical_To_Cartesian(self)
-    !!{
-    Return a Cartesian vector from a cylindrical \mono{coordinate} object.
+    !!{RST
+    Return a Cartesian vector from a cylindrical ``coordinate`` object.
     !!}
     implicit none
     class           (coordinateCylindrical), intent(in   ) :: self
@@ -661,8 +657,8 @@ contains
   end function Coordinates_Cylindrical_To_Cartesian
 
   double precision function Coordinates_Cylindrical_R(self)
-    !!{
-    Return the $r$-component of a Cylindrical \mono{coordinate} object.
+    !!{RST
+    Return the :math:`r`-component of a Cylindrical ``coordinate`` object.
     !!}
     implicit none
     class(coordinateCylindrical), intent(in   ) :: self
@@ -672,8 +668,8 @@ contains
   end function Coordinates_Cylindrical_R
 
   double precision function Coordinates_Cylindrical_Phi(self)
-    !!{
-    Return the $\phi$-component of a Cylindrical \mono{coordinate} object.
+    !!{RST
+    Return the :math:`\phi`-component of a Cylindrical ``coordinate`` object.
     !!}
     implicit none
     class(coordinateCylindrical), intent(in   ) :: self
@@ -683,8 +679,8 @@ contains
   end function Coordinates_Cylindrical_Phi
 
   double precision function Coordinates_Cylindrical_Z(self)
-    !!{
-    Return the $z$-component of a Cylindrical \mono{coordinate} object.
+    !!{RST
+    Return the :math:`z`-component of a Cylindrical ``coordinate`` object.
     !!}
     implicit none
     class(coordinateCylindrical), intent(in   ) :: self
@@ -694,8 +690,8 @@ contains
   end function Coordinates_Cylindrical_Z
 
   subroutine Coordinates_Cylindrical_Set_R(self,r)
-    !!{
-    Return the $r$-component of a Cylindrical \mono{coordinate} object.
+    !!{RST
+    Return the :math:`r`-component of a Cylindrical ``coordinate`` object.
     !!}
     implicit none
     class           (coordinateCylindrical), intent(inout) :: self
@@ -706,8 +702,8 @@ contains
   end subroutine Coordinates_Cylindrical_Set_R
 
   subroutine Coordinates_Cylindrical_Set_Phi(self,phi)
-    !!{
-    Return the $\phi$-component of a Cylindrical \mono{coordinate} object.
+    !!{RST
+    Return the :math:`\phi`-component of a Cylindrical ``coordinate`` object.
     !!}
     implicit none
     class           (coordinateCylindrical), intent(inout) :: self
@@ -718,8 +714,8 @@ contains
   end subroutine Coordinates_Cylindrical_Set_Phi
 
   subroutine Coordinates_Cylindrical_Set_Z(self,z)
-    !!{
-    Return the $z$-component of a Cylindrical \mono{coordinate} object.
+    !!{RST
+    Return the :math:`z`-component of a Cylindrical ``coordinate`` object.
     !!}
     implicit none
     class           (coordinateCylindrical), intent(inout) :: self
@@ -730,8 +726,8 @@ contains
   end subroutine Coordinates_Cylindrical_Set_Z
 
   double precision function Coordinates_Cylindrical_R_Spherical_Squared(self)
-    !!{
-    Return the squared spherical radius, $r^2$ of a cylindrical \mono{coordinate} object.
+    !!{RST
+    Return the squared spherical radius, :math:`r^2` of a cylindrical ``coordinate`` object.
     !!}
     implicit none
     class(coordinateCylindrical), intent(in   ) :: self
@@ -741,8 +737,8 @@ contains
   end function Coordinates_Cylindrical_R_Spherical_Squared
 
   function Coordinates_Cylindrical_Scalar_Multiply(self,multiplier) result(scaled)
-    !!{
-    Multiply a cylindrical \mono{coordinate} object by a scalar.
+    !!{RST
+    Multiply a cylindrical ``coordinate`` object by a scalar.
     !!}
     implicit none
     class           (coordinate           ), allocatable   :: scaled
@@ -758,8 +754,8 @@ contains
   end function Coordinates_Cylindrical_Scalar_Multiply
 
   function Coordinates_Cylindrical_Scalar_Divide(self,divisor) result(scaled)
-    !!{
-    Divide a cylindrical \mono{coordinate} object by a scalar.
+    !!{RST
+    Divide a cylindrical ``coordinate`` object by a scalar.
     !!}
     implicit none
     class           (coordinate           ), allocatable   :: scaled
@@ -775,17 +771,15 @@ contains
   end function Coordinates_Cylindrical_Scalar_Divide
 
   !![
-  <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
+  <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336" docformat="rst">
     <description>
-      This function is needed to allow scaling of coordinate objects. It should not be needed as we overload the * and / operators
-      for coordinate objects. But, until finalization is completed, function results are not finalized causing the overloaded *
-      and / operators to leak memory. This is a workaround to avoid that.
+    This function is needed to allow scaling of coordinate objects. It should not be needed as we overload the * and / operators for coordinate objects. But, until finalization is completed, function results are not finalized causing the overloaded * and / operators to leak memory. This is a workaround to avoid that.
     </description>
   </workaround>
   !!]
   subroutine Coordinates_Cylindrical_Scale(self,scalar,selfScaled)
-    !!{
-    Scale a cylindrical \mono{coordinate} object by a scalar.
+    !!{RST
+    Scale a cylindrical ``coordinate`` object by a scalar.
     !!}
     implicit none
     class           (coordinateCylindrical), intent(in   )              :: self
@@ -827,8 +821,8 @@ contains
   end function Coordinates_Radius_Spherical
 
   function Coordinates_Scalar_Multiply_Switched(multiplier,self) result(scaled)
-    !!{
-    Multiply a Cartesian \mono{coordinate} object by a scalar.
+    !!{RST
+    Multiply a Cartesian ``coordinate`` object by a scalar.
     !!}
     implicit none
     class           (coordinate), allocatable   :: scaled

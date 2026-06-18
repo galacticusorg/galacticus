@@ -17,15 +17,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that tracks the minimum distance from the center that a satellite has ever reached in its
-  current host halo.
+  !!{RST
+  Implements a node operator class that tracks the minimum distance from the center that a satellite has ever reached in its current host halo.
   !!}
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>relativeTo</name>
-   <description>Options for which host halo to compute the minimum distance to.</description>
+   <description>
+   Options for which host halo to compute the minimum distance to.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -35,24 +36,22 @@
   !!]
 
   !![
-  <nodeOperator name="nodeOperatorSatelliteMinimumDistance">
+  <nodeOperator name="nodeOperatorSatelliteMinimumDistance" docformat="rst">
     <description>
-      A node operator class that tracks the minimum distance from the center that a satellite has ever reached in its current host
-      halo.
+    A node operator class that tracks the minimum distance from the center that a satellite has ever reached in its current host halo.
     </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteMinimumDistance
-     !!{
-     A node operator class that tracks the minimum distance from the center that a satellite has ever reached in its current host
-     halo.
+     !!{RST
+     A node operator class that tracks the minimum distance from the center that a satellite has ever reached in its current host halo.
      !!}
      private
      integer                            :: satelliteDistanceMinimumID, isolatedHostID
      type   (enumerationRelativeToType) :: relativeTo
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="distanceRelative" description="Compute the distance to the center of the relevant host halo."/>
      </methods>
      !!]
@@ -64,8 +63,8 @@
   end type nodeOperatorSatelliteMinimumDistance
   
   interface nodeOperatorSatelliteMinimumDistance
-     !!{
-     Constructors for the \refClass{nodeOperatorSatelliteMinimumDistance} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteMinimumDistance` node operator class.
      !!}
      module procedure satelliteMinimumDistanceConstructorParameters
      module procedure satelliteMinimumDistanceConstructorInternal
@@ -74,8 +73,8 @@
 contains
 
   function satelliteMinimumDistanceConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorSatelliteMinimumDistance} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteMinimumDistance` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -84,13 +83,11 @@ contains
     type(varying_string                      )                :: relativeTo
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>relativeTo</name>
       <defaultValue>var_str('immediateHost')</defaultValue>
       <description>
-	Specifies to which host halo the minimum distance should be referenced. ``\mono{immediateHost}'' computes
-	the minimum distance to the first host (so, for a sub-subhalo, this would be the subhalo in which it is
-	orbiting). ``\mono{isolatedHost}'' computes the minimum distance to the final (isolated halo) host.
+      Specifies to which host halo the minimum distance should be referenced. "``immediateHost``" computes the minimum distance to the first host (so, for a sub-subhalo, this would be the subhalo in which it is orbiting). "``isolatedHost``" computes the minimum distance to the final (isolated halo) host.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -103,8 +100,8 @@ contains
   end function satelliteMinimumDistanceConstructorParameters
 
   function satelliteMinimumDistanceConstructorInternal(relativeTo) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorSatelliteMinimumDistance} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteMinimumDistance` node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteMinimumDistance)                :: self
@@ -121,7 +118,7 @@ contains
   end function satelliteMinimumDistanceConstructorInternal
 
   subroutine satelliteMinimumDistanceAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent, subhaloPromotionEvent, openMPThreadBindingAtLevel
@@ -134,8 +131,8 @@ contains
   end subroutine satelliteMinimumDistanceAutoHook
 
   subroutine satelliteMinimumDistanceDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorSatelliteMinimumDistance} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteMinimumDistance` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent, subhaloPromotionEvent
     implicit none
@@ -147,7 +144,7 @@ contains
   end subroutine satelliteMinimumDistanceDestructor
 
   subroutine satelliteMinimumDistanceNodesMerge(self,node)
-    !!{
+    !!{RST
     Update the minimum distance of approach when two nodes merge.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
@@ -165,7 +162,7 @@ contains
   end subroutine satelliteMinimumDistanceNodesMerge
 
   subroutine satelliteMinimumDistanceDifferentialEvolutionPost(self,node)
-    !!{
+    !!{RST
     Update the minimum distance of approach after differential evolution of the node.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
@@ -196,7 +193,7 @@ contains
   end subroutine satelliteMinimumDistanceDifferentialEvolutionPost
 
   subroutine satelliteHostChange(self,node)
-    !!{
+    !!{RST
     Update the minimum distance of approach when a satellite changes host node.
     !!}
     use :: Error           , only : Error_Report
@@ -232,7 +229,7 @@ contains
   end subroutine satelliteHostChange
   
   subroutine nodeSubhaloPromotion(self,node,nodePromotion)
-    !!{
+    !!{RST
     Reset the minimum distance of approach when a satellite is promoted to be an isolated halo.
     !!}
     use :: Error           , only : Error_Report
@@ -261,7 +258,7 @@ contains
   end subroutine nodeSubhaloPromotion
 
   double precision function satelliteMinimumDistanceDistanceRelative(self,node) result(distance)
-    !!{
+    !!{RST
     Compute the current distance to the relevant host halo.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite

@@ -17,27 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a random error output analysis distribution operator class.
 !!}
   !![
-  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomError" abstract="yes">
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomError" abstract="yes" docformat="rst">
    <description>
-    A random error output analysis distribution operator class. The weight of each galaxy is integrated over every bin of the
-    histogram using a Gaussian kernel. This is an abstract class---the width of the Gaussian kernel must be provided by a
-    concrete class.
+   A random error output analysis distribution operator class. The weight of each galaxy is integrated over every bin of the histogram using a Gaussian kernel. This is an abstract class---the width of the Gaussian kernel must be provided by a concrete class.
    </description>
   </outputAnalysisDistributionOperator>
   !!]
   type, abstract, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorRandomError
-     !!{
+     !!{RST
      A random error output distribution operator class.
      !!}
      private
      type(outputAnalysisDistributionOperatorIdentity) :: identity=outputAnalysisDistributionOperatorIdentity()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the root-variance to apply to the distribution." method="rootVariance" />
      </methods>
      !!]
@@ -48,7 +46,7 @@ Implements a random error output analysis distribution operator class.
 
   abstract interface
      double precision function randomErrorOperateRootVariance(self,propertyValue,node)
-       !!{
+       !!{RST
        Abstract interface for the root variance method of random error output analysis distribution operators.
        !!}
        import outputAnalysisDistributionOperatorRandomError, treeNode
@@ -61,7 +59,7 @@ Implements a random error output analysis distribution operator class.
 contains
 
   function randomErrorOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !!{
+    !!{RST
     Implement a random error output analysis distribution operator.
     !!}
     implicit none
@@ -98,7 +96,7 @@ contains
   end function randomErrorOperateScalar
 
   function randomErrorOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !!{
+    !!{RST
     Implement a random error output analysis distribution operator.
     !!}
     use :: Error, only : Error_Report

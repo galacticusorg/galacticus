@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo mass accretion histories using the \cite{wechsler_concentrations_2002} algorithm.
+  !!{RST
+  An implementation of dark matter halo mass accretion histories using the :cite:t:`wechsler_concentrations_2002` algorithm.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
@@ -26,22 +26,21 @@
   use :: Kind_Numbers              , only : kind_int8
 
   !![
-  <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryWechsler2002">
+  <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryWechsler2002" docformat="rst">
    <description>
-    A dark matter halo mass accretion history class in which the mass accretion history is given by
-    \citep{wechsler_concentrations_2002}:
-    \begin{equation}
-    M(t) = M(t_0) \exp \left( - 2 a_\mathrm{c} \left[ {a(t_0)\over a(t)}-1 \right] \right),
-    \end{equation}
-    where $t_0$ is some reference time and $a_\mathrm{c}$ is a characteristic expansion factor defined by
-    \cite{wechsler_concentrations_2002} to correspond to the formation time of the halo (using the formation time definition of
-    \citealt{bullock_profiles_2001}).
+   A dark matter halo mass accretion history class in which the mass accretion history is given by :cite:p:`wechsler_concentrations_2002`:
+
+   .. math::
+
+      M(t) = M(t_0) \exp \left( - 2 a_\mathrm{c} \left[ {a(t_0)\over a(t)}-1 \right] \right),
+
+   where :math:`t_0` is some reference time and :math:`a_\mathrm{c}` is a characteristic expansion factor defined by :cite:t:`wechsler_concentrations_2002` to correspond to the formation time of the halo (using the formation time definition of :cite:author:`bullock_profiles_2001` :cite:year:`bullock_profiles_2001`).
    </description>
   </darkMatterHaloMassAccretionHistory>
   !!]
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryWechsler2002
-     !!{
-     A dark matter halo mass accretion history class using the \cite{wechsler_concentrations_2002} algorithm.
+     !!{RST
+     A dark matter halo mass accretion history class using the :cite:t:`wechsler_concentrations_2002` algorithm.
      !!}
      private
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
@@ -53,7 +52,7 @@
      double precision                                         :: timeFormationPrevious     =  -huge(0.0d0      ), massPrevious=-huge(0.0d0)
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset memoized calculations."            method="calculationReset"          />
        <method description="Compute the formation expansion factor." method="expansionFactorAtFormation"/>
      </methods>
@@ -67,8 +66,8 @@
   end type darkMatterHaloMassAccretionHistoryWechsler2002
 
   interface darkMatterHaloMassAccretionHistoryWechsler2002
-     !!{
-     Constructors for the \refClass{darkMatterHaloMassAccretionHistoryWechsler2002} dark matter halo mass accretion history class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterHaloMassAccretionHistoryWechsler2002` dark matter halo mass accretion history class.
      !!}
      module procedure wechsler2002ConstructorParameters
      module procedure wechsler2002ConstructorInternal
@@ -77,8 +76,8 @@
 contains
 
   function wechsler2002ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{wechsler2002} dark matter halo mass accretion history class.
+    !!{RST
+    Default constructor for the ``wechsler2002`` dark matter halo mass accretion history class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,19 +90,23 @@ contains
     double precision                                                                :: formationRedshift
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>formationRedshiftCompute</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true, compute formation redshift automatically for \cite{wechsler_concentrations_2002} halo mass accretion histories.</description>
+      <description>
+      If true, compute formation redshift automatically for :cite:t:`wechsler_concentrations_2002` halo mass accretion histories.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
     if (.not.formationRedshiftCompute) then
        ! In this case, read the formation redshift.
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>formationRedshift</name>
-         <description>The formation redshift to use in \cite{wechsler_concentrations_2002} halo mass accretion histories.</description>
+         <description>
+         The formation redshift to use in :cite:t:`wechsler_concentrations_2002` halo mass accretion histories.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -125,8 +128,8 @@ contains
   end function wechsler2002ConstructorParameters
 
   function wechsler2002ConstructorInternal(cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,formationRedshiftCompute,formationRedshift) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterHaloMassAccretionHistoryWechsler2002} dark matter halo mass accretion history class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterHaloMassAccretionHistoryWechsler2002` dark matter halo mass accretion history class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -145,7 +148,7 @@ contains
   end function wechsler2002ConstructorInternal
 
   subroutine wechsler2002AutoHook(self)
-    !!{
+    !!{RST
     Attach to the calculation reset event.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
@@ -157,8 +160,8 @@ contains
   end subroutine wechsler2002AutoHook
   
   subroutine wechsler2002Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterHaloMassAccretionHistoryWechsler2002} dark matter halo mass accretion history class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterHaloMassAccretionHistoryWechsler2002` dark matter halo mass accretion history class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
@@ -174,7 +177,7 @@ contains
   end subroutine wechsler2002Destructor
 
   subroutine wechsler2002CalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the cooling radius calculation.
     !!}
     implicit none
@@ -190,9 +193,8 @@ contains
   end subroutine wechsler2002CalculationReset
 
   double precision function wechsler2002Time(self,node,mass)
-    !!{
-    Compute the time corresponding to \mono{mass} in the mass accretion history of \mono{node} using the algorithm of
-    \cite{wechsler_concentrations_2002}.
+    !!{RST
+    Compute the time corresponding to ``mass`` in the mass accretion history of ``node`` using the algorithm of :cite:t:`wechsler_concentrations_2002`.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -229,8 +231,8 @@ contains
   end function wechsler2002Time
 
   double precision function wechsler2002MassAccretionRate(self,node,time)
-    !!{
-    Compute the mass accretion rate at the given \mono{time} in the mass accretion history of \mono{node} using the algorithm of \cite{wechsler_concentrations_2002}.
+    !!{RST
+    Compute the mass accretion rate at the given ``time`` in the mass accretion history of ``node`` using the algorithm of :cite:t:`wechsler_concentrations_2002`.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -279,8 +281,8 @@ contains
   end function wechsler2002MassAccretionRate
 
   double precision function wechsler2002ExpansionFactorAtFormation(self,haloMass,node)
-    !!{
-    Computes the expansion factor at formation using the simple model of \cite{bullock_profiles_2001}.
+    !!{RST
+    Computes the expansion factor at formation using the simple model of :cite:t:`bullock_profiles_2001`.
     !!}
     use :: Error, only : Error_Report, errorStatusSuccess, errorStatusOutOfRange
     implicit none

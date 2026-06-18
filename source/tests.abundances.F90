@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test abundances objects functions.
 !!}
 
 program Test_Abundances
-  !!{
+  !!{RST
   Test abundances objects.
   !!}
   use :: Abundances_Structure      , only : abundances                  , max

@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements various useful functionality for manipulating character strings.
 !!}
 
 module String_Handling
-  !!{
+  !!{RST
   Implements various useful functionality for manipulating character strings.
   !!}
   implicit none
@@ -70,9 +70,11 @@ module String_Handling
   character(len=*), parameter :: charactersWhiteSpace=' '//char(0)//char(9)//char(10)//char(13)
   
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>valueType</name>
-   <description>Enumerates possible value types for strings.</description>
+   <description>
+   Enumerates possible value types for strings.
+   </description>
    <visibility>public</visibility>
    <entry label="floating"/>
    <entry label="integer" />
@@ -83,8 +85,8 @@ module String_Handling
 contains
 
   integer function String_Count_Words_VarString(inputString,separator,bracketing) result(countWords)
-    !!{
-    Return a count of the number of space separated words in \mono{inputString}.
+    !!{RST
+    Return a count of the number of space separated words in ``inputString``.
     !!}
     use :: ISO_Varying_String, only : varying_string, char
     implicit none
@@ -97,8 +99,8 @@ contains
   end function String_Count_Words_VarString
 
   integer function String_Count_Words_Char(inputString,separator,bracketing) result(countWords)
-    !!{
-    Return a count of the number of space separated words in \mono{inputString}.
+    !!{RST
+    Return a count of the number of space separated words in ``inputString``.
     !!}
     use :: ISO_Varying_String, only : varying_string, assignment(=), index
     implicit none
@@ -138,8 +140,8 @@ contains
   end function String_Count_Words_Char
 
   subroutine String_Split_Words_VarString(words,inputString,separator,bracketing)
-    !!{
-    Split \mono{inputString} into words and return as an array.
+    !!{RST
+    Split ``inputString`` into words and return as an array.
     !!}
     use :: ISO_Varying_String, only : varying_string, assignment(=), index
     implicit none
@@ -190,8 +192,8 @@ contains
   end subroutine String_Split_Words_VarString
 
   subroutine String_Split_Words_Char(words,inputString,separator,bracketing)
-    !!{
-    Split \mono{inputString} into words and return as an array.
+    !!{RST
+    Split ``inputString`` into words and return as an array.
     !!}
     use :: ISO_Varying_String, only : varying_string, index, assignment(=)
     implicit none
@@ -242,8 +244,8 @@ contains
   end subroutine String_Split_Words_Char
 
   function Concatenate_VarStr_Integer(varStrVariable,intVariable)
-    !!{
-    Provides a concatenation operator to append an integer number to a \mono{varying\_string}.
+    !!{RST
+    Provides a concatenation operator to append an integer number to a ``varying_string``.
     !!}
     use :: ISO_Varying_String, only : varying_string, operator(//)
     implicit none
@@ -258,8 +260,8 @@ contains
   end function Concatenate_VarStr_Integer
 
   function Concatenate_VarStr_Integer8(varStrVariable,intVariable)
-    !!{
-    Provides a concatenation operator to append an integer number to a \mono{varying\_string}.
+    !!{RST
+    Provides a concatenation operator to append an integer number to a ``varying_string``.
     !!}
     use :: Kind_Numbers      , only : kind_int8
     use :: ISO_Varying_String, only : varying_string, operator(//)
@@ -275,7 +277,7 @@ contains
   end function Concatenate_VarStr_Integer8
 
   function String_Upper_Case(stringInput) result (stringOutput)
-    !!{
+    !!{RST
     Converts an input string to upper case.
     !!}
     character(len=*               ), intent(in   ) :: stringInput
@@ -295,7 +297,7 @@ contains
   end function String_Upper_Case
 
   elemental function String_Lower_Case(stringInput) result (stringOutput)
-    !!{
+    !!{RST
     Converts an input string to lower case.
     !!}
     character(len=*               ), intent(in   ) :: stringInput
@@ -315,7 +317,7 @@ contains
   end function String_Lower_Case
 
   function String_Upper_Case_First(stringInput) result (stringOutput)
-    !!{
+    !!{RST
     Converts an input string to upper case.
     !!}
     character(len=*               ), intent(in   ) :: stringInput
@@ -332,7 +334,7 @@ contains
   end function String_Upper_Case_First
 
   function String_Lower_Case_First(stringInput) result (stringOutput)
-    !!{
+    !!{RST
     Converts the first character of an input string to lower case.
     !!}
     character(len=*               ), intent(in   ) :: stringInput
@@ -349,7 +351,7 @@ contains
   end function String_Lower_Case_First
 
   function Convert_VarString_To_Char(varStrings)
-    !!{
+    !!{RST
     Convert an array of varying strings into an array of characters.
     !!}
     use :: ISO_Varying_String, only : varying_string, assignment(=), len
@@ -365,7 +367,7 @@ contains
   end function Convert_VarString_To_Char
 
   function String_C_to_Fortran(charArray)
-    !!{
+    !!{RST
     Convert a C-style character array into a Fortran varying string variable.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_char, c_null_char
@@ -385,7 +387,7 @@ contains
   end function String_C_to_Fortran
 
   function String_Subscript(stringInput) result (stringOutput)
-    !!{
+    !!{RST
     Converts an input string to Unicode subscripts.
     !!}
     use :: ISO_Varying_String, only : varying_string, assignment(=), operator(//)
@@ -434,7 +436,7 @@ contains
   end function String_Subscript
 
   function String_Superscript(stringInput) result (stringOutput)
-    !!{
+    !!{RST
     Converts an input string to Unicode superscripts.
     !!}
     use :: ISO_Varying_String, only : varying_string, assignment(=), operator(//)
@@ -483,11 +485,8 @@ contains
   end function String_Superscript
 
   integer function String_Levenshtein_Distance(s,t)
-    !!{
-    Compute the \href{http://en.wikipedia.org/wiki/Levenshtein_distance}{Levenshtein distance} between strings \mono{a} and
-    \mono{b}. Requires only \mono{len(t)}$\times$\mono{2} storage as the Levenshtein algorithm only ever needs to refer to the
-    immediately previous row of the transformation. Rows are alternated by using a modulo-2 operation to determine to which row
-    reads/writes should be made.
+    !!{RST
+    Compute the `Levenshtein distance <http://en.wikipedia.org/wiki/Levenshtein_distance>`_ between strings ``a`` and ``b``. Requires only ``len(t)``\ :math:`\times`\ ``2`` storage as the Levenshtein algorithm only ever needs to refer to the immediately previous row of the transformation. Rows are alternated by using a modulo-2 operation to determine to which row reads/writes should be made.
     !!}
     implicit none
     character(len=*), intent(in   )           :: s    , t
@@ -521,7 +520,7 @@ contains
   end function String_Levenshtein_Distance
   
   function String_Join(strings,separator)
-    !!{
+    !!{RST
     Joins an array of strings into one long string with the given separator.
     !!}
     use :: ISO_Varying_String, only : varying_string, operator(//), assignment(=)
@@ -540,7 +539,7 @@ contains
   end function String_Join
 
   function String_Strip(string)
-    !!{
+    !!{RST
     Strips a string of leading and trailing whitespace, including tabs.
     !!}
     use :: ISO_Varying_String, only : varying_string, assignment(=), index
@@ -571,7 +570,7 @@ contains
   end function String_Strip
 
   elemental function Char_Logical(input)
-    !!{
+    !!{RST
     Convert a logical to a string.
     !!}
     implicit none
@@ -587,7 +586,7 @@ contains
   end function Char_Logical
 
  function String_Value_Type(input) result(valueType)
-    !!{
+    !!{RST
     Attempt to detect whether a string corresponds to a floating point number, integer, or other.
     !!}
     implicit none
@@ -611,7 +610,7 @@ contains
   end function String_Value_Type
 
   double precision function String_Value_Extract_Float(input,status) result(valueFloat)
-    !!{
+    !!{RST
     Extract a floating-point value from a string.
     !!}
     implicit none
@@ -625,7 +624,7 @@ contains
   end function String_Value_Extract_Float
   
   integer function String_Value_Extract_Integer(input,status) result(valueInteger)
-    !!{
+    !!{RST
     Extract an integer value from a string.
     !!}
     implicit none
@@ -639,8 +638,8 @@ contains
   end function String_Value_Extract_Integer
 
   function String_Value_Extract_Integer_Size_T(input,status) result(valueInteger)
-    !!{
-    Extract a \mono{size\_t} integer value from a string.
+    !!{RST
+    Extract a ``size_t`` integer value from a string.
     !!}
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
@@ -678,14 +677,14 @@ contains
   end function stringSubstitute
 
   function stringXMLFormatVarStr(stringIn,indentStep,indentInitial,forceColor) result (stringOut)
-    !!{
-    Format an XML string with pretty indentation and coloring. Valid XML strings will be automatically pretty-formatted with one
-    element per line, automatic indenting (an initial indent, if required, can be specified via the optional
-    \mono{indentInitial} argument). Some special formatting codes are supported:
-    \begin{description}
-      \item[\mono{**B}:] Highlight the remainder of the line using bold.
-      \item[\mono{**C}:] Display a continuation line (to indicate arbitrary additional content), \mono{......}.
-    \end{description}
+    !!{RST
+    Format an XML string with pretty indentation and coloring. Valid XML strings will be automatically pretty-formatted with one element per line, automatic indenting (an initial indent, if required, can be specified via the optional ``indentInitial`` argument). Some special formatting codes are supported:
+
+    ``**B``:
+       Highlight the remainder of the line using bold.
+
+    ``**C``:
+       Display a continuation line (to indicate arbitrary additional content), ``......``.
     !!}
     use :: ISO_Varying_String, only : varying_string, char
     implicit none
@@ -699,14 +698,14 @@ contains
   end function stringXMLFormatVarStr
   
   function stringXMLFormatChar(stringIn,indentStep,indentInitial,forceColor) result (stringOut)
-    !!{
-    Format an XML string with pretty indentation and coloring. Valid XML strings will be automatically pretty-formatted with one
-    element per line, automatic indenting (an initial indent, if required, can be specified via the optional
-    \mono{indentInitial} argument). Some special formatting codes are supported:
-    \begin{description}
-      \item[\mono{**B}:] Highlight the remainder of the line using bold.
-      \item[\mono{**C}:] Display a continuation line (to indicate arbitrary additional content), \mono{......}.
-    \end{description}
+    !!{RST
+    Format an XML string with pretty indentation and coloring. Valid XML strings will be automatically pretty-formatted with one element per line, automatic indenting (an initial indent, if required, can be specified via the optional ``indentInitial`` argument). Some special formatting codes are supported:
+
+    ``**B``:
+       Highlight the remainder of the line using bold.
+
+    ``**C``:
+       Display a continuation line (to indicate arbitrary additional content), ``......``.
     !!}
     use :: ISO_Varying_String, only : varying_string, len         , assignment(=), operator(//), &
          &                            extract       , operator(==)

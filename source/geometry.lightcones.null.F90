@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   A null implementation of the lightcone geometry class.
   !!}
 
@@ -26,14 +26,14 @@
   use :: Output_Times        , only : outputTimesClass
 
   !![
-  <geometryLightcone name="geometryLightconeNull">
+  <geometryLightcone name="geometryLightconeNull" docformat="rst">
    <description>
-    A null implementation of the lightcone geometry class. The lightcone has zero solid angle/volume, so no galaxy ever lies within it.
+   A null implementation of the lightcone geometry class. The lightcone has zero solid angle/volume, so no galaxy ever lies within it.
    </description>
   </geometryLightcone>
   !!]
   type, extends(geometryLightconeClass) :: geometryLightconeNull
-     !!{
+     !!{RST
      A null lightcone geometry class.
      !!}
      private
@@ -51,8 +51,8 @@
   end type geometryLightconeNull
 
   interface geometryLightconeNull
-     !!{
-     Constructors for the \refClass{geometryLightconeNull} lightcone geometry distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`geometryLightconeNull` lightcone geometry distribution class.
      !!}
      module procedure nullConstructorParameters
   end interface geometryLightconeNull
@@ -60,9 +60,8 @@
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{geometryLightconeNull} lightcone geometry distribution class which takes a parameter list as
-    input.
+    !!{RST
+    Constructor for the :galacticus-class:`geometryLightconeNull` lightcone geometry distribution class which takes a parameter list as input.
     !!}
     implicit none
     type(geometryLightconeNull)                 :: self
@@ -74,8 +73,8 @@ contains
   end function nullConstructorParameters
 
   function nullReplicationCount(self,node)
-    !!{
-    Determine the number of times \mono{node} appears in the lightcone.
+    !!{RST
+    Determine the number of times ``node`` appears in the lightcone.
     !!}
     implicit none
     integer(c_size_t             )                :: nullReplicationCount
@@ -88,7 +87,7 @@ contains
   end function nullReplicationCount
 
   double precision function nullTimeMinimum(self)
-    !!{
+    !!{RST
     Return the minimum time in the lightcone.
     !!}
     implicit none
@@ -100,7 +99,7 @@ contains
   end function nullTimeMinimum
 
   double precision function nullTimeMaximum(self)
-    !!{
+    !!{RST
     Return the maximum time in the lightcone.
     !!}
     implicit none
@@ -112,8 +111,8 @@ contains
   end function nullTimeMaximum
 
   logical function nullIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
-    !!{
-    Determine if the given \mono{node} lies within the lightcone
+    !!{RST
+    Determine if the given ``node`` lies within the lightcone
     !!}
     implicit none
     class           (geometryLightconeNull), intent(inout)            :: self
@@ -127,7 +126,7 @@ contains
   end function nullIsInLightcone
 
   double precision function nullSolidAngle(self)
-    !!{
+    !!{RST
     Return the solid angle (in steradians) of a null lightcone.
     !!}
     implicit none
@@ -139,7 +138,7 @@ contains
   end function nullSolidAngle
 
   function nullPosition(self,node,instance)
-    !!{
+    !!{RST
     Return the position of the node in lightcone coordinates.
     !!}
     implicit none
@@ -154,7 +153,7 @@ contains
   end function nullPosition
 
   function nullVelocity(self,node,instance)
-    !!{
+    !!{RST
     Return the velocity of the node in lightcone coordinates.
     !!}
     implicit none
@@ -169,7 +168,7 @@ contains
   end function nullVelocity
 
   double precision function nullTimeLightconeCrossing(self,node,timeStart,timeEnd,timesCrossing)
-    !!{
+    !!{RST
     Return the time of the next lightcone crossing for this node.
     !!}
     implicit none
@@ -184,7 +183,7 @@ contains
   end function nullTimeLightconeCrossing
 
   function nullPositionLightconeCrossing(self,node)
-    !!{
+    !!{RST
     Return the position at the next lightcone crossing for this node.
     !!}
     use :: Error, only : Error_Report
@@ -199,7 +198,7 @@ contains
   end function nullPositionLightconeCrossing
   
   function nullVelocityLightconeCrossing(self,node)
-    !!{
+    !!{RST
     Return the velocity at the next lightcone crossing for this node.
     !!}
     implicit none

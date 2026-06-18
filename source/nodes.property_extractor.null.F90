@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a null output analysis class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorNull">
-   <description>A no-op property extractor that returns no output, used as a placeholder or default when no property extraction is required, primarily useful in testing or when an extractor slot must be filled without producing output.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorNull" docformat="rst">
+   <description>
+   A no-op property extractor that returns no output, used as a placeholder or default when no property extraction is required, primarily useful in testing or when an extractor slot must be filled without producing output.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass) :: nodePropertyExtractorNull
-     !!{
+     !!{RST
      A null output analysis class.
      !!}
      private
@@ -36,8 +38,8 @@ Implements a null output analysis class.
   end type nodePropertyExtractorNull
 
   interface nodePropertyExtractorNull
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorNull} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorNull` property extractor class.
      !!}
      module procedure nullConstructorParameters
   end interface nodePropertyExtractorNull
@@ -45,8 +47,8 @@ Implements a null output analysis class.
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorNull} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorNull` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function nullConstructorParameters
 
   function nullType(self)
-    !!{
+    !!{RST
     Return the type of the null property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeUnknown

@@ -19,8 +19,8 @@
 
 !+    Contributions to this file made by:  Luiz Felippe S. Rodrigues.
 
-  !!{
-  An implementation of the \gls{igm} state class in which state is read from file.
+  !!{RST
+  An implementation of the :term:`IGM` state class in which state is read from file.
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
@@ -30,115 +30,115 @@
   integer, parameter :: fileFormatVersionCurrent=1
 
   !![
-  <intergalacticMediumState name="intergalacticMediumStateFile">
+  <intergalacticMediumState name="intergalacticMediumStateFile" docformat="rst">
    <description>
-    An \gls{igm} state class which reads the state of the intergalactic medium from a file and interpolates in the
-    tabulated results. The HDF5 file containing the table should have the following form:
-    \begin{verbatim}
-    HDF5 "igmState.hdf5" {
-    GROUP "/" {
-       ATTRIBUTE "fileFormat" {
-          DATATYPE  H5T_IEEE_F64LE
-          DATASPACE  SCALAR
-          DATA {
-          (0): 1
-          }
-       }
-       GROUP "Parameters" {
-          ATTRIBUTE "HubbleConstant" {
-             DATATYPE  H5T_IEEE_F64LE
-             DATASPACE  SCALAR
-             DATA {
-             (0): 67.8
-             }
-          }
-          ATTRIBUTE "OmegaBaryon" {
-             DATATYPE  H5T_IEEE_F64LE
-             DATASPACE  SCALAR
-             DATA {
-             (0): 0.0484
-             }
-          }
-          ATTRIBUTE "OmegaDarkEnergy" {
-             DATATYPE  H5T_IEEE_F64LE
-             DATASPACE  SCALAR
-             DATA {
-             (0): 0.692
-             }
-          }
-          ATTRIBUTE "OmegaMatter" {
-             DATATYPE  H5T_IEEE_F64LE
-             DATASPACE  SCALAR
-             DATA {
-             (0): 0.308
-             }
-          }
-          ATTRIBUTE "Y_He" {
-             DATATYPE  H5T_IEEE_F64LE
-             DATASPACE  SCALAR
-             DATA {
-             (0): 0.22
-             }
-          }
-          ATTRIBUTE "temperatureCMB" {
-             DATATYPE  H5T_IEEE_F64LE
-             DATASPACE  SCALAR
-             DATA {
-             (0): 2.725
-             }
-          }
-       }
-       DATASET "electronFraction" {
-          DATATYPE  H5T_IEEE_F64LE
-          DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
-       }
-       DATASET "hIonizedFraction" {
-          DATATYPE  H5T_IEEE_F64LE
-          DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
-       }
-       DATASET "heIonizedFraction" {
-          DATATYPE  H5T_IEEE_F64LE
-          DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
-       }
-       DATASET "matterTemperature" {
-          DATATYPE  H5T_IEEE_F64LE
-          DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
-          ATTRIBUTE "units" {
-             DATATYPE  H5T_STRING {
-                STRSIZE 6;
-                STRPAD H5T_STR_NULLTERM;
-                CSET H5T_CSET_ASCII;
-                CTYPE H5T_C_S1;
-             }
-             DATASPACE  SCALAR
-             DATA {
-             (0): "Kelvin"
-             }
-          }
-          ATTRIBUTE "unitsInSI" {
-             DATATYPE  H5T_IEEE_F64LE
-             DATASPACE  SCALAR
-             DATA {
-             (0): 1
-             }
-          }
-       }
-       DATASET "redshift" {
-          DATATYPE  H5T_IEEE_F64LE
-          DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
-       }
-    }
-    }
-    \end{verbatim}
-     The \mono{electronFraction}, \mono{hIonizedFraction}, \mono{heIonizedFraction}, and \mono{matterTemperature} datasets contain the relevant quantity for each redshift
-    in the \mono{redshift} dataset.
+   An :term:`IGM` state class which reads the state of the intergalactic medium from a file and interpolates in the tabulated results. The HDF5 file containing the table should have the following form:
+
+   .. code-block:: none
+
+      HDF5 "igmState.hdf5" {
+      GROUP "/" {
+         ATTRIBUTE "fileFormat" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SCALAR
+            DATA {
+            (0): 1
+            }
+         }
+         GROUP "Parameters" {
+            ATTRIBUTE "HubbleConstant" {
+               DATATYPE  H5T_IEEE_F64LE
+               DATASPACE  SCALAR
+               DATA {
+               (0): 67.8
+               }
+            }
+            ATTRIBUTE "OmegaBaryon" {
+               DATATYPE  H5T_IEEE_F64LE
+               DATASPACE  SCALAR
+               DATA {
+               (0): 0.0484
+               }
+            }
+            ATTRIBUTE "OmegaDarkEnergy" {
+               DATATYPE  H5T_IEEE_F64LE
+               DATASPACE  SCALAR
+               DATA {
+               (0): 0.692
+               }
+            }
+            ATTRIBUTE "OmegaMatter" {
+               DATATYPE  H5T_IEEE_F64LE
+               DATASPACE  SCALAR
+               DATA {
+               (0): 0.308
+               }
+            }
+            ATTRIBUTE "Y_He" {
+               DATATYPE  H5T_IEEE_F64LE
+               DATASPACE  SCALAR
+               DATA {
+               (0): 0.22
+               }
+            }
+            ATTRIBUTE "temperatureCMB" {
+               DATATYPE  H5T_IEEE_F64LE
+               DATASPACE  SCALAR
+               DATA {
+               (0): 2.725
+               }
+            }
+         }
+         DATASET "electronFraction" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
+         }
+         DATASET "hIonizedFraction" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
+         }
+         DATASET "heIonizedFraction" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
+         }
+         DATASET "matterTemperature" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
+            ATTRIBUTE "units" {
+               DATATYPE  H5T_STRING {
+                  STRSIZE 6;
+                  STRPAD H5T_STR_NULLTERM;
+                  CSET H5T_CSET_ASCII;
+                  CTYPE H5T_C_S1;
+               }
+               DATASPACE  SCALAR
+               DATA {
+               (0): "Kelvin"
+               }
+            }
+            ATTRIBUTE "unitsInSI" {
+               DATATYPE  H5T_IEEE_F64LE
+               DATASPACE  SCALAR
+               DATA {
+               (0): 1
+               }
+            }
+         }
+         DATASET "redshift" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 10000 ) / ( 10000 ) }
+         }
+      }
+      }
+
+   The ``electronFraction``, ``hIonizedFraction``, ``heIonizedFraction``, and ``matterTemperature`` datasets contain the relevant quantity for each redshift in the ``redshift`` dataset.
    </description>
    <runTimeFileDependencies paths="fileName"/>
   </intergalacticMediumState>
   !!]
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateFile
-     !!{
-     An \gls{igm} state class which reads state from file.
+     !!{RST
+     An :term:`IGM` state class which reads state from file.
      !!}
      private
      ! Name of the file from which to read intergalactic medium state data.
@@ -163,8 +163,8 @@
   end type intergalacticMediumStateFile
 
   interface intergalacticMediumStateFile
-     !!{
-     Constructors for the file \gls{igm} state class.
+     !!{RST
+     Constructors for the file :term:`IGM` state class.
      !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
@@ -173,8 +173,8 @@
 contains
 
   function fileConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the file \gls{igm} state class.
+    !!{RST
+    Default constructor for the file :term:`IGM` state class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -185,11 +185,13 @@ contains
     type (varying_string              )                :: fileName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <source>parameters</source>
       <variable>fileName</variable>
-      <description>The name of the file from which to read intergalactic medium state data.</description>
+      <description>
+      The name of the file from which to read intergalactic medium state data.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -204,8 +206,8 @@ contains
   end function fileConstructorParameters
 
   function fileConstructorInternal(fileName,cosmologyFunctions_,cosmologyParameters_) result(self)
-    !!{
-    Constructor for the file \gls{igm} state class.
+    !!{RST
+    Constructor for the file :term:`IGM` state class.
     !!}
     use :: File_Utilities, only : File_Name_Expand
     implicit none
@@ -222,8 +224,8 @@ contains
   end function fileConstructorInternal
 
   subroutine fileDestructor(self)
-    !!{
-    Destructor for the file \gls{igm} state class.
+    !!{RST
+    Destructor for the file :term:`IGM` state class.
     !!}
     implicit none
     type(intergalacticMediumStateFile), intent(inout) :: self
@@ -236,7 +238,7 @@ contains
   end subroutine fileDestructor
 
   subroutine fileReadData(self)
-    !!{
+    !!{RST
     Read in data describing the state of the intergalactic medium.
     !!}
     use :: File_Utilities, only : File_Exists
@@ -292,8 +294,8 @@ contains
   end subroutine fileReadData
 
   double precision function fileTemperature(self,time)
-    !!{
-    Return the temperature of the intergalactic medium at the specified \mono{time} by interpolating in tabulated data.
+    !!{RST
+    Return the temperature of the intergalactic medium at the specified ``time`` by interpolating in tabulated data.
     !!}
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
@@ -307,8 +309,8 @@ contains
   end function fileTemperature
 
   double precision function fileElectronFraction(self,time)
-    !!{
-    Return the electron fraction in the intergalactic medium at the specified \mono{time} by interpolating in tabulated data,
+    !!{RST
+    Return the electron fraction in the intergalactic medium at the specified ``time`` by interpolating in tabulated data,
     !!}
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
@@ -322,8 +324,8 @@ contains
   end function fileElectronFraction
 
   double precision function fileNeutralHydrogenFraction(self,time)
-    !!{
-    Return the neutral hydrogen fraction in the intergalactic medium at the specified \mono{time} by interpolating in tabulated data,
+    !!{RST
+    Return the neutral hydrogen fraction in the intergalactic medium at the specified ``time`` by interpolating in tabulated data,
     !!}
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
@@ -338,8 +340,8 @@ contains
   end function fileNeutralHydrogenFraction
 
   double precision function fileNeutralHeliumFraction(self,time)
-    !!{
-    Return the neutral helium fraction in the intergalactic medium at the specified \mono{time} by interpolating in tabulated data,
+    !!{RST
+    Return the neutral helium fraction in the intergalactic medium at the specified ``time`` by interpolating in tabulated data,
     !!}
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self
@@ -354,8 +356,8 @@ contains
   end function fileNeutralHeliumFraction
 
   double precision function fileSinglyIonizedHeliumFraction(self,time)
-    !!{
-    Return the neutral helium fraction in the intergalactic medium at the specified \mono{time} by interpolating in tabulated data,
+    !!{RST
+    Return the neutral helium fraction in the intergalactic medium at the specified ``time`` by interpolating in tabulated data,
     !!}
     implicit none
     class           (intergalacticMediumStateFile), intent(inout) :: self

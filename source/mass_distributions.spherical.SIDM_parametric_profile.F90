@@ -19,23 +19,26 @@
 
   !+    Contributions to this file made by: Niusha Ahvazi
   
-  !!{
-  Implementation of a mass distribution class for the SIDM parametric profile of \cite{yang_parametric_2024}.
+  !!{RST
+  Implementation of a mass distribution class for the SIDM parametric profile of :cite:t:`yang_parametric_2024`.
   !!}
 
   !![
-  <massDistribution name="massDistributionSIDMParametricProfile">
+  <massDistribution name="massDistributionSIDMParametricProfile" docformat="rst">
     <description>
-      A mass distribution class for the SIDM parametric profile of \cite{yang_parametric_2024}. The density profile is given by:
-      \begin{equation} \rho(r) = \rho_\mathrm{s} \left[ \left( \left[\frac{r}{r_\mathrm{s}}\right]^\beta +
-      \left[\frac{r_\mathrm{c}}{r_\mathrm{s}}\right]^\beta \right)^{1/\beta} \left( 1 + \frac{r}{r_\mathrm{s}} \right)^2
-      \right]^{-1}.  \end{equation}
+    A mass distribution class for the SIDM parametric profile of :cite:t:`yang_parametric_2024`. The density profile is given by:
+
+    .. math::
+
+        \rho(r) = \rho_\mathrm{s} \left[ \left( \left[\frac{r}{r_\mathrm{s}}\right]^\beta +
+       \left[\frac{r_\mathrm{c}}{r_\mathrm{s}}\right]^\beta \right)^{1/\beta} \left( 1 + \frac{r}{r_\mathrm{s}} \right)^2
+       \right]^{-1}.
     </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSphericalTabulated) :: massDistributionSIDMParametricProfile
-     !!{
-     A mass distribution class for the SIDM parametric profile of \cite{yang_parametric_2024}.
+     !!{RST
+     A mass distribution class for the SIDM parametric profile of :cite:t:`yang_parametric_2024`.
      !!}
      double precision :: beta          , radiusScale         , &
           &              radiusCore    , densityNormalization, &
@@ -52,8 +55,8 @@
   end type massDistributionSIDMParametricProfile
   
   interface massDistributionSIDMParametricProfile
-     !!{
-     Constructors for the \refClass{massDistributionSIDMParametricProfile} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionSIDMParametricProfile` mass distribution class.
      !!}
      module procedure SIDMParametricProfileConstructorParameters
      module procedure SIDMParametricProfileConstructorInternal
@@ -72,9 +75,8 @@
 contains
 
   function SIDMParametricProfileConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSIDMParametricProfile} mass distribution class which builds the object from a
-    parameter set.    
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionSIDMParametricProfile` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -87,40 +89,52 @@ contains
     type            (varying_string                       )                :: massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <defaultValue>4.0d0</defaultValue>
-      <description>The value $\beta$ in a SIDM parametric mass distribution.</description>
+      <description>
+      The value :math:`\beta` in a SIDM parametric mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityNormalization</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The density normalization of a SIDM parametric mass distribution.</description>
+      <description>
+      The density normalization of a SIDM parametric mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusScale</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The scale of a SIDM parametric mass distribution.</description>
+      <description>
+      The scale of a SIDM parametric mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusCore</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The core radius of a SIDM parametric mass distribution.</description>
+      <description>
+      The core radius of a SIDM parametric mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -133,8 +147,8 @@ contains
   end function SIDMParametricProfileConstructorParameters
 
   function SIDMParametricProfileConstructorInternal(beta,densityNormalization,radiusScale,radiusCore,componentType,massType) result(self)
-    !!{
-    Internal constructor for \refClass{massDistributionSIDMParametricProfile} mass distribution class.
+    !!{RST
+    Internal constructor for :galacticus-class:`massDistributionSIDMParametricProfile` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSIDMParametricProfile)                          :: self
@@ -155,7 +169,7 @@ contains
   end function SIDMParametricProfileConstructorInternal
 
   function SIDMParametricProfileFactoryTabulation(self,parameters) result(instance)
-    !!{
+    !!{RST
     Construct an instance of this class using tabulation parameters.
     !!}
     implicit none
@@ -173,8 +187,8 @@ contains
   end function SIDMParametricProfileFactoryTabulation
   
   double precision function SIDMParametricProfileDensity(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in a SIDM parametric mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a SIDM parametric mass distribution.
     !!}
     implicit none
     class           (massDistributionSIDMParametricProfile), intent(inout) :: self
@@ -195,8 +209,8 @@ contains
   end function SIDMParametricProfileDensity
 
   double precision function SIDMParametricProfileDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
-    !!{
-    Return the density at the specified \mono{coordinates} in a SIDM parametric mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a SIDM parametric mass distribution.
     !!}
     implicit none
     class           (massDistributionSIDMParametricProfile), intent(inout), target   :: self
@@ -227,7 +241,7 @@ contains
   end function SIDMParametricProfileDensityGradientRadial
   
   double precision function SIDMParametricProfileRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mean density for SIDM parametric mass distributions.
     !!}
     implicit none
@@ -255,7 +269,7 @@ contains
   end function SIDMParametricProfileRadiusEnclosingDensity
 
   double precision function SIDMParametricProfileRadiusEnclosingDensityNumerical(self,density,radiusGuess) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mean density for SIDM parametric mass distributions.
     !!}
     implicit none
@@ -283,7 +297,7 @@ contains
   end function SIDMParametricProfileRadiusEnclosingDensityNumerical
 
   subroutine SIDMParametricProfileParameters(self,densityNormalization,radiusNormalization,parameters,container)
-    !!{
+    !!{RST
     Establish parameters for tabulation.
     !!}
     implicit none
@@ -340,7 +354,7 @@ contains
   end subroutine SIDMParametricProfileParameters
 
   subroutine SIDMParametricProfileDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
-    !!{
+    !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -366,7 +380,7 @@ contains
   end subroutine SIDMParametricProfileDescriptor
 
   function SIDMParametricProfileSuffix(self) result(suffix)
-    !!{
+    !!{RST
     Return a suffix for tabulated file names.
     !!}
     use :: String_Handling, only : String_C_To_Fortran

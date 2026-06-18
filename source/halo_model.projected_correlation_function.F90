@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements calculations of projected correlation functions using the halo model.
 !!}
 
 module Halo_Model_Projected_Correlations
-  !!{
+  !!{RST
   Implements calculations of projected correlation functions using the halo model.
   !!}
   private
@@ -55,7 +55,7 @@ contains
        &                                      projectedCorrelationFunctionHalfIntegral    , &
        &                                      projectedCorrelationBinned                    &
        &                                     )
-    !!{
+    !!{RST
     Compute the projected correlation function of galaxies above a specified mass using the halo model.
     !!}
     use :: Conditional_Mass_Functions, only : conditionalMassFunctionClass
@@ -244,7 +244,7 @@ contains
   contains
 
     double precision function projectionIntegrandWeight(separation)
-      !!{
+      !!{RST
       The weight function applied to the correlation function when integrating to get the projected correlation function.
       !!}
       implicit none
@@ -259,7 +259,7 @@ contains
     end function projectionIntegrandWeight
 
     double precision function binningIntegrandWeight(separation)
-      !!{
+      !!{RST
       The weight function applied to the projected correlation function when integrating into bins.
       !!}
       implicit none
@@ -270,7 +270,7 @@ contains
     end function binningIntegrandWeight
 
     double precision function powerSpectrumOneHaloTimeIntegrand(timePrime)
-      !!{
+      !!{RST
       Time integrand for the one-halo term in the power spectrum.
       !!}
       use :: Display         , only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset
@@ -300,7 +300,7 @@ contains
     end function powerSpectrumOneHaloTimeIntegrand
 
     double precision function powerSpectrumOneHaloIntegrand(massHalo)
-      !!{
+      !!{RST
       Integrand for the one-halo term in the power spectrum.
       !!}
       use :: Conditional_Mass_Functions, only : haloModelGalaxyTypeCentral, haloModelGalaxyTypeSatellite
@@ -357,7 +357,7 @@ contains
     end function powerSpectrumOneHaloIntegrand
 
     double precision function powerSpectrumTwoHaloTimeIntegrand(timePrime)
-      !!{
+      !!{RST
       Time integrand for the two-halo term in the power spectrum.
       !!}
       use :: Display, only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset
@@ -391,7 +391,7 @@ contains
     end function powerSpectrumTwoHaloTimeIntegrand
 
     double precision function powerSpectrumTwoHaloIntegrand(massHalo)
-      !!{
+      !!{RST
       Integrand for the two-halo term in the power spectrum.
       !!}
       use :: Calculations_Resets, only : Calculations_Reset
@@ -429,7 +429,7 @@ contains
     end function powerSpectrumTwoHaloIntegrand
 
     double precision function normalizationTimeIntegrand(timePrime)
-      !!{
+      !!{RST
       Time integrand for the normalization term in the power spectrum.
       !!}
       implicit none
@@ -447,7 +447,7 @@ contains
     end function normalizationTimeIntegrand
 
     double precision function normalizationIntegrand(massHalo)
-      !!{
+      !!{RST
       Integrand for the normalization term in the power spectrum.
       !!}
       implicit none
@@ -464,7 +464,7 @@ contains
     end function normalizationIntegrand
 
     double precision function volumeTimeIntegrand(timePrime)
-      !!{
+      !!{RST
       Volume integrand for the normalization term in the power spectrum.
       !!}
       implicit none

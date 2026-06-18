@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergersIndices">
-   <description>Extracts integer index properties of galaxy-galaxy merger events (as distinct from halo mergers), such as node indices of the merging galaxy pair, enabling reconstruction of the galaxy merger history.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergersIndices" docformat="rst">
+   <description>
+   Extracts integer index properties of galaxy-galaxy merger events (as distinct from halo mergers), such as node indices of the merging galaxy pair, enabling reconstruction of the galaxy merger history.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerList) :: nodePropertyExtractorGalaxyMergersIndices
-     !!{
+     !!{RST
      A property extractor which extracts the indices properties of galaxy-galaxy mergers.
      !!}
      private
@@ -38,8 +40,8 @@
   end type nodePropertyExtractorGalaxyMergersIndices
 
   interface nodePropertyExtractorGalaxyMergersIndices
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorGalaxyMergersIndices} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorGalaxyMergersIndices` property extractor class.
      !!}
      module procedure galaxyMergersIndicesConstructorParameters
      module procedure galaxyMergersIndicesConstructorInternal
@@ -48,8 +50,8 @@
 contains
 
   function galaxyMergersIndicesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorGalaxyMergersIndices} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorGalaxyMergersIndices` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,8 +66,8 @@ contains
   end function galaxyMergersIndicesConstructorParameters
 
   function galaxyMergersIndicesConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergersIndices} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorGalaxyMergersIndices` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorGalaxyMergersIndices) :: self
@@ -77,7 +79,7 @@ contains
   end function galaxyMergersIndicesConstructorInternal
 
   integer function galaxyMergersIndicesElementCount(self)
-    !!{
+    !!{RST
     Return a count of the number of properties extracted.
     !!}
     implicit none
@@ -88,7 +90,7 @@ contains
   end function galaxyMergersIndicesElementCount
 
   function galaxyMergersIndicesExtract(self,node,instance) result(galaxyMergers)
-    !!{
+    !!{RST
     Implement a galaxyMergersIndices output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -110,8 +112,8 @@ contains
   end function galaxyMergersIndicesExtract
   
   subroutine galaxyMergersIndicesNames(self,names)
-    !!{
-    Return the names of the \mono{galaxyMergersIndices} properties.
+    !!{RST
+    Return the names of the ``galaxyMergersIndices`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyMergersIndices), intent(inout)                             :: self
@@ -124,8 +126,8 @@ contains
   end subroutine galaxyMergersIndicesNames
 
   subroutine galaxyMergersIndicesDescriptions(self,descriptions)
-    !!{
-    Return the descriptions of the \mono{galaxyMergersIndices} properties.
+    !!{RST
+    Return the descriptions of the ``galaxyMergersIndices`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorGalaxyMergersIndices), intent(inout)                             :: self
@@ -138,8 +140,8 @@ contains
   end subroutine galaxyMergersIndicesDescriptions
 
   function galaxyMergersIndicesUnitsInSI(self) result(unitsInSI)
-    !!{
-    Return the units of the \mono{galaxyMergersIndices} properties in the SI system.
+    !!{RST
+    Return the units of the ``galaxyMergersIndices`` properties in the SI system.
     !!}
     implicit none
     double precision                                           , dimension(:) , allocatable :: unitsInSI
@@ -152,7 +154,7 @@ contains
   end function galaxyMergersIndicesUnitsInSI
 
   function galaxyMergersIndicesUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the galaxyMergersIndices properties.
     !!}
     use :: Units_MetaData, only : unitType

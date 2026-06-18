@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that provides and object that implements satellite merging timescales.
 !!}
 
 module Satellite_Merging_Timescales
-  !!{
+  !!{RST
   Provides and object that implements satellite merging timescales.
   !!}
   use :: Galacticus_Nodes, only : treeNode
@@ -34,18 +34,17 @@ module Satellite_Merging_Timescales
   double precision, public, parameter :: satelliteMergeTimeInfinite=1.0d-6*huge(1.0d0)
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>satelliteMergingTimescales</name>
    <descriptiveName>Satellite Merging Timescales</descriptiveName>
    <description>
-    Object providing the timescale for a satellite halo to merge with its host halo, given the satellite's current
-    orbit. The merging timescale is determined by dynamical friction, which dissipates the satellite's orbital energy
-    and angular momentum until it reaches the center of the host. Implementations typically follow formulae derived
-    from $N$-body experiments, parameterized by the Coulomb logarithm and orbital properties.
+   Object providing the timescale for a satellite halo to merge with its host halo, given the satellite's current orbit. The merging timescale is determined by dynamical friction, which dissipates the satellite's orbital energy and angular momentum until it reaches the center of the host. Implementations typically follow formulae derived from :math:`N`-body experiments, parameterized by the Coulomb logarithm and orbital properties.
    </description>
    <default>jiang2008</default>
    <method name="timeUntilMerging" >
-    <description>Return the time (in Gyr) until the satellite will merge with its host given the current orbit.</description>
+    <description>
+    Return the time (in Gyr) until the satellite will merge with its host given the current orbit.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode   ), intent(inout) :: node</argument>
