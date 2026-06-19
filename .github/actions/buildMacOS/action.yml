@@ -61,7 +61,7 @@ runs:
         rm ./MacPorts-${macportsbase}.pkg
     - name: Install GCC 16 (gcc/g++/gfortran)
       shell: bash
-      run: brew install gcc@16
+      run: brew install gcc
     - name: Install guile
       shell: bash
       run: |
