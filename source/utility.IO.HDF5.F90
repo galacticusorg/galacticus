@@ -18234,7 +18234,7 @@ attributeValue=trim(attributeValue)
 
   subroutine IO_HDF5_Write_Attribute_Units_Scalar(self,attributeValue,attributeName)
     !!{RST
-    Write a ``unitType`` compound scalar attribute to ``self``. The attribute is written using a custom HDF5 compound datatype that mirrors the ``unitType`` ``bind(C)`` derived type. Member offsets and the overall datatype size are obtained directly from a ``unitType`` instance via :galacticus-class:`H5OFFSETOF` and ``c_sizeof()``, so the HDF5 layout always matches the Fortran type.
+    Write a ``unitType`` compound scalar attribute to ``self``. The attribute is written using a custom HDF5 compound datatype that mirrors the ``unitType`` ``bind(C)`` derived type. Member offsets and the overall datatype size are obtained directly from a ``unitType`` instance via ``H5OFFSETOF`` and ``c_sizeof()``, so the HDF5 layout always matches the Fortran type.
     !!}
     use            :: Error             , only : Error_Report
     use            :: HDF5              , only : HID_T          , h5aclose_f        , h5acreate_f       , &
