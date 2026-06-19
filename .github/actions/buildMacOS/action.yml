@@ -61,7 +61,13 @@ runs:
         rm ./MacPorts-${macportsbase}.pkg
     - name: Install GCC 16 (gcc/g++/gfortran)
       shell: bash
-      run: brew install gcc
+      run: |
+        # Refresh the formula index first: the runner image ships an older
+        # `gcc` (e.g. 15.2.0) and a stale tap that reports it as current, so a
+        # bare `brew install gcc` is a no-op and no `gcc-16` binary appears.
+        brew update
+        brew install gcc
+        brew upgrade gcc
     - name: Install guile
       shell: bash
       run: |
