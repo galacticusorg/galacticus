@@ -4527,6 +4527,75 @@ def test_functionclass_generate_method_functions():
                  "methods with explicit function= are skipped")
 
 
+def _make_simple_class(name, extends, member_declarations=None,
+                       constructor_children=None, opener=None):
+    """Helper: build a minimal class_record tree with a type block and
+    an optional interface+constructor function.
+
+    `member_declarations` populates the type body; `constructor_children`
+    are siblings attached after a type(inputParameters) :: parameters
+    declaration inside a function named <name>Constructor.
+    """
+    type_body_sibling = None
+    if member_declarations:
+        type_body_sibling = {
+            'type': 'declaration',
+            'declarations': member_declarations,
+            'sibling':    None,
+            'firstChild': None,
+        }
+    type_node = {
+        'type':       'type',
+        'name':       name,
+        'opener':     opener or f'type, extends({extends}) :: {name}',
+        'firstChild': type_body_sibling,
+        'sibling':    None,
+    }
+    if constructor_children is not None:
+        first = {
+            'type':         'declaration',
+            'declarations': [{
+                'intrinsic':  'type',
+                'type':       'inputParameters',
+                'variables':  ['parameters'],
+                'attributes': [],
+            }],
+            'sibling':   None,
+            'firstChild': None,
+        }
+        prev = first
+        for child in constructor_children:
+            prev['sibling'] = child
+            prev = child
+            prev['sibling'] = None
+        func = {
+            'type':       'function',
+            'name':       name + 'Constructor',
+            'opener':     f'  function {name}Constructor(parameters)',
+            'firstChild': first,
+            'sibling':    None,
+        }
+        iface_body = {
+            'type':       'moduleProcedure',
+            'names':      [name + 'Constructor'],
+            'firstChild': None,
+            'sibling':    None,
+        }
+        iface = {
+            'type':       'interface',
+            'name':       name,
+            'firstChild': iface_body,
+            'sibling':    func,
+        }
+        type_node['sibling'] = iface
+    return {
+        'name':    name,
+        'extends': extends,
+        'node':    {'line': 1, 'source': f'{name}.F90'},
+        'tree':    {'firstChild': type_node},
+    }
+
+
 def test_functionclass_build_assignment_method():
     print("\n=== Testing FunctionClass._build_assignment_method ===")
     directive = {'name': 'testFoo', 'data': []}
