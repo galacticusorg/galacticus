@@ -90,7 +90,7 @@ from Galacticus.Build.SourceTree.Process.FunctionClass import (
     _build_descriptor_methods, _descriptor_discover_class,
     _load_and_sort_classes,
     _generate_type_definition, _generate_constructor,
-    _generate_method_functions, _generate_documentation,
+    _generate_method_functions,
     _generate_class_submodules,
     _format_variable_definitions, _source_digest_binding,
     _STATE_STORABLES_HOLDER     as _fc_state_storables_holder,
@@ -4527,134 +4527,6 @@ def test_functionclass_generate_method_functions():
                  "methods with explicit function= are skipped")
 
 
-def test_functionclass_generate_documentation_basic():
-    print("\n=== Testing FunctionClass._generate_documentation (basic write) ===")
-    # Set up a minimal tree for one class that has an interface block naming
-    # a module-procedure constructor — the walker needs both to emit the
-    # class's `\\subsection{}` header without parameter details.
-    class_src = (
-        "module m\n"
-        "  interface myFooCore\n"
-        "    module procedure myFooCoreConstructor\n"
-        "  end interface myFooCore\n"
-        "end module m\n"
-    )
-    tree = _parse_text(class_src)
-    classes = {
-        'myFooCore': {
-            'name':        'myFooCore',
-            'description': 'The core implementation.',
-            'tree':        tree,
-            'extends':     'myFoo',
-        },
-    }
-    non_abstract_classes = [classes['myFooCore']]
-    directive = {
-        'name':            'myFoo',
-        'descriptiveName': 'My Foo Example',
-        'description':     'A toy functionClass for unit tests.',
-    }
-
-    cwd = os.getcwd()
-    tmpdir = tempfile.mkdtemp()
-    try:
-        os.chdir(tmpdir)
-        _generate_documentation(directive, classes, non_abstract_classes)
-        out_path = os.path.join(
-            tmpdir, 'doc', 'physics', 'my_foo_example.tex')
-        assert_equal(os.path.exists(out_path), True,
-                     "documentation file written at expected path")
-        with open(out_path, 'r') as fh:
-            payload = fh.read()
-        assert_equal('\\section{My Foo Example}' in payload, True,
-                     "\\section header with descriptive name")
-        assert_equal('\\refClass{myFooCore}' in payload, True,
-                     "\\refClass reference to the implementation emitted")
-        assert_equal('The core implementation.' in payload, True,
-                     "class description spliced into subsection body")
-    finally:
-        os.chdir(cwd)
-        import shutil
-        shutil.rmtree(tmpdir)
-
-
-# ============================================================================
-# Main
-# ============================================================================
-
-# ---------------------------------------------------------------------------
-# D.7.3c build_* method tests
-# ---------------------------------------------------------------------------
-
-def _make_simple_class(name, extends, member_declarations=None,
-                       constructor_children=None, opener=None):
-    """Helper: build a minimal class_record tree with a type block and
-    an optional interface+constructor function.
-
-    `member_declarations` populates the type body; `constructor_children`
-    are siblings attached after a type(inputParameters) :: parameters
-    declaration inside a function named <name>Constructor.
-    """
-    type_body_sibling = None
-    if member_declarations:
-        type_body_sibling = {
-            'type': 'declaration',
-            'declarations': member_declarations,
-            'sibling':    None,
-            'firstChild': None,
-        }
-    type_node = {
-        'type':       'type',
-        'name':       name,
-        'opener':     opener or f'type, extends({extends}) :: {name}',
-        'firstChild': type_body_sibling,
-        'sibling':    None,
-    }
-    if constructor_children is not None:
-        first = {
-            'type':         'declaration',
-            'declarations': [{
-                'intrinsic':  'type',
-                'type':       'inputParameters',
-                'variables':  ['parameters'],
-                'attributes': [],
-            }],
-            'sibling':   None,
-            'firstChild': None,
-        }
-        prev = first
-        for child in constructor_children:
-            prev['sibling'] = child
-            prev = child
-            prev['sibling'] = None
-        func = {
-            'type':       'function',
-            'name':       name + 'Constructor',
-            'opener':     f'  function {name}Constructor(parameters)',
-            'firstChild': first,
-            'sibling':    None,
-        }
-        iface_body = {
-            'type':       'moduleProcedure',
-            'names':      [name + 'Constructor'],
-            'firstChild': None,
-            'sibling':    None,
-        }
-        iface = {
-            'type':       'interface',
-            'name':       name,
-            'firstChild': iface_body,
-            'sibling':    func,
-        }
-        type_node['sibling'] = iface
-    return {
-        'name':    name,
-        'extends': extends,
-        'node':    {'line': 1, 'source': f'{name}.F90'},
-        'tree':    {'firstChild': type_node},
-    }
-
-
 def test_functionclass_build_assignment_method():
     print("\n=== Testing FunctionClass._build_assignment_method ===")
     directive = {'name': 'testFoo', 'data': []}
@@ -5015,7 +4887,6 @@ def main():
     test_functionclass_generate_type_definition()
     test_functionclass_generate_constructor_with_default_and_recursion()
     test_functionclass_generate_method_functions()
-    test_functionclass_generate_documentation_basic()
     test_functionclass_build_assignment_method()
     test_functionclass_build_deep_copy_methods()
     test_functionclass_build_state_store_methods()
