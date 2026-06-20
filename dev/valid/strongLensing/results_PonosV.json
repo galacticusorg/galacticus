@@ -4,12 +4,12 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "931f580aca5a858da4c57ed11cf5a4bd7ae2b24c",
-        "message": "docs(pool): refer to objectPool without broken cross-reference\n\nResolve undefined `\\refClass{objectPool}` to a plain `\\mono` reference\nsince the class lacks a corresponding cross-reference target.\n",
-        "timestamp": "2026-06-16 15:12:57-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/931f580aca5a858da4c57ed11cf5a4bd7ae2b24c"
+        "id": "0f9ace2318ca44c96c4069b5833e5f2bbf94dff3",
+        "message": "Merge pull request #1178 from galacticusorg/ci-macos-homebrew-gcc16\n\nci(buildMacOS): switch back to Homebrew GCC 16 install\n",
+        "timestamp": "2026-06-20 04:56:26+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/0f9ace2318ca44c96c4069b5833e5f2bbf94dff3"
     },
     "surfaceDensity": {
         "percentageBelow": 28.57142857142857,
