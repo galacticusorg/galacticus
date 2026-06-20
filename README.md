@@ -21,10 +21,10 @@ Before building, make sure you have the following available:
 
 - A modern Fortran compiler (`gfortran` ≥ 16; earlier versions will not compile Galacticus)
 - `make`
-- HDF5 libraries (the code writes output in HDF5 format)
-- FFTW3 libraries
-- GSL (GNU Scientific Library)
+- GSL, zlib, HDF5, FoX, and BLAS libraries (HDF5 and FoX must be built with the same compiler used for Galacticus)
 - Python 3 (≥ 3.9; used by the build system for code generation and various supporting scripts)
+
+FFTW3, ANN, and `libmatheval` are optional (needed only for specialized calculations). For the full, platform-specific prerequisite list and step-by-step instructions, see the [Installation guide](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/index.html).
 
 > **Tip:** The easiest way to get a fully configured environment is to use [GitHub Codespaces](#open-in-github-codespaces) (click the badge above). All dependencies are pre-installed.
 

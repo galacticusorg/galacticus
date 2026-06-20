@@ -26,6 +26,7 @@ copyright = f'2009–{datetime.date.today().year} Andrew Benson'
 extensions = [
     'sphinx.ext.mathjax',
     'sphinxcontrib.bibtex',
+    'sphinxcontrib.mermaid',
 ]
 
 # Spell-checking (sphinxcontrib-spelling) is loaded only for the dedicated

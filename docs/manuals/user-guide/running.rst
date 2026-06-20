@@ -1,7 +1,7 @@
 Running Galacticus
 ==================
 
-If you have not yet installed Galacticus you should follow the instructions `here <https://github.com/galacticusorg/galacticus/wiki#how-do-i-install-and-use-galacticus>`_ to do so.
+If you have not yet installed Galacticus you should follow the instructions in :doc:`installation/index` to do so.
 
 Setting the Environment
 -----------------------

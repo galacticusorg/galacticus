@@ -26,7 +26,7 @@ Centralized ODE solver:
 Getting Galacticus
 ------------------
 
-Galacticus is available in many different forms: a precompiled binary, a `Docker <https://www.docker.com/>`_ image, and the full source code. Downloads and installation instructions can be found `here <https://github.com/galacticusorg/galacticus/wiki#how-do-i-install-and-use-galacticus>`_.
+Galacticus is available in many different forms: a precompiled binary, a `Docker <https://www.docker.com/>`_ image, and the full source code. See :doc:`installation/index` for downloads and installation instructions.
 
 License
 -------
