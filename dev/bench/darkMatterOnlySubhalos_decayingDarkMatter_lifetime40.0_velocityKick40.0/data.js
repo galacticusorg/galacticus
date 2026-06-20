@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781679983833,
+  "lastUpdate": 1781963117387,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=40 km/s)": [
@@ -5581,6 +5581,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": 23.759508801317644,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0f9ace2318ca44c96c4069b5833e5f2bbf94dff3",
+          "message": "Merge pull request #1178 from galacticusorg/ci-macos-homebrew-gcc16\n\nci(buildMacOS): switch back to Homebrew GCC 16 install",
+          "timestamp": "2026-06-20T04:56:26Z",
+          "tree_id": "bfb3e63143b59a60d866c50f5e8c96e4121b5aea",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0f9ace2318ca44c96c4069b5833e5f2bbf94dff3"
+        },
+        "date": 1781963116421,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": 24.294462308895465,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": 25.016548234177534,
             "unit": "-logℒ"
           }
         ]
