@@ -145,11 +145,8 @@ contains
   end function cylindricalScalerConstructorInternal
 
   subroutine cylindricalScalerInitialize(self,factorScalingLength,factorScalingMass)
-    !!{
-    (Re)initialize the scaling factors of a \refClass{massDistributionCylindricalScaler} mass distribution. Used to re-use a
-    pooled scaler for a new system without reallocating it (and without disturbing the wrapped, dimensionless mass distribution,
-    which is unchanged). The scaler holds no scale-dependent cached state of its own, so only the two scaling factors need to be
-    reset.
+    !!{RST
+    (Re)initialize the scaling factors of a :galacticus-class:`massDistributionCylindricalScaler` mass distribution. Used to re-use a pooled scaler for a new system without reallocating it (and without disturbing the wrapped, dimensionless mass distribution, which is unchanged). The scaler holds no scale-dependent cached state of its own, so only the two scaling factors need to be reset.
     !!}
     implicit none
     class           (massDistributionCylindricalScaler), intent(inout) :: self
