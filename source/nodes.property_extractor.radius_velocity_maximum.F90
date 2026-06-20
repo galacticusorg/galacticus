@@ -17,22 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a property extractor class which extracts the radius at which the maximum velocity is reached in the dark
-  matter-only density profile.
+  !!{RST
+  Implements a property extractor class which extracts the radius at which the maximum velocity is reached in the dark matter-only density profile.
   !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRadiusVelocityMaximum">
-   <description>Extracts the radius at which the circular velocity reaches its maximum value in the dark matter-only density profile of each halo, a key structural parameter that characterizes halo concentration and mass distribution.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorRadiusVelocityMaximum" docformat="rst">
+   <description>
+   Extracts the radius at which the circular velocity reaches its maximum value in the dark matter-only density profile of each halo, a key structural parameter that characterizes halo concentration and mass distribution.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusVelocityMaximum
-     !!{
-     A property extractor class which extracts the radius at which the maximum velocity is reached in the dark matter-only
-     density profile.
+     !!{RST
+     A property extractor class which extracts the radius at which the maximum velocity is reached in the dark matter-only density profile.
      !!}
      private
      class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
@@ -48,8 +48,8 @@
   end type nodePropertyExtractorRadiusVelocityMaximum
 
   interface nodePropertyExtractorRadiusVelocityMaximum
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusVelocityMaximum} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiusVelocityMaximum` property extractor class.
      !!}
      module procedure radiusVelocityMaximumConstructorParameters
      module procedure radiusVelocityMaximumConstructorInternal
@@ -58,8 +58,8 @@
 contains
 
   function radiusVelocityMaximumConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusVelocityMaximum} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiusVelocityMaximum` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,11 +69,13 @@ contains
     type (varying_string                            )                :: propertyName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyName</name>
       <defaultValue>var_str('RadiusVelocityMaximum')</defaultValue>
       <source>parameters</source>
-      <description>Name of the property.</description>
+      <description>
+      Name of the property.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
@@ -86,8 +88,8 @@ contains
   end function radiusVelocityMaximumConstructorParameters
 
   function radiusVelocityMaximumConstructorInternal(propertyName,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRadiusVelocityMaximum} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRadiusVelocityMaximum` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiusVelocityMaximum)                        :: self
@@ -101,8 +103,8 @@ contains
   end function radiusVelocityMaximumConstructorInternal
 
   subroutine radiusVelocityMaximumDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorRadiusVelocityMaximum} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorRadiusVelocityMaximum` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusVelocityMaximum), intent(inout) :: self
@@ -114,7 +116,7 @@ contains
   end subroutine radiusVelocityMaximumDestructor
 
   double precision function radiusVelocityMaximumExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a radius of maximum velocity output analysis.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentBasic   , treeNode
@@ -135,7 +137,7 @@ contains
   end function radiusVelocityMaximumExtract
 
   function radiusVelocityMaximumName(self)
-    !!{
+    !!{RST
     Return the name of the radius of maximum velocity property.
     !!}
     implicit none
@@ -148,7 +150,7 @@ contains
   end function radiusVelocityMaximumName
 
   function radiusVelocityMaximumDescription(self)
-    !!{
+    !!{RST
     Return a description of the radius of maximum velocity property.
     !!}
     implicit none
@@ -161,7 +163,7 @@ contains
   end function radiusVelocityMaximumDescription
 
   double precision function radiusVelocityMaximumUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the radius of maximum velocity property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
@@ -174,7 +176,7 @@ contains
   end function radiusVelocityMaximumUnitsInSI
 
   function radiusVelocityMaximumUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the radiusVelocityMaximum property.
     !!}
     use :: Units_MetaData, only : unitType

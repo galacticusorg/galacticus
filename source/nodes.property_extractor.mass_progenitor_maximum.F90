@@ -18,15 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMassProgenitorMaximum">
+  <nodePropertyExtractor name="nodePropertyExtractorMassProgenitorMaximum" docformat="rst">
    <description>
-     A node property extractor which extracts the mass of the most massive progenitor of a node. Requires the
-     \refClass{nodeOperatorMassProgenitorMaximum} node operator to be used to track the maximum progenitor mass.
+   A node property extractor which extracts the mass of the most massive progenitor of a node. Requires the :galacticus-class:`nodeOperatorMassProgenitorMaximum` node operator to be used to track the maximum progenitor mass.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassProgenitorMaximum
-     !!{
+     !!{RST
      A property extractor which extracts the mass of the most massive progenitor of a node.
      !!}
      private
@@ -40,8 +39,8 @@
   end type nodePropertyExtractorMassProgenitorMaximum
 
   interface nodePropertyExtractorMassProgenitorMaximum
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMassProgenitorMaximum} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassProgenitorMaximum` property extractor class.
      !!}
      module procedure massProgenitorMaximumConstructorParameters
      module procedure massProgenitorMaximumConstructorInternal
@@ -50,8 +49,8 @@
 contains
 
   function massProgenitorMaximumConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMassProgenitorMaximum} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassProgenitorMaximum` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,8 +65,8 @@ contains
   end function massProgenitorMaximumConstructorParameters
 
   function massProgenitorMaximumConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassProgenitorMaximum} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMassProgenitorMaximum` property extractor class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -80,7 +79,7 @@ contains
   end function massProgenitorMaximumConstructorInternal
 
   double precision function massProgenitorMaximumExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a massProgenitorMaximum output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -97,8 +96,8 @@ contains
   end function massProgenitorMaximumExtract
 
   function massProgenitorMaximumName(self)
-    !!{
-    Return the names of the \mono{massProgenitorMaximum} properties.
+    !!{RST
+    Return the names of the ``massProgenitorMaximum`` properties.
     !!}
     implicit none
     type (varying_string                            )                :: massProgenitorMaximumName
@@ -110,8 +109,8 @@ contains
   end function massProgenitorMaximumName
 
   function massProgenitorMaximumDescription(self)
-    !!{
-    Return the descriptions of the \mono{massProgenitorMaximum} properties.
+    !!{RST
+    Return the descriptions of the ``massProgenitorMaximum`` properties.
     !!}
     implicit none
     type (varying_string                            )                :: massProgenitorMaximumDescription
@@ -123,8 +122,8 @@ contains
   end function massProgenitorMaximumDescription
 
   double precision function massProgenitorMaximumUnitsInSI(self)
-    !!{
-    Return the units of the \mono{massProgenitorMaximum} properties in the SI system.
+    !!{RST
+    Return the units of the ``massProgenitorMaximum`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -136,7 +135,7 @@ contains
   end function massProgenitorMaximumUnitsInSI
 
   function massProgenitorMaximumUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the massProgenitorMaximum property.
     !!}
     use :: Units_MetaData, only : unitType

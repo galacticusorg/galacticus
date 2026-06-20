@@ -20,13 +20,15 @@
   use :: Kepler_Orbits, only : keplerOrbit, enumerationKeplerOrbitType
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorKeplerOrbit" abstract="yes">
-   <description>Abstract base class for extractors of orbital parameters stored in \mono{keplerOrbit} objects associated with satellite nodes. Supports extraction of orbital energy, angular momentum, pericenter and apocenter radii, eccentricity, semi-major axis, velocities, and masses of the satellite's orbit within its host halo.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorKeplerOrbit" abstract="yes" docformat="rst">
+   <description>
+   Abstract base class for extractors of orbital parameters stored in ``keplerOrbit`` objects associated with satellite nodes. Supports extraction of orbital energy, angular momentum, pericenter and apocenter radii, eccentricity, semi-major axis, velocities, and masses of the satellite's orbit within its host halo.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple), abstract :: nodePropertyExtractorKeplerOrbit
-     !!{
-     A property extractor for \mono{keplerOrbit} objects.
+     !!{RST
+     A property extractor for ``keplerOrbit`` objects.
      !!}
      private
      type            (varying_string            ), allocatable, dimension(:) :: properties   , names_, &
@@ -37,9 +39,9 @@
      type            (varying_string            )                            :: prefix
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Initialize the properties to be extracted." method="initialize" />
-       <method description="Extract properties from a \mono{keplerOrbit} object." method="extractFromOrbit" />
+       <method description="Extract properties from a ``keplerOrbit`` object." method="extractFromOrbit" />
      </methods>
      !!]
      procedure :: initialize       => keplerOrbitInitialize
@@ -53,8 +55,8 @@
 contains
 
   subroutine keplerOrbitInitialize(self,properties,prefix)
-    !!{
-    Initializer for the \mono{keplerOrbit} output extractor property extractor class.
+    !!{RST
+    Initializer for the ``keplerOrbit`` output extractor property extractor class.
     !!}
     use :: Error                           , only : Error_Report
     use :: ISO_Varying_String              , only : trim
@@ -152,8 +154,8 @@ contains
   end subroutine keplerOrbitInitialize
 
   integer function keplerOrbitElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{keplerOrbit} property extractors.
+    !!{RST
+    Return the number of elements in the ``keplerOrbit`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorKeplerOrbit), intent(inout) :: self
@@ -165,8 +167,8 @@ contains
   end function keplerOrbitElementCount
 
   function keplerOrbitExtractFromOrbit(self,orbit)
-    !!{
-    Extract properties from a \mono{keplerOrbit} object.
+    !!{RST
+    Extract properties from a ``keplerOrbit`` object.
     !!}
     use :: Kepler_Orbits, only : keplerOrbitMassHost      , keplerOrbitSpecificReducedMass, keplerOrbitRadius          , keplerOrbitTheta          , &
          &                       keplerOrbitPhi           , keplerOrbitEpsilon            , keplerOrbitRadiusPericenter, keplerOrbitRadiusApocenter, &
@@ -223,8 +225,8 @@ contains
   end function keplerOrbitExtractFromOrbit
 
   subroutine keplerOrbitNames(self,time,names)
-    !!{
-    Return the names of the \mono{keplerOrbit} properties.
+    !!{RST
+    Return the names of the ``keplerOrbit`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorKeplerOrbit), intent(inout)                             :: self
@@ -238,8 +240,8 @@ contains
   end subroutine keplerOrbitNames
 
   subroutine keplerOrbitDescriptions(self,time,descriptions)
-    !!{
-    Return the descriptions of the \mono{virialProperies} properties.
+    !!{RST
+    Return the descriptions of the ``virialProperies`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorKeplerOrbit), intent(inout)                             :: self
@@ -253,8 +255,8 @@ contains
   end subroutine keplerOrbitDescriptions
 
   function keplerOrbitUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{virialProperies} properties in the SI system.
+    !!{RST
+    Return the units of the ``virialProperies`` properties in the SI system.
     !!}
     implicit none
     double precision                                  , dimension(:) , allocatable :: keplerOrbitUnitsInSI

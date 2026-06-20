@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which provides constants for use when constraining \glc.
+!!{RST
+Contains a module which provides constants for use when constraining Galacticus.
 !!}
 
 module Models_Likelihoods_Constants
-  !!{
-  Provides constants for use when constraining \glc.
+  !!{RST
+  Provides constants for use when constraining Galacticus.
   !!}
   public
 

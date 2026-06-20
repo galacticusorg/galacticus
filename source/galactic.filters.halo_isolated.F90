@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a filter which passes only isolated halos.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterHaloIsolated">
-   <description>Passes only nodes that are currently isolated halos (host halos that are not satellites of any larger structure at the current epoch), selecting field halos to exclude substructure when analyzing host halo populations.</description>
+  <galacticFilter name="galacticFilterHaloIsolated" docformat="rst">
+   <description>
+   Passes only nodes that are currently isolated halos (host halos that are not satellites of any larger structure at the current epoch), selecting field halos to exclude substructure when analyzing host halo populations.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterHaloIsolated
-     !!{
+     !!{RST
      A galactic filter class which passes only isolated halos.
      !!}
      private
@@ -36,8 +38,8 @@ Implements a filter which passes only isolated halos.
   end type galacticFilterHaloIsolated
 
   interface galacticFilterHaloIsolated
-     !!{
-     Constructors for the \refClass{galacticFilterHaloIsolated} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterHaloIsolated` galactic filter class.
      !!}
      module procedure haloIsolatedConstructorParameters
   end interface galacticFilterHaloIsolated
@@ -45,8 +47,8 @@ Implements a filter which passes only isolated halos.
 contains
 
   function haloIsolatedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterHaloIsolated} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterHaloIsolated` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function haloIsolatedConstructorParameters
 
   logical function haloIsolatedPasses(self,node)
-    !!{
+    !!{RST
     Implement a galactic filter which passes only isolated halos.
     !!}
     implicit none

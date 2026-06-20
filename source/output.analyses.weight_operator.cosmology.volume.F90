@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a cosmological volume corrector analysis weight operator class.
 !!}
 
@@ -25,20 +25,14 @@ Implements a cosmological volume corrector analysis weight operator class.
   use :: Geometry_Surveys   , only : surveyGeometryClass
 
   !![
-  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorCsmlgyVolume">
+  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorCsmlgyVolume" docformat="rst">
    <description>
-    An output analysis weight operator class which corrects weights for the difference in cosmological volume between true and
-    assumed (i.e. in the observational analysis) cosmologies. Typically the observational data will have been analyzed assuming
-    some specific set of cosmological parameters which will differ from that in the current model. Therefore, the comoving volume
-    occupied by a population of galaxies must be adjusted to match what would be inferred if they were assessed using the same
-    cosmological parameters as were used for the observational data. Typically, this will mean that weights are scaled in
-    proportion to $V_\mathrm{max} / V^\prime_\mathrm{max}$, where $V_\mathrm{max}$ and $V^\prime_\mathrm{max}$ are the maximum
-    volumes within which the galaxy would have been detected in the true and assumed cosmologies respectively.
+   An output analysis weight operator class which corrects weights for the difference in cosmological volume between true and assumed (i.e. in the observational analysis) cosmologies. Typically the observational data will have been analyzed assuming some specific set of cosmological parameters which will differ from that in the current model. Therefore, the comoving volume occupied by a population of galaxies must be adjusted to match what would be inferred if they were assessed using the same cosmological parameters as were used for the observational data. Typically, this will mean that weights are scaled in proportion to :math:`V_\mathrm{max} / V^\prime_\mathrm{max}`, where :math:`V_\mathrm{max}` and :math:`V^\prime_\mathrm{max}` are the maximum volumes within which the galaxy would have been detected in the true and assumed cosmologies respectively.
    </description>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorCsmlgyVolume
-     !!{
+     !!{RST
      A cosmological volume corrector analysis weight operator class.
      !!}
      private
@@ -50,8 +44,8 @@ Implements a cosmological volume corrector analysis weight operator class.
   end type outputAnalysisWeightOperatorCsmlgyVolume
 
   interface outputAnalysisWeightOperatorCsmlgyVolume
-     !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorCsmlgyVolume} output analysis weight operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisWeightOperatorCsmlgyVolume` output analysis weight operator class.
      !!}
      module procedure csmlgyVolumeConstructorParameters
      module procedure csmlgyVolumeConstructorInternal
@@ -60,8 +54,8 @@ Implements a cosmological volume corrector analysis weight operator class.
 contains
 
   function csmlgyVolumeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisWeightOperatorCsmlgyVolume} output analysis weight operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisWeightOperatorCsmlgyVolume` output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,8 +84,8 @@ contains
   end function csmlgyVolumeConstructorParameters
 
   function csmlgyVolumeConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData,surveyGeometry_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisWeightOperatorCsmlgyVolume} output analysis weight operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisWeightOperatorCsmlgyVolume` output analysis weight operator class.
     !!}
     implicit none
     type   (outputAnalysisWeightOperatorCsmlgyVolume)                        :: self
@@ -105,8 +99,8 @@ contains
   end function csmlgyVolumeConstructorInternal
 
   subroutine csmlgyVolumeDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisWeightOperatorCsmlgyVolume} output analysis weight operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisWeightOperatorCsmlgyVolume` output analysis weight operator class.
     !!}
     implicit none
     type(outputAnalysisWeightOperatorCsmlgyVolume), intent(inout) :: self
@@ -120,7 +114,7 @@ contains
   end subroutine csmlgyVolumeDestructor
 
   double precision function csmlgyVolumeOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
-    !!{
+    !!{RST
     Implement an csmlgyVolume output analysis weight operator.
     !!}
     use            :: Error                  , only : Error_Report

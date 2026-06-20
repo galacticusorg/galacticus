@@ -19,7 +19,7 @@
 
 !+    Contributions to this file made by: Andrew Benson, Charles Gannon.
 
-!!{
+!!{RST
 Implements a node property extractor that fits for a tidal truncation radius for an NFW profile.
 !!}
 
@@ -27,8 +27,10 @@ Implements a node property extractor that fits for a tidal truncation radius for
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorTidallyTruncatedNFWFit">
-   <description>Fits a tidally truncated NFW profile to the dark matter halo, extracting the best-fit tidal truncation radius and associated structural parameters, useful for characterizing the degree of tidal stripping experienced by satellite subhalos.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorTidallyTruncatedNFWFit" docformat="rst">
+   <description>
+   Fits a tidally truncated NFW profile to the dark matter halo, extracting the best-fit tidal truncation radius and associated structural parameters, useful for characterizing the degree of tidal stripping experienced by satellite subhalos.
+   </description>
   <deepCopy>
     <functionClass variables="darkMatterProfileDMONFW_"/>
    </deepCopy>
@@ -38,7 +40,7 @@ Implements a node property extractor that fits for a tidal truncation radius for
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorTidallyTruncatedNFWFit
-     !!{
+     !!{RST
      A node property extractor that fits for a tidal truncation radius for an NFW profile.
      !!}
      private
@@ -56,8 +58,8 @@ Implements a node property extractor that fits for a tidal truncation radius for
   end type nodePropertyExtractorTidallyTruncatedNFWFit
 
   interface nodePropertyExtractorTidallyTruncatedNFWFit
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorTidallyTruncatedNFWFit} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorTidallyTruncatedNFWFit` property extractor class.
      !!}
      module procedure tidallyTruncatedNFWFitConstructorParameters
      module procedure tidallyTruncatedNFWFitConstructorInternal
@@ -66,8 +68,8 @@ Implements a node property extractor that fits for a tidal truncation radius for
 contains
 
   function tidallyTruncatedNFWFitConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorTidallyTruncatedNFWFit} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorTidallyTruncatedNFWFit` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -90,8 +92,8 @@ contains
   end function tidallyTruncatedNFWFitConstructorParameters
 
   function tidallyTruncatedNFWFitConstructorInternal(darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorTidallyTruncatedNFWFit} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorTidallyTruncatedNFWFit` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorTidallyTruncatedNFWFit)                        :: self
@@ -116,8 +118,8 @@ contains
   end function tidallyTruncatedNFWFitConstructorInternal
 
   subroutine tidallyTruncatedNFWFitDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorTidallyTruncatedNFWFit} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorTidallyTruncatedNFWFit` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorTidallyTruncatedNFWFit), intent(inout) :: self
@@ -131,8 +133,8 @@ contains
   end subroutine tidallyTruncatedNFWFitDestructor
 
   integer function tidallyTruncatedNFWFitElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{tidallyTruncatedNFWFit} property extractors.
+    !!{RST
+    Return the number of elements in the ``tidallyTruncatedNFWFit`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorTidallyTruncatedNFWFit), intent(inout) :: self
@@ -144,7 +146,7 @@ contains
   end function tidallyTruncatedNFWFitElementCount
 
    function tidallyTruncatedNFWFitExtract(self,node,time,instance)
-    !!{
+    !!{RST
     Implement a tidallyTruncatedNFWFit output analysis.
     !!}
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
@@ -251,7 +253,7 @@ contains
   contains
     
     double precision function fitMetric(properties)
-      !!{
+      !!{RST
       Evaluate the fit metric.
       !!}
       implicit none
@@ -281,7 +283,7 @@ contains
   end function tidallyTruncatedNFWFitExtract
    
   subroutine tidallyTruncatedNFWFitNames(self,time,names)
-    !!{
+    !!{RST
     Return the name of the best-fit radius of a tidally-truncated NFW profile.
     !!}
     implicit none
@@ -298,7 +300,7 @@ contains
   end subroutine tidallyTruncatedNFWFitNames
 
   subroutine tidallyTruncatedNFWFitDescriptions(self,time,descriptions)
-    !!{
+    !!{RST
     Return a description of a tidally-truncated NFW profile.
     !!}
     implicit none
@@ -315,7 +317,7 @@ contains
   end subroutine tidallyTruncatedNFWFitDescriptions
 
   function tidallyTruncatedNFWFitUnitsInSI(self,time)
-    !!{
+    !!{RST
     Return the units of a tidally-truncated NFW profile.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec, massSolar
@@ -334,7 +336,7 @@ contains
   end function tidallyTruncatedNFWFitUnitsInSI
 
   function tidallyTruncatedNFWFitUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the tidallyTruncatedNFWFit properties.
     !!}
     use :: Units_MetaData, only : unitType

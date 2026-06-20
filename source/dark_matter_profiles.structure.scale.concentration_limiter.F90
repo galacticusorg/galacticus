@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of dark matter halo profile scale radii in which radii from another class are limited to enforce bounds on concentration.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale
 
   !![
-  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusConcentrationLimiter">
-   <description>Dark matter halo scale radii from another class are limited to enforce bounds on concentration.</description>
+  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusConcentrationLimiter" docformat="rst">
+   <description>
+   Dark matter halo scale radii from another class are limited to enforce bounds on concentration.
+   </description>
   </darkMatterProfileScaleRadius>
   !!]
   type, extends(darkMatterProfileScaleRadiusClass) :: darkMatterProfileScaleRadiusConcentrationLimiter
-     !!{
+     !!{RST
      A dark matter halo profile scale radius class in which radii from another class are limited to enforce bounds on concentration.
      !!}
      private
@@ -42,8 +44,8 @@
   end type darkMatterProfileScaleRadiusConcentrationLimiter
 
   interface darkMatterProfileScaleRadiusConcentrationLimiter
-     !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusConcentrationLimiter} dark matter halo profile scale radius class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileScaleRadiusConcentrationLimiter` dark matter halo profile scale radius class.
      !!}
      module procedure concentrationLimiterConstructorParameters
      module procedure concentrationLimiterConstructorInternal
@@ -52,9 +54,8 @@
 contains
 
   function concentrationLimiterConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusConcentrationLimiter} dark matter halo profile scale radius class which takes a
-    parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileScaleRadiusConcentrationLimiter` dark matter halo profile scale radius class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,14 +66,18 @@ contains
     double precision                                                                  :: concentrationMinimum         , concentrationMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>concentrationMinimum</name>
-      <description>The minimum allowed concentration parameter $c = r_\mathrm{virial}/r_\mathrm{scale}$ for dark matter halos; scale radii that would imply concentrations below this floor are adjusted upward to enforce the constraint.</description>
+      <description>
+      The minimum allowed concentration parameter :math:`c = r_\mathrm{virial}/r_\mathrm{scale}` for dark matter halos; scale radii that would imply concentrations below this floor are adjusted upward to enforce the constraint.
+      </description>
       <source>parameters</source>
     </inputParameter>   
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>concentrationMaximum</name>
-      <description>The maximum allowed concentration parameter $c = r_\mathrm{virial}/r_\mathrm{scale}$ for dark matter halos; scale radii that would imply concentrations above this ceiling are adjusted downward to enforce the constraint.</description>
+      <description>
+      The maximum allowed concentration parameter :math:`c = r_\mathrm{virial}/r_\mathrm{scale}` for dark matter halos; scale radii that would imply concentrations above this ceiling are adjusted downward to enforce the constraint.
+      </description>
       <source>parameters</source>
     </inputParameter>   
     <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
@@ -88,8 +93,8 @@ contains
   end function concentrationLimiterConstructorParameters
 
   function concentrationLimiterConstructorInternal(concentrationMinimum,concentrationMaximum,darkMatterHaloScale_,darkMatterProfileScaleRadius_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileScaleRadiusConcentrationLimiter} dark matter halo profile scale radius class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterProfileScaleRadiusConcentrationLimiter` dark matter halo profile scale radius class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -106,8 +111,8 @@ contains
   end function concentrationLimiterConstructorInternal
 
   subroutine concentrationLimiterDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileScaleRadiusConcentrationLimiter} dark matter halo profile scale radius class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileScaleRadiusConcentrationLimiter` dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusConcentrationLimiter), intent(inout) :: self
@@ -120,8 +125,8 @@ contains
   end subroutine concentrationLimiterDestructor
 
   double precision function concentrationLimiterRadius(self,node)
-    !!{
-    Compute the scale radius of the dark matter profile of \mono{node}.
+    !!{RST
+    Compute the scale radius of the dark matter profile of ``node``.
     !!}
     implicit none
     class           (darkMatterProfileScaleRadiusConcentrationLimiter), intent(inout), target :: self

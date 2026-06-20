@@ -17,13 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements an object hierarchy for nodes in merger trees and all of their constituent physical
-components.
+!!{RST
+Contains a module which implements an object hierarchy for nodes in merger trees and all of their constituent physical components.
 !!}
 
 module Galacticus_Nodes
-  !!{
+  !!{RST
   Implements an object hierarchy for nodes in merger trees and all of their constituent physical components.
   !!}
   use            :: Abundances_Structure               , only : abundances
@@ -50,7 +49,7 @@ module Galacticus_Nodes
        &    massDistributionCalculationReset, massDistributionsLast     , massDistributionsDestroy
 
   type, public :: nodeHierarchyWrapper
-     !!{
+     !!{RST
      Wrapper class for managing the node class hierarchy.
      !!}
    contains
@@ -58,14 +57,14 @@ module Galacticus_Nodes
   end type nodeHierarchyWrapper
   
   type, public :: treeNodeList
-     !!{
+     !!{RST
      Type to give a list of treeNodes.
      !!}
      type(treeNode), pointer :: node => null()
   end type treeNodeList
   
   type, public :: treeNodeLinkedList
-     !!{
+     !!{RST
      Type to give a linked list of treeNodes.
      !!}
      type(treeNode          ), pointer :: node => null()
@@ -73,7 +72,7 @@ module Galacticus_Nodes
   end type treeNodeLinkedList
 
   type, public :: mergerTree
-     !!{
+     !!{RST
      The merger tree object type.
      !!}
      integer         (kind=kind_int8            )                  :: index                  =  -huge(0_kind_int8)
@@ -89,11 +88,11 @@ module Galacticus_Nodes
    contains
      ! Tree creation/destruction.
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Destroys the merger tree, including all nodes and their components." method="destroy" />
        <method description="Returns a pointer to the node with given index in the merger tree, or a null pointer if no such node exists." method="getNode" />
-       <method description="Create a \mono{treeEvent} object in this tree." method="createEvent" />
-       <method description="Remove a \mono{treeEvent} from this tree." method="removeEvent" />
+       <method description="Create a ``treeEvent`` object in this tree." method="createEvent" />
+       <method description="Remove a ``treeEvent`` from this tree." method="removeEvent" />
        <method description="Return the earliest time in a merger tree." method="earliestTime" />
        <method description="Return the earliest time in an evolving merger tree." method="earliestTimeEvolving" />
        <method description="Return the latest time in a merger tree." method="latestTime" />
@@ -111,7 +110,7 @@ module Galacticus_Nodes
   end type mergerTree
     
   type, public :: treeEvent
-     !!{
+     !!{RST
      Type for events attached to trees.
      !!}
      private
@@ -133,7 +132,7 @@ module Galacticus_Nodes
   end interface
   
   type, public :: mergerTreeList
-     !!{
+     !!{RST
      A class used for building linked lists of merger trees.
      !!}
      type(mergerTreeList), pointer :: next => null()
@@ -141,7 +140,7 @@ module Galacticus_Nodes
   end type mergerTreeList
 
   type, public :: universe
-     !!{
+     !!{RST
      The universe object class.
      !!}
      type   (mergerTreeList   ), pointer             :: trees         => null()
@@ -152,11 +151,11 @@ module Galacticus_Nodes
      type   (ompLock          ), allocatable         :: lock
    contains
      !![
-     <methods>
-       <method description="Create a \mono{treeEvent} object in this universe." method="createEvent"  />
-       <method description="Remove a \mono{treeEvent} from this universe."      method="removeEvent"  />
-       <method description="Pop a \mono{mergerTree} from this universe."        method="popTree"      />
-       <method description="Pop a \mono{mergerTree} from this universe."        method="pushTree"     />
+     <methods docformat="rst">
+       <method description="Create a ``treeEvent`` object in this universe." method="createEvent"  />
+       <method description="Remove a ``treeEvent`` from this universe."      method="removeEvent"  />
+       <method description="Pop a ``mergerTree`` from this universe."        method="popTree"      />
+       <method description="Pop a ``mergerTree`` from this universe."        method="pushTree"     />
        <method description="Assign universe objects."                                            method="assignment(=)"/>
      </methods>
      !!]
@@ -169,14 +168,14 @@ module Galacticus_Nodes
   end type universe
 
   interface universe
-     !!{
+     !!{RST
      Interface to universe constructors.
      !!}
      module procedure universeConstructor
   end interface universe
     
   type, public :: universeEvent
-     !!{
+     !!{RST
      Type for events attached to universes.
      !!}
      private
@@ -199,21 +198,21 @@ module Galacticus_Nodes
 
   ! Meta-property types.
   type :: floatRank1MetaProperty
-     !!{
+     !!{RST
      Type used to store float rank-1 meta-properties.
      !!}
      double precision, allocatable, dimension(:) :: values
   end type floatRank1MetaProperty
 
   type :: integerRank1MetaProperty
-     !!{
+     !!{RST
      Type used to store integer rank-1 meta-properties.
      !!}
      integer, allocatable, dimension(:) :: values
   end type integerRank1MetaProperty
   
   type :: longIntegerRank1MetaProperty
-     !!{
+     !!{RST
      Type used to store long integer rank-1 meta-properties.
      !!}
      integer(kind_int8), allocatable, dimension(:) :: values
@@ -286,7 +285,7 @@ module Galacticus_Nodes
   !
   ! Nodes functions.
   subroutine Galacticus_Nodes_Unique_ID_Set(uniqueID)
-    !!{
+    !!{RST
     Resets the global unique ID number.
     !!}
     implicit none
@@ -299,8 +298,8 @@ module Galacticus_Nodes
   !
   ! Functions for treeNode class.
   function Tree_Node_Constructor(index,hostTree) result(self)
-    !!{
-    Return a pointer to a newly created and initialized \mono{treeNode}.
+    !!{RST
+    Return a pointer to a newly created and initialized ``treeNode``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -318,8 +317,8 @@ module Galacticus_Nodes
   end function Tree_Node_Constructor
 
   function Tree_Node_Type(self)
-    !!{
-    Returns the name of a \mono{treeNode} object.
+    !!{RST
+    Returns the name of a ``treeNode`` object.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -332,8 +331,8 @@ module Galacticus_Nodes
   end function Tree_Node_Type
 
   function Tree_Node_Index(self)
-    !!{
-    Returns the index of a \mono{treeNode}.
+    !!{RST
+    Returns the index of a ``treeNode``.
     !!}
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
@@ -350,8 +349,8 @@ module Galacticus_Nodes
   end function Tree_Node_Index
 
   subroutine Tree_Node_Index_Set(self,index)
-    !!{
-    Sets the index of a \mono{treeNode}.
+    !!{RST
+    Sets the index of a ``treeNode``.
     !!}
     implicit none
     class  (treeNode      ), intent(inout) :: self
@@ -362,8 +361,8 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Index_Set
 
   function Tree_Node_Unique_ID(self) result(uniqueID)
-    !!{
-    Returns the unique ID of a \mono{treeNode}.
+    !!{RST
+    Returns the unique ID of a ``treeNode``.
     !!}
     implicit none
     class  (treeNode      ), intent(in   ) :: self
@@ -374,8 +373,8 @@ module Galacticus_Nodes
   end function Tree_Node_Unique_ID
 
   subroutine Tree_Node_Unique_ID_Set(self,uniqueID)
-    !!{
-    Sets the index of a \mono{treeNode}.
+    !!{RST
+    Sets the index of a ``treeNode``.
     !!}
     use :: Error, only : Error_Report
 #ifdef USEMPI
@@ -407,8 +406,8 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Unique_ID_Set
 
   double precision function Tree_Node_Time_Step(self)
-    !!{
-    Returns the time-step last used by a \mono{treeNode}.
+    !!{RST
+    Returns the time-step last used by a ``treeNode``.
     !!}
     implicit none
     class(treeNode), intent(in   ) :: self
@@ -418,8 +417,8 @@ module Galacticus_Nodes
   end function Tree_Node_Time_Step
 
   subroutine Tree_Node_Time_Step_Set(self,timeStep)
-    !!{
-    Sets the time-step used by a \mono{treeNode}.
+    !!{RST
+    Sets the time-step used by a ``treeNode``.
     !!}
     implicit none
     class           (treeNode      ), intent(inout) :: self
@@ -430,8 +429,8 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Time_Step_Set
 
   double precision function Tree_Node_Subsampling_Weight(self)
-    !!{
-    Returns the subsampling weight of a \mono{treeNode}.
+    !!{RST
+    Returns the subsampling weight of a ``treeNode``.
     !!}
     implicit none
     class(treeNode), intent(in   ) :: self
@@ -441,8 +440,8 @@ module Galacticus_Nodes
   end function Tree_Node_Subsampling_Weight
 
   subroutine Tree_Node_Subsampling_Weight_Set(self,subsamplingWeight)
-    !!{
-    Sets the time-step used by a \mono{treeNode}.
+    !!{RST
+    Sets the time-step used by a ``treeNode``.
     !!}
     implicit none
     class           (treeNode      ), intent(inout) :: self
@@ -453,7 +452,7 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Subsampling_Weight_Set
 
   subroutine Tree_Node_Attach_Event(self,newEvent)
-    !!{
+    !!{RST
     Create a new event in a tree node.
     !!}
     implicit none
@@ -479,8 +478,8 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Attach_Event
 
   subroutine Tree_Node_Remove_Paired_Event(self,event)
-    !!{
-    Removed a paired event from \mono{self}. Matching is done on the basis of event ID.
+    !!{RST
+    Removed a paired event from ``self``. Matching is done on the basis of event ID.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -517,8 +516,8 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Remove_Paired_Event
 
   logical function treeNodeIsPrimaryProgenitor(self) result(isPrimaryProgenitor)
-    !!{
-    Returns true if \mono{self} is the primary progenitor of its parent node.
+    !!{RST
+    Returns true if ``self`` is the primary progenitor of its parent node.
     !!}
     implicit none
     class(treeNode), intent(inout), target:: self
@@ -532,8 +531,8 @@ module Galacticus_Nodes
   end function treeNodeIsPrimaryProgenitor
 
   logical function Tree_Node_Is_Primary_Progenitor_Of_Index(self,targetNodeIndex)
-    !!{
-    Return true if \mono{self} is a progenitor of the node with index \mono{targetNodeIndex}.
+    !!{RST
+    Return true if ``self`` is a progenitor of the node with index ``targetNodeIndex``.
     !!}
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
@@ -554,8 +553,8 @@ module Galacticus_Nodes
   end function Tree_Node_Is_Primary_Progenitor_Of_Index
 
   logical function Tree_Node_Is_Primary_Progenitor_Of_Node(self,targetNode)
-    !!{
-    Return true if \mono{self} is a progenitor of \mono{targetNode}.
+    !!{RST
+    Return true if ``self`` is a progenitor of ``targetNode``.
     !!}
     implicit none
     class(treeNode), intent(in   ), target  :: self
@@ -576,8 +575,8 @@ module Galacticus_Nodes
   end function Tree_Node_Is_Primary_Progenitor_Of_Node
 
   logical function Tree_Node_Is_Progenitor_Of_Index(self,targetNodeIndex)
-    !!{
-    Return true if \mono{self} is a progenitor of the node with index \mono{targetNodeIndex}.
+    !!{RST
+    Return true if ``self`` is a progenitor of the node with index ``targetNodeIndex``.
     !!}
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
@@ -597,8 +596,8 @@ module Galacticus_Nodes
   end function Tree_Node_Is_Progenitor_Of_Index
 
   logical function Tree_Node_Is_Progenitor_Of_Node(self,targetNode)
-    !!{
-    Return true if \mono{self} is a progenitor of \mono{targetNode}.
+    !!{RST
+    Return true if ``self`` is a progenitor of ``targetNode``.
     !!}
     implicit none
     class(treeNode), intent(in   ), target  :: self
@@ -618,8 +617,8 @@ module Galacticus_Nodes
   end function Tree_Node_Is_Progenitor_Of_Node
 
   logical function Tree_Node_Is_On_Main_Branch(self)
-    !!{
-    Returns true if \mono{self} is on the main branch.
+    !!{RST
+    Returns true if ``self`` is on the main branch.
     !!}
     implicit none
     class(treeNode), intent(inout), target :: self
@@ -636,8 +635,8 @@ module Galacticus_Nodes
   end function Tree_Node_Is_On_Main_Branch
 
   logical function Tree_Node_Is_Satellite(self) result(isSatellite)
-    !!{
-    Returns true if \mono{self} is a satellite.
+    !!{RST
+    Returns true if ``self`` is a satellite.
     !!}
     implicit none
     class(treeNode), intent(in   ), target :: self
@@ -663,8 +662,8 @@ module Galacticus_Nodes
   end function Tree_Node_Is_Satellite
 
   function Tree_Node_Get_Isolated_Parent(self) result (isolatedNode)
-    !!{
-    Returns a pointer to the isolated parent node of \mono{self}.
+    !!{RST
+    Returns a pointer to the isolated parent node of ``self``.
     !!}
     implicit none
     class(treeNode), intent(in   ), target  :: self
@@ -678,8 +677,8 @@ module Galacticus_Nodes
   end function Tree_Node_Get_Isolated_Parent
 
   function Tree_Node_Get_Last_Satellite(self) result (satelliteNode)
-    !!{
-    Returns a pointer to the final satellite node associated with \mono{self}.
+    !!{RST
+    Returns a pointer to the final satellite node associated with ``self``.
     !!}
     implicit none
     class(treeNode), intent(in   ) :: self
@@ -693,8 +692,8 @@ module Galacticus_Nodes
   end function Tree_Node_Get_Last_Satellite
 
   function Tree_Node_Get_Earliest_Progenitor(self) result (progenitorNode)
-    !!{
-    Returns a pointer to the earliest progenitor of \mono{self}.
+    !!{RST
+    Returns a pointer to the earliest progenitor of ``self``.
     !!}
     implicit none
     type (treeNode)               , pointer :: progenitorNode
@@ -708,8 +707,8 @@ module Galacticus_Nodes
   end function Tree_Node_Get_Earliest_Progenitor
 
   function Tree_Node_Merges_With_Node(node)
-    !!{
-    Returns a pointer to the node with which \mono{node} will merge.
+    !!{RST
+    Returns a pointer to the node with which ``node`` will merge.
     !!}
     implicit none
     class(treeNode), intent(in   ) :: node
@@ -727,8 +726,8 @@ module Galacticus_Nodes
   end function Tree_Node_Merges_With_Node
 
   subroutine Tree_Node_Remove_From_Host(self)
-    !!{
-    Remove \mono{self} from the linked list of its host node's satellites.
+    !!{RST
+    Remove ``self`` from the linked list of its host node's satellites.
     !!}
     use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelInfo
     use :: ISO_Varying_String, only : assignment(=) , operator(//)
@@ -766,8 +765,8 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Remove_From_Host
 
   subroutine Tree_Node_Remove_from_Mergee(self)
-    !!{
-    Remove \mono{self} from the linked list of its host node's satellites.
+    !!{RST
+    Remove ``self`` from the linked list of its host node's satellites.
     !!}
     use :: Display           , only : displayMessage, verbosityLevelInfo
     use :: ISO_Varying_String, only : assignment(=) , operator(//)
@@ -805,12 +804,8 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Remove_from_Mergee
 
   function treeNodeWalkTreeWithSatellites(self)
-    !!{
-    Merger tree walk function which also descends through satellite nodes. Note that it is
-    important that the walk descends to satellites before descending to children: the
-    routines that destroy merger tree branches rely on this since child nodes are used in
-    testing whether a node is a satellite---if they are destroyed prior to the test being
-    made then problems with dangling pointers will occur.
+    !!{RST
+    Merger tree walk function which also descends through satellite nodes. Note that it is important that the walk descends to satellites before descending to children: the routines that destroy merger tree branches rely on this since child nodes are used in testing whether a node is a satellite---if they are destroyed prior to the test being made then problems with dangling pointers will occur.
     !!}
     implicit none
     type (treeNode)               , pointer :: treeNodeWalkTreeWithSatellites
@@ -855,17 +850,8 @@ module Galacticus_Nodes
   end function treeNodeWalkTreeWithSatellites
 
   function treeNodeWalkBranchWithSatellites(self,startNode)
-    !!{
-    This function provides a mechanism for walking through the branches of the merger
-    tree. Given a pointer \mono{self} to a branch of the tree, it will
-    return the next node that should be visited in the tree. Thus, if \mono{self} is initially set to the base of the merger tree and \mono{Merger\_Tree\_Walk\_Branch()} is called repeatedly it will walk through every node of the
-    branch. Once the entire branch has been walked, a \mono{null()} pointer
-    will be returned, indicating that there are no more nodes to walk. Each node will be
-    visited once and once only if the branch is walked in this way. Note that it is important
-    that the walk descends to satellites before descending to children: the routines that
-    destroy merger tree branches rely on this since child nodes are used in testing whether a
-    node is a satellite---if they are destroyed prior to the test being made then problems
-    with dangling pointers will occur.
+    !!{RST
+    This function provides a mechanism for walking through the branches of the merger tree. Given a pointer ``self`` to a branch of the tree, it will return the next node that should be visited in the tree. Thus, if ``self`` is initially set to the base of the merger tree and ``Merger_Tree_Walk_Branch()`` is called repeatedly it will walk through every node of the branch. Once the entire branch has been walked, a ``null()`` pointer will be returned, indicating that there are no more nodes to walk. Each node will be visited once and once only if the branch is walked in this way. Note that it is important that the walk descends to satellites before descending to children: the routines that destroy merger tree branches rely on this since child nodes are used in testing whether a node is a satellite---if they are destroyed prior to the test being made then problems with dangling pointers will occur.
     !!}
     implicit none
     type (treeNode)               , pointer :: treeNodeWalkBranchWithSatellites
@@ -912,8 +898,8 @@ module Galacticus_Nodes
   end function treeNodeWalkBranchWithSatellites
 
   function Merger_Tree_Walk_Descend_to_Progenitors(self) result (progenitorNode)
-    !!{
-    Descend to the deepest progenitor (satellites and children) of \mono{self}.
+    !!{RST
+    Descend to the deepest progenitor (satellites and children) of ``self``.
     !!}
     implicit none
     type(treeNode), intent(in   ), target  :: self
@@ -934,7 +920,7 @@ module Galacticus_Nodes
   end function Merger_Tree_Walk_Descend_to_Progenitors
 
   subroutine treeNodeDestroyBranch(self)
-    !!{
+    !!{RST
     Destroy the tree branch rooted at this given node.
     !!}
     implicit none
@@ -971,7 +957,7 @@ module Galacticus_Nodes
   !
   ! Functions for nodeComponent class.
   function Node_Component_Generic_Type(self)
-    !!{
+    !!{RST
     Returns the name of a generic tree node component.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
@@ -985,7 +971,7 @@ module Galacticus_Nodes
   end function Node_Component_Generic_Type
 
   subroutine Node_Component_Generic_Destroy(self)
-    !!{
+    !!{RST
     Destroy a generic tree node component.
     !!}
     implicit none
@@ -997,7 +983,7 @@ module Galacticus_Nodes
   end subroutine Node_Component_Generic_Destroy
 
   integer function Node_Component_Generic_Add_Float_Rank0_Meta_Property(self,label,name,isEvolvable,isCreator)
-    !!{
+    !!{RST
     Add a meta-property to a node component.
     !!}
     use :: Error, only : Error_Report
@@ -1014,7 +1000,7 @@ module Galacticus_Nodes
   end function Node_Component_Generic_Add_Float_Rank0_Meta_Property
 
   integer function Node_Component_Generic_Add_Float_Rank1_Meta_Property(self,label,name,isCreator)
-    !!{
+    !!{RST
     Add a rank-1 meta-property to a node component.
     !!}
     use :: Error, only : Error_Report
@@ -1031,7 +1017,7 @@ module Galacticus_Nodes
   end function Node_Component_Generic_Add_Float_Rank1_Meta_Property
 
   integer function Node_Component_Generic_Add_LongInteger_Rank0_Meta_Property(self,label,name,isCreator)
-    !!{
+    !!{RST
     Add a long integer meta-property to a node component.
     !!}
     use :: Error, only : Error_Report
@@ -1048,7 +1034,7 @@ module Galacticus_Nodes
   end function Node_Component_Generic_Add_LongInteger_Rank0_Meta_Property
   
   integer function Node_Component_Generic_Add_Integer_Rank0_Meta_Property(self,label,name,isCreator)
-    !!{
+    !!{RST
     Add a long integer meta-property to a node component.
     !!}
     use :: Error, only : Error_Report
@@ -1065,7 +1051,7 @@ module Galacticus_Nodes
   end function Node_Component_Generic_Add_Integer_Rank0_Meta_Property
   
   integer function Node_Component_Generic_Add_Integer_Rank1_Meta_Property(self,label,name,isCreator)
-    !!{
+    !!{RST
     Add an integer meta-property to a node component.
     !!}
     use :: Error, only : Error_Report
@@ -1082,7 +1068,7 @@ module Galacticus_Nodes
   end function Node_Component_Generic_Add_Integer_Rank1_Meta_Property
   
   integer function Node_Component_Generic_Add_LongInteger_Rank1_Meta_Property(self,label,name,isCreator)
-    !!{
+    !!{RST
     Add a longinteger meta-property to a node component.
     !!}
     use :: Error, only : Error_Report
@@ -1103,7 +1089,7 @@ module Galacticus_Nodes
   !!]
   
   subroutine Node_Component_ODE_Step_Initialize_Null(self)
-    !!{
+    !!{RST
     Initialize a generic tree node component for an ODE solver step.
     !!}
     implicit none
@@ -1114,7 +1100,7 @@ module Galacticus_Nodes
   end subroutine Node_Component_ODE_Step_Initialize_Null
 
   subroutine Node_Component_Dump_Null(self,verbosityLevel)
-    !!{
+    !!{RST
     Dump a generic tree node component.
     !!}
     use :: Display, only : enumerationVerbosityLevelType
@@ -1127,7 +1113,7 @@ module Galacticus_Nodes
   end subroutine Node_Component_Dump_Null
 
   subroutine Node_Component_Dump_XML_Null(self,fileHandle)
-    !!{
+    !!{RST
     Dump a generic tree node component to XML.
     !!}
     implicit none
@@ -1139,7 +1125,7 @@ module Galacticus_Nodes
   end subroutine Node_Component_Dump_XML_Null
 
   subroutine Node_Component_Dump_Raw_Null(self,fileHandle)
-    !!{
+    !!{RST
     Dump a generic tree node component in binary.
     !!}
     implicit none
@@ -1151,7 +1137,7 @@ module Galacticus_Nodes
   end subroutine Node_Component_Dump_Raw_Null
 
   subroutine Node_Component_Read_Raw_Null(self,fileHandle)
-    !!{
+    !!{RST
     Read a generic tree node component in binary.
     !!}
     implicit none
@@ -1163,7 +1149,7 @@ module Galacticus_Nodes
   end subroutine Node_Component_Read_Raw_Null
 
   subroutine Node_Component_Output_Count_Null(self,integerPropertyCount,doublePropertyCount,time,instance)
-    !!{
+    !!{RST
     Dump a generic tree node component.
     !!}
     implicit none
@@ -1177,7 +1163,7 @@ module Galacticus_Nodes
   end subroutine Node_Component_Output_Count_Null
 
   subroutine Node_Component_Output_Names_Null(self,integerProperty,integerProperties,doubleProperty,doubleProperties,time,instance)
-    !!{
+    !!{RST
     Dump a generic tree node component.
     !!}
     use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
@@ -1194,7 +1180,7 @@ module Galacticus_Nodes
   end subroutine Node_Component_Output_Names_Null
 
   subroutine Node_Component_Output_Null(self,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,outputInstance,instance)
-    !!{
+    !!{RST
     Dump a generic tree node component.
     !!}
     use :: Multi_Counters, only : multiCounter
@@ -1214,7 +1200,7 @@ module Galacticus_Nodes
   end subroutine Node_Component_Output_Null
 
   integer function Node_Component_Serialize_Count_Zero(self,propertyType)
-    !!{
+    !!{RST
     Return the serialization count of a generic tree node component.
     !!}
     implicit none
@@ -1227,7 +1213,7 @@ module Galacticus_Nodes
   end function Node_Component_Serialize_Count_Zero
 
   subroutine Node_Component_Serialization_Offsets(self,count,countSubset,propertyType)
-    !!{
+    !!{RST
     Return the serialization count of a generic tree node component.
     !!}
     implicit none
@@ -1240,7 +1226,7 @@ module Galacticus_Nodes
   end subroutine Node_Component_Serialization_Offsets
 
   subroutine Node_Component_Serialize_Null(self,array,propertyType)
-    !!{
+    !!{RST
     Serialize a generic tree node component.
     !!}
     implicit none
@@ -1253,7 +1239,7 @@ module Galacticus_Nodes
   end subroutine Node_Component_Serialize_Null
 
   subroutine Node_Component_Serialize_NonNegative_Null(self,array)
-    !!{
+    !!{RST
     Serialize the non-negative status for a generic tree node component.
     !!}
     implicit none
@@ -1265,7 +1251,7 @@ module Galacticus_Nodes
   end subroutine Node_Component_Serialize_NonNegative_Null
 
   subroutine Node_Component_Deserialize_Null(self,array,propertyType)
-    !!{
+    !!{RST
     Deserialize a generic tree node component.
     !!}
     implicit none
@@ -1278,7 +1264,7 @@ module Galacticus_Nodes
   end subroutine Node_Component_Deserialize_Null
 
   function Node_Component_Host_Node(self)
-    !!{
+    !!{RST
     Return the host tree node of a tree node component.
     !!}
     implicit none
@@ -1290,8 +1276,8 @@ module Galacticus_Nodes
   end function Node_Component_Host_Node
 
   subroutine Node_Component_Null_Void0_InOut(self)
-    !!{
-    A null \mono{void} function for rank 0 \mono{nodeComponent} arrays.
+    !!{RST
+    A null ``void`` function for rank 0 ``nodeComponent`` arrays.
     !!}
     implicit none
     class(nodeComponent), intent(inout) :: self
@@ -1301,8 +1287,8 @@ module Galacticus_Nodes
   end subroutine Node_Component_Null_Void0_InOut
 
   double precision function Node_Component_Null_Double0_InOut(self)
-    !!{
-    A null \mono{double} function for rank 0 \mono{nodeComponent} arrays.
+    !!{RST
+    A null ``double`` function for rank 0 ``nodeComponent`` arrays.
     !!}
     implicit none
     class(nodeComponent), intent(inout) :: self
@@ -1313,8 +1299,8 @@ module Galacticus_Nodes
   end function Node_Component_Null_Double0_InOut
 
   function Node_Component_Null_Double1_InOut(self,resultSize)
-    !!{
-    A null \mono{double} function for rank 1 \mono{nodeComponent} arrays.
+    !!{RST
+    A null ``double`` function for rank 1 ``nodeComponent`` arrays.
     !!}
     implicit none
     class           (nodeComponent), intent(inout)         :: self
@@ -1327,8 +1313,8 @@ module Galacticus_Nodes
   end function Node_Component_Null_Double1_InOut
 
   function Node_Component_Null_TensorR2D3_InOut(self)
-    !!{
-    A null \mono{tensorRank2Dimension3Symmetric} function for \mono{nodeComponent}s.
+    !!{RST
+    A null ``tensorRank2Dimension3Symmetric`` function for ``nodeComponent``\ s.
     !!}
     implicit none
     type (tensorRank2Dimension3Symmetric)                :: Node_Component_Null_TensorR2D3_InOut
@@ -1340,7 +1326,7 @@ module Galacticus_Nodes
   end function Node_Component_Null_TensorR2D3_InOut
 
   function Node_Component_Mass_Distribution_Null(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
-    !!{
+    !!{RST
     A null implementation of the mass distribution factory for a component. Always returns null.
     !!}
     use :: Galactic_Structure_Options, only : enumerationWeightByType, enumerationComponentTypeType, enumerationMassTypeType
@@ -1358,7 +1344,7 @@ module Galacticus_Nodes
   end function Node_Component_Mass_Distribution_Null
 
   double precision function Node_Component_Mass_Baryonic_Null(self)
-    !!{
+    !!{RST
     A null implementation of the total baryonic mass distribution. Always returns zero.
     !!}
     implicit none
@@ -1370,7 +1356,7 @@ module Galacticus_Nodes
   end function Node_Component_Mass_Baryonic_Null
 
   double precision function Node_Component_Density_Null(self,positionSpherical,componentType,massType,weightBy,weightIndex)
-    !!{
+    !!{RST
     A null implementation of the density in a component. Always returns zero.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
@@ -1388,7 +1374,7 @@ module Galacticus_Nodes
   end function Node_Component_Density_Null
 
   double precision function Node_Component_Density_Spherical_Average_Null(self,radius,componentType,massType,weightBy,weightIndex)
-    !!{
+    !!{RST
     A null implementation of the spherically-averaged density in a component. Always returns zero.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
@@ -1406,7 +1392,7 @@ module Galacticus_Nodes
   end function Node_Component_Density_Spherical_Average_Null
 
   double precision function Node_Component_Surface_Density_Null(self,positionCylindrical,componentType,massType,weightBy,weightIndex)
-    !!{
+    !!{RST
     A null implementation of the surface density in a component. Always returns zero.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeType, enumerationMassTypeType, enumerationWeightByType
@@ -1425,7 +1411,7 @@ module Galacticus_Nodes
 
   ! Simple Boolean functions.
   logical function Boolean_False()
-    !!{
+    !!{RST
     Returns Boolean false always.
     !!}
     implicit none
@@ -1435,7 +1421,7 @@ module Galacticus_Nodes
   end function Boolean_False
 
   logical function Boolean_True()
-    !!{
+    !!{RST
     Returns Boolean true always.
     !!}
     implicit none
@@ -1445,7 +1431,7 @@ module Galacticus_Nodes
   end function Boolean_True
   
   function universeConstructor() result(self)
-    !!{
+    !!{RST
     Constructor for the universe class.
     !!}
     implicit none
@@ -1465,7 +1451,7 @@ module Galacticus_Nodes
   end function universeConstructor
 
   subroutine Merger_Tree_Destroy(tree)
-    !!{
+    !!{RST
     Destroys the entire merger tree.
     !!}
     implicit none
@@ -1494,8 +1480,8 @@ module Galacticus_Nodes
   end subroutine Merger_Tree_Destroy
 
   function Merger_Tree_Node_Get(tree,nodeIndex)
-    !!{
-    Return a pointer to a node in \mono{tree} given the index of the node.
+    !!{RST
+    Return a pointer to a node in ``tree`` given the index of the node.
     !!}
     implicit none
     class  (mergerTree    ), intent(in   ), target :: tree
@@ -1520,7 +1506,7 @@ module Galacticus_Nodes
   end function Merger_Tree_Node_Get
 
   function Merger_Tree_Create_Event(self) result (eventNew)
-    !!{
+    !!{RST
     Create a new event in a merger tree.
     !!}
     implicit none
@@ -1546,8 +1532,8 @@ module Galacticus_Nodes
   end function Merger_Tree_Create_Event
 
   subroutine Merger_Tree_Remove_Event(self,event)
-    !!{
-    Removed an event from \mono{self}.
+    !!{RST
+    Removed an event from ``self``.
     !!}
     implicit none
     class  (mergerTree), intent(inout) :: self
@@ -1578,7 +1564,7 @@ module Galacticus_Nodes
   end subroutine Merger_Tree_Remove_Event
 
   double precision function Merger_Tree_Earliest_Time(self)
-    !!{
+    !!{RST
     Return the earliest time in a merger tree.
     !!}
     implicit none
@@ -1605,7 +1591,7 @@ module Galacticus_Nodes
   end function Merger_Tree_Earliest_Time
 
   double precision function Merger_Tree_Earliest_Time_Evolving(self)
-    !!{
+    !!{RST
     Return the earliest time in a merger tree.
     !!}
     implicit none
@@ -1632,7 +1618,7 @@ module Galacticus_Nodes
   end function Merger_Tree_Earliest_Time_Evolving
 
   double precision function Merger_Tree_Latest_Time(self)
-    !!{
+    !!{RST
     Return the latest time in a merger tree.
     !!}
     implicit none
@@ -1653,7 +1639,7 @@ module Galacticus_Nodes
   end function Merger_Tree_Latest_Time
 
   integer(c_size_t) function Merger_Tree_Size_Of(self)
-    !!{
+    !!{RST
     Return the size (in bytes) of a merger tree.
     !!}
     implicit none
@@ -1661,9 +1647,9 @@ module Galacticus_Nodes
     type (treeEvent ), pointer       :: event
     
     !![
-    <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+    <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446" docformat="rst">
      <description>
-      Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+     Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
      </description>
     </workaround>
     !!]
@@ -1672,9 +1658,9 @@ module Galacticus_Nodes
     event => self%event
     do while (associated(event))
        !![
-       <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+       <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446" docformat="rst">
         <description>
-         Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+        Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
         </description>
        </workaround>
        !!]
@@ -1686,7 +1672,7 @@ module Galacticus_Nodes
 
 
   function universeCreateEvent(self) result (newEvent)
-    !!{
+    !!{RST
     Create a new event in a universe.
     !!}
     implicit none
@@ -1712,8 +1698,8 @@ module Galacticus_Nodes
   end function universeCreateEvent
 
   subroutine universeRemoveEvent(self,event)
-    !!{
-    Remove an event from \mono{self}.
+    !!{RST
+    Remove an event from ``self``.
     !!}
     implicit none
     class  (universe     ), intent(inout) :: self
@@ -1746,7 +1732,7 @@ module Galacticus_Nodes
   end subroutine universeRemoveEvent
   
   function universePopTree(self)
-    !!{
+    !!{RST
     Pop a tree from the universe.
     !!}
     implicit none
@@ -1766,7 +1752,7 @@ module Galacticus_Nodes
   end function universePopTree
 
   subroutine universePushTree(self,tree)
-    !!{
+    !!{RST
     Pop a tree from the universe.
     !!}
     implicit none
@@ -1790,7 +1776,7 @@ module Galacticus_Nodes
   end subroutine universePushTree
 
   subroutine universeAssign(self,from)
-    !!{
+    !!{RST
     Perform assignment of universes.
     !!}
     implicit none
@@ -1811,7 +1797,7 @@ module Galacticus_Nodes
   end subroutine universeAssign
 
   logical function propertyActive(propertyType)
-    !!{
+    !!{RST
     Returns true if active property evaluate is underway.
     !!}
     implicit none
@@ -1822,7 +1808,7 @@ module Galacticus_Nodes
   end function propertyActive
   
   logical function propertyInactive(propertyType)
-    !!{
+    !!{RST
     Returns true if inactive property evaluate is underway.
     !!}
     implicit none
@@ -1833,7 +1819,7 @@ module Galacticus_Nodes
   end function propertyInactive
   
   logical function propertyEvaluate(propertyType,propertyIsInactive)
-    !!{
+    !!{RST
     Returns true if a property should be evaluated during the current stage of evolution.
     !!}
     implicit none
@@ -1851,8 +1837,8 @@ module Galacticus_Nodes
   end function propertyEvaluate
 
   subroutine massDistributionCalculationReset(massDistributionsLast,node,uniqueID)
-    !!{
-    Reset the memoized \mono{massDistribution} due to a \mono{calculationReset} event.
+    !!{RST
+    Reset the memoized ``massDistribution`` due to a ``calculationReset`` event.
     !!}
     implicit none
     integer           , intent(inout) :: massDistributionsLast
@@ -1871,8 +1857,8 @@ module Galacticus_Nodes
   end subroutine massDistributionCalculationReset
   
   subroutine massDistributionsDestroy()
-    !!{
-    Destroy memoized \mono{massDistributions}.
+    !!{RST
+    Destroy memoized ``massDistributions``.
     !!}
     implicit none    
     integer :: i
@@ -1886,7 +1872,7 @@ module Galacticus_Nodes
   end subroutine massDistributionsDestroy
 
   subroutine nodeHierarchyWrapperDestructor(self)
-    !!{
+    !!{RST
     Destructor for the node hierarchy wrapper class that handles finalization of the node class hierarchy.
     !!}
     implicit none

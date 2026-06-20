@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an interval pass filter on any node property.
 !!}
 
   use :: Node_Property_Extractors, only : nodePropertyExtractorScalar
 
   !![
-  <galacticFilter name="galacticFilterIntervalPass">
-   <description>An interval pass galactic filter that passes only nodes for which a scalar property, extracted via \mono{[nodePropertyExtractor]}, lies within the interval [\mono{[thresholdLow]}, \mono{[thresholdHigh]}]. This enables selection of galaxies or halos within any bounded range of an extractable property.</description>
+  <galacticFilter name="galacticFilterIntervalPass" docformat="rst">
+   <description>
+   An interval pass galactic filter that passes only nodes for which a scalar property, extracted via ``[nodePropertyExtractor]``, lies within the interval [``[thresholdLow]``, ``[thresholdHigh]``]. This enables selection of galaxies or halos within any bounded range of an extractable property.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterIntervalPass
-     !!{
+     !!{RST
      an interval pass galactic filter class on any node property.
      !!}
      private
@@ -41,8 +43,8 @@ Implements an interval pass filter on any node property.
   end type galacticFilterIntervalPass
 
   interface galacticFilterIntervalPass
-     !!{
-     Constructors for the \refClass{galacticFilterIntervalPass} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterIntervalPass` galactic filter class.
      !!}
      module procedure intervalPassConstructorParameters
      module procedure intervalPassConstructorInternal
@@ -51,8 +53,8 @@ Implements an interval pass filter on any node property.
 contains
   
   function intervalPassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterIntervalPass} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterIntervalPass` galactic filter class which takes a parameter set as input.
     !!}
     use :: Error                   , only : Error_Report
     use :: Input_Parameters        , only : inputParameter            , inputParameters
@@ -64,15 +66,19 @@ contains
     double precision                                            :: thresholdLow          , thresholdHigh
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>thresholdLow</name>
       <source>parameters</source>
-      <description>The low threshold value above which to pass.</description>
+      <description>
+      The low threshold value above which to pass.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>thresholdHigh</name>
       <source>parameters</source>
-      <description>The high threshold value below which to pass.</description>
+      <description>
+      The high threshold value below which to pass.
+      </description>
     </inputParameter>
     <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
     !!]
@@ -90,8 +96,8 @@ contains
   end function intervalPassConstructorParameters
 
   function intervalPassConstructorInternal(thresholdLow,thresholdHigh,nodePropertyExtractor_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterIntervalPass} galactic filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticFilterIntervalPass` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterIntervalPass )                        :: self
@@ -105,8 +111,8 @@ contains
   end function intervalPassConstructorInternal
 
   subroutine intervalPassDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterIntervalPass} galactic filter class.
+    !!{RST
+    Destructor for the :galacticus-class:`galacticFilterIntervalPass` galactic filter class.
     !!}
     implicit none
     type(galacticFilterIntervalPass), intent(inout) :: self
@@ -118,7 +124,7 @@ contains
   end subroutine intervalPassDestructor
 
   logical function intervalPassPasses(self,node)
-    !!{
+    !!{RST
     Implement an interval pass galactic filter.
     !!}
     implicit none

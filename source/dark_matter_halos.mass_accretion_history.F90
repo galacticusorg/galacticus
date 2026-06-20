@@ -17,29 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class for calculations of dark matter halo mass accretion histories.
 !!}
 
 module Dark_Matter_Halo_Mass_Accretion_Histories
-  !!{
+  !!{RST
   Provides a class for calculations of dark matter halo mass accretion histories.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>darkMatterHaloMassAccretionHistory</name>
    <descriptiveName>Dark Matter Halo Mass Accretion Histories</descriptiveName>
    <description>
-    Class providing dark matter halo mass accretion histories (MAHs), i.e. the mass of a halo's main progenitor as a
-    function of time or redshift. The MAH encodes how rapidly a halo assembled its mass and is used to set the structural
-    properties of halos via concentration models, to compute merger rates, and to track the formation redshift of halos.
+   Class providing dark matter halo mass accretion histories (MAHs), i.e. the mass of a halo's main progenitor as a function of time or redshift. The MAH encodes how rapidly a halo assembled its mass and is used to set the structural properties of halos via concentration models, to compute merger rates, and to track the formation redshift of halos.
    </description>
    <default>wechsler2002</default>
    <method name="time">
-    <description>Returns the cosmological time (in Gyr) at which the main progenitor of the halo in \mono{node} first reached the specified halo mass, found by root-finding on the mass accretion history.</description>
+    <description>
+    Returns the cosmological time (in Gyr) at which the main progenitor of the halo in ``node`` first reached the specified halo mass, found by root-finding on the mass accretion history.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -71,7 +71,9 @@ module Dark_Matter_Halo_Mass_Accretion_Histories
     </code>
    </method>
    <method name="mass">
-    <description>Returns the halo mass (in $\mathrm{M}_\odot$) of the main progenitor of the halo in \mono{node} at the specified cosmological time, evaluated from the parametric mass accretion history model.</description>
+    <description>
+    Returns the halo mass (in :math:`\mathrm{M}_\odot`) of the main progenitor of the halo in ``node`` at the specified cosmological time, evaluated from the parametric mass accretion history model.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -103,7 +105,9 @@ module Dark_Matter_Halo_Mass_Accretion_Histories
     </code>
    </method>
    <method name="massAccretionRate">
-    <description>Returns the halo mass accretion rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) of the main progenitor of the halo in \mono{node} at the specified cosmological time, computed as the time derivative of the mass accretion history.</description>
+    <description>
+    Returns the halo mass accretion rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) of the main progenitor of the halo in ``node`` at the specified cosmological time, computed as the time derivative of the mass accretion history.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout) :: node</argument>
@@ -121,7 +125,7 @@ module Dark_Matter_Halo_Mass_Accretion_Histories
 contains
 
   double precision function timeRoot(time)
-    !!{
+    !!{RST
     Root function used for solving for the time at a given mass.
     !!}
     implicit none
@@ -132,7 +136,7 @@ contains
   end function timeRoot
   
   double precision function massRoot(mass)
-    !!{
+    !!{RST
     Root function used for solving for the mass at a given time.
     !!}
     implicit none

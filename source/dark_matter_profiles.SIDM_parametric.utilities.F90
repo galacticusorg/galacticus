@@ -19,15 +19,13 @@
 
 !+    Contributions to this file made by: Niusha Ahvazi
 
-!!{
-Contains a module that implements the fitting functions of the parametric self-interacting dark matter model of
-\cite{yang_parametric_2024}: the gravothermal evolution timescale and the maps between cold dark matter (NFW) and
-self-interacting dark matter halo properties.
+!!{RST
+Contains a module that implements the fitting functions of the parametric self-interacting dark matter model of :cite:t:`yang_parametric_2024`: the gravothermal evolution timescale and the maps between cold dark matter (NFW) and self-interacting dark matter halo properties.
 !!}
 
 module SIDM_Parametric_Model
-  !!{
-  Implements the fitting functions of the parametric self-interacting dark matter model of \cite{yang_parametric_2024}.
+  !!{RST
+  Implements the fitting functions of the parametric self-interacting dark matter model of :cite:t:`yang_parametric_2024`.
   !!}
   implicit none
   private
@@ -47,11 +45,8 @@ module SIDM_Parametric_Model
 contains
 
   double precision function timescaleCollapse(darkMatterParticle_,C,velocityMaximum,radiusVelocityMaximum,velocityMaximumSIDM)
-    !!{
-    Evaluate the gravothermal evolution timescale $t_\mathrm{c}$ following eqn.~(2.2) of \cite{yang_parametric_2024}, given the
-    self-interacting dark matter particle \mono{darkMatterParticle\_}, the dimensionless model parameter \mono{C}, the maximum
-    circular velocity \mono{velocityMaximum} and its radius \mono{radiusVelocityMaximum}, and the SIDM maximum circular velocity
-    \mono{velocityMaximumSIDM}.
+    !!{RST
+    Evaluate the gravothermal evolution timescale :math:`t_\mathrm{c}` following eqn. (2.2) of :cite:t:`yang_parametric_2024`, given the self-interacting dark matter particle ``darkMatterParticle_``, the dimensionless model parameter ``C``, the maximum circular velocity ``velocityMaximum`` and its radius ``radiusVelocityMaximum``, and the SIDM maximum circular velocity ``velocityMaximumSIDM``.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal, megaParsec                                 , massSolar, MpcPerKmPerSToGyr
@@ -96,12 +91,8 @@ contains
   end function timescaleCollapse
 
   double precision function velocityMaximumRateTau(tau,velocityMaximum)
-    !!{
-    Return the derivative $\mathrm{d}V_\mathrm{max}/\mathrm{d}\tau$ of the SIDM maximum circular
-    velocity with respect to the dimensionless gravothermal time $\tau$, scaled by the CDM
-    maximum circular velocity \mono{velocityMaximum}, using the polynomial fit of
-    \cite[][eqn.~2.4]{yang_parametric_2024}. The result is zero for $\tau>1$ (the core-collapsed
-    regime).
+    !!{RST
+    Return the derivative :math:`\mathrm{d}V_\mathrm{max}/\mathrm{d}\tau` of the SIDM maximum circular velocity with respect to the dimensionless gravothermal time :math:`\tau`, scaled by the CDM maximum circular velocity ``velocityMaximum``, using the polynomial fit of :cite:t:`yang_parametric_2024`. The result is zero for :math:`\tau>1` (the core-collapsed regime).
     !!}
     implicit none
     double precision, intent(in   ) :: tau, velocityMaximum
@@ -124,10 +115,8 @@ contains
   end function velocityMaximumRateTau
 
   double precision function radiusMaximumRateTau(tau,radiusMaximum)
-    !!{
-    Return the derivative $\mathrm{d}R_\mathrm{max}/\mathrm{d}\tau$ of the SIDM maximum-circular-velocity radius with respect to
-    the dimensionless gravothermal time $\tau$, scaled by the CDM radius \mono{radiusMaximum}, using the polynomial fit of
-    \cite{yang_parametric_2024}. The result is zero for $\tau>1$ (the core-collapsed regime).
+    !!{RST
+    Return the derivative :math:`\mathrm{d}R_\mathrm{max}/\mathrm{d}\tau` of the SIDM maximum-circular-velocity radius with respect to the dimensionless gravothermal time :math:`\tau`, scaled by the CDM radius ``radiusMaximum``, using the polynomial fit of :cite:t:`yang_parametric_2024`. The result is zero for :math:`\tau>1` (the core-collapsed regime).
     !!}
     implicit none
     double precision, intent(in   ) :: tau, radiusMaximum
@@ -149,10 +138,8 @@ contains
   end function radiusMaximumRateTau
 
   double precision function radiusMaximumNFW(radiusMaximumSIDM,tau)
-    !!{
-    Map an SIDM maximum-circular-velocity radius \mono{radiusMaximumSIDM} back to the equivalent CDM (NFW) value by
-    inverting the $R_\mathrm{max}(\tau)$ evolution fit of \cite{yang_parametric_2024}. \mono{tau} is clamped to
-    the range $[0,1]$.
+    !!{RST
+    Map an SIDM maximum-circular-velocity radius ``radiusMaximumSIDM`` back to the equivalent CDM (NFW) value by inverting the :math:`R_\mathrm{max}(\tau)` evolution fit of :cite:t:`yang_parametric_2024`. ``tau`` is clamped to the range :math:`[0,1]`.
     !!}
     implicit none
     double precision, intent(in) :: radiusMaximumSIDM, tau
@@ -172,10 +159,8 @@ contains
   end function radiusMaximumNFW
 
   double precision function velocityMaximumNFW(velocityMaximumSIDM, tau)
-    !!{
-    Map an SIDM maximum circular velocity \mono{velocityMaximumSIDM} back to the equivalent CDM (NFW) value by inverting the
-    $V_\mathrm{max}(\tau)$ evolution fit of \cite{yang_parametric_2024}. \mono{tau} is clamped to the range
-    $[0,1]$.
+    !!{RST
+    Map an SIDM maximum circular velocity ``velocityMaximumSIDM`` back to the equivalent CDM (NFW) value by inverting the :math:`V_\mathrm{max}(\tau)` evolution fit of :cite:t:`yang_parametric_2024`. ``tau`` is clamped to the range :math:`[0,1]`.
     !!}
     implicit none
     double precision, intent(in) :: velocityMaximumSIDM, tau
@@ -197,9 +182,8 @@ contains
   end function velocityMaximumNFW
 
   double precision function radiusScaleNFW(radiusMaximum)
-    !!{
-    Return the NFW scale radius corresponding to a maximum-circular-velocity radius \mono{radiusMaximum}, using the
-    standard NFW relation $r_\mathrm{s} \approx R_\mathrm{max}/2.163$.
+    !!{RST
+    Return the NFW scale radius corresponding to a maximum-circular-velocity radius ``radiusMaximum``, using the standard NFW relation :math:`r_\mathrm{s} \approx R_\mathrm{max}/2.163`.
     !!}
     implicit none
     double precision, intent(in) :: radiusMaximum
@@ -210,9 +194,8 @@ contains
   end function radiusScaleNFW
 
   double precision function densityScaleNFW(radiusScale_,velocityMaximum)
-    !!{
-    Return the NFW characteristic density corresponding to a given scale radius \mono{radiusScale\_} and maximum circular velocity
-    \mono{velocityMaximum}.
+    !!{RST
+    Return the NFW characteristic density corresponding to a given scale radius ``radiusScale_`` and maximum circular velocity ``velocityMaximum``.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
@@ -228,10 +211,8 @@ contains
   end function densityScaleNFW
 
   double precision function densityScale(densityScaleInitial,tau)
-    !!{
-    Return the SIDM parametric-profile characteristic density as a function of the dimensionless gravothermal time $\tau$,
-    normalized to the initial NFW characteristic density \mono{densityScaleInitial}, using the fit of
-    \cite{yang_parametric_2024}. \mono{tau} is clamped to the range $[0,1]$.
+    !!{RST
+    Return the SIDM parametric-profile characteristic density as a function of the dimensionless gravothermal time :math:`\tau`, normalized to the initial NFW characteristic density ``densityScaleInitial``, using the fit of :cite:t:`yang_parametric_2024`. ``tau`` is clamped to the range :math:`[0,1]`.
     !!}
     implicit none
     double precision, intent(in) :: densityScaleInitial, tau
@@ -254,10 +235,8 @@ contains
   end function densityScale
 
   double precision function radiusScale(radiusScaleInitial,tau)
-    !!{
-    Return the SIDM parametric-profile scale radius as a function of the dimensionless gravothermal time $\tau$, normalized to the
-    initial NFW scale radius \mono{radiusScaleInitial}, using the fit of \cite{yang_parametric_2024}. \mono{tau} is clamped to the
-    range $[0,1]$.
+    !!{RST
+    Return the SIDM parametric-profile scale radius as a function of the dimensionless gravothermal time :math:`\tau`, normalized to the initial NFW scale radius ``radiusScaleInitial``, using the fit of :cite:t:`yang_parametric_2024`. ``tau`` is clamped to the range :math:`[0,1]`.
     !!}
     implicit none
     double precision, intent(in) :: radiusScaleInitial, tau
@@ -279,10 +258,8 @@ contains
   end function radiusScale
 
   double precision function radiusCore(radiusScaleInitial,tau)
-    !!{
-    Return the SIDM parametric-profile core radius as a function of the dimensionless gravothermal time $\tau$, normalized to the
-    initial NFW scale radius \mono{radiusScaleInitial}, using the fit of \cite{yang_parametric_2024}. \mono{tau} is clamped to the
-    range $[0,1]$.
+    !!{RST
+    Return the SIDM parametric-profile core radius as a function of the dimensionless gravothermal time :math:`\tau`, normalized to the initial NFW scale radius ``radiusScaleInitial``, using the fit of :cite:t:`yang_parametric_2024`. ``tau`` is clamped to the range :math:`[0,1]`.
     !!}
     implicit none
     double precision, intent(in) :: radiusScaleInitial, tau

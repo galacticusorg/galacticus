@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a mass distribution class which overlays clouds on another mass distribution.
   !!}
 
@@ -25,36 +25,32 @@
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
-  <massDistribution name="massDistributionSphericalShellOverdensities">
+  <massDistribution name="massDistributionSphericalShellOverdensities" docformat="rst">
    <description>
-    A mass distribution class which overlays overdense spherical shells on another mass distribution.
-    
-    The intent is to mimic the effects of a 3-D distribution of spherical clouds, but along a single sight-line from the center of a
-    spherically symmetric mass distribution. This is useful in computing radiative transfer through cloudy media for spherically
-    symmetric systems.
-    
-    In the 3-D case clouds are defined by a radius, $r_\mathrm{c}$, a volume filling factor, $f_\mathrm{v}$, and a density contrast,
-    $\Delta_\mathrm{c}$. For this case of spherical shells the same quantities are used, except that the radius is referred to as
-    the ``half-width'' of the shell, but is still labeled $r_\mathrm{c}$.
-    
-    In the 3-D case the number density of clouds is
-    \begin{equation}
-     n_\mathrm{c} = {f_\mathrm{v} \over (4 \pi / 3 ) r_\mathrm{c}^3}.
-    \end{equation}
-    Along a sightline of length $l$ (specified by the \mono{[radiusBoundary]} parameter) the number of clouds
-    intersected is
-    \begin{equation}
-     N_\mathrm{c} = n_\mathrm{c} l 4 \pi r_\mathrm{c}^2 = 3 f_\mathrm{v} {l \over r_\mathrm{c}}.
-    \end{equation}
-    This last relation is used to determine the number of spherical shells to generate. These shells are then placed randomly
-    in radius between $0$ and $l$. Each shell is also assigned an impact parameter, $b$, meant to represent the distance of the
-    center of the notional spherical cloud from the line of sight. The effective half-width of the shell is then
-    $\sqrt{r_\mathrm{c}^2-b^2}$.
+   A mass distribution class which overlays overdense spherical shells on another mass distribution.
+
+   The intent is to mimic the effects of a 3-D distribution of spherical clouds, but along a single sight-line from the center of a spherically symmetric mass distribution. This is useful in computing radiative transfer through cloudy media for spherically symmetric systems.
+
+   In the 3-D case clouds are defined by a radius, :math:`r_\mathrm{c}`, a volume filling factor, :math:`f_\mathrm{v}`, and a density contrast, :math:`\Delta_\mathrm{c}`. For this case of spherical shells the same quantities are used, except that the radius is referred to as the "half-width" of the shell, but is still labeled :math:`r_\mathrm{c}`.
+
+   In the 3-D case the number density of clouds is
+
+   .. math::
+
+      n_\mathrm{c} = {f_\mathrm{v} \over (4 \pi / 3 ) r_\mathrm{c}^3}.
+
+   Along a sightline of length :math:`l` (specified by the ``[radiusBoundary]`` parameter) the number of clouds intersected is
+
+   .. math::
+
+      N_\mathrm{c} = n_\mathrm{c} l 4 \pi r_\mathrm{c}^2 = 3 f_\mathrm{v} {l \over r_\mathrm{c}}.
+
+   This last relation is used to determine the number of spherical shells to generate. These shells are then placed randomly in radius between :math:`0` and :math:`l`. Each shell is also assigned an impact parameter, :math:`b`, meant to represent the distance of the center of the notional spherical cloud from the line of sight. The effective half-width of the shell is then :math:`\sqrt{r_\mathrm{c}^2-b^2}`.
    </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionClass) :: massDistributionSphericalShellOverdensities
-     !!{
+     !!{RST
      A mass distribution class which overlays clouds on another mass distribution.
      !!}
      class           (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
@@ -70,8 +66,8 @@
   end type massDistributionSphericalShellOverdensities
 
   interface massDistributionSphericalShellOverdensities
-     !!{
-     Constructors for the \refClass{massDistributionSphericalShellOverdensities} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionSphericalShellOverdensities` mass distribution class.
      !!}
      module procedure sphericalShellOverdensitiesConstructorParameters
      module procedure sphericalShellOverdensitiesConstructorInternal
@@ -80,9 +76,8 @@
 contains
 
   function sphericalShellOverdensitiesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalShellOverdensities} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionSphericalShellOverdensities` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -98,42 +93,56 @@ contains
     type            (varying_string                             )                :: massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>halfWidth</name>
-      <description>The half-width (in Mpc) of each overdense spherical shell, representing the effective radius of the notional spherical cloud projected along the line of sight after accounting for a random impact parameter.</description>
+      <description>
+      The half-width (in Mpc) of each overdense spherical shell, representing the effective radius of the notional spherical cloud projected along the line of sight after accounting for a random impact parameter.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityContrast</name>
-      <description>The density contrast of the overdense spherical shells relative to the smooth underlying mass distribution, i.e.\ $\Delta_\mathrm{c} = \rho_\mathrm{shell} / \rho_\mathrm{background}$.</description>
+      <description>
+      The density contrast of the overdense spherical shells relative to the smooth underlying mass distribution, i.e.\ :math:`\Delta_\mathrm{c} = \rho_\mathrm{shell} / \rho_\mathrm{background}`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>volumeFillingFactor</name>
-      <description>The fraction of the total sightline volume occupied by overdense shells; together with \mono{halfWidth} determines the number of shells $N_\mathrm{c} = 3 f_\mathrm{v} l / r_\mathrm{c}$ along the line of sight.</description>
+      <description>
+      The fraction of the total sightline volume occupied by overdense shells; together with ``halfWidth`` determines the number of shells :math:`N_\mathrm{c} = 3 f_\mathrm{v} l / r_\mathrm{c}` along the line of sight.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusBoundary</name>
-      <description>The boundary radius within which to populate shells.</description>
+      <description>
+      The boundary radius within which to populate shells.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dimensionless</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true the shell overdensities profile is considered to be dimensionless.</description>
+      <description>
+      If true the shell overdensities profile is considered to be dimensionless.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution"      name="massDistribution_"      source="parameters"/>
@@ -149,8 +158,8 @@ contains
   end function sphericalShellOverdensitiesConstructorParameters
   
   function sphericalShellOverdensitiesConstructorInternal(halfWidth,densityContrast,volumeFillingFactor,radiusBoundary,massDistribution_,randomNumberGenerator_,dimensionless,componentType,massType) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalShellOverdensities} mass distribution class.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionSphericalShellOverdensities` mass distribution class.
     !!}
     use :: Sorting      , only : sort
 #ifdef USEMPI
@@ -225,8 +234,8 @@ contains
   end function sphericalShellOverdensitiesConstructorInternal
   
   subroutine sphericalShellOverdensitiesDestructor(self)
-    !!{
-    Destructor for the \refClass{massDistributionSphericalShellOverdensities} mass distribution class.
+    !!{RST
+    Destructor for the :galacticus-class:`massDistributionSphericalShellOverdensities` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalShellOverdensities), intent(inout) :: self
@@ -239,8 +248,8 @@ contains
   end subroutine sphericalShellOverdensitiesDestructor
 
   double precision function sphericalShellOverdensitiesDensity(self,coordinates)
-    !!{
-    Return the density at the specified \mono{coordinates} in a cloud overdensities mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a cloud overdensities mass distribution.
     !!}
     use :: Arrays_Search, only : searchArrayClosest
     use :: Coordinates  , only : assignment(=)     , coordinateSpherical

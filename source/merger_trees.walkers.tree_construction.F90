@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a tree walker for trees under construction.
   !!}
   use :: Galacticus_Nodes, only : mergerTree, treeNode
 
   !![
-  <mergerTreeWalker name="mergerTreeWalkerTreeConstruction">
-   <description>Provides a merger tree walker for trees under construction.</description>
+  <mergerTreeWalker name="mergerTreeWalkerTreeConstruction" docformat="rst">
+   <description>
+   Provides a merger tree walker for trees under construction.
+   </description>
   </mergerTreeWalker>
   !!]
   type, extends(mergerTreeWalkerClass) :: mergerTreeWalkerTreeConstruction
-     !!{
+     !!{RST
      A merger tree walker for trees under construction.
      !!}
      private
@@ -37,7 +39,7 @@
      logical                      :: nodesRemain_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the walker to the given node." method="setNode"/>
      </methods>
      !!]
@@ -47,8 +49,8 @@
   end type mergerTreeWalkerTreeConstruction
 
   interface mergerTreeWalkerTreeConstruction
-     !!{
-     Constructors for the \refClass{mergerTreeWalkerTreeConstruction} merger tree walker class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeWalkerTreeConstruction` merger tree walker class.
      !!}
      module procedure treeConstructionParameters
      module procedure treeConstructionInternal
@@ -57,8 +59,8 @@
 contains
 
   function treeConstructionParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeWalkerTreeConstruction} merger tree walker class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeWalkerTreeConstruction` merger tree walker class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -72,8 +74,8 @@ contains
   end function treeConstructionParameters
 
   function treeConstructionInternal(tree) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeWalkerTreeConstruction} merger tree walker class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeWalkerTreeConstruction` merger tree walker class.
     !!}
     implicit none
     type   (mergerTreeWalkerTreeConstruction)                        :: self
@@ -86,9 +88,8 @@ contains
   end function treeConstructionInternal
 
   recursive logical function treeConstructionNext(self,node)
-    !!{
-    This function will update the given \mono{node} to the next node which should be visited in a tree to
-    perform a walk suitable for trees under construction.
+    !!{RST
+    This function will update the given ``node`` to the next node which should be visited in a tree to perform a walk suitable for trees under construction.
     !!}
     implicit none
     class(mergerTreeWalkerTreeConstruction), intent(inout)          :: self
@@ -144,7 +145,7 @@ contains
   end function treeConstructionNext
 
   logical function treeConstructionNodesRemain(self)
-    !!{
+    !!{RST
     Returns true if more nodes remain to be walked to.
     !!}
     implicit none
@@ -155,7 +156,7 @@ contains
   end function treeConstructionNodesRemain
 
   subroutine treeConstructionSetNode(self,node)
-    !!{
+    !!{RST
     Set the current node for the walker.
     !!}
     implicit none

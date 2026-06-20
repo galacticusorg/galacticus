@@ -17,23 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of halo bias using the Press-Schechter algorithm \citep{cole_biased_1989}.
+  !!{RST
+  Implementation of halo bias using the Press-Schechter algorithm :cite:p:`cole_biased_1989`.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !![
-  <darkMatterHaloBias name="darkMatterHaloBiasPressSchechter">
+  <darkMatterHaloBias name="darkMatterHaloBiasPressSchechter" docformat="rst">
    <description>
-    A dark matter halo mass bias class consistent with the halo mass function of \cite{press_formation_1974} (see
-    \citep{mo_analytic_1996}).
+   A dark matter halo mass bias class consistent with the halo mass function of :cite:t:`press_formation_1974` (see :cite:p:`mo_analytic_1996`).
    </description>
   </darkMatterHaloBias>
   !!]
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasPressSchechter
-     !!{
-     Implementation of a dark matter halo mass utilizing the Press-Schechter algorithm \citep{cole_biased_1989}.
+     !!{RST
+     Implementation of a dark matter halo mass utilizing the Press-Schechter algorithm :cite:p:`cole_biased_1989`.
      !!}
      private
      class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
@@ -44,8 +43,8 @@
   end type darkMatterHaloBiasPressSchechter
 
   interface darkMatterHaloBiasPressSchechter
-     !!{
-     Constructors for the \refClass{darkMatterHaloBiasPressSchechter} dark matter halo bias class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterHaloBiasPressSchechter` dark matter halo bias class.
      !!}
      module procedure pressSchechterConstructorParameters
      module procedure pressSchechterConstructorInternal
@@ -54,8 +53,8 @@
 contains
 
   function pressSchechterConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterHaloBiasPressSchechter} dark matter halo bias class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterHaloBiasPressSchechter` dark matter halo bias class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,8 +77,8 @@ contains
   end function pressSchechterConstructorParameters
 
   function pressSchechterConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterHaloBiasPressSchechter} dark matter halo bias class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterHaloBiasPressSchechter` dark matter halo bias class.
     !!}
     implicit none
     type (darkMatterHaloBiasPressSchechter)                        :: self
@@ -93,8 +92,8 @@ contains
   end function pressSchechterConstructorInternal
 
   subroutine pressSchechterDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterHaloBiasPressSchechter} dark matter halo bias class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterHaloBiasPressSchechter` dark matter halo bias class.
     !!}
     implicit none
     type(darkMatterHaloBiasPressSchechter), intent(inout) :: self
@@ -107,7 +106,7 @@ contains
   end subroutine pressSchechterDestructor
 
   double precision function pressSchechterBiasByMass(self,mass,time,radius)
-    !!{
+    !!{RST
     Returns the bias of a dark matter halo given the mass and time.
     !!}
     implicit none

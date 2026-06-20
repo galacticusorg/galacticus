@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program which tests the \cite{diemer_universal_2014} halo concentration algorithm.
+!!{RST
+Contains a program which tests the :cite:t:`diemer_universal_2014` halo concentration algorithm.
 !!}
 
 program Test_DiemerKravtsov2014_Concentration
-  !!{
-  Tests the \cite{diemer_universal_2014} halo concentration algorithm. Values of concentration were taken from their website\footnote{File no longer available---was downloaded from \mono{http://www.benediktdiemer.com/wp-content/uploads/2014/07/Concentration\_WMAP7\_median.txt}}.
+  !!{RST
+  Tests the :cite:t:`diemer_universal_2014` halo concentration algorithm. Values of concentration were taken from their website\footnoteFile no longer available---was downloaded from ``http://www.benediktdiemer.com/wp-content/uploads/2014/07/Concentration_WMAP7_median.txt``.
   !!}
   use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower           , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda

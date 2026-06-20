@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains custom functions for the very simple size disk component.
 !!}
 
 function Node_Component_Disk_Very_Simple_Size_Mass_Distribution(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
-  !!{
+  !!{RST
   Return the mass distribution for the very simple size disk component.
   !!}
   use :: Mass_Distributions                       , only : massDistributionClass      , massDistributionCylindricalScaler, massDistributionComposite   , massDistributionList   , &
@@ -119,7 +119,7 @@ function Node_Component_Disk_Very_Simple_Size_Mass_Distribution(self,componentTy
 end function Node_Component_Disk_Very_Simple_Size_Mass_Distribution
 
 double precision function Node_Component_Disk_Very_Simple_Size_Half_Mass_Radius(self) result(radiusHalfMass)
-  !!{
+  !!{RST
   Return the half-mass radius of the very simple size disk.
   !!}
   use :: Error                                    , only : Error_Report

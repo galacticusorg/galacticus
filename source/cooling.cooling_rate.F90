@@ -17,30 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements calculations of the cooling rate.
 !!}
 
 module Cooling_Rates
-  !!{
+  !!{RST
   Provides a class that implements calculations of the cooling rate.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>coolingRate</name>
    <descriptiveName>Cooling Rates</descriptiveName>
-   <description>Class providing models of the mass cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) at which gas cools out
-    of the hot atmosphere of a dark matter halo and becomes available for accretion onto the central galaxy. The
-    cooling rate drives the supply of cold gas for star formation and sets the growth rate of the galaxy disc.
-    Implementations typically account for the interplay between the cooling time, the freefall time, the
-    cooling radius, and the available mass of hot gas, following the two-regime picture of \glc{whiteFrenk1991}
-    and subsequent refinements.</description>
+   <description>
+   Class providing models of the mass cooling rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) at which gas cools out of the hot atmosphere of a dark matter halo and becomes available for accretion onto the central galaxy. The cooling rate drives the supply of cold gas for star formation and sets the growth rate of the galaxy disc. Implementations typically account for the interplay between the cooling time, the freefall time, the cooling radius, and the available mass of hot gas, following the two-regime picture of GalacticuswhiteFrenk1991 and subsequent refinements.
+   </description>
    <default>whiteFrenk1991</default>
    <method name="rate" >
-    <description>Returns the cooling rate of gas in the hot atmosphere surrounding the galaxy in \mono{node} in units of $\mathrm{M}_\odot/$Gyr.</description>
+    <description>
+    Returns the cooling rate of gas in the hot atmosphere surrounding the galaxy in ``node`` in units of :math:`\mathrm{M}_\odot/`\ Gyr.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

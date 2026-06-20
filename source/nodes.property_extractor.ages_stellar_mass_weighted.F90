@@ -18,23 +18,23 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorAgesStellarMassWeighted">
+  <nodePropertyExtractor name="nodePropertyExtractorAgesStellarMassWeighted" docformat="rst">
    <description>
-     A node property extractor which extracts stellar mass-weighted ages for disk and spheroid components. Requires the
-     \refClass{nodeOperatorAgesStellarMassWeighted} node operator to be used to accumulate the relevant integrals for each disk
-     and spheroid.
+   A node property extractor which extracts stellar mass-weighted ages for disk and spheroid components. Requires the :galacticus-class:`nodeOperatorAgesStellarMassWeighted` node operator to be used to accumulate the relevant integrals for each disk and spheroid.
 
-     Specifically, the quantities computed by this class are     
-     \begin{eqnarray}
-     \langle t \rangle &amp;=&amp; \left. \int_0^t \mathrm{d}t^\prime (t-t^\prime) \dot{\psi}(t^\prime) \right. \int_0^t \mathrm{d}t^\prime \dot{\psi}(t^\prime) \nonumber \\
-                       &amp;=&amp; t - \left. \int_0^t \mathrm{d}t^\prime t^\prime \dot{\psi}(t^\prime) \right. \int_0^t \mathrm{d}t^\prime \dot{\psi}(t^\prime),
-     \end{eqnarray}
-     where $\dot{\psi}(t^\prime)$ is the star formation rate at time $t^\prime$ and $t$ is the present time..
+   Specifically, the quantities computed by this class are
+
+   .. math::
+
+      \langle t \rangle &amp; = \left. \int_0^t \mathrm{d}t^\prime (t-t^\prime) \dot{\psi}(t^\prime) \right. \int_0^t \mathrm{d}t^\prime \dot{\psi}(t^\prime) \nonumber \\
+      &amp; = t - \left. \int_0^t \mathrm{d}t^\prime t^\prime \dot{\psi}(t^\prime) \right. \int_0^t \mathrm{d}t^\prime \dot{\psi}(t^\prime),
+
+   where :math:`\dot{\psi}(t^\prime)` is the star formation rate at time :math:`t^\prime` and :math:`t` is the present time..
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorAgesStellarMassWeighted
-     !!{
+     !!{RST
      A property extractor which extracts stellar mass-weighted ages of disk and spheroid.
      !!}
      private
@@ -51,8 +51,8 @@
   end type nodePropertyExtractorAgesStellarMassWeighted
 
   interface nodePropertyExtractorAgesStellarMassWeighted
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorAgesStellarMassWeighted} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorAgesStellarMassWeighted` property extractor class.
      !!}
      module procedure agesStellarMassWeightedConstructorParameters
      module procedure agesStellarMassWeightedConstructorInternal
@@ -61,8 +61,8 @@
 contains
 
   function agesStellarMassWeightedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorAgesStellarMassWeighted} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorAgesStellarMassWeighted` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,8 +77,8 @@ contains
   end function agesStellarMassWeightedConstructorParameters
 
   function agesStellarMassWeightedConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorAgesStellarMassWeighted} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorAgesStellarMassWeighted` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorAgesStellarMassWeighted) :: self
@@ -95,8 +95,8 @@ contains
   end function agesStellarMassWeightedConstructorInternal
 
   integer function agesStellarMassWeightedElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{agesStellarMassWeighted} property extractors.
+    !!{RST
+    Return the number of elements in the ``agesStellarMassWeighted`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout) :: self
@@ -108,7 +108,7 @@ contains
   end function agesStellarMassWeightedElementCount
 
   function agesStellarMassWeightedExtract(self,node,time,instance)
-    !!{
+    !!{RST
     Implement a agesStellarMassWeighted output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
@@ -200,8 +200,8 @@ contains
   end function agesStellarMassWeightedExtract
 
   subroutine agesStellarMassWeightedNames(self,time,names)
-    !!{
-    Return the names of the \mono{agesStellarMassWeighted} properties.
+    !!{RST
+    Return the names of the ``agesStellarMassWeighted`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout)                             :: self
@@ -217,8 +217,8 @@ contains
   end subroutine agesStellarMassWeightedNames
 
   subroutine agesStellarMassWeightedDescriptions(self,time,descriptions)
-    !!{
-    Return the descriptions of the \mono{agesStellarMassWeighted} properties.
+    !!{RST
+    Return the descriptions of the ``agesStellarMassWeighted`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout)                             :: self
@@ -234,8 +234,8 @@ contains
   end subroutine agesStellarMassWeightedDescriptions
 
   function agesStellarMassWeightedUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{agesStellarMassWeighted} properties in the SI system.
+    !!{RST
+    Return the units of the ``agesStellarMassWeighted`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
@@ -250,7 +250,7 @@ contains
   end function agesStellarMassWeightedUnitsInSI
 
   function agesStellarMassWeightedUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the agesStellarMassWeighted properties.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear

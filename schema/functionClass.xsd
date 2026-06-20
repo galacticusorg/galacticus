@@ -80,7 +80,10 @@
 	  </xs:complexType>
 	</xs:element>
       </xs:sequence>
+      <!-- docformat="rst" marks the description as reStructuredText, rendered
+           on ReadTheDocs (see scripts/doc/extractDocsRST.py). -->
+      <xs:attribute name="docformat" use="optional"/>
     </xs:complexType>
   </xs:element>
-  
+
 </xs:schema>

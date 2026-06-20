@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that performs stellar feedback in disks.
   !!}
 
@@ -26,12 +26,14 @@
   use :: Stellar_Feedback_Outflows    , only : stellarFeedbackOutflowsClass
   
   !![
-  <nodeOperator name="nodeOperatorStellarFeedbackDisks">
-   <description>Computes stellar feedback-driven outflows from galactic disks, using the star formation rate and feedback model to determine gas ejection rates that regulate disk star formation and enrich the circumgalactic medium with metals and energy.</description>
+  <nodeOperator name="nodeOperatorStellarFeedbackDisks" docformat="rst">
+   <description>
+   Computes stellar feedback-driven outflows from galactic disks, using the star formation rate and feedback model to determine gas ejection rates that regulate disk star formation and enrich the circumgalactic medium with metals and energy.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorStellarFeedbackDisks
-     !!{
+     !!{RST
      A node operator class that performs stellar feedback in disks.
      !!}
      private
@@ -44,8 +46,8 @@
   end type nodeOperatorStellarFeedbackDisks
   
   interface nodeOperatorStellarFeedbackDisks
-     !!{
-     Constructors for the \refClass{nodeOperatorStellarFeedbackDisks} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorStellarFeedbackDisks` node operator class.
      !!}
      module procedure stellarFeedbackDisksConstructorParameters
      module procedure stellarFeedbackDisksConstructorInternal
@@ -54,8 +56,8 @@
 contains
 
   function stellarFeedbackDisksConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorStellarFeedbackDisks} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorStellarFeedbackDisks` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -81,8 +83,8 @@ contains
   end function stellarFeedbackDisksConstructorParameters
 
   function stellarFeedbackDisksConstructorInternal(starFormationRateDisks_,stellarPopulationProperties_,stellarFeedbackOutflows_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorStellarFeedbackDisks} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorStellarFeedbackDisks` node operator class.
     !!}
     implicit none
     type (nodeOperatorStellarFeedbackDisks)                        :: self
@@ -97,8 +99,8 @@ contains
   end function stellarFeedbackDisksConstructorInternal
 
   subroutine stellarFeedbackDisksDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorStellarFeedbackDisks} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorStellarFeedbackDisks` node operator class.
     !!}
     implicit none
     type(nodeOperatorStellarFeedbackDisks), intent(inout) :: self
@@ -112,7 +114,7 @@ contains
   end subroutine stellarFeedbackDisksDestructor
   
   subroutine stellarFeedbackDisksDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Perform feedback from stars in a disk.
     !!}
     use :: Abundances_Structure          , only : abundances         , zeroAbundances

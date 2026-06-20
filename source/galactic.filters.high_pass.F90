@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a high-pass filter on any node property.
 !!}
 
   use :: Node_Property_Extractors, only : nodePropertyExtractorScalar
 
   !![
-  <galacticFilter name="galacticFilterHighPass">
-   <description>A high-pass galactic filter that passes only nodes for which a scalar property, extracted via \mono{[nodePropertyExtractor]}, equals or exceeds the specified \mono{[threshold]} value. This allows selection of galaxies or halos above any quantitative threshold in any extractable property.</description>
+  <galacticFilter name="galacticFilterHighPass" docformat="rst">
+   <description>
+   A high-pass galactic filter that passes only nodes for which a scalar property, extracted via ``[nodePropertyExtractor]``, equals or exceeds the specified ``[threshold]`` value. This allows selection of galaxies or halos above any quantitative threshold in any extractable property.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterHighPass
-     !!{
+     !!{RST
      A high-pass galactic filter class on any node property.
      !!}
      private
@@ -41,8 +43,8 @@ Implements a high-pass filter on any node property.
   end type galacticFilterHighPass
 
   interface galacticFilterHighPass
-     !!{
-     Constructors for the \refClass{galacticFilterHighPass} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterHighPass` galactic filter class.
      !!}
      module procedure highPassConstructorParameters
      module procedure highPassConstructorInternal
@@ -51,8 +53,8 @@ Implements a high-pass filter on any node property.
 contains
   
   function highPassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterHighPass} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterHighPass` galactic filter class which takes a parameter set as input.
     !!}
     use :: Error                   , only : Error_Report
     use :: Input_Parameters        , only : inputParameter            , inputParameters
@@ -64,10 +66,12 @@ contains
     double precision                                            :: threshold
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>threshold</name>
       <source>parameters</source>
-      <description>The threshold value above which to pass.</description>
+      <description>
+      The threshold value above which to pass.
+      </description>
     </inputParameter>
     <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
     !!]
@@ -85,8 +89,8 @@ contains
   end function highPassConstructorParameters
 
   function highPassConstructorInternal(threshold,nodePropertyExtractor_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterHighPass} galactic filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticFilterHighPass` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterHighPass     )                        :: self
@@ -100,8 +104,8 @@ contains
   end function highPassConstructorInternal
 
   subroutine highPassDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterHighPass} galactic filter class.
+    !!{RST
+    Destructor for the :galacticus-class:`galacticFilterHighPass` galactic filter class.
     !!}
     implicit none
     type(galacticFilterHighPass), intent(inout) :: self
@@ -113,7 +117,7 @@ contains
   end subroutine highPassDestructor
 
   logical function highPassPasses(self,node)
-    !!{
+    !!{RST
     Implement a high-pass galactic filter.
     !!}
     implicit none

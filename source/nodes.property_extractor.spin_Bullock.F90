@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a node property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter.
+!!{RST
+Implements a node property extractor class for the :cite:t:`bullock_profiles_2001` definition of spin parameter.
 !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorSpinBullock">
-   <description>Extracts the \cite{bullock_profiles_2001} spin parameter $\lambda' = J / (\sqrt{2} M V r)$ of dark matter halos, an alternative dimensionless spin measure that is more easily computed from halo catalogs than the classical Peebles spin parameter.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorSpinBullock" docformat="rst">
+   <description>
+   Extracts the :cite:t:`bullock_profiles_2001` spin parameter :math:`\lambda' = J / (\sqrt{2} M V r)` of dark matter halos, an alternative dimensionless spin measure that is more easily computed from halo catalogs than the classical Peebles spin parameter.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorSpinBullock
-     !!{
-     A property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter.
+     !!{RST
+     A property extractor class for the :cite:t:`bullock_profiles_2001` definition of spin parameter.
      !!}
      private
      class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
@@ -47,8 +49,8 @@ Implements a node property extractor class for the \cite{bullock_profiles_2001} 
   end type nodePropertyExtractorSpinBullock
 
   interface nodePropertyExtractorSpinBullock
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorSpinBullock} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorSpinBullock` property extractor class.
      !!}
      module procedure spinBullockConstructorParameters
      module procedure spinBullockConstructorInternal
@@ -57,7 +59,7 @@ Implements a node property extractor class for the \cite{bullock_profiles_2001} 
 contains
 
   function spinBullockConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the y output analysis property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -78,8 +80,8 @@ contains
   end function spinBullockConstructorParameters
 
   function spinBullockConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSpinBullock} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorSpinBullock` property extractor class.
     !!}
     use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
@@ -99,8 +101,8 @@ contains
   end function spinBullockConstructorInternal
 
   subroutine spinBullockDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorSpinBullock} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorSpinBullock` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSpinBullock), intent(inout) :: self
@@ -112,8 +114,8 @@ contains
   end subroutine spinBullockDestructor
 
   integer function spinBullockElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{spinBullock} property extractor.
+    !!{RST
+    Return the number of elements in the ``spinBullock`` property extractor.
     !!}
     implicit none
     class           (nodePropertyExtractorSpinBullock), intent(inout) :: self
@@ -125,8 +127,8 @@ contains
   end function spinBullockElementCount
 
   function spinBullockExtract(self,node,time,instance)
-    !!{
-    Implement extraction of the spin parameter under the \cite{bullock_profiles_2001} definition.
+    !!{RST
+    Implement extraction of the spin parameter under the :cite:t:`bullock_profiles_2001` definition.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin, treeNode
     implicit none
@@ -160,8 +162,8 @@ contains
   end function spinBullockExtract
 
   subroutine spinBullockNames(self,time,names)
-    !!{
-    Return the name of the \mono{spinBullock} property.
+    !!{RST
+    Return the name of the ``spinBullock`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorSpinBullock), intent(inout)                             :: self
@@ -180,8 +182,8 @@ contains
   end subroutine spinBullockNames
 
   subroutine spinBullockDescriptions(self,time,descriptions)
-    !!{
-    Return a description of the \mono{spinBullock} property.
+    !!{RST
+    Return a description of the ``spinBullock`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorSpinBullock), intent(inout)                             :: self
@@ -200,8 +202,8 @@ contains
   end subroutine spinBullockDescriptions
 
   function spinBullockUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{spinBullock} property in the SI system.
+    !!{RST
+    Return the units of the ``spinBullock`` property in the SI system.
     !!}
     implicit none
     double precision                                  , allocatable  , dimension(:) :: spinBullockUnitsInSI
@@ -215,7 +217,7 @@ contains
   end function spinBullockUnitsInSI
 
   function spinBullockUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the spinBullock properties.
     !!}
     use :: Units_MetaData, only : unitType

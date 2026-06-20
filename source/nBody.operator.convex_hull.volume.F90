@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which computes the convex hull volume of the particles.
 !!}
   
   !![
-  <nbodyOperator name="nbodyOperatorConvexHullVolume">
-   <description>An N-body data operator which computes the convex hull volume of the particles.</description>
+  <nbodyOperator name="nbodyOperatorConvexHullVolume" docformat="rst">
+   <description>
+   An N-body data operator which computes the convex hull volume of the particles.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorConvexHullVolume
-     !!{
+     !!{RST
      An N-body data operator which computes the convex hull volume of the particles.
      !!}
      private
@@ -36,8 +38,8 @@ Implements an N-body data operator which computes the convex hull volume of the 
   end type nbodyOperatorConvexHullVolume
 
   interface nbodyOperatorConvexHullVolume
-     !!{
-     Constructors for the \refClass{nbodyOperatorConvexHullVolume} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorConvexHullVolume` N-body operator class.
      !!}
      module procedure convexHullVolumeConstructorParameters
   end interface nbodyOperatorConvexHullVolume
@@ -45,8 +47,8 @@ Implements an N-body data operator which computes the convex hull volume of the 
 contains
 
   function convexHullVolumeConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorConvexHullVolume} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorConvexHullVolume` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function convexHullVolumeConstructorParameters
 
   subroutine convexHullVolumeOperate(self,simulations)
-    !!{
+    !!{RST
     Compute the convex hull volume of the points.
     !!}
     use :: Error             , only : Error_Report

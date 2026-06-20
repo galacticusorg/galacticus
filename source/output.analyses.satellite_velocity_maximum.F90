@@ -19,7 +19,7 @@
 
   !+    Contributions to this file made by: Xiaolong Du
   
-  !!{
+  !!{RST
   Implements an output analysis class that computes satellite maximum circular velocity fraction.
   !!}
 
@@ -28,12 +28,14 @@
   !$ use :: Locks                   , only : ompLock
 
   !![
-  <outputAnalysis name="outputAnalysisSatelliteVelocityMaximum">
-    <description>Computes the satellite subhalo maximum circular velocity fraction ($V_\mathrm{max}/V_\mathrm{max,0}$) as a function of time since infall, tracking tidal evolution and comparing against a target dataset read from \mono{fileName}, with a relative model uncertainty parameter.</description>
+  <outputAnalysis name="outputAnalysisSatelliteVelocityMaximum" docformat="rst">
+    <description>
+    Computes the satellite subhalo maximum circular velocity fraction (:math:`V_\mathrm{max}/V_\mathrm{max,0}`) as a function of time since infall, tracking tidal evolution and comparing against a target dataset read from ``fileName``, with a relative model uncertainty parameter.
+    </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisSatelliteVelocityMaximum
-     !!{
+     !!{RST
      An output analysis class that computes satellite maximum circular velocity fraction as a function of time.
      !!}
      private
@@ -55,8 +57,8 @@
   end type outputAnalysisSatelliteVelocityMaximum
 
   interface outputAnalysisSatelliteVelocityMaximum
-     !!{
-     Constructors for the \refClass{outputAnalysisSatelliteVelocityMaximum} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisSatelliteVelocityMaximum` output analysis class.
      !!}
      module procedure satelliteVelocityMaximumConstructorParameters
      module procedure satelliteVelocityMaximumConstructorInternal
@@ -65,8 +67,8 @@
 contains
 
   function satelliteVelocityMaximumConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSatelliteVelocityMaximum} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisSatelliteVelocityMaximum` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Output_Times    , only : outputTimesClass
@@ -79,15 +81,19 @@ contains
     double precision                                                        :: relativeModelUncertainty
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <source>parameters</source>
-      <description>The name of the file from which to read the target dataset.</description>
+      <description>
+      The name of the file from which to read the target dataset.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>relativeModelUncertainty</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>Relative model uncertainty.</description>
+      <description>
+      Relative model uncertainty.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"        source="parameters"                                               />
@@ -105,8 +111,8 @@ contains
   end function satelliteVelocityMaximumConstructorParameters
   
   function satelliteVelocityMaximumConstructorInternal(fileName,relativeModelUncertainty,darkMatterProfileDMO_,darkMatterProfileDMOUnheated,outputTimes_) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSatelliteVelocityMaximum} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisSatelliteVelocityMaximum` output analysis class for internal use.
     !!}
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object
@@ -158,8 +164,8 @@ contains
   end function satelliteVelocityMaximumConstructorInternal
 
   subroutine satelliteVelocityMaximumDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisSatelliteVelocityMaximum} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisSatelliteVelocityMaximum` output analysis class.
     !!}
     implicit none
     type(outputAnalysisSatelliteVelocityMaximum), intent(inout) :: self
@@ -173,7 +179,7 @@ contains
   end subroutine satelliteVelocityMaximumDestructor
 
   subroutine satelliteVelocityMaximumAnalyze(self,node,iOutput)
-    !!{
+    !!{RST
     Analyze the maximum velocity tidal track.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -217,7 +223,7 @@ contains
   end subroutine satelliteVelocityMaximumAnalyze
 
   subroutine satelliteVelocityMaximumReduce(self,reduced)
-    !!{
+    !!{RST
     Reduce over the maximum velocity tidal track output analysis.
     !!}
     use :: Error, only : Error_Report
@@ -238,7 +244,7 @@ contains
   end subroutine satelliteVelocityMaximumReduce
 
   subroutine satelliteVelocityMaximumFinalize(self,groupName)
-    !!{
+    !!{RST
     Output results of the maximum velocity tidal track output analysis.
     !!}
 #ifdef USEMPI
@@ -292,7 +298,7 @@ contains
   end subroutine satelliteVelocityMaximumFinalize
   
   double precision function satelliteVelocityMaximumLogLikelihood(self)
-    !!{
+    !!{RST
     Return the log-likelihood of a maximum velocity tidal track output analysis.
     !!}
     implicit none

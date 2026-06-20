@@ -18,14 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <radiativeTransferSpectrum name="radiativeTransferSpectrumBandPassFilter">
+  <radiativeTransferSpectrum name="radiativeTransferSpectrumBandPassFilter" docformat="rst">
    <description>
-    A photon spectrum class that applies a wavelength band-pass filter to another photon spectrum, returning zero luminosity outside the specified wavelength range. The passband is controlled by the \mono{[wavelengthMinimum]} and \mono{[wavelengthMaximum]} parameters (in units of \AA).
+   A photon spectrum class that applies a wavelength band-pass filter to another photon spectrum, returning zero luminosity outside the specified wavelength range. The passband is controlled by the ``[wavelengthMinimum]`` and ``[wavelengthMaximum]`` parameters (in units of \AA).
    </description>
   </radiativeTransferSpectrum>
   !!]
   type, extends(radiativeTransferSpectrumClass) :: radiativeTransferSpectrumBandPassFilter
-     !!{
+     !!{RST
      Implementation of a spectrum band pass filter for radiative transfer calculations.
      !!}
      private
@@ -38,8 +38,8 @@
   end type radiativeTransferSpectrumBandPassFilter
   
   interface radiativeTransferSpectrumBandPassFilter
-     !!{
-     Constructors for the \refClass{radiativeTransferSpectrumBandPassFilter} radiative transfer spectrum class.
+     !!{RST
+     Constructors for the :galacticus-class:`radiativeTransferSpectrumBandPassFilter` radiative transfer spectrum class.
      !!}
      module procedure bandPassFilterConstructorParameters
      module procedure bandPassFilterConstructorInternal
@@ -48,9 +48,8 @@
 contains
 
   function bandPassFilterConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiativeTransferSpectrumBandPassFilter} radiative transfer spectrum class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the :galacticus-class:`radiativeTransferSpectrumBandPassFilter` radiative transfer spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
     implicit none
@@ -60,16 +59,20 @@ contains
     double precision                                                         :: wavelengthMinimum         , wavelengthMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavelengthMinimum</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum wavelength (in units of \AA) to pass the spectrum.</description>
+      <description>
+      The minimum wavelength (in units of \AA) to pass the spectrum.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavelengthMaximum</name>
       <defaultValue>huge(0.0d0)</defaultValue>
-      <description>The maximum wavelength (in units of \AA) to pass the spectrum.</description>
+      <description>
+      The maximum wavelength (in units of \AA) to pass the spectrum.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="radiativeTransferSpectrum" name="radiativeTransferSpectrum_" source="parameters"/>
@@ -83,8 +86,8 @@ contains
   end function bandPassFilterConstructorParameters
 
   function bandPassFilterConstructorInternal(wavelengthMinimum,wavelengthMaximum,radiativeTransferSpectrum_) result(self)
-    !!{
-    Internal constructor for the \refClass{radiativeTransferSpectrumBandPassFilter} radiative transfer spectrum class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`radiativeTransferSpectrumBandPassFilter` radiative transfer spectrum class.
     !!}
     implicit none
     type            (radiativeTransferSpectrumBandPassFilter)                        :: self
@@ -98,8 +101,8 @@ contains
   end function bandPassFilterConstructorInternal
 
   subroutine bandPassFilterDestructor(self)
-    !!{
-    Destructor for the \refClass{radiativeTransferSpectrumBandPassFilter} radiative transfer spectrum class.
+    !!{RST
+    Destructor for the :galacticus-class:`radiativeTransferSpectrumBandPassFilter` radiative transfer spectrum class.
     !!}
     implicit none
     type(radiativeTransferSpectrumBandPassFilter), intent(inout) :: self
@@ -111,7 +114,7 @@ contains
   end subroutine bandPassFilterDestructor
 
   double precision function bandPassFilterLuminosity(self,wavelengthMinimum,wavelengthMaximum)
-    !!{
+    !!{RST
     Compute the luminosity in the given wavelength range for a power-law spectrum.
     !!}
     use :: Numerical_Comparison, only : Values_Agree
@@ -131,7 +134,7 @@ contains
   end function bandPassFilterLuminosity
   
   double precision function bandPassFilterSpectrum(self,wavelength)
-    !!{
+    !!{RST
     Return the spectrum of the power-law.
     !!}
     implicit none

@@ -17,30 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo profile shapes  using the \cite{gao_redshift_2008} algorithm.
+  !!{RST
+  An implementation of dark matter halo profile shapes  using the :cite:t:`gao_redshift_2008` algorithm.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !![
-  <darkMatterProfileShape name="darkMatterProfileShapeGao2008">
+  <darkMatterProfileShape name="darkMatterProfileShapeGao2008" docformat="rst">
    <description>
-    A dark matter profile shape class in which the shape parameter for Einasto density profiles\index{Einasto
-    profile}\index{density profile!Einasto} is computed using a fitting function from \cite{gao_redshift_2008}:
-    \begin{equation}
-    \alpha = \left\{ \begin{array}{ll} 0.155 + 0.0095\nu^2 &amp; \hbox{ if } \nu &lt; 3.907 \\ 0.3 &amp; \hbox{ if } \nu \ge 3.907,
-    \end{array} \right.
-    \end{equation}
-    where $\nu=\delta_\mathrm{c}(t)/\sigma(M)$ is the peak height of the halo. The truncation at $\alpha = 0.3$ is included
-    since \cite{gao_redshift_2008}'s fits do not probe this region and extremely large values of $\alpha$ are numerically
-    troublesome.
+   A dark matter profile shape class in which the shape parameter for Einasto density profiles is computed using a fitting function from :cite:t:`gao_redshift_2008`:
+
+   .. math::
+
+      \alpha = \left\{ \begin{array}{ll} 0.155 + 0.0095\nu^2 &amp; \hbox{ if } \nu &lt; 3.907 \\ 0.3 &amp; \hbox{ if } \nu \ge 3.907,
+      \end{array} \right.
+
+   where :math:`\nu=\delta_\mathrm{c}(t)/\sigma(M)` is the peak height of the halo. The truncation at :math:`\alpha = 0.3` is included since :cite:t:`gao_redshift_2008`'s fits do not probe this region and extremely large values of :math:`\alpha` are numerically troublesome.
    </description>
   </darkMatterProfileShape>
   !!]
   type, extends(darkMatterProfileShapeClass) :: darkMatterProfileShapeGao2008
-     !!{
-     A dark matter halo profile shape parameter class implementing the algorithm of \cite{gao_redshift_2008}.
+     !!{RST
+     A dark matter halo profile shape parameter class implementing the algorithm of :cite:t:`gao_redshift_2008`.
      !!}
      private
      class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
@@ -51,8 +50,8 @@
   end type darkMatterProfileShapeGao2008
 
   interface darkMatterProfileShapeGao2008
-     !!{
-     Constructors for the \refClass{darkMatterProfileShapeGao2008} dark matter halo profile shape class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileShapeGao2008` dark matter halo profile shape class.
      !!}
      module procedure gao2008ConstructorParameters
      module procedure gao2008ConstructorInternal
@@ -61,9 +60,8 @@
 contains
 
   function gao2008ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{gao2008} dark matter halo profile
-    shape class.
+    !!{RST
+    Default constructor for the ``gao2008`` dark matter halo profile shape class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,9 +84,8 @@ contains
   end function gao2008ConstructorParameters
 
   function gao2008ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileShapeGao2008} dark matter halo profile
-    shape class.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileShapeGao2008` dark matter halo profile shape class.
     !!}
     implicit none
     type (darkMatterProfileShapeGao2008)                        :: self
@@ -102,8 +99,8 @@ contains
   end function gao2008ConstructorInternal
 
   subroutine gao2008Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileShapeGao2008} dark matter halo profile shape class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileShapeGao2008` dark matter halo profile shape class.
     !!}
     implicit none
     type(darkMatterProfileShapeGao2008), intent(inout) :: self
@@ -116,13 +113,14 @@ contains
   end subroutine gao2008Destructor
 
   double precision function gao2008Shape(self,node)
-    !!{
-    Return the Einasto profile shape parameter of the dark matter halo profile of \mono{node} using the
-    \cite{gao_redshift_2008} algorithm. More specifically, the parameter is given by:
-    \begin{equation}
-    \alpha = \left\{ \begin{array}{ll} 0.155 + 0.0095\nu^2 & \hbox{ if } \nu < 3.907 \\ 0.3 & \hbox{ if } \nu \ge 3.907, \end{array} \right.
-    \end{equation}
-    where $\nu=\delta_\mathrm{c}(t)/\sigma(M)$ is the peak height of the halo.
+    !!{RST
+    Return the Einasto profile shape parameter of the dark matter halo profile of ``node`` using the :cite:t:`gao_redshift_2008` algorithm. More specifically, the parameter is given by:
+
+    .. math::
+
+       \alpha = \left\{ \begin{array}{ll} 0.155 + 0.0095\nu^2 & \hbox{ if } \nu < 3.907 \\ 0.3 & \hbox{ if } \nu \ge 3.907, \end{array} \right.
+
+    where :math:`\nu=\delta_\mathrm{c}(t)/\sigma(M)` is the peak height of the halo.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none

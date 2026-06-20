@@ -17,29 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements a class for \gls{cgm} heating.
+!!{RST
+Contains a module which implements a class for :term:`CGM` heating.
 !!}
 
 module Circumgalactic_Medium_Heating
-  !!{
-  Implements a class for \gls{cgm} heating.
+  !!{RST
+  Implements a class for :term:`CGM` heating.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>circumgalacticMediumHeating</name>
    <descriptiveName>Circumgalactic Medium Heating</descriptiveName>
-   <description>Class providing models of the heating rate (in $\mathrm{M}_\odot$ km$^2$ s$^{-1}$) deposited into
-    the \gls{cgm}. This may include contributions from AGN feedback, for example. The \gls{cgm} heating
-    rate directly affects the cooling rate and hence the gas supply available for star formation in
-    the central galaxy.</description>
+   <description>
+   Class providing models of the heating rate (in :math:`\mathrm{M}_\odot` km\ :math:`^2` s\ :math:`^{-1}`) deposited into the :term:`CGM`. This may include contributions from AGN feedback, for example. The :term:`CGM` heating rate directly affects the cooling rate and hence the gas supply available for star formation in the central galaxy.
+   </description>
    <default>zero</default>
    <method name="heatingRate" >
-    <description>Compute the heating rate of the CGM [in units of $\mathrm{M}_\odot \mathrm{km}^2\mathrm{s}^{-1}$].</description>
+    <description>
+    Compute the heating rate of the CGM [in units of :math:`\mathrm{M}_\odot \mathrm{km}^2\mathrm{s}^{-1}`].
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

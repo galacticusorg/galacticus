@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a black hole CGM heating class where the coupling strength is determined by how quasistatic the \gls{cgm} is.
+  !!{RST
+  Implements a black hole CGM heating class where the coupling strength is determined by how quasistatic the :term:`CGM` is.
   !!}
 
   use :: Black_Hole_Accretion_Rates, only : blackHoleAccretionRateClass
@@ -26,15 +26,15 @@
   use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
 
   !![
-  <blackHoleCGMHeating name="blackHoleCGMHeatingQuasistatic">
+  <blackHoleCGMHeating name="blackHoleCGMHeatingQuasistatic" docformat="rst">
    <description>
-    A black hole CGM heating class that models quasi-static AGN feedback, in which the rate of energy deposited into the circumgalactic medium depends on how closely the \gls{cgm} is in hydrostatic equilibrium. The overall coupling efficiency is controlled by the \mono{[efficiencyHeating]} parameter.
+   A black hole CGM heating class that models quasi-static AGN feedback, in which the rate of energy deposited into the circumgalactic medium depends on how closely the :term:`CGM` is in hydrostatic equilibrium. The overall coupling efficiency is controlled by the ``[efficiencyHeating]`` parameter.
    </description>
   </blackHoleCGMHeating>
   !!]
   type, extends(blackHoleCGMHeatingClass) :: blackHoleCGMHeatingQuasistatic
-     !!{
-     A black hole CGM heating class where the coupling strength is determined by how quasistatic the \gls{cgm} is.
+     !!{RST
+     A black hole CGM heating class where the coupling strength is determined by how quasistatic the :term:`CGM` is.
      !!}
      private
      class           (blackHoleAccretionRateClass), pointer :: blackHoleAccretionRate_ => null()
@@ -47,8 +47,8 @@
   end type blackHoleCGMHeatingQuasistatic
   
   interface blackHoleCGMHeatingQuasistatic
-     !!{
-     Constructors for the \refClass{blackHoleCGMHeatingQuasistatic} black hole winds class.
+     !!{RST
+     Constructors for the :galacticus-class:`blackHoleCGMHeatingQuasistatic` black hole winds class.
      !!}
      module procedure quasistaticConstructorParameters
      module procedure quasistaticConstructorInternal
@@ -57,8 +57,8 @@
 contains
 
   function quasistaticConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{blackHoleCGMHeatingQuasistatic} black hole winds class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`blackHoleCGMHeatingQuasistatic` black hole winds class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -70,10 +70,12 @@ contains
     double precision                                                :: efficiencyHeating
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>efficiencyHeating</name>
       <defaultValue>1.0d-3</defaultValue>
-      <description>The efficiency with which accretion onto a black hole heats the \gls{cgm}.</description>
+      <description>
+      The efficiency with which accretion onto a black hole heats the :term:`CGM`.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="blackHoleAccretionRate" name="blackHoleAccretionRate_" source="parameters"/>
@@ -91,8 +93,8 @@ contains
   end function quasistaticConstructorParameters
 
   function quasistaticConstructorInternal(efficiencyHeating,blackHoleAccretionRate_,darkMatterHaloScale_,coolingRadius_) result(self)
-    !!{
-    Internal constructor for the \refClass{blackHoleCGMHeatingQuasistatic} black hole winds class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`blackHoleCGMHeatingQuasistatic` black hole winds class.
     !!}
     implicit none
     type            (blackHoleCGMHeatingQuasistatic)                        :: self
@@ -108,7 +110,7 @@ contains
   end function quasistaticConstructorInternal
 
   subroutine quasistaticDestructor(self)
-    !!{
+    !!{RST
     Destructor for the quasistatic black hole CGM heating class.
     !!}
     implicit none
@@ -123,7 +125,7 @@ contains
   end subroutine quasistaticDestructor
   
   double precision function quasistaticHeatingRate(self,blackHole) result(rateHeating)
-    !!{
+    !!{RST
     Compute the heating rate of the CGM based on the accretion disk jet power.
     !!}
     use :: Numerical_Constants_Physical, only : speedLight

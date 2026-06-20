@@ -19,20 +19,22 @@
 
   !+    Contributions to this file made by: Matías Liempi
 
-  !!{
+  !!{RST
   Implements a node operator class that creates black hole seeds in nodes.
   !!}
 
   use :: Black_Hole_Seeds, only : blackHoleSeedsClass
 
   !![
-  <nodeOperator name="nodeOperatorBlackHolesSeed">
-   <description>A node operator class that initializes black hole seeds in newly formed nodes using a \refClass{blackHoleSeedsClass} object to set the initial black hole mass, enabling subsequent growth through accretion and merger channels.</description>
+  <nodeOperator name="nodeOperatorBlackHolesSeed" docformat="rst">
+   <description>
+   A node operator class that initializes black hole seeds in newly formed nodes using a :galacticus-class:`blackHoleSeedsClass` object to set the initial black hole mass, enabling subsequent growth through accretion and merger channels.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorBlackHolesSeed
-     !!{
-     A node operator class that creates black hole seeds in nodes. 
+     !!{RST
+     A node operator class that creates black hole seeds in nodes.
      !!}
      private
      class(blackHoleSeedsClass), pointer :: blackHoleSeeds_                  => null()
@@ -45,8 +47,8 @@
   end type nodeOperatorBlackHolesSeed
   
   interface nodeOperatorBlackHolesSeed
-     !!{
-     Constructors for the \refClass{nodeOperatorBlackHolesSeed} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorBlackHolesSeed` node operator class.
      !!}
      module procedure blackHolesSeedConstructorParameters
      module procedure blackHolesSeedConstructorInternal
@@ -60,8 +62,8 @@
 contains
 
   function blackHolesSeedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorBlackHolesSeed} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorBlackHolesSeed` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -81,8 +83,8 @@ contains
   end function blackHolesSeedConstructorParameters
 
   function blackHolesSeedConstructorInternal(blackHoleSeeds_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorBlackHolesSeed} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorBlackHolesSeed` node operator class.
     !!}
     implicit none
     type (nodeOperatorBlackHolesSeed)                        :: self
@@ -98,7 +100,7 @@ contains
   end function blackHolesSeedConstructorInternal
 
   subroutine blackHolesSeedAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : blackHoleMergerEvent, openMPThreadBindingAtLevel
@@ -110,8 +112,8 @@ contains
   end subroutine blackHolesSeedAutoHook
 
   subroutine blackHolesSeedDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorBlackHolesSeed} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorBlackHolesSeed` node operator class.
     !!}
     use :: Events_Hooks, only : blackHoleMergerEvent
     implicit none
@@ -125,7 +127,7 @@ contains
   end subroutine blackHolesSeedDestructor
 
   subroutine blackHolesSeedNodeInitialize(self,node)
-    !!{
+    !!{RST
     Create any initial black hole seeds.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
@@ -151,8 +153,8 @@ contains
   end subroutine blackHolesSeedNodeInitialize
   
   subroutine blackHoleSeedDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
-      Create any initial black hole seeds via interrupt.
+    !!{RST
+    Create any initial black hole seeds via interrupt.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
@@ -184,7 +186,7 @@ contains
   end subroutine blackHoleSeedDifferentialEvolution
 
   subroutine blackHoleCreate(node,timeEnd)
-    !!{
+    !!{RST
     Creates the black hole via interrupt.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
@@ -206,7 +208,7 @@ contains
   end subroutine blackHoleCreate
 
   subroutine blackHoleMerger(self,blackHole1,blackHole2,blackHoleMerged)
-    !!{
+    !!{RST
     Handle cases where two black holes merge.
     !!}
     use :: Error           , only : Error_Report

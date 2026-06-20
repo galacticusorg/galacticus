@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of an active mass for star formation class in which the entire ISM is active.
   !!}
 
   !![
-  <starFormationActiveMass name="starFormationActiveMassTotalISM">
-   <description>An active mass for star formation class in which the entire ISM is active.</description>
+  <starFormationActiveMass name="starFormationActiveMassTotalISM" docformat="rst">
+   <description>
+   An active mass for star formation class in which the entire ISM is active.
+   </description>
   </starFormationActiveMass>
   !!]
   type, extends(starFormationActiveMassClass) :: starFormationActiveMassTotalISM
-     !!{
+     !!{RST
      Implementation of n active mass for star formation class in which the entire ISM is active.
      !!}
      private
@@ -36,8 +38,8 @@
   end type starFormationActiveMassTotalISM
 
   interface starFormationActiveMassTotalISM
-     !!{
-     Constructors for the \refClass{starFormationActiveMassTotalISM} active mass for star formation class.
+     !!{RST
+     Constructors for the :galacticus-class:`starFormationActiveMassTotalISM` active mass for star formation class.
      !!}
      module procedure totalISMConstructorParameters
   end interface starFormationActiveMassTotalISM
@@ -45,9 +47,8 @@
 contains
 
   function totalISMConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{starFormationActiveMassTotalISM} active mass for star formation class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the :galacticus-class:`starFormationActiveMassTotalISM` active mass for star formation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -62,8 +63,8 @@ contains
   end function totalISMConstructorParameters
 
   double precision function totalISMMassActive(self,component)
-    !!{
-    Returns the mass (in $\mathrm{M}_\odot$) of gas actively undergoing star formation in the given \mono{component}, assuming that the entire ISM is active.
+    !!{RST
+    Returns the mass (in :math:`\mathrm{M}_\odot`) of gas actively undergoing star formation in the given ``component``, assuming that the entire ISM is active.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC

@@ -17,16 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program which tests spherical collapse calculations for a dark energy Universe, specifically using a flat,
-cosmological constant cosmology.
+!!{RST
+Contains a program which tests spherical collapse calculations for a dark energy Universe, specifically using a flat, cosmological constant cosmology.
 !!}
 
 program Tests_Spherical_Collapse_Dark_Energy_Lambda
-  !!{
-  Tests spherical collapse calculations for a dark energy Universe, specifically using a flat, cosmological constant
-  cosmology. Compares results to the fitting function of
-  \citeauthor{kitayama_semianalytic_1996}~(\citeyear{kitayama_semianalytic_1996}; eqn.~A6).
+  !!{RST
+  Tests spherical collapse calculations for a dark energy Universe, specifically using a flat, cosmological constant cosmology. Compares results to the fitting function of :cite:author:`kitayama_semianalytic_1996` (:cite:year:`kitayama_semianalytic_1996`; eqn. A6).
   !!}
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterDarkEnergy
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple

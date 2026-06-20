@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements calculations of the infall radius for cooling calculations.
 !!}
 
 module Cooling_Infall_Radii
-  !!{
+  !!{RST
   Provides a class that implements calculations of the infall radius for cooling calculations.
   !!}
   use :: Galacticus_Nodes, only : treeNode
@@ -30,23 +30,25 @@ module Cooling_Infall_Radii
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>coolingInfallRadius</name>
    <descriptiveName>Cooling Infall Radius</descriptiveName>
-   <description>Class providing models of the infall radius (in Mpc)---the radius from which gas in the hot halo
-    actually falls in to join the galaxy disk or bulge. Different implementations take this to be, e.g., the
-    cooling radius, the minimum of the cooling and freefall radii, or some other combination. The infall radius
-    and its growth rate determine the angular momentum of accreting gas and hence the size of the resulting
-    galactic disc.</description>
+   <description>
+   Class providing models of the infall radius (in Mpc)---the radius from which gas in the hot halo actually falls in to join the galaxy disk or bulge. Different implementations take this to be, e.g., the cooling radius, the minimum of the cooling and freefall radii, or some other combination. The infall radius and its growth rate determine the angular momentum of accreting gas and hence the size of the resulting galactic disc.
+   </description>
    <default>coolingRadius</default>
    <method name="radius" >
-    <description>Return the infall radius (in units of Mpc) for the halo in \mono{node}, i.e. the radius within which cooled gas can fall inward and join the galaxy disk or bulge, determining the angular momentum of accreting gas.</description>
+    <description>
+    Return the infall radius (in units of Mpc) for the halo in ``node``, i.e. the radius within which cooled gas can fall inward and join the galaxy disk or bulge, determining the angular momentum of accreting gas.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="radiusIncreaseRate" >
-    <description>Return the rate at which the infall radius grows for \mono{node} (in units of Mpc/Gyr).</description>
+    <description>
+    Return the rate at which the infall radius grows for ``node`` (in units of Mpc/Gyr).
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

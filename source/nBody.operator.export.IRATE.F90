@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which exports N-body data to IRATE format.
 !!}
 
@@ -25,12 +25,14 @@ Implements an N-body data operator which exports N-body data to IRATE format.
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !![
-  <nbodyOperator name="nbodyOperatorExportIRATE">
-   <description>An N-body data operator which exports N-body simulation data to the IRATE (IRvine Astrophysical simulaTion structurE) HDF5 format for interoperability with other analysis tools. The output file path is set by \mono{[fileName]}, with the snapshot index and redshift specified by \mono{[snapshot]} and \mono{[redshift]}.</description>
+  <nbodyOperator name="nbodyOperatorExportIRATE" docformat="rst">
+   <description>
+   An N-body data operator which exports N-body simulation data to the IRATE (IRvine Astrophysical simulaTion structurE) HDF5 format for interoperability with other analysis tools. The output file path is set by ``[fileName]``, with the snapshot index and redshift specified by ``[snapshot]`` and ``[redshift]``.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorExportIRATE
-     !!{
+     !!{RST
      An N-body data operator which exports N-body data to IRATE format.
      !!}
      private
@@ -45,8 +47,8 @@ Implements an N-body data operator which exports N-body data to IRATE format.
   end type nbodyOperatorExportIRATE
 
   interface nbodyOperatorExportIRATE
-     !!{
-     Constructors for the \refClass{nbodyOperatorExportIRATE} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorExportIRATE` N-body operator class.
      !!}
      module procedure exportIRATEConstructorParameters
      module procedure exportIRATEConstructorInternal
@@ -55,8 +57,8 @@ Implements an N-body data operator which exports N-body data to IRATE format.
 contains
   
   function exportIRATEConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorExportIRATE} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorExportIRATE` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -69,20 +71,26 @@ contains
     double precision                                          :: redshift
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <source>parameters</source>
-      <description>The name of the file to which data should be exported.</description>
+      <description>
+      The name of the file to which data should be exported.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>snapshot</name>
       <source>parameters</source>
-      <description>The snapshot index of the data.</description>
+      <description>
+      The snapshot index of the data.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
       <source>parameters</source>
-      <description>The redshift of the data.</description>
+      <description>
+      The redshift of the data.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -97,8 +105,8 @@ contains
   end function exportIRATEConstructorParameters
 
   function exportIRATEConstructorInternal(fileName,snapshot,redshift,cosmologyParameters_,cosmologyFunctions_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorExportIRATE} N-body operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyOperatorExportIRATE` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorExportIRATE)                        :: self
@@ -115,8 +123,8 @@ contains
   end function exportIRATEConstructorInternal
 
   subroutine exportIRATEDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorExportIRATE} N-body operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nbodyOperatorExportIRATE` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorExportIRATE), intent(inout) :: self
@@ -129,7 +137,7 @@ contains
   end subroutine exportIRATEDestructor
 
   subroutine exportIRATEOperate(self,simulations)
-    !!{
+    !!{RST
     Output simulation data to an IRATE-format file.
     !!}
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t

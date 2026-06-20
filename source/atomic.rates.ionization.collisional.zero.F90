@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of atomic collisional ionization rates which assumes zero rate.
   !!}
 
   !![
-  <atomicIonizationRateCollisional name="atomicIonizationRateCollisionalZero">
-   <description>A null implementation of atomic collisional ionization rates that returns zero for all species and temperatures. Useful for isolating other ionization and recombination processes or for testing purposes.</description>
+  <atomicIonizationRateCollisional name="atomicIonizationRateCollisionalZero" docformat="rst">
+   <description>
+   A null implementation of atomic collisional ionization rates that returns zero for all species and temperatures. Useful for isolating other ionization and recombination processes or for testing purposes.
+   </description>
   </atomicIonizationRateCollisional>
   !!]
   type, extends(atomicIonizationRateCollisionalClass) :: atomicIonizationRateCollisionalZero
-     !!{
+     !!{RST
      A collisional ionization rate class which assumes a zero rate.
      !!}
      private
@@ -36,8 +38,8 @@
   end type atomicIonizationRateCollisionalZero
 
   interface atomicIonizationRateCollisionalZero
-     !!{
-     Constructors for the \refClass{atomicIonizationRateCollisionalZero} atomic collisional ionization class.
+     !!{RST
+     Constructors for the :galacticus-class:`atomicIonizationRateCollisionalZero` atomic collisional ionization class.
      !!}
      module procedure zeroConstructorParameters
   end interface atomicIonizationRateCollisionalZero
@@ -45,9 +47,8 @@
 contains
   
   function zeroConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{atomicIonizationRateCollisionalZero} atomic collisional ionization class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the :galacticus-class:`atomicIonizationRateCollisionalZero` atomic collisional ionization class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,7 +63,7 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroRate(self,atomicNumber,ionizationState,temperature)
-    !!{
+    !!{RST
     Returns a collisional ionization rate of zero.
     !!}
     implicit none

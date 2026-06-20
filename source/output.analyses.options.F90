@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides options and enumerations for on-the-fly analyses.
 !!}
 
 module Output_Analyses_Options
-  !!{
+  !!{RST
   Provides options and enumerations for on-the-fly analyses.
   !!}
   public
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>outputAnalysisPropertyType</name>
-   <description>Enumeration of the scaling types used for output analysis properties, distinguishing linear, logarithmic (base-10), magnitude, and unknown scalings.</description>
+   <description>
+   Enumeration of the scaling types used for output analysis properties, distinguishing linear, logarithmic (base-10), magnitude, and unknown scalings.
+   </description>
    <entry label="linear"    />
    <entry label="log10"     />
    <entry label="magnitude" />
@@ -39,9 +41,11 @@ module Output_Analyses_Options
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>outputAnalysisPropertyQuantity</name>
-   <description>Enumeration of the physical quantity types represented by output analysis properties, such as mass, star formation rate, luminosity, or unknown.</description>
+   <description>
+   Enumeration of the physical quantity types represented by output analysis properties, such as mass, star formation rate, luminosity, or unknown.
+   </description>
    <entry label="unknown"          />
    <entry label="mass"             />
    <entry label="starFormationRate"/>
@@ -50,9 +54,11 @@ module Output_Analyses_Options
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>outputAnalysisCovarianceModel</name>
-   <description>Output analyses covariance models.</description>
+   <description>
+   Output analyses covariance models.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <entry label="poisson" />
    <entry label="binomial"/>
@@ -60,9 +66,11 @@ module Output_Analyses_Options
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>outputAnalysisState</name>
-   <description>Output analyses states.</description>
+   <description>
+   Output analyses states.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
    <entry label="unknown" />
@@ -75,7 +83,7 @@ module Output_Analyses_Options
 contains
 
   function outputAnalysisState(distribution) result(state)
-    !!{
+    !!{RST
     Determine the state of an output analysis distribution.
     !!}
     implicit none

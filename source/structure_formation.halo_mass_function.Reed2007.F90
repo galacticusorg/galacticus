@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a \cite{reed_halo_2007} dark matter halo mass function class.
+  !!{RST
+  Implements a :cite:t:`reed_halo_2007` dark matter halo mass function class.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !![
-  <haloMassFunction name="haloMassFunctionReed2007">
-   <description>The halo mass function is computed from the function given by \cite{reed_halo_2007}.</description>
+  <haloMassFunction name="haloMassFunctionReed2007" docformat="rst">
+   <description>
+   The halo mass function is computed from the function given by :cite:t:`reed_halo_2007`.
+   </description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionReed2007
-     !!{
-     A halo mass function class using the fitting function of \cite{reed_halo_2007}.
+     !!{RST
+     A halo mass function class using the fitting function of :cite:t:`reed_halo_2007`.
      !!}
      private
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
@@ -41,8 +43,8 @@
   end type haloMassFunctionReed2007
 
   interface haloMassFunctionReed2007
-     !!{
-     Constructors for the \refClass{haloMassFunctionReed2007} halo mass function class.
+     !!{RST
+     Constructors for the :galacticus-class:`haloMassFunctionReed2007` halo mass function class.
      !!}
      module procedure reed2007ConstructorParameters
      module procedure reed2007ConstructorInternal
@@ -51,8 +53,8 @@
 contains
 
   function reed2007ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{haloMassFunctionReed2007} halo mass function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`haloMassFunctionReed2007` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,8 +81,8 @@ contains
   end function reed2007ConstructorParameters
 
   function reed2007ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_) result(self)
-    !!{
-    Internal constructor for the \refClass{haloMassFunctionReed2007} halo mass function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`haloMassFunctionReed2007` halo mass function class.
     !!}
     implicit none
     type (haloMassFunctionReed2007     )                        :: self
@@ -95,8 +97,8 @@ contains
   end function reed2007ConstructorInternal
 
   subroutine reed2007Destructor(self)
-    !!{
-    Destructor for the \refClass{haloMassFunctionReed2007} halo mass function class.
+    !!{RST
+    Destructor for the :galacticus-class:`haloMassFunctionReed2007` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionReed2007), intent(inout) :: self
@@ -110,7 +112,7 @@ contains
   end subroutine reed2007Destructor
 
   double precision function reed2007Differential(self,time,mass,node)
-    !!{
+    !!{RST
     Return the differential halo mass function at the given time and mass.
     !!}
     use :: Numerical_Constants_Math, only : Pi

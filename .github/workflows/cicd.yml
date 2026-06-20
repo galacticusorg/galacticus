@@ -350,42 +350,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             REPO=${{ github.event.pull_request.head.repo.full_name || github.repository }}
-            BRANCH=${{ github.head_ref || github.ref_name }}          
-  ### Documentation
-  Build-Documentation-Linux:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
-    runs-on: ubuntu-latest
-    container: ghcr.io/galacticusorg/buildenv:latest
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v6
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: "Set environmental variables"
-        run: |
-          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
-      - name: Build the docs
-        run: |
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          # Disable link-time optimization (`-l disabled`): the documentation build runs `make all`, which
-          # builds a very large number of executables, and running LTO on each one makes this job prohibitively
-          # slow. See the LTO option in the Makefile.
-          ./scripts/doc/buildDocumentation.sh -f yes -p 4 -o yes -l disabled 2>&1 | tee docBuild.log
-          grep -vqzi 'warning: missing method descriptions in class' docBuild.log || (echo "FAIL: missing method description warnings found in docBuild.log" && false)
-      - name: Upload docs
-        uses: actions/upload-artifact@v7
-        with:
-          name: galacticus-docs
-          path: |
-            ./doc/Galacticus_Usage.pdf
-            ./doc/Galacticus_Physics.pdf
-            ./doc/Galacticus_Development.pdf
-            ./doc/Galacticus_Source.pdf
-      - run: echo "This job's status is ${{ job.status }}."
+            BRANCH=${{ github.head_ref || github.ref_name }}
+  # The LaTeX/PDF documentation build has been retired; documentation is now
+  # served from reStructuredText on ReadTheDocs (see docs/).
   ### Tools
   Build-Tools:
     runs-on: ubuntu-latest
@@ -2178,7 +2145,6 @@ jobs:
              Build-Executables-MPI-Linux,
              Build-Library-Linux,
              Build-Docker-Linux,
-             Build-Documentation-Linux,
              Build-Tools,
              Build-Executable-MacOS,
              Build-Executable-MacOS-M1,
@@ -2231,10 +2197,6 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: galacticus-library
-      - name: Download artifacts (docs)
-        uses: actions/download-artifact@v8
-        with:
-          name: galacticus-docs
       - name: Download artifacts (tools-linux)
         uses: actions/download-artifact@v8
         with:
@@ -2243,8 +2205,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2 --clobber
-          rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./Galacticus_Usage.pdf ./Galacticus_Physics.pdf ./Galacticus_Development.pdf ./Galacticus_Source.pdf ./tools.tar.bz2
+          gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.bz2 --clobber
+          rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.bz2
       - name: Download artifacts (executable-macos)
         uses: actions/download-artifact@v8
         with:

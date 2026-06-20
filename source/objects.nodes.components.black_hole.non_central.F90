@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements the non-central black hole node component.
 !!}
 
 module Node_Component_Black_Hole_Noncentral
-  !!{
+  !!{RST
   Implement non-central black hole tree node methods.
   !!}
   implicit none

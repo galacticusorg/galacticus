@@ -17,21 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a radiusCooling property extractor class.
 !!}
 
   use :: Cooling_Radii, only : coolingRadius, coolingRadiusClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRadiusCooling">
+  <nodePropertyExtractor name="nodePropertyExtractorRadiusCooling" docformat="rst">
    <description>
-    A cooling radius property extractor class. Extracts the characteristic cooling radius in the halo in Mpc.
+   A cooling radius property extractor class. Extracts the characteristic cooling radius in the halo in Mpc.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusCooling
-     !!{
+     !!{RST
      A cooling radius property extractor class.
      !!}
      private
@@ -46,8 +46,8 @@ Implements a radiusCooling property extractor class.
   end type nodePropertyExtractorRadiusCooling
 
   interface nodePropertyExtractorRadiusCooling
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusCooling} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiusCooling` property extractor class.
      !!}
      module procedure radiusCoolingConstructorParameters
      module procedure radiusCoolingConstructorInternal
@@ -56,8 +56,8 @@ Implements a radiusCooling property extractor class.
 contains
 
   function radiusCoolingConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusCooling} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiusCooling` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,8 +77,8 @@ contains
   end function radiusCoolingConstructorParameters
 
   function radiusCoolingConstructorInternal(coolingRadius_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRadiusCooling} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRadiusCooling` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiusCooling)                        :: self
@@ -91,8 +91,8 @@ contains
   end function radiusCoolingConstructorInternal
 
   subroutine radiusCoolingDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorRadiusCooling} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorRadiusCooling` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusCooling), intent(inout) :: self
@@ -104,7 +104,7 @@ contains
   end subroutine radiusCoolingDestructor
 
   double precision function radiusCoolingExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a cooling radius property extractor.
     !!}
     implicit none
@@ -118,7 +118,7 @@ contains
   end function radiusCoolingExtract
 
   function radiusCoolingName(self)
-    !!{
+    !!{RST
     Return the name of the cooling radius property.
     !!}
     implicit none
@@ -131,7 +131,7 @@ contains
   end function radiusCoolingName
 
   function radiusCoolingDescription(self)
-    !!{
+    !!{RST
     Return a description of the cooling radius property.
     !!}
     implicit none
@@ -144,7 +144,7 @@ contains
   end function radiusCoolingDescription
 
   double precision function radiusCoolingUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the cooling radius property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
@@ -157,7 +157,7 @@ contains
   end function radiusCoolingUnitsInSI
 
   function radiusCoolingUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the radiusCooling property.
     !!}
     use :: Units_MetaData, only : unitType

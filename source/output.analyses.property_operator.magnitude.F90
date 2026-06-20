@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an output analysis property operator class which converts luminosity to absolute magnitude.
 !!}
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMagnitude">
-   <description>Converts a luminosity or flux property value into an astronomical magnitude, applying the standard logarithmic magnitude scale transformation for comparison to observed photometric data.</description>
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMagnitude" docformat="rst">
+   <description>
+   Converts a luminosity or flux property value into an astronomical magnitude, applying the standard logarithmic magnitude scale transformation for comparison to observed photometric data.
+   </description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorMagnitude
-     !!{
+     !!{RST
      An magnitude output property operator class.
      !!}
      private
@@ -36,8 +38,8 @@ Implements an output analysis property operator class which converts luminosity 
   end type outputAnalysisPropertyOperatorMagnitude
 
   interface outputAnalysisPropertyOperatorMagnitude
-     !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorMagnitude} output analysis property operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorMagnitude` output analysis property operator class.
      !!}
      module procedure magnitudeConstructorParameters
   end interface outputAnalysisPropertyOperatorMagnitude
@@ -45,8 +47,8 @@ Implements an output analysis property operator class which converts luminosity 
 contains
 
   function magnitudeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisPropertyOperatorMagnitude} output analysis property operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorMagnitude` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function magnitudeConstructorParameters
 
   double precision function magnitudeOperate(self,propertyValue,node,propertyType,outputIndex)
-    !!{
+    !!{RST
     Implement an magnitude output analysis property operator.
     !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t

@@ -17,24 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of an scaling cylindrical mass distribution class.
   !!}
   
   !![
-  <massDistribution name="massDistributionCylindricalScaler">
+  <massDistribution name="massDistributionCylindricalScaler" docformat="rst">
     <description>
-      A mass distribution class for scaling cylindrical mass distributions. Specifically, the density at position $\mathbf{x}$ is
-      given by
-      \begin{equation}
-      \rho(\mathbf{x}) = \frac{f_\mathrm{M}}{f_\mathrm{r}^3} \rho^\prime(\mathbf{x}/f_\mathrm{r}),
-      \end{equation}      
-      where $\rho^\prime(\mathbf{x})$ is the original mass distribution, and $f_\mathrm{r}=$\mono{[factorScalingLength]}, and $f_\mathrm{M}=$\mono{[factorScalingMass]}.
+    A mass distribution class for scaling cylindrical mass distributions. Specifically, the density at position :math:`\mathbf{x}` is given by
+
+    .. math::
+
+       \rho(\mathbf{x}) = \frac{f_\mathrm{M}}{f_\mathrm{r}^3} \rho^\prime(\mathbf{x}/f_\mathrm{r}),
+
+    where :math:`\rho^\prime(\mathbf{x})` is the original mass distribution, and :math:`f_\mathrm{r}=`\ ``[factorScalingLength]``, and :math:`f_\mathrm{M}=`\ ``[factorScalingMass]``.
     </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionCylindrical) :: massDistributionCylindricalScaler
-     !!{
+     !!{RST
      A mass distribution class for scaling cylindrical mass distributions.
      !!}
      private
@@ -42,7 +43,7 @@
      double precision                                       :: factorScalingLength          , factorScalingMass
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="unscaled"   description="Return a pointer to the unscaled mass distribution."/>
        <method method="initialize" description="(Re)initialize the scaling factors of the scaled mass distribution."/>
      </methods>
@@ -75,8 +76,8 @@
   end type massDistributionCylindricalScaler
 
   interface massDistributionCylindricalScaler
-     !!{
-     Constructors for the \refClass{massDistributionCylindricalScaler} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionCylindricalScaler` mass distribution class.
      !!}
      module procedure cylindricalScalerConstructorParameters
      module procedure cylindricalScalerConstructorInternal
@@ -85,9 +86,8 @@
 contains
 
   function cylindricalScalerConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionCylindricalScaler} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionCylindricalScaler` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -98,14 +98,18 @@ contains
     double precision                                                   :: factorScalingLength , factorScalingMass
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorScalingLength</name>
-      <description>The factor by which to scale lengths.</description>
+      <description>
+      The factor by which to scale lengths.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorScalingMass</name>
-      <description>The factor by which to scale the mass.</description>
+      <description>
+      The factor by which to scale the mass.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution" name="massDistribution_" source="parameters"/>
@@ -124,8 +128,8 @@ contains
   end function cylindricalScalerConstructorParameters
 
   function cylindricalScalerConstructorInternal(factorScalingLength,factorScalingMass,massDistribution_) result(self)
-    !!{
-    Internal constructor for \refClass{massDistributionCylindricalScaler} mass distribution class.
+    !!{RST
+    Internal constructor for :galacticus-class:`massDistributionCylindricalScaler` mass distribution class.
     !!}
     implicit none
     type            (massDistributionCylindricalScaler)                        :: self
@@ -157,8 +161,8 @@ contains
   end subroutine cylindricalScalerInitialize
 
   subroutine cylindricalScalerDestructor(self)
-    !!{
-    Destructor for the \refClass{massDistributionCylindricalScaler} mass distribution class.
+    !!{RST
+    Destructor for the :galacticus-class:`massDistributionCylindricalScaler` mass distribution class.
     !!}
     implicit none
     type(massDistributionCylindricalScaler), intent(inout) :: self
@@ -170,7 +174,7 @@ contains
   end subroutine cylindricalScalerDestructor
 
   function cylindricalScalerUnscaled(self) result(massDistribution_)
-    !!{
+    !!{RST
     Return a pointer to the unscaled mass distribution.
     !!}
     implicit none
@@ -182,7 +186,7 @@ contains
   end function cylindricalScalerUnscaled
   
   logical function cylindricalScalerAssumeMonotonicDecreasingSurfaceDensity(self) result(assumeMonotonicDecreasingSurfaceDensity)
-    !!{
+    !!{RST
     Return true indicating that this distribution has a monotonically-decreasing surface density.
     !!}
     implicit none
@@ -193,7 +197,7 @@ contains
   end function cylindricalScalerAssumeMonotonicDecreasingSurfaceDensity
   
   logical function cylindricalScalerIsDimensionless(self)
-    !!{
+    !!{RST
     Return the dimensional status.
     !!}
     implicit none
@@ -204,7 +208,7 @@ contains
   end function cylindricalScalerIsDimensionless
 
   double precision function cylindricalScalerMassTotal(self)
-    !!{
+    !!{RST
     Return the total mass in a scaled cylindrical distribution.
     !!}
     implicit none
@@ -216,8 +220,8 @@ contains
   end function cylindricalScalerMassTotal
 
   double precision function cylindricalScalerDensity(self,coordinates)
-    !!{
-    Return the density at the specified \mono{coordinates} in a scaled cylindrical distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a scaled cylindrical distribution.
     !!}
     implicit none
     class(massDistributionCylindricalScaler), intent(inout) :: self
@@ -232,7 +236,7 @@ contains
   end function cylindricalScalerDensity
 
   double precision function cylindricalScalerDensityGradientRadial(self,coordinates,logarithmic)
-    !!{
+    !!{RST
     Return the density gradient in the radial direction in a scaled cylindrical mass distribution.
     !!}
     implicit none
@@ -257,9 +261,8 @@ contains
   end function cylindricalScalerDensityGradientRadial
 
   double precision function cylindricalScalerDensitySphericalAverage(self,radius)
-    !!{
-    Return the spherically-averaged density at the specified \mono{coordinates} in a scaled cylindrical mass
-    distribution.
+    !!{RST
+    Return the spherically-averaged density at the specified ``coordinates`` in a scaled cylindrical mass distribution.
     !!}
     implicit none
     class           (massDistributionCylindricalScaler), intent(inout) :: self
@@ -275,7 +278,7 @@ contains
   end function cylindricalScalerDensitySphericalAverage
 
   double precision function cylindricalScalerRadiusHalfMass(self)
-    !!{
+    !!{RST
     Interface for cylindrically symmetric mass distribution half mass radii functions.
     !!}
     implicit none
@@ -287,9 +290,8 @@ contains
   end function cylindricalScalerRadiusHalfMass
 
   double precision function cylindricalScalerMassEnclosedBySphere(self,radius)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for a scaled cylindrical mass
-    distribution.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for a scaled cylindrical mass distribution.
     !!}
     implicit none
     class           (massDistributionCylindricalScaler), intent(inout), target   :: self
@@ -304,9 +306,8 @@ contains
   end function cylindricalScalerMassEnclosedBySphere
 
   double precision function cylindricalScalerMassEnclosedByCylinder(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a cylinder of given \mono{radius} for a scaled cylindrical mass
-    distribution.
+    !!{RST
+    Computes the mass enclosed within a cylinder of given ``radius`` for a scaled cylindrical mass distribution.
     !!}
     implicit none
     class           (massDistributionCylindricalScaler), intent(inout), target :: self
@@ -321,7 +322,7 @@ contains
   end function cylindricalScalerMassEnclosedByCylinder
 
   double precision function cylindricalScalerRadiusEnclosingMass(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mass or mass fraction for cylindrically-scaled mass distributions.
     !!}    
     implicit none
@@ -339,7 +340,7 @@ contains
   end function cylindricalScalerRadiusEnclosingMass
 
   double precision function cylindricalScalerRadiusCylindricalEnclosingMass(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mass or mass fraction for cylindrically-scaled mass distributions.
     !!}    
     implicit none
@@ -357,7 +358,7 @@ contains
   end function cylindricalScalerRadiusCylindricalEnclosingMass
 
   double precision function cylindricalScalerRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mean density for cylindrically-scaled mass distributions.
     !!}    
     implicit none
@@ -386,7 +387,7 @@ contains
   end function cylindricalScalerRadiusEnclosingDensity
   
   double precision function cylindricalScalerRadiusEnclosingSurfaceDensity(self,densitySurface,radiusGuess) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given surface density for cylindrically-scaled mass distributions.
     !!}    
     implicit none
@@ -415,8 +416,8 @@ contains
   end function cylindricalScalerRadiusEnclosingSurfaceDensity
   
   double precision function cylindricalScalerSurfaceDensity(self,coordinates)
-    !!{
-    Return the surface density at the specified \mono{coordinates} in a scaled cylindrical distribution.
+    !!{RST
+    Return the surface density at the specified ``coordinates`` in a scaled cylindrical distribution.
     !!}
     use :: Coordinates, only : coordinate
     implicit none
@@ -432,7 +433,7 @@ contains
   end function cylindricalScalerSurfaceDensity
 
   double precision function cylindricalScalerRotationCurve(self,radius)
-    !!{
+    !!{RST
     Return the mid-plane rotation curve for a scaled cylindrical distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -455,8 +456,8 @@ contains
   end function cylindricalScalerRotationCurve
 
   double precision function cylindricalScalerRotationCurveGradient(self,radius)
-    !!{
-    Return the mid-plane rotation curve gradient (specifically, $\mathrm{d}V^2_\mathrm{c}/\mathrm{d}r$) for a scaled cylindrical distribution.
+    !!{RST
+    Return the mid-plane rotation curve gradient (specifically, :math:`\mathrm{d}V^2_\mathrm{c}/\mathrm{d}r`) for a scaled cylindrical distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
@@ -476,7 +477,7 @@ contains
   end function cylindricalScalerRotationCurveGradient
 
   logical function cylindricalScalerPotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return if the potential has an analytic form.
     !!}
     implicit none
@@ -487,7 +488,7 @@ contains
   end function cylindricalScalerPotentialIsAnalytic
 
   double precision function cylindricalScalerPotential(self,coordinates,status)
-    !!{
+    !!{RST
     Return the gravitational potential for a scaled cylindrical distribution.
     !!}
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
@@ -512,7 +513,7 @@ contains
   end function cylindricalScalerPotential
 
   double precision function cylindricalScalerSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
-    !!{
+    !!{RST
     Compute radial moments of a scaled cylindrical distribution.
     !!}
     implicit none
@@ -536,8 +537,8 @@ contains
   end function cylindricalScalerSurfaceDensityRadialMoment
 
   function cylindricalScalerAcceleration(self,coordinates)
-    !!{
-    Computes the gravitational acceleration at \mono{coordinates} for a scaled cylindrical distribution.
+    !!{RST
+    Computes the gravitational acceleration at ``coordinates`` for a scaled cylindrical distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, gravitationalConstant_internal, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -561,8 +562,8 @@ contains
   end function cylindricalScalerAcceleration
 
   function cylindricalScalerTidalTensor(self,coordinates)
-    !!{
-    Computes the gravitational tidal tensor at \mono{coordinates} for a scaled cylindrical distribution.
+    !!{RST
+    Computes the gravitational tidal tensor at ``coordinates`` for a scaled cylindrical distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
@@ -582,7 +583,7 @@ contains
   end function cylindricalScalerTidalTensor
   
   function cylindricalScalerPositionSample(self,randomNumberGenerator_)
-    !!{
+    !!{RST
     Sample a position from a scaled cylindrical distribution.
     !!}
     implicit none

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling convergence class which switches between two other options.
   !!}
 
   !![
-  <posteriorSampleStateInitialize name="posteriorSampleStateInitializeSwitched">
-   <description>A posterior sampling state initialization class which sets initial state by switching between two other options.</description>
+  <posteriorSampleStateInitialize name="posteriorSampleStateInitializeSwitched" docformat="rst">
+   <description>
+   A posterior sampling state initialization class which sets initial state by switching between two other options.
+   </description>
   </posteriorSampleStateInitialize>
   !!]
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeSwitched
-     !!{
+     !!{RST
      Implementation of a posterior sampling state initialization class which sets initial state by switching between two other options.
      !!}
      private
@@ -39,8 +41,8 @@
   end type posteriorSampleStateInitializeSwitched
 
   interface posteriorSampleStateInitializeSwitched
-     !!{
-     Constructors for the \refClass{posteriorSampleStateInitializeSwitched} posterior sampling state initialization class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSampleStateInitializeSwitched` posterior sampling state initialization class.
      !!}
      module procedure switchedConstructorParameters
      module procedure switchedConstructorInternal
@@ -49,8 +51,8 @@
 contains
 
   function switchedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStateInitializeSwitched} posterior sampling state initialization class.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleStateInitializeSwitched` posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -62,15 +64,19 @@ contains
     allocate(modelParameterName1(parameters%count('modelParameterName1')))
     allocate(modelParameterName2(parameters%count('modelParameterName2')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>modelParameterName1</name>
       <source>parameters</source>
-      <description>Names of parameters to be initialized by initializer number 1.</description>
+      <description>
+      Names of parameters to be initialized by initializer number 1.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>modelParameterName2</name>
       <source>parameters</source>
-      <description>Names of parameters to be initialized by initializer number 2.</description>
+      <description>
+      Names of parameters to be initialized by initializer number 2.
+      </description>
     </inputParameter>
     <objectBuilder class="posteriorSampleStateInitialize" name="stateInitializeMethod1" parameterName="posteriorSampleStateInitializeMethod1" source="parameters"/>
     <objectBuilder class="posteriorSampleStateInitialize" name="stateInitializeMethod2" parameterName="posteriorSampleStateInitializeMethod2" source="parameters"/>
@@ -85,8 +91,8 @@ contains
   end function switchedConstructorParameters
 
   function switchedConstructorInternal(modelParameterName1,modelParameterName2,stateInitializeMethod1,stateInitializeMethod2) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStateInitializeSwitched} posterior sampling state initialization class.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleStateInitializeSwitched` posterior sampling state initialization class.
     !!}
     implicit none
     type (posteriorSampleStateInitializeSwitched)                              :: self
@@ -100,8 +106,8 @@ contains
   end function switchedConstructorInternal
 
   subroutine switchedDestructor(self)
-    !!{
-    Destructor for the \refClass{posteriorSampleStateInitializeSwitched} posterior sampling state initialization class.
+    !!{RST
+    Destructor for the :galacticus-class:`posteriorSampleStateInitializeSwitched` posterior sampling state initialization class.
     !!}
     implicit none
     type (posteriorSampleStateInitializeSwitched), intent(inout) :: self
@@ -114,7 +120,7 @@ contains
   end subroutine switchedDestructor
 
   subroutine switchedInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
-    !!{
+    !!{RST
     Initialize simulation state by drawing at random from the parameter priors.
     !!}
     use :: Error                       , only : Error_Report

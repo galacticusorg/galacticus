@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements calculations of disparity ratios, i.e. $r(a,b)=\hbox{max}(|a|/|b|,|b|/|a|)$.
+!!{RST
+Contains a module which implements calculations of disparity ratios, i.e. :math:`r(a,b)=\hbox{max}(|a|/|b|,|b|/|a|)`.
 !!}
 
 module Disparity_Ratios
-  !!{
-  Implements calculations of disparity ratios, i.e. $r(a,b)=\hbox{max}(|a|/|b|,|b|/|a|)$.
+  !!{RST
+  Implements calculations of disparity ratios, i.e. :math:`r(a,b)=\hbox{max}(|a|/|b|,|b|/|a|)`.
   !!}
   implicit none
   private
@@ -32,8 +32,8 @@ module Disparity_Ratios
 contains
 
   double precision function Disparity_Ratio(a,b)
-    !!{
-    Computes the disparity ratio, $r(a,b)=\hbox{max}(|a|/|b|,|b|/|a|)$.
+    !!{RST
+    Computes the disparity ratio, :math:`r(a,b)=\hbox{max}(|a|/|b|,|b|/|a|)`.
     !!}
     implicit none
     double precision, intent(in   ) :: a       , b

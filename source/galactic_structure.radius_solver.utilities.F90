@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Contains a module that provides utility functions for galactic structure solver.
   !!}
 
 module Galactic_Structure_Radius_Solver_Utilities
-  !!{
+  !!{RST
   Provides utility functions for galactic structure solver.
   !!}
   use :: Galacticus_Nodes          , only : treeNode
@@ -59,8 +59,8 @@ module Galactic_Structure_Radius_Solver_Utilities
 contains
 
   subroutine radiusSolverPlausibilities(node)
-    !!{
-    Determine if the \mono{node} is physically plausible and solvable for galactic structure calculations.
+    !!{RST
+    Determine if the ``node`` is physically plausible and solvable for galactic structure calculations.
     !!}
     implicit none
     type(treeNode), intent(inout) :: node
@@ -74,7 +74,8 @@ contains
   end subroutine radiusSolverPlausibilities
 
   subroutine radiusSolverTasks(node,specificAngularMomentumRequired,radiusSolve)
-    !!{
+    !!{RST
+
     !!}
     implicit none
     type            (treeNode                    ), intent(inout)          :: node

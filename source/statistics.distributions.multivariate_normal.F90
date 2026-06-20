@@ -20,21 +20,21 @@
   ! Include an explicit dependency on the low-level multivariate distribution integration code.
   !: $(BUILDPATH)/Genz/mvndst.o
 
-  !!{
+  !!{RST
   Implementation of a multivariate normal distribution function.
   !!}
 
   use :: Linear_Algebra, only : matrix
 
   !![
-  <distributionFunctionMultivariate name="distributionFunctionMultivariateNormal">
+  <distributionFunctionMultivariate name="distributionFunctionMultivariateNormal" docformat="rst">
    <description>
-    A multivariate normal distribution.
+   A multivariate normal distribution.
    </description>
   </distributionFunctionMultivariate>
   !!]
   type, extends(distributionFunctionMultivariateClass) :: distributionFunctionMultivariateNormal
-     !!{
+     !!{RST
      Implementation of a normal 1D distribution function.
      !!}
      private
@@ -48,7 +48,7 @@
      logical                                               :: normalizationComputed, logNormalizationComputed
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="cumulativeMonteCarlo" description="Compute the cumulative distribution function used Monte Carlo methods."/>
      </methods>
      !!]
@@ -58,8 +58,8 @@
   end type distributionFunctionMultivariateNormal
 
   interface distributionFunctionMultivariateNormal
-     !!{
-     Constructors for the \mono{normal} 1D distribution function class.
+     !!{RST
+     Constructors for the ``normal`` 1D distribution function class.
      !!}
      module procedure multivariateNormalConstructorParameters
      module procedure multivariateNormalConstructorInternal
@@ -75,9 +75,8 @@
 contains
 
   function multivariateNormalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \mono{multivariateNormal} 1D distribution function class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the ``multivariateNormal`` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,29 +89,39 @@ contains
     integer                                                                               :: countTrialsMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mean</name>
-      <description>The mean of the multivariate normal distribution.</description>
+      <description>
+      The mean of the multivariate normal distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covariance</name>
-      <description>The covariance of the multivariate normal distribution.</description>
+      <description>
+      The covariance of the multivariate normal distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>errorAbsolute</name>
-      <description>The absolute error tolerance in determining the cumulative distribution function.</description>
+      <description>
+      The absolute error tolerance in determining the cumulative distribution function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>errorRelative</name>
-      <description>The relative error tolerance in determining the cumulative distribution function.</description>
+      <description>
+      The relative error tolerance in determining the cumulative distribution function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countTrialsMaximum</name>
-      <description>The maximum number of trials allowed in Monte Carlo evaluation of the cumulative distribution function.</description>
+      <description>
+      The maximum number of trials allowed in Monte Carlo evaluation of the cumulative distribution function.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -126,8 +135,8 @@ contains
   end function multivariateNormalConstructorParameters
 
   function multivariateNormalConstructorInternal(mean,covariance,errorAbsolute,errorRelative,countTrialsMaximum,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for \mono{multivariateNormal} multivariate distribution function class.
+    !!{RST
+    Constructor for ``multivariateNormal`` multivariate distribution function class.
     !!}
     implicit none
     type            (distributionFunctionMultivariateNormal)                                        :: self
@@ -170,7 +179,7 @@ contains
   end function multivariateNormalConstructorInternal
 
   double precision function multivariateNormalDensity(self,x,logarithmic,status) result(density)
-    !!{
+    !!{RST
     Return the density of a multivariate normal distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -234,7 +243,7 @@ contains
   end function multivariateNormalDensity
 
   double precision function multivariateNormalCumulative(self,xLow,xHigh,logarithmic,status) result(probability)
-    !!{
+    !!{RST
     Return the cumulative probability of a multivariate normal distribution.
     !!}
     use :: Models_Likelihoods_Constants, only : logImprobable
@@ -324,7 +333,7 @@ contains
   end function multivariateNormalCumulative
 
   double precision function multivariateNormalCumulativeMonteCarlo(self,xLow,xHigh,logarithmic,status) result(probability)
-    !!{
+    !!{RST
     Return the cumulative probability of a multivariate normal distribution computed using Monte Carlo methods.
     !!}
     use :: Interface_GSL               , only : GSL_Success  , GSL_EMaxIter
@@ -576,7 +585,7 @@ contains
   contains
     
     subroutine cleanUp()
-      !!{
+      !!{RST
       Perform clean up before exiting Monte Carlo integration of the multivariate normal distribution.
       !!}
       implicit none
@@ -589,8 +598,8 @@ contains
   end function multivariateNormalCumulativeMonteCarlo
   
   pure elemental double precision function logCosh(x)
-    !!{
-    Evaluate the logarithm of $\cosh x$, handling large values.
+    !!{RST
+    Evaluate the logarithm of :math:`\cosh x`, handling large values.
     !!}
     implicit none
     double precision, intent(in   ) :: x
@@ -605,7 +614,7 @@ contains
   end function logCosh
 
   subroutine fpeHandlerMonteCarlo(signal)
-    !!{
+    !!{RST
     Report useful information if a floating point error occurs.
     !!}
     use :: Display           , only : displayIndent , displayUnindent, displayMessage, verbosityLevelSilent
@@ -631,7 +640,7 @@ contains
   end subroutine fpeHandlerMonteCarlo
 
   subroutine fpeHandlerDirect(signal)
-    !!{
+    !!{RST
     Handle floating point exceptions when evaluating the cumulative distribution function.
     !!}
     implicit none

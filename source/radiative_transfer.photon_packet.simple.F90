@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <radiativeTransferPhotonPacket name="radiativeTransferPhotonPacketSimple">
-   <description>A simple photon packet class for Monte Carlo radiative transfer that tracks the minimum required properties: wavelength, luminosity, three-dimensional position, and propagation direction. The initial wavelength and luminosity of each packet are set by \mono{[wavelength]} and \mono{[luminosity]}, with wavelength bounds given by \mono{[wavelengthMinimum]} and \mono{[wavelengthMaximum]}.</description>
+  <radiativeTransferPhotonPacket name="radiativeTransferPhotonPacketSimple" docformat="rst">
+   <description>
+   A simple photon packet class for Monte Carlo radiative transfer that tracks the minimum required properties: wavelength, luminosity, three-dimensional position, and propagation direction. The initial wavelength and luminosity of each packet are set by ``[wavelength]`` and ``[luminosity]``, with wavelength bounds given by ``[wavelengthMinimum]`` and ``[wavelengthMaximum]``.
+   </description>
   </radiativeTransferPhotonPacket>
   !!]
   type, extends(radiativeTransferPhotonPacketClass) :: radiativeTransferPhotonPacketSimple
-     !!{
+     !!{RST
      Implementation of a simple photon packet class which tracks only wavelength, position, and direction.
      !!}
      private
@@ -49,8 +51,8 @@
   end type radiativeTransferPhotonPacketSimple
 
   interface radiativeTransferPhotonPacketSimple
-     !!{
-     Constructors for the \refClass{radiativeTransferPhotonPacketSimple} radiative transfer photon packet class.
+     !!{RST
+     Constructors for the :galacticus-class:`radiativeTransferPhotonPacketSimple` radiative transfer photon packet class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -59,8 +61,8 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiativeTransferPhotonPacketSimple} radiative transfer photon packet class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`radiativeTransferPhotonPacketSimple` radiative transfer photon packet class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
     implicit none
@@ -70,28 +72,36 @@ contains
          &                                                                  wavelength       , luminosity
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavelength</name>
       <defaultValue>1.0d4</defaultValue>
-      <description>The wavelength of the photon packet (in \AA).</description>
+      <description>
+      The wavelength of the photon packet (in \AA).
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavelengthMinimum</name>
       <defaultValue>0.5d4</defaultValue>
-      <description>The minimum wavelength of the photon packet (in \AA).</description>
+      <description>
+      The minimum wavelength of the photon packet (in \AA).
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavelengthMaximum</name>
       <defaultValue>2.0d4</defaultValue>
-      <description>The maximum wavelength of the photon packet (in \AA).</description>
+      <description>
+      The maximum wavelength of the photon packet (in \AA).
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>luminosity</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The luminosity of the photon packet (in $L_\odot$).</description>
+      <description>
+      The luminosity of the photon packet (in :math:`L_\odot`).
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -103,8 +113,8 @@ contains
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(wavelength,wavelengthMinimum,wavelengthMaximum,luminosity) result(self)
-    !!{
-    Internal constructor for the \refClass{radiativeTransferPhotonPacketSimple} radiative transfer photon packet class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`radiativeTransferPhotonPacketSimple` radiative transfer photon packet class.
     !!}
     implicit none
     type            (radiativeTransferPhotonPacketSimple)                :: self
@@ -120,7 +130,7 @@ contains
   end function simpleConstructorInternal
 
   subroutine simpleWavelengthSet(self,wavelength)
-    !!{
+    !!{RST
     Set the wavelength of the photon packet.
     !!}
     implicit none
@@ -132,7 +142,7 @@ contains
   end subroutine simpleWavelengthSet
 
   double precision function simpleWavelength(self)
-    !!{
+    !!{RST
     Return the wavelength of the photon packet.
     !!}
     implicit none
@@ -143,7 +153,7 @@ contains
   end function simpleWavelength
 
   subroutine simpleWavelengthMinimumSet(self,wavelength)
-    !!{
+    !!{RST
     Set the minimum wavelength of the photon packet.
     !!}
     implicit none
@@ -155,7 +165,7 @@ contains
   end subroutine simpleWavelengthMinimumSet
 
   double precision function simpleWavelengthMinimum(self)
-    !!{
+    !!{RST
     Return the minimum wavelength of the photon packet.
     !!}
     implicit none
@@ -166,7 +176,7 @@ contains
   end function simpleWavelengthMinimum
 
   subroutine simpleWavelengthMaximumSet(self,wavelength)
-    !!{
+    !!{RST
     Set the maximum wavelength of the photon packet.
     !!}
     implicit none
@@ -178,7 +188,7 @@ contains
   end subroutine simpleWavelengthMaximumSet
 
   double precision function simpleWavelengthMaximum(self)
-    !!{
+    !!{RST
     Return the maximum wavelength of the photon packet.
     !!}
     implicit none
@@ -189,7 +199,7 @@ contains
   end function simpleWavelengthMaximum
 
   subroutine simpleLuminositySet(self,luminosity)
-    !!{
+    !!{RST
     Set the luminosity of the photon packet.
     !!}
     implicit none
@@ -201,7 +211,7 @@ contains
   end subroutine simpleLuminositySet
 
   double precision function simpleLuminosity(self)
-    !!{
+    !!{RST
     Return the luminosity of the photon packet.
     !!}
     implicit none
@@ -212,7 +222,7 @@ contains
   end function simpleLuminosity
   
   subroutine simplePositionSet(self,position)
-    !!{
+    !!{RST
     Set the position of the photon packet.
     !!}
     implicit none
@@ -224,7 +234,7 @@ contains
   end subroutine simplePositionSet
 
   function simplePosition(self)
-    !!{
+    !!{RST
     Return the position of the photon packet.
     !!}
     implicit none
@@ -236,7 +246,7 @@ contains
   end function simplePosition
 
   subroutine simpleDirectionSet(self,direction)
-    !!{
+    !!{RST
     Set the direction of the photon packet.
     !!}
     implicit none
@@ -248,7 +258,7 @@ contains
   end subroutine simpleDirectionSet
 
   function simpleDirection(self)
-    !!{
+    !!{RST
     Return the direction of the photon packet.
     !!}
     implicit none
@@ -260,7 +270,7 @@ contains
   end function simpleDirection
 
   integer function simpleSourceType(self)
-    !!{
+    !!{RST
     Return the source type for this photon packet.
     !!}
     implicit none
@@ -271,7 +281,7 @@ contains
   end function simpleSourceType
 
   subroutine simpleSourceTypeSet(self,sourceType)
-    !!{
+    !!{RST
     Set the source type for this photon packet.
     !!}
     implicit none

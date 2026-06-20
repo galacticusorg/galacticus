@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling likelihood class which implements a likelihood for SED fitting.
   !!}
 
@@ -27,9 +27,11 @@
   use :: Stellar_Population_Broad_Band_Luminosities, only : stellarPopulationBroadBandLuminositiesClass
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>sedFitDustType</name>
-   <description>Used to specify the type of dust model to use in SED fitting likelihoods.</description>
+   <description>
+   Used to specify the type of dust model to use in SED fitting likelihoods.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -43,9 +45,11 @@
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>sedFitStartTime</name>
-   <description>Used to specify the type of start time to use in SED fitting likelihoods.</description>
+   <description>
+   Used to specify the type of start time to use in SED fitting likelihoods.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -55,12 +59,14 @@
   !!]
 
   !![
-  <posteriorSampleLikelihood name="posteriorSampleLikelihoodSEDFit">
-   <description>A posterior sampling likelihood class which evaluates the likelihood of observed broadband spectral energy distributions (SEDs) given modeled stellar populations, including dust attenuation effects. Observed magnitudes and uncertainties are specified via \mono{[magnitudes]} and \mono{[errors]}, with dust model and star formation history burst count controlled by \mono{[dustType]} and \mono{[burstCount]}.</description>
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodSEDFit" docformat="rst">
+   <description>
+   A posterior sampling likelihood class which evaluates the likelihood of observed broadband spectral energy distributions (SEDs) given modeled stellar populations, including dust attenuation effects. Observed magnitudes and uncertainties are specified via ``[magnitudes]`` and ``[errors]``, with dust model and star formation history burst count controlled by ``[dustType]`` and ``[burstCount]``.
+   </description>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodSEDFit
-     !!{
+     !!{RST
      Implementation of a posterior sampling likelihood class which implements a likelihood for SED fitting.
      !!}
      private
@@ -87,8 +93,8 @@
   end type posteriorSampleLikelihoodSEDFit
 
   interface posteriorSampleLikelihoodSEDFit
-     !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodSEDFit} posterior sampling likelihood class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSampleLikelihoodSEDFit` posterior sampling likelihood class.
      !!}
      module procedure sedFitConstructorParameters
      module procedure sedFitConstructorInternal
@@ -97,9 +103,8 @@
 contains
 
   function sedFitConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodSEDFit} posterior sampling likelihood class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodSEDFit` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -115,39 +120,53 @@ contains
     class           (stellarPopulationBroadBandLuminositiesClass      ), pointer                     :: stellarPopulationBroadBandLuminosities_
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>magnitude</name>
-      <description>The magnitudes of the broad-band SED.</description>
+      <description>
+      The magnitudes of the broad-band SED.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>error</name>
-      <description>The errors on the magnitudes of the broad-band SED.</description>
+      <description>
+      The errors on the magnitudes of the broad-band SED.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>filter</name>
-      <description>The names of the filters in the broad-band SED.</description>
+      <description>
+      The names of the filters in the broad-band SED.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>system</name>
-      <description>The photometric system (AB or Vega) of the broad-band SED.</description>
+      <description>
+      The photometric system (AB or Vega) of the broad-band SED.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>burstCount</name>
-      <description>The number of bursts events to include in the star formation history.</description>
+      <description>
+      The number of bursts events to include in the star formation history.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dustType</name>
-      <description>The type of dust model to apply to the SED.</description>
+      <description>
+      The type of dust model to apply to the SED.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>startTime</name>
-      <description>The definition of start time (absolute \mono{time} or \mono{age}).</description>
+      <description>
+      The definition of start time (absolute ``time`` or ``age``).
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"                           name="cosmologyFunctions_"                           source="parameters"/>
@@ -179,8 +198,8 @@ contains
   end function sedFitConstructorParameters
 
   function sedFitConstructorInternal(magnitude,error,filter,system,burstCount,dustType,startTimeType,cosmologyFunctions_,stellarPopulationSelector_,stellarPopulationSpectraPostprocessorBuilder_,stellarPopulationBroadBandLuminosities_) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodSEDFit} posterior sampling likelihood class.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodSEDFit` posterior sampling likelihood class.
     !!}
     use :: ISO_Varying_String , only : var_str         , varying_string
     use :: Instruments_Filters, only : Filter_Get_Index, Filter_Vega_Offset, Filter_Wavelength_Effective
@@ -233,8 +252,8 @@ contains
   end function sedFitConstructorInternal
 
   subroutine sedFitDestructor(self)
-    !!{
-    Destructor for the \refClass{posteriorSampleLikelihoodSEDFit} posterior sampling likelihood class.
+    !!{RST
+    Destructor for the :galacticus-class:`posteriorSampleLikelihoodSEDFit` posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodSEDFit), intent(inout) :: self
@@ -249,7 +268,7 @@ contains
   end subroutine sedFitDestructor
 
   double precision function sedFitEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !!{
+    !!{RST
     Return the log-likelihood for the SED fitting likelihood function.
     !!}
     use            :: Abundances_Structure             , only : abundances                          , max                                      , metallicityTypeLinearByMassSolar
@@ -584,7 +603,7 @@ contains
   contains
 
     double precision function luminosityIntegrand(time)
-      !!{
+      !!{RST
       Star formation rate integrand.
       !!}
       use :: Numerical_Constants_Math, only : Pi
@@ -668,7 +687,7 @@ contains
   end function sedFitEvaluate
 
   subroutine sedFitFunctionChanged(self)
-    !!{
+    !!{RST
     Respond to possible changes in the likelihood function.
     !!}
     implicit none

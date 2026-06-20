@@ -17,20 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-An implementation of the hot halo outflow reincorporation class in which reincorporation occurs on a multiple of the halo
-dynamical timescale.
+!!{RST
+An implementation of the hot halo outflow reincorporation class in which reincorporation occurs on a multiple of the halo dynamical timescale.
 !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationHaloDynamicalTime">
-   <description>An implementation of the hot halo outflow reincorporation class in which reincorporation occurs on a multiple of the halo dynamical timescale.</description>
+  <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationHaloDynamicalTime" docformat="rst">
+   <description>
+   An implementation of the hot halo outflow reincorporation class in which reincorporation occurs on a multiple of the halo dynamical timescale.
+   </description>
   </hotHaloOutflowReincorporation>
   !!]
   type, extends(hotHaloOutflowReincorporationClass) :: hotHaloOutflowReincorporationHaloDynamicalTime
-     !!{
+     !!{RST
      An implementation of the hot halo outflow reincorporation class in which reincorporation occurs on a multiple of the halo dynamical timescale.
      !!}
      private
@@ -42,8 +43,8 @@ dynamical timescale.
   end type hotHaloOutflowReincorporationHaloDynamicalTime
 
   interface hotHaloOutflowReincorporationHaloDynamicalTime
-     !!{
-     Constructors for the \refClass{hotHaloOutflowReincorporationHaloDynamicalTime} hot halo outflow reincorporation class.
+     !!{RST
+     Constructors for the :galacticus-class:`hotHaloOutflowReincorporationHaloDynamicalTime` hot halo outflow reincorporation class.
      !!}
      module procedure haloDynamicalTimeConstructorParameters
      module procedure haloDynamicalTimeConstructorInternal
@@ -52,9 +53,8 @@ dynamical timescale.
 contains
 
   function haloDynamicalTimeConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{haloDynamicalTime} hot halo outflow reincorporation class which
-    takes a parameter set as input.
+    !!{RST
+    Default constructor for the ``haloDynamicalTime`` hot halo outflow reincorporation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,10 +64,12 @@ contains
     double precision                                                                :: multiplier
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>multiplier</name>
       <defaultValue>5.0d0</defaultValue>
-      <description>Specifies the rate at which reheated mass is returned to the hot phase in units of the inverse halo dynamical timed.</description>
+      <description>
+      Specifies the rate at which reheated mass is returned to the hot phase in units of the inverse halo dynamical timed.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
@@ -81,8 +83,8 @@ contains
   end function haloDynamicalTimeConstructorParameters
 
   function haloDynamicalTimeConstructorInternal(multiplier,darkMatterHaloScale_) result(self)
-    !!{
-    Default constructor for the \mono{haloDynamicalTime} hot halo outflow reincorporation class.
+    !!{RST
+    Default constructor for the ``haloDynamicalTime`` hot halo outflow reincorporation class.
     !!}
     implicit none
     type            (hotHaloOutflowReincorporationHaloDynamicalTime)                        :: self
@@ -96,8 +98,8 @@ contains
   end function haloDynamicalTimeConstructorInternal
 
   subroutine haloDynamicalTimeDestructor(self)
-    !!{
-    Destructor for the \refClass{hotHaloOutflowReincorporationHaloDynamicalTime} hot halo outflow reincorporation class.
+    !!{RST
+    Destructor for the :galacticus-class:`hotHaloOutflowReincorporationHaloDynamicalTime` hot halo outflow reincorporation class.
     !!}
     implicit none
     type(hotHaloOutflowReincorporationHaloDynamicalTime), intent(inout) :: self
@@ -109,7 +111,7 @@ contains
   end subroutine haloDynamicalTimeDestructor
 
   double precision function haloDynamicalTimeRate(self,node)
-    !!{
+    !!{RST
     Return the rate of mass reincorporation for outflowed gas in the hot halo.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode

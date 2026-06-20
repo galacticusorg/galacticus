@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 import os
 import re
-import subprocess
 import sys
 import xml.etree.ElementTree as ET
-import latex_spellcheck
 
-# Perform checks on embedded XML and LaTeX.
-# Andrew Benson (28-February-2023) [Python port]
+# Validate embedded XML directives: schema-check each `!![ … !!]` directive block.
+# Andrew Benson (28-February-2023) [Python port].
+#
+# The LaTeX checks (fragment compilation + spell-check) were retired with the
+# migration of the embedded documentation to reStructuredText; prose validity is
+# now covered by the ReadTheDocs build and the RST spell-checker.
 
 # Optional lxml for XSD validation; fall back to skipping validation if absent.
 try:
@@ -21,67 +23,20 @@ if len(sys.argv) != 3:
     raise SystemExit(1)
 
 file_name         = sys.argv[1]
-warning_file_name = sys.argv[2]
+warning_file_name = sys.argv[2]   # retained for CLI compatibility (unused)
 
 galacticus_path = os.environ.get('GALACTICUS_EXEC_PATH', '.')
 schema_dir      = os.path.join(galacticus_path, 'schema')
 
-status   = 0
-warnings = ''
-
-
-# ── LaTeX fragment compilation test ─────────────────────────────────────────
-
-def test_latex(raw_latex):
-    """Compile a LaTeX fragment.  Returns the log text on failure, None on success."""
-    raw_latex = raw_latex.replace('&amp;', '&').replace('&lt;', '<')
-    frag_tex = 'doc/frag.tex'
-    with open(frag_tex, 'w') as fh:
-        fh.write('\\documentclass[letterpaper,10pt,headsepline]{scrbook}\n')
-        fh.write('\\usepackage{natbib}\n')
-        fh.write('\\usepackage{epsfig}\n')
-        fh.write('\\usepackage[acronym]{glossaries}\n')
-        fh.write('\\usepackage[backref,colorlinks]{hyperref}\n')
-        fh.write('\\usepackage{amssymb}\n')
-        fh.write('\\usepackage{amsmath}\n')
-        fh.write('\\usepackage{color}\n')
-        fh.write('\\usepackage{listings}\n')
-        fh.write('\\usepackage{tensor}\n')
-        fh.write(f'\\input{{{galacticus_path}/doc/commands}}\n')
-        fh.write(f'\\input{{{galacticus_path}/doc/Glossary}}\n')
-        fh.write('\\newcommand{\\docname}{tmp}\n')
-        fh.write('\\begin{document}\n')
-        fh.write(raw_latex)
-        fh.write('\\end{document}\n')
-
-    result = subprocess.run(
-        'cd doc; pdflatex -halt-on-error frag > frag.tmp',
-        shell=True
-    )
-    log = None
-    if result.returncode != 0:
-        try:
-            with open('doc/frag.log', 'r', errors='replace') as fh:
-                log = fh.read()
-        except OSError:
-            log = '(log unavailable)'
-
-    for ext in ('tex', 'pdf', 'log', 'aux', 'tmp', 'glo'):
-        path = f'doc/frag.{ext}'
-        try:
-            os.unlink(path)
-        except OSError:
-            pass
-    return log
+status = 0
 
 
 # ── XML directive processing ─────────────────────────────────────────────────
 
 def process_directive(stripped_directive, line_number):
-    """Parse, validate, and spell-check one XML directive block."""
-    global status, warnings
+    """Parse and (if a schema exists) XSD-validate one XML directive block."""
+    global status
 
-    # Parse with ElementTree.
     try:
         root_el = ET.fromstring(stripped_directive)
     except ET.ParseError as exc:
@@ -91,10 +46,7 @@ def process_directive(stripped_directive, line_number):
         status = 1
         return
 
-    directive_name = root_el.tag
-
-    # Validate against XSD schema if one exists.
-    xsd_path = os.path.join(schema_dir, directive_name + '.xsd')
+    xsd_path = os.path.join(schema_dir, root_el.tag + '.xsd')
     if HAS_LXML and os.path.exists(xsd_path):
         try:
             schema   = lxml_etree.XMLSchema(file=xsd_path)
@@ -107,63 +59,22 @@ def process_directive(stripped_directive, line_number):
             print(str(exc))
             status = 1
 
-    # Check the 'description' attribute/child for LaTeX validity.
-    description = root_el.get('description')
-    if description is None:
-        desc_el = root_el.find('description')
-        if desc_el is not None:
-            description = (desc_el.text or '')
-    if description:
-        log = test_latex(description)
-        if log is not None:
-            print(f"XML LaTeX description compilation failed ({file_name}:{line_number}):")
-            print(log)
-            status = 1
-        warnings += latex_spellcheck.spell_check(description, 'latex', file_name)
-
 
 # ── Main file parsing ────────────────────────────────────────────────────────
 
-in_directive  = False
 in_xml        = False
-in_latex      = False
-in_comment    = False
+in_directive  = False
 line_number   = 0
-directive_root        = None
-raw_directive         = ''
-stripped_directive    = ''
-raw_latex             = None
-raw_comment           = None
+directive_root     = None
+raw_directive      = ''
+stripped_directive = ''
 
 with open(file_name, 'r', errors='replace') as code:
     for line in code:
 
-        # ── State exits (checked before accumulation) ────────────────────────
-        if re.match(r'^\s*!!\}', line):
-            in_latex = False
+        # Exit an XML directive block.
         if re.match(r'^\s*!!\]', line):
             in_xml = False
-        if not re.match(r'^\s*!\s', line):
-            in_comment = False
-
-        # ── LaTeX block accumulation / processing ────────────────────────────
-        if in_latex:
-            raw_latex = (raw_latex or '') + line
-        if raw_latex is not None and not in_latex:
-            log = test_latex(raw_latex)
-            if log is not None:
-                print(f"LaTeX fragment compilation failed ({file_name}:{line_number}):")
-                print(log)
-                status = 1
-            warnings += latex_spellcheck.spell_check(raw_latex, 'latex', file_name)
-            raw_latex = None
-
-        # ── Comment block accumulation / processing ──────────────────────────
-        if in_comment:
-            raw_comment = (raw_comment or '') + line
-        if raw_comment is not None and not in_comment:
-            warnings += latex_spellcheck.spell_check(raw_comment, 'text', file_name)
-            raw_comment = None
 
         # ── XML directive accumulation / processing ──────────────────────────
         is_directive  = False
@@ -192,12 +103,10 @@ with open(file_name, 'r', errors='replace') as code:
             if is_directive:
                 in_directive = True
 
-        # Accumulate text.
+        # Accumulate directive text.
         if in_directive:
             raw_directive      += line
             stripped_directive += stripped_line
-        elif not re.match(r'^\s*!![\[\]]', line):
-            pass  # raw_code accumulation (not needed for our checks)
 
         # Process a complete directive block.
         if raw_directive and (not in_directive or end_directive):
@@ -207,20 +116,10 @@ with open(file_name, 'r', errors='replace') as code:
             stripped_directive = ''
             directive_root     = None
 
-        # ── State entries (checked after processing) ─────────────────────────
+        # Enter an XML directive block.
         if re.match(r'^\s*!!\[', line):
             in_xml = True
-        if re.match(r'^\s*!!\{', line):
-            in_latex = True
-        if re.match(r'^\s*!\s', line):
-            in_comment  = True
-            raw_comment = (raw_comment or '') + line
 
         line_number += 1
-
-# ── Write accumulated warnings ───────────────────────────────────────────────
-if warnings:
-    with open(warning_file_name, 'a') as fh:
-        fh.write(warnings)
 
 raise SystemExit(status)

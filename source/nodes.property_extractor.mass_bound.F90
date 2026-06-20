@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an output analysis property extractor class that extracts the bound mass.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMassBound">
-   <description>Extracts the gravitationally bound mass remaining in a subhalo after tidal stripping, representing the mass retained within the tidal radius as the subhalo orbits in its host potential, relevant to subhalo abundance matching.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorMassBound" docformat="rst">
+   <description>
+   Extracts the gravitationally bound mass remaining in a subhalo after tidal stripping, representing the mass retained within the tidal radius as the subhalo orbits in its host potential, relevant to subhalo abundance matching.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassBound
-     !!{
+     !!{RST
      A property extractor output analysis class that extracts the bound mass.
      !!}
      private
@@ -40,8 +42,8 @@ Implements an output analysis property extractor class that extracts the bound m
   end type nodePropertyExtractorMassBound
 
   interface nodePropertyExtractorMassBound
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBound} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassBound` property extractor class.
      !!}
      module procedure massBoundConstructorParameters
   end interface nodePropertyExtractorMassBound
@@ -49,8 +51,8 @@ Implements an output analysis property extractor class that extracts the bound m
 contains
 
   function massBoundConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMassBound} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassBound` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +67,7 @@ contains
   end function massBoundConstructorParameters
 
   double precision function massBoundExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a massBound output analysis.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
@@ -83,7 +85,7 @@ contains
 
 
   function massBoundName(self)
-    !!{
+    !!{RST
     Return the name of the massBound property.
     !!}
     implicit none
@@ -96,7 +98,7 @@ contains
   end function massBoundName
 
   function massBoundDescription(self)
-    !!{
+    !!{RST
     Return a description of the massBound property.
     !!}
     implicit none
@@ -109,7 +111,7 @@ contains
   end function massBoundDescription
 
   double precision function massBoundUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the bound mass property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
@@ -122,7 +124,7 @@ contains
   end function massBoundUnitsInSI
 
   function massBoundUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the bound mass property.
     !!}
     use :: Units_MetaData, only : unitType

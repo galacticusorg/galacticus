@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements accretion disks.
 !!}
 
 module Accretion_Disks
-  !!{
+  !!{RST
   Provides a class that implements accretion disks.
   !!}
   use :: Galacticus_Nodes, only : nodeComponentBlackHole
@@ -30,9 +30,11 @@ module Accretion_Disks
 
   ! Enumeration of accretion disk types.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>accretionDiskType</name>
-   <description>Enumerates accretion disk types.</description>
+   <description>
+   Enumerates accretion disk types.
+   </description>
    <visibility>public</visibility>
    <entry label="any" />
    <entry label="thin"/>
@@ -41,18 +43,17 @@ module Accretion_Disks
   !!]
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>accretionDisks</name>
    <descriptiveName>Accretion Disks</descriptiveName>
    <description>
-    A class implementing circumnuclear accretion disks. Circumnuclear accretion disks surrounding supermassive black holes at
-    the centers of galaxies influence the evolution of both the black hole (via accretion rates of mass and angular momentum
-    and possibly by extracting rotational energy from the black hole) and the surrounding galaxy if they lead to energetic
-    outflows (e.g. jets) from the nuclear region.
+   A class implementing circumnuclear accretion disks. Circumnuclear accretion disks surrounding supermassive black holes at the centers of galaxies influence the evolution of both the black hole (via accretion rates of mass and angular momentum and possibly by extracting rotational energy from the black hole) and the surrounding galaxy if they lead to energetic outflows (e.g. jets) from the nuclear region.
    </description>
    <default>shakuraSunyaev</default>
    <method name="efficiencyRadiative" >
-    <description>Returns the radiative efficiency of the accretion disk, defined as the fraction of accreted rest-mass energy $\dot{M}\mathrm{c}^2$ that is emitted as radiation, given the black hole properties and accretion rate.</description>
+    <description>
+    Returns the radiative efficiency of the accretion disk, defined as the fraction of accreted rest-mass energy :math:`\dot{M}\mathrm{c}^2` that is emitted as radiation, given the black hole properties and accretion rate.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class           (nodeComponentBlackHole          ), intent(inout)           :: blackHole        </argument>
@@ -60,14 +61,18 @@ module Accretion_Disks
     <argument>type            (enumerationAccretionDiskTypeType), intent(in   ), optional :: accretionDiskType</argument>
    </method>
    <method name="powerJet" >
-    <description>Returns the power of the jet launched by the accretion disk in units of $\mathrm{M}_\odot$ (km/s)$^2$ Gyr$^{-1}$.</description>
+    <description>
+    Returns the power of the jet launched by the accretion disk in units of :math:`\mathrm{M}_\odot` (km/s)\ :math:`^2` Gyr\ :math:`^{-1}`.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class           (nodeComponentBlackHole), intent(inout) :: blackHole</argument>
     <argument>double precision                        , intent(in   ) :: accretionRateMass</argument>
    </method>
    <method name="rateSpinUp" >
-    <description>Returns the spin-up rate of the black hole due to accretion from the accretion disk.</description>
+    <description>
+    Returns the spin-up rate of the black hole due to accretion from the accretion disk.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class           (nodeComponentBlackHole), intent(inout) :: blackHole</argument>

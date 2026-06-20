@@ -17,21 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a critical overdensity excursion set barrier class.
 !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !![
-  <excursionSetBarrier name="excursionSetBarrierCriticalOverdensity">
+  <excursionSetBarrier name="excursionSetBarrierCriticalOverdensity" docformat="rst">
    <description>
-    A excursion set barrier class that adopts a barrier equal to the critical linear theory overdensity for halo collapse.
+   A excursion set barrier class that adopts a barrier equal to the critical linear theory overdensity for halo collapse.
    </description>
   </excursionSetBarrier>
   !!]
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierCriticalOverdensity
-     !!{
+     !!{RST
      A critical overdensity excursion set barrier class.
      !!}
      private
@@ -44,7 +44,7 @@ Implements a critical overdensity excursion set barrier class.
   end type excursionSetBarrierCriticalOverdensity
 
   interface excursionSetBarrierCriticalOverdensity
-     !!{
+     !!{RST
      Constructors for the critical overdensity excursion set barrier class.
      !!}
      module procedure criticalOverdensityConstructorParameters
@@ -54,7 +54,7 @@ Implements a critical overdensity excursion set barrier class.
 contains
 
   function criticalOverdensityConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the critical overdensity excursion set class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -79,7 +79,7 @@ contains
   end function criticalOverdensityConstructorParameters
 
   function criticalOverdensityConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the critical overdensity excursion set class.
     !!}
     implicit none
@@ -94,7 +94,7 @@ contains
   end function criticalOverdensityConstructorInternal
 
   subroutine criticalOverdensityDestructor(self)
-    !!{
+    !!{RST
     Destructor for the critical overdensity excursion set barrier class.
     !!}
     implicit none
@@ -108,7 +108,7 @@ contains
   end subroutine criticalOverdensityDestructor
 
   double precision function criticalOverdensityBarrier(self,variance,time,node,rateCompute)
-    !!{
+    !!{RST
     Return the excursion set barrier at the given variance and time.
     !!}
     implicit none
@@ -132,7 +132,7 @@ contains
   end function criticalOverdensityBarrier
 
   double precision function criticalOverdensityBarrierGradient(self,variance,time,node,rateCompute)
-    !!{
+    !!{RST
     Return the gradient with respect to variance of the excursion set barrier at the given variance and time.
     !!}
     implicit none

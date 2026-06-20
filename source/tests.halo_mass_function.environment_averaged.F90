@@ -17,13 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program which tests that environmental-averaging of the peak-background split Press-Schechter mass function behaves as
-expected.
+!!{RST
+Contains a program which tests that environmental-averaging of the peak-background split Press-Schechter mass function behaves as expected.
 !!}
 
 program Tests_Halo_Mass_Function_Environmental_Average
-  !!{
+  !!{RST
   Tests that environmental-averaging of the peak-background split Press-Schechter mass function behaves as expected.
   !!}
   use :: Cosmological_Density_Field          , only : criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt, cosmologicalMassVarianceFilteredPower  , haloEnvironmentNormal                  , criticalOverdensityPeakBackgroundSplit, &

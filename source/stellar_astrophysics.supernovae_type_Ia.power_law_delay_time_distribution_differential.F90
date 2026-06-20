@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a supernovae type Ia class with a power-law delay time distribution.
   !!}
 
   !![
-  <supernovaeTypeIa name="supernovaeTypeIaPowerLawDTDDifferential">
+  <supernovaeTypeIa name="supernovaeTypeIaPowerLawDTDDifferential" docformat="rst">
    <description>
-    A supernovae type Ia class with a power-law delay time distribution. This class implements the differential form of the delay time distribution and is intended primarily for testing.
+   A supernovae type Ia class with a power-law delay time distribution. This class implements the differential form of the delay time distribution and is intended primarily for testing.
    </description>
   </supernovaeTypeIa>
   !!]
   type, extends(supernovaeTypeIaDifferentialDTD) :: supernovaeTypeIaPowerLawDTDDifferential
-     !!{
+     !!{RST
      A supernovae type Ia class with a power-law delay time distribution.
      !!}
      private
@@ -40,8 +40,8 @@
   end type supernovaeTypeIaPowerLawDTDDifferential
 
   interface supernovaeTypeIaPowerLawDTDDifferential
-     !!{
-     Constructors for the \refClass{supernovaeTypeIaPowerLawDTDDifferential} supernovae type Ia class.
+     !!{RST
+     Constructors for the :galacticus-class:`supernovaeTypeIaPowerLawDTDDifferential` supernovae type Ia class.
      !!}
      module procedure powerLawDTDDifferentialConstructorParameters
      module procedure powerLawDTDDifferentialConstructorInternal
@@ -50,8 +50,8 @@
 contains
 
   function powerLawDTDDifferentialConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{supernovaeTypeIaPowerLawDTDDifferential} supernovae type Ia class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`supernovaeTypeIaPowerLawDTDDifferential` supernovae type Ia class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -61,26 +61,38 @@ contains
           &                                                                     normalization
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeMinimum</name>
       <source>parameters</source>
       <defaultValue>40.0d-3</defaultValue>
-      <defaultSource>\citep[][field galaxy DTD]{freundlich_delay_2021}</defaultSource>
-      <description>The minimum time before which the delay time distribution is zero.</description>
+      <defaultSource>
+      :cite:p:`freundlich_delay_2021`
+      </defaultSource>
+      <description>
+      The minimum time before which the delay time distribution is zero.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponent</name>
       <source>parameters</source>
       <defaultValue>-1.07d0</defaultValue>
-      <defaultSource>\citep[][field galaxy DTD]{freundlich_delay_2021}</defaultSource>
-      <description>The power-law index $\alpha$ in the Type Ia supernova delay time distribution $\mathrm{d}N/\mathrm{d}t \propto t^\alpha$ (differential form), describing how the rate declines with time after star formation; the default value of $-1.07$ follows \cite{freundlich_delay_2021}.</description>
+      <defaultSource>
+      :cite:p:`freundlich_delay_2021`
+      </defaultSource>
+      <description>
+      The power-law index :math:`\alpha` in the Type Ia supernova delay time distribution :math:`\mathrm{d}N/\mathrm{d}t \propto t^\alpha` (differential form), describing how the rate declines with time after star formation; the default value of :math:`-1.07` follows :cite:t:`freundlich_delay_2021`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>normalization</name>
       <source>parameters</source>
       <defaultValue>0.21d-3</defaultValue>
-      <defaultSource>\citep[][field galaxy DTD]{freundlich_delay_2021}</defaultSource>
-      <description>The normalization $R_1$ of the delay time distribution at 1~Gyr in units of Gyr$^{-1}\,\mathrm{M}_\odot^{-1}$.</description>
+      <defaultSource>
+      :cite:p:`freundlich_delay_2021`
+      </defaultSource>
+      <description>
+      The normalization :math:`R_1` of the delay time distribution at 1 Gyr in units of Gyr\ :math:`^{-1}\,\mathrm{M}_\odot^{-1}`.
+      </description>
     </inputParameter>
     !!]
     self=supernovaeTypeIaPowerLawDTDDifferential(timeMinimum,exponent,normalization)
@@ -91,8 +103,8 @@ contains
   end function powerLawDTDDifferentialConstructorParameters
 
   function powerLawDTDDifferentialConstructorInternal(timeMinimum,exponent,normalization) result(self)
-    !!{
-    Internal constructor for the \refClass{supernovaeTypeIaPowerLawDTDDifferential} supernovae type Ia class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`supernovaeTypeIaPowerLawDTDDifferential` supernovae type Ia class.
     !!}
     implicit none
     type            (supernovaeTypeIaPowerLawDTDDifferential)                :: self
@@ -107,7 +119,7 @@ contains
   end function powerLawDTDDifferentialConstructorInternal
   
   double precision function powerLawDTDDifferentialTimeDelayMinimum(self) result(time)
-    !!{
+    !!{RST
     Compute the minimum time in the type Ia supernovae delay time distribution.
     !!}
     implicit none
@@ -118,7 +130,7 @@ contains
   end function powerLawDTDDifferentialTimeDelayMinimum
   
   double precision function powerLawDTDDifferentialNumberDifferential(self,age,metallicity) result(number)
-    !!{
+    !!{RST
     Compute the differential number of Type Ia SNe assuming a power-law delay time distribution.
     !!}
     implicit none

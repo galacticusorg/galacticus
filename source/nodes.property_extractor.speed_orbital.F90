@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an orbital speed output analysis property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorSpeedOrbital">
-   <description>Extracts the current orbital speed of a satellite node as it moves through its host halo potential, computed from the satellite's velocity vector, for use in orbital energy analyses and comparison with observed satellite velocity distributions.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorSpeedOrbital" docformat="rst">
+   <description>
+   Extracts the current orbital speed of a satellite node as it moves through its host halo potential, computed from the satellite's velocity vector, for use in orbital energy analyses and comparison with observed satellite velocity distributions.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorSpeedOrbital
-     !!{
+     !!{RST
      An orbital speed property extractor output analysis class.
      !!}
      private
@@ -40,8 +42,8 @@ Implements an orbital speed output analysis property extractor class.
   end type nodePropertyExtractorSpeedOrbital
 
   interface nodePropertyExtractorSpeedOrbital
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorSpeedOrbital} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorSpeedOrbital` property extractor class.
      !!}
      module procedure speedOrbitalConstructorParameters
   end interface nodePropertyExtractorSpeedOrbital
@@ -49,8 +51,8 @@ Implements an orbital speed output analysis property extractor class.
 contains
 
   function speedOrbitalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorSpeedOrbital} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorSpeedOrbital` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +67,7 @@ contains
   end function speedOrbitalConstructorParameters
 
   double precision function speedOrbitalExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a speedOrbital output analysis.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
@@ -98,7 +100,7 @@ contains
 
 
   function speedOrbitalName(self)
-    !!{
+    !!{RST
     Return the name of the speedOrbital property.
     !!}
     implicit none
@@ -111,7 +113,7 @@ contains
   end function speedOrbitalName
 
   function speedOrbitalDescription(self)
-    !!{
+    !!{RST
     Return a description of the speedOrbital property.
     !!}
     implicit none
@@ -124,7 +126,7 @@ contains
   end function speedOrbitalDescription
 
   double precision function speedOrbitalUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the speedOrbital property in the SI system.
     !!}
     use :: Numerical_Constants_Prefixes, only : kilo
@@ -137,7 +139,7 @@ contains
   end function speedOrbitalUnitsInSI
 
   function speedOrbitalUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the speedOrbital property.
     !!}
     use :: Units_MetaData, only : unitType

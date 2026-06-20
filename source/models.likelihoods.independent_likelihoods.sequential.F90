@@ -17,27 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a model likelihood class which combines other likelihoods assumed to be independent.
   !!}
 
   !![
-  <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndpndntLklhdsSqntl">
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndpndntLklhdsSqntl" docformat="rst">
    <description>
-    A posterior sampling likelihood class which sequentially combines other likelihoods assumed to be independent. This class
-    begins by evaluating the first likelihood. If the likelihood is negative, then it is immediately returned, without
-    evaluation of any further likelihoods. If it is positive, then the next likelihood is evaluated and the same conditions
-    applied. This process repeats until either a negative likelihood is found, or all likelihoods are evaluated. Once a given
-    likelihood has been evaluated it will be evaluated on all subsequent calls. Additionally, when a new likelihood is
-    evaluated for the first time, acceptance of the proposed state will be forced. This class therefore allows a sequence of
-    likelihoods to be specified which must be sequentially made sufficiently ``good'' before evaluating the next. The approach
-    is intended to allow crude, but rapid constraints to be placed on parameters before progressing to more detailed, but slow
-    to evaluate constraints.
+   A posterior sampling likelihood class which sequentially combines other likelihoods assumed to be independent. This class begins by evaluating the first likelihood. If the likelihood is negative, then it is immediately returned, without evaluation of any further likelihoods. If it is positive, then the next likelihood is evaluated and the same conditions applied. This process repeats until either a negative likelihood is found, or all likelihoods are evaluated. Once a given likelihood has been evaluated it will be evaluated on all subsequent calls. Additionally, when a new likelihood is evaluated for the first time, acceptance of the proposed state will be forced. This class therefore allows a sequence of likelihoods to be specified which must be sequentially made sufficiently "good" before evaluating the next. The approach is intended to allow crude, but rapid constraints to be placed on parameters before progressing to more detailed, but slow to evaluate constraints.
    </description>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodIndependentLikelihoods) :: posteriorSampleLikelihoodIndpndntLklhdsSqntl
-     !!{
+     !!{RST
      Implementation of a posterior sampling likelihood class which sequentially combines other likelihoods assumed to be independent.
      !!}
      private
@@ -52,8 +44,8 @@
   end type posteriorSampleLikelihoodIndpndntLklhdsSqntl
 
   interface posteriorSampleLikelihoodIndpndntLklhdsSqntl
-     !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodIndpndntLklhdsSqntl} posterior sampling likelihood class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSampleLikelihoodIndpndntLklhdsSqntl` posterior sampling likelihood class.
      !!}
      module procedure independentLikelihoodsSequentialConstructorParameters
      module procedure independentLikelihoodsSequentialConstructorInternal
@@ -64,9 +56,8 @@
 contains
 
   function independentLikelihoodsSequentialConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodIndpndntLklhdsSqntl} posterior sampling likelihood class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodIndpndntLklhdsSqntl` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -76,18 +67,22 @@ contains
     integer                                                              :: i
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>finalLikelihoodFullEvaluation</name>
       <variable>self%finalLikelihoodFullEvaluation</variable>
       <defaultValue>.true.</defaultValue>
-      <description>If true the final likelihood is evaluated fully, and not treated as a ``lock in'' likelihood.</description>
+      <description>
+      If true the final likelihood is evaluated fully, and not treated as a "lock in" likelihood.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>restoreLevels</name>
       <variable>self%restoreLevels</variable>
       <defaultValue>.true.</defaultValue>
-      <description>If true the level reached by each chain is restored on restarts. Otherwise, the level is initialized to zero (which may be useful for stochastic likelihoods).</description>
+      <description>
+      If true the level reached by each chain is restored on restarts. Otherwise, the level is initialized to zero (which may be useful for stochastic likelihoods).
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -121,8 +116,8 @@ contains
   end function independentLikelihoodsSequentialConstructorParameters
 
   function independentLikelihoodsSequentialConstructorInternal(modelLikelihoods,finalLikelihoodFullEvaluation,restoreLevels,likelihoodMultiplier,likelihoodAccept) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodIndpndntLklhdsSqntl} posterior sampling likelihood class.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodIndpndntLklhdsSqntl` posterior sampling likelihood class.
     !!}
     implicit none
     type            (posteriorSampleLikelihoodIndpndntLklhdsSqntl)                              :: self
@@ -142,7 +137,7 @@ contains
   end function independentLikelihoodsSequentialConstructorInternal
 
   double precision function independentLikelihoodsSequentialEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !!{
+    !!{RST
     Return the log-likelihood for the halo mass function likelihood function.
     !!}
     use :: Display                     , only : displayMessage
@@ -341,7 +336,7 @@ contains
   end function independentLikelihoodsSequentialEvaluate
 
   subroutine independentLikelihoodsSequentialRestore(self,simulationState,logLikelihood)
-    !!{
+    !!{RST
     Process a previous state to restore progress state.
     !!}
     implicit none

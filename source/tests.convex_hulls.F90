@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test convex hull functions.
 !!}
 
 program Test_Convex_Hulls
-  !!{
+  !!{RST
   Tests of convex hull functions.
   !!}
   use :: Display           , only : displayVerbositySet, verbosityLevelStandard

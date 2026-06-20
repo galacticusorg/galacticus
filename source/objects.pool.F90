@@ -17,18 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements a reusable pool of reference-counted
-\refClass{functionClass} objects.
+!!{RST
+Contains a module which implements a reusable pool of reference-counted :galacticus-class:`functionClass` objects.
 !!}
 
 module Object_Pools
-  !!{
-  Implements a reusable pool of reference-counted \refClass{functionClass} objects, so that
-  objects which would otherwise be created and destroyed on every call (e.g. per-\gls{node}
-  mass distributions) can instead be re-used. An object held in a pool is considered available
-  for re-use when its reference count has fallen to $1$, i.e. the only remaining reference to
-  it is that held by the pool itself.
+  !!{RST
+  Implements a reusable pool of reference-counted :galacticus-class:`functionClass` objects, so that objects which would otherwise be created and destroyed on every call (e.g. per-:term:`node` mass distributions) can instead be re-used. An object held in a pool is considered available for re-use when its reference count has fallen to :math:`1`, i.e. the only remaining reference to it is that held by the pool itself.
   !!}
   use :: Function_Classes, only : functionClass
   implicit none
@@ -36,20 +31,20 @@ module Object_Pools
   public :: objectPool
 
   type :: poolSlot
-     !!{
-     A single slot in an \mono{objectPool}, holding a pointer to a pooled object.
+     !!{RST
+     A single slot in an ``objectPool``, holding a pointer to a pooled object.
      !!}
      class(functionClass), pointer :: object_ => null()
   end type poolSlot
 
   type :: objectPool
-     !!{
-     A pool of reference-counted \refClass{functionClass} objects.
+     !!{RST
+     A pool of reference-counted :galacticus-class:`functionClass` objects.
      !!}
      type(poolSlot), allocatable, dimension(:) :: slots
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="acquire" description="Return the index of an available pool slot, growing the pool if necessary."/>
        <method method="destroy" description="Release all pooled objects."                                               />
      </methods>
@@ -61,14 +56,8 @@ module Object_Pools
 contains
 
   subroutine objectPoolAcquire(self,index,reused)
-    !!{
-    Return the {\normalfont \ttfamily index} of a pool slot for the caller to use. If a slot
-    holding an available object (reference count equal to $1$, i.e. held only by the pool) is
-    found then {\normalfont \ttfamily reused} is set to {\normalfont \ttfamily .true.} and the
-    caller should re-initialize the object in {\normalfont \ttfamily self\%slots(index)\%object\_}.
-    Otherwise the pool is grown by one slot, {\normalfont \ttfamily reused} is set to
-    {\normalfont \ttfamily .false.}, and the caller should allocate and construct a new object
-    into that slot.
+    !!{RST
+    Return the  index of a pool slot for the caller to use. If a slot holding an available object (reference count equal to :math:`1`, i.e. held only by the pool) is found then  reused is set to  .true. and the caller should re-initialize the object in  self%slots(index)%object_. Otherwise the pool is grown by one slot,  reused is set to  .false., and the caller should allocate and construct a new object into that slot.
     !!}
     implicit none
     class  (objectPool), intent(inout)               :: self
@@ -103,9 +92,8 @@ contains
   end subroutine objectPoolAcquire
 
   subroutine objectPoolDestroy(self)
-    !!{
-    Release all objects held by the pool. This should be called from the destructor of the
-    object that owns the pool.
+    !!{RST
+    Release all objects held by the pool. This should be called from the destructor of the object that owns the pool.
     !!}
     implicit none
     class(objectPool   ), intent(inout) :: self

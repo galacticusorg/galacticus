@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements construction of numerical ranges.
 !!}
 
 module Numerical_Ranges
-  !!{
+  !!{RST
   Implements construction of numerical ranges.
   !!}
   implicit none
@@ -35,10 +35,8 @@ module Numerical_Ranges
 contains
 
   recursive function Make_Range(rangeMinimum,rangeMaximum,rangeNumber,rangeType,rangeBinned) result (rangeValues)
-    !!{
-    Builds a numerical range between \mono{rangeMinimum} and \mono{rangeMaximum} using \mono{rangeNumber} points and spacing as
-    specified by \mono{rangeType} (defaulting to linear spacing if no
-    \mono{rangeType} is given).
+    !!{RST
+    Builds a numerical range between ``rangeMinimum`` and ``rangeMaximum`` using ``rangeNumber`` points and spacing as specified by ``rangeType`` (defaulting to linear spacing if no ``rangeType`` is given).
     !!}
     use :: Error, only : Error_Report
     implicit none

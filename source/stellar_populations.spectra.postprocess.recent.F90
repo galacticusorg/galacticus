@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of a spectrum postprocessor that keeps only recent populations.
   !!}
 
   !![
-  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorRecent">
+  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorRecent" docformat="rst">
    <description>
-    A stellar population postprocessor class which suppresses all emission from populations older than \mono{[timeLimit]} (in Gyr).
+   A stellar population postprocessor class which suppresses all emission from populations older than ``[timeLimit]`` (in Gyr).
    </description>
   </stellarPopulationSpectraPostprocessor>
   !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorRecent
-     !!{
+     !!{RST
      An recent spectrum postprocessor.
      !!}
      private
@@ -40,7 +40,7 @@
   end type stellarPopulationSpectraPostprocessorRecent
 
   interface stellarPopulationSpectraPostprocessorRecent
-     !!{
+     !!{RST
      Constructors for the recent spectrum postprocessor class.
      !!}
      module procedure recentConstructorParameters
@@ -50,7 +50,7 @@
 contains
 
   function recentConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Default constructor for the recent spectrum postprocessor class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -60,10 +60,12 @@ contains
     double precision                                                             :: timeLimit
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeLimit</name>
       <defaultValue>1.0d-2</defaultValue>
-      <description>The maximum age of stellar populations to retain in the ``recent'' spectra postprocessing method.</description>
+      <description>
+      The maximum age of stellar populations to retain in the "recent" spectra postprocessing method.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -75,7 +77,7 @@ contains
   end function recentConstructorParameters
 
   function recentConstructorInternal(timeLimit) result(self)
-    !!{
+    !!{RST
     Internal constructor for the recent spectrum postprocessor class.
     !!}
     implicit none
@@ -89,7 +91,7 @@ contains
   end function recentConstructorInternal
 
   double precision function recentMultiplier(self,wavelength,age,redshift)
-    !!{
+    !!{RST
     Perform a recent postprocessing on a spectrum.
     !!}
     implicit none
@@ -107,7 +109,7 @@ contains
   end function recentMultiplier
 
   logical function recentIsRedshiftDependent(self) result(isRedshiftDependent)
-    !!{
+    !!{RST
     Return false indicating that the postprocessor is redshift independent.
     !!}
     implicit none

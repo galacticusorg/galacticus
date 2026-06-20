@@ -19,30 +19,33 @@
 
 !+    Contributions to this file made by: Niusha Ahvazi
 
-!!{
+!!{RST
 Contains a module which implements a self-interacting dark matter particle class.
 !!}
 
   !![
-  <darkMatterParticle name="darkMatterParticleSIDMVelocityDependent">
+  <darkMatterParticle name="darkMatterParticleSIDMVelocityDependent" docformat="rst">
     <description>
-      Provides a self-interacting dark matter particle with velocity dependent cross section. Specifically:
-      \begin{equation}
-      \frac{\mathrm{d}\sigma}{\mathrm{d}\theta} = \frac{1}{2} \sigma_0 \sin\theta \frac{w^4}{[w^2+v^2(1-\cos\theta)/2]^2},
-      \end{equation}
-      where $w$ is a characteristic velocity.
-      
-      Note that this form has an analytic solution for the effective cross-section (the integral of the cross-section over the
-      Maxwell-Boltzmann velocity distribution weighted by $v^5$---see \cite[][eqn.~1.1]{yang_parametric_2024}) of:
-      \begin{equation}
-      \sigma_\mathrm{eff} = - \sigma_0 \frac{w^4}{64 v^6} \left[ 4 v^2 + (4 v^2 + w^2) E_\mathrm{i}\left(-\frac{w^2}{4 v^2}\right) \exp \left(\frac{w^2}{4v^2}\right) \right]
-      \end{equation}
-      It is not implemented here as the generic tabulation approach is computationally faster.
+    Provides a self-interacting dark matter particle with velocity dependent cross section. Specifically:
+
+    .. math::
+
+       \frac{\mathrm{d}\sigma}{\mathrm{d}\theta} = \frac{1}{2} \sigma_0 \sin\theta \frac{w^4}{[w^2+v^2(1-\cos\theta)/2]^2},
+
+    where :math:`w` is a characteristic velocity.
+
+    Note that this form has an analytic solution for the effective cross-section (the integral of the cross-section over the Maxwell-Boltzmann velocity distribution weighted by :math:`v^5`---see :cite:t:`yang_parametric_2024`) of:
+
+    .. math::
+
+       \sigma_\mathrm{eff} = - \sigma_0 \frac{w^4}{64 v^6} \left[ 4 v^2 + (4 v^2 + w^2) E_\mathrm{i}\left(-\frac{w^2}{4 v^2}\right) \exp \left(\frac{w^2}{4v^2}\right) \right]
+
+    It is not implemented here as the generic tabulation approach is computationally faster.
     </description>
   </darkMatterParticle>
   !!]
   type, extends(darkMatterParticleSelfInteractingDarkMatter) :: darkMatterParticleSIDMVelocityDependent
-     !!{
+     !!{RST
      A self-interacting dark matter particle class.
      !!}
      private
@@ -50,12 +53,12 @@ Contains a module which implements a self-interacting dark matter particle class
      double precision                                   :: sigma0                       , velocityCharacteristic_
    contains
      !![
-     <methods>
-       <method method="crossSectionSelfInteraction"                 description="Return the self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                                    />
-       <method method="crossSectionSelfInteractionDifferential"     description="Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\Omega$, of the dark matter particle in units of cm$^2$ g$^{-1}$ ster$^{-1}$."/>
-       <method method="crossSectionSelfInteractionMomentumTransfer" description="Return the momentum transfer self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                  />
-       <method method="crossSectionSelfInteractionViscosity"        description="Return the viscosity self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$."                                          />
-       <method method="velocityCharacteristic"                      description="Return the characteristic velocity scale, $v_\mathrm{c}$, of the velocity-dependent cross section, in units of km s$^{-1}$."                                       />
+     <methods docformat="rst">
+       <method method="crossSectionSelfInteraction"                 description="Return the self-interaction cross section, :math:`\sigma`, of the dark matter particle in units of cm\ :math:`^2` g\ :math:`^{-1}`."                                                    />
+       <method method="crossSectionSelfInteractionDifferential"     description="Return the differential self-interaction cross section, :math:`\mathrm{d}\sigma/\mathrm{d}\Omega`, of the dark matter particle in units of cm\ :math:`^2` g\ :math:`^{-1}` ster\ :math:`^{-1}`."/>
+       <method method="crossSectionSelfInteractionMomentumTransfer" description="Return the momentum transfer self-interaction cross section, :math:`\sigma`, of the dark matter particle in units of cm\ :math:`^2` g\ :math:`^{-1}`."                                  />
+       <method method="crossSectionSelfInteractionViscosity"        description="Return the viscosity self-interaction cross section, :math:`\sigma`, of the dark matter particle in units of cm\ :math:`^2` g\ :math:`^{-1}`."                                          />
+       <method method="velocityCharacteristic"                      description="Return the characteristic velocity scale, :math:`v_\mathrm{c}`, of the velocity-dependent cross section, in units of km s\ :math:`^{-1}`."                                       />
      </methods>
      !!]
      final     ::                                                sidmVelocityDependentDestructor
@@ -69,8 +72,8 @@ Contains a module which implements a self-interacting dark matter particle class
   end type darkMatterParticleSIDMVelocityDependent
 
   interface darkMatterParticleSIDMVelocityDependent
-     !!{
-     Constructors for the ``\mono{selfInteractingDarkMatter}'' dark matter particle class.
+     !!{RST
+     Constructors for the "``selfInteractingDarkMatter``" dark matter particle class.
      !!}
      module procedure sidmVelocityDependentConstructorParameters
      module procedure sidmVelocityDependentConstructorInternal
@@ -79,8 +82,8 @@ Contains a module which implements a self-interacting dark matter particle class
 contains
 
   function sidmVelocityDependentConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the ``\mono{selfInteractingDarkMatter}'' dark matter particle class which takes a parameter set as input.
+    !!{RST
+    Constructor for the "``selfInteractingDarkMatter``" dark matter particle class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,17 +93,21 @@ contains
     double precision                                                             :: sigma0             , velocityCharacteristic
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityCharacteristic</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The characteristic velocity scale, $v_\mathrm{c}$, above which the self-interaction becomes velocity-suppressed. The total cross section is $\sigma(v) = \sigma_0 \, v_\mathrm{c}^2/(v_\mathrm{c}^2+v^2)$, which is approximately constant for $v \ll v_\mathrm{c}$ and falls as $v^{-2}$ for $v \gg v_\mathrm{c}$.</description>
+      <description>
+      The characteristic velocity scale, :math:`v_\mathrm{c}`, above which the self-interaction becomes velocity-suppressed. The total cross section is :math:`\sigma(v) = \sigma_0 \, v_\mathrm{c}^2/(v_\mathrm{c}^2+v^2)`, which is approximately constant for :math:`v \ll v_\mathrm{c}` and falls as :math:`v^{-2}` for :math:`v \gg v_\mathrm{c}`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sigma0</name>
       <source>parameters</source>
       <defaultValue>2.4d4</defaultValue>
-      <description>Below the characteristic velocity the scattering is roughly isotropic with $\sigma$ $\approx$ sigma0.</description>
+      <description>
+      Below the characteristic velocity the scattering is roughly isotropic with :math:`\sigma` :math:`\approx` sigma0.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !!]
@@ -113,8 +120,8 @@ contains
   end function sidmVelocityDependentConstructorParameters
 
   function sidmVelocityDependentConstructorInternal(velocityCharacteristic,sigma0,darkMatterParticle_) result(self)
-    !!{
-    Internal constructor for the ``\mono{selfInteractingDarkMatter}'' dark matter particle class.
+    !!{RST
+    Internal constructor for the "``selfInteractingDarkMatter``" dark matter particle class.
     !!}
     implicit none
     type            (darkMatterParticleSIDMVelocityDependent)                        :: self
@@ -128,8 +135,8 @@ contains
   end function sidmVelocityDependentConstructorInternal
 
   subroutine sidmVelocityDependentDestructor(self)
-    !!{
-    Destructor for the \mono{selfInteractingDarkMatter} dark matter particle class.
+    !!{RST
+    Destructor for the ``selfInteractingDarkMatter`` dark matter particle class.
     !!}
     implicit none
     type(darkMatterParticleSIDMVelocityDependent), intent(inout) :: self
@@ -141,7 +148,7 @@ contains
   end subroutine sidmVelocityDependentDestructor
 
   double precision function sidmVelocityDependentMass(self)
-    !!{
+    !!{RST
     Return the mass, in units of keV, of a self-interacting dark matter particle.
     !!}
     implicit none
@@ -152,9 +159,8 @@ contains
   end function sidmVelocityDependentMass
 
   double precision function sidmVelocityDependentVelocityCharacteristic(self)
-    !!{
-    Return the characteristic velocity scale, $v_\mathrm{c}$, in units of km s$^{-1}$, of the velocity-dependent
-    self-interaction cross section.
+    !!{RST
+    Return the characteristic velocity scale, :math:`v_\mathrm{c}`, in units of km s\ :math:`^{-1}`, of the velocity-dependent self-interaction cross section.
     !!}
     implicit none
     class(darkMatterParticleSIDMVelocityDependent), intent(inout) :: self
@@ -164,8 +170,8 @@ contains
   end function sidmVelocityDependentVelocityCharacteristic
 
   double precision function sidmVelocityDependentCrossSectionSelfInteraction(self,velocityRelative) result(crossSection)
-    !!{
-    Return the self-interaction cross section, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
+    !!{RST
+    Return the self-interaction cross section, in units of cm\ :math:`^2` g\ :math:`^{-1}`, of a self-interacting dark matter particle.
     !!}
     implicit none
     class(darkMatterParticleSIDMVelocityDependent), intent(inout) :: self
@@ -181,9 +187,8 @@ contains
   end function sidmVelocityDependentCrossSectionSelfInteraction
 
   double precision function sidmVelocityDependentCrossSectionSelfInteractionDifferential(self,theta,velocityRelative) result(crossSection)
-    !!{
-    Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\theta$, in units of cm$^2$ g$^{-1}$
-    ster$^{-1}$, of a self-interacting dark matter particle.
+    !!{RST
+    Return the differential self-interaction cross section, :math:`\mathrm{d}\sigma/\mathrm{d}\theta`, in units of cm\ :math:`^2` g\ :math:`^{-1}` ster\ :math:`^{-1}`, of a self-interacting dark matter particle.
     !!}
     implicit none
     class           (darkMatterParticleSIDMVelocityDependent), intent(inout) :: self
@@ -205,8 +210,8 @@ contains
   end function sidmVelocityDependentCrossSectionSelfInteractionDifferential
 
   double precision function sidmVelocityDependentCrossSectionSelfInteractionDifferentialCos(self,cosTheta,velocityRelative) result(crossSection)
-    !!{
-    Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\cos\theta$, as a function of $\cos\theta$, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
+    !!{RST
+    Return the differential self-interaction cross section, :math:`\mathrm{d}\sigma/\mathrm{d}\cos\theta`, as a function of :math:`\cos\theta`, in units of cm\ :math:`^2` g\ :math:`^{-1}`, of a self-interacting dark matter particle.
     !!}
     implicit none
     class           (darkMatterParticleSIDMVelocityDependent), intent(inout) :: self
@@ -227,8 +232,8 @@ contains
   end function sidmVelocityDependentCrossSectionSelfInteractionDifferentialCos
 
   double precision function sidmVelocityDependentCrossSectionMomentumTransfer(self,velocityRelative) result(crossSection)
-    !!{
-    Return the momentum transfer self-interaction cross section, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
+    !!{RST
+    Return the momentum transfer self-interaction cross section, in units of cm\ :math:`^2` g\ :math:`^{-1}`, of a self-interacting dark matter particle.
     !!}
     implicit none
     class(darkMatterParticleSIDMVelocityDependent), intent(inout) :: self
@@ -260,8 +265,8 @@ contains
   end function sidmVelocityDependentCrossSectionMomentumTransfer
 
   double precision function sidmVelocityDependentCrossSectionViscosity(self,velocityRelative) result(crossSection)
-    !!{
-    Return the viscosity self-interaction cross section, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
+    !!{RST
+    Return the viscosity self-interaction cross section, in units of cm\ :math:`^2` g\ :math:`^{-1}`, of a self-interacting dark matter particle.
     !!}
     implicit none
     class(darkMatterParticleSIDMVelocityDependent), intent(inout) :: self

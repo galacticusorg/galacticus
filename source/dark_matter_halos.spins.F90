@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements calculations of dark matter halo angular momentum.
 !!}
 
 module Dark_Matter_Halo_Spins
-  !!{
+  !!{RST
   Implements calculations of dark matter halo angular momentum.
   !!}
   implicit none
@@ -35,7 +35,7 @@ module Dark_Matter_Halo_Spins
 contains
 
   subroutine assertPropertiesGettable()
-    !!{
+    !!{RST
     Assert that properties required for spin calculations are gettable.
     !!}
     use :: Error             , only : Component_List       , Error_Report
@@ -65,8 +65,8 @@ contains
   end subroutine assertPropertiesGettable
 
   double precision function Dark_Matter_Halo_Angular_Momentum_Scale(node,darkMatterHaloScale_,darkMatterProfileDMO_,useBullockDefinition) result(angularMomentumScale)
-    !!{
-    Returns the characteristic angular momentum scale of \mono{node} (as used in spin definitions) based on its mass, and energy.
+    !!{RST
+    Returns the characteristic angular momentum scale of ``node`` (as used in spin definitions) based on its mass, and energy.
     !!}
     use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
     use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass

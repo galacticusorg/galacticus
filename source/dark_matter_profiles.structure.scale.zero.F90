@@ -17,18 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo profile scale radii which returns zero radii---useful when scale radii are not
-  relevant.
+  !!{RST
+  An implementation of dark matter halo profile scale radii which returns zero radii---useful when scale radii are not relevant.
   !!}
 
   !![
-  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusZero">
-   <description>Dark matter halo scale radii class in which are assumed to be zero.</description>
+  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusZero" docformat="rst">
+   <description>
+   Dark matter halo scale radii class in which are assumed to be zero.
+   </description>
   </darkMatterProfileScaleRadius>
   !!]
   type, extends(darkMatterProfileScaleRadiusClass) :: darkMatterProfileScaleRadiusZero
-     !!{
+     !!{RST
      A dark matter halo profile scale radius class in which are assumed to be zero.
      !!}
      private
@@ -37,8 +38,8 @@
   end type darkMatterProfileScaleRadiusZero
 
   interface darkMatterProfileScaleRadiusZero
-     !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusZero} dark matter halo profile scale radius class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileScaleRadiusZero` dark matter halo profile scale radius class.
      !!}
      module procedure zeroConstructorParameters
   end interface darkMatterProfileScaleRadiusZero
@@ -46,9 +47,8 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusZero} dark matter halo profile scale radius class which takes a
-    parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileScaleRadiusZero` dark matter halo profile scale radius class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,8 +63,8 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroRadius(self,node)
-    !!{
-    Compute the scale radius of the dark matter profile of \mono{node}.
+    !!{RST
+    Compute the scale radius of the dark matter profile of ``node``.
     !!}
     implicit none
     class(darkMatterProfileScaleRadiusZero), intent(inout), target :: self

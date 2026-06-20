@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling simulation class which implements a simple grid search.
   !!}
 
@@ -26,13 +26,15 @@
   use :: Posterior_Sampling_State_Samples, only : posteriorSamplesClass
 
   !![
-  <posteriorSampleSimulation name="posteriorSampleSimulationGrid">
-   <description>A posterior sampling simulation class which implements a simple grid search.</description>
+  <posteriorSampleSimulation name="posteriorSampleSimulationGrid" docformat="rst">
+   <description>
+   A posterior sampling simulation class which implements a simple grid search.
+   </description>
    <descriptorSpecial>descriptorSpecial</descriptorSpecial>
   </posteriorSampleSimulation>
   !!]
   type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationGrid
-     !!{
+     !!{RST
      Implementation of a posterior sampling simulation class which implements a simple grid search.
      !!}
      private
@@ -44,8 +46,8 @@
      type   (varying_string                )                        :: logFileRoot
    contains
      !![
-     <methods>
-       <method method="posterior"         description="Return the log of posterior probability for the given \mono{simulationState}."/>
+     <methods docformat="rst">
+       <method method="posterior"         description="Return the log of posterior probability for the given ``simulationState``."/>
        <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."                                           />
      </methods>
      !!]
@@ -56,8 +58,8 @@
   end type posteriorSampleSimulationGrid
 
   interface posteriorSampleSimulationGrid
-     !!{
-     Constructors for the \refClass{posteriorSampleSimulationGrid} posterior sampling simulation class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSampleSimulationGrid` posterior sampling simulation class.
      !!}
      module procedure gridConstructorParameters
      module procedure gridConstructorInternal
@@ -66,9 +68,8 @@
 contains
 
   function gridConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleSimulationGrid} posterior sampling simulation class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleSimulationGrid` posterior sampling simulation class which builds the object from a parameter set.
     !!}
     use :: Display         , only : displayMessage      , displayVerbosity      , verbosityLevelInfo
     use :: Error           , only : Error_Report
@@ -90,26 +91,34 @@ contains
     logical                                                              :: appendLogs                , outputLikelihoods
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logFlushCount</name>
       <defaultValue>10</defaultValue>
-      <description>The number of steps between flushing the log file.</description>
+      <description>
+      The number of steps between flushing the log file.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logFileRoot</name>
-      <description>Root file name for log files.</description>
+      <description>
+      Root file name for log files.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>appendLogs</name>
-      <description>If true, do not overwrite existing log files, but instead append to them.</description>
+      <description>
+      If true, do not overwrite existing log files, but instead append to them.
+      </description>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputLikelihoods</name>
-      <description>If true, write likelihoods (and corresponding state vectors) to the output file.</description>
+      <description>
+      If true, write likelihoods (and corresponding state vectors) to the output file.
+      </description>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
@@ -188,8 +197,8 @@ contains
   end function gridConstructorParameters
 
   function gridConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSamples_,logFlushCount,logFileRoot,appendLogs,outputLikelihoods) result(self)
-    !!{
-    Internal constructor for the ``grid'' simulation class.
+    !!{RST
+    Internal constructor for the "grid" simulation class.
     !!}
     implicit none
     type     (posteriorSampleSimulationGrid )                                      :: self
@@ -223,7 +232,7 @@ contains
   end function gridConstructorInternal
 
   subroutine gridDestructor(self)
-    !!{
+    !!{RST
     Destroy a differential evolution simulation object.
     !!}
     implicit none
@@ -252,7 +261,7 @@ contains
   end subroutine gridDestructor
 
   subroutine gridSimulate(self)
-    !!{
+    !!{RST
     Perform a grid simulation.
     !!}
     use :: Display                 , only : displayIndent             , displayMagenta, displayMessage, displayReset, &
@@ -311,7 +320,7 @@ contains
   end subroutine gridSimulate
 
   subroutine gridPosterior(self,posteriorSampleState_,logPosterior,logLikelihood,timeEvaluate)
-    !!{
+    !!{RST
     Return the log of the posterior for the current state.
     !!}
     use :: Output_HDF5                   , only : outputFile
@@ -377,7 +386,7 @@ contains
   end subroutine gridPosterior
 
   subroutine gridDescriptorSpecial(self,descriptor)
-    !!{
+    !!{RST
     Add special parameters to the descriptor.
     !!}
     use :: Input_Parameters, only : inputParameters

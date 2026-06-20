@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provieds tools for working with grids.
 !!}
 
 module Meshes
-  !!{
+  !!{RST
   Provide tools for working with grids.
   !!}
   private
@@ -36,7 +36,7 @@ module Meshes
 contains
 
   subroutine Meshes_Apply_Point(mesh,boxLength,pointPosition,pointWeight,cloudType)
-    !!{
+    !!{RST
     Apply a point to a mesh.
     !!}
     use            :: Error        , only : Error_Report
@@ -117,7 +117,7 @@ contains
   end subroutine Meshes_Apply_Point
 
   elemental double precision function Triangular_Shaped_Cloud_Integral(cellFraction)
-    !!{
+    !!{RST
     Return the integral over a triangular shaped cloud given the fraction of the cloud length in a cell.
     !!}
     implicit none

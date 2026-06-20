@@ -19,30 +19,29 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-!!{
+!!{RST
 Contains a module that implements calculations of the acceleration due to dynamical friction for satellites.
 !!}
 
 module Satellite_Dynamical_Friction
-  !!{
+  !!{RST
   Implements calculations of dynamical friction for satellites.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>satelliteDynamicalFriction</name>
    <descriptiveName>Dynamical Friction</descriptiveName>
-   <description>Class providing models of the satellite vector acceleration due to dynamical friction---the
-    gravitational drag force that decelerates a satellite as it moves through the background distribution of
-    dark matter particles and substructures. The Chandrasekhar dynamical friction formula scales as
-    $\mathbf{a}_\mathrm{df} \propto -\rho \ln\Lambda\, \mathbf{v}_\mathrm{sat}/v_\mathrm{sat}^3$, where
-    $\ln\Lambda$ is the Coulomb logarithm. Dynamical friction drives orbital decay and eventual coalescence
-    of satellite galaxies with their hosts, and is complementary to SIDM-driven deceleration.</description>
+   <description>
+   Class providing models of the satellite vector acceleration due to dynamical friction---the gravitational drag force that decelerates a satellite as it moves through the background distribution of dark matter particles and substructures. The Chandrasekhar dynamical friction formula scales as :math:`\mathbf{a}_\mathrm{df} \propto -\rho \ln\Lambda\, \mathbf{v}_\mathrm{sat}/v_\mathrm{sat}^3`, where :math:`\ln\Lambda` is the Coulomb logarithm. Dynamical friction drives orbital decay and eventual coalescence of satellite galaxies with their hosts, and is complementary to SIDM-driven deceleration.
+   </description>
    <default>chandrasekhar1943</default>
    <method name="acceleration" >
-    <description>Returns the satellite acceleration due to dynamical friction for \mono{node} (in units of km/s/Gyr).</description>
+    <description>
+    Returns the satellite acceleration due to dynamical friction for ``node`` (in units of km/s/Gyr).
+    </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

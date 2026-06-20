@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of virial orbits using a loss cone model.
   !!}
 
@@ -38,14 +38,14 @@
   use :: Merger_Tree_Branching          , only : mergerTreeBranchingProbabilityClass
 
   !![
-  <virialOrbit name="virialOrbitLossCone">
+  <virialOrbit name="virialOrbitLossCone" docformat="rst">
    <description>
-    A virial orbit class that draws satellite infall orbital parameters using a loss cone model, accounting for the depletion of nearly radial orbits due to merging. The velocity range and resolution of the orbital distribution grid are controlled by the \mono{[velocityMinimum]}, \mono{[velocityMaximum]}, \mono{[velocitiesPerUnit]}, and \mono{[massesPerDecade]} parameters.
+   A virial orbit class that draws satellite infall orbital parameters using a loss cone model, accounting for the depletion of nearly radial orbits due to merging. The velocity range and resolution of the orbital distribution grid are controlled by the ``[velocityMinimum]``, ``[velocityMaximum]``, ``[velocitiesPerUnit]``, and ``[massesPerDecade]`` parameters.
    </description>
   </virialOrbit>
   !!]
   type, extends(virialOrbitClass) :: virialOrbitLossCone
-     !!{
+     !!{RST
      A virial orbit class using a loss cone model.
      !!}
      private
@@ -79,7 +79,7 @@
           &                                                                                    haloMassFunctionNormalization
    contains
      !![
-     <methods>
+     <methods docformat="rst">
       <method description="Tabulate the orbital velocity distribution."                                method="tabulate"    />
       <method description="Compute interpolating factors in the orbital velocity distribution tables." method="interpolants"/>
       <method description="Restore a tabulated solution from file."                                    method="restoreTable"/>
@@ -103,8 +103,8 @@
   end type virialOrbitLossCone
 
   interface virialOrbitLossCone
-     !!{
-     Constructors for the \refClass{virialOrbitLossCone} virial orbits class.
+     !!{RST
+     Constructors for the :galacticus-class:`virialOrbitLossCone` virial orbits class.
      !!}
      module procedure lossConeConstructorParameters
      module procedure lossConeConstructorInternal
@@ -135,8 +135,8 @@
 contains
 
   function lossConeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{virialOrbitLossCone} virial orbits class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`virialOrbitLossCone` virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -161,55 +161,73 @@ contains
     logical                                                              :: includeInFlightGrowth
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityMinimum</name>
       <source>parameters</source>
-      <description>The minimum velocity (in units of the host virial velocity) for which to compute velocity distributions.</description>
+      <description>
+      The minimum velocity (in units of the host virial velocity) for which to compute velocity distributions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityMaximum</name>
       <source>parameters</source>
-      <description>The maximum velocity (in units of the host virial velocity) for which to compute velocity distributions.</description>
+      <description>
+      The maximum velocity (in units of the host virial velocity) for which to compute velocity distributions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countVelocitiesPerUnit</name>
       <source>parameters</source>
-      <description>The number of points per unit of velocity (in units of the host virial velocity) for which to compute velocity distributions.</description>
+      <description>
+      The number of points per unit of velocity (in units of the host virial velocity) for which to compute velocity distributions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countMassesPerDecade</name>
       <source>parameters</source>
-      <description>The number of points per decade of mass for which to compute infall properties.</description>
+      <description>
+      The number of points per decade of mass for which to compute infall properties.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeInFlightGrowth</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, linear growth of the velocity field during the flight of the secondary halo to the primary is included.</description>
+      <description>
+      If true, linear growth of the velocity field during the flight of the secondary halo to the primary is included.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>haloMassFunctionA</name>
       <source>parameters</source>
       <defaultValue>0.707d0</defaultValue>
-      <description>The parameter $a$ of the \cite{sheth_ellipsoidal_2001} halo mass function used in averaging over environment.</description>
+      <description>
+      The parameter :math:`a` of the :cite:t:`sheth_ellipsoidal_2001` halo mass function used in averaging over environment.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>haloMassFunctionP</name>
       <source>parameters</source>
       <defaultValue>0.300d0</defaultValue>
-      <description>The parameter $p$ of the \cite{sheth_ellipsoidal_2001} halo mass function used in averaging over environment.</description>
+      <description>
+      The parameter :math:`p` of the :cite:t:`sheth_ellipsoidal_2001` halo mass function used in averaging over environment.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>haloMassFunctionNormalization</name>
       <source>parameters</source>
       <defaultValue>0.322d0</defaultValue>
-      <description>The normalization parameter $A$ of the \cite{sheth_ellipsoidal_2001} halo mass function used in averaging over environment.</description>
+      <description>
+      The normalization parameter :math:`A` of the :cite:t:`sheth_ellipsoidal_2001` halo mass function used in averaging over environment.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityDispersionMultiplier</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>A multiplier applied to the dispersion of the cosmological velocity field.</description>
+      <description>
+      A multiplier applied to the dispersion of the cosmological velocity field.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
     <objectBuilder class="cosmologyParameters"            name="cosmologyParameters_"            source="parameters"/>
@@ -244,8 +262,8 @@ contains
   end function lossConeConstructorParameters
 
   function lossConeConstructorInternal(velocityMinimum,velocityMaximum,countVelocitiesPerUnit,countMassesPerDecade,includeInFlightGrowth,haloMassFunctionA,haloMassFunctionP,haloMassFunctionNormalization,velocityDispersionMultiplier,cosmologyFunctions_,cosmologyParameters_,cosmologicalVelocityField_,linearGrowth_,darkMatterHaloBias_,darkMatterHaloScale_,virialDensityContrast_,correlationFunctionTwoPoint_,cosmologicalMassVariance_,criticalOverdensity_,mergerTreeBranchingProbability_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{virialOrbitLossCone} virial orbits class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`virialOrbitLossCone` virial orbits class.
     !!}
     use :: Input_Paths       , only : inputPath   , pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
@@ -296,8 +314,8 @@ contains
   end function lossConeConstructorInternal
 
   subroutine lossConeDestructor(self)
-    !!{
-    Destructor for the \refClass{virialOrbitLossCone} virial orbits class.
+    !!{RST
+    Destructor for the :galacticus-class:`virialOrbitLossCone` virial orbits class.
     !!}
     implicit none
     type(virialOrbitLossCone), intent(inout) :: self
@@ -320,7 +338,7 @@ contains
   end subroutine lossConeDestructor
 
   function lossConeOrbit(self,node,host,acceptUnboundOrbits) result(orbit)
-    !!{
+    !!{RST
     Return lossCone orbital parameters for a satellite.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -421,7 +439,7 @@ contains
   end function lossConeOrbit
 
   double precision function lossConeVelocityDistributionFunction(self,node,host,velocityRadial,velocityTangential)
-    !!{
+    !!{RST
     Return the orbital velocity distribution function.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -470,7 +488,7 @@ contains
   end function lossConeVelocityDistributionFunction
 
   subroutine lossConeInterpolants(self,node,host,massSatellite,massHost,velocityHost,radiusHost,iSatellite,iHost,hSatellite,hHost)
-    !!{
+    !!{RST
     Compute interpolating factors in the orbital parameter tables.
     !!}
     use, intrinsic :: ISO_C_Binding                       , only : c_size_t
@@ -516,7 +534,7 @@ contains
   end subroutine lossConeInterpolants
   
   function lossConeDensityContrastDefinition(self)
-    !!{
+    !!{RST
     Return a virial density contrast object defining that used in the calculation of orbital parameters.
     !!}
     implicit none
@@ -528,7 +546,7 @@ contains
   end function lossConeDensityContrastDefinition
 
   double precision function lossConeVelocityTangentialMagnitudeMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean magnitude of the tangential velocity.
     !!}
     implicit none
@@ -558,7 +576,7 @@ contains
   end function lossConeVelocityTangentialMagnitudeMean
 
   function lossConeVelocityTangentialVectorMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean of the vector tangential velocity.
     !!}
     use :: Error, only : Error_Report
@@ -574,7 +592,7 @@ contains
   end function lossConeVelocityTangentialVectorMean
 
   double precision function lossConeAngularMomentumMagnitudeMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean magnitude of the angular momentum.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -600,7 +618,7 @@ contains
   end function lossConeAngularMomentumMagnitudeMean
 
   function lossConeAngularMomentumVectorMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean of the vector angular momentum.
     !!}
     use :: Error, only : Error_Report
@@ -616,7 +634,7 @@ contains
   end function lossConeAngularMomentumVectorMean
 
   double precision function lossConeVelocityTotalRootMeanSquared(self,node,host)
-    !!{
+    !!{RST
     Return the mean magnitude of the tangential velocity.
     !!}
     implicit none
@@ -646,7 +664,7 @@ contains
   end function lossConeVelocityTotalRootMeanSquared
 
   double precision function lossConeEnergyMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean energy of the orbits.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -676,7 +694,7 @@ contains
   end function lossConeEnergyMean
 
   subroutine lossConeTabulate(self,nodeSatelliteTarget,nodeHostTarget)
-    !!{
+    !!{RST
     Compute properties of infalling halos.
     !!}
     use :: Cosmological_Density_Field          , only : haloEnvironmentNormal
@@ -1309,7 +1327,7 @@ contains
     end function integrandEnvironment
     
     double precision function integrandEnvironmentNormalization(overdensity)
-      !!{
+      !!{RST
       The normalizing integrand for the environmental dependence of velocity dispersion.
       !!}
       use :: Calculations_Resets, only : Calculations_Reset
@@ -1332,26 +1350,29 @@ contains
   end subroutine lossConeTabulate
 
   double precision function timeAlongOrbit(radius,radiusApocenter,radiusPericenter,velocityTangentialVirial)
-    !!{
-    Compute the time taken along the orbit specified by the pericenter radius, \mono{radiusPericenter}, and the
-    tangential velocity at the virial radius, \mono{velocityTangentialVirial}, to travel from the pericenter to
-    the given radius, \mono{radius}. All quantities are in virial units. Writing
-    \begin{equation}
-     v^\prime_\mathrm{r}(r) = \left( -{2 \over r_\mathrm{p}} + {2 \over r} + {v_\theta^2 \over r_\mathrm{p}^2} - {v_\theta^2 \over r^2} \right)^{1/2}
-    \end{equation}
-    where $v^\prime_\mathrm{r}(r)$ is the radial velocity at radius $r$, $r_\mathrm{p}$ is the apocentric radius, and $v_\theta$ is
-    the tangential velocity at the virial radius, the time of flight along the orbit is
-    \begin{equation}
-     t(r) = \int_{r_\mathrm{p}}^r {\mathrm{d}r \over v^\prime_\mathrm{r}(r)}.
-    \end{equation}
+    !!{RST
+    Compute the time taken along the orbit specified by the pericenter radius, ``radiusPericenter``, and the tangential velocity at the virial radius, ``velocityTangentialVirial``, to travel from the pericenter to the given radius, ``radius``. All quantities are in virial units. Writing
+
+    .. math::
+
+       v^\prime_\mathrm{r}(r) = \left( -{2 \over r_\mathrm{p}} + {2 \over r} + {v_\theta^2 \over r_\mathrm{p}^2} - {v_\theta^2 \over r^2} \right)^{1/2}
+
+    where :math:`v^\prime_\mathrm{r}(r)` is the radial velocity at radius :math:`r`, :math:`r_\mathrm{p}` is the apocentric radius, and :math:`v_\theta` is the tangential velocity at the virial radius, the time of flight along the orbit is
+
+    .. math::
+
+       t(r) = \int_{r_\mathrm{p}}^r {\mathrm{d}r \over v^\prime_\mathrm{r}(r)}.
+
     This was evaluated using Mathematica to give:
-    \begin{equation}
-     t(r) = \frac{\sqrt{2 r_\mathrm{p}-v_\theta^2} \left(r_\mathrm{p}^2 \left(v_\theta^2-2 r\right)+2 r_\mathrm{p} r^2-r^2 v_\theta^2\right)
-            -2 r_\mathrm{p}^2 \sqrt{r_\mathrm{p}-r} \sqrt{-r_\mathrm{p} \left(r_\mathrm{p}-v_\theta^2\right)} \sqrt{-\frac{-2 r_\mathrm{p} r+r_\mathrm{p}
-            v_\theta^2+r v_\theta^2}{r_\mathrm{p}^2-r_\mathrm{p} v_\theta^2}} \sinh ^{-1}\left(\frac{\sqrt{r_\mathrm{p}-r} \sqrt{2 r_\mathrm{p}-v_\theta^2}}{\sqrt{2}
-            \sqrt{-r_\mathrm{p} \left(r_\mathrm{p}-v_\theta^2\right)}}\right)}{r \left(2 r_\mathrm{p}-v_\theta^2\right)^{3/2} \sqrt{\frac{v_\theta^2}{r_\mathrm{p}^2}
-            -\frac{2}{r_\mathrm{p}}+\frac{2 r-v_\theta^2}{r^2}}}.
-    \end{equation}
+
+    .. math::
+
+       t(r) = \frac{\sqrt{2 r_\mathrm{p}-v_\theta^2} \left(r_\mathrm{p}^2 \left(v_\theta^2-2 r\right)+2 r_\mathrm{p} r^2-r^2 v_\theta^2\right)
+              -2 r_\mathrm{p}^2 \sqrt{r_\mathrm{p}-r} \sqrt{-r_\mathrm{p} \left(r_\mathrm{p}-v_\theta^2\right)} \sqrt{-\frac{-2 r_\mathrm{p} r+r_\mathrm{p}
+              v_\theta^2+r v_\theta^2}{r_\mathrm{p}^2-r_\mathrm{p} v_\theta^2}} \sinh ^{-1}\left(\frac{\sqrt{r_\mathrm{p}-r} \sqrt{2 r_\mathrm{p}-v_\theta^2}}{\sqrt{2}
+              \sqrt{-r_\mathrm{p} \left(r_\mathrm{p}-v_\theta^2\right)}}\right)}{r \left(2 r_\mathrm{p}-v_\theta^2\right)^{3/2} \sqrt{\frac{v_\theta^2}{r_\mathrm{p}^2}
+              -\frac{2}{r_\mathrm{p}}+\frac{2 r-v_\theta^2}{r^2}}}.
+
     Note that this expression works for unbound orbits.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -1405,7 +1426,7 @@ contains
 
   
   subroutine lossConeRestoreTable(self)
-    !!{
+    !!{RST
     Attempt to restore a table from file.
     !!}
     use :: File_Utilities    , only : File_Exists, File_Lock, File_Unlock, lockDescriptor
@@ -1458,7 +1479,7 @@ contains
   end subroutine lossConeRestoreTable
 
   subroutine lossConeStoreTable(self)
-    !!{
+    !!{RST
     Store the tabulated solution to file.
     !!}
     use :: File_Utilities    , only : Directory_Make, File_Lock, File_Path, File_Unlock, &

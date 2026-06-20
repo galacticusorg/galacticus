@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a filter which passes only the most massive branch halo.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterBranchMostMassive">
-   <description>Selects only the most massive progenitor branch (main branch) halo among a node's siblings at each timestep, filtering out secondary progenitors to focus analyses on the primary mass growth channel of a merger tree.</description>
+  <galacticFilter name="galacticFilterBranchMostMassive" docformat="rst">
+   <description>
+   Selects only the most massive progenitor branch (main branch) halo among a node's siblings at each timestep, filtering out secondary progenitors to focus analyses on the primary mass growth channel of a merger tree.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterBranchMostMassive
-     !!{
+     !!{RST
      A galactic filter class which passes only the most massive branch halo.
      !!}
      private
@@ -37,8 +39,8 @@ Implements a filter which passes only the most massive branch halo.
   end type galacticFilterBranchMostMassive
 
   interface galacticFilterBranchMostMassive
-     !!{
-     Constructors for the \refClass{galacticFilterBranchMostMassive} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterBranchMostMassive` galactic filter class.
      !!}
      module procedure branchMostMassiveConstructorParameters
      module procedure branchMostMassiveConstructorInternal
@@ -47,8 +49,8 @@ Implements a filter which passes only the most massive branch halo.
 contains
 
   function branchMostMassiveConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterBranchMostMassive} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterBranchMostMassive` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,8 +65,8 @@ contains
   end function branchMostMassiveConstructorParameters
 
   function branchMostMassiveConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterBranchMostMassive} galactic filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticFilterBranchMostMassive` galactic filter class.
     !!}
     implicit none
     type(galacticFilterBranchMostMassive) :: self
@@ -76,7 +78,7 @@ contains
   end function branchMostMassiveConstructorInternal
 
   logical function branchMostMassivePasses(self,node)
-    !!{
+    !!{RST
     Implement a galactic filter which passes only main branch halos.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

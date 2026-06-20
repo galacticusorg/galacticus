@@ -17,22 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of atomic recombination cooling rates which computes rates from the corresponding photoionization cross
-  section using detailed balance (i.e. the Milne relation---see for example ``Astrophysics of the Diffuse Universe'' by Dopita
-  \& Sutherland, 2004, Springer Science \& Business Media, section 5.3.3).
+  !!{RST
+  An implementation of atomic recombination cooling rates which computes rates from the corresponding photoionization cross section using detailed balance (i.e. the Milne relation---see for example "Astrophysics of the Diffuse Universe" by Dopita & Sutherland, 2004, Springer Science & Business Media, section 5.3.3).
   !!}
 
   use :: Atomic_Cross_Sections_Ionization_Photo , only : atomicCrossSectionIonizationPhotoClass
   use :: Atomic_Ionization_Potentials           , only : atomicIonizationPotentialClass
 
   !![
-  <atomicRecombinationRateRadiativeCooling name="atomicRecombinationRateRadiativeCoolingComputed">
-   <description>Atomic radiative cooling rates computed from the corresponding photoionization cross section using detailed balance (i.e. the Milne relation---see for example ``Astrophysics of the Diffuse Universe'' by Dopita \&amp; Sutherland, 2004, Springer Science \&amp; Business Media, section 5.3.3).</description>
+  <atomicRecombinationRateRadiativeCooling name="atomicRecombinationRateRadiativeCoolingComputed" docformat="rst">
+   <description>
+   Atomic radiative cooling rates computed from the corresponding photoionization cross section using detailed balance (i.e. the Milne relation---see for example "Astrophysics of the Diffuse Universe" by Dopita &amp; Sutherland, 2004, Springer Science &amp; Business Media, section 5.3.3).
+   </description>
   </atomicRecombinationRateRadiativeCooling>
   !!]
   type, extends(atomicRecombinationRateRadiativeCoolingClass) :: atomicRecombinationRateRadiativeCoolingComputed
-     !!{
+     !!{RST
      A recombination cooling rate class assuming a thermal electron distribution.
      !!}
      private
@@ -44,8 +44,8 @@
   end type atomicRecombinationRateRadiativeCoolingComputed
 
   interface atomicRecombinationRateRadiativeCoolingComputed
-     !!{
-     Constructors for the \refClass{atomicRecombinationRateRadiativeCoolingComputed} atomic radiative recombination class.
+     !!{RST
+     Constructors for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingComputed` atomic radiative recombination class.
      !!}
      module procedure computedConstructorParameters
      module procedure computedConstructorInternal
@@ -54,8 +54,8 @@
 contains
 
   function computedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{atomicRecombinationRateRadiativeCoolingComputed} atomic radiative recombination class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingComputed` atomic radiative recombination class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -79,8 +79,8 @@ contains
   end function computedConstructorParameters
 
   function computedConstructorInternal(atomicCrossSectionIonizationPhoto_,atomicIonizationPotential_) result(self)
-    !!{
-    Internal constructor for the \refClass{atomicRecombinationRateRadiativeCoolingComputed} atomic radiative recombination class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingComputed` atomic radiative recombination class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -95,8 +95,8 @@ contains
   end function computedConstructorInternal
 
   subroutine computedDestructor(self)
-    !!{
-    Destructor for the \refClass{atomicRecombinationRateRadiativeCoolingComputed} atomic radiative recombination class.
+    !!{RST
+    Destructor for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingComputed` atomic radiative recombination class.
     !!}
     implicit none
     type(atomicRecombinationRateRadiativeCoolingComputed), intent(inout) :: self
@@ -109,7 +109,7 @@ contains
   end subroutine computedDestructor
 
   double precision function computedRate(self,atomicNumber,ionizationState,temperature,level)
-    !!{
+    !!{RST
     Returns the cooling rate coefficient.
     !!}
     use :: Error                       , only : Error_Report
@@ -147,8 +147,8 @@ contains
   contains
 
     double precision function rateIntegrand(velocity)
-      !!{
-      Integrand for the cooling coefficient due to recombination, see equation (3.5) of \cite{osterbrock_astrophysics_2006}.
+      !!{RST
+      Integrand for the cooling coefficient due to recombination, see equation (3.5) of :cite:t:`osterbrock_astrophysics_2006`.
       !!}
       use :: Numerical_Constants_Math    , only : Pi
       use :: Numerical_Constants_Units   , only : metersToAngstroms, electronVolt

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_Linear_Growth_EdS_Baryons
-  !!{
+  !!{RST
   Tests linear growth calculations.
   !!}
   use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda

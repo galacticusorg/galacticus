@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides poly-ranked types (i.e. types which can store data in arrays of different ranks).
 !!}
 
 module Poly_Ranks
-  !!{
+  !!{RST
   Provides poly-ranked types (i.e. types which can store data in arrays of different ranks).
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -38,14 +38,14 @@ module Poly_Ranks
   !!]
 
   type :: polyRank{Type¦label}
-     !!{
+     !!{RST
      A type which provides poly-ranked double precision data.
      !!}
      integer         (c_size_t), allocatable, dimension(:) :: shape_
      {Type¦intrinsic}          , allocatable, dimension(:) :: data
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the rank of the data."  method="rank"  />
        <method description="Return the shape of the data." method="shape" />
      </methods>
@@ -65,7 +65,7 @@ module Poly_Ranks
 contains
 
   function {Type¦label}Constructor(array) result(self)
-    !!{
+    !!{RST
     Constructor for poly-ranked arrays.
     !!}
     use :: Error, only : Error_Report
@@ -104,7 +104,7 @@ contains
   end function {Type¦label}Constructor
   
   subroutine {Type¦label}Assign(array,self)
-    !!{
+    !!{RST
     Assign to an array.
     !!}
     use :: Error, only : Error_Report
@@ -151,7 +151,7 @@ contains
   end subroutine {Type¦label}Assign
   
   integer function {Type¦label}Rank(self)
-    !!{
+    !!{RST
     Return the rank of the object.
     !!}
     implicit none
@@ -162,7 +162,7 @@ contains
   end function {Type¦label}Rank
   
   function {Type¦label}Shape(self) result(shape_)
-    !!{
+    !!{RST
     Return the shape of the object.
     !!}
     implicit none

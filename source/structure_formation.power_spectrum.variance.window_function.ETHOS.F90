@@ -17,27 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements the ETHOS power spectrum window function class from \cite{bohr_halo_2021}.
+  !!{RST
+  Implements the ETHOS power spectrum window function class from :cite:t:`bohr_halo_2021`.
   !!}
   
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !![
-  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionETHOS">
+  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionETHOS" docformat="rst">
    <description>
-    ETHOS window function for filtering of power spectra from \cite{bohr_halo_2021}. This window function was chosen to give good
-    matches to N-body halo mass functions derived from the ETHOS transfer functions. Specifically the window function is given by:
-    \begin{equation}
-     W(kR) = \frac{1}{1+\left(\frac{kR}{c_\mathrm{W}}\right)^\beta}
-    \end{equation}
-    with defaults of $c_\mathrm{W} = 3.78062835$, $\beta = 3.4638743$, where $R$ is related to $M$ via the standard relation $M =
-    \frac{4\pi}{3}\bar\rho_m R^3$.
+   ETHOS window function for filtering of power spectra from :cite:t:`bohr_halo_2021`. This window function was chosen to give good matches to N-body halo mass functions derived from the ETHOS transfer functions. Specifically the window function is given by:
+
+   .. math::
+
+      W(kR) = \frac{1}{1+\left(\frac{kR}{c_\mathrm{W}}\right)^\beta}
+
+   with defaults of :math:`c_\mathrm{W} = 3.78062835`, :math:`\beta = 3.4638743`, where :math:`R` is related to :math:`M` via the standard relation :math:`M = \frac{4\pi}{3}\bar\rho_m R^3`.
    </description>
   </powerSpectrumWindowFunction>
   !!]
   type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionETHOS
-     !!{
+     !!{RST
      ETHOS power spectrum window function class.
      !!}
      private
@@ -45,10 +45,10 @@
      double precision                                    :: cW_                           , beta_
    contains
      !![
-     <methods>
-       <method method="cW"                      description="Compute the parameter $c_\mathrm{W}$ in the ETHOS window function."  />
-       <method method="beta"                    description="Compute the parameter $\beta$ in the ETHOS window function."         />
-       <method method="wavenumberScaledMinimum" description="Compute the parameter $x_\mathrm{min}$ in the ETHOS window function."/>
+     <methods docformat="rst">
+       <method method="cW"                      description="Compute the parameter :math:`c_\mathrm{W}` in the ETHOS window function."  />
+       <method method="beta"                    description="Compute the parameter :math:`\beta` in the ETHOS window function."         />
+       <method method="wavenumberScaledMinimum" description="Compute the parameter :math:`x_\mathrm{min}` in the ETHOS window function."/>
      </methods>
      !!]
      final     ::                            ETHOSDestructor
@@ -60,7 +60,7 @@
   end type powerSpectrumWindowFunctionETHOS
 
   interface powerSpectrumWindowFunctionETHOS
-     !!{
+     !!{RST
      Constructors for the ETHOS power spectrum window function class.
      !!}
      module procedure ETHOSConstructorParameters
@@ -70,7 +70,7 @@
 contains
 
   function ETHOSConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the ETHOS  power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -81,17 +81,21 @@ contains
     double precision                                                  :: cW                  , beta
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>cW</name>
       <source>parameters</source>
       <defaultValue>3.78062835d0</defaultValue>
-      <description>The parameter $c_\mathrm{W}$ in the \cite{bohr_halo_2021} power spectrum window function.</description>
+      <description>
+      The parameter :math:`c_\mathrm{W}` in the :cite:t:`bohr_halo_2021` power spectrum window function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <source>parameters</source>
       <defaultValue>3.4638743d0</defaultValue>
-      <description>The parameter $\beta$ in the \cite{bohr_halo_2021} power spectrum window function.</description>
+      <description>
+      The parameter :math:`\beta` in the :cite:t:`bohr_halo_2021` power spectrum window function.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
@@ -104,7 +108,7 @@ contains
   end function ETHOSConstructorParameters
 
   function ETHOSConstructorInternal(cW_,beta_,cosmologyParameters_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the ETHOS power spectrum window function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -120,7 +124,7 @@ contains
   end function ETHOSConstructorInternal
 
   subroutine ETHOSDestructor(self)
-    !!{
+    !!{RST
     Destructor for the ETHOS power spectrum window function class.
     !!}
     implicit none
@@ -133,8 +137,8 @@ contains
   end subroutine ETHOSDestructor
 
   double precision function ETHOSValue(self,wavenumber,smoothingMass,time)
-    !!{
-    ETHOS window function used in computing the variance of the power spectrum. Best fit values for parameters are from \cite[][\S3.2]{bohr_halo_2021}.
+    !!{RST
+    ETHOS window function used in computing the variance of the power spectrum. Best fit values for parameters are from :cite:t:`bohr_halo_2021`.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -184,7 +188,7 @@ contains
   end function ETHOSValue
 
   double precision function ETHOSWavenumberMaximum(self,smoothingMass)
-    !!{
+    !!{RST
     Sets maximum wavenumber to effectively infinity (really large number).
     !!}
     implicit none
@@ -198,8 +202,8 @@ contains
   end function ETHOSWavenumberMaximum
 
   double precision function ETHOSCW(self,wavenumber,time) result(cW)
-    !!{
-    Compute the $c_\mathrm{W}$ parameter for the ETHOS window function.
+    !!{RST
+    Compute the :math:`c_\mathrm{W}` parameter for the ETHOS window function.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self
@@ -211,8 +215,8 @@ contains
   end function ETHOSCW
   
   double precision function ETHOSBeta(self,wavenumber,time) result(beta)
-    !!{
-    Compute the $\beta$ parameter for the ETHOS window function.
+    !!{RST
+    Compute the :math:`\beta` parameter for the ETHOS window function.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self
@@ -224,8 +228,8 @@ contains
   end function ETHOSBeta
   
   double precision function ETHOSWavenumberScaledMinimum(self,wavenumber,time) result(wavenumberScaledMinimum)
-    !!{
-    Compute the $\beta$ parameter for the ETHOS window function.
+    !!{RST
+    Compute the :math:`\beta` parameter for the ETHOS window function.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self

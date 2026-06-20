@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a generic 1D volume function (i.e. number density of objects binned by some property, e.g. a
-mass function) output analysis class.
+!!{RST
+Implements a generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output analysis class.
 !!}
 
   use               :: Galactic_Filters                        , only : galacticFilterClass
@@ -35,19 +34,17 @@ mass function) output analysis class.
   use               :: Output_Analyses_Options                 , only : enumerationOutputAnalysisCovarianceModelType
 
   !![
-  <outputAnalysis name="outputAnalysisCrossCorrelator1D">
+  <outputAnalysis name="outputAnalysisCrossCorrelator1D" docformat="rst">
    <description>
-     A generic 1D cross-correlator (i.e. the cross-correlation of two weights binned by some property, e.g. a mass function)
-     output analysis class.
-  
-     The assumptions used when constructing the covariance matrix are controlled by the parameter \mono{[covarianceModel]}, and follow the method described for the \refClass{outputAnalysisVolumeFunction1D} output analysis class.
+   A generic 1D cross-correlator (i.e. the cross-correlation of two weights binned by some property, e.g. a mass function) output analysis class.
+
+   The assumptions used when constructing the covariance matrix are controlled by the parameter ``[covarianceModel]``, and follow the method described for the :galacticus-class:`outputAnalysisVolumeFunction1D` output analysis class.
    </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisCrossCorrelator1D
-     !!{
-     A generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output
-     analysis class.
+     !!{RST
+     A generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output analysis class.
      !!}
      private
      class           (nodePropertyExtractorClass                  ), pointer                     :: nodePropertyExtractor_                => null()
@@ -74,7 +71,7 @@ mass function) output analysis class.
      !$ type         (ompLock                                     )                              :: accumulateLock
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the results of the volume function operator." method="results"         />
        <method description="Finalize the analysis of this function."             method="finalizeAnalysis"/>
        <method description="Activate/deactivate reporting."                      method="setReporting"    />
@@ -90,8 +87,8 @@ mass function) output analysis class.
   end type outputAnalysisCrossCorrelator1D
 
   interface outputAnalysisCrossCorrelator1D
-     !!{
-     Constructors for the \refClass{outputAnalysisCrossCorrelator1D} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisCrossCorrelator1D` output analysis class.
      !!}
      module procedure crossCorrelator1DConstructorParameters
      module procedure crossCorrelator1DConstructorInternal
@@ -100,8 +97,8 @@ mass function) output analysis class.
 contains
 
   function crossCorrelator1DConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisCrossCorrelator1D} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisCrossCorrelator1D` output analysis class which takes a parameter set as input.
     !!}
     use :: Error                  , only : Error_Report
     use :: Input_Parameters       , only : inputParameter                                , inputParameters
@@ -142,59 +139,75 @@ contains
     if (parameters%count('outputWeight') /= parameters%count('binCenter')*self%outputTimes_%count()) &
          & call Error_Report('incorrect number of output weights provided'//{introspection:location})
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>binCenter</name>
       <source>parameters</source>
       <variable>binCenter</variable>
-      <description>The value of the property at the center of each bin.</description>
+      <description>
+      The value of the property at the center of each bin.
+      </description>
     </inputParameter>
     !!]
     if (size(binCenter) == 1) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>binWidth</name>
 	 <source>parameters</source>
 	 <variable>binWidth</variable>
-	 <description>The width of the bins.</description>
+	 <description>
+	 The width of the bins.
+	 </description>
        </inputParameter>
        !!]
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bufferCount</name>
       <source>parameters</source>
       <variable>bufferCount</variable>
-      <description>The number of buffer bins to include below and above the range of actual bins.</description>
+      <description>
+      The number of buffer bins to include below and above the range of actual bins.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputWeight</name>
       <source>parameters</source>
       <variable>outputWeight</variable>
-      <description>The weight to assign to each bin at each output.</description>
+      <description>
+      The weight to assign to each bin at each output.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceModel</name>
       <source>parameters</source>
       <variable>covarianceModel</variable>
-      <description>The model to use for computing covariances.</description>
+      <description>
+      The model to use for computing covariances.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing volume function covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing volume function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
     <conditionalCall>
       <call>
@@ -235,8 +248,8 @@ contains
   end function crossCorrelator1DConstructorParameters
 
   function crossCorrelator1DConstructorInternal(binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator1_,outputAnalysisWeightOperator2_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,binWidth) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisCrossCorrelator1D} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisCrossCorrelator1D` output analysis class for internal use.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass           , nodePropertyExtractorScalar
@@ -328,8 +341,8 @@ contains
   end function crossCorrelator1DConstructorInternal
 
   subroutine crossCorrelator1DDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisCrossCorrelator1D} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisCrossCorrelator1D` output analysis class.
     !!}
     implicit none
     type(outputAnalysisCrossCorrelator1D), intent(inout) :: self
@@ -349,7 +362,7 @@ contains
   end subroutine crossCorrelator1DDestructor
 
   subroutine crossCorrelator1DAnalyze(self,node,iOutput)
-    !!{
+    !!{RST
     Implement a crossCorrelator1D output analysis.
     !!}
     use :: Display                 , only : displayMessage
@@ -446,7 +459,7 @@ contains
   end subroutine crossCorrelator1DAnalyze
 
   subroutine crossCorrelator1DReduce(self,reduced)
-    !!{
+    !!{RST
     Implement a crossCorrelator1D output analysis reduction.
     !!}
     use :: Error                  , only : Error_Report
@@ -471,7 +484,7 @@ contains
   end subroutine crossCorrelator1DReduce
 
   subroutine crossCorrelator1DFinalize(self,groupName)
-    !!{
+    !!{RST
     Implement a crossCorrelator1D output analysis finalization.
     !!}
     implicit none
@@ -484,7 +497,7 @@ contains
   end subroutine crossCorrelator1DFinalize
 
   subroutine crossCorrelator1DFinalizeAnalysis(self)
-    !!{
+    !!{RST
     Compute final covariances and normalize.
     !!}
 #ifdef USEMPI
@@ -546,7 +559,7 @@ contains
   end subroutine crossCorrelator1DFinalizeAnalysis
 
   subroutine crossCorrelator1DResults(self,binCenter,functionCovariance)
-    !!{
+    !!{RST
     Implement a crossCorrelator1D output analysis finalization.
     !!}
     implicit none
@@ -571,7 +584,7 @@ contains
   end subroutine crossCorrelator1DResults
 
   subroutine crossCorrelator1DSetReporting(self,report,reportLabel)
-    !!{
+    !!{RST
     Activate/deactivate reporting.
     !!}
     use :: ISO_Varying_String, only : assignment(=)

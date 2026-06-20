@@ -17,29 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a  module which  implements a  dark matter  halo mass function  class which  modifies another  mass function  to mimic
-systematic errors arising in the friends-of-friends halo finding algorithm.
+!!{RST
+Contains a  module which  implements a  dark matter  halo mass function  class which  modifies another  mass function  to mimic systematic errors arising in the friends-of-friends halo finding algorithm.
 !!}
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <haloMassFunction name="haloMassFunctionFofBias">
+  <haloMassFunction name="haloMassFunctionFofBias" docformat="rst">
    <description>
-    The halo mass function is computed by modifying another halo mass function to mimic systematic
-    errors arising in the friends-of-friends halo finding algorithm. Specifically, a
-    systematic shift in mass motivated by the results of percolation theory \cite[their eqn. B11]{more_overdensity_2011}
-    is applied. In particular, $M_\mathrm{particle}=$\mono{[massParticle]} is the mass of the particle in the simulation
-    to which the friends-of-friends algorithm was applied.
+   The halo mass function is computed by modifying another halo mass function to mimic systematic errors arising in the friends-of-friends halo finding algorithm. Specifically, a systematic shift in mass motivated by the results of percolation theory :cite:t:`more_overdensity_2011` is applied. In particular, :math:`M_\mathrm{particle}=`\ ``[massParticle]`` is the mass of the particle in the simulation to which the friends-of-friends algorithm was applied.
    </description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionFofBias
-     !!{
-     A halo mass function class which modifies another mass function to mimic systematic errors arising in the
-     friends-of-friends halo finding algorithm.
+     !!{RST
+     A halo mass function class which modifies another mass function to mimic systematic errors arising in the friends-of-friends halo finding algorithm.
      !!}
      private
      double precision                                     :: massParticle                     , massInfiniteToMassSharpEdge, &
@@ -55,8 +49,8 @@ systematic errors arising in the friends-of-friends halo finding algorithm.
   end type haloMassFunctionFofBias
 
   interface haloMassFunctionFofBias
-     !!{
-     Constructors for the \refClass{haloMassFunctionFofBias} halo mass function class.
+     !!{RST
+     Constructors for the :galacticus-class:`haloMassFunctionFofBias` halo mass function class.
      !!}
      module procedure fofBiasConstructorParameters
      module procedure fofBiasConstructorInternal
@@ -65,8 +59,8 @@ systematic errors arising in the friends-of-friends halo finding algorithm.
 contains
 
   function fofBiasConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{haloMassFunctionFofBias} halo mass function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`haloMassFunctionFofBias` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,27 +76,37 @@ contains
     logical                                                    :: linkingLengthIsComoving
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParticle</name>
       <source>parameters</source>
-      <description>Parameter $M_\mathrm{particle}$ appearing in model for friends-of-friends errors in the halo mass function.</description>
+      <description>
+      Parameter :math:`M_\mathrm{particle}` appearing in model for friends-of-friends errors in the halo mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massInfiniteToMassSharpEdge</name>
       <source>parameters</source>
       <defaultValue>0.98d0</defaultValue>
-      <defaultSource>\cite[estimate based on comments in text]{more_overdensity_2011}</defaultSource>
-      <description>The ratio of the friends-of-friends mass in the limit of infinite number of particles to the mass of the halo enclosed within a sharp-edged sphere bounding an isodensity surface equal to the critical density for percolation.</description>
+      <defaultSource>
+      :cite:t:`more_overdensity_2011`
+      </defaultSource>
+      <description>
+      The ratio of the friends-of-friends mass in the limit of infinite number of particles to the mass of the halo enclosed within a sharp-edged sphere bounding an isodensity surface equal to the critical density for percolation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>linkingLength</name>
       <source>parameters</source>
-      <description>The linking length (in physical Mpc) used in the friends-of-friends algorithm.</description>
+      <description>
+      The linking length (in physical Mpc) used in the friends-of-friends algorithm.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>linkingLengthIsComoving</name>
       <source>parameters</source>
-      <description>Specifies whether or not the given linking length is in comoving units.</description>
+      <description>
+      Specifies whether or not the given linking length is in comoving units.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
@@ -123,8 +127,8 @@ contains
   end function fofBiasConstructorParameters
 
   function fofBiasConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,massParticle,linkingLength,linkingLengthIsComoving,massInfiniteToMassSharpEdge) result(self)
-    !!{
-    Internal constructor for the \refClass{haloMassFunctionFofBias} halo mass function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`haloMassFunctionFofBias` halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionFofBias  )                        :: self
@@ -144,8 +148,8 @@ contains
   end function fofBiasConstructorInternal
 
   subroutine fofBiasDestructor(self)
-    !!{
-    Destructor for the \refClass{haloMassFunctionFofBias} halo mass function class.
+    !!{RST
+    Destructor for the :galacticus-class:`haloMassFunctionFofBias` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionFofBias), intent(inout) :: self
@@ -161,7 +165,7 @@ contains
   end subroutine fofBiasDestructor
 
   double precision function fofBiasDifferential(self,time,mass,node)
-    !!{
+    !!{RST
     Return the differential halo mass function at the given time and mass.
     !!}
     use :: Coordinates             , only : coordinateSpherical  , assignment(=)

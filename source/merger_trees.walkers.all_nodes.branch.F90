@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a depth-first merger tree walker over all all nodes in a given branch.
 !!}
 
   !![
-  <mergerTreeWalker name="mergerTreeWalkerAllNodesBranch">
-   <description>Provides a merger tree walker which iterates depth-first over all all nodes in a given branch.</description>
+  <mergerTreeWalker name="mergerTreeWalkerAllNodesBranch" docformat="rst">
+   <description>
+   Provides a merger tree walker which iterates depth-first over all all nodes in a given branch.
+   </description>
   </mergerTreeWalker>
   !!]
   type, extends(mergerTreeWalkerClass) :: mergerTreeWalkerAllNodesBranch
-     !!{
+     !!{RST
      A merger tree walker which iterates depth-first over all all nodes in a given branch.
      !!}
      private
@@ -35,7 +37,7 @@ Implements a depth-first merger tree walker over all all nodes in a given branch
      logical                    :: nodesRemain_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Descend through the hierarchy to the deepest node along the current branch." method="descend" />
      </methods>
      !!]
@@ -45,8 +47,8 @@ Implements a depth-first merger tree walker over all all nodes in a given branch
  end type mergerTreeWalkerAllNodesBranch
 
   interface mergerTreeWalkerAllNodesBranch
-     !!{
-     Constructors for the \refClass{mergerTreeWalkerAllNodesBranch} merger tree walker class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeWalkerAllNodesBranch` merger tree walker class.
      !!}
      module procedure allNodesBranchParameters
      module procedure allNodesBranchInternal
@@ -55,8 +57,8 @@ Implements a depth-first merger tree walker over all all nodes in a given branch
 contains
 
   function allNodesBranchParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeWalkerAllNodesBranch} merger tree walker class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeWalkerAllNodesBranch` merger tree walker class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -70,8 +72,8 @@ contains
   end function allNodesBranchParameters
 
   function allNodesBranchInternal(branchHead) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeWalkerAllNodesBranch} merger tree walker class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeWalkerAllNodesBranch` merger tree walker class.
     !!}
     implicit none
     type(mergerTreeWalkerAllNodesBranch)                          :: self
@@ -84,11 +86,8 @@ contains
   end function allNodesBranchInternal
 
   logical function allNodesBranchNext(self,node)
-    !!{
-    This function will update the given \mono{node} to the next node which should be visited in a tree branch
-    to perform a depth-first walk. Once the entire branch has been walked, a \mono{null()} pointer will be
-    set, and a value of \mono{false} returned indicating that there are no more nodes to walk. Each node will
-    be visited once and once only if the branch is walked in this way.
+    !!{RST
+    This function will update the given ``node`` to the next node which should be visited in a tree branch to perform a depth-first walk. Once the entire branch has been walked, a ``null()`` pointer will be set, and a value of ``false`` returned indicating that there are no more nodes to walk. Each node will be visited once and once only if the branch is walked in this way.
     !!}
     implicit none
     class(mergerTreeWalkerAllNodesBranch), intent(inout)          :: self
@@ -137,7 +136,7 @@ contains
   end function allNodesBranchNext
 
   logical function allNodesBranchNodesRemain(self)
-    !!{
+    !!{RST
     Returns true if nodes remain to be visited in the branch.
     !!}
     implicit none
@@ -148,7 +147,7 @@ contains
   end function allNodesBranchNodesRemain
 
   subroutine allNodesBranchDescend(self)
-    !!{
+    !!{RST
     Descend to the deepest progenitor (satellites and children) of the current branch.
     !!}
     implicit none

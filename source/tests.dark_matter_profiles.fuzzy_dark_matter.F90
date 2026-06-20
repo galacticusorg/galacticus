@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test calculations for fuzzy dark matter halo density profiles.
 !!}
 
 program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
-  !!{
+  !!{RST
   Test calculations for fuzzy dark matter halo density profiles.
   !!}
   use, intrinsic :: ISO_C_Binding             , only : c_long

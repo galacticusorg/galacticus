@@ -17,20 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree build controller class which builds branchless trees.
 !!}
 
   !![
-  <mergerTreeBuildController name="mergerTreeBuildControllerBranchless">
-   <description>A merger tree build controller class which builds branchless trees.</description>
+  <mergerTreeBuildController name="mergerTreeBuildControllerBranchless" docformat="rst">
+   <description>
+   A merger tree build controller class which builds branchless trees.
+   </description>
   </mergerTreeBuildController>
   !!]
   type, extends(mergerTreeBuildControllerClass) :: mergerTreeBuildControllerBranchless
-     !!{     
-     A merger tree build controller class which builds branchless trees. Specifically, whenever a branching occurs, only the
-     primary progenitor is followed. This results in a tree which consists of the main branch, along with stubs of any branches
-     off of the main branch, but those stubs do not grow full branches of their own.
+     !!{RST
+     A merger tree build controller class which builds branchless trees. Specifically, whenever a branching occurs, only the primary progenitor is followed. This results in a tree which consists of the main branch, along with stubs of any branches off of the main branch, but those stubs do not grow full branches of their own.
      !!}
      private
      class(mergerTreeBranchingProbabilityClass), pointer :: mergerTreeBranchingProbability_ => null()
@@ -42,8 +42,8 @@ Implements a merger tree build controller class which builds branchless trees.
   end type mergerTreeBuildControllerBranchless
 
   interface mergerTreeBuildControllerBranchless
-     !!{
-     Constructors for the \refClass{mergerTreeBuildControllerBranchless} merger tree build controller class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeBuildControllerBranchless` merger tree build controller class.
      !!}
      module procedure branchlessConstructorParameters
      module procedure branchlessConstructorInternal
@@ -52,8 +52,8 @@ Implements a merger tree build controller class which builds branchless trees.
 contains
 
   function branchlessConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildControllerBranchless} merger tree build controller class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeBuildControllerBranchless` merger tree build controller class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,8 +73,8 @@ contains
   end function branchlessConstructorParameters
 
   function branchlessConstructorInternal(mergerTreeBranchingProbability_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildControllerBranchless} merger tree build controller class .
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeBuildControllerBranchless` merger tree build controller class .
     !!}
     implicit none
     type (mergerTreeBuildControllerBranchless)                        :: self
@@ -87,8 +87,8 @@ contains
   end function branchlessConstructorInternal
 
   subroutine branchlessDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBuildControllerBranchless} merger tree build controller class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeBuildControllerBranchless` merger tree build controller class.
     !!}
     implicit none
     type(mergerTreeBuildControllerBranchless), intent(inout) :: self
@@ -100,7 +100,7 @@ contains
   end subroutine branchlessDestructor
 
   logical function branchlessControl(self,node,treeWalker_)
-    !!{
+    !!{RST
     Skip side branches of a tree under construction.
     !!}
     implicit none
@@ -122,7 +122,7 @@ contains
   end function branchlessControl
 
   function branchlessBranchingProbabilityObject(self,node) result(mergerTreeBranchingProbability_)
-    !!{
+    !!{RST
     Return a pointer the the merger tree branching probability object to use.
     !!}
     implicit none
@@ -136,7 +136,7 @@ contains
   end function branchlessBranchingProbabilityObject
 
   subroutine branchlessNodesInserted(self,nodeCurrent,nodeProgenitor1,nodeProgenitor2,didBranch)
-    !!{
+    !!{RST
     Act on the insertion of nodes into the merger tree.
     !!}
     implicit none

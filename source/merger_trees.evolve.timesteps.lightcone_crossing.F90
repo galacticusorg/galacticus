@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Contains a merger tree evolution timestep class which limits the step to the next lightcone crossing.
   !!}
 
@@ -26,14 +26,14 @@
   use :: Merger_Tree_Outputters, only : mergerTreeOutputterClass
 
   !![
-  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepLightconeCrossing">
+  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepLightconeCrossing" docformat="rst">
    <description>
-    A merger tree evolution timestepping class which limits the integration timestep so that nodes are output precisely when they cross a lightcone boundary, enabling the construction of mock lightcone catalogs. The lightcone geometry is provided by the \mono{[geometryLightcone]} object, with optional diagnostic reporting for specific node indices listed in \mono{[nodeIndicesReport]}.
+   A merger tree evolution timestepping class which limits the integration timestep so that nodes are output precisely when they cross a lightcone boundary, enabling the construction of mock lightcone catalogs. The lightcone geometry is provided by the ``[geometryLightcone]`` object, with optional diagnostic reporting for specific node indices listed in ``[nodeIndicesReport]``.
    </description>
   </mergerTreeEvolveTimestep>
   !!]
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepLightconeCrossing
-     !!{
+     !!{RST
      Implementation of a merger tree evolution timestep class which limits the step to the next lightcone crossing.
      !!}
      private
@@ -48,8 +48,8 @@
   end type mergerTreeEvolveTimestepLightconeCrossing
 
   interface mergerTreeEvolveTimestepLightconeCrossing
-     !!{
-     Constructors for the \refClass{mergerTreeEvolveTimestepLightconeCrossing} merger tree evolution timestep class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeEvolveTimestepLightconeCrossing` merger tree evolution timestep class.
      !!}
      module procedure lightconeCrossingConstructorParameters
      module procedure lightconeCrossingConstructorInternal
@@ -58,8 +58,8 @@
 contains
   
   function lightconeCrossingConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveTimestepLightconeCrossing} merger tree evolution timestep class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepLightconeCrossing` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,9 +72,11 @@ contains
     allocate(nodeIndicesReport(parameters%count('nodeIndicesReport',zeroIfNotPresent=.true.)))
     if (parameters%isPresent('nodeIndicesReport')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>nodeIndicesReport</name>
-	 <description>A list of node indices for which reporting should be performed.</description>
+	 <description>
+	 A list of node indices for which reporting should be performed.
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
@@ -93,8 +95,8 @@ contains
   end function lightconeCrossingConstructorParameters
 
   function lightconeCrossingConstructorInternal(nodeIndicesReport,geometryLightcone_,mergerTreeOutputter_) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveTimestepLightconeCrossing} merger tree evolution timestep class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepLightconeCrossing` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     implicit none
     type            (mergerTreeEvolveTimestepLightconeCrossing)                              :: self
@@ -114,8 +116,8 @@ contains
   end function lightconeCrossingConstructorInternal
 
   subroutine lightconeCrossingDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeEvolveTimestepLightconeCrossing} merger tree evolution timestep class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeEvolveTimestepLightconeCrossing` merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepLightconeCrossing), intent(inout) :: self
@@ -128,8 +130,8 @@ contains
   end subroutine lightconeCrossingDestructor
 
   double precision function lightconeCrossingTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
-    !!{
-    Determine a suitable timestep for \mono{node} such that it does not exceed the time of the next lightconeCrossing merger.
+    !!{RST
+    Determine a suitable timestep for ``node`` such that it does not exceed the time of the next lightconeCrossing merger.
     !!}
     use :: Display               , only : displayMessage
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
@@ -201,7 +203,7 @@ contains
   end function lightconeCrossingTimeEvolveTo
   
   subroutine lightconeCrossingProcess(self,tree,node,deadlockStatus)
-    !!{
+    !!{RST
     Process a lightconeCrossing node which has undergone a merger with its host node.
     !!}
     use :: Display                            , only : displayMessage

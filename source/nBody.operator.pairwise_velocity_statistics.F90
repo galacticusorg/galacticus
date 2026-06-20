@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which computes pairwise velocity statistics in bins of separation.
 !!}
 
@@ -27,12 +27,14 @@ Implements an N-body data operator which computes pairwise velocity statistics i
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
-  <nbodyOperator name="nbodyOperatorPairwiseVelocityStatistics">
-   <description>An N-body data operator which computes statistics of pairwise relative velocities between particles in bins of physical separation, useful for constraining galaxy peculiar velocity fields. Parameters control the separation range, redshift, Hubble flow correction, sampling rate, and bootstrap resample count.</description>
+  <nbodyOperator name="nbodyOperatorPairwiseVelocityStatistics" docformat="rst">
+   <description>
+   An N-body data operator which computes statistics of pairwise relative velocities between particles in bins of physical separation, useful for constraining galaxy peculiar velocity fields. Parameters control the separation range, redshift, Hubble flow correction, sampling rate, and bootstrap resample count.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorPairwiseVelocityStatistics
-     !!{
+     !!{RST
      An N-body data operator which computes pairwise velocity statistics in bins of separation.
      !!}
      private
@@ -52,8 +54,8 @@ Implements an N-body data operator which computes pairwise velocity statistics i
   end type nbodyOperatorPairwiseVelocityStatistics
 
   interface nbodyOperatorPairwiseVelocityStatistics
-     !!{
-     Constructors for the \refClass{nbodyOperatorPairwiseVelocityStatistics} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorPairwiseVelocityStatistics` N-body operator class.
      !!}
      module procedure pairwiseVelocityStatisticsConstructorParameters
      module procedure pairwiseVelocityStatisticsConstructorInternal
@@ -62,8 +64,8 @@ Implements an N-body data operator which computes pairwise velocity statistics i
 contains
 
   function pairwiseVelocityStatisticsConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorPairwiseVelocityStatistics} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorPairwiseVelocityStatistics` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,55 +83,73 @@ contains
          &                                                                      addHubbleFlow
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>crossCount</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, compute cross-simulation pairwise velocity statistics between the first and all simulations. Otherwise, compute pairwise velocity statistics within each simulation.</description>
+      <description>
+      If true, compute cross-simulation pairwise velocity statistics between the first and all simulations. Otherwise, compute pairwise velocity statistics within each simulation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>addHubbleFlow</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, add the Hubble flow contribution $H(z)\,\mathbf{r}$ to each particle velocity before computing pairwise statistics, converting peculiar velocities to total line-of-sight velocities.</description>
+      <description>
+      If true, add the Hubble flow contribution :math:`H(z)\,\mathbf{r}` to each particle velocity before computing pairwise statistics, converting peculiar velocities to total line-of-sight velocities.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The redshift at which to evaluate the Hubble flow when adding the Hubble flow correction to particle velocities.</description>
+      <description>
+      The redshift at which to evaluate the Hubble flow when adding the Hubble flow correction to particle velocities.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bootstrapSampleCount</name>
       <source>parameters</source>
       <defaultValue>30_c_size_t</defaultValue>
-      <description>The number of bootstrap resamples of the particles that should be used.</description>
+      <description>
+      The number of bootstrap resamples of the particles that should be used.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bootstrapSampleRate</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The fraction of particles to sample randomly at each bootstrap iteration, between 0 and 1; values less than 1 reduce computational cost at the expense of statistical precision.</description>
+      <description>
+      The fraction of particles to sample randomly at each bootstrap iteration, between 0 and 1; values less than 1 reduce computational cost at the expense of statistical precision.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>separationMinimum</name>
       <source>parameters</source>
-      <description>The minimum separation to consider for pairwise velocity statistics.</description>
+      <description>
+      The minimum separation to consider for pairwise velocity statistics.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>separationMaximum</name>
       <source>parameters</source>
-      <description>The maximum separation to consider for pairwise velocity statistics.</description>
+      <description>
+      The maximum separation to consider for pairwise velocity statistics.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>separationCount</name>
       <source>parameters</source>
-      <description>The number of bins in separation for pairwise velocity statistics.</description>
+      <description>
+      The number of bins in separation for pairwise velocity statistics.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeUnbootstrapped</name>
       <source>parameters</source>
-      <description>If true, include results for the unbootstrapped (i.e. original) sample.</description>
+      <description>
+      If true, include results for the unbootstrapped (i.e. original) sample.
+      </description>
       <defaultValue>.true.</defaultValue>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -156,8 +176,8 @@ contains
   end function pairwiseVelocityStatisticsConstructorParameters
 
   function pairwiseVelocityStatisticsConstructorInternal(separationMinimum,separationMaximum,separationCount,time,crossCount,addHubbleFlow,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_,cosmologyFunctions_,darkMatterHaloScale_,parameters) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorPairwiseVelocityStatistics} N-body operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyOperatorPairwiseVelocityStatistics` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorPairwiseVelocityStatistics)                        :: self
@@ -180,8 +200,8 @@ contains
   end function pairwiseVelocityStatisticsConstructorInternal
 
   subroutine pairwiseVelocityStatisticsDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorPairwiseVelocityStatistics} N-body operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nbodyOperatorPairwiseVelocityStatistics` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorPairwiseVelocityStatistics), intent(inout) :: self
@@ -195,7 +215,7 @@ contains
   end subroutine pairwiseVelocityStatisticsDestructor
   
   subroutine pairwiseVelocityStatisticsOperate(self,simulations)
-    !!{
+    !!{RST
     Compute pairwise velocity statistics in bins of separation.
     !!}
     use    :: Arrays_Search      , only : searchArray

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which applies some other operator to a selected simulation.
 !!}
   
   !![
-  <nbodyOperator name="nbodyOperatorSimulationSelector">
-   <description>An N-body data operator which applies a delegate \refClass{nbodyOperatorClass} to a single element of the simulation array identified by \mono{[indexSimulation]}, leaving all other simulations unchanged.</description>
+  <nbodyOperator name="nbodyOperatorSimulationSelector" docformat="rst">
+   <description>
+   An N-body data operator which applies a delegate :galacticus-class:`nbodyOperatorClass` to a single element of the simulation array identified by ``[indexSimulation]``, leaving all other simulations unchanged.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSimulationSelector
-     !!{
+     !!{RST
      An N-body data operator which applies some other operator to a selected simulation.
      !!}
      private
@@ -39,8 +41,8 @@ Implements an N-body data operator which applies some other operator to a select
   end type nbodyOperatorSimulationSelector
 
   interface nbodyOperatorSimulationSelector
-     !!{
-     Constructors for the \refClass{nbodyOperatorSimulationSelector} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorSimulationSelector` N-body operator class.
      !!}
      module procedure simulationSelectorConstructorParameters
      module procedure simulationSelectorConstructorInternal
@@ -49,8 +51,8 @@ Implements an N-body data operator which applies some other operator to a select
 contains
 
   function simulationSelectorConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorSimulationSelector} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorSimulationSelector` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -60,10 +62,12 @@ contains
     integer                                                 :: indexSimulation
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>indexSimulation</name>
       <source>parameters</source>
-      <description>The 1-based index into the simulation array selecting the single simulation dataset to which the delegate operator will be applied.</description>
+      <description>
+      The 1-based index into the simulation array selecting the single simulation dataset to which the delegate operator will be applied.
+      </description>
     </inputParameter>
     <objectBuilder class="nbodyOperator" name="nbodyOperator_" source="parameters"/>
     !!]
@@ -76,8 +80,8 @@ contains
   end function simulationSelectorConstructorParameters
 
   function simulationSelectorConstructorInternal(indexSimulation,nbodyOperator_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorSimulationSelector} N-body operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyOperatorSimulationSelector` N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorSimulationSelector)                        :: self
@@ -91,8 +95,8 @@ contains
   end function simulationSelectorConstructorInternal
 
   subroutine simulationSelectorDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorSimulationSelector} N-body operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nbodyOperatorSimulationSelector` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSimulationSelector), intent(inout) :: self
@@ -104,7 +108,7 @@ contains
   end subroutine simulationSelectorDestructor
 
   subroutine simulationSelectorOperate(self,simulations)
-    !!{
+    !!{RST
     Operate on the selected simulation.
     !!}
     use :: Display, only : displayIndent, displayUnindent, verbosityLevelStandard

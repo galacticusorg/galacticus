@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of the intergalactic medium state class for a simplistic model of instantaneous and full reionization.
   !!}
 
   !![
-  <accretionHaloTotal name="accretionHaloTotalSimple">
+  <accretionHaloTotal name="accretionHaloTotalSimple" docformat="rst">
    <description>
-    A halo total accretion class which assumes that the accretion rate equals the growth rate of the basic mass.
+   A halo total accretion class which assumes that the accretion rate equals the growth rate of the basic mass.
    </description>
   </accretionHaloTotal>
   !!]
   type, extends(accretionHaloTotalClass) :: accretionHaloTotalSimple
-     !!{
+     !!{RST
      A halo total accretion class which assumes the accretion corresponds to the basic mass.
      !!}
      private
@@ -39,7 +39,7 @@
   end type accretionHaloTotalSimple
 
   interface accretionHaloTotalSimple
-     !!{
+     !!{RST
      Constructors for the simple total halo accretion class.
      !!}
      module procedure simpleConstructorParameters
@@ -48,7 +48,7 @@
 contains
 
   function simpleConstructorParameters(parameters) result (self)
-    !!{
+    !!{RST
     Constructor for the simple total halo accretion state class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -64,7 +64,7 @@ contains
   end function simpleConstructorParameters
 
   double precision function simpleAccretionRate(self,node)
-    !!{
+    !!{RST
     Return the accretion rate onto a halo.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -80,7 +80,7 @@ contains
   end function simpleAccretionRate
 
   double precision function simpleAccretedMass(self,node)
-    !!{
+    !!{RST
     Return the mass accreted onto a halo.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode

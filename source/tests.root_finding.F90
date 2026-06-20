@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test root finding routines.
 !!}
 
 program Test_Root_Finding
-  !!{
+  !!{RST
   Tests that routine finding routines work.
   !!}
   use :: Display                    , only : displayVerbositySet    , verbosityLevelStandard

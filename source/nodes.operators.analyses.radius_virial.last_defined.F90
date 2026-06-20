@@ -17,22 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that tracks the last-defined virial radius.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
   
   !![
-  <nodeOperator name="nodeOperatorRadiusVirialLastDefined">
+  <nodeOperator name="nodeOperatorRadiusVirialLastDefined" docformat="rst">
     <description>
-      A node operator class that tracks the last-defined virial radius. Intended to be paired with the
-      \refClass{nodePropertyExtractorRadiusVirialLastDefined} property extractor class to extract these times for output.
+    A node operator class that tracks the last-defined virial radius. Intended to be paired with the :galacticus-class:`nodePropertyExtractorRadiusVirialLastDefined` property extractor class to extract these times for output.
     </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorRadiusVirialLastDefined
-     !!{
+     !!{RST
      A node operator class that tracks the last-defined virial radius.
      !!}
      private
@@ -44,8 +43,8 @@
   end type nodeOperatorRadiusVirialLastDefined
   
   interface nodeOperatorRadiusVirialLastDefined
-     !!{
-     Constructors for the \refClass{nodeOperatorRadiusVirialLastDefined} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorRadiusVirialLastDefined` node operator class.
      !!}
      module procedure radiusVirialLastDefinedConstructorParameters
      module procedure radiusVirialLastDefinedConstructorInternal
@@ -54,8 +53,8 @@
 contains
 
   function radiusVirialLastDefinedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorRadiusVirialLastDefined} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorRadiusVirialLastDefined` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -75,8 +74,8 @@ contains
   end function radiusVirialLastDefinedConstructorParameters
 
   function radiusVirialLastDefinedConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorRadiusVirialLastDefined} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorRadiusVirialLastDefined` node operator class.
     !!}
     implicit none
     type (nodeOperatorRadiusVirialLastDefined)                        :: self
@@ -92,8 +91,8 @@ contains
   end function radiusVirialLastDefinedConstructorInternal
   
   subroutine radiusVirialLastDefinedDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorRadiusVirialLastDefined} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorRadiusVirialLastDefined` node operator class.
     !!}
     implicit none
     type(nodeOperatorRadiusVirialLastDefined), intent(inout) :: self
@@ -105,7 +104,7 @@ contains
   end subroutine radiusVirialLastDefinedDestructor
 
   subroutine radiusVirialLastDefinedNodeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize the last-defined virial radius for this node.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

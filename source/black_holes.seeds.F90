@@ -19,12 +19,12 @@
 
   !+    Contributions to this file made by: Matías Liempi
 
-!!{
+!!{RST
 Contains a module which implements a class for black hole seeds.
 !!}
 
 module Black_Hole_Seeds
-  !!{
+  !!{RST
   Implements a class for black hole seeds.
   !!}
   use :: Galacticus_Nodes, only : treeNode
@@ -32,9 +32,11 @@ module Black_Hole_Seeds
   private
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
     <name>blackHoleFormationChannel</name>
-    <description>Enumeration of the physical channels through which black hole seeds can form, including undetermined origin and formation via stellar cluster collapse leading to a massive seed black hole.</description>
+    <description>
+    Enumeration of the physical channels through which black hole seeds can form, including undetermined origin and formation via stellar cluster collapse leading to a massive seed black hole.
+    </description>
     <decodeFunction>yes</decodeFunction>
     <validator>yes</validator>
     <visibility>public</visibility>
@@ -44,30 +46,33 @@ module Black_Hole_Seeds
   !!]
   
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>blackHoleSeeds</name>
    <descriptiveName>Black Hole Seeds</descriptiveName>
    <description>
-    Class providing models of the initial seed masses for supermassive black holes and their formation channel.
-    Black hole seeds are the initial conditions for black hole growth via accretion and mergers, and their masses
-    and formation channels (e.g. stellar collapse, direct collapse, star cluster collapse) are set when a new
-    black hole component is initialized in a halo.
+   Class providing models of the initial seed masses for supermassive black holes and their formation channel. Black hole seeds are the initial conditions for black hole growth via accretion and mergers, and their masses and formation channels (e.g. stellar collapse, direct collapse, star cluster collapse) are set when a new black hole component is initialized in a halo.
    </description>
    <default>fixed</default>
    <method name="mass" >
-    <description>Computes the mass of the black hole seed in the given \mono{node}.</description>
+    <description>
+    Computes the mass of the black hole seed in the given ``node``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="spin" >
-    <description>Computes the spin of the black hole seed in the given \mono{node}.</description>
+    <description>
+    Computes the spin of the black hole seed in the given ``node``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="formationChannel">
-    <description>Returns the formation channel of the seed in the given \mono{node}.</description>
+    <description>
+    Returns the formation channel of the seed in the given ``node``.
+    </description>
     <type>type(enumerationBlackHoleFormationChannelType)</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

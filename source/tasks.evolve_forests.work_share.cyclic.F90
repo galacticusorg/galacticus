@@ -20,12 +20,14 @@
   !$ use :: Locks, only : ompLock
 
   !![
-  <evolveForestsWorkShare name="evolveForestsWorkShareCyclic">
-   <description>A forest evolution work sharing class implementing static cyclic assignment, where each worker (MPI rank or OpenMP thread) is pre-assigned a contiguous block of forests offset by the worker index and strided by the total worker count. This gives deterministic, reproducible forest-to-worker mapping at the cost of potentially uneven load balancing.</description>
+  <evolveForestsWorkShare name="evolveForestsWorkShareCyclic" docformat="rst">
+   <description>
+   A forest evolution work sharing class implementing static cyclic assignment, where each worker (MPI rank or OpenMP thread) is pre-assigned a contiguous block of forests offset by the worker index and strided by the total worker count. This gives deterministic, reproducible forest-to-worker mapping at the cost of potentially uneven load balancing.
+   </description>
   </evolveForestsWorkShare>
   !!]
   type, extends(evolveForestsWorkShareClass) :: evolveForestsWorkShareCyclic
-     !!{
+     !!{RST
      Implementation of a forest evolution work sharing class in which forests are assigned by cycling through processes.
      !!}
      private
@@ -37,8 +39,8 @@
   end type evolveForestsWorkShareCyclic
 
   interface evolveForestsWorkShareCyclic
-     !!{
-     Constructors for the \refClass{evolveForestsWorkShareCyclic} forest evolution work sharing class.
+     !!{RST
+     Constructors for the :galacticus-class:`evolveForestsWorkShareCyclic` forest evolution work sharing class.
      !!}
      module procedure cyclicConstructorParameters
      module procedure cyclicConstructorInternal
@@ -47,9 +49,8 @@
 contains
 
   function cyclicConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{evolveForestsWorkShareCyclic} forest evolution work sharing class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the :galacticus-class:`evolveForestsWorkShareCyclic` forest evolution work sharing class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,8 +65,8 @@ contains
   end function cyclicConstructorParameters
 
   function cyclicConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{evolveForestsWorkShareCyclic} forest evolution work sharing class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`evolveForestsWorkShareCyclic` forest evolution work sharing class.
     !!}
     implicit none
     type(evolveForestsWorkShareCyclic) :: self
@@ -77,7 +78,7 @@ contains
   end function cyclicConstructorInternal
 
   function cyclicForestNumber(self,utilizeOpenMPThreads)
-    !!{
+    !!{RST
     Return the number of the next forest to process.
     !!}
     use :: Error, only : Error_Report

@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of the merger tree importer class for ``Sussing Merger Trees'' format merger tree files.
+  !!{RST
+  An implementation of the merger tree importer class for "Sussing Merger Trees" format merger tree files.
   !!}
 
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass
@@ -28,9 +28,11 @@
 
   ! Enumeration of bad value test options
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>sussingBadValueTest</name>
-   <description>Enumeration of comparison operators used to detect invalid or sentinel halo property values in ``Sussing Merger Trees'' files: \mono{lessThan} flags values below a threshold, \mono{greaterThan} flags values above a threshold.</description>
+   <description>
+   Enumeration of comparison operators used to detect invalid or sentinel halo property values in "Sussing Merger Trees" files: ``lessThan`` flags values below a threshold, ``greaterThan`` flags values above a threshold.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <entry label="lessThan"   />
    <entry label="greaterThan"/>
@@ -39,9 +41,11 @@
 
   ! Enumeration of halo mass definitions.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>sussingMassOption</name>
-   <description>Enumeration of halo mass definition options for the ``Sussing Merger Trees'' importer, selecting which mass column to use: \mono{default}, \mono{FoF} (friends-of-friends), \mono{200Mean}, \mono{200Crit}, or \mono{topHat}.</description>
+   <description>
+   Enumeration of halo mass definition options for the "Sussing Merger Trees" importer, selecting which mass column to use: ``default``, ``FoF`` (friends-of-friends), ``200Mean``, ``200Crit``, or ``topHat``.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <entry label="default"/>
    <entry label="FoF"    />
@@ -52,13 +56,15 @@
   !!]
 
   !![
-  <mergerTreeImporter name="mergerTreeImporterSussing" abstract="yes">
-   <description>Importer for merger tree files in the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013}, reading halo properties from N-body simulation snapshots and constructing halo merger histories. Supports spatial subvolume splitting via \mono{[subvolumeCount]} and \mono{[subvolumeIndex]}, with cosmological parameter mismatch handling controlled by \mono{[fatalMismatches]}.</description>
+  <mergerTreeImporter name="mergerTreeImporterSussing" abstract="yes" docformat="rst">
+   <description>
+   Importer for merger tree files in the "Sussing Merger Trees" format :cite:p:`srisawat_sussing_2013`, reading halo properties from N-body simulation snapshots and constructing halo merger histories. Supports spatial subvolume splitting via ``[subvolumeCount]`` and ``[subvolumeIndex]``, with cosmological parameter mismatch handling controlled by ``[fatalMismatches]``.
+   </description>
   </mergerTreeImporter>
   !!]
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterSussing
-     !!{
-     A merger tree importer class for ``Sussing Merger Trees'' format merger tree files \citep{srisawat_sussing_2013}.
+     !!{RST
+     A merger tree importer class for "Sussing Merger Trees" format merger tree files :cite:p:`srisawat_sussing_2013`.
      !!}
      private
      class           (cosmologyParametersClass        ), pointer                    :: cosmologyParameters_     => null()
@@ -86,11 +92,11 @@
      double precision                                                               :: treeSampleRate
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Load the halo data." method="load" />
-       <method description="Return true if the given \mono{x,y,z} position lies within the current subvolume (plus the buffer region if \mono{buffered} is true." method="inSubvolume" />
-       <method description="Return true if the given \mono{x} position lies within the \mono{iSubvolume}$^\mathrm{th}$ subvolume (plus the buffer region if \mono{buffered} is true." method="inSubvolume1D" />
-       <method description="Return true if the given \mono{x} value is bad." method="valueIsBad" />
+       <method description="Return true if the given ``x,y,z`` position lies within the current subvolume (plus the buffer region if ``buffered`` is true." method="inSubvolume" />
+       <method description="Return true if the given ``x`` position lies within the ``iSubvolume``\ :math:`^\mathrm{th}` subvolume (plus the buffer region if ``buffered`` is true." method="inSubvolume1D" />
+       <method description="Return true if the given ``x`` value is bad." method="valueIsBad" />
      </methods>
      !!]
      final     ::                                  sussingDestructor
@@ -132,8 +138,8 @@
 contains
 
   function sussingConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeImporterSussing} format \citep{srisawat_sussing_2013} merger tree importer which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeImporterSussing` format :cite:p:`srisawat_sussing_2013` merger tree importer which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -150,59 +156,77 @@ contains
     type            (varying_string            )                :: badValueTestText      , massOptionText
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fatalMismatches</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether mismatches in cosmological parameter values between \glc\ and ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree files should be considered fatal.</description>
+      <description>
+      Specifies whether mismatches in cosmological parameter values between Galacticus and "Sussing Merger Trees" format :cite:p:`srisawat_sussing_2013` merger tree files should be considered fatal.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fatalNonTreeNode</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether nodes in snapshot files but not in the merger tree file should be considered fatal when importing from the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013}.</description>
+      <description>
+      Specifies whether nodes in snapshot files but not in the merger tree file should be considered fatal when importing from the "Sussing Merger Trees" format :cite:p:`srisawat_sussing_2013`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>subvolumeCount</name>
       <defaultValue>1</defaultValue>
-      <description>Specifies the number of subvolumes \emph{along each axis} into which a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree files should be split for processing through \glc.</description>
+      <description>
+      Specifies the number of subvolumes *along each axis* into which a "Sussing Merger Trees" format :cite:p:`srisawat_sussing_2013` merger tree files should be split for processing through Galacticus.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>subvolumeBuffer</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>Specifies the buffer region (in units of Mpc$/h$ to follow the format convention) around subvolumes of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file which should be read in to ensure that no halos are missed from trees.</description>
+      <description>
+      Specifies the buffer region (in units of Mpc\ :math:`/h` to follow the format convention) around subvolumes of a "Sussing Merger Trees" format :cite:p:`srisawat_sussing_2013` merger tree file which should be read in to ensure that no halos are missed from trees.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>subvolumeIndex</name>
       <defaultValue>[0,0,0]</defaultValue>
-      <description>Specifies the index (in each dimension) of the subvolume of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file to process. Indices range from 0 to \mono{[subvolumeCount]}$-1$.</description>
+      <description>
+      Specifies the index (in each dimension) of the subvolume of a "Sussing Merger Trees" format :cite:p:`srisawat_sussing_2013` merger tree file to process. Indices range from 0 to ``[subvolumeCount]``\ :math:`-1`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>badValue</name>
       <defaultValue>-0.5d0</defaultValue>
-      <description>Use for bad value detection in ``Sussing'' merger trees. Values for scale radius and halo spin which exceed this threshold are assumed to be bad.</description>
+      <description>
+      Use for bad value detection in "Sussing" merger trees. Values for scale radius and halo spin which exceed this threshold are assumed to be bad.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>badValueTest</name>
       <defaultValue>var_str('lessThan')</defaultValue>
-      <description>Use for bad value detection in ``Sussing'' merger trees. Values which exceed the threshold in ths specified direction are assumed to be bad.</description>
+      <description>
+      Use for bad value detection in "Sussing" merger trees. Values which exceed the threshold in ths specified direction are assumed to be bad.
+      </description>
       <source>parameters</source>
       <variable>badValueTestText</variable>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>treeSampleRate</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>Specify the probability that any given tree should processed (to permit subsampling).</description>
+      <description>
+      Specify the probability that any given tree should processed (to permit subsampling).
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massOptions</name>
       <defaultValue>var_str('default')</defaultValue>
-      <description>Mass option for Sussing merger trees.</description>
+      <description>
+      Mass option for Sussing merger trees.
+      </description>
       <source>parameters</source>
       <variable>massOptionText</variable>
     </inputParameter>
@@ -234,8 +258,8 @@ contains
   end function sussingConstructorParameters
 
   function sussingConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_,randomNumberGenerator_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeImporterSussing} format \citep{srisawat_sussing_2013} merger tree importer class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeImporterSussing` format :cite:p:`srisawat_sussing_2013` merger tree importer class.
     !!}
     implicit none
     type            (mergerTreeImporterSussing         )                              :: self
@@ -271,7 +295,7 @@ contains
   end subroutine sussingDestructor
 
   logical function sussingCanReadSubsets(self)
-    !!{
+    !!{RST
     Return false since this format does not permit reading of arbitrary subsets of halos from a forest.
     !!}
     implicit none
@@ -283,7 +307,7 @@ contains
   end function sussingCanReadSubsets
 
   integer function sussingTreesHaveSubhalos(self)
-    !!{
+    !!{RST
     Return a Boolean integer specifying whether or not the trees have subhalos.
     !!}
     use :: Numerical_Constants_Boolean, only : booleanTrue
@@ -296,7 +320,7 @@ contains
   end function sussingTreesHaveSubhalos
 
   logical function sussingMassesIncludeSubhalos(self)
-    !!{
+    !!{RST
     Return a Boolean specifying whether or not the halo masses include the contribution from subhalos.
     !!}
     implicit none
@@ -308,7 +332,7 @@ contains
   end function sussingMassesIncludeSubhalos
 
   logical function sussingAngularMomentaIncludeSubhalos(self)
-    !!{
+    !!{RST
     Return a Boolean specifying whether or not the halo angular momenta include the contribution from subhalos.
     !!}
     implicit none
@@ -320,7 +344,7 @@ contains
   end function sussingAngularMomentaIncludeSubhalos
 
   integer function sussingTreesAreSelfContained(self)
-    !!{
+    !!{RST
     Return a Boolean integer specifying whether or not the trees are self-contained.
     !!}
     use :: Numerical_Constants_Boolean, only : booleanTrue
@@ -333,7 +357,7 @@ contains
   end function sussingTreesAreSelfContained
 
   integer function sussingVelocitiesIncludeHubbleFlow(self)
-    !!{
+    !!{RST
     Return a Boolean integer specifying whether or not velocities include the Hubble flow.
     !!}
     use :: Numerical_Constants_Boolean, only : booleanFalse
@@ -346,7 +370,7 @@ contains
   end function sussingVelocitiesIncludeHubbleFlow
 
   integer function sussingPositionsArePeriodic(self)
-    !!{
+    !!{RST
     Return a Boolean integer specifying whether or not positions are periodic.
     !!}
     use :: Numerical_Constants_Boolean, only : booleanTrue
@@ -359,7 +383,7 @@ contains
   end function sussingPositionsArePeriodic
 
   double precision function sussingCubeLength(self,time,status)
-    !!{
+    !!{RST
     Return the length of the simulation cube.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
@@ -375,7 +399,7 @@ contains
   end function sussingCubeLength
 
   integer(kind=c_size_t) function sussingTreeCount(self)
-    !!{
+    !!{RST
     Return a count of the number of trees available.
     !!}
     implicit none
@@ -387,8 +411,8 @@ contains
   end function sussingTreeCount
 
   integer(kind=c_size_t) function sussingTreeIndex(self,i)
-    !!{
-    Return the index of the $i^\mathrm{th}$ tree.
+    !!{RST
+    Return the index of the :math:`i^\mathrm{th}` tree.
     !!}
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
@@ -400,8 +424,8 @@ contains
   end function sussingTreeIndex
 
   function sussingNodeCount(self,i)
-    !!{
-    Return a count of the number of nodes in the $i^\mathrm{th}$ tree.
+    !!{RST
+    Return a count of the number of nodes in the :math:`i^\mathrm{th}` tree.
     !!}
     implicit none
     integer(c_size_t                 )                :: sussingNodeCount
@@ -414,7 +438,7 @@ contains
   end function sussingNodeCount
 
   subroutine sussingTreeIndicesRead(self)
-    !!{
+    !!{RST
     Read the tree indices.
     !!}
     use            :: Arrays_Search                   , only : searchIndexed
@@ -815,7 +839,7 @@ contains
   end subroutine sussingTreeIndicesRead
 
   double precision function sussingTreeWeight(self,i)
-    !!{
+    !!{RST
     Return the weight to assign to trees.
     !!}
     implicit none
@@ -829,7 +853,7 @@ contains
   end function sussingTreeWeight
 
   logical function sussingPositionsAvailable(self,positions,velocities)
-    !!{
+    !!{RST
     Return true if positions and/or velocities are available.
     !!}
     implicit none
@@ -842,7 +866,7 @@ contains
   end function sussingPositionsAvailable
 
   logical function sussingScaleRadiiAvailable(self)
-    !!{
+    !!{RST
     Return true if scale radii are available.
     !!}
     implicit none
@@ -854,7 +878,7 @@ contains
   end function sussingScaleRadiiAvailable
 
   logical function sussingParticleCountAvailable(self)
-    !!{
+    !!{RST
     Return true if particle counts are available.
     !!}
     implicit none
@@ -866,7 +890,7 @@ contains
   end function sussingParticleCountAvailable
 
   logical function sussingVelocityMaximumAvailable(self)
-    !!{
+    !!{RST
     Return true if halo rotation curve velocity maxima are available.
     !!}
     implicit none
@@ -878,7 +902,7 @@ contains
   end function sussingVelocityMaximumAvailable
 
   logical function sussingVelocityDispersionAvailable(self)
-    !!{
+    !!{RST
     Return true if halo velocity dispersions are available.
     !!}
     implicit none
@@ -890,7 +914,7 @@ contains
   end function sussingVelocityDispersionAvailable
 
   logical function sussingAngularMomentaAvailable(self)
-    !!{
+    !!{RST
     Return true if angular momenta are available.
     !!}
     implicit none
@@ -902,7 +926,7 @@ contains
   end function sussingAngularMomentaAvailable
 
   logical function sussingAngularMomenta3DAvailable(self)
-    !!{
+    !!{RST
     Return true if angular momenta vectors are available.
     !!}
     implicit none
@@ -914,7 +938,7 @@ contains
   end function sussingAngularMomenta3DAvailable
 
   logical function sussingSpinAvailable(self)
-    !!{
+    !!{RST
     Return true if spins are available.
     !!}
     implicit none
@@ -926,7 +950,7 @@ contains
   end function sussingSpinAvailable
 
   logical function sussingSpin3DAvailable(self)
-    !!{
+    !!{RST
     Return true if spins vectors are available.
     !!}
     implicit none
@@ -938,7 +962,7 @@ contains
   end function sussingSpin3DAvailable
 
   subroutine sussingSubhaloTrace(self,node,time,position,velocity)
-    !!{
+    !!{RST
     Returns a trace of subhalo position/velocity.
     !!}
     use :: Error, only : Error_Report
@@ -954,7 +978,7 @@ contains
   end subroutine sussingSubhaloTrace
 
   function sussingSubhaloTraceCount(self,node)
-    !!{
+    !!{RST
     Returns the length of a subhalo trace.
     !!}
     implicit none
@@ -969,8 +993,8 @@ contains
   end function sussingSubhaloTraceCount
 
   subroutine sussingImport(self,i,nodes,nodeSubset,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,structureOnly,requireNamedReals,requireNamedIntegers)
-    !!{
-    Import the $i^\mathrm{th}$ merger tree.
+    !!{RST
+    Import the :math:`i^\mathrm{th}` merger tree.
     !!}
     use :: Error            , only : Error_Report
     implicit none
@@ -1005,7 +1029,7 @@ contains
   end subroutine sussingImport
 
   logical function sussingInSubvolume(self,x,y,z,buffered)
-    !!{
+    !!{RST
     Determine if a point lies within a subvolume of the simulation box (possibly with some buffering).
     !!}
     implicit none
@@ -1023,7 +1047,7 @@ contains
   end function sussingInSubvolume
 
   logical function sussingInSubvolume1D(self,x,iSubvolume,buffered)
-    !!{
+    !!{RST
     Determine if a point lies within the 1-D range of a subvolume of the simulation box (possibly with some buffering).
     !!}
     use :: Numerical_Constants_Astronomical, only : kiloParsec, megaParsec
@@ -1054,7 +1078,7 @@ contains
   end function sussingInSubvolume1D
 
   double precision function sussingPeriodicSeparation(x1,x2,periodicLength)
-    !!{
+    !!{RST
     Determine the separation between two points in a periodic cube.
     !!}
     implicit none
@@ -1071,8 +1095,8 @@ contains
   end function sussingPeriodicSeparation
 
   logical function sussingValueIsBad(self,x)
-    !!{
-    Determine if a value in a ``Sussing'' merger tree file is bad
+    !!{RST
+    Determine if a value in a "Sussing" merger tree file is bad
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -1092,8 +1116,8 @@ contains
   end function sussingValueIsBad
 
   subroutine sussingLoad(self,nodeSelfIndices,nodeIndexRanks,nodeDescendantLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
-    !!{
-    Stub function for the \mono{load} method of the \mono{sussing} merger tree importer.
+    !!{RST
+    Stub function for the ``load`` method of the ``sussing`` merger tree importer.
     !!}
     use :: Error, only : Error_Report
     implicit none

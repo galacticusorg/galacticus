@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus dark energy universe.
   !!}
 
   use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtType
 
   !![
-  <virialDensityContrast name="virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy">
-   <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus dark energy universe.</description>
+  <virialDensityContrast name="virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy" docformat="rst">
+   <description>
+   Dark matter halo virial density contrasts based on the spherical collapse in a matter plus dark energy universe.
+   </description>
   </virialDensityContrast>
   !!]
   type, extends(virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt) :: virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy
-     !!{
+     !!{RST
      A dark matter halo virial density contrast class based on spherical collapse in a matter plus dark energy universe.
      !!}
      private
@@ -38,8 +40,8 @@
   end type virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy
 
   interface virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy
-     !!{
-     Constructors for the \refClass{virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy} dark matter halo virial density contrast class.
+     !!{RST
+     Constructors for the :galacticus-class:`virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy` dark matter halo virial density contrast class.
      !!}
      module procedure sphericalCollapseClsnlssMttrDrkEnrgyConstructorParameters
      module procedure sphericalCollapseClsnlssMttrDrkEnrgyConstructorInternal
@@ -48,8 +50,8 @@
 contains
 
   function sphericalCollapseClsnlssMttrDrkEnrgyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy} dark matter halo virial density contrast class that takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy` dark matter halo virial density contrast class that takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                                , inputParameters
     use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
@@ -61,18 +63,20 @@ contains
     logical                                                                           :: tableStore
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tableStore</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, store/restore the tabulated solution to/from file when possible.</description>
+      <description>
+      If true, store/restore the tabulated solution to/from file when possible.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>energyFixedAt</name>
       <defaultValue>var_str('turnaround')</defaultValue>
-      <description>Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
-        ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
-        \citealt{percival_cosmological_2005}; \S8.)</description>
+      <description>
+      Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be "fixed" for the purposes of computing virial density contrasts. (See the discussion in :cite:author:`percival_cosmological_2005` :cite:year:`percival_cosmological_2005`; Section 8.)
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_" source="parameters"/>
@@ -86,8 +90,8 @@ contains
   end function sphericalCollapseClsnlssMttrDrkEnrgyConstructorParameters
 
   function sphericalCollapseClsnlssMttrDrkEnrgyConstructorInternal(tableStore,energyFixedAt,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy} dark matter halo virial density contrast class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy` dark matter halo virial density contrast class.
     !!}
     use :: Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrDarkEnergy
     implicit none

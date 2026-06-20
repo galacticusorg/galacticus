@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree operator which perturbs halo masses by some error model.
   !!}
 
@@ -25,14 +25,14 @@
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorPerturbMasses">
+  <mergerTreeOperator name="mergerTreeOperatorPerturbMasses" docformat="rst">
    <description>
-    A merger tree operator which perturbs halo masses by some error model.
-  </description>
+   A merger tree operator which perturbs halo masses by some error model.
+   </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPerturbMasses
-     !!{
+     !!{RST
      A merger tree operator class perturbs halo masses by some error model.
      !!}
      private
@@ -44,7 +44,7 @@
   end type mergerTreeOperatorPerturbMasses
 
   interface mergerTreeOperatorPerturbMasses
-     !!{
+     !!{RST
      Constructors for the mass perturbing merger tree operator class.
      !!}
      module procedure perturbMassesConstructorParameters
@@ -54,9 +54,8 @@
 contains
 
   function perturbMassesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the mass perturbing merger tree operator class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the mass perturbing merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,9 +75,8 @@ contains
   end function perturbMassesConstructorParameters
 
   function perturbMassesConstructorInternal(nbodyHaloMassError_) result(self)
-    !!{
-    Constructor for the mass perturbing merger tree operator class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the mass perturbing merger tree operator class which takes a parameter set as input.
     !!}
     implicit none
     type (mergerTreeOperatorPerturbMasses)                         :: self
@@ -92,7 +90,7 @@ contains
   end function perturbMassesConstructorInternal
 
   subroutine perturbMassesDestructor(self)
-    !!{
+    !!{RST
     Destructor for the mass perturbing merger tree operator function class.
     !!}
     implicit none
@@ -105,10 +103,8 @@ contains
   end subroutine perturbMassesDestructor
 
   subroutine perturbMassesOperatePreEvolution(self,tree)
-    !!{
-    Perform a mass perturbing operation on a merger tree. Perturbations are applied to each branch of the tree, and are
-    independent of perturbations in all other branches. Within each branch, the perturbation to each node mass is drawn from a
-    log-normal distribution with variance and correlation specified by the selected N-body statistics class.
+    !!{RST
+    Perform a mass perturbing operation on a merger tree. Perturbations are applied to each branch of the tree, and are independent of perturbations in all other branches. Within each branch, the perturbation to each node mass is drawn from a log-normal distribution with variance and correlation specified by the selected N-body statistics class.
     !!}
     use            :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode
     use, intrinsic :: ISO_C_Binding      , only : c_size_t

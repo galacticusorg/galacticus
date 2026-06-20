@@ -17,23 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+ Contributions to this file made by Sachi Weerasooriya
+  !+ Contributions to this file made by: Sachi Weerasooriya
 
-  !!{
+  !!{RST
   Implementation of a fixed escape fraction from HII regions.
   !!}
 
   !![
-  <hiiRegionEscapeFraction name="hiiRegionEscapeFractionFixed">
+  <hiiRegionEscapeFraction name="hiiRegionEscapeFractionFixed" docformat="rst">
    <description>
-    Computes the escape fraction of hydrogen ionizing photons from HII regions. A fixed escape fraction of
-    $f_\mathrm{esc}$\mono{[escapeFraction]} is assumed for HII regions with ages less than
-    $\tau_\mathrm{limit}=$\mono{{ageLimit}}.
+   Computes the escape fraction of hydrogen ionizing photons from HII regions. A fixed escape fraction of :math:`f_\mathrm{esc}`\ ``[escapeFraction]`` is assumed for HII regions with ages less than :math:`\tau_\mathrm{limit}=`\ ``{ageLimit}``.
    </description>
   </hiiRegionEscapeFraction>
   !!]
   type, extends(hiiRegionEscapeFractionClass) :: hiiRegionEscapeFractionFixed
-     !!{
+     !!{RST
      Implementation of a fixed escape fraction from HII regions.
      !!}
      private
@@ -43,7 +41,7 @@
   end type hiiRegionEscapeFractionFixed
 
   interface hiiRegionEscapeFractionFixed
-     !!{
+     !!{RST
      Constructors for the hiiRegionEscapeFractionFixed for HII region luminosity function class.
      !!}
      module procedure escapeFractionFixedConstructorParameters
@@ -53,9 +51,8 @@
 contains
 
   function escapeFractionFixedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{hiiRegionEscapeFractionFixed} HII region escape fraction class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the :galacticus-class:`hiiRegionEscapeFractionFixed` HII region escape fraction class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -63,16 +60,20 @@ contains
     type            (inputParameters             ), intent(inout) :: parameters
     double precision                                              :: escapeFraction, ageLimit
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>escapeFraction</name>
       <defaultValue>0.006d0</defaultValue>
-      <description> Escape fraction of ionizing photons from young HII regions.</description>
+      <description>
+      Escape fraction of ionizing photons from young HII regions.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>ageLimit</name>
       <defaultValue>0.03d0</defaultValue>
-      <description>The age beyond which all ionizing photons are assumed to escape from HII regions.</description>
+      <description>
+      The age beyond which all ionizing photons are assumed to escape from HII regions.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -84,8 +85,8 @@ contains
   end function escapeFractionFixedConstructorParameters
 
   function escapeFractionFixedConstructorInternal(escapeFraction_,ageLimit) result(self)
-    !!{
-    Internal constructor for the \refClass{hiiRegionEscapeFractionFixed} 
+    !!{RST
+    Internal constructor for the :galacticus-class:`hiiRegionEscapeFractionFixed`
     !!}
     
     implicit none
@@ -99,7 +100,7 @@ contains
   end function escapeFractionFixedConstructorInternal
 
   double precision function escapeFractionFixed(self,ageHIIRegion) result(escapeFraction)
-    !!{
+    !!{RST
     Computes the escape fraction.
     !!}
     implicit none

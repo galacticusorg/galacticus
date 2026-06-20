@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo profile concentrations using the \cite{ludlow_mass-concentration-redshift_2016}
-  fitting function.
+  !!{RST
+  An implementation of dark matter halo profile concentrations using the :cite:t:`ludlow_mass-concentration-redshift_2016` fitting function.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
@@ -29,8 +28,10 @@
   use :: Virial_Density_Contrast   , only : virialDensityContrastFixed
 
   !![
-  <darkMatterProfileConcentration name="darkMatterProfileConcentrationLudlow2016Fit">
-   <description>Dark matter halo concentrations are computed using the fitting function of \cite{ludlow_mass-concentration-redshift_2016}.</description>
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationLudlow2016Fit" docformat="rst">
+   <description>
+   Dark matter halo concentrations are computed using the fitting function of :cite:t:`ludlow_mass-concentration-redshift_2016`.
+   </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
    </deepCopy>
@@ -40,9 +41,8 @@
   </darkMatterProfileConcentration>
   !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationLudlow2016Fit
-     !!{
-     A dark matter halo profile concentration class implementing the fitting function of
-     \cite{ludlow_mass-concentration-redshift_2016}.
+     !!{RST
+     A dark matter halo profile concentration class implementing the fitting function of :cite:t:`ludlow_mass-concentration-redshift_2016`.
      !!}
      private
      class(cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_              => null()
@@ -58,8 +58,8 @@
   end type darkMatterProfileConcentrationLudlow2016Fit
 
   interface darkMatterProfileConcentrationLudlow2016Fit
-     !!{
-     Constructors for the \refClass{darkMatterProfileConcentrationLudlow2016Fit} dark matter halo profile concentration class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationLudlow2016Fit` dark matter halo profile concentration class.
      !!}
      module procedure ludlow2016FitConstructorParameters
      module procedure ludlow2016FitConstructorInternal
@@ -68,8 +68,8 @@
 contains
 
   function ludlow2016FitConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{ludlow2016Fit} dark matter halo profile concentration class.
+    !!{RST
+    Default constructor for the ``ludlow2016Fit`` dark matter halo profile concentration class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,8 +95,8 @@ contains
   end function ludlow2016FitConstructorParameters
 
   function ludlow2016FitConstructorInternal(cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileConcentrationLudlow2016Fit} dark matter halo profile concentration class.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationLudlow2016Fit` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
@@ -147,8 +147,8 @@ contains
   end function ludlow2016FitConstructorInternal
 
   subroutine ludlow2016FitDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileConcentrationLudlow2016Fit} dark matter halo profile concentration class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationLudlow2016Fit` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationLudlow2016Fit), intent(inout) :: self
@@ -164,9 +164,8 @@ contains
   end subroutine ludlow2016FitDestructor
 
   double precision function ludlow2016FitConcentration(self,node)
-    !!{
-    Return the concentration of the dark matter halo profile of \mono{node} using the
-    \cite{ludlow_mass-concentration-redshift_2016} fitting function.
+    !!{RST
+    Return the concentration of the dark matter halo profile of ``node`` using the :cite:t:`ludlow_mass-concentration-redshift_2016` fitting function.
     !!}
     use :: Error, only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic     , treeNode
@@ -203,9 +202,8 @@ contains
   end function ludlow2016FitConcentration
 
   function ludlow2016FitDensityContrastDefinition(self)
-    !!{
-    Return a virial density contrast object defining that used in the definition of concentration in the
-    \cite{diemer_universal_2014} algorithm.
+    !!{RST
+    Return a virial density contrast object defining that used in the definition of concentration in the :cite:t:`diemer_universal_2014` algorithm.
     !!}
     implicit none
     class(virialDensityContrastClass                 ), pointer       :: ludlow2016FitDensityContrastDefinition
@@ -216,9 +214,8 @@ contains
   end function ludlow2016FitDensityContrastDefinition
 
   function ludlow2016FitDarkMatterProfileDefinition(self)
-    !!{
-    Return a dark matter density profile object defining that used in the definition of concentration in the
-    \cite{ludlow_mass-concentration-redshift_2016} algorithm.
+    !!{RST
+    Return a dark matter density profile object defining that used in the definition of concentration in the :cite:t:`ludlow_mass-concentration-redshift_2016` algorithm.
     !!}
     implicit none
     class(darkMatterProfileDMOClass                  ), pointer       :: ludlow2016FitDarkMatterProfileDefinition

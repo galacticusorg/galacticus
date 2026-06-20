@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of virial orbits using the \cite{li_orbital_2020} orbital parameter distribution.
+  !!{RST
+  An implementation of virial orbits using the :cite:t:`li_orbital_2020` orbital parameter distribution.
   !!}
 
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
@@ -29,8 +29,10 @@
   use :: Virial_Density_Contrast   , only : virialDensityContrastBryanNorman1998, virialDensityContrastClass
 
   !![
-  <virialOrbit name="virialOrbitLi2020">
-   <description>A virial orbit class that draws satellite infall orbital parameters from the bimodal velocity distribution of \cite{li_orbital_2020} calibrated from cosmological N-body simulations. The distribution shape parameters $\mu_1$, $\mu_2$, $\sigma_1$, and $a_0$ can be set to tabulated or custom values.</description>
+  <virialOrbit name="virialOrbitLi2020" docformat="rst">
+   <description>
+   A virial orbit class that draws satellite infall orbital parameters from the bimodal velocity distribution of :cite:t:`li_orbital_2020` calibrated from cosmological N-body simulations. The distribution shape parameters :math:`\mu_1`, :math:`\mu_2`, :math:`\sigma_1`, and :math:`a_0` can be set to tabulated or custom values.
+   </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_"/>
    </deepCopy>
@@ -40,8 +42,8 @@
   </virialOrbit>
   !!]
   type, extends(virialOrbitClass) :: virialOrbitLi2020
-     !!{
-     A virial orbit class using the \cite{li_orbital_2020} orbital parameter distribution.
+     !!{RST
+     A virial orbit class using the :cite:t:`li_orbital_2020` orbital parameter distribution.
      !!}
      private
      class           (darkMatterHaloScaleClass            ), pointer :: darkMatterHaloScale_             => null()
@@ -60,8 +62,8 @@
      logical                                                         :: propagateOrbits
    contains
      !![
-     <methods>
-       <method description="Evaluate the $\eta$ parameter of the \cite{li_orbital_2020} virial orbit distribution function." method="eta"/>
+     <methods docformat="rst">
+       <method description="Evaluate the :math:`\eta` parameter of the :cite:t:`li_orbital_2020` virial orbit distribution function." method="eta"/>
      </methods>
      !!]
      final     ::                                    li2020Destructor
@@ -78,8 +80,8 @@
   end type virialOrbitLi2020
 
   interface virialOrbitLi2020
-     !!{
-     Constructors for the \refClass{virialOrbitLi2020} virial orbits class.
+     !!{RST
+     Constructors for the :galacticus-class:`virialOrbitLi2020` virial orbits class.
      !!}
      module procedure li2020ConstructorParameters
      module procedure li2020ConstructorInternal
@@ -88,8 +90,8 @@
 contains
 
   function li2020ConstructorParameters(parameters) result(self)
-    !!{
-    Internal constructor for the \refClass{virialOrbitLi2020} virial orbits class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`virialOrbitLi2020` virial orbits class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -110,81 +112,123 @@ contains
     logical                                                        :: propagateOrbits
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mu1</name>
       <defaultValue>1.20d0</defaultValue>
-      <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
+      <defaultSource>
+      :cite:p:`li_orbital_2020`
+      </defaultSource>
       <source>parameters</source>
-      <description>Values of the $\mu_1$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
+      <description>
+      Values of the :math:`\mu_1` parameter of the :cite:t:`li_orbital_2020` orbital velocity distribution.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mu2</name>
       <defaultValue>1.04d0</defaultValue>
-      <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
+      <defaultSource>
+      :cite:p:`li_orbital_2020`
+      </defaultSource>
       <source>parameters</source>
-      <description>Values of the $\mu_2$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
+      <description>
+      Values of the :math:`\mu_2` parameter of the :cite:t:`li_orbital_2020` orbital velocity distribution.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sigma1</name>
       <defaultValue>0.20d0</defaultValue>
-      <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
+      <defaultSource>
+      :cite:p:`li_orbital_2020`
+      </defaultSource>
       <source>parameters</source>
-      <description>Values of the $\sigma_1$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
+      <description>
+      Values of the :math:`\sigma_1` parameter of the :cite:t:`li_orbital_2020` orbital velocity distribution.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>a0</name>
       <defaultValue>0.89d0</defaultValue>
-      <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
+      <defaultSource>
+      :cite:p:`li_orbital_2020`
+      </defaultSource>
       <source>parameters</source>
-      <description>Values of the $a_0$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
+      <description>
+      Values of the :math:`a_0` parameter of the :cite:t:`li_orbital_2020` orbital velocity distribution.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>a1</name>
       <defaultValue>0.30d0</defaultValue>
-      <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
+      <defaultSource>
+      :cite:p:`li_orbital_2020`
+      </defaultSource>
       <source>parameters</source>
-      <description>Values of the $a_1$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
+      <description>
+      Values of the :math:`a_1` parameter of the :cite:t:`li_orbital_2020` orbital velocity distribution.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>a2</name>
       <defaultValue>-3.33d0</defaultValue>
-      <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
+      <defaultSource>
+      :cite:p:`li_orbital_2020`
+      </defaultSource>
       <source>parameters</source>
-      <description>Values of the $a_2$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
+      <description>
+      Values of the :math:`a_2` parameter of the :cite:t:`li_orbital_2020` orbital velocity distribution.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>a3</name>
       <defaultValue>0.56d0</defaultValue>
-      <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
+      <defaultSource>
+      :cite:p:`li_orbital_2020`
+      </defaultSource>
       <source>parameters</source>
-      <description>Values of the $a_3$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
+      <description>
+      Values of the :math:`a_3` parameter of the :cite:t:`li_orbital_2020` orbital velocity distribution.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>b1</name>
       <defaultValue>-1.44d0</defaultValue>
-      <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
+      <defaultSource>
+      :cite:p:`li_orbital_2020`
+      </defaultSource>
       <source>parameters</source>
-      <description>Values of the $b_1$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
+      <description>
+      Values of the :math:`b_1` parameter of the :cite:t:`li_orbital_2020` orbital velocity distribution.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>b2</name>
       <defaultValue>9.60d0</defaultValue>
-      <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
+      <defaultSource>
+      :cite:p:`li_orbital_2020`
+      </defaultSource>
       <source>parameters</source>
-      <description>Values of the $b_2$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
+      <description>
+      Values of the :math:`b_2` parameter of the :cite:t:`li_orbital_2020` orbital velocity distribution.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>c</name>
       <defaultValue>0.43d0</defaultValue>
-      <defaultSource>\citep[][Table~2]{li_orbital_2020}</defaultSource>
+      <defaultSource>
+      :cite:p:`li_orbital_2020`
+      </defaultSource>
       <source>parameters</source>
-      <description>Values of the $c$ parameter of the \cite{li_orbital_2020} orbital velocity distribution.</description>
+      <description>
+      Values of the :math:`c` parameter of the :cite:t:`li_orbital_2020` orbital velocity distribution.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propagateOrbits</name>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
-      <description>If true, orbits will be propagated to the virial radius of the host halo. Otherwise, no propagation is performed and orbital velocities will correspond to precisely those from the \cite{li_orbital_2020} orbital velocity distribution.</description>
+      <description>
+      If true, orbits will be propagated to the virial radius of the host halo. Otherwise, no propagation is performed and orbital velocities will correspond to precisely those from the :cite:t:`li_orbital_2020` orbital velocity distribution.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
@@ -209,8 +253,8 @@ contains
   end function li2020ConstructorParameters
 
   function li2020ConstructorInternal(mu1,mu2,sigma1,a0,a1,a2,a3,b1,b2,c,propagateOrbits,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{virialOrbitLi2020} virial orbits class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`virialOrbitLi2020` virial orbits class.
     !!}
     implicit none
     type            (virialOrbitLi2020            )                             :: self
@@ -248,8 +292,8 @@ contains
   end function li2020ConstructorInternal
 
   subroutine li2020Destructor(self)
-    !!{
-    Destructor for the \refClass{virialOrbitLi2020} virial orbits class.
+    !!{RST
+    Destructor for the :galacticus-class:`virialOrbitLi2020` virial orbits class.
     !!}
     implicit none
     type(virialOrbitLi2020), intent(inout) :: self
@@ -268,7 +312,7 @@ contains
   end subroutine li2020Destructor
 
   function li2020Orbit(self,node,host,acceptUnboundOrbits)
-    !!{
+    !!{RST
     Return li2020 orbital parameters for a satellite.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -389,8 +433,8 @@ contains
   end function li2020Orbit
 
   function li2020DensityContrastDefinition(self)
-    !!{
-    Return a virial density contrast object defining that used in the definition of \cite{li_orbital_2020} virial orbits.
+    !!{RST
+    Return a virial density contrast object defining that used in the definition of :cite:t:`li_orbital_2020` virial orbits.
     !!}
     implicit none
     class(virialDensityContrastClass), pointer       :: li2020DensityContrastDefinition
@@ -401,7 +445,7 @@ contains
   end function li2020DensityContrastDefinition
 
   function li2020VelocityDistributionFunction(self,node,host,velocityRadial,velocityTangential) result(distributionFunction)
-    !!{
+    !!{RST
     Return the orbital velocity distribution function.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -501,7 +545,7 @@ contains
   end function li2020VelocityDistributionFunction
 
   double precision function li2020VelocityTangentialMagnitudeMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean magnitude of the tangential velocity.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -556,7 +600,7 @@ contains
   contains
 
     double precision function integrandVelocityTotal(velocityTotal)
-      !!{
+      !!{RST
       Integrand for the total velocity distribution function.
       !!}
       use :: Numerical_Constants_Math, only : Pi
@@ -593,7 +637,7 @@ contains
   end function li2020VelocityTangentialMagnitudeMean
 
   function li2020VelocityTangentialVectorMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean of the vector tangential velocity.
     !!}
     use :: Error, only : Error_Report
@@ -609,7 +653,7 @@ contains
   end function li2020VelocityTangentialVectorMean
 
   double precision function li2020AngularMomentumMagnitudeMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean magnitude of the angular momentum.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -648,7 +692,7 @@ contains
   end function li2020AngularMomentumMagnitudeMean
 
   function li2020AngularMomentumVectorMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean of the vector angular momentum.
     !!}
     use :: Error, only : Error_Report
@@ -664,7 +708,7 @@ contains
   end function li2020AngularMomentumVectorMean
 
   double precision function li2020VelocityTotalRootMeanSquared(self,node,host)
-    !!{
+    !!{RST
     Return the root mean squared total velocity.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -710,7 +754,7 @@ contains
   end function li2020VelocityTotalRootMeanSquared
 
   double precision function li2020EnergyMean(self,node,host)
-    !!{
+    !!{RST
     Return the mean energy of the orbits.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -749,8 +793,8 @@ contains
   end function li2020EnergyMean
 
   double precision function li2020Eta(self,nodeHost,massSatellite,massHost,velocityTotalInternal)
-    !!{
-    Evaluate the $\eta$ parameter used in the definition of \cite{li_orbital_2020} virial orbits.
+    !!{RST
+    Evaluate the :math:`\eta` parameter used in the definition of :cite:t:`li_orbital_2020` virial orbits.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none

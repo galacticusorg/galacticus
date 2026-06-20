@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that records properties of galaxies in every galaxy's merger tree.
   !!}
 
   use :: Node_Property_Extractors, only : multiExtractorList
   
   !![
-  <nodeOperator name="nodeOperatorGalaxyMergerTree">
-   <description>A node operator class that outputs a time-series of galaxy properties along each merger tree branch at regular intervals of \mono{timeStep} Gyr, enabling reconstruction of complete evolutionary histories for post-processing. The set of properties to record is specified via a list of \refClass{nodePropertyExtractorClass} objects. Node indices, branch identifiers, and merger information are also recorded to allow reconstruction of the full tree topology.</description>
+  <nodeOperator name="nodeOperatorGalaxyMergerTree" docformat="rst">
+   <description>
+   A node operator class that outputs a time-series of galaxy properties along each merger tree branch at regular intervals of ``timeStep`` Gyr, enabling reconstruction of complete evolutionary histories for post-processing. The set of properties to record is specified via a list of :galacticus-class:`nodePropertyExtractorClass` objects. Node indices, branch identifiers, and merger information are also recorded to allow reconstruction of the full tree topology.
+   </description>
    <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_" objectType="nodePropertyExtractorClass" module="Node_Property_Extractors"/>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorGalaxyMergerTree
-     !!{
+     !!{RST
      A node operator class that records properties of galaxies in every galaxy's merger tree.
      !!}
      private
@@ -43,7 +45,7 @@
      double precision                     :: timeStep
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="initialize" description="Initialize galaxy merger tree meta-properties."/>
        <method method="record"     description="Record a step in the merger tree."             />
      </methods>
@@ -57,8 +59,8 @@
   end type nodeOperatorGalaxyMergerTree
   
   interface nodeOperatorGalaxyMergerTree
-     !!{
-     Constructors for the \refClass{nodeOperatorGalaxyMergerTree} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorGalaxyMergerTree` node operator class.
      !!}
      module procedure galaxyMergerTreeConstructorParameters
      module procedure galaxyMergerTreeConstructorInternal
@@ -67,8 +69,8 @@
 contains
 
   function galaxyMergerTreeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorGalaxyMergerTree} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorGalaxyMergerTree` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -78,10 +80,12 @@ contains
     integer                                              :: i
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeStep</name>
       <variable>self%timestep</variable>
-      <description>The minimum timestep at which to record galaxy properties.</description>
+      <description>
+      The minimum timestep at which to record galaxy properties.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -107,8 +111,8 @@ contains
   end function galaxyMergerTreeConstructorParameters
 
   function galaxyMergerTreeConstructorInternal(timeStep,extractors) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorGalaxyMergerTree} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorGalaxyMergerTree` node operator class.
     !!}
     implicit none
     type            (nodeOperatorGalaxyMergerTree)                         :: self
@@ -132,7 +136,7 @@ contains
   end function galaxyMergerTreeConstructorInternal
 
   subroutine galaxyMergerTreeInitialize(self)
-    !!{
+    !!{RST
     Initialize meta-properties needed for galaxy merger trees.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
@@ -161,7 +165,7 @@ contains
   end subroutine galaxyMergerTreeInitialize
 
   subroutine galaxyMergerTreeAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent, openMPThreadBindingAtLevel
@@ -173,8 +177,8 @@ contains
   end subroutine galaxyMergerTreeAutoHook
   
   subroutine galaxyMergerTreeDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorGalaxyMergerTree} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorGalaxyMergerTree` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent
     implicit none
@@ -197,7 +201,7 @@ contains
   end subroutine galaxyMergerTreeDestructor
 
   subroutine galaxyMergerTreeDifferentialEvolutionPost(self,node)
-    !!{
+    !!{RST
     Operate on the node after differential evolution.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -217,7 +221,7 @@ contains
   end subroutine galaxyMergerTreeDifferentialEvolutionPost
   
   subroutine galaxyMergerTreeRecord(self,node)
-    !!{
+    !!{RST
     Record a new time in the merger tree.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -271,7 +275,7 @@ contains
   end subroutine galaxyMergerTreeRecord
   
   subroutine satelliteMerger(self,node)
-    !!{
+    !!{RST
     Record galaxy-galaxy merges and combine trees.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -343,8 +347,8 @@ contains
   end subroutine satelliteMerger
 
   subroutine galaxyMergerTreeDeepCopy(self,destination)
-    !!{
-    Deep copy a \mono{nodeOperatorGalaxyMergerTree} object.
+    !!{RST
+    Deep copy a ``nodeOperatorGalaxyMergerTree`` object.
     !!}
     use :: Node_Property_Extractor_Galaxy_Merger_Trees, only : nodePropertyExtractorGalaxyMergerTreeCount, nodePropertyExtractorGalaxyMergerTree_
     implicit none

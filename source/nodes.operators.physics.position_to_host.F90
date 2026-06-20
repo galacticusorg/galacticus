@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that relocates subhalos to the position of their host.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorPositionToHost">
-   <description>Sets the position of a satellite subhalo equal to the position of its host halo center, used when detailed orbital tracking is not required and satellites are assumed to reside at the host center for simplified environmental analyses.</description>
+  <nodeOperator name="nodeOperatorPositionToHost" docformat="rst">
+   <description>
+   Sets the position of a satellite subhalo equal to the position of its host halo center, used when detailed orbital tracking is not required and satellites are assumed to reside at the host center for simplified environmental analyses.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorPositionToHost
-     !!{
+     !!{RST
      A node operator class that relocates subhalos to the position of their host.
      !!}
      private
@@ -38,8 +40,8 @@
   end type nodeOperatorPositionToHost
   
   interface nodeOperatorPositionToHost
-     !!{
-     Constructors for the \refClass{nodeOperatorPositionToHost} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorPositionToHost` node operator class.
      !!}
      module procedure positionToHostConstructorParameters
   end interface nodeOperatorPositionToHost
@@ -47,8 +49,8 @@
 contains
   
   function positionToHostConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorPositionToHost} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorPositionToHost` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,7 +65,7 @@ contains
   end function positionToHostConstructorParameters
 
   subroutine positionToHostAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : openMPThreadBindingAtLevel, satelliteHostChangeEvent
@@ -75,8 +77,8 @@ contains
   end subroutine positionToHostAutoHook
 
   subroutine positionToHostDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorPositionToHost} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorPositionToHost` node operator class.
     !!}
     use :: Events_Hooks, only : openMPThreadBindingAtLevel, satelliteHostChangeEvent
     implicit none
@@ -87,7 +89,7 @@ contains
   end subroutine positionToHostDestructor
 
   subroutine positionToHostSatelliteHostChange(self,node)
-    !!{
+    !!{RST
     Update the maximum host mass of this node in response to a change in host.
     !!}
     use :: Error, only : Error_Report
@@ -105,7 +107,7 @@ contains
   end subroutine positionToHostSatelliteHostChange
   
   subroutine positionToHostNodePromote(self,node)
-    !!{
+    !!{RST
     Relocate any subhalos to the position of the new node on node promotion.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentPosition
@@ -127,7 +129,7 @@ contains
   end subroutine positionToHostNodePromote
 
   subroutine positionToHostNodesMerge(self,node)
-    !!{
+    !!{RST
     Relocate the position of the node to that of its host on a node merger.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentPosition

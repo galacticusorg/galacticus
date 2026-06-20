@@ -17,14 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which downloads content from a supplied URL (or list of URLs).
 !!}
 
 module System_Download
-  !!{
-  Downloads content from a supplied URL. A scalar URL may be provided, or a 1D array of URLs to be tried in turn---if the
-  download from one URL fails, the next is used as a fallback.
+  !!{RST
+  Downloads content from a supplied URL. A scalar URL may be provided, or a 1D array of URLs to be tried in turn---if the download from one URL fails, the next is used as a fallback.
   !!}
   implicit none
   private
@@ -48,7 +47,7 @@ module System_Download
 contains
 
   subroutine downloadInitialize()
-    !!{
+    !!{RST
     Determine which downloaders are available.
     !!}
     use :: Error         , only : errorStatusSuccess
@@ -71,8 +70,8 @@ contains
   end subroutine downloadInitialize
 
   subroutine downloadVarStrVarStr(url,outputFileName,retries,retryWait,timeout,status)
-    !!{
-    Download content from the given {\normalfont url} to the given \mono{outputFileName}.
+    !!{RST
+    Download content from the given url to the given ``outputFileName``.
     !!}
     use :: ISO_Varying_String, only : char, varying_string
     implicit none
@@ -88,8 +87,8 @@ contains
   end subroutine downloadVarStrVarStr
 
   subroutine downloadVarStrChar(url,outputFileName,retries,retryWait,timeout,status)
-    !!{
-    Download content from the given {\normalfont url} to the given \mono{outputFileName}.
+    !!{RST
+    Download content from the given url to the given ``outputFileName``.
     !!}
     use :: ISO_Varying_String, only : varying_string
     implicit none
@@ -106,8 +105,8 @@ contains
   end subroutine downloadVarStrChar
 
   subroutine downloadCharVarStr(url,outputFileName,retries,retryWait,timeout,status)
-    !!{
-    Download content from the given {\normalfont url} to the given \mono{outputFileName}.
+    !!{RST
+    Download content from the given url to the given ``outputFileName``.
     !!}
     use :: ISO_Varying_String, only : char, var_str, varying_string, assignment(=)
     implicit none
@@ -124,8 +123,8 @@ contains
   end subroutine downloadCharVarStr
 
   subroutine downloadCharChar(url,outputFileName,retries,retryWait,timeout,status)
-    !!{
-    Download content from the given {\normalfont url} to the given \mono{outputFileName}.
+    !!{RST
+    Download content from the given url to the given ``outputFileName``.
     !!}
     use :: ISO_Varying_String, only : varying_string, assignment(=)
     implicit none
@@ -141,8 +140,8 @@ contains
   end subroutine downloadCharChar
 
   subroutine downloadVarStrArrayVarStr(url,outputFileName,retries,retryWait,timeout,status)
-    !!{
-    Download content from the first available URL in {\normalfont url} to the given \mono{outputFileName}.
+    !!{RST
+    Download content from the first available URL in url to the given ``outputFileName``.
     !!}
     use :: ISO_Varying_String, only : char, varying_string
     implicit none
@@ -157,8 +156,8 @@ contains
   end subroutine downloadVarStrArrayVarStr
 
   subroutine downloadVarStrArrayChar(url,outputFileName,retries,retryWait,timeout,status)
-    !!{
-    Download content from the first available URL in {\normalfont url} to the given \mono{outputFileName}.
+    !!{RST
+    Download content from the first available URL in url to the given ``outputFileName``.
     !!}
     use :: ISO_Varying_String, only : varying_string
     implicit none
@@ -173,8 +172,8 @@ contains
   end subroutine downloadVarStrArrayChar
 
   subroutine downloadCharArrayVarStr(url,outputFileName,retries,retryWait,timeout,status)
-    !!{
-    Download content from the first available URL in {\normalfont url} to the given \mono{outputFileName}.
+    !!{RST
+    Download content from the first available URL in url to the given ``outputFileName``.
     !!}
     use :: ISO_Varying_String, only : char, varying_string, assignment(=)
     implicit none
@@ -194,8 +193,8 @@ contains
   end subroutine downloadCharArrayVarStr
 
   subroutine downloadCharArrayChar(url,outputFileName,retries,retryWait,timeout,status)
-    !!{
-    Download content from the first available URL in {\normalfont url} to the given \mono{outputFileName}.
+    !!{RST
+    Download content from the first available URL in url to the given ``outputFileName``.
     !!}
     use :: ISO_Varying_String, only : varying_string, assignment(=)
     implicit none
@@ -215,10 +214,8 @@ contains
   end subroutine downloadCharArrayChar
 
   subroutine downloadMultiple(url,outputFileName,retries,retryWait,timeout,status)
-    !!{
-    Download content to the given \mono{outputFileName}, trying each URL in {\normalfont url} in turn. If the download from one
-    URL fails (even after any retries), the next URL is used as a fallback. The download is considered successful as soon as any
-    URL succeeds.
+    !!{RST
+    Download content to the given ``outputFileName``, trying each URL in url in turn. If the download from one URL fails (even after any retries), the next URL is used as a fallback. The download is considered successful as soon as any URL succeeds.
     !!}
     use :: Error             , only : Error_Report     , errorStatusFail, errorStatusSuccess
     use :: File_Utilities    , only : File_Exists      , File_Remove

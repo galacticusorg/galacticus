@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger progenitor properties class which uses a simple calculation.
   !!}
 
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
 
   !![
-  <mergerProgenitorProperties name="mergerProgenitorPropertiesSimple">
-   <description>A merger progenitor properties class which uses a simple calculation.</description>
+  <mergerProgenitorProperties name="mergerProgenitorPropertiesSimple" docformat="rst">
+   <description>
+   A merger progenitor properties class which uses a simple calculation.
+   </description>
   </mergerProgenitorProperties>
   !!]
   type, extends(mergerProgenitorPropertiesClass) :: mergerProgenitorPropertiesSimple
-     !!{
+     !!{RST
      A merger progenitor properties class which uses a simple calculation.
      !!}
      private
@@ -40,8 +42,8 @@
   end type mergerProgenitorPropertiesSimple
 
   interface mergerProgenitorPropertiesSimple
-     !!{
-     Constructors for the \refClass{mergerProgenitorPropertiesSimple} merger progenitor properties class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerProgenitorPropertiesSimple` merger progenitor properties class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -50,8 +52,8 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerProgenitorPropertiesSimple} merger progenitor properties class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerProgenitorPropertiesSimple` merger progenitor properties class which takes a parameter list as input.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Error_Report        , Component_List
@@ -111,8 +113,8 @@ contains
   end function simpleConstructorParameters
 
  function simpleConstructorInternal(mergerMassMovements_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerProgenitorPropertiesSimple} merger progenitor properties class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerProgenitorPropertiesSimple` merger progenitor properties class.
     !!}
     implicit none
     type (mergerProgenitorPropertiesSimple)                        :: self
@@ -125,8 +127,8 @@ contains
   end function simpleConstructorInternal
 
   subroutine simpleDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerProgenitorPropertiesSimple} merger progenitor properties class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerProgenitorPropertiesSimple` merger progenitor properties class.
     !!}
     implicit none
     type(mergerProgenitorPropertiesSimple), intent(inout) :: self
@@ -138,7 +140,7 @@ contains
   end subroutine simpleDestructor
 
   subroutine simpleGet(self,nodeSatellite,nodeHost,massSatellite,massHost,massSpheroidSatellite,massSpheroidHost,massSpheroidHostPreMerger,radiusSatellite,radiusHost,factorAngularMomentum,massSpheroidRemnant,massGasSpheroidRemnant)
-    !!{
+    !!{RST
     Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
     !!}
     use :: Galactic_Structure_Options      , only : massTypeGalactic

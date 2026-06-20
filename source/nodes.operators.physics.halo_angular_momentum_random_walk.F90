@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that initializes halo angular momenta using a random walk in angular momentum.
   !!}
 
@@ -26,23 +26,20 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <nodeOperator name="nodeOperatorHaloAngularMomentumRandomWalk">
+  <nodeOperator name="nodeOperatorHaloAngularMomentumRandomWalk" docformat="rst">
    <description>
-    A node operator class that initializes halo spins using a random walk in angular momentum. The three components of the
-    angular momentum vector are treated as independent Wiener processes with time-dependent variance. Specifically, each
-    component of the angular momentum vector obeys:
-    \begin{equation}
-     J_\mathrm{i}(t_2) = J_\mathrm{i}(t_1) + \left[ \sigma^2 \left( J_\mathrm{v}^2(t_2) - J_\mathrm{v}^2(t_1) \right) \right]^{1/2} N(0,1)
-    \end{equation}
-    where $J_\mathrm{v}(t) = M_\mathrm{v}(t) V_\mathrm{v}(t) R_\mathrm{v}(t)$ is the characteristic virial angular momentum,
-    $M_\mathrm{v}(t)$, $V_\mathrm{v}(t)$, and $R_\mathrm{v}(t)$ are the virial mass, velocity, and radius respectively,
-    $\sigma^2$ represents the variance in angular momentum per unit increase in $J_\mathrm{v}^2$, and $N(0,1)$ is a random
-    variable distributed as a standard normal.
+   A node operator class that initializes halo spins using a random walk in angular momentum. The three components of the angular momentum vector are treated as independent Wiener processes with time-dependent variance. Specifically, each component of the angular momentum vector obeys:
+
+   .. math::
+
+      J_\mathrm{i}(t_2) = J_\mathrm{i}(t_1) + \left[ \sigma^2 \left( J_\mathrm{v}^2(t_2) - J_\mathrm{v}^2(t_1) \right) \right]^{1/2} N(0,1)
+
+   where :math:`J_\mathrm{v}(t) = M_\mathrm{v}(t) V_\mathrm{v}(t) R_\mathrm{v}(t)` is the characteristic virial angular momentum, :math:`M_\mathrm{v}(t)`, :math:`V_\mathrm{v}(t)`, and :math:`R_\mathrm{v}(t)` are the virial mass, velocity, and radius respectively, :math:`\sigma^2` represents the variance in angular momentum per unit increase in :math:`J_\mathrm{v}^2`, and :math:`N(0,1)` is a random variable distributed as a standard normal.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorHaloAngularMomentumRandomWalk
-     !!{
+     !!{RST
      A node operator class that initializes halo spins using a random walk in angular momentum.
      !!}
      private
@@ -56,8 +53,8 @@
   end type nodeOperatorHaloAngularMomentumRandomWalk
   
   interface nodeOperatorHaloAngularMomentumRandomWalk
-     !!{
-     Constructors for the \refClass{nodeOperatorHaloAngularMomentumRandomWalk} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorHaloAngularMomentumRandomWalk` node operator class.
      !!}
      module procedure haloAngularMomentumRandomWalkConstructorParameters
      module procedure haloAngularMomentumRandomWalkConstructorInternal
@@ -66,8 +63,8 @@
 contains
   
   function haloAngularMomentumRandomWalkConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorHaloAngularMomentumRandomWalk} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorHaloAngularMomentumRandomWalk` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -79,9 +76,11 @@ contains
     double precision                                                           :: angularMomentumVarianceSpecific
      
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>angularMomentumVarianceSpecific</name>
-      <description>The variance in the difference in the angular momentum of a halo per unit mass growth.</description>
+      <description>
+      The variance in the difference in the angular momentum of a halo per unit mass growth.
+      </description>
       <source>parameters</source>
       <defaultValue>0.0029d0</defaultValue>
     </inputParameter>
@@ -100,8 +99,8 @@ contains
   end function haloAngularMomentumRandomWalkConstructorParameters
 
   function haloAngularMomentumRandomWalkConstructorInternal(angularMomentumVarianceSpecific,haloSpinDistribution_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorHaloAngularMomentumRandomWalk} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorHaloAngularMomentumRandomWalk` node operator class.
     !!}
     implicit none
     type            (nodeOperatorHaloAngularMomentumRandomWalk)                        :: self
@@ -117,8 +116,8 @@ contains
   end function haloAngularMomentumRandomWalkConstructorInternal
 
   subroutine haloAngularMomentumRandomWalkDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorHaloAngularMomentumRandomWalk} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorHaloAngularMomentumRandomWalk` node operator class.
     !!}
     implicit none
     type(nodeOperatorHaloAngularMomentumRandomWalk), intent(inout) :: self
@@ -132,7 +131,7 @@ contains
   end subroutine haloAngularMomentumRandomWalkDestructor
 
   subroutine haloAngularMomentumRandomWalkNodeInitialize(self,node)
-    !!{
+    !!{RST
     Assign a randomly-drawn spin to a node.
     !!}
     use :: Galacticus_Nodes      , only : nodeComponentBasic                     , nodeComponentSpin

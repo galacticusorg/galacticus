@@ -17,37 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling likelihood class which implements a multivariate normal likelihood.
   !!}
 
   use :: Linear_Algebra, only : matrix, vector
 
   !![
-  <posteriorSampleLikelihood name="posteriorSampleLikelihoodMultivariateNormal">
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodMultivariateNormal" docformat="rst">
    <description>
-    The likelihood is a simple multivariate Gaussian, intended primarily for testing purposes. The distribution parameters are
-    specified within the \mono{likelihood} element using:
-    \begin{verbatim}
-      &lt;mean>0.45 0.50&lt;/mean>
-      &lt;covariance>
-        &lt;row>1.0e-4 -0.9e-4&lt;/row>
-        &lt;row>-0.9e-4 1.0e-4&lt;/row>
-      &lt;/covariance>
-    \end{verbatim}
-    where the \mono{mean} element gives the mean vector of $N$ elements, and the \mono{covariance}
-    element contains $N$ \mono{row} elements each containing a vector of $N$ elements giving a single row of the
-    covariance matrix. The likelihood is then:
-    \begin{equation}
-    \log \mathcal{L} = - {1 \over 2} \Delta \mathcal{C}^{-1} \Delta^\mathrm{T},
-    \end{equation}
-    where $\Delta = \theta - \bar{\theta}$, $\theta$ is the state, $\bar{\theta}$ is the mean, and $\mathcal{C}$ is the covariance
-    matrix.
+   The likelihood is a simple multivariate Gaussian, intended primarily for testing purposes. The distribution parameters are specified within the ``likelihood`` element using:
+
+   .. code-block:: none
+
+        &lt;mean&gt;0.45 0.50&lt;/mean&gt;
+        &lt;covariance&gt;
+          &lt;row&gt;1.0e-4 -0.9e-4&lt;/row&gt;
+          &lt;row&gt;-0.9e-4 1.0e-4&lt;/row&gt;
+        &lt;/covariance&gt;
+
+   where the ``mean`` element gives the mean vector of :math:`N` elements, and the ``covariance`` element contains :math:`N` ``row`` elements each containing a vector of :math:`N` elements giving a single row of the covariance matrix. The likelihood is then:
+
+   .. math::
+
+      \log \mathcal{L} = - {1 \over 2} \Delta \mathcal{C}^{-1} \Delta^\mathrm{T},
+
+   where :math:`\Delta = \theta - \bar{\theta}`, :math:`\theta` is the state, :math:`\bar{\theta}` is the mean, and :math:`\mathcal{C}` is the covariance matrix.
    </description>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodMultivariateNormal
-     !!{
+     !!{RST
      Implementation of a posterior sampling likelihood class which implements a multivariate likelihood.
      !!}
      private
@@ -60,8 +60,8 @@
   end type posteriorSampleLikelihoodMultivariateNormal
 
   interface posteriorSampleLikelihoodMultivariateNormal
-     !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodMultivariateNormal} posterior sampling likelihood class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSampleLikelihoodMultivariateNormal` posterior sampling likelihood class.
      !!}
      module procedure multivariateNormalConstructorParameters
      module procedure multivariateNormalConstructorInternal
@@ -70,9 +70,8 @@
 contains
 
   function multivariateNormalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodMultivariateNormal} posterior sampling likelihood class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodMultivariateNormal` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,14 +83,18 @@ contains
     allocate(means     (parameters%count('means')                          ))
     allocate(covariance(parameters%count('means'),parameters%count('means')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>means</name>
-      <description>The mean of the multivariate normal distribution.</description>
+      <description>
+      The mean of the multivariate normal distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covariance</name>
-      <description>The covariance matrix for the of the multivariate normal distribution.</description>
+      <description>
+      The covariance matrix for the of the multivariate normal distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -103,8 +106,8 @@ contains
   end function multivariateNormalConstructorParameters
 
   function multivariateNormalConstructorInternal(means,covariance) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodMultivariateNormal} posterior sampling likelihood class.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodMultivariateNormal` posterior sampling likelihood class.
     !!}
     use :: Linear_Algebra, only : assignment(=)
     implicit none
@@ -119,7 +122,7 @@ contains
   end function multivariateNormalConstructorInternal
 
   double precision function multivariateNormalEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !!{
+    !!{RST
     Return the log-likelihood for a multivariate-normal likelihood function.
     !!}
     use :: Linear_Algebra                , only : assignment(=)                  , operator(*)
@@ -155,7 +158,7 @@ contains
   end function multivariateNormalEvaluate
 
   subroutine multivariateNormalFunctionChanged(self)
-    !!{
+    !!{RST
     Respond to possible changes in the likelihood function.
     !!}
     implicit none
@@ -166,7 +169,7 @@ contains
   end subroutine multivariateNormalFunctionChanged
 
   subroutine multivariateNormalDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
-    !!{
+    !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
     use :: Input_Parameters, only : inputParameters

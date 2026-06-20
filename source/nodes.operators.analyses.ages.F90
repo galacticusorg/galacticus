@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that computes the stellar mass-weighted ages of disk, spheroid and nuclear star cluster
-  components.
+  !!{RST
+  Implements a node operator class that computes the stellar mass-weighted ages of disk, spheroid and nuclear star cluster components.
   !!}
   
   use :: Star_Formation_Rates_Disks                , only : starFormationRateDisksClass
@@ -28,15 +27,14 @@
   use :: Satellite_Merging_Mass_Movements          , only : mergerMassMovementsClass
 
   !![
-  <nodeOperator name="nodeOperatorAgesStellarMassWeighted">
+  <nodeOperator name="nodeOperatorAgesStellarMassWeighted" docformat="rst">
     <description>
-      A node operator class that computes the stellar mass-weighted ages of disk, spheroid and nuclear star cluster components. Intended to be paired
-      with the \refClass{nodePropertyExtractorAgesStellarMassWeighted} property extractor class to extract those ages for output.
+    A node operator class that computes the stellar mass-weighted ages of disk, spheroid and nuclear star cluster components. Intended to be paired with the :galacticus-class:`nodePropertyExtractorAgesStellarMassWeighted` property extractor class to extract those ages for output.
     </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorAgesStellarMassWeighted
-     !!{
+     !!{RST
      A node operator class that computes the stellar mass-weighted ages of disk and spheroid components.
      !!}
      private
@@ -56,8 +54,8 @@
   end type nodeOperatorAgesStellarMassWeighted
   
   interface nodeOperatorAgesStellarMassWeighted
-     !!{
-     Constructors for the \refClass{nodeOperatorAgesStellarMassWeighted} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorAgesStellarMassWeighted` node operator class.
      !!}
      module procedure agesStellarMassWeightedConstructorParameters
      module procedure agesStellarMassWeightedConstructorInternal
@@ -66,8 +64,8 @@
 contains
 
   function agesStellarMassWeightedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorAgesStellarMassWeighted} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorAgesStellarMassWeighted` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -96,8 +94,8 @@ contains
   end function agesStellarMassWeightedConstructorParameters
 
   function agesStellarMassWeightedConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_,mergerMassMovements_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorAgesStellarMassWeighted} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorAgesStellarMassWeighted` node operator class.
     !!}
     implicit none
     type (nodeOperatorAgesStellarMassWeighted      )                        :: self
@@ -121,8 +119,8 @@ contains
   end function agesStellarMassWeightedConstructorInternal
 
   subroutine agesStellarMassWeightedDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorAgesStellarMassWeighted} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorAgesStellarMassWeighted` node operator class.
     !!}
     implicit none
     type(nodeOperatorAgesStellarMassWeighted), intent(inout) :: self
@@ -137,8 +135,8 @@ contains
   end subroutine agesStellarMassWeightedDestructor
 
   subroutine agesStellarMassWeightedDifferentialEvolutionInactives(self,node)
-    !!{
-    Mark disk and spheroid age integrals as inactive for ODE solving.    
+    !!{RST
+    Mark disk and spheroid age integrals as inactive for ODE solving.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
     implicit none
@@ -178,7 +176,7 @@ contains
   end subroutine agesStellarMassWeightedDifferentialEvolutionInactives
   
   subroutine agesStellarMassWeightedDifferentialEvolutionScales(self,node)
-    !!{
+    !!{RST
     Set absolute ODE solver scale for the unweighted and time-weighted stellar masses.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
@@ -225,7 +223,7 @@ contains
   end subroutine agesStellarMassWeightedDifferentialEvolutionScales
   
   subroutine agesStellarMassWeightedDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Integrates unweighted and time-weighted star formation rates in disk, spheroid, and  nuclear star cluster components.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC, nodeComponentBasic, &
@@ -284,7 +282,7 @@ contains
   end subroutine agesStellarMassWeightedDifferentialEvolution
 
   subroutine agesStellarMassWeightedGalaxiesMerge(self,node)
-    !!{
+    !!{RST
     Combine integrals of star formation rate when galaxies merge.
     !!}
     use :: Error                           , only : Error_Report

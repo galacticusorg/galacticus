@@ -19,7 +19,7 @@
 
   !+    Contributions to this file made by: Alex Merson.
 
-  !!{
+  !!{RST
   Implements a file-based stellar population spectra class.
   !!}
 
@@ -34,7 +34,7 @@
   !!]
 
   type spectralTable
-     !!{
+     !!{RST
      Structure to hold tabulated stellar population data.
      !!}
      ! The spectra tables.
@@ -47,7 +47,7 @@
           &                                                           interpolatorWavelength
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Perform deep copy actions on interpolators." method="interpolatorsDeepCopy"/>
        <method description="Assign spectral table objects."              method="assignment(=)"        />
      </methods>
@@ -58,21 +58,20 @@
   end type spectralTable
 
   !![
-  <stellarPopulationSpectra name="stellarPopulationSpectraFile">
+  <stellarPopulationSpectra name="stellarPopulationSpectraFile" docformat="rst">
    <description>
-    A stellar population spectra class which computes spectra via interpolation in a tabulation read from file. This should be
-    an HDF5 file with the following structure:
-    \begin{verbatim}
-     ages                     Dataset {ageCount}
-     metallicities            Dataset {metallicityCount}
-     spectra                  Dataset {metallicityCount, ageCount, metallicityCount}
-     wavelengths              Dataset {wavelengthCount}
-    \end{verbatim}
-    where the datasets contain the tabulated ages (in Gyr), metallicities (logarithmic, relative to Solar), wavelengths (in
-    \AA) and spectra (in $L_\odot$ Hz$^{-1}$).
-  
-    Scripts to convert the data provided by \cite{maraston_evolutionary_2005} and \cite{bruzual_stellar_2003} into \glc's
-    format are provided in the \mono{scripts/ssps} folder.
+   A stellar population spectra class which computes spectra via interpolation in a tabulation read from file. This should be an HDF5 file with the following structure:
+
+   .. code-block:: none
+
+       ages                     Dataset {ageCount}
+       metallicities            Dataset {metallicityCount}
+       spectra                  Dataset {metallicityCount, ageCount, metallicityCount}
+       wavelengths              Dataset {wavelengthCount}
+
+   where the datasets contain the tabulated ages (in Gyr), metallicities (logarithmic, relative to Solar), wavelengths (in \AA) and spectra (in :math:`L_\odot` Hz\ :math:`^{-1}`).
+
+   Scripts to convert the data provided by :cite:t:`maraston_evolutionary_2005` and :cite:t:`bruzual_stellar_2003` into Galacticus's format are provided in the ``scripts/ssps`` folder.
    </description>
    <stateStorable>
     <exclude variables="spectra, forceZeroMetallicity, fileName, fileRead"/>
@@ -81,7 +80,7 @@
   </stellarPopulationSpectra>
   !!]
   type, extends(stellarPopulationSpectraClass) :: stellarPopulationSpectraFile
-     !!{
+     !!{RST
      A stellar population spectra class which interpolates spectra given in a file.
      !!}
      private
@@ -90,7 +89,7 @@
      type   (varying_string) :: fileName
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Read the named stellar population spectra file." method="readFile" />
      </methods>
      !!]
@@ -103,7 +102,7 @@
   end type stellarPopulationSpectraFile
 
   interface stellarPopulationSpectraFile
-     !!{
+     !!{RST
      Constructors for the file stellar spectra class.
      !!}
      module procedure fileConstructorParameters
@@ -116,7 +115,7 @@
 contains
 
   function fileConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the file stellar spectra class which takes a parameter set as input.
     !!}
     implicit none
@@ -126,16 +125,20 @@ contains
     logical                                              :: forceZeroMetallicity
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>forceZeroMetallicity</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>Force the use of zero metallicity (or lowest metallicity available) for all stellar populations.</description>
+      <description>
+      Force the use of zero metallicity (or lowest metallicity available) for all stellar populations.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <source>parameters</source>
-      <description>The path to the HDF5 file containing the tabulated stellar population spectra, with datasets for ages (Gyr), metallicities (log Solar), wavelengths (\AA), and spectra ($L_\odot\,\mathrm{Hz}^{-1}$); see the \mono{scripts/ssps} folder for conversion scripts.</description>
+      <description>
+      The path to the HDF5 file containing the tabulated stellar population spectra, with datasets for ages (Gyr), metallicities (log Solar), wavelengths (\AA), and spectra (:math:`L_\odot\,\mathrm{Hz}^{-1}`); see the ``scripts/ssps`` folder for conversion scripts.
+      </description>
     </inputParameter>
     !!]
     self=stellarPopulationSpectraFile(forceZeroMetallicity,char(fileName))
@@ -146,7 +149,7 @@ contains
   end function fileConstructorParameters
 
   function fileConstructorInternal(forceZeroMetallicity,fileName) result(self)
-    !!{
+    !!{RST
     Internal constructor for the file stellar spectra class.
     !!}
     use :: Error, only : Error_Report
@@ -163,7 +166,7 @@ contains
   end function fileConstructorInternal
 
   subroutine fileDestructor(self)
-    !!{
+    !!{RST
     Destructor for the file stellar spectra class.
     !!}
     implicit none
@@ -176,10 +179,8 @@ contains
   end subroutine fileDestructor
 
   double precision function fileLuminosity(self,abundancesStellar,age,wavelength,status)
-    !!{
-    Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition \mono{abundances}, of the
-    given \mono{age} (in Gyr) and the specified \mono{wavelength} (in Angstroms). This is found by interpolating in tabulated
-    spectra.
+    !!{RST
+    Return the luminosity (in units of :math:`L_\odot` Hz\ :math:`^{-1}`) for a stellar population with composition ``abundances``, of the given ``age`` (in Gyr) and the specified ``wavelength`` (in Angstroms). This is found by interpolating in tabulated spectra.
     !!}
     use            :: Abundances_Structure, only : Abundances_Get_Metallicity           , abundances            , logMetallicityZero, max, &
           &                                        metallicityTypeLogarithmicByMassSolar
@@ -283,7 +284,7 @@ contains
   end function fileLuminosity
 
   subroutine fileReadFile(self)
-    !!{
+    !!{RST
     Read a file of simple stellar population spectra.
     !!}
     use :: Error       , only : Error_Report
@@ -328,7 +329,7 @@ contains
   end subroutine fileReadFile
 
   subroutine fileTabulation(self,agesCount,metallicitiesCount,ages,metallicity)
-    !!{
+    !!{RST
     Return a tabulation of ages and metallicities at which stellar spectra should be tabulated.
     !!}
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
@@ -350,7 +351,7 @@ contains
   end subroutine fileTabulation
 
   subroutine fileWavelengths(self,wavelengthsCount,wavelengths)
-    !!{
+    !!{RST
     Return a tabulation of wavelengths at which stellar spectra should be tabulated.
     !!}
     implicit none
@@ -368,7 +369,7 @@ contains
   end subroutine fileWavelengths
 
   double precision function fileWavelengthInterval(self,wavelength)
-    !!{
+    !!{RST
     Return a tabulation of wavelengths at which stellar spectra should be tabulated.
     !!}
     implicit none
@@ -404,7 +405,7 @@ contains
   end function fileWavelengthInterval
 
   subroutine spectralTableInterpolatorsDeepCopy(self)
-    !!{
+    !!{RST
     Perform deep copy actions on interpolators.
     !!}
     implicit none
@@ -417,7 +418,7 @@ contains
   end subroutine spectralTableInterpolatorsDeepCopy
 
   subroutine spectralTableAssignment(self,from)
-    !!{
+    !!{RST
     Perform assignment of spectral tables.
     !!}
     implicit none

@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test the black hole fundamental functions.
 !!}
 
 program Test_Black_Hole_Fundamentals
-  !!{
+  !!{RST
   Tests of black hole fundamental functions.
   !!}
   use :: Black_Hole_Fundamentals, only : Black_Hole_Horizon_Radius, Black_Hole_ISCO_Radius, orbitPrograde

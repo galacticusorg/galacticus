@@ -17,22 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements satellite orbital extrema property extractor class.
 !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorSatelliteOrbitalExtrema">
+  <nodePropertyExtractor name="nodePropertyExtractorSatelliteOrbitalExtrema" docformat="rst">
    <description>
-    A node property extractor which extracts the radii of a satellite's orbital extrema (i.e. pericenter and apocenter) as
-    \mono{satellitePericenterRadius} and \mono{satellitePericenterVelocity}.
+   A node property extractor which extracts the radii of a satellite's orbital extrema (i.e. pericenter and apocenter) as ``satellitePericenterRadius`` and ``satellitePericenterVelocity``.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorSatelliteOrbitalExtrema
-     !!{
+     !!{RST
      A satellite orbital extrema property extractor class.
      !!}
      private
@@ -51,8 +50,8 @@ Implements satellite orbital extrema property extractor class.
   end type nodePropertyExtractorSatelliteOrbitalExtrema
 
   interface nodePropertyExtractorSatelliteOrbitalExtrema
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorSatelliteOrbitalExtrema} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorSatelliteOrbitalExtrema` property extractor class.
      !!}
      module procedure satelliteOrbitalExtremaConstructorParameters
      module procedure satelliteOrbitalExtremaConstructorInternal
@@ -61,8 +60,8 @@ Implements satellite orbital extrema property extractor class.
 contains
 
   function satelliteOrbitalExtremaConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorSatelliteOrbitalExtrema} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorSatelliteOrbitalExtrema` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,16 +71,20 @@ contains
     logical                                                              :: extractPericenter   , extractApocenter
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>extractPericenter</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not satellite orbital pericenter data (radius, velocity) should be extracted.</description>
+      <description>
+      Specifies whether or not satellite orbital pericenter data (radius, velocity) should be extracted.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>extractApocenter</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not satellite orbital apocenter data (radius, velocity) should be extracted.</description>
+      <description>
+      Specifies whether or not satellite orbital apocenter data (radius, velocity) should be extracted.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
@@ -95,8 +98,8 @@ contains
   end function satelliteOrbitalExtremaConstructorParameters
 
   function satelliteOrbitalExtremaConstructorInternal(extractPericenter,extractApocenter,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorSatelliteOrbitalExtrema} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorSatelliteOrbitalExtrema` property extractor class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -121,8 +124,8 @@ contains
   end function satelliteOrbitalExtremaConstructorInternal
 
   subroutine satelliteOrbitalExtremaDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorSatelliteOrbitalExtrema} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorSatelliteOrbitalExtrema` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout) :: self
@@ -134,8 +137,8 @@ contains
   end subroutine satelliteOrbitalExtremaDestructor
   
   integer function satelliteOrbitalExtremaElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{satelliteOrbitalExtrema} property extractor class.
+    !!{RST
+    Return the number of elements in the ``satelliteOrbitalExtrema`` property extractor class.
     !!}
     implicit none
     class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout) :: self
@@ -147,8 +150,8 @@ contains
   end function satelliteOrbitalExtremaElementCount
 
   function satelliteOrbitalExtremaExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{satelliteOrbitalExtrema} property extractor
+    !!{RST
+    Implement a ``satelliteOrbitalExtrema`` property extractor
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite                          , treeNode
     use :: Kepler_Orbits   , only : keplerOrbit
@@ -194,8 +197,8 @@ contains
   end function satelliteOrbitalExtremaExtract
 
   subroutine satelliteOrbitalExtremaNames(self,time,names)
-    !!{
-    Return the name of the \mono{satelliteOrbitalExtrema} property.
+    !!{RST
+    Return the name of the ``satelliteOrbitalExtrema`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)                             :: self
@@ -216,7 +219,7 @@ contains
   end subroutine satelliteOrbitalExtremaNames
 
   subroutine satelliteOrbitalExtremaDescriptions(self,time,descriptions)
-    !!{
+    !!{RST
     Return a description of the satelliteOrbitalExtrema property.
     !!}
     implicit none
@@ -238,8 +241,8 @@ contains
   end subroutine satelliteOrbitalExtremaDescriptions
 
   function satelliteOrbitalExtremaUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{satelliteOrbitalExtrema} property in the SI system.
+    !!{RST
+    Return the units of the ``satelliteOrbitalExtrema`` property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -256,7 +259,7 @@ contains
   end function satelliteOrbitalExtremaUnitsInSI
 
   function satelliteOrbitalExtremaUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the satelliteOrbitalExtrema properties.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec

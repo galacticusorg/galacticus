@@ -20,12 +20,14 @@
   use, intrinsic :: ISO_C_Binding, only : c_size_t
 
   !![
-  <evolveForestsWorkShare name="evolveForestsWorkShareStride">
-   <description>A forest evolution work sharing class that wraps another work sharing strategy and applies a stride and offset to the resulting forest indices, so that only every $N$-th forest (offset by a given amount) is processed. This enables subsampling of forests or splitting a forest set across independent runs without modifying the underlying assignment algorithm.</description>
+  <evolveForestsWorkShare name="evolveForestsWorkShareStride" docformat="rst">
+   <description>
+   A forest evolution work sharing class that wraps another work sharing strategy and applies a stride and offset to the resulting forest indices, so that only every :math:`N`-th forest (offset by a given amount) is processed. This enables subsampling of forests or splitting a forest set across independent runs without modifying the underlying assignment algorithm.
+   </description>
   </evolveForestsWorkShare>
   !!]
   type, extends(evolveForestsWorkShareClass) :: evolveForestsWorkShareStride
-     !!{
+     !!{RST
      Implementation of a forest evolution work sharing class in which forests are assigned by cycling through processes.
      !!}
      private
@@ -37,8 +39,8 @@
   end type evolveForestsWorkShareStride
 
   interface evolveForestsWorkShareStride
-     !!{
-     Constructors for the \refClass{evolveForestsWorkShareStride} forest evolution work sharing class.
+     !!{RST
+     Constructors for the :galacticus-class:`evolveForestsWorkShareStride` forest evolution work sharing class.
      !!}
      module procedure strideConstructorParameters
      module procedure strideConstructorInternal
@@ -47,9 +49,8 @@
 contains
 
   function strideConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{evolveForestsWorkShareStride} forest evolution work sharing class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the :galacticus-class:`evolveForestsWorkShareStride` forest evolution work sharing class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -59,14 +60,18 @@ contains
     integer(c_size_t                    )                :: stride                 , offset
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>stride</name>
-      <description>The size of the stride to take over forests.</description>
+      <description>
+      The size of the stride to take over forests.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>offset</name>
-      <description>The offset of the stride to take over forests.</description>
+      <description>
+      The offset of the stride to take over forests.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="evolveForestsWorkShare" name="evolveForestsWorkShare_" source="parameters"/>
@@ -80,8 +85,8 @@ contains
   end function strideConstructorParameters
 
   function strideConstructorInternal(stride,offset,evolveForestsWorkShare_) result(self)
-    !!{
-    Internal constructor for the \refClass{evolveForestsWorkShareStride} forest evolution work sharing class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`evolveForestsWorkShareStride` forest evolution work sharing class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -97,8 +102,8 @@ contains
   end function strideConstructorInternal
 
   subroutine strideDestructor(self)
-    !!{
-    Destructor for the \refClass{evolveForestsWorkShareStride} forest evolution work sharing class.
+    !!{RST
+    Destructor for the :galacticus-class:`evolveForestsWorkShareStride` forest evolution work sharing class.
     !!}
     implicit none
     type(evolveForestsWorkShareStride), intent(inout) :: self
@@ -110,7 +115,7 @@ contains
   end subroutine strideDestructor
 
   function strideForestNumber(self,utilizeOpenMPThreads)
-    !!{
+    !!{RST
     Return the number of the next forest to process.
     !!}
     implicit none

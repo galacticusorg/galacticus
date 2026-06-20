@@ -32,21 +32,14 @@
   use :: Universe_Operators        , only : universeOperatorClass
 
   !![
-  <task name="taskPostprocessForests">
+  <task name="taskPostprocessForests" docformat="rst">
     <description>
-      A task which postprocesses galaxies within a set of merger tree forests. This task assumes that a prior model was run, with
-      raw forest data written to file using the \refClass{mergerTreeOutputterFullState} merger tree outputter class. The name of that file is specified
-      via the \mono{fileName} parameter. Forests data will be re-read, and re-output. Note that you should use
-      the \emph{exact same} parameter file (other than changing the \mono{task}, and possibly removing the use of
-      the \refClass{mergerTreeOutputterFullState} outputter) as was used to run the original model. This ensures that the raw data
-      structures read from the file follow the same format as was used to write them. Also note that forests are not guaranteed to
-      be output in the same order as in the original model if OpenMP parallelism is used. If the same order is required, it is
-      recommend to run the postprocessing after setting the environment variable \mono{OMP\_NUM\_THREADS=1}.
+    A task which postprocesses galaxies within a set of merger tree forests. This task assumes that a prior model was run, with raw forest data written to file using the :galacticus-class:`mergerTreeOutputterFullState` merger tree outputter class. The name of that file is specified via the ``fileName`` parameter. Forests data will be re-read, and re-output. Note that you should use the *exact same* parameter file (other than changing the ``task``, and possibly removing the use of the :galacticus-class:`mergerTreeOutputterFullState` outputter) as was used to run the original model. This ensures that the raw data structures read from the file follow the same format as was used to write them. Also note that forests are not guaranteed to be output in the same order as in the original model if OpenMP parallelism is used. If the same order is required, it is recommend to run the postprocessing after setting the environment variable ``OMP_NUM_THREADS=1``.
     </description>
   </task>
   !!]
   type, extends(taskClass) :: taskPostprocessForests
-     !!{
+     !!{RST
      Implementation of a task which postprocesses galaxies within a set of merger tree forests.
      !!}
      private
@@ -73,8 +66,8 @@
   end type taskPostprocessForests
 
   interface taskPostprocessForests
-     !!{
-     Constructors for the \refClass{taskPostprocessForests} task.
+     !!{RST
+     Constructors for the :galacticus-class:`taskPostprocessForests` task.
      !!}
      module procedure postprocessForestsConstructorParameters
      module procedure postprocessForestsConstructorInternal
@@ -87,8 +80,8 @@
 contains
 
   function postprocessForestsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskPostprocessForests} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskPostprocessForests` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Node_Components , only : Node_Components_Initialize
@@ -127,9 +120,11 @@ contains
     ! ensures that the same set of metaProperties are added, which ensures that the raw format deserialization is consistent with
     ! the raw format serialization used in the original model.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
-      <description>The name of the file from which forests should be read.</description>
+      <description>
+      The name of the file from which forests should be read.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="mergerTreeConstructor"  name="mergerTreeConstructor_"  source="parameters"/>
@@ -155,8 +150,10 @@ contains
     allocate(self%nodeComponents_)
     allocate(self%nodeHierarchy_ )
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_              => self%nodeComponents_
     self%nodeComponentsManager =  resourceManager(dummyPointer_)
@@ -182,8 +179,8 @@ contains
   end function postprocessForestsConstructorParameters
 
   function postprocessForestsConstructorInternal(fileName,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters) result(self)
-    !!{
-    Internal constructor for the \refClass{taskPostprocessForests} task class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`taskPostprocessForests` task class.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Error        , only : Error_Report
@@ -210,8 +207,8 @@ contains
   end function postprocessForestsConstructorInternal
 
   subroutine postprocessForestsDestructor(self)
-    !!{
-    Destructor for the \refClass{taskPostprocessForests} task class.
+    !!{RST
+    Destructor for the :galacticus-class:`taskPostprocessForests` task class.
     !!}
     use :: Node_Components , only : Node_Components_Uninitialize
     use :: Galacticus_Nodes, only : nodeClassHierarchyFinalize
@@ -235,7 +232,7 @@ contains
   end subroutine postprocessForestsDestructor
 
   subroutine postprocessForestsPerform(self,status)
-    !!{
+    !!{RST
     Postprocesses the complete set of merger trees as specified.
     !!}
     use, intrinsic :: ISO_C_Binding           , only : c_size_t

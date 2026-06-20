@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements functions utilizing \gls{mangle} survey geometry definitions.
+!!{RST
+Contains a module which implements functions utilizing :term:`mangle` survey geometry definitions.
 !!}
 
 module Geometry_Mangle
-  !!{
-  Implements functions utilizing \gls{mangle} survey geometry definitions.
+  !!{RST
+  Implements functions utilizing :term:`mangle` survey geometry definitions.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   private
@@ -31,48 +31,48 @@ module Geometry_Mangle
        &    geometryMangleBuild     , window
 
   type :: cap
-     !!{
-     A class to hold \gls{mangle} caps.
+     !!{RST
+     A class to hold :term:`mangle` caps.
      !!}
      double precision, dimension(3) :: x
      double precision               :: c
    contains
      !![
-     <methods>
-       <method description="Return true if the given point lives inside the {\normalfont \scshape mangle} cap." method="pointIncluded" />
+     <methods docformat="rst">
+       <method description="Return true if the given point lives inside the mangle cap." method="pointIncluded" />
      </methods>
      !!]
     procedure :: pointIncluded => capPointIncluded
   end type cap
 
   type :: polygon
-     !!{
-     A class to hold \gls{mangle} polygons.
+     !!{RST
+     A class to hold :term:`mangle` polygons.
      !!}
      integer                                          :: capCount
      double precision                                 :: weight  , solidAngle
      type            (cap), dimension(:), allocatable :: caps
    contains
      !![
-     <methods>
-       <method description="Return true if the given point lives inside the {\normalfont \scshape mangle} polygon." method="pointIncluded" />
+     <methods docformat="rst">
+       <method description="Return true if the given point lives inside the mangle polygon." method="pointIncluded" />
      </methods>
      !!]
      procedure :: pointIncluded => polygonPointIncluded
   end type polygon
 
   type :: window
-     !!{
-     A class to hold \gls{mangle} windows.
+     !!{RST
+     A class to hold :term:`mangle` windows.
      !!}
      integer                                           :: polygonCount
      type   (polygon      ), dimension(:), allocatable :: polygons
      integer(kind=c_size_t), dimension(:), allocatable :: solidAngleIndex
    contains
      !![
-     <methods>
-       <method description="Read the specified {\normalfont \scshape mangle} polygon file."                        method="read"         />
-       <method description="Return true if the given point lives inside the {\normalfont \scshape mangle} window." method="pointIncluded"/>
+     <methods docformat="rst">
+       <method description="Read the specified mangle polygon file."                        method="read"         />
+       <method description="Return true if the given point lives inside the mangle window." method="pointIncluded"/>
      </methods>
      !!]
      procedure :: read          => windowRead
@@ -82,8 +82,8 @@ module Geometry_Mangle
 contains
 
   subroutine windowRead(self,fileName)
-    !!{
-    Read a \gls{mangle} window definition from file.
+    !!{RST
+    Read a :term:`mangle` window definition from file.
     !!}
     use :: Display           , only : displayCounter    , displayCounterClear, displayIndent, displayMessage, &
           &                           displayUnindent
@@ -150,8 +150,8 @@ contains
   end subroutine windowRead
 
   logical function windowPointIncluded(self,point)
-    !!{
-    Return true if the given Cartesian point lies inside a \gls{mangle} window, i.e. if it lies within any polygon of the window.
+    !!{RST
+    Return true if the given Cartesian point lies inside a :term:`mangle` window, i.e. if it lies within any polygon of the window.
     !!}
     implicit none
     class           (window), intent(inout)               :: self
@@ -170,8 +170,8 @@ contains
   end function windowPointIncluded
 
   logical function polygonPointIncluded(self,point)
-    !!{
-    Return true if a given Cartesian point lies within a \gls{mangle} polygon, i.e. lies within \emph{all} of the polygons caps.
+    !!{RST
+    Return true if a given Cartesian point lies within a :term:`mangle` polygon, i.e. lies within *all* of the polygons caps.
     !!}
     implicit none
     class           (polygon), intent(inout)               :: self
@@ -187,8 +187,8 @@ contains
   end function polygonPointIncluded
 
   logical function capPointIncluded(self,point)
-    !!{
-    Return true if a given Cartesian point lies within a \gls{mangle} cap.
+    !!{RST
+    Return true if a given Cartesian point lies within a :term:`mangle` cap.
     !!}
     use :: Vectors, only : Vector_Magnitude
     implicit none
@@ -208,8 +208,8 @@ contains
   end function capPointIncluded
 
   subroutine geometryMangleBuild(manglePath,mangleVersion,static)
-    !!{
-    Download and build the \textsc{mangle} code.
+    !!{RST
+    Download and build the **mangle** code.
     !!}
     use :: Dependencies      , only : dependencyVersion
     use :: Display           , only : displayMessage   , verbosityLevelWorking
@@ -268,8 +268,8 @@ contains
   end subroutine geometryMangleBuild
 
  function geometryMangleSolidAngle(fileNames,solidAngleFileName)
-    !!{
-    Compute the solid angle of a \textsc{mangle} geometry.
+    !!{RST
+    Compute the solid angle of a **mangle** geometry.
     !!}
    use :: File_Utilities           , only : File_Exists       , File_Name_Temporary, File_Lock         , File_Unlock  , &
         &                                   lockDescriptor
@@ -349,8 +349,8 @@ contains
   end function geometryMangleSolidAngle
 
   function geometryMangleAngularPower(fileNames,degreeMaximum,angularPowerFileName)
-    !!{
-    Compute the angular power spectra of a \textsc{mangle} geometry.
+    !!{RST
+    Compute the angular power spectra of a **mangle** geometry.
     !!}
     use :: File_Utilities    , only : File_Exists       , File_Name_Temporary, File_Lock         , File_Unlock, &
          &                            lockDescriptor

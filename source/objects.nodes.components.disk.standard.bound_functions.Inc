@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains custom functions for the standard disk component.
 !!}
 
 function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
-  !!{
+  !!{RST
   Return the mass distribution for the standard disk component.
   !!}
   use :: Mass_Distributions               , only : massDistributionClass      , massDistributionCylindricalScaler, massDistributionComposite   , massDistributionList   , &
@@ -153,7 +153,7 @@ function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massT
 end function Node_Component_Disk_Standard_Mass_Distribution
 
 double precision function Node_Component_Disk_Standard_Mass_Baryonic(self) result(massBaryonic)
-  !!{
+  !!{RST
   Return the baryonic mass for the standard disk component.
   !!}
   implicit none
@@ -165,7 +165,7 @@ double precision function Node_Component_Disk_Standard_Mass_Baryonic(self) resul
 end function Node_Component_Disk_Standard_Mass_Baryonic
 
 double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self) result(radiusHalfMass)
-  !!{
+  !!{RST
   Return the half-mass radius of the standard disk.
   !!}
   use :: Error                            , only : Error_Report

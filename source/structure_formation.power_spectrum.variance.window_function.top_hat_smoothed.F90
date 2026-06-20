@@ -19,26 +19,27 @@
 
   !+ Contributions to this file made by: Ivan Esteban
 
-  !!{
+  !!{RST
   Implements a top-hat power spectrum window function class, convolved with a Gaussian.
   !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
   
   !![
-  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionTopHatSmoothed">
+  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionTopHatSmoothed" docformat="rst">
     <description>
-      A top-hat in real space window function for filtering of power spectra, smoothed with a Gaussian. The window function is given by:
-      \begin{equation}
-      W(k) = {3 (\sin(x)-x \cos(x)) \over x^3} \times \exp{-k^2\sigma^2 \over 2},
-      \end{equation}
-      where $x = k R$ and $R=(3M/4\pi\bar{\rho})^{1/3}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$.
-      $\sigma$ is the width of the smoothing Gaussian in real space. This exponentially cuts off the window function at $k \gg 1/\sigma$.
-        </description>
+    A top-hat in real space window function for filtering of power spectra, smoothed with a Gaussian. The window function is given by:
+
+    .. math::
+
+       W(k) = {3 (\sin(x)-x \cos(x)) \over x^3} \times \exp{-k^2\sigma^2 \over 2},
+
+    where :math:`x = k R` and :math:`R=(3M/4\pi\bar{\rho})^{1/3}` for a smoothing scale :math:`M` and mean matter density :math:`\bar{\rho}`. :math:`\sigma` is the width of the smoothing Gaussian in real space. This exponentially cuts off the window function at :math:`k \gg 1/\sigma`.
+    </description>
   </powerSpectrumWindowFunction>
   !!]
   type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionTopHatSmoothed
-     !!{
+     !!{RST
      A top-hat power spectrum window function class, smoothed with a Gaussian.
      !!}
      private
@@ -51,8 +52,8 @@
   end type powerSpectrumWindowFunctionTopHatSmoothed
 
   interface powerSpectrumWindowFunctionTopHatSmoothed
-     !!{
-     Constructors for the \refClass{powerSpectrumWindowFunctionTopHatSmoothed} power spectrum window function class.
+     !!{RST
+     Constructors for the :galacticus-class:`powerSpectrumWindowFunctionTopHatSmoothed` power spectrum window function class.
      !!}
      module procedure topHatSmoothedConstructorParameters
      module procedure topHatSmoothedConstructorInternal
@@ -61,8 +62,8 @@
 contains
 
   function topHatSmoothedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{powerSpectrumWindowFunctionTopHatSmoothed} power spectrum window function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`powerSpectrumWindowFunctionTopHatSmoothed` power spectrum window function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,12 +73,16 @@ contains
     double precision                                                           :: sigma
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sigma</name>
       <source>parameters</source>
       <defaultValue>3.0d0</defaultValue>
-      <defaultSource>Corresponds roughly to the smallest scale probed by Lyman-$\alpha$ data.</defaultSource>
-      <description>The parameter ``$\sigma$'' which defines the width of the smoothing Gaussian.</description>
+      <defaultSource>
+      Corresponds roughly to the smallest scale probed by Lyman-:math:`\alpha` data.
+      </defaultSource>
+      <description>
+      The parameter ":math:`\sigma`" which defines the width of the smoothing Gaussian.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
@@ -90,8 +95,8 @@ contains
   end function topHatSmoothedConstructorParameters
 
   function topHatSmoothedConstructorInternal(cosmologyParameters_,sigma) result(self)
-    !!{
-    Internal constructor for the \refClass{powerSpectrumWindowFunctionTopHatSmoothed} power spectrum window function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`powerSpectrumWindowFunctionTopHatSmoothed` power spectrum window function class.
     !!}
     implicit none
     type            (powerSpectrumWindowFunctionTopHatSmoothed)                        :: self
@@ -105,8 +110,8 @@ contains
   end function topHatSmoothedConstructorInternal
 
   subroutine topHatSmoothedDestructor(self)
-    !!{
-    Destructor for the \refClass{powerSpectrumWindowFunctionTopHatSmoothed} power spectrum window function class.
+    !!{RST
+    Destructor for the :galacticus-class:`powerSpectrumWindowFunctionTopHatSmoothed` power spectrum window function class.
     !!}
     implicit none
     type(powerSpectrumWindowFunctionTopHatSmoothed), intent(inout) :: self
@@ -118,9 +123,8 @@ contains
   end subroutine topHatSmoothedDestructor
 
   double precision function topHatSmoothedValue(self,wavenumber,smoothingMass,time)
-    !!{
-    Top hat in real space window function Fourier transformed into $k$-space used in computing the variance of the power
-    spectrum. Everything is convolved with a Gaussian of real-space width $\sigma$.
+    !!{RST
+    Top hat in real space window function Fourier transformed into :math:`k`-space used in computing the variance of the power spectrum. Everything is convolved with a Gaussian of real-space width :math:`\sigma`.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -173,10 +177,8 @@ contains
   end function topHatSmoothedValue
 
   double precision function topHatSmoothedWavenumberMaximum(self,smoothingMass)
-    !!{
-    Maximum wavenumber for a top hat in real space window function convoluted with a Gaussian Fourier transformed into $k$-space
-    used in computing the variance of the power spectrum. It is set to $k=3.5/\sigma$, with $\sigma$ being the real-space width of
-    the smoothing Gaussian. Here, the Gaussian has dropped to around $2\times 10^{-3}$.    
+    !!{RST
+    Maximum wavenumber for a top hat in real space window function convoluted with a Gaussian Fourier transformed into :math:`k`-space used in computing the variance of the power spectrum. It is set to :math:`k=3.5/\sigma`, with :math:`\sigma` being the real-space width of the smoothing Gaussian. Here, the Gaussian has dropped to around :math:`2\times 10^{-3}`.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSmoothed), intent(inout) :: self

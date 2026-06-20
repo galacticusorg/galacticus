@@ -17,32 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   A primordial power spectrum class which truncates a primordial power spectrum into a cosmological simulation cube.
   !!}
 
   !![
-  <powerSpectrumPrimordial name="powerSpectrumPrimordialCosmologicalCube">
+  <powerSpectrumPrimordial name="powerSpectrumPrimordialCosmologicalCube" docformat="rst">
    <description>
-     A primordial power spectrum class which truncates a primordial power spectrum into a cosmological simulation
-     cube. Specifically, it assumes that wave-vectors with all components ($k_x,k_y,k_z$) smaller than $\Delta k = 2 \pi f / L$,
-     where $L=$\mono{[lengthCube]} is the simulation cube length, and $f=$\mono{wavenumberMinimumFactor} specifies the minimum wavenumber (in units of $2 \pi / L$) to which the power spectrum is
-     integrated, are missing from the power spectrum. For wavenumbers of magnitude $k$ the fraction of power missed due to these
-     missing wavenumbers is computed. The total power at that wavenumber is then reduced by that amount.
+   A primordial power spectrum class which truncates a primordial power spectrum into a cosmological simulation cube. Specifically, it assumes that wave-vectors with all components (:math:`k_x,k_y,k_z`) smaller than :math:`\Delta k = 2 \pi f / L`, where :math:`L=`\ ``[lengthCube]`` is the simulation cube length, and :math:`f=`\ ``wavenumberMinimumFactor`` specifies the minimum wavenumber (in units of :math:`2 \pi / L`) to which the power spectrum is integrated, are missing from the power spectrum. For wavenumbers of magnitude :math:`k` the fraction of power missed due to these missing wavenumbers is computed. The total power at that wavenumber is then reduced by that amount.
 
-     The fractional suppression in power, $f(x)$, as a function of $x=k/\Delta k$ is given by:
-     \begin{equation}
-     f(x) = \left\{ \begin{array}{ll} 0 &amp; \hbox{ for } x \le 1, \\ 3(1-x^{-1}) &amp; \hbox{ for } 1 &lt; x \le \sqrt{2}, \\ 3 x{-1} [ 1 + 2 \pi^{-1} x \sin^{-1}(\{x^2-1\}^{-1}) - 4 \pi^{-1} x \sin^{-1}(\{1-x^2\}^{-1/2})  ] &amp; \hbox{ for } \sqrt{2} &lt; x \le \sqrt{3}, \\ 1 &amp; \hbox{ for } \sqrt{3} &lt; x. \end{array} \right. 
-     \end{equation}
+   The fractional suppression in power, :math:`f(x)`, as a function of :math:`x=k/\Delta k` is given by:
 
-     For the $1 &lt; x \le \sqrt{2}$ the solution is found by considering the 6 spherical caps of the sphere which protrude from the
-     faces of the cube. The solution for $\sqrt{2} &lt; x \le \sqrt{3}$ is more complicated and follows the solution given by
-     \cite{achille2013}.
+   .. math::
+
+      f(x) = \left\{ \begin{array}{ll} 0 &amp; \hbox{ for } x \le 1, \\ 3(1-x^{-1}) &amp; \hbox{ for } 1 &lt; x \le \sqrt{2}, \\ 3 x{-1} [ 1 + 2 \pi^{-1} x \sin^{-1}(\{x^2-1\}^{-1}) - 4 \pi^{-1} x \sin^{-1}(\{1-x^2\}^{-1/2})  ] &amp; \hbox{ for } \sqrt{2} &lt; x \le \sqrt{3}, \\ 1 &amp; \hbox{ for } \sqrt{3} &lt; x. \end{array} \right.
+
+   For the :math:`1 &lt; x \le \sqrt{2}` the solution is found by considering the 6 spherical caps of the sphere which protrude from the faces of the cube. The solution for :math:`\sqrt{2} &lt; x \le \sqrt{3}` is more complicated and follows the solution given by :cite:t:`achille2013`.
    </description>
   </powerSpectrumPrimordial>
   !!]
   type, extends(powerSpectrumPrimordialClass) :: powerSpectrumPrimordialCosmologicalCube
-     !!{
+     !!{RST
      A primordial power spectrum class which truncates a primordial power spectrum into a cosmological simulation cube.
      !!}
      private
@@ -56,8 +51,8 @@
   end type powerSpectrumPrimordialCosmologicalCube
 
   interface powerSpectrumPrimordialCosmologicalCube
-     !!{
-     Constructors for the \refClass{powerSpectrumPrimordialCosmologicalCube} primordial power spectrum class.
+     !!{RST
+     Constructors for the :galacticus-class:`powerSpectrumPrimordialCosmologicalCube` primordial power spectrum class.
      !!}
      module procedure cosmologicalCubeConstructorParameters
      module procedure cosmologicalCubeConstructorInternal
@@ -66,8 +61,8 @@
 contains
 
   function cosmologicalCubeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{powerSpectrumPrimordialCosmologicalCube} primordial power spectrum class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`powerSpectrumPrimordialCosmologicalCube` primordial power spectrum class which takes a parameter set as input.
     !!}
     implicit none
     type            (powerSpectrumPrimordialCosmologicalCube)                :: self
@@ -76,17 +71,23 @@ contains
     double precision                                                         :: lengthCube              , wavenumberMinimumFactor
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lengthCube</name>
       <source>parameters</source>
-      <description>The length of the cosmological cube.</description>
+      <description>
+      The length of the cosmological cube.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavenumberMinimumFactor</name>      
       <source>parameters</source>
       <defaultValue>0.5d0</defaultValue>
-      <defaultSource>The default value of $1/2$ assumes that the power spectrum is integrated over cubic regions $\pm \pi/L$ centered on each grid point in the Fourier transform of the density field.</defaultSource>
-      <description>The minimum wavenumber (in units of $2 \pi / L$) to which the power spectrum is integrated.</description>
+      <defaultSource>
+      The default value of :math:`1/2` assumes that the power spectrum is integrated over cubic regions :math:`\pm \pi/L` centered on each grid point in the Fourier transform of the density field.
+      </defaultSource>
+      <description>
+      The minimum wavenumber (in units of :math:`2 \pi / L`) to which the power spectrum is integrated.
+      </description>
     </inputParameter>
     <objectBuilder class="powerSpectrumPrimordial" name="powerSpectrumPrimordial_" source="parameters"/>
     !!]
@@ -99,8 +100,8 @@ contains
   end function cosmologicalCubeConstructorParameters
 
   function cosmologicalCubeConstructorInternal(lengthCube,wavenumberMinimumFactor,powerSpectrumPrimordial_) result(self)
-    !!{
-    Internal constructor for the \refClass{powerSpectrumPrimordialCosmologicalCube} primordial power spectrum class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`powerSpectrumPrimordialCosmologicalCube` primordial power spectrum class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -119,8 +120,8 @@ contains
   end function cosmologicalCubeConstructorInternal
 
   subroutine cosmologicalCubeDestructor(self)
-    !!{
-    Destructor for the \refClass{powerSpectrumPrimordialCosmologicalCube} primordial power spectrum class. 
+    !!{RST
+    Destructor for the :galacticus-class:`powerSpectrumPrimordialCosmologicalCube` primordial power spectrum class.
     !!}
     implicit none
     type(powerSpectrumPrimordialCosmologicalCube), intent(inout) :: self
@@ -132,8 +133,8 @@ contains
   end subroutine cosmologicalCubeDestructor
 
   double precision function cosmologicalCubePower(self,wavenumber)
-    !!{
-    Return the primordial power spectrum at the given \mono{wavenumber}.
+    !!{RST
+    Return the primordial power spectrum at the given ``wavenumber``.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -171,8 +172,8 @@ contains
   end function cosmologicalCubePower
 
   double precision function cosmologicalCubeLogarithmicDerivative(self,wavenumber)
-    !!{
-    Return the logarithmic derivative of the primordial power spectrum at the given \mono{wavenumber}.
+    !!{RST
+    Return the logarithmic derivative of the primordial power spectrum at the given ``wavenumber``.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

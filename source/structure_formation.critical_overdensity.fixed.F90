@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an fixed critical overdensity class.
 !!}
 
   !![
-  <criticalOverdensity name="criticalOverdensityFixed">
+  <criticalOverdensity name="criticalOverdensityFixed" docformat="rst">
    <description>
-    A critical overdensity class in which the critical overdensity for gravitational collapse of dark matter halos is set to a constant, redshift-independent value given by the parameter \mono{[criticalOverdensity]}, irrespective of cosmological evolution.
+   A critical overdensity class in which the critical overdensity for gravitational collapse of dark matter halos is set to a constant, redshift-independent value given by the parameter ``[criticalOverdensity]``, irrespective of cosmological evolution.
    </description>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityFixed
-     !!{
+     !!{RST
      A fixed critical overdensity class.
      !!}
      private
@@ -45,7 +45,7 @@ Implements an fixed critical overdensity class.
   end type criticalOverdensityFixed
 
   interface criticalOverdensityFixed
-     !!{
+     !!{RST
      Constructors for the fixed critical overdensity class.
      !!}
      module procedure fixedConstructorParameters
@@ -55,7 +55,7 @@ Implements an fixed critical overdensity class.
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the fixed critical overdensity class which takes a parameter set as input.
     !!}
     use :: Input_Parameters        , only : inputParameter, inputParameters
@@ -70,12 +70,14 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>criticalOverdensity</name>
       <variable>criticalOverdensity_</variable>
       <source>parameters</source>
       <defaultValue>(3.0d0/20.0d0)*(12.0d0*Pi)**(2.0d0/3.0d0)</defaultValue>
-      <description>The value to use for the critical overdensity for collapse of dark matter halos when using a fixed value.</description>
+      <description>
+      The value to use for the critical overdensity for collapse of dark matter halos when using a fixed value.
+      </description>
     </inputParameter>
     <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -92,7 +94,7 @@ contains
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(criticalOverdensity_,linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the fixed critical overdensity class.
     !!}
     implicit none
@@ -109,7 +111,7 @@ contains
   end function fixedConstructorInternal
 
   subroutine fixedDestructor(self)
-    !!{
+    !!{RST
     Destructor for the fixed critical overdensity class.
     !!}
     implicit none
@@ -124,7 +126,7 @@ contains
   end subroutine fixedDestructor
 
   double precision function fixedValue(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the critical overdensity at the given time and mass.
     !!}
     implicit none
@@ -140,7 +142,7 @@ contains
   end function fixedValue
 
   double precision function fixedGradientTime(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the gradient with respect to time of critical overdensity at the given time and mass.
     !!}
     implicit none
@@ -156,7 +158,7 @@ contains
   end function fixedGradientTime
 
   double precision function fixedGradientMass(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the gradient with respect to mass of critical overdensity at the given time and mass.
     !!}
     implicit none
@@ -172,7 +174,7 @@ contains
   end function fixedGradientMass
 
   logical function fixedIsMassDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is mass dependent.
     !!}
     implicit none
@@ -184,7 +186,7 @@ contains
   end function fixedIsMassDependent
 
   logical function fixedIsNodeDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is node dependent.
     !!}
     implicit none
@@ -196,7 +198,7 @@ contains
   end function fixedIsNodeDependent
 
   logical function fixedIsTreeDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is tree dependent.
     !!}
     implicit none

@@ -17,13 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements the geometry of the SDSS survey with a depth for Local Group dwarf detection.
 !!}
 
   !![
-  <surveyGeometry name="surveyGeometryLocalGroupSDSS">
-   <description>Implements the angular footprint of the SDSS survey adapted for Local Group dwarf galaxy detectability, with the maximum survey depth set by \mono{[distanceMaximumSurvey]}. This geometry is used to model the detection volume of faint dwarf galaxies in the nearby Universe.</description>
+  <surveyGeometry name="surveyGeometryLocalGroupSDSS" docformat="rst">
+   <description>
+   Implements the angular footprint of the SDSS survey adapted for Local Group dwarf galaxy detectability, with the maximum survey depth set by ``[distanceMaximumSurvey]``. This geometry is used to model the detection volume of faint dwarf galaxies in the nearby Universe.
+   </description>
   </surveyGeometry>
   !!]
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryLocalGroupSDSS
@@ -34,8 +36,8 @@ Implements the geometry of the SDSS survey with a depth for Local Group dwarf de
   end type surveyGeometryLocalGroupSDSS
 
   interface surveyGeometryLocalGroupSDSS
-     !!{
-     Constructors for the \cite{bernardi_massive_2013} survey geometry class.
+     !!{RST
+     Constructors for the :cite:t:`bernardi_massive_2013` survey geometry class.
      !!}
      module procedure localGroupSDSSConstructorParameters
      module procedure localGroupSDSSConstructorInternal
@@ -44,7 +46,7 @@ Implements the geometry of the SDSS survey with a depth for Local Group dwarf de
 contains
 
   function localGroupSDSSConstructorParameters(parameters) result (self)
-    !!{
+    !!{RST
     Constructor for the Local Group SDSS survey geometry class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -54,11 +56,13 @@ contains
     double precision                                              :: distanceMaximumSurvey
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>distanceMaximumSurvey</name>
       <source>parameters</source>
       <defaultValue>300.0d-3</defaultValue>
-      <description>The maximum distance at which galaxies are to be included in the survey.</description>
+      <description>
+      The maximum distance at which galaxies are to be included in the survey.
+      </description>
     </inputParameter>
     !!]
     self=surveyGeometryLocalGroupSDSS(distanceMaximumSurvey)
@@ -69,7 +73,7 @@ contains
   end function localGroupSDSSConstructorParameters
 
   function localGroupSDSSConstructorInternal(distanceMaximumSurvey) result (self)
-    !!{
+    !!{RST
     Internal constructor for the Local Group SDSS survey geometry class
     !!}
     implicit none
@@ -84,7 +88,7 @@ contains
   end function localGroupSDSSConstructorInternal
 
   double precision function localGroupSDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
-    !!{
+    !!{RST
     Compute the maximum distance at which a galaxy is visible.
     !!}
     implicit none

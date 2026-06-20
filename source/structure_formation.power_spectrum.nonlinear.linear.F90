@@ -17,20 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a nonlinear power spectrum class in which the nonlinear power spectrum is just the linear
-power spectrum. Intended primarily for testing purposes.
+!!{RST
+Implements a nonlinear power spectrum class in which the nonlinear power spectrum is just the linear power spectrum. Intended primarily for testing purposes.
 !!}
 
   use :: Power_Spectra, only : powerSpectrumClass
 
   !![
-  <powerSpectrumNonlinear name="powerSpectrumNonlinearLinear">
-   <description>Provides a nonlinear power spectrum class in which the power spectrum equals the linear theory power spectrum. Intended primarily for testing purposes.</description>
+  <powerSpectrumNonlinear name="powerSpectrumNonlinearLinear" docformat="rst">
+   <description>
+   Provides a nonlinear power spectrum class in which the power spectrum equals the linear theory power spectrum. Intended primarily for testing purposes.
+   </description>
   </powerSpectrumNonlinear>
   !!]
   type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearLinear
-     !!{
+     !!{RST
      A linear transfer function class.
      !!}
      private
@@ -41,7 +42,7 @@ power spectrum. Intended primarily for testing purposes.
   end type powerSpectrumNonlinearLinear
 
   interface powerSpectrumNonlinearLinear
-     !!{
+     !!{RST
      Constructors for the linear nonlinear power spectrum class.
      !!}
      module procedure linearConstructorParameters
@@ -51,7 +52,7 @@ power spectrum. Intended primarily for testing purposes.
 contains
 
   function linearConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the linear nonlinear power spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -72,7 +73,7 @@ contains
   end function linearConstructorParameters
 
   function linearConstructorInternal(powerSpectrum_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the linear nonlinear power spectrum class.
     !!}
     implicit none
@@ -86,7 +87,7 @@ contains
   end function linearConstructorInternal
 
   subroutine linearDestructor(self)
-    !!{
+    !!{RST
     Destructor for the linear nonlinear power spectrum class.
     !!}
     implicit none
@@ -99,7 +100,7 @@ contains
   end subroutine linearDestructor
 
   double precision function linearValue(self,wavenumber,time)
-    !!{
+    !!{RST
     Return the nonlinear power spectrum at the given wavenumber.
     !!}
     implicit none

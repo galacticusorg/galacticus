@@ -17,15 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements survey geometries defined by random points.
 !!}
 
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
-  <surveyGeometry name="surveyGeometryRandomPoints" abstract="yes">
-   <description>Implements survey geometries defined by random points.</description>
+  <surveyGeometry name="surveyGeometryRandomPoints" abstract="yes" docformat="rst">
+   <description>
+   Implements survey geometries defined by random points.
+   </description>
   </surveyGeometry>
   !!]
   type, abstract, extends(surveyGeometryClass) :: surveyGeometryRandomPoints
@@ -35,7 +37,7 @@ Implements survey geometries defined by random points.
      class           (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Initialize arrays of random points to define the survey angular geometry." method="randomsInitialize" />
      </methods>
      !!]
@@ -57,7 +59,7 @@ Implements survey geometries defined by random points.
 contains
 
   logical function randomPointsWindowFunctionAvailable(self)
-    !!{
+    !!{RST
     Return true to indicate that survey window function is available.
     !!}
     implicit none
@@ -69,7 +71,7 @@ contains
   end function randomPointsWindowFunctionAvailable
 
   logical function randomPointsAngularPowerAvailable(self)
-    !!{
+    !!{RST
     Return false to indicate that survey angular power is not available.
     !!}
     implicit none
@@ -81,7 +83,7 @@ contains
   end function randomPointsAngularPowerAvailable
 
   subroutine randomPointsWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
-    !!{
+    !!{RST
     Compute the window function for the survey.
     !!}
 #ifdef FFTW3AVAIL
@@ -187,7 +189,7 @@ contains
   end subroutine randomPointsWindowFunctions
 
   double precision function randomPointsAngularPower(self,i,j,l)
-    !!{
+    !!{RST
     Angular power is not available, so simply aborts.
     !!}
     use :: Error, only : Error_Report
@@ -202,7 +204,7 @@ contains
   end function randomPointsAngularPower
 
   logical function randomPointIncluded(self,point,mass)
-    !!{
+    !!{RST
     Return true if a point is included in the survey geometry.
     !!}
     use :: Error, only : Error_Report

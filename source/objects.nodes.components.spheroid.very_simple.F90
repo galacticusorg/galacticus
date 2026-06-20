@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements a very simple spheroid component.
 !!}
 
 module Node_Component_Spheroid_Very_Simple
-  !!{
+  !!{RST
   Implements a very simple spheroid component.
   !!}
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
@@ -135,7 +135,7 @@ contains
   <nodeComponentInitializationTask function="Node_Component_Spheroid_Very_Simple_Initialize"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the tree node very simple spheroid component module.
     !!}
     use :: Galacticus_Nodes, only : defaultSpheroidComponent
@@ -150,16 +150,20 @@ contains
        subParameters=parameters%subParameters('componentSpheroid')
        ! Read parameters controlling the physical implementation.
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>scaleAbsoluteMass</name>
          <defaultValue>100.0d0</defaultValue>
-         <description>The absolute mass scale below which calculations in the very simple spheroid component are allowed to become inaccurate.</description>
+         <description>
+         The absolute mass scale below which calculations in the very simple spheroid component are allowed to become inaccurate.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>toleranceAbsoluteMass</name>
          <defaultValue>1.0d-6</defaultValue>
-         <description>The mass tolerance used to judge whether the spheroid is physically plausible.</description>
+         <description>
+         The mass tolerance used to judge whether the spheroid is physically plausible.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -171,7 +175,7 @@ contains
   <nodeComponentThreadInitializationTask function="Node_Component_Spheroid_Very_Simple_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_Thread_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the tree node very simple satellite module.
     !!}
     use :: Events_Hooks    , only : dependencyDirectionAfter, dependencyRegEx, openMPThreadBindingAtLevel, postEvolveEvent, &
@@ -201,7 +205,7 @@ contains
   <nodeComponentThreadUninitializationTask function="Node_Component_Spheroid_Very_Simple_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_Thread_Uninitialize()
-    !!{
+    !!{RST
     Uninitializes the tree node very simple satellite module.
     !!}
     use :: Events_Hooks    , only : postEvolveEvent         , satelliteMergerEvent
@@ -223,7 +227,7 @@ contains
   <preEvolveTask function="Node_Component_Spheroid_Very_Simple_Pre_Evolve"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_Pre_Evolve(node)
-    !!{
+    !!{RST
     Ensure the spheroid has been initialized.
     !!}
     use :: Galacticus_Nodes, only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode
@@ -245,7 +249,7 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_Pre_Evolve
 
   subroutine postEvolve(self,node)
-    !!{
+    !!{RST
     Catch rounding errors in the very simple spheroid gas evolution.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode
@@ -276,7 +280,7 @@ contains
   <postStepTask function="Node_Component_Spheroid_Very_Simple_Post_Step"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_Post_Step(node,status)
-    !!{
+    !!{RST
     Catch rounding errors in the very simple spheroid gas evolution.
     !!}
     use :: Abundances_Structure          , only : abs                     , zeroAbundances
@@ -354,7 +358,7 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_Post_Step
 
   subroutine Node_Component_Spheroid_Very_Simple_Create(node)
-    !!{
+    !!{RST
     Create properties in a very simple spheroid component.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
@@ -388,8 +392,8 @@ contains
   <scaleSetTask function="Node_Component_Spheroid_Very_Simple_Scale_Set"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_Scale_Set(node)
-    !!{
-    Set scales for properties of \mono{node}.
+    !!{RST
+    Set scales for properties of ``node``.
     !!}
     use :: Abundances_Structure          , only : abs                     , abundances           , max                            , unitAbundances         , &
           &                                       zeroAbundances
@@ -438,8 +442,8 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_Scale_Set
 
   subroutine satelliteMerger(self,node)
-    !!{
-    Transfer any very simple spheroid associated with \mono{node} to its host halo.
+    !!{RST
+    Transfer any very simple spheroid associated with ``node`` to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
@@ -675,7 +679,7 @@ contains
   <radiusSolverPlausibility function="Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility(node)
-    !!{
+    !!{RST
     Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass.
     !!}
     use :: Galacticus_Nodes, only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode
@@ -699,7 +703,7 @@ contains
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver(node,componentActive,component,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get&
        &,Radius_Set,Velocity_Get,Velocity_Set)
-    !!{
+    !!{RST
     Interface for the size solver algorithm.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic          , nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode, &
@@ -741,7 +745,7 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver
 
   double precision function Node_Component_Spheroid_Very_Simple_Radius(node)
-    !!{
+    !!{RST
     Return the radius of the spheroid used in structure solvers.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
@@ -755,7 +759,7 @@ contains
   end function Node_Component_Spheroid_Very_Simple_Radius
 
   subroutine Node_Component_Spheroid_Very_Simple_Radius_Set(node,radius)
-    !!{
+    !!{RST
     Set the radius of the spheroid used in structure solvers.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
@@ -770,7 +774,7 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_Radius_Set
 
   double precision function Node_Component_Spheroid_Very_Simple_Velocity(node)
-    !!{
+    !!{RST
     Return the circular velocity of the spheroid.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
@@ -784,7 +788,7 @@ contains
   end function Node_Component_Spheroid_Very_Simple_Velocity
 
   subroutine Node_Component_Spheroid_Very_Simple_Velocity_Set(node,velocity)
-    !!{
+    !!{RST
     Set the circular velocity of the spheroid.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
@@ -802,7 +806,7 @@ contains
   <stateStoreTask function="Node_Component_Spheroid_Very_Simple_State_Store"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_State_Store(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Store object state,
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo
@@ -823,7 +827,7 @@ contains
   <stateRetrieveTask function="Node_Component_Spheroid_Very_Simple_State_Restore"/>
   !!]
   subroutine Node_Component_Spheroid_Very_Simple_State_Restore(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Retrieve object state.
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo

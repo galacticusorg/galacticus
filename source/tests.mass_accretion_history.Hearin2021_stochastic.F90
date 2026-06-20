@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program which tests the \cite{hearin_differentiable_2021} stochastic halo mass formation history.
+!!{RST
+Contains a program which tests the :cite:t:`hearin_differentiable_2021` stochastic halo mass formation history.
 !!}
 
 program Test_Hearin2021_Stochastic_MAH
-  !!{
-  Tests the \cite{hearin_differentiable_2021} halo mass formation history algorithm.
+  !!{RST
+  Tests the :cite:t:`hearin_differentiable_2021` halo mass formation history algorithm.
   !!}
   use, intrinsic :: ISO_C_Binding                            , only : c_long
   use            :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryHearin2021Stochastic

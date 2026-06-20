@@ -17,26 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an orbital position output analysis property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorPositionOrbital">
+  <nodePropertyExtractor name="nodePropertyExtractorPositionOrbital" docformat="rst">
    <description>
-    An orbital position output analysis property extractor class. Specifically, the orbital position is defined relative to the
-    top-level halo in any sub-halo hierarchy. That is, relative to the host halo which is itself not a sub-halo of any other
-    halo. If the position of a (sub)$^i$-halo with respect to the center of its (sub)$^{i-1}$-halo host is $\mathbf{x}_i$ then
-    the orbital position computed by this class is
-    \begin{equation}
-     \mathbf{x} = sum_{i=1}^N \mathbf{x}_i,
-    \end{equation}
-    where $N$ is the depth of the node in the sub-halo hierarchy.
+   An orbital position output analysis property extractor class. Specifically, the orbital position is defined relative to the top-level halo in any sub-halo hierarchy. That is, relative to the host halo which is itself not a sub-halo of any other halo. If the position of a (sub)\ :math:`^i`-halo with respect to the center of its (sub)\ :math:`^{i-1}`-halo host is :math:`\mathbf{x}_i` then the orbital position computed by this class is
+
+   .. math::
+
+      \mathbf{x} = sum_{i=1}^N \mathbf{x}_i,
+
+   where :math:`N` is the depth of the node in the sub-halo hierarchy.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorPositionOrbital
-     !!{
+     !!{RST
      An orbital position property extractor output analysis class.
      !!}
      private
@@ -50,8 +49,8 @@ Implements an orbital position output analysis property extractor class.
   end type nodePropertyExtractorPositionOrbital
 
   interface nodePropertyExtractorPositionOrbital
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorPositionOrbital} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorPositionOrbital` property extractor class.
      !!}
      module procedure positionOrbitalConstructorParameters
   end interface nodePropertyExtractorPositionOrbital
@@ -59,8 +58,8 @@ Implements an orbital position output analysis property extractor class.
 contains
 
   function positionOrbitalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorPositionOrbital} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorPositionOrbital` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -75,8 +74,8 @@ contains
   end function positionOrbitalConstructorParameters
 
   integer function positionOrbitalElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{positionOrbital} property extractors.
+    !!{RST
+    Return the number of elements in the ``positionOrbital`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorPositionOrbital), intent(inout) :: self
@@ -88,7 +87,7 @@ contains
   end function positionOrbitalElementCount
 
   function positionOrbitalExtract(self,node,time,instance) result(position)
-    !!{
+    !!{RST
     Implement a positionOrbital output analysis.
     !!}
     use :: Galacticus_Nodes    , only : nodeComponentSatellite, nodeComponentBasic
@@ -139,7 +138,7 @@ contains
   end function positionOrbitalExtract
 
   subroutine positionOrbitalNames(self,time,names)
-    !!{
+    !!{RST
     Return the name of the positionOrbital property.
     !!}
     implicit none
@@ -156,7 +155,7 @@ contains
   end subroutine positionOrbitalNames
 
   subroutine positionOrbitalDescriptions(self,time,descriptions)
-    !!{
+    !!{RST
     Return a description of the positionOrbital property.
     !!}
     implicit none
@@ -173,7 +172,7 @@ contains
   end subroutine positionOrbitalDescriptions
 
   function positionOrbitalUnitsInSI(self,time)
-    !!{
+    !!{RST
     Return the units of the positionOrbital property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
@@ -189,7 +188,7 @@ contains
   end function positionOrbitalUnitsInSI
 
   function positionOrbitalUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the orbital position properties.
     !!}
     use :: Units_MetaData, only : unitType

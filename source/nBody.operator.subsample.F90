@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which subsamples points at a given rate.
 !!}
 
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
  
   !![
-  <nbodyOperator name="nbodyOperatorSubsample">
-   <description>An N-body data operator which filters out particles based on a property range.</description>
+  <nbodyOperator name="nbodyOperatorSubsample" docformat="rst">
+   <description>
+   An N-body data operator which filters out particles based on a property range.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSubsample
-     !!{
+     !!{RST
      An N-body data operator which filters out particles based on a property range.
      !!}
      private
@@ -41,8 +43,8 @@ Implements an N-body data operator which subsamples points at a given rate.
   end type nbodyOperatorSubsample
 
   interface nbodyOperatorSubsample
-     !!{
-     Constructors for the \refClass{nbodyOperatorSubsample} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorSubsample` N-body operator class.
      !!}
      module procedure subsampleConstructorParameters
      module procedure subsampleConstructorInternal
@@ -51,8 +53,8 @@ Implements an N-body data operator which subsamples points at a given rate.
 contains
   
   function subsampleConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorSubsample} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorSubsample` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,10 +64,12 @@ contains
     double precision                                            :: rate
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rate</name>
       <source>parameters</source>
-      <description>The probability (between 0 and 1) that each particle is retained; particles are drawn independently from a uniform distribution to achieve the target subsampling fraction.</description>
+      <description>
+      The probability (between 0 and 1) that each particle is retained; particles are drawn independently from a uniform distribution to achieve the target subsampling fraction.
+      </description>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
@@ -78,8 +82,8 @@ contains
   end function subsampleConstructorParameters
 
   function subsampleConstructorInternal(rate,randomNumberGenerator_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorSubsample} N-body operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyOperatorSubsample` N-body operator class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -95,8 +99,8 @@ contains
   end function subsampleConstructorInternal
 
   subroutine subsampleDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorSubsample} N-body operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nbodyOperatorSubsample` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSubsample), intent(inout) :: self
@@ -108,7 +112,7 @@ contains
   end subroutine subsampleDestructor
 
   subroutine subsampleOperate(self,simulations)
-    !!{
+    !!{RST
     Identify and flag particles which have been always isolated.
     !!}
     use :: Display              , only : displayIndent      , displayMessage  , displayUnindent, verbosityLevelStandard

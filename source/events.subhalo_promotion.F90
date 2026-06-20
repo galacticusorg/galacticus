@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which handles node subhalo promotion events.
 !!}
 
 module Node_Subhalo_Promotions
-  !!{
+  !!{RST
   Handles subhalo promotion events.
   !!}
   implicit none
@@ -32,7 +32,7 @@ module Node_Subhalo_Promotions
 contains
 
   logical function nodeSubhaloPromotionPerform(event,node,deadlockStatus)
-    !!{
+    !!{RST
     Promotes a subhalo to be an isolated node.
     !!}
     use :: Display                            , only : displayMessage               , displayVerbosity             , verbosityLevelInfo

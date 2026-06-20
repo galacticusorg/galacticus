@@ -17,23 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a dark matter halo mass function class which modifies another mass function by convolving
-with a mass-dependent error.
+!!{RST
+Implements a dark matter halo mass function class which modifies another mass function by convolving with a mass-dependent error.
 !!}
 
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassError, nbodyHaloMassErrorClass
 
   !![
-  <haloMassFunction name="haloMassFunctionErrorConvolved">
+  <haloMassFunction name="haloMassFunctionErrorConvolved" docformat="rst">
    <description>
-    The halo mass function is computed by convolving another halo mass function with a mass dependent error. Specifically, the
-    mass function is convolved with a Gaussian random error distribution with width computed using the given \mono{nbodyHaloMassError} object.
+   The halo mass function is computed by convolving another halo mass function with a mass dependent error. Specifically, the mass function is convolved with a Gaussian random error distribution with width computed using the given ``nbodyHaloMassError`` object.
    </description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionErrorConvolved
-     !!{
+     !!{RST
      A halo mass function class convolves another halo mass function with a mass dependent error.
      !!}
      private
@@ -47,8 +45,8 @@ with a mass-dependent error.
   end type haloMassFunctionErrorConvolved
 
   interface haloMassFunctionErrorConvolved
-     !!{
-     Constructors for the \refClass{haloMassFunctionErrorConvolved} halo mass function class.
+     !!{RST
+     Constructors for the :galacticus-class:`haloMassFunctionErrorConvolved` halo mass function class.
      !!}
      module procedure errorConvolvedConstructorParameters
      module procedure errorConvolvedConstructorInternal
@@ -63,8 +61,8 @@ with a mass-dependent error.
 contains
 
   function errorConvolvedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{haloMassFunctionErrorConvolved} halo mass function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`haloMassFunctionErrorConvolved` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,22 +76,28 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>errorFractionalMaximum</name>
       <source>parameters</source>
-      <description>Maximum allowed fractional error in halo mass.</description>
+      <description>
+      Maximum allowed fractional error in halo mass.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelative</name>
       <source>parameters</source>
       <defaultValue>1.0d-6</defaultValue>
-      <description>Maximum allowed fractional error in halo mass.</description>
+      <description>
+      Maximum allowed fractional error in halo mass.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerateIntegrationFailure</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, tolerate failures in integration.</description>
+      <description>
+      If true, tolerate failures in integration.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"  source="parameters"/>
     <objectBuilder class="nbodyHaloMassError"  name="nbodyHaloMassError_"   source="parameters"/>
@@ -110,8 +114,8 @@ contains
   end function errorConvolvedConstructorParameters
 
   function errorConvolvedConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,nbodyHaloMassError_,errorFractionalMaximum,toleranceRelative,tolerateIntegrationFailure) result(self)
-    !!{
-    Internal constructor for the \refClass{haloMassFunctionErrorConvolved} halo mass function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`haloMassFunctionErrorConvolved` halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionErrorConvolved)                        :: self
@@ -128,8 +132,8 @@ contains
   end function errorConvolvedConstructorInternal
 
   subroutine errorConvolvedDestructor(self)
-    !!{
-    Destructor for the \refClass{haloMassFunctionErrorConvolved} halo mass function class.
+    !!{RST
+    Destructor for the :galacticus-class:`haloMassFunctionErrorConvolved` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionErrorConvolved), intent(inout) :: self
@@ -143,7 +147,7 @@ contains
   end subroutine errorConvolvedDestructor
 
   double precision function errorConvolvedDifferential(self,time,mass,node)
-    !!{
+    !!{RST
     Return the differential halo mass function at the given time and mass.
     !!}
     use :: Galacticus_Nodes     , only : nodeComponentBasic, treeNode
@@ -208,7 +212,7 @@ contains
   contains
 
     double precision function errorConvolvedConvolution(massPrime)
-      !!{
+      !!{RST
       Integrand function used in convolving the dark matter halo mass function.
       !!}
       use :: Numerical_Constants_Math, only : Pi
@@ -239,7 +243,7 @@ contains
     end function errorConvolvedConvolution
 
     double precision function errorConvolvedNormalization(massPrime)
-      !!{
+      !!{RST
       Integrand function used in normalizing the convolution integral.
       !!}
       use :: Numerical_Constants_Math, only : Pi

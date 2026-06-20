@@ -17,22 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a merger tree operator that prunes branches below some maximum mass, and all of the tree \emph{after} the final output time.
+!!{RST
+Implements a merger tree operator that prunes branches below some maximum mass, and all of the tree *after* the final output time.
 !!}
 
   use :: Output_Times, only : outputTimesClass
   
   !![
-  <mergerTreeOperator name="mergerTreeOperatorPruneByMassAndTime">
+  <mergerTreeOperator name="mergerTreeOperatorPruneByMassAndTime" docformat="rst">
    <description>
-    A merger tree operator class that prunes branches below some maximum mass, and all of the tree \emph{after} the final output time.
+   A merger tree operator class that prunes branches below some maximum mass, and all of the tree *after* the final output time.
    </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneByMassAndTime
-     !!{
-     A merger tree operator that prunes branches below some maximum mass, and all of the tree \emph{after} the final output time.
+     !!{RST
+     A merger tree operator that prunes branches below some maximum mass, and all of the tree *after* the final output time.
      !!}
      private
      class           (outputTimesClass), pointer :: outputTimes_  => null()
@@ -43,7 +43,7 @@ Implements a merger tree operator that prunes branches below some maximum mass, 
   end type mergerTreeOperatorPruneByMassAndTime
 
   interface mergerTreeOperatorPruneByMassAndTime
-     !!{
+     !!{RST
      Constructors for the pruning-by-mass merger tree operator class.
      !!}
      module procedure pruneByMassAndTimeConstructorParameters
@@ -53,7 +53,7 @@ Implements a merger tree operator that prunes branches below some maximum mass, 
 contains
 
   function pruneByMassAndTimeConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the prune-by-mass merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -64,10 +64,12 @@ contains
     double precision                                                      :: massThreshold
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massThreshold</name>
       <source>parameters</source>
-      <description>Threshold mass below which merger tree branches should be pruned.</description>
+      <description>
+      Threshold mass below which merger tree branches should be pruned.
+      </description>
     </inputParameter> 
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
@@ -79,7 +81,7 @@ contains
   end function pruneByMassAndTimeConstructorParameters
 
   function pruneByMassAndTimeConstructorInternal(massThreshold,outputTimes_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the prune-by-mass merger tree operator class.
     !!}
     implicit none
@@ -94,8 +96,8 @@ contains
   end function pruneByMassAndTimeConstructorInternal
 
   subroutine pruneByMassAndTimeDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeOperatorPruneByMassAndTime} merger tree operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeOperatorPruneByMassAndTime` merger tree operator class.
     !!}
     implicit none
     type(mergerTreeOperatorPruneByMassAndTime), intent(inout) :: self
@@ -107,7 +109,7 @@ contains
   end subroutine pruneByMassAndTimeDestructor
 
   subroutine pruneByMassAndTimeOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Perform a prune-by-mass operation on a merger tree.
     !!}
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic                 , treeNode                       , treeNodeLinkedList

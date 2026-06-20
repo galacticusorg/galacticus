@@ -17,17 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program which tests the \cite{zhao_accurate_2009} halo mass formation history and halo concentration algorithms in an
-Einstein-de Sitter Universe.
+!!{RST
+Contains a program which tests the :cite:t:`zhao_accurate_2009` halo mass formation history and halo concentration algorithms in an Einstein-de Sitter Universe.
 !!}
 
 program Test_Zhao2009_Flat
-  !!{
-  Tests the \cite{zhao_accurate_2009} halo mass formation history and halo concentration algorithms in an Einstein-de Sitter
-  Universe. Comparisons are made to the \href{https://web.archive.org/web/20220313133927/http://202.127.29.4/dhzhao/mandc_calculator.htm}{``\mono{mandc}''} Note that
-  comparison tolerances are relatively large since we have not attempted to match details (such as critical density
-  calculation) with ``\mono{mandc}''.
+  !!{RST
+  Tests the :cite:t:`zhao_accurate_2009` halo mass formation history and halo concentration algorithms in an Einstein-de Sitter Universe. Comparisons are made to the ```mandc'' <https://web.archive.org/web/20220313133927/http://202.127.29.4/dhzhao/mandc_calculator.htm>`_ Note that comparison tolerances are relatively large since we have not attempted to match details (such as critical density calculation) with "``mandc``".
   !!}
   use :: Cosmological_Density_Field               , only : criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt, cosmologicalMassVarianceFilteredPower
   use :: Cosmology_Functions                      , only : cosmologyFunctionsMatterLambda

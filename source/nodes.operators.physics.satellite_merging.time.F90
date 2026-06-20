@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that triggers merging of satellites based on a merging time.
   !!}
 
@@ -26,12 +26,14 @@
   use :: Kind_Numbers                , only : kind_int8
 
   !![
-  <nodeOperator name="nodeOperatorSatelliteMergingTime">
-   <description>A node operator class that assigns a merging time to each satellite halo computed from the orbital parameters at virial infall using a \refClass{satelliteMergingTimescalesClass}, then triggers the merger when that time is reached. \mono{resetOnHaloFormation} controls whether the virial orbital parameters (and hence merging time) are reset at halo formation events detected during tree traversal.</description>
+  <nodeOperator name="nodeOperatorSatelliteMergingTime" docformat="rst">
+   <description>
+   A node operator class that assigns a merging time to each satellite halo computed from the orbital parameters at virial infall using a :galacticus-class:`satelliteMergingTimescalesClass`, then triggers the merger when that time is reached. ``resetOnHaloFormation`` controls whether the virial orbital parameters (and hence merging time) are reset at halo formation events detected during tree traversal.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteMergingTime
-     !!{
+     !!{RST
      A node operator class that triggers merging of satellites based on a merging time.
      !!}
      private
@@ -41,7 +43,7 @@
      logical                                           :: resetOnHaloFormation
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="timeMergingSet" description="Set the time of merging for a satellite node."/>
      </methods>
      !!]
@@ -53,8 +55,8 @@
   end type nodeOperatorSatelliteMergingTime
   
   interface nodeOperatorSatelliteMergingTime
-     !!{
-     Constructors for the \refClass{nodeOperatorSatelliteMergingTime} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteMergingTime` node operator class.
      !!}
      module procedure satelliteMergingTimeConstructorParameters
      module procedure satelliteMergingTimeConstructorInternal
@@ -63,8 +65,8 @@
 contains
 
   function satelliteMergingTimeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorSatelliteMergingTime} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteMergingTime` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -75,10 +77,12 @@ contains
     logical                                                  :: resetOnHaloFormation
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>resetOnHaloFormation</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether satellite virial orbital parameters should be reset on halo formation events.</description>
+      <description>
+      Specifies whether satellite virial orbital parameters should be reset on halo formation events.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters"/>
@@ -94,8 +98,8 @@ contains
   end function satelliteMergingTimeConstructorParameters
 
   function satelliteMergingTimeConstructorInternal(resetOnHaloFormation,virialOrbit_,satelliteMergingTimescales_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorSatelliteMergingTime} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteMergingTime` node operator class.
     !!}
     implicit none
     type   (nodeOperatorSatelliteMergingTime)                        :: self
@@ -110,7 +114,7 @@ contains
   end function satelliteMergingTimeConstructorInternal
 
   subroutine satelliteMergingTimeAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent, haloFormationEvent, openMPThreadBindingAtLevel
@@ -123,8 +127,8 @@ contains
   end subroutine satelliteMergingTimeAutoHook
 
   subroutine satelliteMergingTimeDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorSatelliteMergingTime} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteMergingTime` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent, haloFormationEvent
     implicit none
@@ -140,7 +144,7 @@ contains
   end subroutine satelliteMergingTimeDestructor
 
   subroutine satelliteMergingTimeNodeTreeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize merging time of any initial satellites in a tree.
     !!}
     implicit none
@@ -160,7 +164,7 @@ contains
   end subroutine satelliteMergingTimeNodeTreeInitialize
   
   subroutine satelliteMergingTimeNodesMerge(self,node)
-    !!{
+    !!{RST
     Act on node merging tree.
     !!}
     implicit none
@@ -172,7 +176,7 @@ contains
   end subroutine satelliteMergingTimeNodesMerge
   
   subroutine satelliteHostChange(self,node)
-    !!{
+    !!{RST
     Handle cases where a satellite switches host node.
     !!}
     use :: Error, only : Error_Report
@@ -190,7 +194,7 @@ contains
   end subroutine satelliteHostChange
 
   subroutine haloFormation(self,node)
-    !!{
+    !!{RST
     Handle cases where a host halo reforms.
     !!}
     use :: Error, only : Error_Report
@@ -217,8 +221,8 @@ contains
   end subroutine haloFormation
 
   subroutine satelliteMergingTimeTimeMergingSet(self,node)
-    !!{
-    Set the time of merging for the given \mono{node}.
+    !!{RST
+    Set the time of merging for the given ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite
     use :: Kepler_Orbits   , only : keplerOrbit       , keplerOrbitMasses        , keplerOrbitRadius            , keplerOrbitTheta, &

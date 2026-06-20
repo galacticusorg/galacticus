@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides compiler commands.
 !!}
 
 module System_Compilers
-  !!{
+  !!{RST
   Provides compiler commands.
   !!}
   implicit none
@@ -30,9 +30,11 @@ module System_Compilers
   public :: compiler, compilerOptions
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>language</name>
-   <description>Enumerates languages for which compilers are available.</description>
+   <description>
+   Enumerates languages for which compilers are available.
+   </description>
    <visibility>public</visibility>
    <entry label="fortran"  />
    <entry label="c"        />
@@ -43,7 +45,7 @@ module System_Compilers
 contains
 
   function compiler(language)
-    !!{
+    !!{RST
     Return the name of the compiler to use for a given language.
     !!}
     use :: Error             , only : Error_Report
@@ -73,7 +75,7 @@ contains
   end function compiler
 
   function compilerOptions(language)
-    !!{
+    !!{RST
     Return compiler options to use for a given language.
     !!}
     use :: Error             , only : Error_Report
@@ -101,7 +103,7 @@ contains
   end function compilerOptions
 
   function compilerRetrieve(compilerEnvironmentVariable,compilerLength)
-    !!{
+    !!{RST
     Retrieve the compiler command from an environment variable.
     !!}
     use :: ISO_Varying_String, only : assignment(=), varying_string

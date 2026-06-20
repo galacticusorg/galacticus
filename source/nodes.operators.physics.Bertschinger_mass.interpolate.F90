@@ -17,26 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that computes the accretion rate onto a halo corresponding to the ``Bertschinger''
-  mass. Typically this is the mass corresponding to a spherical top-hat collapse scenario, although in practice this class can be
-  provided with any \refClass{virialDensityContrastClass}.
+  !!{RST
+  Implements a node operator class that computes the accretion rate onto a halo corresponding to the "Bertschinger" mass. Typically this is the mass corresponding to a spherical top-hat collapse scenario, although in practice this class can be provided with any :galacticus-class:`virialDensityContrastClass`.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorBertschingerMass">
+  <nodeOperator name="nodeOperatorBertschingerMass" docformat="rst">
    <description>
-     A node operator class that computes the accretion rate onto a halo corresponding to the ``Bertschinger'' mass. Typically
-     this is the mass corresponding to a spherical top-hat collapse scenario, although in practice this class can be provided with
-     any \refClass{virialDensityContrastClass}.
+   A node operator class that computes the accretion rate onto a halo corresponding to the "Bertschinger" mass. Typically this is the mass corresponding to a spherical top-hat collapse scenario, although in practice this class can be provided with any :galacticus-class:`virialDensityContrastClass`.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorBertschingerMass
-     !!{
-     A node operator class that computes the accretion rate onto a halo corresponding to the ``Bertschinger'' mass. Typically
-     this is the mass corresponding to a spherical top-hat collapse scenario, although in practice this class can be provided with
-     any \refClass{virialDensityContrastClass}.
+     !!{RST
+     A node operator class that computes the accretion rate onto a halo corresponding to the "Bertschinger" mass. Typically this is the mass corresponding to a spherical top-hat collapse scenario, although in practice this class can be provided with any :galacticus-class:`virialDensityContrastClass`.
      !!}
      private
      class  (cosmologyParametersClass  ), pointer :: cosmologyParameters_        => null()
@@ -55,8 +49,8 @@
   end type nodeOperatorBertschingerMass
   
   interface nodeOperatorBertschingerMass
-     !!{
-     Constructors for the \refClass{nodeOperatorBertschingerMass} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorBertschingerMass` node operator class.
      !!}
      module procedure bertschingerMassConstructorParameters
      module procedure bertschingerMassConstructorInternal
@@ -65,8 +59,8 @@
 contains
   
   function bertschingerMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorBertschingerMass} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorBertschingerMass` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -92,8 +86,8 @@ contains
   end function bertschingerMassConstructorParameters
 
   function bertschingerMassConstructorInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorBertschingerMass} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorBertschingerMass` node operator class.
     !!}
     implicit none
     type (nodeOperatorBertschingerMass)                        :: self
@@ -113,8 +107,8 @@ contains
   end function bertschingerMassConstructorInternal
 
   subroutine bertschingerMassDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorBertschingerMass} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorBertschingerMass` node operator class.
     !!}
     implicit none
     type(nodeOperatorBertschingerMass), intent(inout) :: self
@@ -128,8 +122,8 @@ contains
   end subroutine bertschingerMassDestructor
 
   subroutine bertschingerMassNodeTreeInitialize(self,node)
-    !!{
-    Initialize the Bertschinger mass of all nodes in the tree.    
+    !!{RST
+    Initialize the Bertschinger mass of all nodes in the tree.
     !!}
     implicit none
     class(nodeOperatorBertschingerMass), intent(inout), target  :: self
@@ -140,8 +134,8 @@ contains
   end subroutine bertschingerMassNodeTreeInitialize
   
   recursive subroutine bertschingerMassNodeInitialize(self,node)
-    !!{
-    Compute the rate of growth of the ``\gls{dmou}'' mass of a halo assuming a constant growth rate.
+    !!{RST
+    Compute the rate of growth of the ":term:`dark matter-only universe`" mass of a halo assuming a constant growth rate.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic
@@ -249,8 +243,8 @@ contains
   contains
     
     recursive double precision function nodeMassUnresolved(node)
-      !!{
-      Return the unresolved mass for \mono{node}.
+      !!{RST
+      Return the unresolved mass for ``node``.
       !!}
       use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
       implicit none
@@ -278,7 +272,7 @@ contains
   end subroutine bertschingerMassNodeInitialize
 
   subroutine bertschingerMassDifferentialEvolutionAnalytics(self,node)
-    !!{
+    !!{RST
     Mark analytically-solvable properties.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -293,8 +287,8 @@ contains
   end subroutine bertschingerMassDifferentialEvolutionAnalytics
 
   subroutine bertschingerMassDifferentialEvolutionSolveAnalytics(self,node,time)
-    !!{
-    Evolve ``\gls{dmou}'' mass at a constant rate, to achieve linear interpolation in time.
+    !!{RST
+    Evolve ":term:`dark matter-only universe`" mass at a constant rate, to achieve linear interpolation in time.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -317,8 +311,8 @@ contains
   end subroutine bertschingerMassDifferentialEvolutionSolveAnalytics
 
   subroutine bertschingerMassNodePromote(self,node)
-    !!{
-    Ensure that \mono{node} is ready for promotion to its parent.
+    !!{RST
+    Ensure that ``node`` is ready for promotion to its parent.
     !!}
     use :: Error             , only : Error_Report
     use :: Galacticus_Nodes  , only : nodeComponentBasic
@@ -353,7 +347,7 @@ contains
   end subroutine bertschingerMassNodePromote
 
   subroutine bertschingerMassNodesMerge(self,node)
-    !!{
+    !!{RST
     Act on a merger between nodes.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

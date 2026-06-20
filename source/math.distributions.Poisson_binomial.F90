@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements Poisson binomial distributions.
 !!}
 
 module Math_Distributions_Poisson_Binomial
-  !!{
+  !!{RST
   Implements Poisson binomial distributions.
   !!}
   private
@@ -32,9 +32,8 @@ module Math_Distributions_Poisson_Binomial
 contains
 
   double precision function Poisson_Binomial_Distribution(k,p)
-    !!{
-    Computes the Poisson binomial distribution with event probabilities \mono{p} at argument
-    \mono{k}. Uses the discrete Fourier transform method proposed by \cite{fernandez_closed-form_2010}.
+    !!{RST
+    Computes the Poisson binomial distribution with event probabilities ``p`` at argument ``k``. Uses the discrete Fourier transform method proposed by :cite:t:`fernandez_closed-form_2010`.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -67,9 +66,8 @@ contains
   end function Poisson_Binomial_Distribution
 
   function Poisson_Binomial_Distribution_Jacobian(k,p)
-    !!{
-    Computes the Jacobian of the Poisson binomial distribution with event probabilities \mono{p} at argument
-    \mono{k}. Uses the discrete Fourier transform method proposed by \cite{fernandez_closed-form_2010}.
+    !!{RST
+    Computes the Jacobian of the Poisson binomial distribution with event probabilities ``p`` at argument ``k``. Uses the discrete Fourier transform method proposed by :cite:t:`fernandez_closed-form_2010`.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -102,7 +100,7 @@ contains
   end function Poisson_Binomial_Distribution_Jacobian
 
   double precision function Poisson_Binomial_Distribution_Mean(p)
-    !!{
+    !!{RST
     Computes the mean of a Poisson binomial distribution.
     !!}
     implicit none
@@ -113,7 +111,7 @@ contains
   end function Poisson_Binomial_Distribution_Mean
 
   double precision function Poisson_Binomial_Distribution_Variance(p)
-    !!{
+    !!{RST
     Computes the mean of a Poisson binomial distribution.
     !!}
     implicit none
@@ -124,10 +122,8 @@ contains
   end function Poisson_Binomial_Distribution_Variance
 
   double precision function Poisson_Binomial_Distribution_Mean_Pairs(p)
-    !!{
-    Computes the mean number of pairs expected from a Poisson binomial distribution with
-    event probabilities \mono{p}. Assumes that pair order is significant, i.e. both $AB$ and
-    $BA$ are counted.
+    !!{RST
+    Computes the mean number of pairs expected from a Poisson binomial distribution with event probabilities ``p``. Assumes that pair order is significant, i.e. both :math:`AB` and :math:`BA` are counted.
     !!}
     implicit none
     double precision, intent(in   ), dimension(:) :: p
@@ -141,10 +137,8 @@ contains
   end function Poisson_Binomial_Distribution_Mean_Pairs
 
   function Poisson_Binomial_Distribution_Mean_Pairs_Jacobian(p)
-    !!{
-    Computes the Jacobian of the mean number of pairs expected from a Poisson binomial distribution with
-    event probabilities \mono{p}. Assumes that pair order is significant, i.e. both $AB$ and
-    $BA$ are counted.
+    !!{RST
+    Computes the Jacobian of the mean number of pairs expected from a Poisson binomial distribution with event probabilities ``p``. Assumes that pair order is significant, i.e. both :math:`AB` and :math:`BA` are counted.
     !!}
     implicit none
     double precision, intent(in   ), dimension(     : ) :: p

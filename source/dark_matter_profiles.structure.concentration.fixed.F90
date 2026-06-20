@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of dark matter halo profile concentrations using a fixed value for concentration.
   !!}
 
   !![
-  <darkMatterProfileConcentration name="darkMatterProfileConcentrationFixed">
-   <description>Dark matter halo concentrations are computed using a fixed value for concentration.</description>
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationFixed" docformat="rst">
+   <description>
+   Dark matter halo concentrations are computed using a fixed value for concentration.
+   </description>
   </darkMatterProfileConcentration>
   !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationFixed
-     !!{
-     A dark matter halo profile concentration class implementing the algorithm of \cite{gao_redshift_2008}.
+     !!{RST
+     A dark matter halo profile concentration class implementing the algorithm of :cite:t:`gao_redshift_2008`.
      !!}
      private
      class           (virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
@@ -42,8 +44,8 @@
   end type darkMatterProfileConcentrationFixed
 
   interface darkMatterProfileConcentrationFixed
-     !!{
-     Constructors for the \refClass{darkMatterProfileConcentrationFixed} dark matter halo profile concentration class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationFixed` dark matter halo profile concentration class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -52,9 +54,8 @@
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileConcentrationFixed} dark matter halo profile concentration class which takes a parameter
-    list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationFixed` dark matter halo profile concentration class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,10 +66,12 @@ contains
     double precision                                                     :: concentration
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>concentration</name>
       <source>parameters</source>
-      <description>The fixed NFW concentration parameter $c = r_\mathrm{virial}/r_\mathrm{scale}$ assigned to all halos regardless of mass or redshift, representing the ratio of the virial radius to the scale radius of the dark matter density profile.</description>
+      <description>
+      The fixed NFW concentration parameter :math:`c = r_\mathrm{virial}/r_\mathrm{scale}` assigned to all halos regardless of mass or redshift, representing the ratio of the virial radius to the scale radius of the dark matter density profile.
+      </description>
     </inputParameter>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
@@ -83,8 +86,8 @@ contains
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(concentration_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileConcentrationFixed} dark matter halo profile concentration class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterProfileConcentrationFixed` dark matter halo profile concentration class.
     !!}
     implicit none
     type            (darkMatterProfileConcentrationFixed)                        :: self
@@ -99,8 +102,8 @@ contains
   end function fixedConstructorInternal
 
   subroutine fixedDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileConcentrationFixed} dark matter halo profile concentration class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationFixed` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationFixed), intent(inout) :: self
@@ -113,8 +116,8 @@ contains
   end subroutine fixedDestructor
 
   double precision function fixedConcentration(self,node)
-    !!{
-    Return the concentration of the dark matter halo profile of \mono{node}.
+    !!{RST
+    Return the concentration of the dark matter halo profile of ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -127,7 +130,7 @@ contains
   end function fixedConcentration
 
   function fixedDensityContrastDefinition(self)
-    !!{
+    !!{RST
     Return a virial density contrast object defining that used in the definition of concentration.
     !!}
     implicit none
@@ -139,7 +142,7 @@ contains
   end function fixedDensityContrastDefinition
 
   function fixedDarkMatterProfileDefinition(self)
-    !!{
+    !!{RST
     Return a dark matter density profile object defining that used in the definition of concentration.
     !!}
     implicit none

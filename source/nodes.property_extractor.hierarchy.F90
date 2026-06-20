@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorHierarchy">
-   <description>Extracts meta-properties describing the structural position of a node within the halo hierarchy, such as its depth level in the subhalo nesting, enabling analysis of multi-level substructure in merger trees.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorHierarchy" docformat="rst">
+   <description>
+   Extracts meta-properties describing the structural position of a node within the halo hierarchy, such as its depth level in the subhalo nesting, enabling analysis of multi-level substructure in merger trees.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerTuple) :: nodePropertyExtractorHierarchy
-     !!{
+     !!{RST
      A property extractor which extracts meta-properties related to the position of a node within the (sub-)halo hierarchy.
      !!}
      private
@@ -39,8 +41,8 @@
   end type nodePropertyExtractorHierarchy
 
   interface nodePropertyExtractorHierarchy
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorHierarchy} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorHierarchy` property extractor class.
      !!}
      module procedure hierarchyConstructorParameters
      module procedure hierarchyConstructorInternal
@@ -49,8 +51,8 @@
 contains
 
   function hierarchyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorHierarchy} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorHierarchy` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,8 +67,8 @@ contains
   end function hierarchyConstructorParameters
 
   function hierarchyConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorHierarchy} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorHierarchy` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHierarchy) :: self
@@ -80,8 +82,8 @@ contains
   end function hierarchyConstructorInternal
 
   integer function hierarchyElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{hierarchy} property extractors.
+    !!{RST
+    Return the number of elements in the ``hierarchy`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorHierarchy), intent(inout) :: self
@@ -93,7 +95,7 @@ contains
   end function hierarchyElementCount
 
   function hierarchyExtract(self,node,time,instance)
-    !!{
+    !!{RST
     Implement a hierarchy output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -117,8 +119,8 @@ contains
   end function hierarchyExtract
 
   subroutine hierarchyNames(self,time,names)
-    !!{
-    Return the names of the \mono{hierarchy} properties.
+    !!{RST
+    Return the names of the ``hierarchy`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorHierarchy), intent(inout)                             :: self
@@ -134,8 +136,8 @@ contains
   end subroutine hierarchyNames
 
   subroutine hierarchyDescriptions(self,time,descriptions)
-    !!{
-    Return the descriptions of the \mono{hierarchy} properties.
+    !!{RST
+    Return the descriptions of the ``hierarchy`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorHierarchy), intent(inout)                             :: self
@@ -151,8 +153,8 @@ contains
   end subroutine hierarchyDescriptions
 
   function hierarchyUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{hierarchy} properties in the SI system.
+    !!{RST
+    Return the units of the ``hierarchy`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
@@ -167,7 +169,7 @@ contains
   end function hierarchyUnitsInSI
 
   function hierarchyUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the hierarchy properties.
     !!}
     use :: Units_MetaData, only : unitType

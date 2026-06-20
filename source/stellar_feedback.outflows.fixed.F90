@@ -17,25 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a fixed fraction stellar feedback model.
   !!}
 
   !![
-  <stellarFeedbackOutflows name="stellarFeedbackOutflowsFixed">
+  <stellarFeedbackOutflows name="stellarFeedbackOutflowsFixed" docformat="rst">
    <description>
-    A stellar feedback outflow class in which the outflow rate is fixed. Specifically,
-    \begin{equation}
-     \dot{M}_\mathrm{outflow} = f_\mathrm{outflow} {\dot{E} \over E_\mathrm{canonical}},
-    \end{equation}
-    where $f_\mathrm{outflow}=$\mono{[fraction]} is the fraction of the star formation rate that goes into
-    outflow, $\dot{E}$ is the rate of energy input from stellar populations and $E_\mathrm{canonical}$ is the total energy
-    input by a canonical stellar population normalized to $1 \mathrm{M}_\odot$ after infinite time.
+   A stellar feedback outflow class in which the outflow rate is fixed. Specifically,
+
+   .. math::
+
+      \dot{M}_\mathrm{outflow} = f_\mathrm{outflow} {\dot{E} \over E_\mathrm{canonical}},
+
+   where :math:`f_\mathrm{outflow}=`\ ``[fraction]`` is the fraction of the star formation rate that goes into outflow, :math:`\dot{E}` is the rate of energy input from stellar populations and :math:`E_\mathrm{canonical}` is the total energy input by a canonical stellar population normalized to :math:`1 \mathrm{M}_\odot` after infinite time.
    </description>
   </stellarFeedbackOutflows>
   !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsFixed
-     !!{
+     !!{RST
      Implementation of a fixed fraction stellar feedback model.
      !!}
      private
@@ -45,7 +45,7 @@
   end type stellarFeedbackOutflowsFixed
 
   interface stellarFeedbackOutflowsFixed
-     !!{
+     !!{RST
      Constructors for the fixed fraction stellar feedback class.
      !!}
      module procedure fixedConstructorParameters
@@ -55,7 +55,7 @@
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the fixed fraction stellar feedback class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
@@ -66,11 +66,13 @@ contains
     double precision                                              :: fraction
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fraction</name>
       <source>parameters</source>
       <defaultValue>0.01d0</defaultValue>
-      <description>The fixed fraction $f_\mathrm{outflow}$ of the stellar energy input rate (normalized to a canonical $1\,\mathrm{M}_\odot$ population) that drives gas outflows, setting the mass loading factor for stellar feedback in the galaxy.</description>
+      <description>
+      The fixed fraction :math:`f_\mathrm{outflow}` of the stellar energy input rate (normalized to a canonical :math:`1\,\mathrm{M}_\odot` population) that drives gas outflows, setting the mass loading factor for stellar feedback in the galaxy.
+      </description>
     </inputParameter>
     !!]
     self=stellarFeedbackOutflowsFixed(fraction)
@@ -81,7 +83,7 @@ contains
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(fraction) result(self)
-    !!{
+    !!{RST
     Internal constructor for the fixed stellar feedback class.
     !!}
     implicit none
@@ -95,9 +97,9 @@ contains
   end function fixedConstructorInternal
 
   subroutine fixedOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
-    !!{
-    Returns the outflow rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) due to stellar feedback in the given \mono{component}. Assumes a fixed ratio of outflow rate to star formation rate.
-   !!}
+    !!{RST
+    Returns the outflow rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) due to stellar feedback in the given ``component``. Assumes a fixed ratio of outflow rate to star formation rate.
+    !!}
     use :: Stellar_Feedback, only : feedbackEnergyInputAtInfinityCanonical
     implicit none
     class           (stellarFeedbackOutflowsFixed), intent(inout) :: self

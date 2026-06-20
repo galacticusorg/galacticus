@@ -17,21 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of a spectrum postprocessor that applies the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.
+  !!{RST
+  An implementation of a spectrum postprocessor that applies the :cite:t:`meiksin_colour_2006` calculation of the attenuation of spectra by the intergalactic medium.
   !!}
 
   !![
-  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorMeiksin2006">
+  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorMeiksin2006" docformat="rst">
    <description>
-    A stellar population postprocessor class that postprocesses spectra through absorption by the \gls{igm} using the results
-    of \cite{meiksin_colour_2006}.
+   A stellar population postprocessor class that postprocesses spectra through absorption by the :term:`IGM` using the results of :cite:t:`meiksin_colour_2006`.
    </description>
   </stellarPopulationSpectraPostprocessor>
   !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorMeiksin2006
-     !!{
-     An spectrum postprocessor implementing the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.
+     !!{RST
+     An spectrum postprocessor implementing the :cite:t:`meiksin_colour_2006` calculation of the attenuation of spectra by the intergalactic medium.
      !!}
      private
    contains
@@ -39,8 +38,8 @@
   end type stellarPopulationSpectraPostprocessorMeiksin2006
 
   interface stellarPopulationSpectraPostprocessorMeiksin2006
-     !!{
-     Constructors for the \refClass{stellarPopulationSpectraPostprocessorMeiksin2006} stellar population spectra postprocessor class.
+     !!{RST
+     Constructors for the :galacticus-class:`stellarPopulationSpectraPostprocessorMeiksin2006` stellar population spectra postprocessor class.
      !!}
      module procedure meiksin2006ConstructorParameters
   end interface stellarPopulationSpectraPostprocessorMeiksin2006
@@ -48,9 +47,8 @@
 contains
 
   function meiksin2006ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarPopulationSpectraPostprocessorMeiksin2006} stellar population spectra postprocessor class which takes a
-    parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`stellarPopulationSpectraPostprocessorMeiksin2006` stellar population spectra postprocessor class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +63,7 @@ contains
   end function meiksin2006ConstructorParameters
 
   double precision function meiksin2006Multiplier(self,wavelength,age,redshift)
-    !!{
+    !!{RST
     Suppress the Lyman continuum in a spectrum.
     !!}
     use :: Factorials                , only : Factorial

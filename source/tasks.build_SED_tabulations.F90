@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Contains a class which implements a task to pre-build tabulations needed for SED calculations.
   !!}
 
@@ -26,12 +26,14 @@
   use :: Star_Formation_Histories, only : starFormationHistoryClass
 
   !![
-  <task name="taskBuildSEDTabulations">
-   <description>A task which pre-builds and caches tabulations of stellar spectral energy distributions (SEDs) by iterating over output times and computing SED properties for a representative galaxy node. This pre-computation avoids redundant calculations during full forest evolution, covering disk, spheroid, and nuclear star cluster components.</description>
+  <task name="taskBuildSEDTabulations" docformat="rst">
+   <description>
+   A task which pre-builds and caches tabulations of stellar spectral energy distributions (SEDs) by iterating over output times and computing SED properties for a representative galaxy node. This pre-computation avoids redundant calculations during full forest evolution, covering disk, spheroid, and nuclear star cluster components.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildSEDTabulations
-     !!{
+     !!{RST
      Implementation of a task which pre-builds tabulations needed for SED calculations.
      !!}
      private
@@ -47,8 +49,8 @@
   end type taskBuildSEDTabulations
 
   interface taskBuildSEDTabulations
-     !!{
-     Constructors for the \refClass{taskBuildSEDTabulations} task.
+     !!{RST
+     Constructors for the :galacticus-class:`taskBuildSEDTabulations` task.
      !!}
      module procedure buildSEDTabulationsParameters
      module procedure buildSEDTabulationsInternal
@@ -57,8 +59,8 @@
 contains
 
   function buildSEDTabulationsParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskBuildSEDTabulations} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskBuildSEDTabulations` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
@@ -101,8 +103,8 @@ contains
   end function buildSEDTabulationsParameters
 
   function buildSEDTabulationsInternal(nodePropertyExtractor_,starFormationHistory_,outputTimes_,parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskBuildSEDTabulations} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskBuildSEDTabulations` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -120,8 +122,8 @@ contains
   end function buildSEDTabulationsInternal
 
   subroutine buildSEDDestructor(self)
-    !!{
-    Destructor for the \refClass{taskBuildSEDTabulations} task class.
+    !!{RST
+    Destructor for the :galacticus-class:`taskBuildSEDTabulations` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
@@ -137,7 +139,7 @@ contains
   end subroutine buildSEDDestructor
 
   subroutine buildSEDTabulationsPerform(self,status)
-    !!{
+    !!{RST
     Builds the tabulation.
     !!}
     use :: Display                 , only : displayIndent                    , displayUnindent
@@ -284,7 +286,7 @@ contains
   end subroutine buildSEDTabulationsPerform
 
   logical function buildSEDTabulationsRequiresOutputFile(self)
-    !!{
+    !!{RST
     Specifies that this task does not requires the main output file.
     !!}
     implicit none

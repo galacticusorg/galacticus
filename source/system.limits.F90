@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which sets system resource limits.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module which sets system resource limits.
 !: $(BUILDPATH)/rlimit.o
 
 module System_Limits
-  !!{
+  !!{RST
   Set resource limits.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_int, c_long
@@ -35,8 +35,8 @@ module System_Limits
 
   interface
      function setResourceLimit(resource,limit) bind(c,name='setResourceLimit_C')
-       !!{
-       Template for a C function that calls \mono{setrlimit()} to set a resource limit.
+       !!{RST
+       Template for a C function that calls ``setrlimit()`` to set a resource limit.
        !!}
        import
        integer(c_int )        :: setResourceLimit
@@ -50,7 +50,7 @@ module System_Limits
 contains
 
   subroutine System_Limits_Set(parameters)
-    !!{
+    !!{RST
     Set system resource limits.
     !!}
     use    :: Error           , only : Error_Report
@@ -62,10 +62,12 @@ contains
     integer(c_long         )                :: cpuLimit
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>cpuLimit</name>
       <defaultValue>0_c_long</defaultValue>
-      <description>The CPU time limit for the run, in seconds.</description>
+      <description>
+      The CPU time limit for the run, in seconds.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]

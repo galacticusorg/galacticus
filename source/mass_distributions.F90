@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class that provides mass distributions.
 !!}
 
 module Mass_Distributions
-  !!{
+  !!{RST
   Implements a class that provides mass distributions.
   !!}
   use :: Coordinates               , only : coordinate
@@ -37,22 +37,21 @@ module Mass_Distributions
   public  :: massDistributionMatches_
   
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>massDistribution</name>
    <descriptiveName>Mass Distributions</descriptiveName>
-   <description>Class providing mass distributions---fully general descriptions of the spatial distribution of mass
-    (dark matter, gas, stars, or black holes) in a galaxy or halo. Implementations provide the density profile
-    $\rho(\mathbf{x})$, gravitational potential $\Phi(\mathbf{x})$, enclosed mass $M(r)$, surface density, rotation
-    curve, and velocity dispersion via the Jeans equation. The class also tracks the component and mass type of the
-    distribution and supports arbitrary geometries, enabling self-consistent multi-component dynamical models of
-    galaxies and halos.</description>
+   <description>
+   Class providing mass distributions---fully general descriptions of the spatial distribution of mass (dark matter, gas, stars, or black holes) in a galaxy or halo. Implementations provide the density profile :math:`\rho(\mathbf{x})`, gravitational potential :math:`\Phi(\mathbf{x})`, enclosed mass :math:`M(r)`, surface density, rotation curve, and velocity dispersion via the Jeans equation. The class also tracks the component and mass type of the distribution and supports arbitrary geometries, enabling self-consistent multi-component dynamical models of galaxies and halos.
+   </description>
    <destructor>
     <code>
      call kinematicsDistributionDestructor(self)
     </code>
    </destructor>
    <method name="setKinematicsDistribution">
-     <description>Set the kinematics distribution for this mass distribution.</description>
+     <description>
+     Set the kinematics distribution for this mass distribution.
+     </description>
      <type>void</type>
      <pass>yes</pass>
      <argument>class(kinematicsDistributionClass), intent(in   ) :: kinematicsDistribution_</argument>
@@ -61,7 +60,9 @@ module Mass_Distributions
      </code>
    </method>
    <method name="kinematicsDistribution">
-     <description>Get a pointer to the kinematics distribution for this mass distribution.</description>
+     <description>
+     Get a pointer to the kinematics distribution for this mass distribution.
+     </description>
      <type>class(kinematicsDistributionClass)</type>
      <pass>yes</pass>
      <code>
@@ -70,7 +71,9 @@ module Mass_Distributions
      </code>
    </method>
    <method name="setTypes">
-     <description>Set the component and mass types of the mass distribution.</description>
+     <description>
+     Set the component and mass types of the mass distribution.
+     </description>
      <type>void</type>
      <pass>yes</pass>
      <argument>type(enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
@@ -81,7 +84,9 @@ module Mass_Distributions
      </code>
    </method>
    <method name="subset">
-      <description>Return the subset of the mass distribution matching the given {\normalfont componentType} and \mono{massType}.</description>
+      <description>
+      Return the subset of the mass distribution matching the given componentType and ``massType``.
+      </description>
       <type>class(massDistributionClass)</type>
       <pass>yes</pass>
       <argument>type(enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
@@ -95,7 +100,9 @@ module Mass_Distributions
       </code>
    </method>
    <method name="describe" >
-    <description>Display a description of the mass distribution.</description>
+    <description>
+    Display a description of the mass distribution.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <modules>Display</modules>
@@ -104,7 +111,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="matches" >
-    <description>Return true if this mass distribution matches the specified component and mass type.</description>
+    <description>
+    Return true if this mass distribution matches the specified component and mass type.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <argument>type(enumerationComponentTypeType), intent(in   ), optional :: componentType</argument>
@@ -114,7 +123,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="symmetry" >
-    <description>Return the symmetry of the distribution.</description>
+    <description>
+    Return the symmetry of the distribution.
+    </description>
     <type>type(enumerationMassDistributionSymmetryType)</type>
     <pass>yes</pass>
     <code>
@@ -123,7 +134,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="isSphericallySymmetric" >
-    <description>Return true if the distribution is spherically symmetric.</description>
+    <description>
+    Return true if the distribution is spherically symmetric.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <code>
@@ -131,7 +144,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="assumeMonotonicDecreasingSurfaceDensity" >
-    <description>Return true if the distribution can be assumed to have a monotonically decreasing surface density.</description>
+    <description>
+    Return true if the distribution can be assumed to have a monotonically decreasing surface density.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <code>
@@ -139,7 +154,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="isDimensionless" >
-    <description>Return true if the distribution is dimensionless.</description>
+    <description>
+    Return true if the distribution is dimensionless.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <code>
@@ -147,36 +164,48 @@ module Mass_Distributions
     </code>
    </method>
    <method name="massTotal" >
-    <description>Return the total mass of the distribution.</description>
+    <description>
+    Return the total mass of the distribution.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="acceleration" >
-    <description>Return the gravitational acceleration due to the distribution at the given coordinates.</description>
+    <description>
+    Return the gravitational acceleration due to the distribution at the given coordinates.
+    </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
     <argument>class(coordinate), intent(in   ) :: coordinates  </argument>
    </method>
    <method name="tidalTensor" >
-    <description>Return the gravitational tidal tensor due to the distribution at the given coordinates.</description>
+    <description>
+    Return the gravitational tidal tensor due to the distribution at the given coordinates.
+    </description>
     <type>type(tensorRank2Dimension3Symmetric)</type>
     <pass>yes</pass>
     <argument>class(coordinate), intent(in   ) :: coordinates  </argument>
    </method>
    <method name="density" >
-    <description>Return the density of the distribution at the given coordinates.</description>
+    <description>
+    Return the density of the distribution at the given coordinates.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(coordinate), intent(in   ) :: coordinates  </argument>
    </method>
    <method name="densitySphericalAverage" >
-    <description>Return the average density on a spherical shell of the gievn radius.</description>
+    <description>
+    Return the average density on a spherical shell of the given radius.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: radius </argument>
    </method>
    <method name="densityGradientRadial" >
-    <description>Return the radial gradient of density of the distribution at the given coordinates.</description>
+    <description>
+    Return the radial gradient of density of the distribution at the given coordinates.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -184,7 +213,9 @@ module Mass_Distributions
     <argument>logical            , intent(in   ), optional :: logarithmic</argument>
    </method>
    <method name="potential" >
-    <description>Return the gravitational potential of the distribution at the given coordinates.</description>
+    <description>
+    Return the gravitational potential of the distribution at the given coordinates.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -192,7 +223,9 @@ module Mass_Distributions
     <argument>type (enumerationStructureErrorCodeType), intent(  out), optional :: status       </argument>
    </method>
    <method name="potentialIsAnalytic" >
-     <description>Return true if the gravitational potential for this distribution has an analytic form.</description>
+     <description>
+     Return true if the gravitational potential for this distribution has an analytic form.
+     </description>
      <type>logical</type>
      <pass>yes</pass>
      <code>
@@ -200,7 +233,9 @@ module Mass_Distributions
      </code>
    </method>
    <method name="potentialDifference" >
-    <description>Return the difference in that gravitational potential of the distribution between the given coordinates.</description>
+    <description>
+    Return the difference in that gravitational potential of the distribution between the given coordinates.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -227,7 +262,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="potentialDifferenceNumerical" >
-    <description>Return the difference in that gravitational potential of the distribution between the given coordinates using a numerical calculation.</description>
+    <description>
+    Return the difference in that gravitational potential of the distribution between the given coordinates using a numerical calculation.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -239,21 +276,27 @@ module Mass_Distributions
     </code>
    </method>
    <method name="massEnclosedBySphere" >
-    <description>Return the mass enclosed in the distribution by a sphere of given radius.</description>
+    <description>
+    Return the mass enclosed in the distribution by a sphere of given radius.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
     <argument>double precision, intent(in   ) :: radius</argument>
    </method>
    <method name="massEnclosedByCylinder" >
-    <description>Return the mass enclosed in the distribution by a cylinder of given radius.</description>
+    <description>
+    Return the mass enclosed in the distribution by a cylinder of given radius.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
     <argument>double precision, intent(in   ) :: radius</argument>
    </method>
    <method name="radiusEnclosingMass" >
-    <description>Return the radius enclosing a specified mass.</description>
+    <description>
+    Return the radius enclosing a specified mass.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -263,7 +306,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="radiusEnclosingMassNumerical" >
-    <description>Return the radius enclosing a specified mass using a numerical calculation.</description>
+    <description>
+    Return the radius enclosing a specified mass using a numerical calculation.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -303,7 +348,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="radiusCylindricalEnclosingMass" >
-    <description>Return the cylindrical radius enclosing a specified mass.</description>
+    <description>
+    Return the cylindrical radius enclosing a specified mass.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -313,7 +360,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="radiusCylindricalEnclosingMassNumerical" >
-    <description>Return the cylindrical radius enclosing a specified mass using a numerical calculation.</description>
+    <description>
+    Return the cylindrical radius enclosing a specified mass using a numerical calculation.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -353,7 +402,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="radiusEnclosingDensity" >
-    <description>Return the radius enclosing a specified density.</description>
+    <description>
+    Return the radius enclosing a specified density.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -364,7 +415,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="radiusEnclosingDensityNumerical" >
-    <description>Return the radius enclosing a specified density using a numerical calculation.</description>
+    <description>
+    Return the radius enclosing a specified density using a numerical calculation.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -396,7 +449,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="radiusEnclosingSurfaceDensity" >
-    <description>Return the radius enclosing a specified surface density.</description>
+    <description>
+    Return the radius enclosing a specified surface density.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -407,7 +462,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="radiusEnclosingSurfaceDensityNumerical" >
-    <description>Return the radius enclosing a specified surface density using a numerical calculation.</description>
+    <description>
+    Return the radius enclosing a specified surface density using a numerical calculation.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -439,7 +496,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="radiusFromSpecificAngularMomentum" >
-    <description>Return the radius corresponding to a given specific angular momentum.</description>
+    <description>
+    Return the radius corresponding to a given specific angular momentum.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -449,7 +508,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="radiusFromSpecificAngularMomentumNumerical" >
-    <description>Return the radius corresponding to a given specific angular momentum using a numerical calculation.</description>
+    <description>
+    Return the radius corresponding to a given specific angular momentum using a numerical calculation.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -480,19 +541,25 @@ module Mass_Distributions
     </code>
    </method>
    <method name="rotationCurve" >
-    <description>Return the rotation curve at the given radius.</description>
+    <description>
+    Return the rotation curve at the given radius.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: radius</argument>
    </method>
    <method name="rotationCurveGradient" >
-    <description>Return the rotation curve gradient, $\mathrm{d}V^2/\mathrm{d}r$, at the given radius.</description>
+    <description>
+    Return the rotation curve gradient, :math:`\mathrm{d}V^2/\mathrm{d}r`, at the given radius.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: radius</argument>
    </method>
    <method name="velocityRotationCurveMaximum" >
-    <description>Return the maximum velocity in the rotation curve.</description>
+    <description>
+    Return the maximum velocity in the rotation curve.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <code>
@@ -500,7 +567,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="radiusRotationCurveMaximum" >
-    <description>Return the radius of the maximum velocity in the rotation curve.</description>
+    <description>
+    Return the radius of the maximum velocity in the rotation curve.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -510,7 +579,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="radiusRotationCurveMaximumNumerical" >
-    <description>Return the radius of the maximum velocity in the rotation curve.</description>
+    <description>
+    Return the radius of the maximum velocity in the rotation curve.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -542,13 +613,17 @@ module Mass_Distributions
     </code>
    </method>
    <method name="surfaceDensity" >
-     <description>Return the surface density at the given coordinates.</description>
+     <description>
+     Return the surface density at the given coordinates.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>class(coordinate), intent(in   ) :: coordinates  </argument>
    </method>
    <method name="surfaceDensityRadialMoment" >
-     <description>Return the surface density at the given coordinates.</description>
+     <description>
+     Return the surface density at the given coordinates.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   )           :: moment                      </argument>
@@ -556,7 +631,9 @@ module Mass_Distributions
      <argument>logical         , intent(  out), optional :: isInfinite                  </argument>
    </method>
    <method name="densityRadialMoment" >
-    <description>Return the radial moment of the distribution.</description>
+    <description>
+    Return the radial moment of the distribution.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: moment                      </argument>
@@ -564,14 +641,18 @@ module Mass_Distributions
     <argument>logical         , intent(  out), optional :: isInfinite                  </argument>
    </method>
    <method name="densitySquareIntegral" >
-    <description>Return the integral over the square of the density of the distribution.</description>
+    <description>
+    Return the integral over the square of the density of the distribution.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: radiusMinimum, radiusMaximum</argument>
     <argument>logical         , intent(  out), optional :: isInfinite                  </argument>
    </method>
    <method name="chandrasekharIntegral" >
-    <description>Return the Chandresekhar integral of the distribution.</description>
+    <description>
+    Return the Chandrasekhar integral of the distribution.
+    </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
     <argument>class           (massDistributionClass), intent(inout) :: massDistributionEmbedding, massDistributionPerturber</argument>
@@ -579,25 +660,33 @@ module Mass_Distributions
     <argument>class           (coordinate           ), intent(in   ) :: coordinates              , velocity                 </argument>
    </method>
    <method name="radiusFreefall" >
-    <description>Return the radius at which the freefall time to the center equals the given \mono{time}.</description>
+    <description>
+    Return the radius at which the freefall time to the center equals the given ``time``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="radiusFreefallIncreaseRate" >
-    <description>Return the rate of increase of the freefall radius corresponding to the given \mono{time}.</description>
+    <description>
+    Return the rate of increase of the freefall radius corresponding to the given ``time``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: time</argument>
    </method>
    <method name="fourierTransform" >
-    <description>Return the spherically-symmetrized Fourier transform of the density profile at the given wavenumber.</description>
+    <description>
+    Return the spherically-symmetrized Fourier transform of the density profile at the given wavenumber.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: radiusOuter  , wavenumber</argument>
    </method>
    <method name="energy" >
-    <description>Return the total energy of the distribution within the given radius.</description>
+    <description>
+    Return the total energy of the distribution within the given radius.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -605,13 +694,17 @@ module Mass_Distributions
     <argument>class           (massDistributionClass), intent(inout), target :: massDistributionEmbedding</argument>
    </method>
    <method name="positionSample" >
-    <description>Return a position sampled from the distribution.</description>
+    <description>
+    Return a position sampled from the distribution.
+    </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
     <argument>class(randomNumberGeneratorClass  ), intent(inout) :: randomNumberGenerator_</argument>
    </method>
    <method name="solverSet" >
-    <description>Set a sub-module scope pointers on a stack to allow recursive calls to functions.</description>
+    <description>
+    Set a sub-module scope pointers on a stack to allow recursive calls to functions.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -646,7 +739,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="solverUnset" >
-    <description>Unset a sub-module scope pointers on the stack.</description>
+    <description>
+    Unset a sub-module scope pointers on the stack.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <code>
@@ -666,21 +761,23 @@ module Mass_Distributions
   !!]
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>kinematicsDistribution</name>
    <descriptiveName>Kinematics Distributions</descriptiveName>
-   <description>Class providing kinematics distributions for mass distribution components---the temperature,
-    velocity dispersion, and mean radial velocity of particles (or fluid elements) as a function of position.
-    For collisional (gaseous) components the temperature profile enters the cooling and feedback calculations;
-    for collisionless (stellar and dark matter) components the velocity dispersion is computed by solving the
-    spherical Jeans equation given the mass distribution and its potential.</description>
+   <description>
+   Class providing kinematics distributions for mass distribution components---the temperature, velocity dispersion, and mean radial velocity of particles (or fluid elements) as a function of position. For collisional (gaseous) components the temperature profile enters the cooling and feedback calculations; for collisionless (stellar and dark matter) components the velocity dispersion is computed by solving the spherical Jeans equation given the mass distribution and its potential.
+   </description>
    <method name="isCollisional" >
-    <description>Return true if the kinematics is collisional.</description>
+    <description>
+    Return true if the kinematics is collisional.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
    </method>
    <method name="temperature" >
-    <description>Return the temperature of the distribution at the given coordinates.</description>
+    <description>
+    Return the temperature of the distribution at the given coordinates.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(coordinate), intent(in   ) :: coordinates</argument>
@@ -690,7 +787,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="temperatureGradientLogarithmic" >
-    <description>Return the logarithmic gradient of the temperature of the distribution at the given coordinates.</description>
+    <description>
+    Return the logarithmic gradient of the temperature of the distribution at the given coordinates.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(coordinate), intent(in   ) :: coordinates</argument>
@@ -700,7 +799,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="velocityRadial" >
-    <description>Return the mean radial velocity at the given coordinate.</description>
+    <description>
+    Return the mean radial velocity at the given coordinate.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(coordinate           ), intent(in   ) :: coordinates              </argument>
@@ -711,7 +812,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="velocityDispersion1D" >
-    <description>Return the 1D velocity dispersion at the given coordinate.</description>
+    <description>
+    Return the 1D velocity dispersion at the given coordinate.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(coordinate           ), intent(in   )         :: coordinates                                 </argument>
@@ -721,7 +824,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="velocityDispersion1DNumerical" >
-    <description>Return the 1D velocity dispersion at the given coordinate by numerically solving the Jeans equation.</description>
+    <description>
+    Return the 1D velocity dispersion at the given coordinate by numerically solving the Jeans equation.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(coordinate           ), intent(in   )         :: coordinates                                 </argument>
@@ -732,7 +837,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="jeansEquationRadius" >
-    <description>Return the radius variable used in solving the Jeans equation that corresponds to a given physical radius.</description>
+    <description>
+    Return the radius variable used in solving the Jeans equation that corresponds to a given physical radius.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision                       , intent(in   ) :: radius                   </argument>
@@ -743,7 +850,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="jeansEquationIntegrand" >
-    <description>Evaluate the integrand of the Jeans equation at the given \mono{radius}, returning $\mathrm{G}M(r)\rho(r)/r^2$ needed for numerical integration of the spherical Jeans equation to obtain the line-of-sight velocity dispersion.</description>
+    <description>
+    Evaluate the integrand of the Jeans equation at the given ``radius``, returning :math:`\mathrm{G}M(r)\rho(r)/r^2` needed for numerical integration of the spherical Jeans equation to obtain the line-of-sight velocity dispersion.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <modules>Numerical_Constants_Astronomical Coordinates</modules>
@@ -763,7 +872,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="solverSet" >
-    <description>Set a sub-module scope pointers on a stack to allow recursive calls to functions.</description>
+    <description>
+    Set a sub-module scope pointers on a stack to allow recursive calls to functions.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -793,7 +904,9 @@ module Mass_Distributions
     </code>
    </method>
    <method name="solverUnset" >
-    <description>Unset a sub-module scope pointers on the stack.</description>
+    <description>
+    Unset a sub-module scope pointers on the stack.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <code>
@@ -827,30 +940,34 @@ module Mass_Distributions
   !!]
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>massDistributionHeating</name>
    <descriptiveName>Heating of Mass Distributions</descriptiveName>
-   <description>Class providing heating models for mass distributions---the specific energy deposited into the
-    dark matter or stellar distribution as a function of radius, arising from processes such as tidal heating,
-    dynamical friction, or baryonic feedback. The specific energy and its radial gradient are used to modify the
-    density profile of the mass distribution, capturing the effect of non-gravitational energy injection on the
-    structure of halos and galaxies.</description>
+   <description>
+   Class providing heating models for mass distributions---the specific energy deposited into the dark matter or stellar distribution as a function of radius, arising from processes such as tidal heating, dynamical friction, or baryonic feedback. The specific energy and its radial gradient are used to modify the density profile of the mass distribution, capturing the effect of non-gravitational energy injection on the structure of halos and galaxies.
+   </description>
    <method name="specificEnergy" >
-    <description>Return the specific energy at the given radius.</description>
+    <description>
+    Return the specific energy at the given radius.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision                       , intent(in   ) :: radius           </argument>
     <argument>class           (massDistributionClass), intent(inout) :: massDistribution_</argument>
    </method>
    <method name="specificEnergyGradient" >
-    <description>Return the radial gradient of the specific energy at the given radius.</description>
+    <description>
+    Return the radial gradient of the specific energy at the given radius.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision                       , intent(in   ) :: radius           </argument>
     <argument>class           (massDistributionClass), intent(inout) :: massDistribution_</argument>
    </method>
    <method name="specificEnergyIsEverywhereZero" >
-    <description>Return true if the specific energy is zero everywhere (i.e. no heating).</description>
+    <description>
+    Return true if the specific energy is zero everywhere (i.e. no heating).
+    </description>
     <type>logical</type>
     <pass>yes</pass>
    </method>
@@ -859,9 +976,11 @@ module Mass_Distributions
 
   ! Enumeration of mass distribution symmetries.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>massDistributionSymmetry</name>
-   <description>Specifies the symmetry of \mono{massDistribution} objects.</description>
+   <description>
+   Specifies the symmetry of ``massDistribution`` objects.
+   </description>
    <visibility>public</visibility>
    <entry label="none"        />
    <entry label="cylindrical" />
@@ -871,9 +990,11 @@ module Mass_Distributions
 
   ! Enumeration of non-analytic solver options.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>nonAnalyticSolvers</name>
-   <description>Used to specify the type of solution to use when no analytic solution is available.</description>
+   <description>
+   Used to specify the type of solution to use when no analytic solution is available.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -909,7 +1030,7 @@ module Mass_Distributions
 contains
   
   subroutine kinematicsDistributionDestructor(self)
-    !!{
+    !!{RST
     Destroy a kinematics distribution.
     !!}
     implicit none
@@ -922,7 +1043,7 @@ contains
   end subroutine kinematicsDistributionDestructor
   
   subroutine selfAcquire(self,self_)
-    !!{
+    !!{RST
     Acquire a reference to a mass distribution.
     !!}
     implicit none
@@ -936,7 +1057,7 @@ contains
   end subroutine selfAcquire
 
   subroutine kinematicsDistributionAcquire(self,kinematicsDistribution_)
-    !!{
+    !!{RST
     Acquire a reference to a kinematics distribution.
     !!}
     implicit none
@@ -951,7 +1072,7 @@ contains
   end subroutine kinematicsDistributionAcquire
   
   subroutine kinematicsDistributionIncrement(self)
-    !!{
+    !!{RST
     Increment the reference count to a kinematics distribution.
     !!}
     implicit none
@@ -964,7 +1085,7 @@ contains
   end subroutine kinematicsDistributionIncrement
 
   logical function massDistributionMatches_(componentTypeTarget,massTypeTarget,componentType,massType)
-    !!{
+    !!{RST
     Determine if the requested mass and component types match that of the target mass distribution.
     !!}
     implicit none
@@ -1019,7 +1140,7 @@ contains
   end function massDistributionMatches_
   
   double precision function massEnclosedRoot(radius)
-    !!{
+    !!{RST
     Root function used in finding radii enclosing a target mass.
     !!}
     implicit none
@@ -1031,7 +1152,7 @@ contains
   end function massEnclosedRoot
   
   double precision function massEnclosedCylindricalRoot(radius)
-    !!{
+    !!{RST
     Root function used in finding cylindrical radii enclosing a target mass.
     !!}
     implicit none
@@ -1043,7 +1164,7 @@ contains
   end function massEnclosedCylindricalRoot
   
   double precision function densityEnclosedRoot(radius)
-    !!{
+    !!{RST
     Root function used in finding radii enclosing a target density.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -1060,7 +1181,7 @@ contains
   end function densityEnclosedRoot
   
   double precision function densitySurfaceEnclosedRoot(radius)
-    !!{
+    !!{RST
     Root function used in finding radii enclosing a target surface density.
     !!}
     use :: Coordinates, only : coordinateCylindrical, assignment(=)
@@ -1075,7 +1196,7 @@ contains
   end function densitySurfaceEnclosedRoot
   
   double precision function specificAngularMomentumRoot(radius)
-    !!{
+    !!{RST
     Root function used in finding radii corresponding to a target specific angular momentum.
     !!}
     implicit none
@@ -1088,7 +1209,7 @@ contains
   end function specificAngularMomentumRoot
   
   double precision function rotationCurveMaximumRoot(radius)
-    !!{
+    !!{RST
     Root function used in finding the radius corresponding to the peak of the rotation curve.
     !!}
     implicit none
@@ -1099,7 +1220,7 @@ contains
   end function rotationCurveMaximumRoot
 
   double precision function massDistributionPotentialDifferenceNumerical_(self,coordinates1,coordinates2,status) result(potentialDifference)
-    !!{
+    !!{RST
     Numerically calculate the potential difference between the provided coordinates.
     !!}
     use :: Coordinates               , only : coordinateCartesian      , assignment(=)
@@ -1148,7 +1269,7 @@ contains
   end function massDistributionPotentialDifferenceNumerical_
 
   double precision function potentialDifferenceIntegrand(distance)
-    !!{
+    !!{RST
     Integrand used in computing potential differences.
     !!}
     use :: Coordinates                     , only : coordinateCartesian, assignment(=)
@@ -1169,7 +1290,7 @@ contains
   end function potentialDifferenceIntegrand
   
   subroutine jeansEquationSolver(self,radius,massDistribution_,massDistributionEmbedding)
-    !!{
+    !!{RST
     Solve the Jeans equation numerically to find the 1D velocity dispersion.
     !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
@@ -1384,7 +1505,7 @@ contains
   end subroutine jeansEquationSolver
 
   double precision function jeansEquationIntegrand_(radius)
-    !!{
+    !!{RST
     Integrand for the Jeans equation.
     !!}
     implicit none

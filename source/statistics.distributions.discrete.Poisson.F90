@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a Poisson 1D discrete distribution function.
   !!}
 
   !![
-  <distributionFunctionDiscrete1D name="distributionFunctionDiscrete1DPoisson">
-   <description>A Poisson 1D discrete distribution function class.</description>
+  <distributionFunctionDiscrete1D name="distributionFunctionDiscrete1DPoisson" docformat="rst">
+   <description>
+   A Poisson 1D discrete distribution function class.
+   </description>
   </distributionFunctionDiscrete1D>
   !!]
   type, extends(distributionFunctionDiscrete1DClass) :: distributionFunctionDiscrete1DPoisson
-     !!{
+     !!{RST
      Implementation of a Poisson 1D discrete distribution function.
      !!}
      private
@@ -42,8 +44,8 @@
   end type distributionFunctionDiscrete1DPoisson
 
   interface distributionFunctionDiscrete1DPoisson
-     !!{
-     Constructors for the \mono{poisson} 1D discrete distribution function class.
+     !!{RST
+     Constructors for the ``poisson`` 1D discrete distribution function class.
      !!}
      module procedure poissonConstructorParameters
      module procedure poissonConstructorInternal
@@ -52,9 +54,8 @@
 contains
 
   function poissonConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \mono{poisson} 1D discrete distribution function class which builds
-    the object from a parameter set.
+    !!{RST
+    Constructor for the ``poisson`` 1D discrete distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,9 +65,11 @@ contains
     double precision                                                       :: mean
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mean</name>
-      <description>The mean of the distribution.</description>
+      <description>
+      The mean of the distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -80,8 +83,8 @@ contains
   end function poissonConstructorParameters
 
   function poissonConstructorInternal(mean,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for \mono{poisson} 1D distribution function class.
+    !!{RST
+    Constructor for ``poisson`` 1D distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -97,7 +100,7 @@ contains
   end function poissonConstructorInternal
 
   double precision function poissonMass(self,x) result(mass)
-    !!{
+    !!{RST
     Return the mass of a Poisson discrete distribution.
     !!}
     implicit none
@@ -109,7 +112,7 @@ contains
   end function poissonMass
 
   double precision function poissonMassLogarithmic(self,x) result(massLogarithmic)
-    !!{
+    !!{RST
     Return the logarithmic mass of a Poisson discrete distribution.
     !!}
     use :: Error     , only : Error_Report
@@ -126,7 +129,7 @@ contains
   end function poissonMassLogarithmic
 
   double precision function poissonCumulative(self,x,status) result(cumulativeDistribution)
-    !!{
+    !!{RST
     Return the cumulative probability of a Poisson discrete distribution.
     !!}
     use :: Gamma_Functions, only : Gamma_Function_Incomplete
@@ -142,7 +145,7 @@ contains
   end function poissonCumulative
 
   integer function poissonInverse(self,p) result(count)
-    !!{
+    !!{RST
     Return the inverse of a Poisson discrete distribution.
     !!}
     use :: Error, only : Error_Report
@@ -157,7 +160,7 @@ contains
   end function poissonInverse
 
   integer function poissonMinimum(self) result(minimum)
-    !!{
+    !!{RST
     Return the minimum possible value in a Poisson discrete distribution.
     !!}
     implicit none
@@ -169,7 +172,7 @@ contains
   end function poissonMinimum
 
   integer function poissonMaximum(self) result(maximum)
-    !!{
+    !!{RST
     Return the maximum possible value in a Poisson discrete distribution.
     !!}
     implicit none

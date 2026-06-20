@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of atomic recombination cooling rates based on the tabulated results of \cite{hummer_total_1994} and \cite{hummer_recombination_1998}.
+  !!{RST
+  An implementation of atomic recombination cooling rates based on the tabulated results of :cite:t:`hummer_total_1994` and :cite:t:`hummer_recombination_1998`.
   !!}
 
   use :: Atomic_Rates_Recombination_Radiative, only : atomicRecombinationRateRadiativeClass
   use :: Tables                              , only : table1DLogarithmicLinear
   
   !![
-  <atomicRecombinationRateRadiativeCooling name="atomicRecombinationRateRadiativeCoolingHummer">
-   <description>Atomic radiative cooling rates based on the tabulated results of \cite{hummer_total_1994} and \cite{hummer_recombination_1998}. For non-hydrogenic or helium-like ions an optional default of $\beta = \gamma \alpha$ can be returned where $\alpha$ is the corresponding radiative recombination coefficient and $\gamma$ is a parameter.</description>
+  <atomicRecombinationRateRadiativeCooling name="atomicRecombinationRateRadiativeCoolingHummer" docformat="rst">
+   <description>
+   Atomic radiative cooling rates based on the tabulated results of :cite:t:`hummer_total_1994` and :cite:t:`hummer_recombination_1998`. For non-hydrogenic or helium-like ions an optional default of :math:`\beta = \gamma \alpha` can be returned where :math:`\alpha` is the corresponding radiative recombination coefficient and :math:`\gamma` is a parameter.
+   </description>
   </atomicRecombinationRateRadiativeCooling>
   !!]
   type, extends(atomicRecombinationRateRadiativeCoolingClass) :: atomicRecombinationRateRadiativeCoolingHummer
-     !!{
+     !!{RST
      A recombination cooling rate class assuming a thermal electron distribution.
      !!}
      private
@@ -43,17 +45,19 @@
   end type atomicRecombinationRateRadiativeCoolingHummer
 
   interface atomicRecombinationRateRadiativeCoolingHummer
-     !!{
-     Constructors for the \refClass{atomicRecombinationRateRadiativeCoolingHummer} atomic radiative recombination class.
+     !!{RST
+     Constructors for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingHummer` atomic radiative recombination class.
      !!}
      module procedure hummerConstructorParameters
      module procedure hummerConstructorInternal
   end interface atomicRecombinationRateRadiativeCoolingHummer
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>sequence</name>
-   <description>Enumeration of isoelectronic sequences (atoms/ions with the same number of electrons) used to select the appropriate tabulated recombination cooling data from \cite{hummer_total_1994}: hydrogen-like, helium-like, or no sequence.</description>
+   <description>
+   Enumeration of isoelectronic sequences (atoms/ions with the same number of electrons) used to select the appropriate tabulated recombination cooling data from :cite:t:`hummer_total_1994`: hydrogen-like, helium-like, or no sequence.
+   </description>
    <indexing>0</indexing>
    <entry label="none"    />
    <entry label="hydrogen"/>
@@ -62,9 +66,11 @@
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>level</name>
-   <description>Enumeration of recombination level cases used in the \cite{hummer_total_1994} tables: level 1 includes recombinations to all levels (Case A), while level B excludes direct recombinations to the ground state (Case B).</description>
+   <description>
+   Enumeration of recombination level cases used in the :cite:t:`hummer_total_1994` tables: level 1 includes recombinations to all levels (Case A), while level B excludes direct recombinations to the ground state (Case B).
+   </description>
    <indexing>1</indexing>
    <entry label="1"/>
    <entry label="B"/>
@@ -74,8 +80,8 @@
 contains
 
   function hummerConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{atomicRecombinationRateRadiativeCoolingHummer} atomic radiative recombination class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingHummer` atomic radiative recombination class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -85,9 +91,11 @@ contains
     double precision                                                               :: gamma
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma</name>
-      <description>The multiplicative factor, $\gamma$, used to compute the cooling coefficient in cases of non-hydrogenic or helium-like ions.</description>
+      <description>
+      The multiplicative factor, :math:`\gamma`, used to compute the cooling coefficient in cases of non-hydrogenic or helium-like ions.
+      </description>
       <source>parameters</source>
       <defaultValue>0.67d0</defaultValue>
     </inputParameter>
@@ -102,8 +110,8 @@ contains
   end function hummerConstructorParameters
   
   function hummerConstructorInternal(gamma,atomicRecombinationRateRadiative_) result(self)
-    !!{
-    Internal constructor for the \refClass{atomicRecombinationRateRadiativeCoolingHummer} atomic radiative recombination class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingHummer` atomic radiative recombination class.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Table_Labels    , only : extrapolationTypeExtrapolate
@@ -126,8 +134,8 @@ contains
   end function hummerConstructorInternal
 
   subroutine hummerDestructor(self)
-    !!{
-    Destructor for the \refClass{atomicRecombinationRateRadiativeCoolingHummer} atomic radiative recombination class.
+    !!{RST
+    Destructor for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingHummer` atomic radiative recombination class.
     !!}
     implicit none
     type(atomicRecombinationRateRadiativeCoolingHummer), intent(inout) :: self
@@ -139,7 +147,7 @@ contains
   end subroutine hummerDestructor
 
   double precision function hummerRate(self,atomicNumber,ionizationState,temperature,level)
-    !!{
+    !!{RST
     Returns the cooling rate coefficient.
     !!}
     use :: Atomic_Rates_Recombination_Radiative, only : recombinationCaseA, recombinationCaseB

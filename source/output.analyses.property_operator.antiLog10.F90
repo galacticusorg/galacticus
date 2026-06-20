@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements an anti-$\log_{10}()$ output analysis property operator class.
+!!{RST
+Implements an anti-:math:`\log_{10}()` output analysis property operator class.
 !!}
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorAntiLog10">
-   <description>Applies the inverse $\log_{10}$ transformation ($10^x$) to a property value, converting from logarithmic to linear scale as part of an output analysis property operator pipeline.</description>
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorAntiLog10" docformat="rst">
+   <description>
+   Applies the inverse :math:`\log_{10}` transformation (:math:`10^x`) to a property value, converting from logarithmic to linear scale as part of an output analysis property operator pipeline.
+   </description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorAntiLog10
-     !!{
-     An anti-$\log_{10}()$ output property operator class.
+     !!{RST
+     An anti-:math:`\log_{10}()` output property operator class.
      !!}
      private
    contains
@@ -36,8 +38,8 @@ Implements an anti-$\log_{10}()$ output analysis property operator class.
   end type outputAnalysisPropertyOperatorAntiLog10
 
   interface outputAnalysisPropertyOperatorAntiLog10
-     !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorAntiLog10} output analysis property operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorAntiLog10` output analysis property operator class.
      !!}
      module procedure antiLog10ConstructorParameters
   end interface outputAnalysisPropertyOperatorAntiLog10
@@ -45,8 +47,8 @@ Implements an anti-$\log_{10}()$ output analysis property operator class.
 contains
 
   function antiLog10ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisPropertyOperatorAntiLog10} output analysis property operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorAntiLog10` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function antiLog10ConstructorParameters
 
   double precision function antiLog10Operate(self,propertyValue,node,propertyType,outputIndex)
-    !!{
+    !!{RST
     Implement an antiLog10 output analysis property operator.
     !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t

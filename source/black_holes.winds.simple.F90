@@ -17,21 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a simple black hole winds class.
   !!}
 
   use :: Black_Hole_Accretion_Rates, only : blackHoleAccretionRateClass
 
   !![
-  <blackHoleWind name="blackHoleWindSimple">
+  <blackHoleWind name="blackHoleWindSimple" docformat="rst">
    <description>
-    Models AGN accretion-driven winds in which a fixed fraction of the accreted rest-mass energy is injected as a mechanical wind into the host galaxy. The wind power is proportional to the black hole accretion rate, with the coupling efficiency set by the \mono{[efficiencyWind]} parameter.
+   Models AGN accretion-driven winds in which a fixed fraction of the accreted rest-mass energy is injected as a mechanical wind into the host galaxy. The wind power is proportional to the black hole accretion rate, with the coupling efficiency set by the ``[efficiencyWind]`` parameter.
    </description>
   </blackHoleWind>
   !!]
   type, extends(blackHoleWindClass) :: blackHoleWindSimple
-     !!{
+     !!{RST
      A simple black hole winds model.
      !!}
      private
@@ -43,8 +43,8 @@
   end type blackHoleWindSimple
   
   interface blackHoleWindSimple
-     !!{
-     Constructors for the \refClass{blackHoleWindSimple} black hole winds class.
+     !!{RST
+     Constructors for the :galacticus-class:`blackHoleWindSimple` black hole winds class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -53,8 +53,8 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{blackHoleWindSimple} black hole winds class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`blackHoleWindSimple` black hole winds class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,10 +64,12 @@ contains
     double precision                                             :: efficiencyWind
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>efficiencyWind</name>
       <defaultValue>2.2157d-3</defaultValue>
-      <description>The coupling efficiency of the black hole accretion-driven wind, defined as the fraction of the accreted rest-mass energy that is deposited as kinetic or thermal energy into the surrounding gas via AGN-driven outflows.</description>
+      <description>
+      The coupling efficiency of the black hole accretion-driven wind, defined as the fraction of the accreted rest-mass energy that is deposited as kinetic or thermal energy into the surrounding gas via AGN-driven outflows.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="blackHoleAccretionRate" name="blackHoleAccretionRate_" source="parameters"/>
@@ -81,8 +83,8 @@ contains
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(efficiencyWind,blackHoleAccretionRate_) result(self)
-    !!{
-    Internal constructor for the \refClass{blackHoleWindSimple} black hole winds class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`blackHoleWindSimple` black hole winds class.
     !!}
     implicit none
     type            (blackHoleWindSimple        )                        :: self
@@ -96,7 +98,7 @@ contains
   end function simpleConstructorInternal
 
   subroutine simpleDestructor(self)
-    !!{
+    !!{RST
     Destructor for the simple black hole winds class.
     !!}
     implicit none
@@ -109,7 +111,7 @@ contains
   end subroutine simpleDestructor
   
   double precision function simplePower(self,blackHole) result(power)
-    !!{
+    !!{RST
     Compute the power of a black hole-driven wind that couples to the surrounding galaxy.
     !!}
     use :: Numerical_Constants_Physical, only : speedLight

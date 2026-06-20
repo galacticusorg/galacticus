@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of a spectrum postprocessor that suppresses the Lyman continuum.
   !!}
 
   !![
-  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorLycSuppress">
+  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorLycSuppress" docformat="rst">
    <description>
-    A stellar population spectrum postprocessor class that suppresses all emission in the Lyman continuum.
+   A stellar population spectrum postprocessor class that suppresses all emission in the Lyman continuum.
    </description>
   </stellarPopulationSpectraPostprocessor>
   !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorLycSuppress
-     !!{
+     !!{RST
      A stellar population spectrum postprocessor which completely suppresses the Lyman continuum.
      !!}
      private
@@ -39,8 +39,8 @@
   end type stellarPopulationSpectraPostprocessorLycSuppress
 
   interface stellarPopulationSpectraPostprocessorLycSuppress
-     !!{
-     Constructors for the \refClass{stellarPopulationSpectraPostprocessorLycSuppress} stellar population spectra postprocessor class.
+     !!{RST
+     Constructors for the :galacticus-class:`stellarPopulationSpectraPostprocessorLycSuppress` stellar population spectra postprocessor class.
      !!}
      module procedure lycSuppressConstructorParameters
   end interface stellarPopulationSpectraPostprocessorLycSuppress
@@ -48,9 +48,8 @@
 contains
 
   function lycSuppressConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarPopulationSpectraPostprocessorLycSuppress} stellar population spectra postprocessor class which takes a
-    parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`stellarPopulationSpectraPostprocessorLycSuppress` stellar population spectra postprocessor class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +64,7 @@ contains
   end function lycSuppressConstructorParameters
 
   double precision function lycSuppressMultiplier(self,wavelength,age,redshift)
-    !!{
+    !!{RST
     Suppress the Lyman continuum in a spectrum.
     !!}
     use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen_atomic
@@ -83,7 +82,7 @@ contains
   end function lycSuppressMultiplier
 
   logical function lycSuppressIsRedshiftDependent(self) result(isRedshiftDependent)
-    !!{
+    !!{RST
     Return false indicating that the postprocessor is redshift independent.
     !!}
     implicit none

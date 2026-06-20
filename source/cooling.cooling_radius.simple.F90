@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a simple cooling radius class.
   !!}
 
@@ -31,13 +31,9 @@
   use :: Root_Finder                  , only : rootFinder
 
   !![
-  <coolingRadius name="coolingRadiusSimple">
+  <coolingRadius name="coolingRadiusSimple" docformat="rst">
    <description>
-    A cooling radius class that computes the cooling radius by seeking the radius at which the time available for cooling (see
-    \refPhysics{coolingTimeAvailable}) equals the cooling time (see \refPhysics{coolingTime}). The growth rate is determined
-    consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at
-    which the time available for cooling is increasing. This method assumes that the cooling time is a monotonic function of
-    radius.
+   A cooling radius class that computes the cooling radius by seeking the radius at which the time available for cooling (see :galacticus-class:`coolingTimeAvailable`) equals the cooling time (see :galacticus-class:`coolingTime`). The growth rate is determined consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at which the time available for cooling is increasing. This method assumes that the cooling time is a monotonic function of radius.
    </description>
    <deepCopy>
     <functionClass variables="radiation"/>
@@ -48,9 +44,8 @@
   </coolingRadius>
   !!]
   type, extends(coolingRadiusClass) :: coolingRadiusSimple
-     !!{
-     Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available
-     for cooling equals the cooling time.
+     !!{RST
+     Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available for cooling equals the cooling time.
      !!}
      private
      class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_        => null()
@@ -65,7 +60,7 @@
      double precision                                                   :: radiusGrowthRateStored              , radiusStored
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset memoized calculations." method="calculationReset" />
      </methods>
      !!]
@@ -77,7 +72,7 @@
   end type coolingRadiusSimple
 
   interface coolingRadiusSimple
-     !!{
+     !!{RST
      Constructors for the simple cooling radius class.
      !!}
      module procedure simpleConstructorParameters
@@ -95,7 +90,7 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the simple cooling radius class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -122,7 +117,7 @@ contains
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(cosmologyFunctions_,coolingTimeAvailable_,coolingTime_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the simple cooling radius class.
     !!}
     use :: Abundances_Structure         , only : Abundances_Property_Count, abundances
@@ -185,7 +180,7 @@ contains
   end function simpleConstructorInternal
 
   subroutine simpleAutoHook(self)
-    !!{
+    !!{RST
     Attach to the calculation reset event.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
@@ -197,7 +192,7 @@ contains
   end subroutine simpleAutoHook
 
   subroutine simpleDestructor(self)
-    !!{
+    !!{RST
     Destructor for the simple cooling radius class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
@@ -215,7 +210,7 @@ contains
   end subroutine simpleDestructor
 
   subroutine simpleCalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the cooling radius calculation.
     !!}
     use :: Kind_Numbers, only : kind_int8
@@ -232,7 +227,7 @@ contains
   end subroutine simpleCalculationReset
 
   double precision function simpleRadiusGrowthRate(self,node)
-    !!{
+    !!{RST
     Returns the cooling radius growth rate (in Mpc/Gyr) in the hot atmosphere.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic   , nodeComponentHotHalo       , treeNode
@@ -316,7 +311,7 @@ contains
   end function simpleRadiusGrowthRate
 
   double precision function simpleRadius(self,node)
-    !!{
+    !!{RST
     Return the cooling radius in the simple model.
     !!}
     use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Fraction_Conversion
@@ -392,8 +387,8 @@ contains
   end function simpleRadius
 
   double precision function coolingRadiusRoot(radius)
-    !!{
-    Root function which evaluates the difference between the cooling time at \mono{radius} and the time available for cooling.
+    !!{RST
+    Root function which evaluates the difference between the cooling time at ``radius`` and the time available for cooling.
     !!}
     use :: Mass_Distributions        , only : massDistributionClass, kinematicsDistributionClass
     use :: Coordinates               , only : coordinateSpherical  , assignment(=)

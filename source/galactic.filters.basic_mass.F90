@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a galactic high-pass filter for the default ``basic'' halo mass.
+!!{RST
+Implements a galactic high-pass filter for the default "basic" halo mass.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterBasicMass">
+  <galacticFilter name="galacticFilterBasicMass" docformat="rst">
    <description>
-   A high-pass filter for basic mass. Halos with a basic mass mass greater than or equal to a fixed threshold,
-   $M_0=$\mono{[massThreshold]}.
+   A high-pass filter for basic mass. Halos with a basic mass mass greater than or equal to a fixed threshold, :math:`M_0=`\ ``[massThreshold]``.
    </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterBasicMass
-     !!{
+     !!{RST
      A galactic high-pass filter class for basic mass.
      !!}
      private
@@ -40,8 +39,8 @@ Implements a galactic high-pass filter for the default ``basic'' halo mass.
   end type galacticFilterBasicMass
 
   interface galacticFilterBasicMass
-     !!{
-     Constructors for the \refClass{galacticFilterBasicMass} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterBasicMass` galactic filter class.
      !!}
      module procedure basicMassConstructorParameters
      module procedure basicMassConstructorInternal
@@ -50,8 +49,8 @@ Implements a galactic high-pass filter for the default ``basic'' halo mass.
 contains
 
   function basicMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterBasicMass} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterBasicMass` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -60,10 +59,12 @@ contains
     double precision                                         :: massThreshold
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massThreshold</name>
       <source>parameters</source>
-      <description>The parameter $M_0$ (in units of $\mathrm{M}_\odot$) appearing in the basic mass threshold for the basic mass galactic filter class.</description>
+      <description>
+      The parameter :math:`M_0` (in units of :math:`\mathrm{M}_\odot`) appearing in the basic mass threshold for the basic mass galactic filter class.
+      </description>
     </inputParameter>
     !!]
     self=galacticFilterBasicMass(massThreshold)
@@ -74,8 +75,8 @@ contains
   end function basicMassConstructorParameters
 
   function basicMassConstructorInternal(massThreshold) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterBasicMass} galactic filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticFilterBasicMass` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterBasicMass)                :: self
@@ -88,7 +89,7 @@ contains
   end function basicMassConstructorInternal
 
   logical function basicMassPasses(self,node)
-    !!{
+    !!{RST
     Implement a  basic mass high-pass galactic filter.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode

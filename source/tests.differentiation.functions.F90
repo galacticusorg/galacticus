@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module of functions for differentiation unit tests.
 !!}
 
 module Test_Differentiation_Functions
-  !!{
+  !!{RST
   Contains functions for differentiation unit tests.
   !!}
   implicit none
@@ -32,7 +32,7 @@ module Test_Differentiation_Functions
 contains
 
   double precision function function1(x)
-    !!{
+    !!{RST
     Function for unit testing.
     !!}
     implicit none

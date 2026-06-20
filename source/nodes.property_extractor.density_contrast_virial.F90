@@ -17,21 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a virial density contrast output analysis property extractor class.
 !!}
 
   use :: Virial_Density_Contrast, only : virialDensityContrastClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorDensityContrastVirial">
-   <description>Extracts the virial density contrast $\Delta_\mathrm{vir}$, the ratio of mean halo density to the critical (or mean) density of the universe used to define the halo boundary. Evaluated at the time the halo was last isolated, this quantity varies with cosmology and redshift.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorDensityContrastVirial" docformat="rst">
+   <description>
+   Extracts the virial density contrast :math:`\Delta_\mathrm{vir}`, the ratio of mean halo density to the critical (or mean) density of the universe used to define the halo boundary. Evaluated at the time the halo was last isolated, this quantity varies with cosmology and redshift.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorDensityContrastVirial
-     !!{
-     A virial density contrast extractor output analysis class. Note that the density contrast is defined here at the time at
-     which is was last isolated.
+     !!{RST
+     A virial density contrast extractor output analysis class. Note that the density contrast is defined here at the time at which is was last isolated.
      !!}
      private
      class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
@@ -45,8 +46,8 @@ Implements a virial density contrast output analysis property extractor class.
   end type nodePropertyExtractorDensityContrastVirial
 
   interface nodePropertyExtractorDensityContrastVirial
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorDensityContrastVirial} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorDensityContrastVirial` property extractor class.
      !!}
      module procedure densityContrastVirialConstructorParameters
      module procedure densityContrastVirialConstructorInternal
@@ -55,8 +56,8 @@ Implements a virial density contrast output analysis property extractor class.
 contains
 
   function densityContrastVirialConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorDensityContrastVirial} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorDensityContrastVirial` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,8 +77,8 @@ contains
   end function densityContrastVirialConstructorParameters
 
   function densityContrastVirialConstructorInternal(virialDensityContrast_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorDensityContrastVirial} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorDensityContrastVirial` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorDensityContrastVirial)                        :: self
@@ -90,8 +91,8 @@ contains
   end function densityContrastVirialConstructorInternal
 
   subroutine densityContrastVirialDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorDensityContrastVirial} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorDensityContrastVirial` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDensityContrastVirial), intent(inout) :: self
@@ -103,7 +104,7 @@ contains
   end subroutine densityContrastVirialDestructor
 
   double precision function densityContrastVirialExtract(self,node,instance) result(densityContrast)
-    !!{
+    !!{RST
     Implement a densityContrastVirial output analysis.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -124,7 +125,7 @@ contains
   end function densityContrastVirialExtract
 
   function densityContrastVirialName(self) result(name)
-    !!{
+    !!{RST
     Return the name of the densityContrastVirial property.
     !!}
     implicit none
@@ -137,7 +138,7 @@ contains
   end function densityContrastVirialName
 
   function densityContrastVirialDescription(self) result(description)
-    !!{
+    !!{RST
     Return a description of the densityContrastVirial property.
     !!}
     implicit none
@@ -150,7 +151,7 @@ contains
   end function densityContrastVirialDescription
 
   double precision function densityContrastVirialUnitsInSI(self) result(unitsInSI)
-    !!{
+    !!{RST
     Return the units of the densityContrastVirial property in the SI system.
     !!}
     implicit none
@@ -162,7 +163,7 @@ contains
   end function densityContrastVirialUnitsInSI
 
   function densityContrastVirialUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the densityContrastVirial property.
     !!}
     use :: Units_MetaData, only : unitType

@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a merger tree branching probability class using the algorithm of \cite{parkinson_generating_2008} plus an additional term.
+!!{RST
+Implements a merger tree branching probability class using the algorithm of :cite:t:`parkinson_generating_2008` plus an additional term.
 !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
@@ -26,13 +26,15 @@ Implements a merger tree branching probability class using the algorithm of \cit
   use :: Tables                    , only : table1DLogarithmicLinear
 
   !![
-  <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityPCHPlus">
-   <description>Merger tree branching probabilities using the algorithm of \cite{parkinson_generating_2008} plus an additional term.</description>
+  <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityPCHPlus" docformat="rst">
+   <description>
+   Merger tree branching probabilities using the algorithm of :cite:t:`parkinson_generating_2008` plus an additional term.
+   </description>
   </mergerTreeBranchingProbability>
   !!]
   type, extends(mergerTreeBranchingProbabilityParkinsonColeHelly) :: mergerTreeBranchingProbabilityPCHPlus
-     !!{
-     A merger tree branching probability class using the algorithm of \cite{parkinson_generating_2008} plus an additional term.
+     !!{RST
+     A merger tree branching probability class using the algorithm of :cite:t:`parkinson_generating_2008` plus an additional term.
      !!}
      private
      double precision                             :: gamma3                 , gamma4, &
@@ -47,8 +49,8 @@ Implements a merger tree branching probability class using the algorithm of \cit
   end type mergerTreeBranchingProbabilityPCHPlus
 
   interface mergerTreeBranchingProbabilityPCHPlus
-     !!{
-     Constructors for the \refClass{mergerTreeBranchingProbabilityPCHPlus} merger tree branching probability class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeBranchingProbabilityPCHPlus` merger tree branching probability class.
      !!}
      module procedure pchPlusConstructorParameters
      module procedure pchPlusConstructorInternal
@@ -57,9 +59,8 @@ Implements a merger tree branching probability class using the algorithm of \cit
 contains
 
   function pchPlusConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBranchingProbabilityPCHPlus} merger tree branching probability class which reads parameters from a provided
-    parameter list.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeBranchingProbabilityPCHPlus` merger tree branching probability class which reads parameters from a provided parameter list.
     !!}
     implicit none
     type            (mergerTreeBranchingProbabilityPCHPlus)                :: self
@@ -76,71 +77,92 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>G0</name>
       <defaultValue>0.57d0</defaultValue>
-      <description>The parameter $G_0$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+      <description>
+      The parameter :math:`G_0` appearing in the modified merger rate expression of :cite:t:`parkinson_generating_2008`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma1</name>
       <defaultValue>0.38d0</defaultValue>
-      <description>The parameter $\gamma_1$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+      <description>
+      The parameter :math:`\gamma_1` appearing in the modified merger rate expression of :cite:t:`parkinson_generating_2008`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma2</name>
       <defaultValue>-0.01d0</defaultValue>
-      <description>The parameter $\gamma_2$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+      <description>
+      The parameter :math:`\gamma_2` appearing in the modified merger rate expression of :cite:t:`parkinson_generating_2008`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma3</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The parameter $\gamma_3$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+      <description>
+      The parameter :math:`\gamma_3` appearing in the modified merger rate expression of :cite:t:`parkinson_generating_2008`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma4</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The parameter $\gamma_4$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+      <description>
+      The parameter :math:`\gamma_4` appearing in the modified merger rate expression of :cite:t:`parkinson_generating_2008`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma5</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The parameter $\gamma_5$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+      <description>
+      The parameter :math:`\gamma_5` appearing in the modified merger rate expression of :cite:t:`parkinson_generating_2008`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>accuracyFirstOrder</name>
       <defaultValue>0.1d0</defaultValue>
-      <description>Limits the step in $\delta_\mathrm{crit}$ when constructing merger trees using the \cite{parkinson_generating_2008}
-         algorithm, so that it never exceeds \mono{accuracyFirstOrder}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$.</description>
+      <description>
+      Limits the step in :math:`\delta_\mathrm{crit}` when constructing merger trees using the :cite:t:`parkinson_generating_2008` algorithm, so that it never exceeds ``accuracyFirstOrder``\ :math:`\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>precisionHypergeometric</name>
       <defaultValue>1.0d-6</defaultValue>
-      <description>The fractional precision required in evaluates of hypergeometric functions in the modified Press-Schechter tree branching calculations.</description>
+      <description>
+      The fractional precision required in evaluates of hypergeometric functions in the modified Press-Schechter tree branching calculations.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>hypergeometricTabulate</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether hypergeometric factors should be precomputed and tabulated in modified Press-Schechter tree branching functions.</description>
+      <description>
+      Specifies whether hypergeometric factors should be precomputed and tabulated in modified Press-Schechter tree branching functions.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>cdmAssumptions</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, assume that $\alpha(=-\mathrm{d}\log \sigma/\mathrm{d}\log M)&gt;0$ and $\mathrm{d}\alpha/\mathrm{d}M&gt;0$ (as is true in the case of \gls{cdm}) when constructing merger trees using the \cite{parkinson_generating_2008}.</description>
+      <description>
+      If true, assume that :math:`\alpha(=-\mathrm{d}\log \sigma/\mathrm{d}\log M)&gt;0` and :math:`\mathrm{d}\alpha/\mathrm{d}M&gt;0` (as is true in the case of :term:`CDM`) when constructing merger trees using the :cite:t:`parkinson_generating_2008`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerateRoundOffErrors</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, round-off errors in integrations of branching probability will be tolerated. This may degrade the accuracy of solutions, but can be unavoidable in models with cut-offs in their power spectra.</description>
+      <description>
+      If true, round-off errors in integrations of branching probability will be tolerated. This may degrade the accuracy of solutions, but can be unavoidable in models with cut-offs in their power spectra.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
@@ -158,8 +180,8 @@ contains
   end function pchPlusConstructorParameters
 
   function pchPlusConstructorInternal(G0,gamma1,gamma2,gamma3,gamma4,gamma5,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,tolerateRoundOffErrors,cosmologicalMassVariance_,criticalOverdensity_,linearGrowth_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBranchingProbabilityPCHPlus} merger tree branching probability class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeBranchingProbabilityPCHPlus` merger tree branching probability class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -185,8 +207,8 @@ contains
   end function pchPlusConstructorInternal
 
   subroutine pchPlusDestructor(self)
-    !!{
-    Destructor for the ``pchPlus'' merger tree branching probability class.
+    !!{RST
+    Destructor for the "pchPlus" merger tree branching probability class.
     !!}
     implicit none
     type(mergerTreeBranchingProbabilityPCHPlus), intent(inout) :: self
@@ -198,8 +220,8 @@ contains
   end subroutine pchPlusDestructor
 
   double precision function pchPlusV(self,massFraction,haloMass)
-    !!{
-    The function $V(q)$ from \cite[][eqn. A4]{parkinson_generating_2008}.
+    !!{RST
+    The function :math:`V(q)` from :cite:t:`parkinson_generating_2008`.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityPCHPlus), intent(inout) :: self
@@ -221,10 +243,8 @@ contains
   end function pchPlusV
 
   double precision function pchPlusModifier(self,childSigma)
-    !!{
-    Empirical modification of the progenitor mass function from \cite{parkinson_generating_2008}. The constant factors of
-    $G_0 (\delta_\mathrm{p}/\sigma_\mathrm{p})^{\gamma_2}$ and $1/\sigma_\mathrm{p}^{\gamma_1}$ are not included
-    here---instead they are included in a multiplicative prefactor by which integrals over this function are multiplied.
+    !!{RST
+    Empirical modification of the progenitor mass function from :cite:t:`parkinson_generating_2008`. The constant factors of :math:`G_0 (\delta_\mathrm{p}/\sigma_\mathrm{p})^{\gamma_2}` and :math:`1/\sigma_\mathrm{p}^{\gamma_1}` are not included here---instead they are included in a multiplicative prefactor by which integrals over this function are multiplied.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityPCHPlus), intent(inout) :: self
@@ -235,8 +255,8 @@ contains
   end function pchPlusModifier
 
   function pchPlusHypergeometricA(self,gamma) result(a)
-    !!{
-    Compute the $a$ parameter of the hypergeometric function.
+    !!{RST
+    Compute the :math:`a` parameter of the hypergeometric function.
     !!}
     implicit none
     double precision                                       , dimension(2)  :: a
@@ -248,7 +268,7 @@ contains
   end function pchPlusHypergeometricA
 
   subroutine pchPlusComputeCommonFactors(self,deltaParent,time,massHaloParent,node)
-    !!{
+    !!{RST
     Precomputes some useful factors that are used in the modified Press-Schechter branching integrals.
     !!}
     implicit none

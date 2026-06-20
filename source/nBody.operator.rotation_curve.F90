@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which computes the rotation curve at a set of given radii.
 !!}
 
@@ -25,12 +25,14 @@ Implements an N-body data operator which computes the rotation curve at a set of
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
-  <nbodyOperator name="nbodyOperatorRotationCurve">
-   <description>An N-body data operator which computes the circular velocity rotation curve of an N-body halo by summing enclosed particle mass at a set of user-specified radii. Parameters specify the radii at which the rotation curve is evaluated, whether to restrict to self-bound particles, and the bootstrap resample count.</description>
+  <nbodyOperator name="nbodyOperatorRotationCurve" docformat="rst">
+   <description>
+   An N-body data operator which computes the circular velocity rotation curve of an N-body halo by summing enclosed particle mass at a set of user-specified radii. Parameters specify the radii at which the rotation curve is evaluated, whether to restrict to self-bound particles, and the bootstrap resample count.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorRotationCurve
-     !!{
+     !!{RST
      An N-body data operator which computes the rotation curve at a set of given radii.
      !!}
      private
@@ -44,8 +46,8 @@ Implements an N-body data operator which computes the rotation curve at a set of
   end type nbodyOperatorRotationCurve
 
   interface nbodyOperatorRotationCurve
-     !!{
-     Constructors for the \refClass{nbodyOperatorRotationCurve} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorRotationCurve` N-body operator class.
      !!}
      module procedure rotationCurveConstructorParameters
      module procedure rotationCurveConstructorInternal
@@ -54,8 +56,8 @@ Implements an N-body data operator which computes the rotation curve at a set of
 contains
 
   function rotationCurveConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorRotationCurve} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorRotationCurve` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -68,21 +70,27 @@ contains
 
     allocate(radius(parameters%count('radius')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>selfBoundParticlesOnly</name>
       <source>parameters</source>
-      <description>If true, the mean position and velocity are computed only for self-bound particles.</description>
+      <description>
+      If true, the mean position and velocity are computed only for self-bound particles.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radius</name>
       <source>parameters</source>
-      <description>An array of galactocentric radii (in the same units as particle positions) at which the circular velocity rotation curve will be evaluated.</description>
+      <description>
+      An array of galactocentric radii (in the same units as particle positions) at which the circular velocity rotation curve will be evaluated.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bootstrapSampleCount</name>
       <source>parameters</source>
       <defaultValue>30_c_size_t</defaultValue>
-      <description>The number of bootstrap resamples of the particles that should be used.</description>
+      <description>
+      The number of bootstrap resamples of the particles that should be used.
+      </description>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
@@ -95,8 +103,8 @@ contains
   end function rotationCurveConstructorParameters
 
   function rotationCurveConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,radius,randomNumberGenerator_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorRotationCurve} N-body operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyOperatorRotationCurve` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorRotationCurve)                              :: self
@@ -112,8 +120,8 @@ contains
   end function rotationCurveConstructorInternal
 
   subroutine rotationCurveDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorRotationCurve} N-body operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nbodyOperatorRotationCurve` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorRotationCurve), intent(inout) :: self
@@ -125,7 +133,7 @@ contains
   end subroutine rotationCurveDestructor
 
   subroutine rotationCurveOperate(self,simulations)
-    !!{
+    !!{RST
     Determine the mean position and velocity of N-body particles.
     !!}
     use :: Error                           , only : Error_Report

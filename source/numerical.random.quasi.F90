@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements quasi-random sequences.
 !!}
 
@@ -28,7 +28,7 @@ Contains a module which implements quasi-random sequences.
 !; gsl
 
 module Numerical_Quasi_Random_Sequences
-  !!{
+  !!{RST
   Implements quasi-random sequences.
   !!}
   use, intrinsic :: ISO_C_Binding   , only : c_ptr          , c_int, c_double, c_null_ptr
@@ -45,7 +45,7 @@ module Numerical_Quasi_Random_Sequences
 
   interface
      function gsl_qrng_alloc(T,d) bind(c,name='gsl_qrng_alloc')
-       !!{
+       !!{RST
        Template for the GSL quasi-random number generator allocator function.
        !!}
        import c_ptr, c_int
@@ -54,14 +54,14 @@ module Numerical_Quasi_Random_Sequences
        integer(c_int), value :: d
      end function gsl_qrng_alloc
      subroutine gsl_qrng_free(q) bind(c,name='gsl_qrng_free')
-       !!{
+       !!{RST
        Template for the GSL quasi-random number generator free function.
        !!}
        import c_ptr
        type(c_ptr), value :: q
      end subroutine gsl_qrng_free
      function gsl_qrng_get(q,x) bind(c,name='gsl_qrng_get')
-       !!{
+       !!{RST
        Template for the GSL quasi-random number generator get function.
        !!}
        import c_ptr, c_double, c_int
@@ -70,7 +70,7 @@ module Numerical_Quasi_Random_Sequences
        real   (c_double), dimension(*) :: x
      end function gsl_qrng_get
      function gsl_qrng_type_get(i) bind(c,name='gsl_qrng_type_get')
-       !!{
+       !!{RST
        Template for GSL interface quasi-random number generator type function.
        !!}
        import c_ptr, c_int
@@ -80,7 +80,7 @@ module Numerical_Quasi_Random_Sequences
   end interface
 
   type :: gslQRNGWrapper
-     !!{
+     !!{RST
      Wrapper class for managing GSL quasi-random number generators.
      !!}
      type(c_ptr) :: gsl=c_null_ptr
@@ -89,7 +89,7 @@ module Numerical_Quasi_Random_Sequences
   end type gslQRNGWrapper
   
   type :: quasiRandomNumberGenerator
-     !!{
+     !!{RST
      Type providing quasi-random number generators.
      !!}
      private
@@ -99,7 +99,7 @@ module Numerical_Quasi_Random_Sequences
      integer                               :: qrngType
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Get numbers from the sequence." method="get" />
      </methods>
      !!]
@@ -107,8 +107,8 @@ module Numerical_Quasi_Random_Sequences
   end type quasiRandomNumberGenerator
   
   interface quasiRandomNumberGenerator
-     !!{
-     Constructor for the \mono{quasiRandomNumberGenerator} class.
+     !!{RST
+     Constructor for the ``quasiRandomNumberGenerator`` class.
      !!}
      module procedure quasiRandomNumberGeneratorConstructor
   end interface quasiRandomNumberGenerator
@@ -116,8 +116,8 @@ module Numerical_Quasi_Random_Sequences
 contains
 
   function quasiRandomNumberGeneratorConstructor(qrngType) result(self)
-    !!{
-    Constructor for \mono{quasiRandomNumberGenerator} objects.
+    !!{RST
+    Constructor for ``quasiRandomNumberGenerator`` objects.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -136,8 +136,10 @@ contains
     allocate(self%gsl_qrng)
     self%gsl_qrng%gsl=gsl_qrng_alloc (self%gsl_qrng_type,1)
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_    => self%gsl_qrng
     self%qrngManager =  resourceManager(dummyPointer_)
@@ -148,8 +150,8 @@ contains
   end function quasiRandomNumberGeneratorConstructor
 
   subroutine gslQRNGWrapperDestructor(self)
-    !!{
-    Destroy a \mono{gslQRNGWrapper} object.
+    !!{RST
+    Destroy a ``gslQRNGWrapper`` object.
     !!}
     implicit none
     type(gslQRNGWrapper), intent(inout) :: self
@@ -159,7 +161,7 @@ contains
   end subroutine gslQRNGWrapperDestructor
 
   double precision function quasiRandomNumberGeneratorGet(self)
-    !!{
+    !!{RST
     Return the next entry in the quasi-random sequence.
     !!}
     use :: Error        , only : Error_Report

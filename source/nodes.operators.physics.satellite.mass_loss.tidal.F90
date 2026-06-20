@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that applies tidal mass loss to orbiting satellite halos.
   !!}
 
   use :: Satellite_Tidal_Stripping, only : satelliteTidalStrippingClass
 
   !![
-  <nodeOperator name="nodeOperatorSatelliteTidalMassLoss">
-   <description>A node operator class that strips dark matter from orbiting satellite halos at each ODE timestep, using a \refClass{satelliteTidalStrippingClass} to compute the tidal mass loss rate. The bound mass of the satellite is evolved as an ODE variable. \mono{applyPreInfall} enables tidal stripping before the satellite formally enters the host virial radius, allowing pre-infall environmental mass loss.</description>
+  <nodeOperator name="nodeOperatorSatelliteTidalMassLoss" docformat="rst">
+   <description>
+   A node operator class that strips dark matter from orbiting satellite halos at each ODE timestep, using a :galacticus-class:`satelliteTidalStrippingClass` to compute the tidal mass loss rate. The bound mass of the satellite is evolved as an ODE variable. ``applyPreInfall`` enables tidal stripping before the satellite formally enters the host virial radius, allowing pre-infall environmental mass loss.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteTidalMassLoss
-     !!{
+     !!{RST
      A node operator class that applies tidal mass loss to orbiting satellite halos.
      !!}
      private
@@ -41,8 +43,8 @@
   end type nodeOperatorSatelliteTidalMassLoss
   
   interface nodeOperatorSatelliteTidalMassLoss
-     !!{
-     Constructors for the \refClass{nodeOperatorSatelliteTidalMassLoss} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteTidalMassLoss` node operator class.
      !!}
      module procedure satelliteTidalStrippingConstructorParameters
      module procedure satelliteTidalStrippingConstructorInternal
@@ -51,8 +53,8 @@
 contains
 
   function satelliteTidalStrippingConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorSatelliteTidalMassLoss} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteTidalMassLoss` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,10 +64,12 @@ contains
     logical                                                    :: applyPreInfall
     
     !![
-     <inputParameter>
+     <inputParameter docformat="rst">
       <name>applyPreInfall</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, tidal mass loss is applied pre-infall.</description>
+      <description>
+      If true, tidal mass loss is applied pre-infall.
+      </description>
       <source>parameters</source>
     </inputParameter>
    <objectBuilder class="satelliteTidalStripping" name="satelliteTidalStripping_" source="parameters"/>
@@ -79,8 +83,8 @@ contains
   end function satelliteTidalStrippingConstructorParameters
 
   function satelliteTidalStrippingConstructorInternal(applyPreInfall,satelliteTidalStripping_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorSatelliteTidalMassLoss} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteTidalMassLoss` node operator class.
     !!}
     implicit none
     type   (nodeOperatorSatelliteTidalMassLoss)                        :: self
@@ -94,8 +98,8 @@ contains
   end function satelliteTidalStrippingConstructorInternal
 
   subroutine satelliteTidalStrippingDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorSatelliteTidalMassLoss} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteTidalMassLoss` node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteTidalMassLoss), intent(inout) :: self
@@ -107,7 +111,7 @@ contains
   end subroutine satelliteTidalStrippingDestructor
   
   subroutine satelliteTidalStrippingDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Perform mass loss from a satellite due to tidal stripping.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite

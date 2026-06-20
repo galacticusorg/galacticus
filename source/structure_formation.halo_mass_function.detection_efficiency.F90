@@ -17,21 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a dark matter halo mass function class which modifies another mass function by account for halo-finder detection efficiency.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <haloMassFunction name="haloMassFunctionDetectionEfficiency">
+  <haloMassFunction name="haloMassFunctionDetectionEfficiency" docformat="rst">
    <description>
-    The halo mass function is computed by modifying another mass function by the halo-finder detection efficiency.
+   The halo mass function is computed by modifying another mass function by the halo-finder detection efficiency.
    </description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionDetectionEfficiency
-     !!{
+     !!{RST
      A halo mass function class that modifies another mass function by the halo-finder detection efficiency.
      !!}
      private
@@ -45,8 +45,8 @@ Implements a dark matter halo mass function class which modifies another mass fu
   end type haloMassFunctionDetectionEfficiency
 
   interface haloMassFunctionDetectionEfficiency
-     !!{
-     Constructors for the \mono{detectionEfficiency} halo mass function class.
+     !!{RST
+     Constructors for the ``detectionEfficiency`` halo mass function class.
      !!}
      module procedure detectionEfficiencyConstructorParameters
      module procedure detectionEfficiencyConstructorInternal
@@ -55,8 +55,8 @@ Implements a dark matter halo mass function class which modifies another mass fu
 contains
 
   function detectionEfficiencyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \mono{detectionEfficiency} halo mass function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``detectionEfficiency`` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,25 +69,33 @@ contains
          &                                                                  exponentMass        , exponentRedshift
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <source>parameters</source>
-      <description>The minimum mass at which halos are detected.</description>
+      <description>
+      The minimum mass at which halos are detected.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>efficiencyAtMassMinimum</name>
       <source>parameters</source>
-      <description>The efficiency of detection at the minimum mass.</description>
+      <description>
+      The efficiency of detection at the minimum mass.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentMass</name>
       <source>parameters</source>
-      <description>The exponent $\alpha$ in the detection efficiency, $f(M) = 1 - (1-\epsilon) (M/M_\mathrm{min})^\alpha (1+z)^\beta$.</description>
+      <description>
+      The exponent :math:`\alpha` in the detection efficiency, :math:`f(M) = 1 - (1-\epsilon) (M/M_\mathrm{min})^\alpha (1+z)^\beta`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentRedshift</name>
       <source>parameters</source>
-      <description>The exponent $\beta$ in the detection efficiency, $f(M) = 1 - (1-\epsilon) (M/M_\mathrm{min})^\alpha (1+z)^\beta$.</description>
+      <description>
+      The exponent :math:`\beta` in the detection efficiency, :math:`f(M) = 1 - (1-\epsilon) (M/M_\mathrm{min})^\alpha (1+z)^\beta`.
+      </description>
     </inputParameter>
     <objectBuilder class="haloMassFunction"    name="massFunction_"        source="parameters"/>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -104,8 +112,8 @@ contains
   end function detectionEfficiencyConstructorParameters
 
   function detectionEfficiencyConstructorInternal(massMinimum,efficiencyAtMassMinimum,exponentMass,exponentRedshift,massFunction_,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \mono{detectionEfficiency} halo mass function class.
+    !!{RST
+    Internal constructor for the ``detectionEfficiency`` halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionDetectionEfficiency)                        :: self
@@ -122,8 +130,8 @@ contains
   end function detectionEfficiencyConstructorInternal
 
   subroutine detectionEfficiencyDestructor(self)
-    !!{
-    Destructor for the \mono{detectionEfficiency} halo mass function class.
+    !!{RST
+    Destructor for the ``detectionEfficiency`` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionDetectionEfficiency), intent(inout) :: self
@@ -137,7 +145,7 @@ contains
   end subroutine detectionEfficiencyDestructor
 
   double precision function detectionEfficiencyDifferential(self,time,mass,node) result(massFunction)
-    !!{
+    !!{RST
     Return the differential halo mass function at the given time and mass.
     !!}
     implicit none

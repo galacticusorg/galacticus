@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which computes the time since formation as a fraction of crossing time for halos.
 !!}
   
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <nbodyOperator name="nbodyOperatorTimeSinceFormationFractional">
-   <description>An N-body data operator which computes and stores the time since formation as a fraction of crossing time for halos.</description>
+  <nbodyOperator name="nbodyOperatorTimeSinceFormationFractional" docformat="rst">
+   <description>
+   An N-body data operator which computes and stores the time since formation as a fraction of crossing time for halos.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorTimeSinceFormationFractional
-     !!{
+     !!{RST
      An N-body data operator which computes the time since formation as a fraction of crossing time for halos.
      !!}
      private
@@ -40,8 +42,8 @@ Implements an N-body data operator which computes the time since formation as a 
   end type nbodyOperatorTimeSinceFormationFractional
 
   interface nbodyOperatorTimeSinceFormationFractional
-     !!{
-     Constructors for the \refClass{nbodyOperatorTimeSinceFormationFractional} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorTimeSinceFormationFractional` N-body operator class.
      !!}
      module procedure timeSinceFormationFractionalConstructorParameters
      module procedure timeSinceFormationConstructorInternal
@@ -50,8 +52,8 @@ Implements an N-body data operator which computes the time since formation as a 
 contains
 
   function timeSinceFormationFractionalConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorTimeSinceFormationFractional} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorTimeSinceFormationFractional` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,8 +73,8 @@ contains
   end function timeSinceFormationFractionalConstructorParameters
 
   function timeSinceFormationConstructorInternal(cosmologyFunctions_) result (self)
-    !!{
-    Internal constructor for the ``timeSinceFormationFractional'' N-body operator class.
+    !!{RST
+    Internal constructor for the "timeSinceFormationFractional" N-body operator class.
     !!}
     implicit none
     type (nbodyOperatorTimeSinceFormationFractional)                        :: self
@@ -85,8 +87,8 @@ contains
   end function timeSinceFormationConstructorInternal
   
   subroutine timeSinceFormationDestructor(self)
-    !!{
-    Destructor for the ``timeSinceFormationFractional'' N-body operator class.
+    !!{RST
+    Destructor for the "timeSinceFormationFractional" N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorTimeSinceFormationFractional), intent(inout) :: self
@@ -98,7 +100,7 @@ contains
   end subroutine timeSinceFormationDestructor
 
   subroutine timeSinceFormationFractionalOperate(self,simulations)
-    !!{
+    !!{RST
     Compute the time since formation in units of the crossing time for each halo.
     !!}
     use    :: Display      , only : displayIndent      , displayUnindent, verbosityLevelStandard, displayCounter, &

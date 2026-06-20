@@ -17,12 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Tests of the parametric self-interacting dark matter model fitting functions of \cite{yang_parametric_2024} (the
-\mono{SIDM\_Parametric\_Model} module): the $V_\mathrm{max}$/$R_\mathrm{max}$ maps between SIDM and CDM (NFW) halos and their
-$\tau$-derivatives, the characteristic-density/scale-radius/core-radius profile fits, the NFW scale relations, and the
-gravothermal evolution timescale. Reference values are evaluated directly from the published polynomial coefficients; the
-gravothermal timescale (whose absolute value depends on several physical-unit conversions) is checked via its scalings.
+!!{RST
+Tests of the parametric self-interacting dark matter model fitting functions of :cite:t:`yang_parametric_2024` (the ``SIDM_Parametric_Model`` module): the :math:`V_\mathrm{max}`/:math:`R_\mathrm{max}` maps between SIDM and CDM (NFW) halos and their :math:`\tau`-derivatives, the characteristic-density/scale-radius/core-radius profile fits, the NFW scale relations, and the gravothermal evolution timescale. Reference values are evaluated directly from the published polynomial coefficients; the gravothermal timescale (whose absolute value depends on several physical-unit conversions) is checked via its scalings.
 !!}
 
 program Tests_SIDM_Parametric_Maps

@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains custom functions for the very simple disk component.
 !!}
 
 double precision function Node_Component_Disk_Very_Simple_Mass_Baryonic(self) result(massBaryonic)
-  !!{
+  !!{RST
   Return the baryonic mass for the very simple disk component.
   !!}
   implicit none
@@ -34,7 +34,7 @@ double precision function Node_Component_Disk_Very_Simple_Mass_Baryonic(self) re
 end function Node_Component_Disk_Very_Simple_Mass_Baryonic
 
 double precision function Node_Component_Disk_Very_Simple_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex)
-  !!{
+  !!{RST
   Computes the mass within a given radius for an very simple disk.
   !!}
   use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeDisk           , massTypeAll            , massTypeBaryonic       , &

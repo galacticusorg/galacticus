@@ -17,46 +17,53 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements the dark matter halo mass function class of \cite{ondaro-mallea_non-universality_2022} for non-universal
-primordial power spectra and structure growth rates.
+!!{RST
+Implements the dark matter halo mass function class of :cite:t:`ondaro-mallea_non-universality_2022` for non-universal primordial power spectra and structure growth rates.
 !!}
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: Linear_Growth             , only : linearGrowthClass
   use :: Root_Finder               , only : rootFinder
   
   !![
-  <haloMassFunction name="haloMassFunctionOndaroMallea2021">
+  <haloMassFunction name="haloMassFunctionOndaroMallea2021" docformat="rst">
     <description>
-      The dark matter halo mass function class of \cite{ondaro-mallea_non-universality_2022} for non-universal
-      primordial power spectra and structure growth rates. The mass function is given by
-      \begin{equation}
-      n(M) = n^\prime(M) f_2(n_\mathrm{eff}) f_3(\alpha_\mathrm{eff}),
-      \end{equation}
-      where $n^\prime(M)$ is some other mass function,
-      \begin{equation}
-      f_2(n_\mathrm{eff})=n_0 n_\mathrm{eff}^2 + n_1 n_\mathrm{eff} + n_0,
-      \end{equation}
-      and
-      \begin{equation}
-      f_3(\alpha_\mathrm{eff})=a_0 \alpha_\mathrm{eff}^2 + a_1.
-      \end{equation}
-      Here
-      \begin{equation}
-      n_\mathrm{eff} = -3 -2 \frac{\mathrm{d} \log \sigma(R)}{\mathrm{d} \log R} = -3 -6 \frac{\mathrm{d} \log \sigma(M)}{\mathrm{d} \log M},
-      \end{equation}
-      where $M$ is halo mass, and $\sigma(M)$ is the fractional root-variance in the linear theory cosmological density field on that scale, and
-      \begin{equation}
-      \alpha_\mathrm{eff}(a) = \left. \frac{\mathrm{d} \log D}{\mathrm{d} \log a}\right|_{a=a_\mathrm{ev}},
-      \end{equation}
-      where $D(a)$ is the linear growth factor, $a$ is the expansion factor, and $D(a_\mathrm{ev})=\gamma D(a)$ with $\gamma=4/5$.
+    The dark matter halo mass function class of :cite:t:`ondaro-mallea_non-universality_2022` for non-universal primordial power spectra and structure growth rates. The mass function is given by
+
+    .. math::
+
+       n(M) = n^\prime(M) f_2(n_\mathrm{eff}) f_3(\alpha_\mathrm{eff}),
+
+    where :math:`n^\prime(M)` is some other mass function,
+
+    .. math::
+
+       f_2(n_\mathrm{eff})=n_0 n_\mathrm{eff}^2 + n_1 n_\mathrm{eff} + n_0,
+
+    and
+
+    .. math::
+
+       f_3(\alpha_\mathrm{eff})=a_0 \alpha_\mathrm{eff}^2 + a_1.
+
+    Here
+
+    .. math::
+
+       n_\mathrm{eff} = -3 -2 \frac{\mathrm{d} \log \sigma(R)}{\mathrm{d} \log R} = -3 -6 \frac{\mathrm{d} \log \sigma(M)}{\mathrm{d} \log M},
+
+    where :math:`M` is halo mass, and :math:`\sigma(M)` is the fractional root-variance in the linear theory cosmological density field on that scale, and
+
+    .. math::
+
+       \alpha_\mathrm{eff}(a) = \left. \frac{\mathrm{d} \log D}{\mathrm{d} \log a}\right|_{a=a_\mathrm{ev}},
+
+    where :math:`D(a)` is the linear growth factor, :math:`a` is the expansion factor, and :math:`D(a_\mathrm{ev})=\gamma D(a)` with :math:`\gamma=4/5`.
     </description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionOndaroMallea2021
-     !!{
-     The halo mass function class of \cite{ondaro-mallea_non-universality_2022} for non-universal
-     primordial power spectra and structure growth rates.
+     !!{RST
+     The halo mass function class of :cite:t:`ondaro-mallea_non-universality_2022` for non-universal primordial power spectra and structure growth rates.
      !!}
      private
      double precision                               , dimension(0:2) :: coefficientsN
@@ -71,8 +78,8 @@ primordial power spectra and structure growth rates.
   end type haloMassFunctionOndaroMallea2021
 
   interface haloMassFunctionOndaroMallea2021
-     !!{
-     Constructors for the \refClass{haloMassFunctionOndaroMallea2021} halo mass function class.
+     !!{RST
+     Constructors for the :galacticus-class:`haloMassFunctionOndaroMallea2021` halo mass function class.
      !!}
      module procedure ondaroMallea2021ConstructorParameters
      module procedure ondaroMallea2021ConstructorInternal
@@ -86,8 +93,8 @@ primordial power spectra and structure growth rates.
 contains
 
   function ondaroMallea2021ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{haloMassFunctionOndaroMallea2021} halo mass function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`haloMassFunctionOndaroMallea2021` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -105,19 +112,27 @@ contains
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     <objectBuilder class="haloMassFunction"         name="haloMassFunction_"         source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>coefficientsN</name>
       <source>parameters</source>
       <defaultValue>[-0.1178d0,-0.3389d0,0.3022d0]</defaultValue>
-      <defaultSource>\cite[][Table~3, row 4]{ondaro-mallea_non-universality_2022}</defaultSource>
-      <description>The coefficients, $n_{0\ldots2}$, appearing in equation~(7) of the \cite{ondaro-mallea_non-universality_2022} halo mass function model.</description>
+      <defaultSource>
+      :cite:t:`ondaro-mallea_non-universality_2022`
+      </defaultSource>
+      <description>
+      The coefficients, :math:`n_{0\ldots2}`, appearing in equation (7) of the :cite:t:`ondaro-mallea_non-universality_2022` halo mass function model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>coefficientsA</name>
       <source>parameters</source>
       <defaultValue>[-1.0785d0,2.9700d0]</defaultValue>
-      <defaultSource>\cite[][Table~3, row 4]{ondaro-mallea_non-universality_2022}</defaultSource>
-      <description>The coefficients, $a_{0\ldots1}$, appearing in equation~(8) of the \cite{ondaro-mallea_non-universality_2022} halo mass function model.</description>
+      <defaultSource>
+      :cite:t:`ondaro-mallea_non-universality_2022`
+      </defaultSource>
+      <description>
+      The coefficients, :math:`a_{0\ldots1}`, appearing in equation (8) of the :cite:t:`ondaro-mallea_non-universality_2022` halo mass function model.
+      </description>
     </inputParameter>
     !!]
     self=haloMassFunctionOndaroMallea2021(coefficientsN,coefficientsA,cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,haloMassFunction_)
@@ -132,8 +147,8 @@ contains
   end function ondaroMallea2021ConstructorParameters
 
   function ondaroMallea2021ConstructorInternal(coefficientsN,coefficientsA,cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,haloMassFunction_) result(self)
-    !!{
-    Internal constructor for the \refClass{haloMassFunctionOndaroMallea2021} halo mass function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`haloMassFunctionOndaroMallea2021` halo mass function class.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
     implicit none
@@ -161,8 +176,8 @@ contains
   end function ondaroMallea2021ConstructorInternal
 
   subroutine ondaroMallea2021Destructor(self)
-    !!{
-    Destructor for the \refClass{haloMassFunctionOndaroMallea2021} halo mass function class.
+    !!{RST
+    Destructor for the :galacticus-class:`haloMassFunctionOndaroMallea2021` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionOndaroMallea2021), intent(inout) :: self
@@ -177,7 +192,7 @@ contains
   end subroutine ondaroMallea2021Destructor
 
   double precision function ondaroMallea2021Differential(self,time,mass,node)
-    !!{
+    !!{RST
     Return the differential halo mass function at the given time and mass.
     !!}
     implicit none
@@ -210,9 +225,8 @@ contains
   end function ondaroMallea2021Differential
 
   double precision function linearGrowthFactorRoot(time)
-    !!{
-    Root function used in finding the epoch at which to evaluate the growth factor for the \cite{ondaro-mallea_non-universality_2022} dark matter
-    halo mass function.
+    !!{RST
+    Root function used in finding the epoch at which to evaluate the growth factor for the :cite:t:`ondaro-mallea_non-universality_2022` dark matter halo mass function.
     !!}
     implicit none
     double precision, intent(in   ) :: time

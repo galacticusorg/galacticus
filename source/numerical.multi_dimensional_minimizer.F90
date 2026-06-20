@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements multidimensional minimizers.
 !!}
 
@@ -28,7 +28,7 @@ Contains a module which implements multidimensional minimizers.
 !; gsl
 
 module Multidimensional_Minimizer
-  !!{
+  !!{RST
   Implements multidimensional minimizers.
   !!}
   use, intrinsic :: ISO_C_Binding   , only : c_ptr          , c_funptr, c_double, c_size_t, &
@@ -39,7 +39,7 @@ module Multidimensional_Minimizer
   public :: multiDMinimizer
 
   type :: gslMinimizerWrapper
-     !!{
+     !!{RST
      Wrapper class for managing GSL minimizers.
      !!}
      type   (c_ptr) :: gsl        =c_null_ptr
@@ -49,7 +49,7 @@ module Multidimensional_Minimizer
   end type gslMinimizerWrapper
   
   type :: gslMinimizerFWrapper
-     !!{
+     !!{RST
      Wrapper class for managing GSL minimizer F-functions.
      !!}
      type(c_ptr) :: gsl=c_null_ptr
@@ -58,7 +58,7 @@ module Multidimensional_Minimizer
   end type gslMinimizerFWrapper
   
   type :: gslMinimizerFDFWrapper
-     !!{
+     !!{RST
      Wrapper class for managing GSL minimizer FDF-functions.
      !!}
      type(c_ptr) :: gsl=c_null_ptr
@@ -67,7 +67,7 @@ module Multidimensional_Minimizer
   end type gslMinimizerFDFWrapper
   
   type, public :: multiDMinimizer
-     !!{
+     !!{RST
      Multidimensional minimizer class.
      !!}
      private
@@ -84,7 +84,7 @@ module Multidimensional_Minimizer
      procedure(gslMultiminFunctionFDFTemplate), pointer, nopass :: minimizeFunctionBoth
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the initial state of the minimizer."                                  method="set"          />
        <method description="Iterate the minimizer."                                                   method="iterate"      />
        <method description="Test the gradient of the function at the current point in the minimizer." method="testGradient" />
@@ -105,7 +105,7 @@ module Multidimensional_Minimizer
   end type multiDMinimizer
 
   interface multiDMinimizer
-     !!{
+     !!{RST
      Interface to multidimensional minimizer constructors.
      !!}
      module procedure multiDMinimizerConstructor
@@ -113,24 +113,24 @@ module Multidimensional_Minimizer
 
   abstract interface
      function gslMultiminFunctionFTemplate(x)
-       !!{
-       Interface for \mono{gslMultiminFunctionF} type.
+       !!{RST
+       Interface for ``gslMultiminFunctionF`` type.
        !!}
        double precision                              :: gslMultiminFunctionFTemplate
        double precision, intent(in   ), dimension(:) :: x
      end function gslMultiminFunctionFTemplate
 
      function gslMultiminFunctionDFTemplate(x)
-       !!{
-       Interface for \mono{gslMultiminFunctionDF} type.
+       !!{RST
+       Interface for ``gslMultiminFunctionDF`` type.
        !!}
        double precision, intent(in   ), dimension(     : ) :: x
        double precision               , dimension(size(x)) :: gslMultiminFunctionDFTemplate
      end function gslMultiminFunctionDFTemplate
 
      subroutine gslMultiminFunctionFDFTemplate(x,f,g)
-       !!{
-       Interface for \mono{gslMultiminFunctionFDF} type.
+       !!{RST
+       Interface for ``gslMultiminFunctionFDF`` type.
        !!}
        double precision, intent(in   ), dimension(     : ) :: x
        double precision, intent(  out)                     :: f
@@ -140,24 +140,24 @@ module Multidimensional_Minimizer
 
   interface
      subroutine gslMultiminFunctionFdFDestructor(f) bind(c,name="gslMultiminFunctionFdFDestructor")
-       !!{
-       Interface to a C function which destroys a \mono{gslFunction} type.
+       !!{RST
+       Interface to a C function which destroys a ``gslFunction`` type.
        !!}
        import c_funptr
        type(c_funptr), value :: f
      end subroutine gslMultiminFunctionFdFDestructor
 
      subroutine gslMultiminFunctionFDestructor(f) bind(c,name="gslMultiminFunctionFDestructor")
-       !!{
-       Interface to a C function which destroys a \mono{gslFunction} type.
+       !!{RST
+       Interface to a C function which destroys a ``gslFunction`` type.
        !!}
        import c_funptr
        type(c_funptr), value :: f
      end subroutine gslMultiminFunctionFDestructor
 
      function gslMultiminFunctionFdFConstructor(n,f,df,fdf) bind(c,name="gslMultiminFunctionFdFConstructor")
-       !!{
-       Interface to a C function which establishes a \mono{gslMultiminFunctionFdF} type.
+       !!{RST
+       Interface to a C function which establishes a ``gslMultiminFunctionFdF`` type.
        !!}
        import c_ptr, c_funptr, c_size_t
        type   (c_ptr   )        :: gslMultiminFunctionFdFConstructor
@@ -167,7 +167,7 @@ module Multidimensional_Minimizer
      end function gslMultiminFunctionFdFConstructor
 
      function gsl_multimin_fdfminimizer_type_get(i) bind(c,name='gsl_multimin_fdfminimizer_type_get')
-       !!{
+       !!{RST
        Interface to C function which gets a GSL minimizer type.
        !!}
        import c_ptr, c_int
@@ -176,7 +176,7 @@ module Multidimensional_Minimizer
      end function gsl_multimin_fdfminimizer_type_get
      
      function gsl_multimin_fdfminimizer_alloc(T,n) bind(c,name='gsl_multimin_fdfminimizer_alloc')
-       !!{
+       !!{RST
        Template for the GSL multimin allocate function.
        !!}
        import c_ptr, c_size_t
@@ -186,7 +186,7 @@ module Multidimensional_Minimizer
      end function gsl_multimin_fdfminimizer_alloc
 
      function gsl_multimin_fdfminimizer_set(s,fdf,x,step_size,tol) bind(c,name='gsl_multimin_fdfminimizer_set')
-       !!{
+       !!{RST
        Template for the GSL multimin set function.
        !!}
        import c_ptr, c_int, c_double
@@ -197,7 +197,7 @@ module Multidimensional_Minimizer
      end function gsl_multimin_fdfminimizer_set
 
      subroutine gsl_multimin_fdfminimizer_free(s) bind(c,name='gsl_multimin_fdfminimizer_free')
-       !!{
+       !!{RST
        Template for the GSL multimin set function.
        !!}
        import c_ptr
@@ -205,7 +205,7 @@ module Multidimensional_Minimizer
      end subroutine gsl_multimin_fdfminimizer_free
 
      function gsl_multimin_fdfminimizer_iterate(s) bind(c,name='gsl_multimin_fdfminimizer_iterate')
-       !!{
+       !!{RST
        Template for the GSL multimin iterator function.
        !!}
        import c_ptr, c_int
@@ -214,7 +214,7 @@ module Multidimensional_Minimizer
      end function gsl_multimin_fdfminimizer_iterate
 
      function gsl_multimin_fdfminimizer_x(s) bind(c,name='gsl_multimin_fdfminimizer_x')
-       !!{
+       !!{RST
        Template for the GSL multimin x function.
        !!}
        import c_ptr
@@ -223,7 +223,7 @@ module Multidimensional_Minimizer
      end function gsl_multimin_fdfminimizer_x
 
      function gsl_multimin_fdfminimizer_minimum(s) bind(c,name='gsl_multimin_fdfminimizer_minimum')
-       !!{
+       !!{RST
        Template for the GSL multimin minimum function.
        !!}
        import c_ptr, c_double
@@ -232,7 +232,7 @@ module Multidimensional_Minimizer
      end function gsl_multimin_fdfminimizer_minimum
 
      function gsl_multimin_fdfminimizer_gradient(s) bind(c,name='gsl_multimin_fdfminimizer_gradient')
-       !!{
+       !!{RST
        Template for the GSL multimin gradient function.
        !!}
        import c_ptr, c_int, c_double
@@ -241,7 +241,7 @@ module Multidimensional_Minimizer
      end function gsl_multimin_fdfminimizer_gradient
 
      function gsl_multimin_fdfminimizer_dx(s) bind(c,name='gsl_multimin_fdfminimizer_dx')
-       !!{
+       !!{RST
        Template for the GSL multimin size function.
        !!}
        import c_ptr, c_int, c_double
@@ -250,7 +250,7 @@ module Multidimensional_Minimizer
      end function gsl_multimin_fdfminimizer_dx
 
      function gsl_multimin_test_gradient(g,epsabs) bind(c,name='gsl_multimin_test_gradient')
-       !!{
+       !!{RST
        Template for the GSL multimin minimum function.
        !!}
        import c_ptr, c_int, c_double
@@ -260,7 +260,7 @@ module Multidimensional_Minimizer
      end function gsl_multimin_test_gradient
 
      function gsl_multimin_test_size(size,epsabs) bind(c,name='gsl_multimin_test_size')
-       !!{
+       !!{RST
        Template for the GSL multimin test size function.
        !!}
        import c_ptr, c_int, c_double
@@ -269,8 +269,8 @@ module Multidimensional_Minimizer
      end function gsl_multimin_test_size
 
      function gslMultiminFunctionFConstructor(n,f) bind(c,name="gslMultiminFunctionFConstructor")
-       !!{
-       Interface to a C function which establishes a \mono{gslMultiminFunctionF} type.
+       !!{RST
+       Interface to a C function which establishes a ``gslMultiminFunctionF`` type.
        !!}
        import c_ptr, c_funptr, c_size_t
        type   (c_ptr   )        :: gslMultiminFunctionFConstructor
@@ -279,7 +279,7 @@ module Multidimensional_Minimizer
      end function gslMultiminFunctionFConstructor
 
      function gsl_multimin_fminimizer_type_get(i) bind(c,name='gsl_multimin_fminimizer_type_get')
-       !!{
+       !!{RST
        Interface to C function which gets a GSL minimizer type.
        !!}
        import c_ptr, c_int
@@ -288,7 +288,7 @@ module Multidimensional_Minimizer
      end function gsl_multimin_fminimizer_type_get
      
      function gsl_multimin_fminimizer_alloc(T,n) bind(c,name='gsl_multimin_fminimizer_alloc')
-       !!{
+       !!{RST
        Template for the GSL multimin allocate function.
        !!}
        import c_ptr, c_size_t
@@ -298,7 +298,7 @@ module Multidimensional_Minimizer
      end function gsl_multimin_fminimizer_alloc
 
      function gsl_multimin_fminimizer_set(s,f,x,step_size) bind(c,name='gsl_multimin_fminimizer_set')
-       !!{
+       !!{RST
        Template for the GSL multimin set function.
        !!}
        import c_ptr, c_int, c_double
@@ -308,7 +308,7 @@ module Multidimensional_Minimizer
      end function gsl_multimin_fminimizer_set
 
      subroutine gsl_multimin_fminimizer_free(s) bind(c,name='gsl_multimin_fminimizer_free')
-       !!{
+       !!{RST
        Template for the GSL multimin set function.
        !!}
        import c_ptr
@@ -316,7 +316,7 @@ module Multidimensional_Minimizer
      end subroutine gsl_multimin_fminimizer_free
 
      function gsl_multimin_fminimizer_iterate(s) bind(c,name='gsl_multimin_fminimizer_iterate')
-       !!{
+       !!{RST
        Template for the GSL multimin iterator function.
        !!}
        import c_ptr, c_int
@@ -325,7 +325,7 @@ module Multidimensional_Minimizer
      end function gsl_multimin_fminimizer_iterate
 
      function gsl_multimin_fminimizer_x(s) bind(c,name='gsl_multimin_fminimizer_x')
-       !!{
+       !!{RST
        Template for the GSL multimin x function.
        !!}
        import c_ptr
@@ -334,7 +334,7 @@ module Multidimensional_Minimizer
      end function gsl_multimin_fminimizer_x
 
      function gsl_multimin_fminimizer_minimum(s) bind(c,name='gsl_multimin_fminimizer_minimum')
-       !!{
+       !!{RST
        Template for the GSL multimin minimum function.
        !!}
        import c_ptr, c_double
@@ -343,7 +343,7 @@ module Multidimensional_Minimizer
      end function gsl_multimin_fminimizer_minimum
 
      function gsl_multimin_fminimizer_size(s) bind(c,name='gsl_multimin_fminimizer_size')
-       !!{
+       !!{RST
        Template for the GSL multimin size function.
        !!}
        import c_ptr, c_int, c_double
@@ -369,8 +369,8 @@ module Multidimensional_Minimizer
 contains
 
   function multiDMinimizerConstructor(countDimensions,minimizeFunction,minimizeFunctionDerivative,minimizeFunctionBoth,minimizerType) result(self)
-    !!{
-    Constructor for \mono{multiDMinimizer} class.
+    !!{RST
+    Constructor for ``multiDMinimizer`` class.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_funloc, c_loc
     use            :: Error        , only : Error_Report
@@ -401,8 +401,10 @@ contains
        ! Allocate the minimizer object.
        self%minimizer_          %gsl=gsl_multimin_fdfminimizer_alloc   (self%gslMinimizerType ,countDimensions)
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        dummyPointer_          => self%minimizer_
        self%minimizerManager  =  resourceManager(dummyPointer_)
@@ -413,8 +415,10 @@ contains
        allocate(self%minimizerFDFFunction)
        self%minimizerFDFFunction%gsl=gslMultiminFunctionFdFConstructor(countDimensions,c_funloc(gslMultiminFunctionFWrapper),c_funloc(gslMultiminFunctionDFWrapper),c_funloc(gslMultiminFunctionFDFWrapper))
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        dummyPointer_            => self%minimizerFDFFunction
        self%minimizerFDFManager =  resourceManager(dummyPointer_)
@@ -432,8 +436,10 @@ contains
        ! Allocate the minimizer object.
        self%minimizer_        %gsl=gsl_multimin_fminimizer_alloc   (self%gslMinimizerType ,countDimensions)
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        dummyPointer_          => self%minimizer_
        self%minimizerManager  =  resourceManager(dummyPointer_)
@@ -444,8 +450,10 @@ contains
        allocate(self%minimizerFFunction)
        self%minimizerFFunction%gsl=gslMultiminFunctionFConstructor(countDimensions,c_funloc(gslMultiminFunctionFWrapper))
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        dummyPointer_          => self%minimizerFFunction
        self%minimizerFManager =  resourceManager(dummyPointer_)
@@ -457,8 +465,8 @@ contains
   end function multiDMinimizerConstructor
 
   subroutine gslMinimizerWrapperDestructor(self)
-    !!{
-    Destroy a \mono{gslMinimizerWrapper} object.
+    !!{RST
+    Destroy a ``gslMinimizerWrapper`` object.
     !!}
     implicit none
     type(gslMinimizerWrapper), intent(inout) :: self
@@ -472,8 +480,8 @@ contains
   end subroutine gslMinimizerWrapperDestructor
 
   subroutine gslMinimizerFWrapperDestructor(self)
-    !!{
-    Destroy a \mono{gslMinimizerFWrapper} object.
+    !!{RST
+    Destroy a ``gslMinimizerFWrapper`` object.
     !!}
     implicit none
     type(gslMinimizerFWrapper), intent(inout) :: self
@@ -483,8 +491,8 @@ contains
   end subroutine gslMinimizerFWrapperDestructor
 
   subroutine gslMinimizerFDFWrapperDestructor(self)
-    !!{
-    Destroy a \mono{gslMinimizerFDFWrapper} object.
+    !!{RST
+    Destroy a ``gslMinimizerFDFWrapper`` object.
     !!}
     implicit none
     type(gslMinimizerFDFWrapper), intent(inout) :: self
@@ -494,8 +502,8 @@ contains
   end subroutine gslMinimizerFDFWrapperDestructor
 
   subroutine multiDMinimizerAssign(to,from)
-    !!{
-    Assignment operator for \refClass{multiDMinimizer} objects.
+    !!{RST
+    Assignment operator for :galacticus-class:`multiDMinimizer` objects.
     !!}
     implicit none
     class(multiDMinimizer), intent(  out) :: to
@@ -517,8 +525,8 @@ contains
   end subroutine multiDMinimizerAssign
   
   subroutine multiDMinimizerSet(self,x,stepSize,tolerance)
-    !!{
-    Set the initial state for a \mono{multiDMinimizer} object.
+    !!{RST
+    Set the initial state for a ``multiDMinimizer`` object.
     !!}
     use :: Linear_Algebra, only : vector
     use :: Error         , only : Error_Report
@@ -558,7 +566,7 @@ contains
   end subroutine multiDMinimizerSet
   
   subroutine multiDMinimizerIterate(self,status)
-    !!{
+    !!{RST
     Iterate a multidimensional minimizer.
     !!}
     use :: Error        , only : Error_Report
@@ -581,7 +589,7 @@ contains
   end subroutine multiDMinimizerIterate
 
   logical function multiDMinimizerTestGradient(self,toleranceAbsolute)
-    !!{
+    !!{RST
     Test for convergence in the gradient of the function for a multidimensional minimizer.
     !!}
     use :: Error        , only : Error_Report
@@ -596,7 +604,7 @@ contains
   end function multiDMinimizerTestGradient
   
   logical function multiDMinimizerTestSize(self,toleranceAbsolute)
-    !!{
+    !!{RST
     Test for convergence in the interval size for a multidimensional minimizer.
     !!}
     use :: Error        , only : Error_Report
@@ -612,7 +620,7 @@ contains
   end function multiDMinimizerTestSize
   
   double precision function multiDMinimizerMinimum(self)
-    !!{
+    !!{RST
     Return the minimized function value for a multidimensional minimizer.
     !!}
     implicit none
@@ -627,7 +635,7 @@ contains
   end function multiDMinimizerMinimum
 
   function multiDMinimizerX(self)
-    !!{
+    !!{RST
     Return the parameter values at the minimum of the minimized function value for a multidimensional minimizer.
     !!}
     use :: Linear_Algebra, only : gsl_vector_get
@@ -649,7 +657,7 @@ contains
   end function multiDMinimizerX
 
   function gslMultiminFunctionFWrapper(x,parameters)
-    !!{
+    !!{RST
     Wrapper function for minimized function value.
     !!}
     use :: Linear_Algebra, only : gsl_vector_get
@@ -668,7 +676,7 @@ contains
   end function gslMultiminFunctionFWrapper
 
   subroutine gslMultiminFunctionDFWrapper(x,parameters,g)
-    !!{
+    !!{RST
     Wrapper function for minimized function gradient.
     !!}
     use :: Linear_Algebra, only : gsl_vector_get, gsl_vector_set
@@ -690,7 +698,7 @@ contains
   end subroutine gslMultiminFunctionDFWrapper
 
   subroutine gslMultiminFunctionFDFWrapper(x,parameters,f,g)
-    !!{
+    !!{RST
     Wrapper function for minimized function value and gradient.
     !!}
     use :: Linear_Algebra, only : gsl_vector_get, gsl_vector_set

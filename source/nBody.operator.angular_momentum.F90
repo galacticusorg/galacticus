@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which determines the mean angular momentum of particles.
 !!}
 
@@ -25,12 +25,14 @@ Implements an N-body data operator which determines the mean angular momentum of
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   
   !![
-  <nbodyOperator name="nbodyOperatorAngularMomentum">
-   <description>An N-body data operator which determines the mean angular momentum of particles. Also finds the angular velocity vector for the rotating frame in which the angular momentum would be zero.</description>
+  <nbodyOperator name="nbodyOperatorAngularMomentum" docformat="rst">
+   <description>
+   An N-body data operator which determines the mean angular momentum of particles. Also finds the angular velocity vector for the rotating frame in which the angular momentum would be zero.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorAngularMomentum
-     !!{
+     !!{RST
      An N-body data operator which determines the mean angular momentum of particles.
      !!}
      private
@@ -43,8 +45,8 @@ Implements an N-body data operator which determines the mean angular momentum of
   end type nbodyOperatorAngularMomentum
 
   interface nbodyOperatorAngularMomentum
-     !!{
-     Constructors for the \refClass{nbodyOperatorAngularMomentum} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorAngularMomentum` N-body operator class.
      !!}
      module procedure angularMomentumConstructorParameters
      module procedure angularMomentumConstructorInternal
@@ -53,8 +55,8 @@ Implements an N-body data operator which determines the mean angular momentum of
 contains
 
   function angularMomentumConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorAngularMomentum} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorAngularMomentum` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,16 +67,20 @@ contains
     integer(c_size_t                    )                :: bootstrapSampleCount
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>selfBoundParticlesOnly</name>
       <source>parameters</source>
-      <description>If true, the mean angular momentum is computed only for self-bound particles</description>
+      <description>
+      If true, the mean angular momentum is computed only for self-bound particles
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bootstrapSampleCount</name>
       <source>parameters</source>
       <defaultValue>30_c_size_t</defaultValue>
-      <description>The number of bootstrap resamples of the particles that should be used.</description>
+      <description>
+      The number of bootstrap resamples of the particles that should be used.
+      </description>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
@@ -87,8 +93,8 @@ contains
   end function angularMomentumConstructorParameters
 
   function angularMomentumConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorAngularMomentum} N-body operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyOperatorAngularMomentum` N-body operator class.
     !!}
     implicit none
     type   (nbodyOperatorAngularMomentum)                        :: self
@@ -103,8 +109,8 @@ contains
   end function angularMomentumConstructorInternal
 
   subroutine angularMomentumDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorAngularMomentum} N-body operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nbodyOperatorAngularMomentum` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorAngularMomentum), intent(inout) :: self
@@ -116,7 +122,7 @@ contains
   end subroutine angularMomentumDestructor
   
   subroutine angularMomentumOperate(self,simulations)
-    !!{
+    !!{RST
     Determine the mean position and velocity of N-body particles.
     !!}
     use :: Error            , only : Error_Report

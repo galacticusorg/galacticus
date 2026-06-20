@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of non-dark-matter-only dark matter halo profiles which are unchanged from their dark-matter-only counterpart.
   !!}
 
@@ -25,12 +25,14 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <darkMatterProfile name="darkMatterProfileDarkMatterOnly">
-   <description>An implementation of non-dark-matter-only dark matter halo profiles that returns the unmodified dark-matter-only profile, i.e. baryonic effects on the dark matter distribution are ignored. Whether to compute velocity dispersions via the Chandrasekhar integral is controlled by \mono{[chandrasekharIntegralComputeVelocityDispersion]}.</description>
+  <darkMatterProfile name="darkMatterProfileDarkMatterOnly" docformat="rst">
+   <description>
+   An implementation of non-dark-matter-only dark matter halo profiles that returns the unmodified dark-matter-only profile, i.e. baryonic effects on the dark matter distribution are ignored. Whether to compute velocity dispersions via the Chandrasekhar integral is controlled by ``[chandrasekharIntegralComputeVelocityDispersion]``.
+   </description>
   </darkMatterProfile>
   !!]
   type, extends(darkMatterProfileClass) :: darkMatterProfileDarkMatterOnly
-     !!{
+     !!{RST
      A class implementing non-dark-matter-only dark matter halo profiles which are unchanged from their dark-matter-only counterpart.
      !!}
      private
@@ -44,8 +46,8 @@
   end type darkMatterProfileDarkMatterOnly
 
   interface darkMatterProfileDarkMatterOnly
-     !!{
-     Constructors for the \refClass{darkMatterProfileDarkMatterOnly} non-dark-matter-only dark matter halo profile class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileDarkMatterOnly` non-dark-matter-only dark matter halo profile class.
      !!}
      module procedure darkMatterOnlyConstructorParameters
      module procedure darkMatterOnlyConstructorInternal
@@ -54,9 +56,8 @@
 contains
 
   function darkMatterOnlyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileDarkMatterOnly} non-dark-matter-only dark matter halo profile class which takes
-    a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileDarkMatterOnly` non-dark-matter-only dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,12 +68,11 @@ contains
     logical                                                 :: chandrasekharIntegralComputeVelocityDispersion
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>chandrasekharIntegralComputeVelocityDispersion</name>
       <defaultValue>.true.</defaultValue>
       <description>
-        If true, the Chandrasekhar integral is computed using the velocity dispersion, $\sigma_mathrm{r}(r)$. Otherwise, the
-        velocity dispersion is approximated as $V_\mathrm{c}(r)/\sqrt{2}$.
+      If true, the Chandrasekhar integral is computed using the velocity dispersion, :math:`\sigma_mathrm{r}(r)`. Otherwise, the velocity dispersion is approximated as :math:`V_\mathrm{c}(r)/\sqrt{2}`.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -89,8 +89,8 @@ contains
   end function darkMatterOnlyConstructorParameters
 
   function darkMatterOnlyConstructorInternal(chandrasekharIntegralComputeVelocityDispersion,cosmologyParameters_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDarkMatterOnly} non-dark-matter-only dark matter halo profile class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterProfileDarkMatterOnly` non-dark-matter-only dark matter halo profile class.
     !!}
     implicit none
     type   (darkMatterProfileDarkMatterOnly)                        :: self
@@ -109,8 +109,8 @@ contains
   end function darkMatterOnlyConstructorInternal
 
   subroutine darkMatterOnlyDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDarkMatterOnly} non-dark-matter-only dark matter halo profile class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileDarkMatterOnly` non-dark-matter-only dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDarkMatterOnly), intent(inout) :: self
@@ -123,8 +123,8 @@ contains
   end subroutine darkMatterOnlyDestructor
 
   function darkMatterOnlyGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galactic_Structure_Options, only : weightByMass
     use :: Mass_Distributions        , only : massDistributionSpherical, massDistributionSphericalScaler, kinematicsDistributionSphericalScaler, kinematicsDistributionClass

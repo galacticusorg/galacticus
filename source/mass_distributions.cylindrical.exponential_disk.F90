@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of an exponential disk mass distribution class.
   !!}
   
   use :: Tables, only : table1DLogarithmicLinear
 
   !![
-  <massDistribution name="massDistributionExponentialDisk">
-   <description>The exponential disk mass distribution: $\rho(r,z)=\rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})$.</description>
+  <massDistribution name="massDistributionExponentialDisk" docformat="rst">
+   <description>
+   The exponential disk mass distribution: :math:`\rho(r,z)=\rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})`.
+   </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionCylindrical) :: massDistributionExponentialDisk
-     !!{
-     The exponential disk mass distribution: $\rho(r,z)=\rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})$.
+     !!{RST
+     The exponential disk mass distribution: :math:`\rho(r,z)=\rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})`.
      !!}
      private
      double precision                                                        :: scaleRadius                                   , scaleHeight                                   , &
@@ -54,7 +56,7 @@
           &                                                                     accelerationRadiusInverseInterval             , accelerationHeightInverseInterval
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulates the potential for an exponential disk mass distribution."                            method="tabulate"                         />
        <method description="Compute the Bessel function factor appearing in the exponential disk rotation curve."          method="besselFactorRotationCurve"        />
        <method description="Compute the Bessel function factor appearing in the exponential disk rotation curve gradient." method="besselFactorRotationCurveGradient"/>
@@ -91,8 +93,8 @@
   end type massDistributionExponentialDisk
 
   interface massDistributionExponentialDisk
-     !!{
-     Constructors for the \refClass{massDistributionExponentialDisk} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionExponentialDisk` mass distribution class.
      !!}
      module procedure exponentialDiskConstructorParameters
      module procedure exponentialDiskConstructorInternal
@@ -110,9 +112,8 @@
 contains
 
   function exponentialDiskConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionExponentialDisk} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionExponentialDisk` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -126,41 +127,55 @@ contains
     type            (varying_string                 )                :: massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scaleHeight</name>
-      <defaultSource>\citep{kregel_flattening_2002}</defaultSource>
+      <defaultSource>
+      :cite:p:`kregel_flattening_2002`
+      </defaultSource>
       <defaultValue>0.137d0</defaultValue>
-      <description>The scale height of the exponential disk profile.</description>
+      <description>
+      The scale height of the exponential disk profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scaleRadius</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The scale radius of the exponential disk profile.</description>
+      <description>
+      The scale radius of the exponential disk profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass of the exponential disk profile.</description>
+      <description>
+      The mass of the exponential disk profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dimensionless</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true the exponential disk profile is considered to be dimensionless.</description>
+      <description>
+      If true the exponential disk profile is considered to be dimensionless.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <conditionalCall>
@@ -175,8 +190,8 @@ contains
   end function exponentialDiskConstructorParameters
 
   function exponentialDiskConstructorInternal(scaleRadius,scaleHeight,mass,dimensionless,componentType,massType) result(self)
-    !!{
-    Internal constructor for ``exponentialDisk'' mass distribution class.
+    !!{RST
+    Internal constructor for "exponentialDisk" mass distribution class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Numerical_Comparison    , only : Values_Differ
@@ -244,7 +259,7 @@ contains
   end function exponentialDiskConstructorInternal
 
   subroutine exponentialDiskDestructor(self)
-    !!{
+    !!{RST
     Destructor for exponential disk mass distributions.
     !!}
     implicit none
@@ -257,7 +272,7 @@ contains
   end subroutine exponentialDiskDestructor
 
   subroutine exponentialDiskTabulate(self)
-    !!{
+    !!{RST
     Build tables used for exponential disk mass distributions.
     !!}
     use :: Bessel_Functions, only : Bessel_Function_I0    , Bessel_Function_I1, Bessel_Function_K0, Bessel_Function_K1
@@ -293,7 +308,7 @@ contains
   end subroutine exponentialDiskTabulate
 
   logical function exponentialDiskAssumeMonotonicDecreasingSurfaceDensity(self) result(assumeMonotonicDecreasingSurfaceDensity)
-    !!{
+    !!{RST
     Return true indicating that this distribution has a monotonically-decreasing surface density.
     !!}
     implicit none
@@ -304,7 +319,7 @@ contains
   end function exponentialDiskAssumeMonotonicDecreasingSurfaceDensity
 
   double precision function exponentialDiskMassTotal(self)
-    !!{
+    !!{RST
     Return the total mass in an exponential disk distribution.
     !!}
     implicit none
@@ -315,7 +330,7 @@ contains
   end function exponentialDiskMassTotal
 
   double precision function exponentialDiskRadiusHalfMass(self)
-    !!{
+    !!{RST
     Return the half-mass radius in an exponential disk mass distribution.
     !!}
     implicit none
@@ -328,8 +343,8 @@ contains
   end function exponentialDiskRadiusHalfMass
 
   double precision function exponentialDiskDensity(self,coordinates)
-    !!{
-    Return the density at the specified \mono{coordinates} in an exponential disk mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in an exponential disk mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateCylindrical
     use :: Error      , only : Error_Report
@@ -358,7 +373,7 @@ contains
   end function exponentialDiskDensity
 
   double precision function exponentialDensityGradientRadial(self,coordinates,logarithmic)
-    !!{
+    !!{RST
     Return the density gradient in the radial direction in a scaled spherical mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateCylindrical
@@ -396,9 +411,8 @@ contains
   end function exponentialDensityGradientRadial
   
   double precision function exponentialDiskDensitySphericalAverage(self,radius)
-    !!{
-    Return the spherically-averaged density at the specified \mono{coordinates} in an exponential disk mass
-    distribution. Note that this assumes the thin-disk approximation.
+    !!{RST
+    Return the spherically-averaged density at the specified ``coordinates`` in an exponential disk mass distribution. Note that this assumes the thin-disk approximation.
     !!}
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
@@ -415,9 +429,8 @@ contains
   end function exponentialDiskDensitySphericalAverage
 
   double precision function exponentialDiskMassEnclosedBySphere(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for exponential disk mass
-    distributions. Note that this assumes the thin-disk approximation.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for exponential disk mass distributions. Note that this assumes the thin-disk approximation.
     !!}
     implicit none
     class           (massDistributionExponentialDisk), intent(inout), target :: self
@@ -428,9 +441,8 @@ contains
   end function exponentialDiskMassEnclosedBySphere
 
   double precision function exponentialDiskMassEnclosedByCylinder(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a cylinder of given \mono{radius} for exponential disk mass
-    distributions.
+    !!{RST
+    Computes the mass enclosed within a cylinder of given ``radius`` for exponential disk mass distributions.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -456,8 +468,8 @@ contains
   end function exponentialDiskMassEnclosedByCylinder
 
   double precision function exponentialDiskSurfaceDensity(self,coordinates)
-    !!{
-    Return the surface density at the specified \mono{coordinates} in an exponential disk mass distribution.
+    !!{RST
+    Return the surface density at the specified ``coordinates`` in an exponential disk mass distribution.
     !!}
     use :: Coordinates, only : coordinate
     implicit none
@@ -473,7 +485,7 @@ contains
   end function exponentialDiskSurfaceDensity
 
   double precision function exponentialDiskRadiusEnclosingSurfaceDensity(self,densitySurface,radiusGuess) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given surface density for exponential disk mass distributions.
     !!}    
     implicit none
@@ -490,7 +502,7 @@ contains
   end function exponentialDiskRadiusEnclosingSurfaceDensity
   
   double precision function exponentialDiskRotationCurve(self,radius)
-    !!{
+    !!{RST
     Return the mid-plane rotation curve for an exponential disk.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -530,7 +542,7 @@ contains
   end function exponentialDiskRotationCurve
 
   double precision function exponentialDiskRotationCurveGradient(self,radius)
-    !!{
+    !!{RST
     Return the mid-plane rotation curve gradient for an exponential disk.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -563,7 +575,7 @@ contains
   end function exponentialDiskRotationCurveGradient
 
   logical function exponentialDiskPotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return that the potential has an analytic form.
     !!}
     implicit none
@@ -574,7 +586,7 @@ contains
   end function exponentialDiskPotentialIsAnalytic
 
   double precision function exponentialDiskPotential(self,coordinates,status)
-    !!{
+    !!{RST
     Return the gravitational potential for an exponential disk.
     !!}
     use :: Coordinates                     , only : assignment(=)                 , coordinateCylindrical
@@ -626,9 +638,8 @@ contains
   end function exponentialDiskPotential
 
   double precision function exponentialDiskBesselFactorPotential(self,halfRadius)
-    !!{
-    Compute Bessel function factors appearing in the expression for an razor-thin exponential
-    disk gravitational potential.
+    !!{RST
+    Compute Bessel function factors appearing in the expression for an razor-thin exponential disk gravitational potential.
     !!}
     use :: Numerical_Constants_Math, only : eulersConstant, ln2
     implicit none
@@ -648,7 +659,7 @@ contains
   end function exponentialDiskBesselFactorPotential
 
   double precision function exponentialDiskBesselFactorRotationCurve(self,halfRadius)
-    !!{
+    !!{RST
     Compute Bessel function factors appearing in the expression for an razor-thin exponential disk rotation curve.
     !!}
     use :: Bessel_Functions        , only : Bessel_Function_I0, Bessel_Function_I1, Bessel_Function_K0, Bessel_Function_K1
@@ -707,7 +718,7 @@ contains
   end function exponentialDiskBesselFactorRotationCurve
 
   double precision function exponentialDiskBesselFactorRotationCurveGradient(self,halfRadius)
-    !!{
+    !!{RST
     Compute Bessel function factors appearing in the expression for a razor-thin exponential disk rotation curve gradient.
     !!}
     use :: Bessel_Functions        , only : Bessel_Function_I0, Bessel_Function_I1, Bessel_Function_K0, Bessel_Function_K1
@@ -778,7 +789,7 @@ contains
   end function exponentialDiskBesselFactorRotationCurveGradient
 
   double precision function exponentialDiskSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
-    !!{
+    !!{RST
     Compute radial moments of the exponential disk mass distribution surface density profile.
     !!}
     use :: Error          , only : Error_Report
@@ -813,8 +824,8 @@ contains
   end function exponentialDiskSurfaceDensityRadialMoment
 
   function exponentialDiskAcceleration(self,coordinates)
-    !!{
-    Computes the gravitational acceleration at \mono{coordinates} for exponential disk mass distributions.
+    !!{RST
+    Computes the gravitational acceleration at ``coordinates`` for exponential disk mass distributions.
     !!}
     use :: Coordinates                     , only : assignment(=), coordinateCartesian           , coordinateCylindrical
     use :: Numerical_Constants_Astronomical, only : gigaYear     , gravitationalConstant_internal, megaParsec
@@ -859,8 +870,8 @@ contains
   end function exponentialDiskAcceleration
 
   function exponentialDiskTidalTensor(self,coordinates)
-    !!{
-    Computes the gravitational tidal tensor at \mono{coordinates} for exponential disk mass distributions.
+    !!{RST
+    Computes the gravitational tidal tensor at ``coordinates`` for exponential disk mass distributions.
     !!}
     use :: Coordinates                     , only : assignment(=)                 , coordinateCartesian, coordinateCylindrical
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -920,7 +931,7 @@ contains
   end function exponentialDiskTidalTensor
   
   subroutine exponentialDiskAccelerationInterpolate(self,coordinatesCylindrical,accelerationRadial,accelerationVertical,tidalTensorRadialRadial,tidalTensorVerticalVertical,tidalTensorCross)
-    !!{
+    !!{RST
     Interpolate gravitational accelerations and tidal tensors in the tabulated solutions for an exponential disk.
     !!}
     use :: Coordinates, only : assignment(=), coordinateCartesian, coordinateCylindrical
@@ -1029,9 +1040,8 @@ contains
   end subroutine exponentialDiskAccelerationInterpolate
 
   subroutine exponentialDiskAccelerationTabulate(self)
-    !!{
-    Tabulate the acceleration (and tidal tensor) due to the exponential disk mass distribution. Uses the approach of
-    \cite{kuijken_mass_1989}. The tabulation is built for a dimensionless disk.
+    !!{RST
+    Tabulate the acceleration (and tidal tensor) due to the exponential disk mass distribution. Uses the approach of :cite:t:`kuijken_mass_1989`. The tabulation is built for a dimensionless disk.
     !!}
     use :: Bessel_Functions        , only : Bessel_Function_J0_Zero, Bessel_Function_J1_Zero, Bessel_Function_Jn_Zero
     use :: Display                 , only : displayCounter         , displayCounterClear    , displayIndent          , displayUnindent, &
@@ -1282,7 +1292,7 @@ contains
   contains
 
     double precision function accelerationRadialIntegrand(wavenumber)
-      !!{
+      !!{RST
       Integrand for the radial component of the acceleration.
       !!}
       use :: Bessel_Functions, only : Bessel_Function_J1
@@ -1302,7 +1312,7 @@ contains
     end function accelerationRadialIntegrand
 
     double precision function accelerationVerticalIntegrand(wavenumber)
-      !!{
+      !!{RST
       Integrand for the radial component of the acceleration.
       !!}
       use :: Bessel_Functions, only : Bessel_Function_J0
@@ -1321,8 +1331,8 @@ contains
     end function accelerationVerticalIntegrand
 
     double precision function tidalTensorRadialRadialIntegrand(wavenumber)
-      !!{
-      Integrand for the of the $\partial^2 \Phi \over \partial R^2$ component of the tidal tensor.
+      !!{RST
+      Integrand for the of the :math:`\partial^2 \Phi \over \partial R^2` component of the tidal tensor.
       !!}
       use :: Bessel_Functions, only : Bessel_Function_J0, Bessel_Function_Jn
       use :: Error           , only : Error_Report
@@ -1353,8 +1363,8 @@ contains
     end function tidalTensorRadialRadialIntegrand
 
     double precision function tidalTensorCrossIntegrand(wavenumber)
-      !!{
-      Integrand for the of the $\partial^2 \Phi \over \partial R \partial z$ component of the tidal tensor.
+      !!{RST
+      Integrand for the of the :math:`\partial^2 \Phi \over \partial R \partial z` component of the tidal tensor.
       !!}
       use :: Bessel_Functions, only : Bessel_Function_J1
       implicit none
@@ -1373,8 +1383,8 @@ contains
     end function tidalTensorCrossIntegrand
 
     double precision function tidalTensorVerticalVerticalIntegrand(wavenumber)
-      !!{
-      Integrand for the of the $\partial^2 \Phi \over \partial z^2$ component of the tidal tensor.
+      !!{RST
+      Integrand for the of the :math:`\partial^2 \Phi \over \partial z^2` component of the tidal tensor.
       !!}
       use :: Bessel_Functions, only : Bessel_Function_J0
       implicit none
@@ -1392,8 +1402,8 @@ contains
     end function tidalTensorVerticalVerticalIntegrand
     
     double precision function Iz(wavenumber)
-      !!{
-      $z$-dependent term appearing in the expression for the potential of the disk.
+      !!{RST
+      :math:`z`-dependent term appearing in the expression for the potential of the disk.
       !!}
       implicit none
       double precision, intent(in   ) :: wavenumber
@@ -1421,8 +1431,8 @@ contains
     end function Iz
 
     double precision function Izm(wavenumber,m)
-      !!{
-      Evaluate the $m$-dependent part of the $I(z)$ integral.
+      !!{RST
+      Evaluate the :math:`m`-dependent part of the :math:`I(z)` integral.
       !!}
       use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
@@ -1463,8 +1473,8 @@ contains
     end function Izm
     
     double precision function dIzdz(wavenumber)
-      !!{
-      $z$ derivative of the $z$-dependent term appearing in the expression for the potential of the disk.
+      !!{RST
+      :math:`z` derivative of the :math:`z`-dependent term appearing in the expression for the potential of the disk.
       !!}
       use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
@@ -1493,8 +1503,8 @@ contains
     end function dIzdz
 
     double precision function dIzdzm(wavenumber,m)
-      !!{
-      Evaluate the $m$-dependent part of the $\mathrm{d}I(z)/\mathrm{d}z$ integral.
+      !!{RST
+      Evaluate the :math:`m`-dependent part of the :math:`\mathrm{d}I(z)/\mathrm{d}z` integral.
       !!}
       use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
@@ -1536,8 +1546,8 @@ contains
     end function dIzdzm
 
     double precision function d2Izdz2(wavenumber)
-      !!{
-      $z$ $2^\mathrm{nd}$ derivative of the $z$-dependent term appearing in the expression for the potential of the disk.
+      !!{RST
+      :math:`z` :math:`2^\mathrm{nd}` derivative of the :math:`z`-dependent term appearing in the expression for the potential of the disk.
       !!}
       use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
@@ -1566,8 +1576,8 @@ contains
     end function d2Izdz2
 
     double precision function d2Izdz2m(wavenumber,m)
-      !!{
-      Evaluate the $m$-dependent part of the $\mathrm{d}^2I(z)/\mathrm{d}z^2$ integral.
+      !!{RST
+      Evaluate the :math:`m`-dependent part of the :math:`\mathrm{d}^2I(z)/\mathrm{d}z^2` integral.
       !!}
       use :: Binomial_Coefficients, only : Binomial_Coefficient
       implicit none
@@ -1609,7 +1619,7 @@ contains
   end subroutine exponentialDiskAccelerationTabulate
   
   function exponentialDiskPositionSample(self,randomNumberGenerator_)
-    !!{
+    !!{RST
     Sample a position from an exponential disk distribution.
     !!}
     use :: Lambert_Ws              , only : Lambert_Wm1

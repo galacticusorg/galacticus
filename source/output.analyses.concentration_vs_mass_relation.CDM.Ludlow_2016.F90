@@ -17,21 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a concentration vs. halo mass analysis class matched to the
-  \cite{ludlow_mass-concentration-redshift_2016} CDM sample.
+  !!{RST
+  Implements a concentration vs. halo mass analysis class matched to the :cite:t:`ludlow_mass-concentration-redshift_2016` CDM sample.
   !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <outputAnalysis name="outputAnalysisConcentrationVsHaloMassCDMLudlow2016">
-   <description>A concentration vs. halo mass analysis class matched to the \cite{ludlow_mass-concentration-redshift_2016} CDM sample.</description>
+  <outputAnalysis name="outputAnalysisConcentrationVsHaloMassCDMLudlow2016" docformat="rst">
+   <description>
+   A concentration vs. halo mass analysis class matched to the :cite:t:`ludlow_mass-concentration-redshift_2016` CDM sample.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisConcentrationVsHaloMassCDMLudlow2016
-     !!{
-     A concentration vs. halo mass analysis class matched to the \cite{ludlow_mass-concentration-redshift_2016} CDM sample.
+     !!{RST
+     A concentration vs. halo mass analysis class matched to the :cite:t:`ludlow_mass-concentration-redshift_2016` CDM sample.
      !!}
      private
     class(cosmologyParametersClass  ), pointer :: cosmologyParameters_   => null()
@@ -44,8 +45,8 @@
  end type outputAnalysisConcentrationVsHaloMassCDMLudlow2016
 
   interface outputAnalysisConcentrationVsHaloMassCDMLudlow2016
-     !!{
-     Constructors for the \refClass{outputAnalysisConcentrationVsHaloMassCDMLudlow2016} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisConcentrationVsHaloMassCDMLudlow2016` output analysis class.
      !!}
      module procedure concentrationVsHaloMassCDMLudlow2016ConstructorParameters
      module procedure concentrationVsHaloMassCDMLudlow2016ConstructorInternal
@@ -54,8 +55,8 @@
 contains
 
   function concentrationVsHaloMassCDMLudlow2016ConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisConcentrationVsHaloMassCDMLudlow2016} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisConcentrationVsHaloMassCDMLudlow2016` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
     use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
@@ -98,8 +99,8 @@ contains
   end function concentrationVsHaloMassCDMLudlow2016ConstructorParameters
 
   function concentrationVsHaloMassCDMLudlow2016ConstructorInternal(darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,nbodyHaloMassError_,outputTimes_) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisConcentrationVsHaloMassCDMLudlow2016} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisConcentrationVsHaloMassCDMLudlow2016` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass
@@ -248,8 +249,8 @@ contains
   end function concentrationVsHaloMassCDMLudlow2016ConstructorInternal
 
   subroutine concentrationVsHaloMassCDMLudlow2016Destructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisConcentrationVsHaloMassCDMLudlow2016} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisConcentrationVsHaloMassCDMLudlow2016` output analysis class.
     !!}
     implicit none
     type(outputAnalysisConcentrationVsHaloMassCDMLudlow2016), intent(inout) :: self

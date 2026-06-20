@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements broad band luminosities of stellar populations.
 !!}
 
 module Stellar_Population_Broad_Band_Luminosities
-  !!{
+  !!{RST
   Provides a class that implements broad band luminosities of stellar populations.
   !!}
   use :: Stellar_Populations                   , only : stellarPopulationClass
@@ -31,18 +31,17 @@ module Stellar_Population_Broad_Band_Luminosities
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>stellarPopulationBroadBandLuminosities</name>
    <descriptiveName>Stellar Population Broad Band Luminosities</descriptiveName>
-   <description>Class providing broad band luminosities of stellar populations---the flux (in $L_\odot$) of a
-    $1\,\mathrm{M}_\odot$ simple stellar population of given metallicity and age when convolved with a photometric
-    filter transmission curve. These luminosities are the basic building blocks for computing galaxy
-    apparent and absolute magnitudes in any broad-band filter system. Methods return luminosities for
-    a specified set of filter indices at given ages and redshifts, and can also return the full
-    luminosity track as a function of age for efficient integration over the star formation history.</description>
+   <description>
+   Class providing broad band luminosities of stellar populations---the flux (in :math:`L_\odot`) of a :math:`1\,\mathrm{M}_\odot` simple stellar population of given metallicity and age when convolved with a photometric filter transmission curve. These luminosities are the basic building blocks for computing galaxy apparent and absolute magnitudes in any broad-band filter system. Methods return luminosities for a specified set of filter indices at given ages and redshifts, and can also return the full luminosity track as a function of age for efficient integration over the star formation history.
+   </description>
    <default>standard</default>
    <method name="luminosities" >
-    <description>Returns the luminosity for a $1 \mathrm{M}_\odot$ simple \mono{stellarPopulation\_} of given \mono{abundances} and \mono{age} and observed through the filter specified by \mono{filterIndex}.</description>
+    <description>
+    Returns the luminosity for a :math:`1 \mathrm{M}_\odot` simple ``stellarPopulation_`` of given ``abundances`` and ``age`` and observed through the filter specified by ``filterIndex``.
+    </description>
     <type>double precision, dimension(size(luminosityIndex))</type>
     <pass>yes</pass>
     <argument>integer                                                    , intent(in   ), dimension(:  )              :: luminosityIndex                       , filterIndex </argument>
@@ -52,7 +51,9 @@ module Stellar_Population_Broad_Band_Luminosities
     <argument>double precision                                           , intent(in   ), dimension(:  )              :: age                                   , redshift    </argument>
    </method>
    <method name="luminosityTracks" >
-    <description>Returns the luminosity for a $1 \mathrm{M}_\odot$ simple stellar population of given \mono{abundances} drawn from the given \mono{stellarPopulation} and observed through the filter specified by \mono{filterIndex}, for all available ages.</description>
+    <description>
+    Returns the luminosity for a :math:`1 \mathrm{M}_\odot` simple stellar population of given ``abundances`` drawn from the given ``stellarPopulation`` and observed through the filter specified by ``filterIndex``, for all available ages.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>integer                                                    , intent(in   ), dimension(:  )              :: luminosityIndex                       , filterIndex</argument>

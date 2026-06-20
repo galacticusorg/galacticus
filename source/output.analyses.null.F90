@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a null output analysis class.
 !!}
 
   !![
-  <outputAnalysis name="outputAnalysisNull">
-   <description>A no-op output analysis implementation that performs no analysis or output, useful as a placeholder or for disabling analyses without removing them from the configuration.</description>
+  <outputAnalysis name="outputAnalysisNull" docformat="rst">
+   <description>
+   A no-op output analysis implementation that performs no analysis or output, useful as a placeholder or for disabling analyses without removing them from the configuration.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisNull
-     !!{
+     !!{RST
      A null output analysis class.
      !!}
      private
@@ -39,8 +41,8 @@ Implements a null output analysis class.
   end type outputAnalysisNull
 
   interface outputAnalysisNull
-     !!{
-     Constructors for the \refClass{outputAnalysisNull} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisNull` output analysis class.
      !!}
      module procedure nullConstructorParameters
   end interface outputAnalysisNull
@@ -48,8 +50,8 @@ Implements a null output analysis class.
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisNull} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisNull` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,7 +66,7 @@ contains
   end function nullConstructorParameters
 
   subroutine nullAnalyze(self,node,iOutput)
-    !!{
+    !!{RST
     Implement a null output analysis.
     !!}
     implicit none
@@ -77,7 +79,7 @@ contains
   end subroutine nullAnalyze
 
   subroutine nullFinalize(self,groupName)
-    !!{
+    !!{RST
     Implement a null output analysis finalization.
     !!}
     implicit none
@@ -89,7 +91,7 @@ contains
   end subroutine nullFinalize
 
   subroutine nullReduce(self,reduced)
-    !!{
+    !!{RST
     Implement a null output analysis reduction.
     !!}
     implicit none
@@ -101,7 +103,7 @@ contains
   end subroutine nullReduce
 
   double precision function nullLogLikelihood(self)
-    !!{
+    !!{RST
     Return the log-likelihood of a null output analysis.
     !!}
     implicit none

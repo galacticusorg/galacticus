@@ -17,26 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a merger tree operator which prunes branches below a
-  given level in the substructure hierarchy.
+  !!{RST
+  Implements a merger tree operator which prunes branches below a given level in the substructure hierarchy.
   !!}
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorPruneHierarchy">
+  <mergerTreeOperator name="mergerTreeOperatorPruneHierarchy" docformat="rst">
    <description>
-    A merger tree operator class module which prunes branches below a given level in the substructure hierarchy. In any tree,
-    the primary progenitor of the base node has substructure hierarchy depth 0. A branch which connects directly to this
-    primary progenitor branch has substructure hierarchy depth 1, while a branch which connects directly to that branch has
-    substructure hierarchy depth 2, and so on. The tree is pruned of all branches of hierarchy depth equal to or greater than
-    the value provided by the \mono{[hierarchyDepth]} parameter.
+   A merger tree operator class module which prunes branches below a given level in the substructure hierarchy. In any tree, the primary progenitor of the base node has substructure hierarchy depth 0. A branch which connects directly to this primary progenitor branch has substructure hierarchy depth 1, while a branch which connects directly to that branch has substructure hierarchy depth 2, and so on. The tree is pruned of all branches of hierarchy depth equal to or greater than the value provided by the ``[hierarchyDepth]`` parameter.
    </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneHierarchy
-     !!{
-     A merger tree operator class which prunes branches below a given level in the
-     substructure hierarchy.
+     !!{RST
+     A merger tree operator class which prunes branches below a given level in the substructure hierarchy.
      !!}
      private
      integer :: hierarchyDepth
@@ -45,7 +39,7 @@
   end type mergerTreeOperatorPruneHierarchy
 
   interface mergerTreeOperatorPruneHierarchy
-     !!{
+     !!{RST
      Constructors for the prune-hierarchy merger tree operator class.
      !!}
      module procedure pruneHierarchyConstructorParameters
@@ -55,7 +49,7 @@
 contains
 
   function pruneHierarchyConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the prune-hierarchy merger tree operator class which takes a parameter set as input.
     !!}
     implicit none
@@ -64,11 +58,13 @@ contains
     integer                                                  :: hierarchyDepth
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>hierarchyDepth</name>
       <source>parameters</source>
       <defaultValue>1</defaultValue>
-      <description>The depth in the substructure hierarchy at which to prune a tree.</description>
+      <description>
+      The depth in the substructure hierarchy at which to prune a tree.
+      </description>
     </inputParameter>
     !!]
     self=mergerTreeOperatorPruneHierarchy(hierarchyDepth)
@@ -79,7 +75,7 @@ contains
   end function pruneHierarchyConstructorParameters
 
   function pruneHierarchyConstructorInternal(hierarchyDepth) result(self)
-    !!{
+    !!{RST
     Internal constructor for the prune-hierarchy merger tree operator class.
     !!}
     use :: Error, only : Error_Report
@@ -93,7 +89,7 @@ contains
   end function pruneHierarchyConstructorInternal
 
   subroutine pruneHierarchyOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Perform a prune-hierarchy operation on a merger tree.
     !!}
     use :: Galacticus_Nodes              , only : treeNodeLinkedList

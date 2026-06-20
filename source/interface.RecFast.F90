@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which provides various interfaces to the \gls{recfast} code.
+!!{RST
+Contains a module which provides various interfaces to the :term:`RecFast` code.
 !!}
 
 module Interfaces_RecFast
-  !!{
-  Provides various interfaces to the \gls{recfast} code.
+  !!{RST
+  Provides various interfaces to the :term:`RecFast` code.
   !!}
   private
   public :: Interface_RecFast_Initialize
@@ -31,7 +31,7 @@ module Interfaces_RecFast
 contains
 
   subroutine Interface_RecFast_Initialize(recfastPath,recfastVersion,static)
-    !!{
+    !!{RST
     Initialize the interface with RecFast, including downloading and compiling RecFast if necessary.
     !!}
     use :: Display           , only : displayMessage   , verbosityLevelWorking

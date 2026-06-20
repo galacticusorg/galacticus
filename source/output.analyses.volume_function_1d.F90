@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a generic 1D volume function (i.e. number density of objects binned by some property, e.g. a
-mass function) output analysis class.
+!!{RST
+Implements a generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output analysis class.
 !!}
 
   use               :: Galactic_Filters                        , only : galacticFilterClass
@@ -35,58 +34,37 @@ mass function) output analysis class.
   use               :: Output_Times                            , only : outputTimesClass
   use               :: Output_Analyses_Options                 , only : enumerationOutputAnalysisCovarianceModelType, enumerationOutputAnalysisStateType
   !![
-  <outputAnalysis name="outputAnalysisVolumeFunction1D">
+  <outputAnalysis name="outputAnalysisVolumeFunction1D" docformat="rst">
    <description>
-     A generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output analysis class.
-  
-     In addition to the volume function itself, the covariance matrix, $\mathbf{C}_\mathrm{model}$, of the mass function is also
-     computed. The assumptions used when constructing the covariance matrix are controlled by the parameter \mono{[covarianceModel]}. If set to \mono{binomial}, then to construct $\mathbf{C}_\mathrm{model}$ we
-     make use of the fact that \glc\ works by sampling a set of tree ``root masses'' from the $z=0$ dark matter halo mass
-     function. From each root, a tree is grown, within which the physics of galaxy formation is then solved. Root masses are
-     sampled uniformly from the halo mass function. That is, the cumulative halo mass function, $N(M)$, is constructed between
-     the maximum and minimum halo masses to be simulated. The number of root masses, $N_\mathrm{r}$, to be used in a model
-     evaluation is then determined. Root masses are then chosen such that
-     \begin{equation}
-      N(M_i) = N(M_\mathrm{min}) {i-1 \over N_\mathrm{r}-1}
-     \end{equation}
-     for $i=1\ldots N_\mathrm{r}$ (noting that $N(M_\mathrm{max})=0$ by construction). 
-  
-     Consider first those galaxies which form in the main branch of each tree (i.e. those galaxies which are destined to become
-     the central galaxy of the $z=0$ halo). Suppose that we simulate $N_k$ halos of root mass $M_k$ at $z=0$. In such halos the
-     main branch galaxies will, at any time, have property values drawn from some distribution $p_k(M_\star|t)$. The number of
-     such galaxies contributing to bin $i$ of the mass function is therefore binomially distributed with success probability
-     $p_{ik} = \int_{M_{i,\mathrm min}}^{M_{i,\mathrm max}} p_k(M_\star|t) \d M_\star$ and a sample size of $N_k$.
+   A generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output analysis class.
 
-     Generalizing to consider all bins in our volume function, the number of galaxies in each bin will jointly follow a
-     \href{https://en.wikipedia.org/wiki/Multinomial_distribution}{multinomial distribution}. The contribution to the covariance
-     matrix from these main branch galaxies is therefore:     
-     \begin{equation}
+   In addition to the volume function itself, the covariance matrix, :math:`\mathbf{C}_\mathrm{model}`, of the mass function is also computed. The assumptions used when constructing the covariance matrix are controlled by the parameter ``[covarianceModel]``. If set to ``binomial``, then to construct :math:`\mathbf{C}_\mathrm{model}` we make use of the fact that Galacticus works by sampling a set of tree "root masses" from the :math:`z=0` dark matter halo mass function. From each root, a tree is grown, within which the physics of galaxy formation is then solved. Root masses are sampled uniformly from the halo mass function. That is, the cumulative halo mass function, :math:`N(M)`, is constructed between the maximum and minimum halo masses to be simulated. The number of root masses, :math:`N_\mathrm{r}`, to be used in a model evaluation is then determined. Root masses are then chosen such that
+
+   .. math::
+
+      N(M_i) = N(M_\mathrm{min}) {i-1 \over N_\mathrm{r}-1}
+
+   for :math:`i=1\ldots N_\mathrm{r}` (noting that :math:`N(M_\mathrm{max})=0` by construction).
+
+   Consider first those galaxies which form in the main branch of each tree (i.e. those galaxies which are destined to become the central galaxy of the :math:`z=0` halo). Suppose that we simulate :math:`N_k` halos of root mass :math:`M_k` at :math:`z=0`. In such halos the main branch galaxies will, at any time, have property values drawn from some distribution :math:`p_k(M_\star|t)`. The number of such galaxies contributing to bin :math:`i` of the mass function is therefore binomially distributed with success probability :math:`p_{ik} = \int_{M_{i,\mathrm min}}^{M_{i,\mathrm max}} p_k(M_\star|t) \d M_\star` and a sample size of :math:`N_k`.
+
+   Generalizing to consider all bins in our volume function, the number of galaxies in each bin will jointly follow a `multinomial distribution &lt;https://en.wikipedia.org/wiki/Multinomial_distribution&gt;`_. The contribution to the covariance matrix from these main branch galaxies is therefore:
+
+   .. math::
+
       \mathcal{C}_{ij} = \left\{ \begin{array}{ll} p_{ik}(1-p_{ik}) N_k w_k^2 &amp; \hbox{ if } i = j \\ -p_{ik} p_{jk} N_k w_k^2 &amp; \hbox{ otherwise,} \end{array} \right.
-     \end{equation}     
-     where $w_k$ is the weight to be assigned to each tree. To compute this covariance requires knowledge of the probabilities,
-     $p_{ik}$. We estimate these directly from the model. To do this, we bin trees into narrow bins of root mass and assume that
-     $p_{ik}$ does not vary significantly across the mass range of each bin. Using all realizations of trees that fall within a
-     given bin, $k$, we can directly estimate $p_{ik}$. Similarly, $N_k w_k^2$ is found by accumulating squared weights in bins of
-     root mass. In computing $p_{ik}$ and $N_k$, the range of halo masses considered and the fineness of binning in halo mass are
-     determined by the parameters \mono{[covarianceBinomialMassHaloMinimum]}, \mono{[covarianceBinomialMassHaloMaximum]}, and \mono{[covarianceBinomialBinsPerDecade]}.
-  
-     If instead, \mono{[covarianceModel]}$=$\mono{Poisson}, the main branch galaxies are
-     modeled as being sampled from a Poisson distribution (and so off-diagonal terms in the covariance matrix will be zero).
-  
-     In addition to the main branch galaxies, each tree will contain a number of other galaxies (these will be ``satellite''
-     galaxies at $z=0$, but at higher redshifts may still be central galaxies in their own halos). Tests have established that
-     the number of satellites in halos is well described by a Poisson process. Note that, as described above, each galaxy
-     contributes a Gaussian distribution to the mass function due to modeling of random errors in property value
-     determinations. For main branch galaxies this is simply accounted for when accumulating the probabilities, $p_{ik}$. For
-     satellite galaxies, off-diagonal contributions to the covariance matrix arise as a result, $C_{ij} = w_k f_i f_j$, where
-     $f_i$ is the fraction of the galaxy contributing to bin $i$ of the mass function.
+
+   where :math:`w_k` is the weight to be assigned to each tree. To compute this covariance requires knowledge of the probabilities, :math:`p_{ik}`. We estimate these directly from the model. To do this, we bin trees into narrow bins of root mass and assume that :math:`p_{ik}` does not vary significantly across the mass range of each bin. Using all realizations of trees that fall within a given bin, :math:`k`, we can directly estimate :math:`p_{ik}`. Similarly, :math:`N_k w_k^2` is found by accumulating squared weights in bins of root mass. In computing :math:`p_{ik}` and :math:`N_k`, the range of halo masses considered and the fineness of binning in halo mass are determined by the parameters ``[covarianceBinomialMassHaloMinimum]``, ``[covarianceBinomialMassHaloMaximum]``, and ``[covarianceBinomialBinsPerDecade]``.
+
+   If instead, ``[covarianceModel]``\ :math:`=`\ ``Poisson``, the main branch galaxies are modeled as being sampled from a Poisson distribution (and so off-diagonal terms in the covariance matrix will be zero).
+
+   In addition to the main branch galaxies, each tree will contain a number of other galaxies (these will be "satellite" galaxies at :math:`z=0`, but at higher redshifts may still be central galaxies in their own halos). Tests have established that the number of satellites in halos is well described by a Poisson process. Note that, as described above, each galaxy contributes a Gaussian distribution to the mass function due to modeling of random errors in property value determinations. For main branch galaxies this is simply accounted for when accumulating the probabilities, :math:`p_{ik}`. For satellite galaxies, off-diagonal contributions to the covariance matrix arise as a result, :math:`C_{ij} = w_k f_i f_j`, where :math:`f_i` is the fraction of the galaxy contributing to bin :math:`i` of the mass function.
    </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisVolumeFunction1D
-     !!{
-     A generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output
-     analysis class.
+     !!{RST
+     A generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output analysis class.
      !!}
      private
      type            (varying_string                              )                              :: label                                          , comment                                          , &
@@ -135,11 +113,11 @@ mass function) output analysis class.
      !$ type         (ompLock                                     )                              :: accumulateLock
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the results of the volume function operator." method="results"           />
        <method description="Finalize the analysis of this function."             method="finalizeAnalysis"  />
        <method description="Activate/deactivate reporting."                      method="setReporting"      />
-       <method description="Write the log-likelihood of this analysis to the output group. Child classes that compute their own log-likelihood should override this to avoid evaluating the parent-class {\normalfont \ttfamily logLikelihood} method." method="logLikelihoodWrite"/>
+       <method description="Write the log-likelihood of this analysis to the output group. Child classes that compute their own log-likelihood should override this to avoid evaluating the parent-class logLikelihood method." method="logLikelihoodWrite"/>
        <method description="Write class-specific metadata to the analysis output group. The default implementation does nothing; child classes may override it to add further attributes or datasets." method="metadataWrite"/>
      </methods>
      !!]
@@ -156,8 +134,8 @@ mass function) output analysis class.
   end type outputAnalysisVolumeFunction1D
 
   interface outputAnalysisVolumeFunction1D
-     !!{
-     Constructors for the \refClass{outputAnalysisVolumeFunction1D} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisVolumeFunction1D` output analysis class.
      !!}
      module procedure volumeFunction1DConstructorParameters
      module procedure volumeFunction1DConstructorInternal
@@ -166,8 +144,8 @@ mass function) output analysis class.
 contains
 
   function volumeFunction1DConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisVolumeFunction1D} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisVolumeFunction1D` output analysis class which takes a parameter set as input.
     !!}
     use :: Error                  , only : Error_Report
     use :: Input_Parameters       , only : inputParameter                                , inputParameters
@@ -220,184 +198,242 @@ contains
     if (parameters%count('outputWeight') /= parameters%count('binCenter')*self%outputTimes_%count()) &
          & call Error_Report('incorrect number of output weights provided'//{introspection:location})
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <source>parameters</source>
       <variable>label</variable>
-      <description>A label for the analysis.</description>
+      <description>
+      A label for the analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>xAxisLabel</name>
       <source>parameters</source>
-      <description>A label for the $x$-axis in a plot of this analysis.</description>
+      <description>
+      A label for the :math:`x`-axis in a plot of this analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>yAxisLabel</name>
       <source>parameters</source>
-      <description>A label for the $y$-axis in a plot of this analysis.</description>
+      <description>
+      A label for the :math:`y`-axis in a plot of this analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>xAxisIsLog</name>
       <source>parameters</source>
-      <description>If true, indicates that the $x$-axis should be logarithmic in a plot of this analysis.</description>
+      <description>
+      If true, indicates that the :math:`x`-axis should be logarithmic in a plot of this analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>yAxisIsLog</name>
       <source>parameters</source>
-      <description>If true, indicates that the $y$-axis should be logarithmic in a plot of this analysis.</description>
+      <description>
+      If true, indicates that the :math:`y`-axis should be logarithmic in a plot of this analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>comment</name>
       <source>parameters</source>
       <variable>comment</variable>
-      <description>A descriptive comment for the analysis.</description>
+      <description>
+      A descriptive comment for the analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyLabel</name>
       <source>parameters</source>
       <variable>propertyLabel</variable>
-      <description>A label for the property variable.</description>
+      <description>
+      A label for the property variable.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyComment</name>
       <source>parameters</source>
       <variable>propertyComment</variable>
-      <description>A descriptive comment for the property variable.</description>
+      <description>
+      A descriptive comment for the property variable.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyUnits</name>
       <source>parameters</source>
       <variable>propertyUnits</variable>
-      <description>A human-readable description of the units for the property.</description>
+      <description>
+      A human-readable description of the units for the property.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyQuantity</name>
       <source>parameters</source>
       <variable>propertyQuantity</variable>
-      <description>An \mono{astropy.units}-parseable units string for the property.</description>
+      <description>
+      An ``astropy.units``-parseable units string for the property.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyIsComoving</name>
       <source>parameters</source>
       <variable>propertyIsComoving</variable>
-      <description>If true, the property is in comoving units.</description>
+      <description>
+      If true, the property is in comoving units.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyUnitsInSI</name>
       <source>parameters</source>
       <variable>propertyUnitsInSI</variable>
-      <description>A units for the property in the SI system.</description>
+      <description>
+      A units for the property in the SI system.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>distributionLabel</name>
       <source>parameters</source>
       <variable>distributionLabel</variable>
-      <description>A label for the distribution.</description>
+      <description>
+      A label for the distribution.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>distributionComment</name>
       <source>parameters</source>
       <variable>distributionComment</variable>
-      <description>A descriptive comment for the distribution.</description>
+      <description>
+      A descriptive comment for the distribution.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>distributionUnits</name>
       <source>parameters</source>
       <variable>distributionUnits</variable>
-      <description>A human-readable description of the units for the distribution.</description>
+      <description>
+      A human-readable description of the units for the distribution.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>distributionQuantity</name>
       <source>parameters</source>
       <variable>distributionQuantity</variable>
-      <description>An \mono{astropy.units}-parseable units string for the distribution.</description>
+      <description>
+      An ``astropy.units``-parseable units string for the distribution.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>distributionIsComoving</name>
       <source>parameters</source>
       <variable>distributionIsComoving</variable>
-      <description>If true, the distribution is in comoving units.</description>
+      <description>
+      If true, the distribution is in comoving units.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>distributionUnitsInSI</name>
       <source>parameters</source>
       <variable>distributionUnitsInSI</variable>
-      <description>A units for the distribution in the SI system.</description>
+      <description>
+      A units for the distribution in the SI system.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>binCenter</name>
       <source>parameters</source>
       <variable>binCenter</variable>
-      <description>The value of the property at the center of each bin.</description>
+      <description>
+      The value of the property at the center of each bin.
+      </description>
     </inputParameter>
     !!]
     if (size(binCenter) == 1) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>binWidth</name>
 	 <source>parameters</source>
 	 <variable>binWidth</variable>
-	 <description>The width of the bins.</description>
+	 <description>
+	 The width of the bins.
+	 </description>
        </inputParameter>
        !!]
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bufferCount</name>
       <source>parameters</source>
       <variable>bufferCount</variable>
-      <description>The number of buffer bins to include below and above the range of actual bins.</description>
+      <description>
+      The number of buffer bins to include below and above the range of actual bins.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputWeight</name>
       <source>parameters</source>
       <variable>outputWeight</variable>
-      <description>The weight to assign to each bin at each output.</description>
+      <description>
+      The weight to assign to each bin at each output.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceModel</name>
       <source>parameters</source>
       <variable>covarianceModel</variable>
-      <description>The model to use for computing covariances.</description>
+      <description>
+      The model to use for computing covariances.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing volume function covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing volume function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>likelihoodNormalize</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true then normalize the likelihood to make it a probability density.</description>
+      <description>
+      If true then normalize the likelihood to make it a probability density.
+      </description>
     </inputParameter>
     !!]
     if (parameters%isPresent('functionValueTarget')) then
        if (parameters%isPresent('functionCovarianceTarget')) then
           !![
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>functionValueTarget</name>
             <source>parameters</source>
-            <description>The target function for likelihood calculations.</description>
+            <description>
+            The target function for likelihood calculations.
+            </description>
           </inputParameter>
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>functionCovarianceTarget</name>
             <source>parameters</source>
             <variable>functionCovarianceTarget1D</variable>
-            <description>The target function covariance for likelihood calculations.</description>
+            <description>
+            The target function covariance for likelihood calculations.
+            </description>
           </inputParameter>
           !!]
           if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
@@ -413,10 +449,12 @@ contains
        if (parameters%isPresent('functionCovariance')) call Error_Report('functionTarget must be specified if functionCovariance is present'//{introspection:location})
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>targetLabel</name>
       <source>parameters</source>
-      <description>A label for the target dataset in a plot of this analysis.</description>
+      <description>
+      A label for the target dataset in a plot of this analysis.
+      </description>
       <defaultValue>var_str('')</defaultValue>
     </inputParameter>
     !!]
@@ -485,8 +523,8 @@ contains
   end function volumeFunction1DConstructorParameters
 
   function volumeFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyQuantity,propertyIsComoving,propertyUnitsInSI,distributionLabel,distributionComment,distributionUnits,distributionQuantity,distributionIsComoving,distributionUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,targetData_,binWidth) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisVolumeFunction1D} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisVolumeFunction1D` output analysis class for internal use.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass           , nodePropertyExtractorScalar
@@ -621,8 +659,8 @@ contains
   end function volumeFunction1DConstructorInternal
 
   subroutine volumeFunction1DDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisVolumeFunction1D} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisVolumeFunction1D` output analysis class.
     !!}
     implicit none
     type(outputAnalysisVolumeFunction1D), intent(inout) :: self
@@ -641,7 +679,7 @@ contains
   end subroutine volumeFunction1DDestructor
 
   subroutine volumeFunction1DAnalyze(self,node,iOutput)
-    !!{
+    !!{RST
     Implement a volumeFunction1D output analysis.
     !!}
     use :: Display                 , only : displayMessage
@@ -751,7 +789,7 @@ contains
   end subroutine volumeFunction1DAnalyze
 
   subroutine volumeFunction1DReduce(self,reduced)
-    !!{
+    !!{RST
     Implement a volumeFunction1D output analysis reduction.
     !!}
     use :: Display                , only : displayMessage                       , displayIndent , displayUnindent
@@ -806,7 +844,7 @@ contains
   end subroutine volumeFunction1DReduce
 
   subroutine volumeFunction1DFinalize(self,groupName)
-    !!{
+    !!{RST
     Implement a volumeFunction1D output analysis finalization.
     !!}
     use :: Output_HDF5   , only : outputFile
@@ -871,12 +909,8 @@ contains
   end subroutine volumeFunction1DFinalize
 
   subroutine volumeFunction1DLogLikelihoodWrite(self,analysisGroup)
-    !!{
-    Write the log-likelihood of this analysis to the output group. This default implementation writes the log-likelihood
-    returned by the \refClass{outputAnalysisVolumeFunction1D} {\normalfont \ttfamily logLikelihood} method whenever a target
-    dataset is available. Child classes that compute their own log-likelihood (and which may not, e.g., initialize the
-    covariance matrix used by the default {\normalfont \ttfamily logLikelihood} method) should override this method so that the
-    parent-class {\normalfont \ttfamily logLikelihood} is never evaluated.
+    !!{RST
+    Write the log-likelihood of this analysis to the output group. This default implementation writes the log-likelihood returned by the :galacticus-class:`outputAnalysisVolumeFunction1D`  logLikelihood method whenever a target dataset is available. Child classes that compute their own log-likelihood (and which may not, e.g., initialize the covariance matrix used by the default  logLikelihood method) should override this method so that the parent-class  logLikelihood is never evaluated.
     !!}
     use :: IO_HDF5, only : hdf5Object
     implicit none
@@ -889,9 +923,8 @@ contains
   end subroutine volumeFunction1DLogLikelihoodWrite
 
   subroutine volumeFunction1DMetadataWrite(self,analysisGroup)
-    !!{
-    Write class-specific metadata to the analysis output group. This default implementation does nothing; child classes may
-    override it to add further attributes or datasets to the analysis group.
+    !!{RST
+    Write class-specific metadata to the analysis output group. This default implementation does nothing; child classes may override it to add further attributes or datasets to the analysis group.
     !!}
     use :: IO_HDF5, only : hdf5Object
     implicit none
@@ -903,7 +936,7 @@ contains
   end subroutine volumeFunction1DMetadataWrite
 
   subroutine volumeFunction1DFinalizeAnalysis(self)
-    !!{
+    !!{RST
     Compute final covariances and normalize.
     !!}
 #ifdef USEMPI
@@ -962,7 +995,7 @@ contains
   end subroutine volumeFunction1DFinalizeAnalysis
 
   subroutine volumeFunction1DResults(self,binCenter,functionValue,functionCovariance)
-    !!{
+    !!{RST
     Implement a volumeFunction1D output analysis finalization.
     !!}
     implicit none
@@ -993,7 +1026,7 @@ contains
   end subroutine volumeFunction1DResults
 
   double precision function volumeFunction1DLogLikelihood(self)
-    !!{
+    !!{RST
     Return the log-likelihood of a volumeFunction1D output analysis.
     !!}
     use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector
@@ -1047,7 +1080,7 @@ contains
   end function volumeFunction1DLogLikelihood
 
   subroutine volumeFunction1DSetReporting(self,report,reportLabel)
-    !!{
+    !!{RST
     Activate/deactivate reporting.
     !!}
     use :: ISO_Varying_String     , only : assignment(=)

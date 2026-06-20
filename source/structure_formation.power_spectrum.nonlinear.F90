@@ -17,29 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements the nonlinear power spectrum.
 !!}
 
 module Power_Spectra_Nonlinear
-  !!{
+  !!{RST
   Implements the nonlinear power spectrum.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>powerSpectrumNonlinear</name>
    <descriptiveName>Nonlinear Power Spectrum</descriptiveName>
-   <description>Class providing non-linear matter power spectra $P_\mathrm{NL}(k,t)$---the variance of the
-    dark matter density field per unit logarithmic wavenumber interval, including the contributions from
-    non-linear gravitational clustering that boost power on small scales beyond the linear prediction.
-    Non-linear power spectra are essential for computing accurate two-point statistics, weak lensing
-    observables, and halo model predictions at $k \gtrsim 0.1$~Mpc$^{-1}$. Implementations include
-    fitting formulae (e.g.\ halofit) and emulators trained on N-body simulations.</description>
+   <description>
+   Class providing non-linear matter power spectra :math:`P_\mathrm{NL}(k,t)`---the variance of the dark matter density field per unit logarithmic wavenumber interval, including the contributions from non-linear gravitational clustering that boost power on small scales beyond the linear prediction. Non-linear power spectra are essential for computing accurate two-point statistics, weak lensing observables, and halo model predictions at :math:`k \gtrsim 0.1` Mpc\ :math:`^{-1}`. Implementations include fitting formulae (e.g.\ halofit) and emulators trained on N-body simulations.
+   </description>
    <default>cosmicEmu</default>
    <method name="value" >
-    <description>Return the nonlinear power spectrum for $k=$\mono{wavenumber} [Mpc$^{-1}$] at cosmic time $t=$\mono{time} [Gyr].</description>
+    <description>
+    Return the nonlinear power spectrum for :math:`k=`\ ``wavenumber`` [Mpc\ :math:`^{-1}`] at cosmic time :math:`t=`\ ``time`` [Gyr].
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavenumber, time</argument>

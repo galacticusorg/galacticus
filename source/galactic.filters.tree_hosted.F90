@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a filter which passes only nodes that are hosted in a merger tree.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterTreeHosted">
-   <description>Passes only nodes that are currently hosted in a merger tree, filtering out any unhosted nodes that may exist outside the tree structure.</description>
+  <galacticFilter name="galacticFilterTreeHosted" docformat="rst">
+   <description>
+   Passes only nodes that are currently hosted in a merger tree, filtering out any unhosted nodes that may exist outside the tree structure.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterTreeHosted
-     !!{
+     !!{RST
      A galactic filter class which passes only nodes that are hosted in a merger tree.
      !!}
      private
@@ -36,8 +38,8 @@ Implements a filter which passes only nodes that are hosted in a merger tree.
   end type galacticFilterTreeHosted
 
   interface galacticFilterTreeHosted
-     !!{
-     Constructors for the \refClass{galacticFilterTreeHosted} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterTreeHosted` galactic filter class.
      !!}
      module procedure treeHostedConstructorParameters
   end interface galacticFilterTreeHosted
@@ -45,8 +47,8 @@ Implements a filter which passes only nodes that are hosted in a merger tree.
 contains
 
   function treeHostedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterTreeHosted} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterTreeHosted` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function treeHostedConstructorParameters
 
   logical function treeHostedPasses(self,node)
-    !!{
+    !!{RST
     Implement a galactic filter which passes only main branch halos.
     !!}
     implicit none

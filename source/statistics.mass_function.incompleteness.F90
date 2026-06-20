@@ -17,32 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that provides an object that implements incompleteness calculations for observed mass functions.
 !!}
 
 module Mass_Function_Incompletenesses
-  !!{
+  !!{RST
   Provides a class that implements incompleteness calculations for observed mass functions.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>massFunctionIncompleteness</name>
    <descriptiveName>Mass Function Incompletenesses</descriptiveName>
    <description>
-    Class providing models of the survey completeness fraction for observed mass functions---the
-    probability that an object of a given mass is included in an observational sample. Incompleteness
-    arises from flux limits, surface brightness thresholds, or volume corrections, and causes the
-    observed number counts to fall below the true underlying mass function at low masses. The
-    \mono{completeness} method returns the fraction (between 0 and 1) of objects at a given mass
-    that are expected to appear in the sample, allowing model predictions to be corrected before
-    comparison with data.
+   Class providing models of the survey completeness fraction for observed mass functions---the probability that an object of a given mass is included in an observational sample. Incompleteness arises from flux limits, surface brightness thresholds, or volume corrections, and causes the observed number counts to fall below the true underlying mass function at low masses. The ``completeness`` method returns the fraction (between 0 and 1) of objects at a given mass that are expected to appear in the sample, allowing model predictions to be corrected before comparison with data.
    </description>
    <default>complete</default>
    <method name="completeness" >
-    <description>Return the completeness of the observational sample at the given mass.</description>
+    <description>
+    Return the completeness of the observational sample at the given mass.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: mass</argument>

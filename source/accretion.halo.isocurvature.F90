@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of accretion from the \gls{igm} onto halos accounting for the effects of isocurvature perturbations
-  following the model of \cite{jessop_ripples_2026}.
+  !!{RST
+  An implementation of accretion from the :term:`IGM` onto halos accounting for the effects of isocurvature perturbations following the model of :cite:t:`jessop_ripples_2026`.
   !!}
 
   use :: Cosmological_Density_Field     , only : criticalOverdensityClass
@@ -31,24 +30,23 @@
   use :: Numerical_Interpolation        , only : interpolator
 
   !![
-  <accretionHalo name="accretionHaloIsocurvature">
+  <accretionHalo name="accretionHaloIsocurvature" docformat="rst">
    <description>
-    An accretion onto halos decorator class which reduces the mass accreted to account for the effects of isocurvature
-    perturbations following the model of \cite{jessop_ripples_2026}. \gls{class} is used to compute perturbations in baryons and
-    cold dark matter, $\delta_\mathrm{b}$ and $\delta_\mathrm{c}$ respectively, as a function of wavenumber. The correlation between
-    these two is then computed using \citep[][eqn.~4]{jessop_ripples_2026}:
-    \begin{equation}
-     \alpha_0 = \frac{\int_0^\infty 4 \pi k^2 |\tilde{W}(k|M)|^2 \delta_\mathrm{bc}(k) \delta_\mathrm{c}(k) \mathrm{d}k}{\int_0^\infty 4 \pi k^2 |\tilde{W}(k|M)|^2 \delta_\mathrm{c}^2(k) \mathrm{d}k},
-    \end{equation}
-    where $\delta_\mathrm{bc} = \delta_\mathrm{b}-\delta_\mathrm{c}$, and $\tilde{W}(k|M)$ is the Fourier transform of a top-hat
-    window function for mass scale $M$.
+   An accretion onto halos decorator class which reduces the mass accreted to account for the effects of isocurvature perturbations following the model of :cite:t:`jessop_ripples_2026`. :term:`CLASS` is used to compute perturbations in baryons and cold dark matter, :math:`\delta_\mathrm{b}` and :math:`\delta_\mathrm{c}` respectively, as a function of wavenumber. The correlation between these two is then computed using :cite:p:`jessop_ripples_2026`:
 
-    The fraction of mass accreted into a halo is then reduced by a factor \citep[][eqn.~9]{jessop_ripples_2026}:
-    \begin{equation}
-     \frac{f_\mathrm{b}}{\bar{f}_\mathrm{b}} = 1 + \frac{(1-\bar{f}_\mathrm{b}) \delta_\mathrm{c}(t) \alpha_0}{D(t)},
-    \end{equation}
-    where $\bar{f}_\mathrm{b}$ is the universal baryon fraction, $\delta_\mathrm{c}(t)$ is the critical overdensity for halo
-    collapse, and $D(t)$ is the linear growth factor.
+   .. math::
+
+      \alpha_0 = \frac{\int_0^\infty 4 \pi k^2 |\tilde{W}(k|M)|^2 \delta_\mathrm{bc}(k) \delta_\mathrm{c}(k) \mathrm{d}k}{\int_0^\infty 4 \pi k^2 |\tilde{W}(k|M)|^2 \delta_\mathrm{c}^2(k) \mathrm{d}k},
+
+   where :math:`\delta_\mathrm{bc} = \delta_\mathrm{b}-\delta_\mathrm{c}`, and :math:`\tilde{W}(k|M)` is the Fourier transform of a top-hat window function for mass scale :math:`M`.
+
+   The fraction of mass accreted into a halo is then reduced by a factor :cite:p:`jessop_ripples_2026`:
+
+   .. math::
+
+      \frac{f_\mathrm{b}}{\bar{f}_\mathrm{b}} = 1 + \frac{(1-\bar{f}_\mathrm{b}) \delta_\mathrm{c}(t) \alpha_0}{D(t)},
+
+   where :math:`\bar{f}_\mathrm{b}` is the universal baryon fraction, :math:`\delta_\mathrm{c}(t)` is the critical overdensity for halo collapse, and :math:`D(t)` is the linear growth factor.
    </description>
    <deepCopy>
      <functionClass variables="powerSpectrumWindowFunction_"/>
@@ -59,9 +57,8 @@
   </accretionHalo>
   !!]
   type, extends(accretionHaloClass) :: accretionHaloIsocurvature
-     !!{
-     A halo accretion class in which accretion is reduced to account for the effects of isocurvature perturbations
-     following the model of \cite{jessop_ripples_2026}
+     !!{RST
+     A halo accretion class in which accretion is reduced to account for the effects of isocurvature perturbations following the model of :cite:t:`jessop_ripples_2026`
      !!}
      private
      class           (accretionHaloClass               ), pointer :: accretionHalo_               => null()
@@ -78,7 +75,7 @@
      type            (interpolator                     )          :: correlation
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="fraction" description="Returns the fraction of baryons for halos of this mass, relative to the universal baryon fraction."/>
      </methods>
      !!]
@@ -98,8 +95,8 @@
   end type accretionHaloIsocurvature
 
   interface accretionHaloIsocurvature
-     !!{
-     Constructors for the \refClass{accretionHaloIsocurvature} halo accretion class.
+     !!{RST
+     Constructors for the :galacticus-class:`accretionHaloIsocurvature` halo accretion class.
      !!}
      module procedure isocurvatureConstructorParameters
      module procedure isocurvatureConstructorInternal
@@ -116,8 +113,8 @@
 contains
 
   function isocurvatureConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \refClass{accretionHaloIsocurvature} halo accretion class.
+    !!{RST
+    Default constructor for the :galacticus-class:`accretionHaloIsocurvature` halo accretion class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -131,11 +128,13 @@ contains
     integer                                           :: countPerDecade
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countPerDecade</name>
       <source>parameters</source>
       <defaultValue>100</defaultValue>
-      <description>The number of points per decade of wavenumber to compute in the CLASS perturbations. A value of 0 allows CLASS to choose what it considers to be optimal spacing of wavenumbers.</description>
+      <description>
+      The number of points per decade of wavenumber to compute in the CLASS perturbations. A value of 0 allows CLASS to choose what it considers to be optimal spacing of wavenumbers.
+      </description>
     </inputParameter>
     <objectBuilder class="accretionHalo"       name="accretionHalo_"       source="parameters"/>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -156,8 +155,8 @@ contains
   end function isocurvatureConstructorParameters
 
   function isocurvatureConstructorInternal(countPerDecade,accretionHalo_,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,linearGrowth_) result(self)
-    !!{
-    Internal constructor for the \refClass{accretionHaloIsocurvature} halo accretion class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`accretionHaloIsocurvature` halo accretion class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     implicit none
@@ -196,8 +195,8 @@ contains
   end function isocurvatureConstructorInternal
 
   subroutine isocurvatureDestructor(self)
-    !!{
-    Destructor for the \refClass{accretionHaloIsocurvature} halo accretion class.
+    !!{RST
+    Destructor for the :galacticus-class:`accretionHaloIsocurvature` halo accretion class.
     !!}
     implicit none
     type(accretionHaloIsocurvature), intent(inout) :: self
@@ -214,7 +213,7 @@ contains
   end subroutine isocurvatureDestructor
 
   logical function isocurvatureBranchHasBaryons(self,node) result(branchHasBaryons)
-    !!{
+    !!{RST
     Returns true if this branch can accrete any baryons.
     !!}
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodesBranch
@@ -229,8 +228,8 @@ contains
   end function isocurvatureBranchHasBaryons
 
   double precision function isocurvatureAccretionRate(self,node,accretionMode) result(rateAccretion)
-    !!{
-    Computes the baryonic accretion rate onto \mono{node}.
+    !!{RST
+    Computes the baryonic accretion rate onto ``node``.
     !!}
     implicit none
     class(accretionHaloIsocurvature   ), intent(inout) :: self
@@ -243,8 +242,8 @@ contains
   end function isocurvatureAccretionRate
 
   double precision function isocurvatureAccretedMass(self,node,accretionMode) result(massAccreted)
-    !!{
-    Computes the mass of baryons accreted into \mono{node}.
+    !!{RST
+    Computes the mass of baryons accreted into ``node``.
     !!}
     implicit none
     class(accretionHaloIsocurvature   ), intent(inout) :: self
@@ -257,8 +256,8 @@ contains
   end function isocurvatureAccretedMass
 
   double precision function isocurvatureFailedAccretionRate(self,node,accretionMode) result(rateAccretionFailed)
-    !!{
-    Computes the baryonic accretion rate onto \mono{node}.
+    !!{RST
+    Computes the baryonic accretion rate onto ``node``.
     !!}
     implicit none
     class(accretionHaloIsocurvature   ), intent(inout) :: self
@@ -271,8 +270,8 @@ contains
   end function isocurvatureFailedAccretionRate
 
   double precision function isocurvatureFailedAccretedMass(self,node,accretionMode) result(massAccretedFailed)
-    !!{
-    Computes the mass of baryons accreted into \mono{node}.
+    !!{RST
+    Computes the mass of baryons accreted into ``node``.
     !!}
     implicit none
     class(accretionHaloIsocurvature   ), intent(inout) :: self
@@ -285,8 +284,8 @@ contains
   end function isocurvatureFailedAccretedMass
 
   function isocurvatureAccretionRateMetals(self,node,accretionMode) result(rateAccretionMetals)
-    !!{
-    Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Computes the rate of mass of abundance accretion (in :math:`M_\odot/`\ Gyr) onto ``node`` from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : operator(*)
     implicit none
@@ -301,8 +300,8 @@ contains
   end function isocurvatureAccretionRateMetals
 
   function isocurvatureAccretedMassMetals(self,node,accretionMode) result(massAccretedMetals)
-    !!{
-    Computes the mass of abundances accreted (in $M_\odot$) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Computes the mass of abundances accreted (in :math:`M_\odot`) onto ``node`` from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : operator(*)
     implicit none
@@ -317,8 +316,8 @@ contains
   end function isocurvatureAccretedMassMetals
 
   function isocurvatureFailedAccretionRateMetals(self,node,accretionMode) result(rateAccretionMetalsFailed)
-    !!{
-    Computes the rate of failed mass of abundance accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Computes the rate of failed mass of abundance accretion (in :math:`M_\odot/`\ Gyr) onto ``node`` from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : operator(*)
     implicit none
@@ -333,8 +332,8 @@ contains
   end function isocurvatureFailedAccretionRateMetals
 
   function isocurvatureFailedAccretedMassMetals(self,node,accretionMode) result(massAccretedMetalsFailed)
-    !!{
-    Computes the mass of abundances that failed to accrete (in $M_\odot$) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Computes the mass of abundances that failed to accrete (in :math:`M_\odot`) onto ``node`` from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : operator(*)
     implicit none
@@ -349,10 +348,8 @@ contains
   end function isocurvatureFailedAccretedMassMetals
   
   function isocurvatureAccretionRateChemicals(self,node,accretionMode) result(rateAccretionChemicals)
-    !!{
-    Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto \mono{node} from the intergalactic medium. Assumes a
-    primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
-    temperature.
+    !!{RST
+    Computes the rate of mass of chemicals accretion (in :math:`M_\odot/`\ Gyr) onto ``node`` from the intergalactic medium. Assumes a primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial temperature.
     !!}
     use :: Chemical_Abundances_Structure, only : operator(*)
     implicit none
@@ -367,8 +364,8 @@ contains
   end function isocurvatureAccretionRateChemicals
 
   function isocurvatureAccretedMassChemicals(self,node,accretionMode) result(massAccretedChemicals)
-    !!{
-    Computes the mass of chemicals accreted (in $M_\odot$) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Computes the mass of chemicals accreted (in :math:`M_\odot`) onto ``node`` from the intergalactic medium.
     !!}
     use :: Chemical_Abundances_Structure, only : operator(*)
     implicit none
@@ -383,9 +380,8 @@ contains
   end function isocurvatureAccretedMassChemicals
 
   double precision function isocurvatureFraction(self,node) result(fraction)
-    !!{    
-    Computes the fraction of the universal baryon fraction present in the region from which the given \mono{node} is accreting,
-    accounting for isocurvature perturbations following the model of \cite{jessop_ripples_2026}.
+    !!{RST
+    Computes the fraction of the universal baryon fraction present in the region from which the given ``node`` is accreting, accounting for isocurvature perturbations following the model of :cite:t:`jessop_ripples_2026`.
     !!}
     use :: Interfaces_CLASS     , only : Interface_CLASS_Perturbations
     use :: Galacticus_Nodes     , only : nodeComponentBasic
@@ -479,8 +475,8 @@ contains
   contains
 
     double precision function radiusLagrangian(mass)
-      !!{
-      Compute the Lagrangian radius for a halo of the given \mono{mass}.
+      !!{RST
+      Compute the Lagrangian radius for a halo of the given ``mass``.
       !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
@@ -500,11 +496,12 @@ contains
   end function isocurvatureFraction
 
   double precision function integrandDirect(wavenumber)
-    !!{
+    !!{RST
     Integrand to compute the CDM--CDM autocorrelation:
-    \begin{equation}
-      \int \mathrm{d}k 4 \pi k^2 |W(k|M)|^2 \delta^2_\mathrm{c}(k).
-    \end{equation}
+
+    .. math::
+
+       \int \mathrm{d}k 4 \pi k^2 |W(k|M)|^2 \delta^2_\mathrm{c}(k).
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -519,11 +516,12 @@ contains
   end function integrandDirect
 
   double precision function integrandCross(wavenumber)
-    !!{
+    !!{RST
     Integrand to compute the baryon--CDM cross-correlation:
-    \begin{equation}
-      \int \mathrm{d}k 4 \pi k^2 |W(k|M)|^2 \delta_\mathrm{bc}(k) \delta_\mathrm{c}(k).
-    \end{equation}
+
+    .. math::
+
+       \int \mathrm{d}k 4 \pi k^2 |W(k|M)|^2 \delta_\mathrm{bc}(k) \delta_\mathrm{c}(k).
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

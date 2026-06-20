@@ -17,32 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   A primordial power spectrum class which provides a piecewise power-law power spectrum.
   !!}
 
   !![
-  <powerSpectrumPrimordial name="powerSpectrumPrimordialPiecewisePowerLaw">
+  <powerSpectrumPrimordial name="powerSpectrumPrimordialPiecewisePowerLaw" docformat="rst">
    <description>
-    Implements a piecewise power-law primordial power spectrum, possibly with a running index. The primordial power spectrum has the
-    form:
-    \begin{equation}
-     P(k) \propto A_\mathrm{i} k^{n_\mathrm{eff,i}(k)},
-    \end{equation}
-    where
-    \begin{equation}
-     n_\mathrm{eff,i}(k) = n_\mathrm{s,i} + {1\over 2}{\d n \over \d \ln k}_i \ln \left( {k \over k_\mathrm{ref,i}} \right) + {1\over 6}{\d^2 n \over \d \ln k^2}_i \left[ \ln \left( {k \over k_\mathrm{ref}} \right) \right]^2,
-    \end{equation}
-    where $n_\mathrm{s,i}=$\mono{[index]} is the power spectrum index at wavenumber
-    $k_\mathrm{ref,i}=$\mono{[wavenumberReference]}, $\d n / \d \ln k_i=$\mono{[running]}, and $\d^2 n / \d \ln k^2_i=$\mono{[runningRunning]}
-    describes the running of this index with wavenumber. The subscript ``i'', which runs from $1$ to $N$ refers to each interval of the piecewise power-law. Note that $k_\mathrm{ref,i}$ is defined only for $i\ge 2$. For the first ($i=1$) interval, the wavenumber ranges from $0$ to $k_\mathrm{ref,2}$.
+   Implements a piecewise power-law primordial power spectrum, possibly with a running index. The primordial power spectrum has the form:
 
-    The amplitudes, $A_i$, are chosen to make the power spectrum continuous.
+   .. math::
+
+      P(k) \propto A_\mathrm{i} k^{n_\mathrm{eff,i}(k)},
+
+   where
+
+   .. math::
+
+      n_\mathrm{eff,i}(k) = n_\mathrm{s,i} + {1\over 2}{\d n \over \d \ln k}_i \ln \left( {k \over k_\mathrm{ref,i}} \right) + {1\over 6}{\d^2 n \over \d \ln k^2}_i \left[ \ln \left( {k \over k_\mathrm{ref}} \right) \right]^2,
+
+   where :math:`n_\mathrm{s,i}=`\ ``[index]`` is the power spectrum index at wavenumber :math:`k_\mathrm{ref,i}=`\ ``[wavenumberReference]``, :math:`\d n / \d \ln k_i=`\ ``[running]``, and :math:`\d^2 n / \d \ln k^2_i=`\ ``[runningRunning]`` describes the running of this index with wavenumber. The subscript "i", which runs from :math:`1` to :math:`N` refers to each interval of the piecewise power-law. Note that :math:`k_\mathrm{ref,i}` is defined only for :math:`i\ge 2`. For the first (:math:`i=1`) interval, the wavenumber ranges from :math:`0` to :math:`k_\mathrm{ref,2}`.
+
+   The amplitudes, :math:`A_i`, are chosen to make the power spectrum continuous.
    </description>
   </powerSpectrumPrimordial>
   !!]
   type, extends(powerSpectrumPrimordialClass) :: powerSpectrumPrimordialPiecewisePowerLaw
-     !!{
+     !!{RST
      A power-law primordial power spectrum class.
      !!}
      private
@@ -51,7 +52,7 @@
           &                                         normalization
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="indexEffective" description="Compute the local effective index of the power spectrum."  />
        <method method="indices"        description="Compute the indices corresponding to the given wavenumber."/>
      </methods>
@@ -63,8 +64,8 @@
   end type powerSpectrumPrimordialPiecewisePowerLaw
 
   interface powerSpectrumPrimordialPiecewisePowerLaw
-     !!{
-     Constructors for the \refClass{powerSpectrumPrimordialPiecewisePowerLaw} primordial power spectrum class.
+     !!{RST
+     Constructors for the :galacticus-class:`powerSpectrumPrimordialPiecewisePowerLaw` primordial power spectrum class.
      !!}
      module procedure piecewisePowerLawConstructorParameters
      module procedure piecewisePowerLawConstructorInternal
@@ -73,8 +74,8 @@
 contains
 
   function piecewisePowerLawConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{powerSpectrumPrimordialPiecewisePowerLaw} primordial power spectrum class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`powerSpectrumPrimordialPiecewisePowerLaw` primordial power spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,31 +105,41 @@ contains
        allocate(wavenumberReference(1                                      ))
        end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>index</name>
       <variable>index_</variable>
       <source>parameters</source>
       <defaultValue>[0.9649d0,0.9649d0]</defaultValue>
-      <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
-      <description>The index of the power-law primordial power spectrum.</description>
+      <defaultSource>
+      (:cite:author:`planck_collaboration_planck_2018` :cite:year:`planck_collaboration_planck_2018`; TT,TE,EE\ :math:`+`\ lowE\ :math:`+`\ lensing)
+      </defaultSource>
+      <description>
+      The index of the power-law primordial power spectrum.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>running</name>
       <source>parameters</source>
       <defaultValue>[0.0d0,0.0d0]</defaultValue>
-      <description>The running, $\d n_\mathrm{s} / \d \ln k$, of the power spectrum index.</description>
+      <description>
+      The running, :math:`\d n_\mathrm{s} / \d \ln k`, of the power spectrum index.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>runningRunning</name>
       <source>parameters</source>
       <defaultValue>[0.0d0,0.0d0]</defaultValue>
-      <description>The running-of-the-running, $\d^2 n_\mathrm{s} / \d \ln k^2$, of the power spectrum index.</description>
+      <description>
+      The running-of-the-running, :math:`\d^2 n_\mathrm{s} / \d \ln k^2`, of the power spectrum index.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>wavenumberReference</name>
       <source>parameters</source>
       <defaultValue>[1.0d0]</defaultValue>
-      <description>When a running power spectrum index is used, this is the wavenumber, $k_\mathrm{ref}$, at which the index is equal to \mono{[index]}.</description>
+      <description>
+      When a running power spectrum index is used, this is the wavenumber, :math:`k_\mathrm{ref}`, at which the index is equal to ``[index]``.
+      </description>
     </inputParameter>
     !!]
     self=powerSpectrumPrimordialPiecewisePowerLaw(index_,running,runningRunning,wavenumberReference)
@@ -139,8 +150,8 @@ contains
   end function piecewisePowerLawConstructorParameters
 
   function piecewisePowerLawConstructorInternal(index_,running,runningRunning,wavenumberReference) result(self)
-    !!{
-    Internal constructor for the \refClass{powerSpectrumPrimordialPiecewisePowerLaw} primordial power spectrum class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`powerSpectrumPrimordialPiecewisePowerLaw` primordial power spectrum class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -173,8 +184,8 @@ contains
   end function piecewisePowerLawConstructorInternal
 
   double precision function piecewisePowerLawPower(self,wavenumber)
-    !!{
-    Return the primordial power spectrum at the given \mono{wavenumber}.
+    !!{RST
+    Return the primordial power spectrum at the given ``wavenumber``.
     !!}
     implicit none
     class           (powerSpectrumPrimordialPiecewisePowerLaw), intent(inout) :: self
@@ -191,8 +202,8 @@ contains
   end function piecewisePowerLawPower
 
   double precision function piecewisePowerLawLogarithmicDerivative(self,wavenumber)
-    !!{
-    Return the logarithmic derivative of the primordial power spectrum at the given \mono{wavenumber}.
+    !!{RST
+    Return the logarithmic derivative of the primordial power spectrum at the given ``wavenumber``.
     !!}
     implicit none
     class           (powerSpectrumPrimordialPiecewisePowerLaw), intent(inout) :: self
@@ -205,7 +216,7 @@ contains
   end function piecewisePowerLawLogarithmicDerivative
 
   double precision function piecewisePowerLawIndexEffective(self,wavenumber,i,j)
-    !!{
+    !!{RST
     Compute the local effective index of the power spectrum.
     !!}
     implicit none
@@ -230,7 +241,7 @@ contains
   end function piecewisePowerLawIndexEffective
   
   subroutine piecewisePowerLawIndices(self,wavenumber,i,j)
-    !!{
+    !!{RST
     Compute the indices corresponding to the given wavenumber.
     !!}
     implicit none

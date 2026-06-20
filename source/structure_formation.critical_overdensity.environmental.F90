@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an environmental critical overdensity class.
 !!}
 
   !![
-  <criticalOverdensity name="criticalOverdensityEnvironmental">
-   <description>The critical overdensity for collapse is computed by taking the value from another critical overdensity class and multiplying it by an environment-dependent factor, allowing the collapse threshold to vary with local density environment. The environmental dependence is controlled by the \mono{[a]} parameter.</description>
+  <criticalOverdensity name="criticalOverdensityEnvironmental" docformat="rst">
+   <description>
+   The critical overdensity for collapse is computed by taking the value from another critical overdensity class and multiplying it by an environment-dependent factor, allowing the collapse threshold to vary with local density environment. The environmental dependence is controlled by the ``[a]`` parameter.
+   </description>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityEnvironmental
-     !!{
+     !!{RST
      A critical overdensity class in which critical overdensity is given by some other critical overdensity class multiplied some environment-dependent factor.
      !!}
      private
@@ -45,8 +47,8 @@ Implements an environmental critical overdensity class.
   end type criticalOverdensityEnvironmental
 
   interface criticalOverdensityEnvironmental
-     !!{
-     Constructors for the \refClass{criticalOverdensityEnvironmental} critical overdensity class.
+     !!{RST
+     Constructors for the :galacticus-class:`criticalOverdensityEnvironmental` critical overdensity class.
      !!}
      module procedure environmentalConstructorParameters
      module procedure environmentalConstructorInternal
@@ -55,8 +57,8 @@ Implements an environmental critical overdensity class.
 contains
 
   function environmentalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{criticalOverdensityEnvironmental} critical overdensity class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`criticalOverdensityEnvironmental` critical overdensity class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -71,11 +73,13 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>a</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The linear coefficient $a$ that multiplies the large-scale environmental overdensity when computing the environment-dependent shift to the critical overdensity for halo collapse (a value of 0 gives no environmental dependence).</description>
+      <description>
+      The linear coefficient :math:`a` that multiplies the large-scale environmental overdensity when computing the environment-dependent shift to the critical overdensity for halo collapse (a value of 0 gives no environmental dependence).
+      </description>
     </inputParameter>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     <objectBuilder class="haloEnvironment"          name="haloEnvironment_"          source="parameters"/>
@@ -96,8 +100,8 @@ contains
   end function environmentalConstructorParameters
 
   function environmentalConstructorInternal(a,criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_) result(self)
-    !!{
-    Internal constructor for the \refClass{criticalOverdensityEnvironmental} critical overdensity class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`criticalOverdensityEnvironmental` critical overdensity class.
     !!}
     implicit none
     type            (criticalOverdensityEnvironmental)                        :: self
@@ -116,8 +120,8 @@ contains
   end function environmentalConstructorInternal
 
   subroutine environmentalDestructor(self)
-    !!{
-    Destructor for the \refClass{criticalOverdensityEnvironmental} critical overdensity class.
+    !!{RST
+    Destructor for the :galacticus-class:`criticalOverdensityEnvironmental` critical overdensity class.
     !!}
     implicit none
     type(criticalOverdensityEnvironmental), intent(inout) :: self
@@ -133,7 +137,7 @@ contains
   end subroutine environmentalDestructor
 
   double precision function environmentalValue(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the critical overdensity for collapse at the given time and mass.
     !!}
     use :: Error           , only : Error_Report
@@ -162,7 +166,7 @@ contains
   end function environmentalValue
 
   double precision function environmentalGradientTime(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the gradient with respect to time of critical overdensity at the given time and mass.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -204,7 +208,7 @@ contains
   end function environmentalGradientTime
 
   double precision function environmentalGradientMass(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the gradient with respect to mass of critical overdensity at the given time and mass.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -233,7 +237,7 @@ contains
   end function environmentalGradientMass
 
   logical function environmentalIsMassDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is mass dependent.
     !!}
     implicit none
@@ -244,7 +248,7 @@ contains
   end function environmentalIsMassDependent
 
   logical function environmentalIsNodeDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is node dependent.
     !!}
     implicit none
@@ -255,7 +259,7 @@ contains
   end function environmentalIsNodeDependent
 
   logical function environmentalIsTreeDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is tree dependent.
     !!}
     implicit none

@@ -17,14 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-{\normalfont \scshape Galacticus} is a semi-analytic model of galaxy formation written by Andrew Benson
-\href{mailto:abenson@carnegiescience.edu}{\mono{<abenson@carnegiescience.edu>}}.
+!!{RST
+ Galacticus is a semi-analytic model of galaxy formation written by Andrew Benson `<abenson@carnegiescience.edu> <mailto:abenson@carnegiescience.edu>`_.
 !!}
 
 program Galacticus
-  !!{
-  The main {\normalfont \scshape Galacticus} program.
+  !!{RST
+  The main  Galacticus program.
   !!}
   use    :: Display                   , only : displayMessage                   , displayMagenta           , displayGreen                 , displayReset
   use    :: Display_Verbosity         , only : displayVerbositySetFromParameters
@@ -168,7 +167,7 @@ program Galacticus
 contains
 
   subroutine usageError(option)
-    !!{
+    !!{RST
     Report a usage error.
     !!}
     use :: ISO_Varying_String, only : operator(//)

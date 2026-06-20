@@ -17,24 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module providing shared utilities for Galacticus benchmark programs:
-statistics over per-trial timings, machine-parseable output formatting,
-deterministic random-number seeding, and a checksum sink for defeating
-dead-code elimination in microbenchmarks.
+!!{RST
+Contains a module providing shared utilities for Galacticus benchmark programs: statistics over per-trial timings, machine-parseable output formatting, deterministic random-number seeding, and a checksum sink for defeating dead-code elimination in microbenchmarks.
 !!}
 
 module Benchmark_Utilities
-  !!{
+  !!{RST
   Shared utilities for benchmark programs.
 
   All output lines have the form
-  \begin{verbatim}
-  BENCHMARK <suite> <id> "<description>" <mean> <stderr> "<units>"
-  \end{verbatim}
-  where \mono{<mean>} and \mono{<stderr>} are floating-point and the trailing
-  \mono{<units>} is the display unit. The format is whitespace-tokenized,
-  grep/awk-friendly, and consistent across all benchmark programs.
+
+  .. code-block:: none
+
+     BENCHMARK <suite> <id> "<description>" <mean> <stderr> "<units>"
+
+  where ``<mean>`` and ``<stderr>`` are floating-point and the trailing ``<units>`` is the display unit. The format is whitespace-tokenized, grep/awk-friendly, and consistent across all benchmark programs.
   !!}
   use, intrinsic :: ISO_Fortran_Env, only : output_unit
   use            :: Kind_Numbers   , only : kind_int8
@@ -50,29 +47,18 @@ module Benchmark_Utilities
 contains
 
   subroutine Benchmark_Report(suite,id,description,trialTime,warmupTrials,innerCount,unitsLabel)
-    !!{
-    Compute the mean and standard error of the per-trial timings in
-    \mono{trialTime} (after discarding the first \mono{warmupTrials} entries,
-    default \mono{2}) and write a machine-parseable \mono{BENCHMARK} line to
-    standard output.
+    !!{RST
+    Compute the mean and standard error of the per-trial timings in ``trialTime`` (after discarding the first ``warmupTrials`` entries, default ``2``) and write a machine-parseable ``BENCHMARK`` line to standard output.
 
     Two reporting modes are supported:
-    \begin{description}
-    \item[Auto units (\mono{unitsLabel} absent):] the displayed value is the
-      raw mean tick count per trial. The unit label is auto-picked from the
-      \mono{System\_Clock} \mono{count\_rate}: \mono{ms}, $\mu$\mono{s} or
-      \mono{ns} at $10^3$, $10^6$, or $10^9$ ticks/s respectively, falling
-      back to \mono{ticks} otherwise. Matches the original convention used by
-      legacy benchmark programs.
-    \item[Explicit units (\mono{unitsLabel} present):] ticks are converted
-      to nanoseconds using \mono{count\_rate} and then divided by
-      \mono{innerCount} (default \mono{1}) to yield a per-iteration time.
-      The supplied \mono{unitsLabel} (e.g.\ \mono{"ns/call"}) is used
-      verbatim.
-    \end{description}
 
-    \mono{innerCount} also divides the result in the auto-units branch, in
-    case a caller wants per-iteration timings without an explicit label.
+    Auto units (``unitsLabel`` absent):
+       the displayed value is the raw mean tick count per trial. The unit label is auto-picked from the ``System_Clock`` ``count_rate``: ``ms``, :math:`\mu`\ ``s`` or ``ns`` at :math:`10^3`, :math:`10^6`, or :math:`10^9` ticks/s respectively, falling back to ``ticks`` otherwise. Matches the original convention used by legacy benchmark programs.
+
+    Explicit units (``unitsLabel`` present):
+       ticks are converted to nanoseconds using ``count_rate`` and then divided by ``innerCount`` (default ``1``) to yield a per-iteration time. The supplied ``unitsLabel`` (e.g.\ ``"ns/call"``) is used verbatim.
+
+    ``innerCount`` also divides the result in the auto-units branch, in case a caller wants per-iteration timings without an explicit label.
     !!}
     use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : operator(//), var_str
@@ -140,11 +126,8 @@ contains
   end subroutine Benchmark_Report
 
   subroutine Benchmark_Seed_RNG(seedValue)
-    !!{
-    Seed the intrinsic random number generator deterministically so that
-    benchmarks that draw random inputs are reproducible run-to-run. The
-    optional \mono{seedValue} lets callers shift the seed across scenarios
-    if they want decorrelated input streams.
+    !!{RST
+    Seed the intrinsic random number generator deterministically so that benchmarks that draw random inputs are reproducible run-to-run. The optional ``seedValue`` lets callers shift the seed across scenarios if they want decorrelated input streams.
     !!}
     integer, intent(in   ), optional   :: seedValue
     integer                            :: seedSize, seedValue_, i
@@ -163,12 +146,8 @@ contains
   end subroutine Benchmark_Seed_RNG
 
   subroutine Benchmark_Sink_Add(value)
-    !!{
-    Add a value to the module-level checksum sink. Microbenchmarks should
-    pass evaluation results to this routine so that the optimizer cannot
-    dead-code-eliminate the work. Call \mono{Benchmark\_Sink\_Print} once
-    before the program exits to make the accumulated value externally
-    observable.
+    !!{RST
+    Add a value to the module-level checksum sink. Microbenchmarks should pass evaluation results to this routine so that the optimizer cannot dead-code-eliminate the work. Call ``Benchmark_Sink_Print`` once before the program exits to make the accumulated value externally observable.
     !!}
     double precision, intent(in   ) :: value
 
@@ -177,10 +156,8 @@ contains
   end subroutine Benchmark_Sink_Add
 
   subroutine Benchmark_Sink_Print()
-    !!{
-    Print the accumulated checksum sink. Must be called once before the
-    program exits, or the optimizer is free to elide every
-    \mono{Benchmark\_Sink\_Add} call.
+    !!{RST
+    Print the accumulated checksum sink. Must be called once before the program exits, or the optimizer is free to elide every ``Benchmark_Sink_Add`` call.
     !!}
     
     write (output_unit,'(a,es16.8)') '# Benchmark checksum (do not optimize away): ',sink_

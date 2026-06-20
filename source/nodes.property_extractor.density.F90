@@ -17,25 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a property extractor class for the density at a set of radii.
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorDensityProfile">
-   <description>A property extractor that returns the mass density profile
-    (in $\mathrm{M}_\odot \, \mathrm{Mpc}^{-3}$) of a galaxy or halo component at a
-    user-specified set of radii. The \mono{radiusSpecifiers} parameter provides a list of radius
-    definitions (e.g.\ multiples of the virial radius, disk radius, or half-mass radius), supporting
-    both galactic structural radii and fixed physical radii. If \mono{includeRadii} is \mono{true},
-    the corresponding radii (in Mpc) are also written to the output file as a second column alongside
-    the density values.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorDensityProfile" docformat="rst">
+   <description>
+   A property extractor that returns the mass density profile (in :math:`\mathrm{M}_\odot \, \mathrm{Mpc}^{-3}`) of a galaxy or halo component at a user-specified set of radii. The ``radiusSpecifiers`` parameter provides a list of radius definitions (e.g.\ multiples of the virial radius, disk radius, or half-mass radius), supporting both galactic structural radii and fixed physical radii. If ``includeRadii`` is ``true``, the corresponding radii (in Mpc) are also written to the output file as a second column alongside the density values.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorDensityProfile
-     !!{
+     !!{RST
      A property extractor class for the density at a set of radii.
      !!}
      private
@@ -61,8 +57,8 @@
   end type nodePropertyExtractorDensityProfile
 
   interface nodePropertyExtractorDensityProfile
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorDensityProfile} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorDensityProfile` property extractor class.
      !!}
      module procedure densityProfileConstructorParameters
      module procedure densityProfileConstructorInternal
@@ -71,8 +67,8 @@
 contains
 
   function densityProfileConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorDensityProfile} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorDensityProfile` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,15 +80,19 @@ contains
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusSpecifiers</name>
-      <description>A list of radius specifiers at which to output the density profile.</description>
+      <description>
+      A list of radius specifiers at which to output the density profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeRadii</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not the radii at which density data are output should also be included in the output file.</description>
+      <description>
+      Specifies whether or not the radii at which density data are output should also be included in the output file.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
@@ -106,8 +106,8 @@ contains
   end function densityProfileConstructorParameters
 
   function densityProfileConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorDensityProfile} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorDensityProfile` property extractor class.
     !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
@@ -140,8 +140,8 @@ contains
   end function densityProfileConstructorInternal
 
   subroutine densityProfileDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorDensityProfile} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorDensityProfile` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDensityProfile), intent(inout) :: self
@@ -153,8 +153,8 @@ contains
   end subroutine densityProfileDestructor
 
   integer function densityProfileElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{densityProfile} property extractors.
+    !!{RST
+    Return the number of elements in the ``densityProfile`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityProfile), intent(inout) :: self
@@ -166,8 +166,8 @@ contains
   end function densityProfileElementCount
 
   function densityProfileSize(self,time)
-    !!{
-    Return the number of array elements in the \mono{densityProfile} property extractors.
+    !!{RST
+    Return the number of array elements in the ``densityProfile`` property extractors.
     !!}
     implicit none
     integer         (c_size_t                           )                :: densityProfileSize
@@ -180,8 +180,8 @@ contains
   end function densityProfileSize
 
   function densityProfileExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{densityProfile} property extractor.
+    !!{RST
+    Implement a ``densityProfile`` property extractor.
     !!}
     use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic            , massTypeStellar
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius                      , radiusTypeGalacticLightFraction   , &
@@ -292,8 +292,8 @@ contains
   end function densityProfileExtract
 
   subroutine densityProfileNames(self,names,time)
-    !!{
-    Return the names of the \mono{densityProfile} properties.
+    !!{RST
+    Return the names of the ``densityProfile`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityProfile), intent(inout)                             :: self
@@ -308,8 +308,8 @@ contains
   end subroutine densityProfileNames
 
   subroutine densityProfileDescriptions(self,descriptions,time)
-    !!{
-    Return descriptions of the \mono{densityProfile} property.
+    !!{RST
+    Return descriptions of the ``densityProfile`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityProfile), intent(inout)                             :: self
@@ -325,8 +325,8 @@ contains
   end subroutine densityProfileDescriptions
 
   subroutine densityProfileColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
-    !!{
-    Return column descriptions of the \mono{densityProfile} property.
+    !!{RST
+    Return column descriptions of the ``densityProfile`` property.
     !!}
     use            :: Units_MetaData, only : unitType
     use, intrinsic :: ISO_C_Binding , only : c_int
@@ -348,8 +348,8 @@ contains
   end subroutine densityProfileColumnDescriptions
 
   function densityProfileUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{densityProfile} properties in the SI system.
+    !!{RST
+    Return the units of the ``densityProfile`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
@@ -366,7 +366,7 @@ contains
   end function densityProfileUnitsInSI
 
   function densityProfileUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the densityProfile properties.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements calculations of error functions.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module which implements calculations of error functions.
 !; gsl
 
 module Error_Functions
-  !!{
+  !!{RST
   Implements calculations of error functions.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_double
@@ -53,7 +53,7 @@ module Error_Functions
 contains
 
   elemental double precision function Error_Function_Real(argument)
-    !!{
+    !!{RST
     Computes the error function.
     !!}
     implicit none
@@ -64,7 +64,7 @@ contains
   end function Error_Function_Real
 
   elemental function Error_Function_Quad(argument)
-    !!{
+    !!{RST
     Computes the error function with quad precision.
     !!}
     use :: Kind_Numbers, only : kind_quad
@@ -77,7 +77,7 @@ contains
   end function Error_Function_Quad
 
   elemental double precision function Error_Function_Complementary_Real(argument)
-    !!{
+    !!{RST
     Computes the complementary error function.
     !!}
     implicit none
@@ -88,7 +88,7 @@ contains
   end function Error_Function_Complementary_Real
 
   elemental function Error_Function_Complementary_Quad(argument)
-    !!{
+    !!{RST
     Computes the complementary error function.
     !!}
     use :: Kind_Numbers, only : kind_quad
@@ -101,7 +101,7 @@ contains
   end function Error_Function_Complementary_Quad
 
   elemental double complex function Error_Function_Complex(argument)
-    !!{
+    !!{RST
     Computes the complex complementary error function.
     !!}
     implicit none
@@ -112,8 +112,8 @@ contains
   end function Error_Function_Complex
 
   elemental double complex function Error_Function_Complementary_Complex(argument)
-    !!{
-    Computes the complex complementary error function, using the algorithm of \cite{abrarov_rapid_2013}.
+    !!{RST
+    Computes the complex complementary error function, using the algorithm of :cite:t:`abrarov_rapid_2013`.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -202,8 +202,8 @@ contains
   end function Error_Function_Complementary_Complex
 
   elemental double complex function Faddeeva(argument)
-    !!{
-    The \href{http://en.wikipedia.org/wiki/Faddeeva_function}{Fadeeva function}.
+    !!{RST
+    The `Fadeeva function <http://en.wikipedia.org/wiki/Faddeeva_function>`_.
     !!}
     implicit none
     double complex  , intent(in   ) :: argument
@@ -213,9 +213,8 @@ contains
   end function Faddeeva
 
  function erfApproximateQuad(x)
-    !!{
-    An approximation to the error function due to \cite{winitzki_uniform_2003}.
-    that is designed to be very accurate in the vicinity of zero and infinity.
+    !!{RST
+    An approximation to the error function due to :cite:t:`winitzki_uniform_2003`. that is designed to be very accurate in the vicinity of zero and infinity.
     !!}
     use :: Kind_Numbers            , only : kind_quad
     use :: Numerical_Constants_Math, only : PiQuadPrecision
@@ -235,9 +234,8 @@ contains
   end function erfApproximateQuad
 
   double precision function Error_Function_Difference(x1,x2) result(difference)
-    !!{
-    Evaluates the difference in the error function at the given arguments, $\mathrm{erf}(x_2)-\mathrm{erf}(x_1)$. Utiliizes
-    symmetries of the error function and the complementary error function to maintain accuracy.
+    !!{RST
+    Evaluates the difference in the error function at the given arguments, :math:`\mathrm{erf}(x_2)-\mathrm{erf}(x_1)`. Utiliizes symmetries of the error function and the complementary error function to maintain accuracy.
     !!}
     use :: Error       , only : Error_Report
     use :: Kind_Numbers, only : kind_quad   , kind_dble

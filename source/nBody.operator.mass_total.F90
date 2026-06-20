@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which computes the total mass of particles.
 !!}
 
   !![
-  <nbodyOperator name="nbodyOperatorMassTotal">
-   <description>An N-body data operator which computes the total mass of particles.</description>
+  <nbodyOperator name="nbodyOperatorMassTotal" docformat="rst">
+   <description>
+   An N-body data operator which computes the total mass of particles.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorMassTotal
-     !!{
+     !!{RST
      An N-body data operator which computes the total mass of particles.
      !!}
      private
@@ -36,8 +38,8 @@ Implements an N-body data operator which computes the total mass of particles.
   end type nbodyOperatorMassTotal
 
   interface nbodyOperatorMassTotal
-     !!{
-     Constructors for the \refClass{nbodyOperatorMassTotal} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorMassTotal` N-body operator class.
      !!}
      module procedure convexHullMassTotalConstructorParameters
   end interface nbodyOperatorMassTotal
@@ -45,8 +47,8 @@ Implements an N-body data operator which computes the total mass of particles.
 contains
 
   function convexHullMassTotalConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorMassTotal} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorMassTotal` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function convexHullMassTotalConstructorParameters
 
   subroutine convexHullMassTotalOperate(self,simulations)
-    !!{
+    !!{RST
     Compute the massTotal of the points.
     !!}
     use :: Error  , only : Error_Report

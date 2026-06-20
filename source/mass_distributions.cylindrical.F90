@@ -17,23 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of an abstract mass distribution class for cylindrically symmetric distributions.
   !!}
 
   !![
-  <massDistribution name="massDistributionCylindrical" abstract="yes">
-   <description>An abstract mass distribution class for cylindrically symmetric distributions.</description>
+  <massDistribution name="massDistributionCylindrical" abstract="yes" docformat="rst">
+   <description>
+   An abstract mass distribution class for cylindrically symmetric distributions.
+   </description>
   </massDistribution>
   !!]
   type, extends(massDistributionClass), abstract :: massDistributionCylindrical
-     !!{
+     !!{RST
      Implementation of an abstract mass distribution class for cylindrically symmetric distributions.
      !!}
      private
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Returns the cylindrical radius enclosing half of the mass of the mass distribution." method="radiusHalfMass"/>
      </methods>
      !!]
@@ -46,7 +48,7 @@
   abstract interface
 
      double precision function cylindricalRadiusHalfMass(self)
-       !!{
+       !!{RST
        Interface for cylindrically symmetric mass distribution half mass radii functions.
        !!}
        import massDistributionCylindrical
@@ -58,7 +60,7 @@
 contains
 
   function cylindricalSymmetry(self)
-    !!{
+    !!{RST
     Returns symmetry label for mass distributions with cylindrical symmetry.
     !!}
     implicit none
@@ -71,8 +73,8 @@ contains
   end function cylindricalSymmetry
 
   function cylindricalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity)
-    !!{
-    Compute the Chandrasekhar integral at the specified \mono{coordinates} in a spherical mass distribution.
+    !!{RST
+    Compute the Chandrasekhar integral at the specified ``coordinates`` in a spherical mass distribution.
     !!}
     use :: Coordinates                     , only : coordinateCartesian           , coordinateSpherical, coordinateCylindrical       , assignment(=)
     use :: Galactic_Structure_Options      , only : componentTypeAll              , massTypeAll        , enumerationComponentTypeType, enumerationMassTypeType
@@ -197,7 +199,7 @@ contains
   end function cylindricalChandrasekharIntegral
 
   double precision function cylindricalDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
-    !!{
+    !!{RST
     Computes radial moments of the density in cylindrical mass distributions.
     !!}
     use :: Error, only : Error_Report

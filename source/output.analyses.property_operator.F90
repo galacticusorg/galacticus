@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements on-the-fly analyses.
 !!}
 
 module Output_Analysis_Property_Operators
-  !!{
+  !!{RST
   Provides a class that implements operators on properties for on-the-fly analyses.
   !!}
   use            :: Galacticus_Nodes       , only : treeNode
@@ -31,18 +31,17 @@ module Output_Analysis_Property_Operators
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>outputAnalysisPropertyOperator</name>
    <descriptiveName>Output Analysis Property Operator</descriptiveName>
-   <description>Class providing operators on galaxy or halo properties for on-the-fly output analysis---scalar
-    transformations applied to a raw property value (e.g.\ stellar mass, luminosity, or velocity) before it
-    is binned or compared with observations. Typical operations include logarithmic transformations, dust
-    attenuation corrections, aperture corrections, or random scatter to simulate observational measurement
-    errors. The operator receives the property value, the galaxy node, the property type, and the output
-    snapshot index, and returns the transformed value.</description>
+   <description>
+   Class providing operators on galaxy or halo properties for on-the-fly output analysis---scalar transformations applied to a raw property value (e.g.\ stellar mass, luminosity, or velocity) before it is binned or compared with observations. Typical operations include logarithmic transformations, dust attenuation corrections, aperture corrections, or random scatter to simulate observational measurement errors. The operator receives the property value, the galaxy node, the property type, and the output snapshot index, and returns the transformed value.
+   </description>
    <default>identity</default>
    <method name="operate" >
-    <description>Operate on the given property.</description>
+    <description>
+    Operate on the given property.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision                                           , intent(in   )           :: propertyValue</argument>

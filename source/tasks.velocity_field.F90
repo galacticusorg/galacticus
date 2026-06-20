@@ -23,12 +23,14 @@
   use :: Output_Times               , only : outputTimesClass
 
   !![
-  <task name="taskVelocityField">
-   <description>A task which computes and outputs the cosmological velocity field.</description>
+  <task name="taskVelocityField" docformat="rst">
+   <description>
+   A task which computes and outputs the cosmological velocity field.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskVelocityField
-     !!{
+     !!{RST
      Implementation of a task which computes and outputs the cosmological velocity field.
      !!}
      private
@@ -45,8 +47,8 @@
   end type taskVelocityField
 
   interface taskVelocityField
-     !!{
-     Constructors for the \refClass{taskVelocityField} task.
+     !!{RST
+     Constructors for the :galacticus-class:`taskVelocityField` task.
      !!}
      module procedure velocityFieldConstructorParameters
      module procedure velocityFieldConstructorInternal
@@ -55,8 +57,8 @@
 contains
 
   function velocityFieldConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskVelocityField} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskVelocityField` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -71,28 +73,36 @@ contains
     type            (varying_string                  )                :: outputGroup
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <defaultValue>1.0d10</defaultValue>
-      <description>The minimum mass scale at which to tabulate the velocity field.</description>
+      <description>
+      The minimum mass scale at which to tabulate the velocity field.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMaximum</name>
       <defaultValue>1.0d+3</defaultValue>
-      <description>The maximum mass scale at which to tabulate the velocity field.</description>
+      <description>
+      The maximum mass scale at which to tabulate the velocity field.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>pointsPerDecade</name>
       <defaultValue>10</defaultValue>
-      <description>The number of points per decade of mass at which to tabulate the velocity field.</description>
+      <description>
+      The number of points per decade of mass at which to tabulate the velocity field.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputGroup</name>
       <defaultValue>var_str('.')</defaultValue>
-      <description>The HDF5 output group within which to write velocity field data.</description>
+      <description>
+      The HDF5 output group within which to write velocity field data.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
@@ -112,8 +122,8 @@ contains
   end function velocityFieldConstructorParameters
 
   function velocityFieldConstructorInternal(massMinimum,massMaximum,pointsPerDecade,outputGroup,cosmologyFunctions_,cosmologicalVelocityField_,darkMatterHaloScale_,outputTimes_) result(self)
-    !!{
-    Internal constructor for the \refClass{taskVelocityField} task class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`taskVelocityField` task class.
     !!}
     implicit none
     type            (taskVelocityField             )                        :: self
@@ -132,8 +142,8 @@ contains
   end function velocityFieldConstructorInternal
 
   subroutine velocityFieldDestructor(self)
-    !!{
-    Destructor for the \refClass{taskVelocityField} task class.
+    !!{RST
+    Destructor for the :galacticus-class:`taskVelocityField` task class.
     !!}
     implicit none
     type(taskVelocityField), intent(inout) :: self
@@ -148,7 +158,7 @@ contains
   end subroutine velocityFieldDestructor
 
   subroutine velocityFieldPerform(self,status)
-    !!{
+    !!{RST
     Compute and output the halo mass function.
     !!}
     use            :: Display                         , only : displayIndent        , displayUnindent     , displayCounter, displayCounterClear, &

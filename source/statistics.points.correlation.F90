@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which computes correlation statistics from point distributions.
 !!}
 
 module Statistics_Points_Correlations
-  !!{
+  !!{RST
   Compute correlation statistics from point distributions.
   !!}
   private
@@ -31,7 +31,7 @@ module Statistics_Points_Correlations
 contains
 
   subroutine Statistics_Points_Correlation(dataPosition,randomPosition,separationMinimum,separationMaximum,separationCount,separation,correlation,projected,radialSeparationMaximum,halfIntegral)
-    !!{
+    !!{RST
     Compute the correlation function from a set of points.
     !!}
     use :: Display          , only : displayCounter  , displayCounterClear , displayIndent, displayUnindent

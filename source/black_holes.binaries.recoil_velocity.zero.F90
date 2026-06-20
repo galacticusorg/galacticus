@@ -19,19 +19,19 @@
 
 !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-  !!{
+  !!{RST
   Implements a black hole binary recoil velocity class in which the recoil velocity is zero.
   !!}
 
   !![
-  <blackHoleBinaryRecoil name="blackHoleBinaryRecoilZero">
+  <blackHoleBinaryRecoil name="blackHoleBinaryRecoilZero" docformat="rst">
    <description>
-    A null implementation of the black hole binary recoil velocity class that always returns zero recoil velocity. Useful for isolating other merger dynamics or for models where gravitational wave recoil is negligible.
+   A null implementation of the black hole binary recoil velocity class that always returns zero recoil velocity. Useful for isolating other merger dynamics or for models where gravitational wave recoil is negligible.
    </description>
   </blackHoleBinaryRecoil>
   !!]
   type, extends(blackHoleBinaryRecoilClass) :: blackHoleBinaryRecoilZero
-     !!{
+     !!{RST
      A black hole binary recoil class in which the recoil velocity is always zero.
      !!}
      private
@@ -40,8 +40,8 @@
   end type blackHoleBinaryRecoilZero
 
   interface blackHoleBinaryRecoilZero
-     !!{
-     Constructors for the \refClass{blackHoleBinaryRecoilZero} black hole binary recoil class.
+     !!{RST
+     Constructors for the :galacticus-class:`blackHoleBinaryRecoilZero` black hole binary recoil class.
      !!}
      module procedure zeroConstructorParameters
   end interface blackHoleBinaryRecoilZero
@@ -49,8 +49,8 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{blackHoleBinaryRecoilZero} black hole binary recoil class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`blackHoleBinaryRecoilZero` black hole binary recoil class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +65,7 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroVelocity(self,blackHole1,blackHole2)
-    !!{
+    !!{RST
     Compute the recoil velocity for a pair of merging black holes.
     !!}
     implicit none

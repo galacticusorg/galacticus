@@ -17,25 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of the \cite{cole_hierarchical_2000} time available for cooling class.
+  !!{RST
+  Implementation of the :cite:t:`cole_hierarchical_2000` time available for cooling class.
   !!}
 
   !![
-  <coolingTimeAvailable name="coolingTimeAvailableFormationTime">
+  <coolingTimeAvailable name="coolingTimeAvailableFormationTime" docformat="rst">
    <description>
-    A time available for cooling class which implements the algorithm of \cite{cole_hierarchical_2000}, that is, the time
-    available is equal to
-    \begin{equation}
-     t_\mathrm{available} = t - t_\mathrm{form},
-    \end{equation}
-    where $t_\mathrm{form}$ is the time at which the halo formed.
+   A time available for cooling class which implements the algorithm of :cite:t:`cole_hierarchical_2000`, that is, the time available is equal to
+
+   .. math::
+
+      t_\mathrm{available} = t - t_\mathrm{form},
+
+   where :math:`t_\mathrm{form}` is the time at which the halo formed.
    </description>
   </coolingTimeAvailable>
   !!]
   type, extends(coolingTimeAvailableClass) :: coolingTimeAvailableFormationTime
-     !!{
-     Implementation of a time available for cooling class which implements the algorithm of \cite{cole_hierarchical_2000}.
+     !!{RST
+     Implementation of a time available for cooling class which implements the algorithm of :cite:t:`cole_hierarchical_2000`.
      !!}
      private
      integer :: nodeFormationTimeID
@@ -45,8 +46,8 @@
   end type coolingTimeAvailableFormationTime
 
   interface coolingTimeAvailableFormationTime
-     !!{
-     Constructors for the \cite{cole_hierarchical_2000} time available for cooling class.
+     !!{RST
+     Constructors for the :cite:t:`cole_hierarchical_2000` time available for cooling class.
      !!}
      module procedure formationTimeConstructorParameters
      module procedure formationTimeConstructorInternal
@@ -55,8 +56,8 @@
 contains
 
   function formationTimeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \cite{cole_hierarchical_2000} time available for cooling class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :cite:t:`cole_hierarchical_2000` time available for cooling class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,8 +72,8 @@ contains
   end function formationTimeConstructorParameters
 
   function formationTimeConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \cite{cole_hierarchical_2000} time available for cooling class.
+    !!{RST
+    Internal constructor for the :cite:t:`cole_hierarchical_2000` time available for cooling class.
     !!}
     implicit none
     type(coolingTimeAvailableFormationTime) :: self
@@ -84,8 +85,8 @@ contains
   end function formationTimeConstructorInternal
   
   double precision function formationTimeTimeAvailable(self,node)
-    !!{
-    Returns the time available for cooling (in units of Gyr) in the hot atmosphere for the \cite{cole_hierarchical_2000} model.
+    !!{RST
+    Returns the time available for cooling (in units of Gyr) in the hot atmosphere for the :cite:t:`cole_hierarchical_2000` model.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -100,9 +101,8 @@ contains
   end function formationTimeTimeAvailable
 
   double precision function formationTimeTimeAvailableIncreaseRate(self,node)
-    !!{
-    Compute the rate of increase of the time available for cooling using the \cite{cole_hierarchical_2000} method. We return a rate
-    of 1, even though technically it can depend on halo properties.
+    !!{RST
+    Compute the rate of increase of the time available for cooling using the :cite:t:`cole_hierarchical_2000` method. We return a rate of 1, even though technically it can depend on halo properties.
     !!}
     implicit none
     class(coolingTimeAvailableFormationTime), intent(inout) :: self

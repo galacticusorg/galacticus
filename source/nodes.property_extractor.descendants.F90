@@ -17,30 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an ISM mass output analysis property extractor class.
 !!}
 
   use :: Output_Times, only : outputTimes, outputTimesClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorDescendants">
+  <nodePropertyExtractor name="nodePropertyExtractorDescendants" docformat="rst">
    <description>
-    A node property extractor which extracts the index of the node containing the galaxy to which each current galaxy will
-    belong at the next output time (i.e. the \gls{forwardDescendant}). To clarify, this will be the index of the node into
-    which the galaxy descends, or the index of a node with which it merges prior to the next output time (and if that node
-    merges with another, the index will be of that node and so on).
-  
-    Note that, to operate correctly, information about which node a given node may merge with (and when this merger will
-    happen) must be available. This is typically available in merger trees read from file (i.e. using the ``\mono{read}'' \refClass{mergerTreeConstructorClass}) providing \mono{[presetMergerNodes]} and \mono{[presetMergerTimes]} are both set to \mono{true}. When using randomly assigned satellite orbits
-    and merger times, information on when merging occurs does not exist until a node becomes a satellite. Thus, if the node
-    becomes a satellite after the current output, but before the next output, there is no way to know which node it will belong
-    to at the next output (in such cases, the fallback assumption is no merging).
+   A node property extractor which extracts the index of the node containing the galaxy to which each current galaxy will belong at the next output time (i.e. the :term:`forward descendant`). To clarify, this will be the index of the node into which the galaxy descends, or the index of a node with which it merges prior to the next output time (and if that node merges with another, the index will be of that node and so on).
+
+   Note that, to operate correctly, information about which node a given node may merge with (and when this merger will happen) must be available. This is typically available in merger trees read from file (i.e. using the "``read``" :galacticus-class:`mergerTreeConstructorClass`) providing ``[presetMergerNodes]`` and ``[presetMergerTimes]`` are both set to ``true``. When using randomly assigned satellite orbits and merger times, information on when merging occurs does not exist until a node becomes a satellite. Thus, if the node becomes a satellite after the current output, but before the next output, there is no way to know which node it will belong to at the next output (in such cases, the fallback assumption is no merging).
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorDescendants
-     !!{
+     !!{RST
      A node property extractor descendant indices.
      !!}
      private
@@ -53,8 +46,8 @@ Implements an ISM mass output analysis property extractor class.
   end type nodePropertyExtractorDescendants
 
   interface nodePropertyExtractorDescendants
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorDescendants} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorDescendants` property extractor class.
      !!}
      module procedure descendantsConstructorParameters
      module procedure descendantsConstructorInternal
@@ -63,8 +56,8 @@ Implements an ISM mass output analysis property extractor class.
 contains
 
   function descendantsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorDescendants} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorDescendants` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,8 +77,8 @@ contains
   end function descendantsConstructorParameters
 
   function descendantsConstructorInternal(outputTimes_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorDescendants} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorDescendants` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorDescendants)                        :: self
@@ -98,8 +91,8 @@ contains
   end function descendantsConstructorInternal
 
   subroutine descendantsDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorDescendants} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorDescendants` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDescendants), intent(inout) :: self
@@ -111,8 +104,8 @@ contains
   end subroutine descendantsDestructor
 
   function descendantsExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{descendants} node property extractor.
+    !!{RST
+    Implement a ``descendants`` node property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, treeNode
     implicit none
@@ -191,7 +184,7 @@ contains
   end function descendantsExtract
 
   function descendantsName(self)
-    !!{
+    !!{RST
     Return the name of the descendants property.
     !!}
     implicit none
@@ -204,7 +197,7 @@ contains
   end function descendantsName
 
   function descendantsDescription(self)
-    !!{
+    !!{RST
     Return a description of the descendants property.
     !!}
     implicit none

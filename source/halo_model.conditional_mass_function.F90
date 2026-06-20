@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class for empirical models of conditional mass functions.
 !!}
 
 module Conditional_Mass_Functions
-  !!{
+  !!{RST
   Implements empirical models of conditional mass functions.
   !!}
   private
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>haloModelGalaxyType</name>
-   <description>Used to specify galaxy types in the halo model.</description>
+   <description>
+   Used to specify galaxy types in the halo model.
+   </description>
    <visibility>public</visibility>
    <entry label="all"      />
    <entry label="central"  />
@@ -39,25 +41,26 @@ module Conditional_Mass_Functions
   !!]
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>conditionalMassFunction</name>
    <descriptiveName>Conditional Mass Function</descriptiveName>
-   <description>Class providing empirical models of the conditional stellar mass function (CSMF)---the mean
-    number of galaxies $\langle N(M_\star|M_\mathrm{halo})\rangle$ of stellar mass $M_\star$ hosted by
-    a dark matter halo of mass $M_\mathrm{halo}$, separately for central and satellite galaxies. The
-    CSMF is the key ingredient of halo occupation distribution (HOD) and stellar-to-halo mass relation
-    (SHMR) models used to populate $N$-body simulations with galaxies and to interpret galaxy
-    clustering observations without running a full semi-analytic model.</description>
+   <description>
+   Class providing empirical models of the conditional stellar mass function (CSMF)---the mean number of galaxies :math:`\langle N(M_\star|M_\mathrm{halo})\rangle` of stellar mass :math:`M_\star` hosted by a dark matter halo of mass :math:`M_\mathrm{halo}`, separately for central and satellite galaxies. The CSMF is the key ingredient of halo occupation distribution (HOD) and stellar-to-halo mass relation (SHMR) models used to populate :math:`N`-body simulations with galaxies and to interpret galaxy clustering observations without running a full semi-analytic model.
+   </description>
    <default>behroozi2010</default>
    <method name="massFunction" >
-    <description>Return the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$.</description>
+    <description>
+    Return the cumulative conditional mass function, :math:`\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})`.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision                                    , intent(in   )           :: massHalo  , mass</argument>
     <argument>type            (enumerationHaloModelGalaxyTypeType), intent(in   ), optional :: galaxyType</argument>
    </method>
    <method name="massFunctionVariance" >
-    <description>Return the variance in the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$.</description>
+    <description>
+    Return the variance in the cumulative conditional mass function, :math:`\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})`.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: massHalo,massLow,massHigh</argument>

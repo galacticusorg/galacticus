@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a merger tree operator which outputs mass accretion
-  histories.
+  !!{RST
+  Implements a merger tree operator which outputs mass accretion histories.
   !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
@@ -27,17 +26,14 @@
   use :: IO_HDF5                , only : hdf5Object
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorMassAccretionHistory">
+  <mergerTreeOperator name="mergerTreeOperatorMassAccretionHistory" docformat="rst">
    <description>
-    A merger tree operator class which outputs mass accretion histories (i.e. the mass of the \gls{node} on the primary branch
-    as a function of time). Histories are written into the \glc\ output file in a group with name given by \mono{[outputGroupName]}. Within that group, each merger tree has its own group named \mono{mergerTree\textless\ N\textgreater} where \mono{\textless\ N\textgreater} is the tree index. Within each
-    such merger tree group datasets giving the node index (``\mono{nodeIndex}''), time (``\mono{nodeTime}''), basic mass (``\mono{nodeMass}''), expansion factor (``\mono{nodeExpansionFactor}'') are written. Optionally, datasets giving the spin parameter (``\mono{nodeSpin}'')
-    and its vector components (``\mono{nodeSpinVector}'') are included if \mono{[includeSpin]} and \mono{[includeSpinVector]} respectively are set to \mono{true}.
+   A merger tree operator class which outputs mass accretion histories (i.e. the mass of the :term:`node` on the primary branch as a function of time). Histories are written into the Galacticus output file in a group with name given by ``[outputGroupName]``. Within that group, each merger tree has its own group named ``mergerTree&lt;N&gt;`` where ``&lt;N&gt;`` is the tree index. Within each such merger tree group datasets giving the node index ("``nodeIndex``"), time ("``nodeTime``"), basic mass ("``nodeMass``"), expansion factor ("``nodeExpansionFactor``") are written. Optionally, datasets giving the spin parameter ("``nodeSpin``") and its vector components ("``nodeSpinVector``") are included if ``[includeSpin]`` and ``[includeSpinVector]`` respectively are set to ``true``.
    </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorMassAccretionHistory
-     !!{
+     !!{RST
      A merger tree operator class which outputs mass accretion histories.
      !!}
      private
@@ -52,7 +48,7 @@
   end type mergerTreeOperatorMassAccretionHistory
 
   interface mergerTreeOperatorMassAccretionHistory
-     !!{
+     !!{RST
      Constructors for the mass accretion history merger tree operator class.
      !!}
      module procedure massAccretionHistoryConstructorParameters
@@ -62,9 +58,8 @@
 contains
 
   function massAccretionHistoryConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the mass accretion history merger tree operator class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the mass accretion history merger tree operator class which takes a parameter set as input.
     !!}
     implicit none
     type   (mergerTreeOperatorMassAccretionHistory)                :: self
@@ -75,23 +70,29 @@ contains
     logical                                                        :: includeSpin          , includeSpinVector
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputGroupName</name>
       <source>parameters</source>
       <defaultValue>var_str('massAccretionHistories')</defaultValue>
-      <description>The name of the \gls{hdf5} group to output mass accretion histories to.</description>
+      <description>
+      The name of the :term:`HDF5` group to output mass accretion histories to.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeSpin</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, include the spin of the halo in the output.</description>
+      <description>
+      If true, include the spin of the halo in the output.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeSpinVector</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, include the spin vector of the halo in the output.</description>
+      <description>
+      If true, include the spin vector of the halo in the output.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
@@ -106,7 +107,7 @@ contains
   end function massAccretionHistoryConstructorParameters
 
   function massAccretionHistoryConstructorInternal(outputGroupName,includeSpin,includeSpinVector,cosmologyFunctions_,darkMatterHaloScale_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the mass accretion history merger tree operator class.
     !!}
     use :: Error           , only : Component_List      , Error_Report
@@ -145,7 +146,7 @@ contains
   end function massAccretionHistoryConstructorInternal
 
   subroutine massAccretionHistoryDestructor(self)
-    !!{
+    !!{RST
     Destructor for the mass accretion history merger tree operator function class.
     !!}
     implicit none
@@ -159,7 +160,7 @@ contains
   end subroutine massAccretionHistoryDestructor
 
   subroutine massAccretionHistoryOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Output the mass accretion history for a merger tree.
     !!}
     use            :: Dark_Matter_Halo_Spins          , only : Dark_Matter_Halo_Angular_Momentum_Scale

@@ -17,22 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of halo bias using the algorithm of \cite{sheth_ellipsoidal_2001}.
+  !!{RST
+  Implementation of halo bias using the algorithm of :cite:t:`sheth_ellipsoidal_2001`.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
   !![
-  <darkMatterHaloBias name="darkMatterHaloBiasSheth2001">
+  <darkMatterHaloBias name="darkMatterHaloBiasSheth2001" docformat="rst">
    <description>
-    A dark matter halo mass bias class utilizing the algorithm of \cite{sheth_ellipsoidal_2001}.
+   A dark matter halo mass bias class utilizing the algorithm of :cite:t:`sheth_ellipsoidal_2001`.
    </description>
   </darkMatterHaloBias>
   !!]
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasSheth2001
-     !!{
-     Implementation of a dark matter halo mass utilizing the algorithm of \cite{sheth_ellipsoidal_2001}.
+     !!{RST
+     Implementation of a dark matter halo mass utilizing the algorithm of :cite:t:`sheth_ellipsoidal_2001`.
      !!}
      private
      class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
@@ -43,8 +43,8 @@
   end type darkMatterHaloBiasSheth2001
 
   interface darkMatterHaloBiasSheth2001
-     !!{
-     Constructors for the \refClass{darkMatterHaloBiasSheth2001} dark matter halo bias class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterHaloBiasSheth2001` dark matter halo bias class.
      !!}
      module procedure sheth2001ConstructorParameters
      module procedure sheth2001ConstructorInternal
@@ -53,8 +53,8 @@
 contains
 
   function sheth2001ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterHaloBiasSheth2001} dark matter halo bias class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterHaloBiasSheth2001` dark matter halo bias class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,8 +77,8 @@ contains
   end function sheth2001ConstructorParameters
 
   function sheth2001ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterHaloBiasSheth2001} dark matter halo bias class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterHaloBiasSheth2001` dark matter halo bias class.
     !!}
     implicit none
     type (darkMatterHaloBiasSheth2001  )                        :: self
@@ -92,8 +92,8 @@ contains
   end function sheth2001ConstructorInternal
 
   subroutine sheth2001Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterHaloBiasSheth2001} dark matter halo bias class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterHaloBiasSheth2001` dark matter halo bias class.
     !!}
     implicit none
     type(darkMatterHaloBiasSheth2001), intent(inout) :: self
@@ -106,7 +106,7 @@ contains
   end subroutine sheth2001Destructor
 
   double precision function sheth2001BiasByMass(self,mass,time,radius)
-    !!{
+    !!{RST
     Returns the bias of a dark matter halo given the mass and time.
     !!}
     implicit none

@@ -18,30 +18,32 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 module Merger_Tree_Walkers
-  !!{
+  !!{RST
   Provides a class of walker objects for merger trees.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>mergerTreeWalker</name>
    <descriptiveName>Merger Tree Walkers</descriptiveName>
-   <description>Class providing walkers for merger trees---iterator objects that traverse the nodes of
-    a merger tree in a defined order. A walker maintains a current node pointer and advances it to the
-    next node in the traversal sequence. Different implementations visit different subsets of nodes
-    (all nodes, isolated halos only, branch-by-branch, construction-order) and are used by the evolver,
-    outputter, and operator classes to apply operations over the correct set of nodes.</description>
+   <description>
+   Class providing walkers for merger trees---iterator objects that traverse the nodes of a merger tree in a defined order. A walker maintains a current node pointer and advances it to the next node in the traversal sequence. Different implementations visit different subsets of nodes (all nodes, isolated halos only, branch-by-branch, construction-order) and are used by the evolver, outputter, and operator classes to apply operations over the correct set of nodes.
+   </description>
    <default>isolatedNodes</default>
    <method name="next" >
-    <description>Update the pointer to the next node to visit. Returns true if such a node exists, returns false if no such node exists (i.e. if all nodes have been visited already).</description>
+    <description>
+    Update the pointer to the next node to visit. Returns true if such a node exists, returns false if no such node exists (i.e. if all nodes have been visited already).
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout), pointer :: node</argument>
    </method>
    <method name="nodesRemain" >
-    <description>Returns true if more nodes remain to be walked to in the tree.</description>
+    <description>
+    Returns true if more nodes remain to be walked to in the tree.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
    </method>

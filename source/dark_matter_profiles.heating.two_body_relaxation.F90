@@ -17,21 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   A dark matter halo profile heating class which computes heating due to two-body relaxation.
   !!}
 
   !![
-  <darkMatterProfileHeating name="darkMatterProfileHeatingTwoBodyRelaxation">
+  <darkMatterProfileHeating name="darkMatterProfileHeatingTwoBodyRelaxation" docformat="rst">
     <description>
-      A dark matter profile heating class which returns a \refClass{massDistributionHeatingTwoBodyRelaxation} objects to compute
-      heating due to two-body relaxation.
+    A dark matter profile heating class which returns a :galacticus-class:`massDistributionHeatingTwoBodyRelaxation` objects to compute heating due to two-body relaxation.
     </description>
   </darkMatterProfileHeating>
   !!]
 
   type, extends(darkMatterProfileHeatingClass) :: darkMatterProfileHeatingTwoBodyRelaxation
-     !!{
+     !!{RST
      A dark matter profile heating class which computes heating due to two-body relaxation.
      !!}
      private
@@ -42,8 +41,8 @@
   end type darkMatterProfileHeatingTwoBodyRelaxation
 
   interface darkMatterProfileHeatingTwoBodyRelaxation
-     !!{
-     Constructors for the \refClass{darkMatterProfileHeatingTwoBodyRelaxation} dark matter profile heating class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileHeatingTwoBodyRelaxation` dark matter profile heating class.
      !!}
      module procedure twoBodyRelaxationConstructorParameters
      module procedure twoBodyRelaxationConstructorInternal
@@ -52,8 +51,8 @@
 contains
 
   function twoBodyRelaxationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileHeatingTwoBodyRelaxation} dark matter profile heating class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileHeatingTwoBodyRelaxation` dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -63,25 +62,33 @@ contains
          &                                                                        timeStart   , efficiency
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParticle</name>
       <source>parameters</source>
-      <description>The particle mass to use for two-body relaxation calculations.</description>
+      <description>
+      The particle mass to use for two-body relaxation calculations.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lengthSoftening</name>
       <source>parameters</source>
-      <description>The softening length to use for two-body relaxation calculations.</description>
+      <description>
+      The softening length to use for two-body relaxation calculations.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeStart</name>
       <source>parameters</source>
-      <description>The time at which two-body relaxation is assumed to have begun.</description>
+      <description>
+      The time at which two-body relaxation is assumed to have begun.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>efficiency</name>
       <source>parameters</source>
-      <description>The dimensionless efficiency factor (between 0 and 1) controlling what fraction of the energy transferred by two-body gravitational scattering actually heats the dark matter halo, accounting for partial thermalization of the relaxation energy.</description>
+      <description>
+      The dimensionless efficiency factor (between 0 and 1) controlling what fraction of the energy transferred by two-body gravitational scattering actually heats the dark matter halo, accounting for partial thermalization of the relaxation energy.
+      </description>
     </inputParameter>
     !!]
     self=darkMatterProfileHeatingTwoBodyRelaxation(massParticle,lengthSoftening,timeStart,efficiency)
@@ -92,8 +99,8 @@ contains
   end function twoBodyRelaxationConstructorParameters
 
   function twoBodyRelaxationConstructorInternal(massParticle,lengthSoftening,timeStart,efficiency) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileHeatingTwoBodyRelaxation} dark matter profile heating class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterProfileHeatingTwoBodyRelaxation` dark matter profile heating class.
     !!}
     implicit none
     type            (darkMatterProfileHeatingTwoBodyRelaxation)                :: self
@@ -107,8 +114,8 @@ contains
   end function twoBodyRelaxationConstructorInternal
 
   function twoBodyRelaxationGet(self,node) result(massDistributionHeating_)
-    !!{
-    Return the dark matter mass distribution heating for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution heating for the given ``node``.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentBasic
     use :: Mass_Distributions, only : massDistributionHeatingTwoBodyRelaxation

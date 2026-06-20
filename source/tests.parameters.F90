@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program which tests parameter input.
 !!}
 
 program Test_Parameters
-  !!{
+  !!{RST
   Test reading of input parameters.
   !!}
   use :: Cosmological_Density_Field, only : cosmologicalMassVariance, cosmologicalMassVarianceClass

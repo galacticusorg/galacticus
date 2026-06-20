@@ -23,22 +23,22 @@
   end type outputTimesUnionList
 
   !![
-  <outputTimes name="outputTimesUnion">
-    <description>      
-      An output times class which simply constructs the union of output times from a set of other \refClass{outputTimesClass} objects.
+  <outputTimes name="outputTimesUnion" docformat="rst">
+    <description>
+    An output times class which simply constructs the union of output times from a set of other :galacticus-class:`outputTimesClass` objects.
     </description>
     <linkedList type="outputTimesUnionList" variable="outputTimesUnion_" next="next" object="outputTimes_" objectType="outputTimesClass"/>
   </outputTimes>
   !!]
   type, extends(outputTimesList) :: outputTimesUnion
-     !!{
-     Implementation of an output times class which simply constructs the union of output times from a set of other \refClass{outputTimesClass} objects.
+     !!{RST
+     Implementation of an output times class which simply constructs the union of output times from a set of other :galacticus-class:`outputTimesClass` objects.
      !!}
      private
      type(outputTimesUnionList), pointer :: outputTimesUnion_=> null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="initialize" description="Initialize the set of output times."/>
      </methods>
      !!]
@@ -47,8 +47,8 @@
   end type outputTimesUnion
 
   interface outputTimesUnion
-     !!{
-     Constructors for the \refClass{outputTimesUnion} output times class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputTimesUnion` output times class.
      !!}
      module procedure unionConstructorParameters
      module procedure unionConstructorInternal
@@ -57,8 +57,8 @@
 contains
 
   function unionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputTimesUnion} output times class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputTimesUnion` output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters , only : inputParameters
     implicit none
@@ -87,8 +87,8 @@ contains
   end function unionConstructorParameters
 
   function unionConstructorInternal(outputTimesUnion_) result(self)
-    !!{
-    Constructor for the \refClass{outputTimesUnion} output times class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputTimesUnion` output times class which takes a parameter set as input.
     !!}
     implicit none
     type(outputTimesUnion    )                        :: self
@@ -102,8 +102,8 @@ contains
   end function unionConstructorInternal
 
   subroutine unionDestructor(self)
-    !!{
-    Destructor for the \refClass{outputTimesUnion} output times class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputTimesUnion` output times class.
     !!}
     implicit none
     type(outputTimesUnion    ), intent(inout) :: self
@@ -122,7 +122,7 @@ contains
   end subroutine unionDestructor
 
   subroutine unionInitialize(self)
-    !!{
+    !!{RST
     Initialize the list of times and redshifts.
     !!}
     use :: Sorting, only : sortIndex

@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which defines an orbit structure for use in \glc.
+!!{RST
+Contains a module which defines an orbit structure for use in Galacticus.
 !!}
 
 module Kepler_Orbits
-  !!{
-  Defines an orbit structure for use in \glc.
+  !!{RST
+  Defines an orbit structure for use in Galacticus.
   !!}
   implicit none
   private
@@ -33,9 +33,11 @@ module Kepler_Orbits
   double precision, parameter :: radiusEffectiveInfinity=huge(1.0d0)
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>keplerOrbit</name>
-   <description>Properties of Kepler orbit objects.</description>
+   <description>
+   Properties of Kepler orbit objects.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
    <validator>yes</validator>
@@ -62,21 +64,8 @@ module Kepler_Orbits
   !!]
 
   type keplerOrbit
-     !!{     
-     The structure used for describing orbits in \glc. This object will automatically convert from one set of orbital parameters
-     to another where possible. The orbiting bodies (a satellite orbiting around its host) are treated as point masses, and the
-     usual ``reduced mass'' framework is used, such that radii and velocities are measured relative to a stationary host. Energy
-     and angular momentum are defined per unit satellite mass (not per unit reduced mass). Note that not all interconversions
-     between elements are implemented. The object works by attempting to get the radial and tangential velocities and the
-     radius. If it can obtain these, any other parameter can be computed. Getting these three parameters relies on having known
-     conversions from other possible combinations of parameters. The position of the object is described by $(r,\theta,\phi)$ in
-     standard spherical coordinates. The direction of the tangential component is velocity is taken to be the direction of the
-     vector $\mathbf{r} \times \mathbf{\hat{e}}_\mathrm{z}$, rotated by an angle $\epsilon$ around the vector $\mathbf{r}$. In
-     cases where $\mathbf{r}$ is parallel to $\mathbf{\hat{e}}_\mathrm{z}$ we set $\epsilon=\pi/2$, since at some infinitesimally
-     later time, $\delta t$ the position vector will become $\mathbf{r} + \mathbf{v}\delta t$ such that the above cross product is
-     $(\mathbf{r} + \mathbf{v}\delta t) \times \mathbf{\hat{e}}_\mathrm{z} \propto \mathbf{v}_\mathrm{t} \times
-     \mathbf{\hat{e}}_\mathrm{z}$ where $\mathbf{v}_\mathrm{t}$ is the tangential component of the velocity vector, and, by
-     definition, we then must have $\epsilon=\pi/2$ as this vector is normal to $\mathbf{v}_\mathrm{t}$.
+     !!{RST
+     The structure used for describing orbits in Galacticus. This object will automatically convert from one set of orbital parameters to another where possible. The orbiting bodies (a satellite orbiting around its host) are treated as point masses, and the usual "reduced mass" framework is used, such that radii and velocities are measured relative to a stationary host. Energy and angular momentum are defined per unit satellite mass (not per unit reduced mass). Note that not all interconversions between elements are implemented. The object works by attempting to get the radial and tangential velocities and the radius. If it can obtain these, any other parameter can be computed. Getting these three parameters relies on having known conversions from other possible combinations of parameters. The position of the object is described by :math:`(r,\theta,\phi)` in standard spherical coordinates. The direction of the tangential component is velocity is taken to be the direction of the vector :math:`\mathbf{r} \times \mathbf{\hat{e}}_\mathrm{z}`, rotated by an angle :math:`\epsilon` around the vector :math:`\mathbf{r}`. In cases where :math:`\mathbf{r}` is parallel to :math:`\mathbf{\hat{e}}_\mathrm{z}` we set :math:`\epsilon=\pi/2`, since at some infinitesimally later time, :math:`\delta t` the position vector will become :math:`\mathbf{r} + \mathbf{v}\delta t` such that the above cross product is :math:`(\mathbf{r} + \mathbf{v}\delta t) \times \mathbf{\hat{e}}_\mathrm{z} \propto \mathbf{v}_\mathrm{t} \times \mathbf{\hat{e}}_\mathrm{z}` where :math:`\mathbf{v}_\mathrm{t}` is the tangential component of the velocity vector, and, by definition, we then must have :math:`\epsilon=\pi/2` as this vector is normal to :math:`\mathbf{v}_\mathrm{t}`.
      !!}
      private
      double precision :: massHostValue        , specificReducedMassValue
@@ -102,12 +91,12 @@ module Kepler_Orbits
    contains
      ! Orbit methods.
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Build a Kepler orbit from an XML definition." method="builder" />
        <method description="Dump an orbit." method="dump" />
        <method description="Dump an orbit in binary." method="dumpRaw" />
        <method description="Read an orbit in binary." method="readRaw" />
-       <method description="Resets orbit properties. If the optional \mono{keep} argument is provided and listed properties will \emph{not} be reset." method="reset" />
+       <method description="Resets orbit properties. If the optional ``keep`` argument is provided and listed properties will *not* be reset." method="reset" />
        <method description="Destroys an orbit." method="destroy" />
        <method description="Returns true if an orbit is fully defined." method="isDefined" />
        <method description="Asserts that an orbit is fully defined." method="assertIsDefined" />
@@ -116,9 +105,9 @@ module Kepler_Orbits
        <method description="Sets the radial velocity of an orbit." method="velocityRadialSet" />
        <method description="Sets the masses of satellite and host objects." method="massesSet" />
        <method description="Sets the radius of an orbit." method="radiusSet" />
-       <method description="Sets the angle $\theta$ of an orbit." method="thetaSet" />
-       <method description="Sets the angle $\phi$ of an orbit." method="phiSet" />
-       <method description="Sets the angle $\epsilon$ of an orbit." method="epsilonSet" />
+       <method description="Sets the angle :math:`\theta` of an orbit." method="thetaSet" />
+       <method description="Sets the angle :math:`\phi` of an orbit." method="phiSet" />
+       <method description="Sets the angle :math:`\epsilon` of an orbit." method="epsilonSet" />
        <method description="Sets the pericenter radius of an orbit." method="radiusPericenterSet" />
        <method description="Sets the apocenter radius of an orbit." method="radiusApocenterSet" />
        <method description="Sets the tangential velocity of an orbit." method="velocityTangentialSet" />
@@ -129,11 +118,11 @@ module Kepler_Orbits
        <method description="Returns the host mass of an orbit." method="massHost" />
        <method description="Returns the satellite mass of an orbit." method="massSatellite" />
        <method description="Returns the velocity scale of an orbit." method="velocityScale" />
-       <method description="Returns the specific reduced mass (i.e. the reduced mass per unit satellite mass, $\mu_\mathrm{s} = M_\mathrm{host}/(M_\mathrm{satellite}+M_\mathrm{host})$) of the orbit." method="specificReducedMass" />
+       <method description="Returns the specific reduced mass (i.e. the reduced mass per unit satellite mass, :math:`\mu_\mathrm{s} = M_\mathrm{host}/(M_\mathrm{satellite}+M_\mathrm{host})`) of the orbit." method="specificReducedMass" />
        <method description="Returns the radius of an orbit." method="radius" />
-       <method description="Returns the angle $\theta$ of an orbit." method="theta" />
-       <method description="Returns the angle $\phi$ of an orbit." method="phi" />
-       <method description="Returns the angle $\epsilon$ of an orbit." method="epsilon" />
+       <method description="Returns the angle :math:`\theta` of an orbit." method="theta" />
+       <method description="Returns the angle :math:`\phi` of an orbit." method="phi" />
+       <method description="Returns the angle :math:`\epsilon` of an orbit." method="epsilon" />
        <method description="Returns the pericenter radius of an orbit." method="radiusPericenter" />
        <method description="Returns the apocenter radius of an orbit." method="radiusApocenter" />
        <method description="Returns the radial velocity of an orbit." method="velocityRadial" />
@@ -195,7 +184,7 @@ module Kepler_Orbits
   end type keplerOrbit
 
   interface keplerOrbit
-     !!{
+     !!{RST
      Constructors for Kepler orbits.
      !!}
      module procedure keplerOrbitConstructorNull
@@ -207,7 +196,7 @@ module Kepler_Orbits
 contains
 
   function keplerOrbitConstructorNull() result(self)
-    !!{
+    !!{RST
     Null constructor for Kepler orbit objects.
     !!}
     type(keplerOrbit) :: self
@@ -217,7 +206,7 @@ contains
   end function keplerOrbitConstructorNull
 
   subroutine Kepler_Orbits_Destroy(orbit)
-    !!{
+    !!{RST
     Destroy an orbit.
     !!}
     implicit none
@@ -229,8 +218,8 @@ contains
   end subroutine Kepler_Orbits_Destroy
 
   subroutine Kepler_Orbits_Builder(self,keplerOrbitDefinition)
-    !!{
-    Build a \mono{keplerOrbit} object from the given XML \mono{keplerOrbitDefinition}.
+    !!{RST
+    Build a ``keplerOrbit`` object from the given XML ``keplerOrbitDefinition``.
     !!}
     use :: FoX_DOM, only : getNodeName                 , node       , extractDataContent
     use :: Error  , only : Error_Report
@@ -291,7 +280,7 @@ contains
   end subroutine Kepler_Orbits_Builder
 
   subroutine Kepler_Orbits_Dump(self,verbosityLevel)
-    !!{
+    !!{RST
     Reset an orbit to a null state.
     !!}
     use :: Display           , only : displayMessage, enumerationVerbosityLevelType
@@ -359,8 +348,8 @@ contains
   end subroutine Kepler_Orbits_Dump
 
   subroutine Kepler_Orbits_Dump_Raw(self,fileHandle)
-    !!{
-    Dump a \mono{keplerOrbit} object in binary.
+    !!{RST
+    Dump a ``keplerOrbit`` object in binary.
     !!}
     implicit none
     class  (keplerOrbit), intent(in   ) :: self
@@ -383,8 +372,8 @@ contains
   end subroutine Kepler_Orbits_Dump_Raw
 
   subroutine Kepler_Orbits_Read_Raw(self,fileHandle)
-    !!{
-    Read a \mono{keplerOrbit} object in binary.
+    !!{RST
+    Read a ``keplerOrbit`` object in binary.
     !!}
     implicit none
     class  (keplerOrbit), intent(inout) :: self
@@ -407,7 +396,7 @@ contains
   end subroutine Kepler_Orbits_Read_Raw
 
   subroutine Kepler_Orbits_Reset(orbit,keep)
-    !!{
+    !!{RST
     Reset an orbit to a null state.
     !!}
     implicit none
@@ -438,8 +427,8 @@ contains
   end subroutine Kepler_Orbits_Reset
 
   subroutine Kepler_Orbits_Masses_Set(orbit,massSatellite,massHost)
-    !!{
-    Sets the masses of the two orbiting objects in a \mono{keplerOrbit} object.
+    !!{RST
+    Sets the masses of the two orbiting objects in a ``keplerOrbit`` object.
     !!}
     implicit none
     class           (keplerOrbit), intent(inout) :: orbit
@@ -454,7 +443,7 @@ contains
   end subroutine Kepler_Orbits_Masses_Set
 
   subroutine Kepler_Orbits_Radius_Set(orbit,radius)
-    !!{
+    !!{RST
     Sets the radius to the specified value.
     !!}
     implicit none
@@ -468,7 +457,7 @@ contains
   end subroutine Kepler_Orbits_Radius_Set
 
   subroutine Kepler_Orbits_Pericenter_Radius_Set(orbit,radius)
-    !!{
+    !!{RST
     Sets the pericenter radius to the specified value.
     !!}
     implicit none
@@ -482,7 +471,7 @@ contains
   end subroutine Kepler_Orbits_Pericenter_Radius_Set
 
   subroutine Kepler_Orbits_Apocenter_Radius_Set(orbit,radius)
-    !!{
+    !!{RST
     Sets the apocenter radius to the specified value.
     !!}
     implicit none
@@ -496,7 +485,7 @@ contains
   end subroutine Kepler_Orbits_Apocenter_Radius_Set
 
   subroutine Kepler_Orbits_Velocity_Radial_Set(orbit,velocityRadial)
-    !!{
+    !!{RST
     Sets the radial velocity to the specified value.
     !!}
     implicit none
@@ -510,7 +499,7 @@ contains
   end subroutine Kepler_Orbits_Velocity_Radial_Set
 
   subroutine Kepler_Orbits_Velocity_Tangential_Set(orbit,velocityTangential)
-    !!{
+    !!{RST
     Sets the tangential velocity to the specified value.
     !!}
     implicit none
@@ -524,7 +513,7 @@ contains
   end subroutine Kepler_Orbits_Velocity_Tangential_Set
 
   subroutine Kepler_Orbits_Energy_Set(orbit,energy)
-    !!{
+    !!{RST
     Sets the tangential velocity to the specified value.
     !!}
     implicit none
@@ -538,7 +527,7 @@ contains
   end subroutine Kepler_Orbits_Energy_Set
 
   subroutine Kepler_Orbits_Eccentricity_Set(orbit,eccentricity)
-    !!{
+    !!{RST
     Sets the tangential velocity to the specified value.
     !!}
     implicit none
@@ -552,7 +541,7 @@ contains
   end subroutine Kepler_Orbits_Eccentricity_Set
 
   subroutine Kepler_Orbits_Angular_Momentum_Set(orbit,angularMomentum)
-    !!{
+    !!{RST
     Sets the tangential velocity to the specified value.
     !!}
     implicit none
@@ -566,7 +555,7 @@ contains
   end subroutine Kepler_Orbits_Angular_Momentum_Set
 
   subroutine Kepler_Orbits_Semi_Major_Axis_Set(orbit,semiMajorAxis)
-    !!{
+    !!{RST
     Sets the semi-major axis to the specified value.
     !!}
     implicit none
@@ -580,8 +569,8 @@ contains
   end subroutine Kepler_Orbits_Semi_Major_Axis_Set
 
   subroutine Kepler_Orbits_Theta_Set(orbit,theta)
-    !!{
-    Sets the angle $\theta$ to the specified value.
+    !!{RST
+    Sets the angle :math:`\theta` to the specified value.
     !!}
     implicit none
     class           (keplerOrbit), intent(inout) :: orbit
@@ -594,8 +583,8 @@ contains
   end subroutine Kepler_Orbits_Theta_Set
 
   subroutine Kepler_Orbits_Phi_Set(orbit,phi)
-    !!{
-    Sets the angle $\phi$ to the specified value.
+    !!{RST
+    Sets the angle :math:`\phi` to the specified value.
     !!}
     implicit none
     class           (keplerOrbit), intent(inout) :: orbit
@@ -608,8 +597,8 @@ contains
   end subroutine Kepler_Orbits_Phi_Set
 
   subroutine Kepler_Orbits_Epsilon_Set(orbit,epsilon)
-    !!{
-    Sets the $\epsilon$ to the specified value.
+    !!{RST
+    Sets the :math:`\epsilon` to the specified value.
     !!}
     implicit none
     class           (keplerOrbit), intent(inout) :: orbit
@@ -622,8 +611,8 @@ contains
   end subroutine Kepler_Orbits_Epsilon_Set
 
   double precision function Kepler_Orbits_Theta(orbit)
-    !!{
-    Return the angle $\theta$ for this orbit.
+    !!{RST
+    Return the angle :math:`\theta` for this orbit.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -635,8 +624,8 @@ contains
   end function Kepler_Orbits_Theta
 
   double precision function Kepler_Orbits_Phi(orbit)
-    !!{
-    Return the angle $\phi$ for this orbit.
+    !!{RST
+    Return the angle :math:`\phi` for this orbit.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -648,8 +637,8 @@ contains
   end function Kepler_Orbits_Phi
 
   double precision function Kepler_Orbits_Epsilon(orbit)
-    !!{
-    Return the angle $\epsilon$ for this orbit.
+    !!{RST
+    Return the angle :math:`\epsilon` for this orbit.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -661,7 +650,7 @@ contains
   end function Kepler_Orbits_Epsilon
 
   double precision function Kepler_Orbits_Specific_Reduced_Mass(orbit)
-    !!{
+    !!{RST
     Return the specific reduced mass for this orbit.
     !!}
     use :: Error, only : Error_Report
@@ -674,7 +663,7 @@ contains
   end function Kepler_Orbits_Specific_Reduced_Mass
 
   double precision function Kepler_Orbits_Satellite_Mass(orbit)
-    !!{
+    !!{RST
     Return the mass for this orbit.
     !!}
     use :: Error, only : Error_Report
@@ -687,7 +676,7 @@ contains
   end function Kepler_Orbits_Satellite_Mass
 
   double precision function Kepler_Orbits_Host_Mass(orbit)
-    !!{
+    !!{RST
     Return the host mass for this orbit.
     !!}
     use :: Error, only : Error_Report
@@ -700,7 +689,7 @@ contains
   end function Kepler_Orbits_Host_Mass
 
   double precision function Kepler_Orbits_Radius(orbit)
-    !!{
+    !!{RST
     Return the radius for this orbit.
     !!}
     use :: Error, only : Error_Report
@@ -713,7 +702,7 @@ contains
   end function Kepler_Orbits_Radius
 
   double precision function Kepler_Orbits_Pericenter_Radius(orbit)
-    !!{
+    !!{RST
     Return the pericenter radius for this orbit.
     !!}
     implicit none
@@ -731,7 +720,7 @@ contains
   end function Kepler_Orbits_Pericenter_Radius
 
   double precision function Kepler_Orbits_Apocenter_Radius(orbit)
-    !!{
+    !!{RST
     Return the apocenter radius for this orbit.
     !!}
     implicit none
@@ -753,7 +742,7 @@ contains
   end function Kepler_Orbits_Apocenter_Radius
 
   double precision function Kepler_Orbits_Velocity_Radial(orbit)
-    !!{
+    !!{RST
     Return the radial velocity for this orbit.
     !!}
     use :: Error, only : Error_Report
@@ -778,7 +767,7 @@ contains
   end function Kepler_Orbits_Velocity_Radial
 
   double precision function Kepler_Orbits_Velocity_Tangential(orbit)
-    !!{
+    !!{RST
     Return the tangential velocity for this orbit.
     !!}
     use :: Error, only : Error_Report
@@ -807,7 +796,7 @@ contains
   end function Kepler_Orbits_Velocity_Tangential
 
   double precision function Kepler_Orbits_Energy(orbit)
-    !!{
+    !!{RST
     Return the energy for this orbit.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -828,7 +817,7 @@ contains
   end function Kepler_Orbits_Energy
 
   double precision function Kepler_Orbits_Angular_Momentum(orbit)
-    !!{
+    !!{RST
     Return the angular momentum for this orbit.
     !!}
     implicit none
@@ -843,7 +832,7 @@ contains
   end function Kepler_Orbits_Angular_Momentum
 
   double precision function Kepler_Orbits_Eccentricity(orbit)
-    !!{
+    !!{RST
     Return the eccentricity for this orbit.
     !!}
     implicit none
@@ -862,7 +851,7 @@ contains
   end function Kepler_Orbits_Eccentricity
 
   double precision function Kepler_Orbits_Semi_Major_Axis(orbit)
-    !!{
+    !!{RST
     Return the semi-major axis for this orbit.
     !!}
     implicit none
@@ -881,10 +870,8 @@ contains
   end function Kepler_Orbits_Semi_Major_Axis
 
   logical function Kepler_Orbits_Is_Defined(orbit)
-    !!{
-    Returns true if the orbit is fully defined. For the orbits consider here, in which we don't care about the orientation of
-    the orbital plane or the argument of pericenter, this requires that three orbital parameter be set (in addition to the
-    masses of the orbiting bodies).
+    !!{RST
+    Returns true if the orbit is fully defined. For the orbits consider here, in which we don't care about the orientation of the orbital plane or the argument of pericenter, this requires that three orbital parameter be set (in addition to the masses of the orbiting bodies).
     !!}
     implicit none
     class  (keplerOrbit), intent(in   ) :: orbit
@@ -912,7 +899,7 @@ contains
   end function Kepler_Orbits_Is_Defined
 
   subroutine Kepler_Orbits_Assert_Is_Defined(orbit)
-    !!{
+    !!{RST
     Assert that an orbit is defined - quit with an error if it is not.
     !!}
     use :: Error, only : Error_Report
@@ -924,7 +911,7 @@ contains
   end subroutine Kepler_Orbits_Assert_Is_Defined
 
   logical function Kepler_Orbits_Is_Bound(orbit)
-    !!{
+    !!{RST
     Returns true if the orbit is bound.
     !!}
     implicit none
@@ -938,7 +925,7 @@ contains
   end function Kepler_Orbits_Is_Bound
 
   double precision function Kepler_Orbits_Velocity_Scale(orbit)
-    !!{
+    !!{RST
     Return the velocity scale for the orbit.
     !!}
     use :: Error                           , only : Error_Report
@@ -954,7 +941,7 @@ contains
   end function Kepler_Orbits_Velocity_Scale
 
   subroutine Kepler_Orbits_Propagate(orbit,newRadius,infalling)
-    !!{
+    !!{RST
     Propagate an orbit along its path.
     !!}
     use :: Error                           , only : Error_Report
@@ -1069,7 +1056,7 @@ contains
   end subroutine Kepler_Orbits_Propagate
 
   function Kepler_Orbits_Position(orbit) result(position)
-    !!{
+    !!{RST
     Return the position of the orbit in Cartesian coordinates.
     !!}
     use :: Coordinates, only : assignment(=), coordinateCartesian
@@ -1087,7 +1074,7 @@ contains
   end function Kepler_Orbits_Position
 
   function Kepler_Orbits_Velocity(orbit) result(velocity)
-    !!{
+    !!{RST
     Return the position of the orbit in Cartesian coordinates.
     !!}
     use :: Coordinates, only : assignment(=) , coordinateCartesian
@@ -1114,7 +1101,7 @@ contains
   end function Kepler_Orbits_Velocity
 
   function Kepler_Orbits_Non_Static_Size_Of(self)
-    !!{
+    !!{RST
     Return the size of any non-static components of the object.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -1128,8 +1115,8 @@ contains
   end function Kepler_Orbits_Non_Static_Size_Of
 
   logical function Kepler_Orbits_Equivalent(orbit1,orbit2) result(equivalent)
-    !!{
-    Test whether two \mono{keplerOrbit} objects are equal.
+    !!{RST
+    Test whether two ``keplerOrbit`` objects are equal.
     !!}
     implicit none
     class(keplerOrbit), intent(in   ) :: orbit1, orbit2

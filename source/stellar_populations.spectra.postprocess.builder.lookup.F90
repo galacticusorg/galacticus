@@ -17,28 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a stellar population spectra postprocessor builder which simply looks up postprocessors by name.
   !!}
 
   !![
-  <stellarPopulationSpectraPostprocessorBuilder name="stellarPopulationSpectraPostprocessorBuilderLookup">
-   <description>A stellar population spectra postprocessor builder which simply looks up postprocessors by name.</description>
+  <stellarPopulationSpectraPostprocessorBuilder name="stellarPopulationSpectraPostprocessorBuilderLookup" docformat="rst">
+   <description>
+   A stellar population spectra postprocessor builder which simply looks up postprocessors by name.
+   </description>
    <descriptorSpecial>descriptorSpecial</descriptorSpecial>
    <assignment forceArrayAssign="names"/>
   </stellarPopulationSpectraPostprocessorBuilder>
   !!]
   type, extends(stellarPopulationSpectraPostprocessorBuilderClass) :: stellarPopulationSpectraPostprocessorBuilderLookup
-     !!{
+     !!{RST
      A stellar population spectra postprocessor builder which simply looks up postprocessors by name.
      !!}
      private
      !![
-     <workaround type="gfortran">
+     <workaround type="gfortran" docformat="rst">
        <description>
-	 Having `names` be `allocatable` in the following (which would be preferable) results in a memory leak on assignment. I
-	 have not been able to figure out why this happens. So, we make it a `pointer` array, and handle deallocation manually
-	 (and set `forceArrayAssign` above so that assignment is done, rather than just pointer assignment).
+       Having `names` be `allocatable` in the following (which would be preferable) results in a memory leak on assignment. I have not been able to figure out why this happens. So, we make it a `pointer` array, and handle deallocation manually (and set `forceArrayAssign` above so that assignment is done, rather than just pointer assignment).
        </description>
      </workaround>
      !!]
@@ -46,7 +46,7 @@
      type(stellarPopulationSpectraPostprocessorList), allocatable, dimension(:) :: postprocessors
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."/>
      </methods>
      !!]
@@ -56,8 +56,8 @@
   end type stellarPopulationSpectraPostprocessorBuilderLookup
 
   interface stellarPopulationSpectraPostprocessorBuilderLookup
-     !!{
-     Constructors for the \refClass{stellarPopulationSpectraPostprocessorBuilderLookup} stellar population spectra postprocessor builder class.
+     !!{RST
+     Constructors for the :galacticus-class:`stellarPopulationSpectraPostprocessorBuilderLookup` stellar population spectra postprocessor builder class.
      !!}
      module procedure lookupConstructorParameters
      module procedure lookupConstructorInternal
@@ -66,9 +66,8 @@
 contains
 
   function lookupConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarPopulationSpectraPostprocessorBuilderLookup} stellar population spectra postprocessor builder class which takes a
-    parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`stellarPopulationSpectraPostprocessorBuilderLookup` stellar population spectra postprocessor builder class which takes a parameter list as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -87,16 +86,20 @@ contains
     allocate(names         (countPostprocessors))
     allocate(postprocessors(countPostprocessors))
     !![
-    <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
-      <description>Missing finalization of array constructors after their use in gfortran (PR\#37336); workaround initializes the default names array using \mono{var\_str} before passing to \mono{inputParameter}.</description>
+    <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336" docformat="rst">
+      <description>
+      Missing finalization of array constructors after their use in gfortran (PR#37336); workaround initializes the default names array using ``var_str`` before passing to ``inputParameter``.
+      </description>
     </workaround>
     !!]   
     namesDefault(1)=var_str('default')
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>names</name>
       <defaultValue>namesDefault</defaultValue>
-      <description>The string names (e.g., \mono{default}, \mono{intrinsic}) assigned to each stellar spectra postprocessor, used as lookup keys when the builder is asked to return the postprocessor appropriate for a given filter or descriptor.</description>
+      <description>
+      The string names (e.g., ``default``, ``intrinsic``) assigned to each stellar spectra postprocessor, used as lookup keys when the builder is asked to return the postprocessor appropriate for a given filter or descriptor.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="stellarPopulationSpectraPostprocessor" name="postprocessors(i)%stellarPopulationSpectraPostprocessor_" source="parameters" copy="i=1,countPostprocessors"/>
@@ -114,8 +117,8 @@ contains
   end function lookupConstructorParameters
 
   function lookupConstructorInternal(names,postprocessors) result(self)
-    !!{
-    Internal constructor for the \refClass{stellarPopulationSpectraPostprocessorBuilderLookup} stellar population spectra postprocessor builder.
+    !!{RST
+    Internal constructor for the :galacticus-class:`stellarPopulationSpectraPostprocessorBuilderLookup` stellar population spectra postprocessor builder.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -139,8 +142,8 @@ contains
   end function lookupConstructorInternal
 
   subroutine lookupDestructor(self)
-    !!{
-    Destructor for the \refClass{stellarPopulationSpectraPostprocessorBuilderLookup} stellar population spectra postprocessor builder.
+    !!{RST
+    Destructor for the :galacticus-class:`stellarPopulationSpectraPostprocessorBuilderLookup` stellar population spectra postprocessor builder.
     !!}
     implicit none
     type   (stellarPopulationSpectraPostprocessorBuilderLookup), intent(inout) :: self
@@ -158,7 +161,7 @@ contains
   end subroutine lookupDestructor
 
   function lookupBuild(self,descriptor) result(postprocessor)
-    !!{
+    !!{RST
     Return a stellar population spectra postprocessor by lookup via name.
     !!}
     use :: Error, only : Error_Report
@@ -177,7 +180,7 @@ contains
   end function lookupBuild
 
   subroutine lookupDescriptorSpecial(self,descriptor)
-    !!{
+    !!{RST
     Add special parameters to the descriptor.
     !!}
     use :: Input_Parameters, only : inputParameters

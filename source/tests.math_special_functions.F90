@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test mathematical special functions.
 !!}
 
 program Test_Math_Special_Functions
-  !!{
+  !!{RST
   Tests of mathematical special functions.
   !!}
   use :: Bessel_Functions        , only : Bessel_Function_I0               , Bessel_Function_I1                             , Bessel_Function_J0                     , Bessel_Function_J0_Zero       , &

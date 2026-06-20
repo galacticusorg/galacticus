@@ -17,15 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements various utility functions for extracting data from XML files, including DOM tree traversal,
-XPath-like element lookup, data array extraction, and XInclude reference resolution.
+!!{RST
+Contains a module which implements various utility functions for extracting data from XML files, including DOM tree traversal, XPath-like element lookup, data array extraction, and XInclude reference resolution.
 !!}
 
 module IO_XML
-  !!{
-  Implements various utility functions for extracting data from XML files using the FoX DOM library, including element
-  search by tag name, array data reading, XPath-style path traversal, and recursive resolution of \mono{xi:include} directives.
+  !!{RST
+  Implements various utility functions for extracting data from XML files using the FoX DOM library, including element search by tag name, array data reading, XPath-style path traversal, and recursive resolution of ``xi:include`` directives.
   !!}
   use :: FoX_dom           , only : node
   use :: ISO_Varying_String, only : varying_string
@@ -56,23 +54,22 @@ module IO_XML
   end interface XML_Parse
   
   type :: xincludeNode
-     !!{
-     Type used to track a pending \mono{xi:include} element while resolving XInclude references during XML parsing, storing
-     the parent node, the include element itself, the file to be included, and an optional XPointer expression.
+     !!{RST
+     Type used to track a pending ``xi:include`` element while resolving XInclude references during XML parsing, storing the parent node, the include element itself, the file to be included, and an optional XPointer expression.
      !!}
      type(node          ), pointer :: nodeParent => null(), nodeXInclude => null()
      type(varying_string)          :: fileName            , xPath
   end type xincludeNode
 
   type :: xincludeNodeList
-     !!{
+     !!{RST
      Type used while resolving XInclude references during XML parsing.
      !!}
      type(xmlNodeList), allocatable, dimension(:) :: nodes
   end type xincludeNodeList
 
   type :: xmlNodeList
-     !!{
+     !!{RST
      Type used to provide lists of XML nodes.
      !!}
      type(node), pointer :: element => null()
@@ -81,7 +78,7 @@ module IO_XML
 contains
 
   function XML_Extract_Text(xmlElement)
-    !!{
+    !!{RST
     Extract the text from an XML element and return as a variable length string.
     !!}
     use :: FoX_dom           , only : getTextContent, node
@@ -95,7 +92,7 @@ contains
   end function XML_Extract_Text
 
   subroutine XML_Array_Read_Static_One_Column(xmlElement,arrayElementName,column1)
-    !!{
+    !!{RST
     Read one column of data from an array of XML elements.
     !!}
     use :: FoX_dom, only : extractDataContent, getElementsByTagName, node
@@ -118,7 +115,7 @@ contains
   end subroutine XML_Array_Read_Static_One_Column
 
   subroutine XML_Array_Read_One_Column(xmlElement,arrayElementName,column1)
-    !!{
+    !!{RST
     Read one column of data from an array of XML elements.
     !!}
     use :: FoX_dom          , only : extractDataContent, getElementsByTagName, node
@@ -143,7 +140,7 @@ contains
   end subroutine XML_Array_Read_One_Column
 
   subroutine XML_Array_Read_Two_Column(xmlElement,arrayElementName,column1,column2)
-    !!{
+    !!{RST
     Read two columns of data from an array of XML elements.
     !!}
     use :: FoX_dom          , only : extractDataContent, getElementsByTagName, node
@@ -171,7 +168,7 @@ contains
   end subroutine XML_Array_Read_Two_Column
 
   subroutine XML_List_Array_Read_One_Column(xmlElements,arrayElementName,column1)
-    !!{
+    !!{RST
     Read one column of data from an array of XML elements.
     !!}
     use :: FoX_dom          , only : extractDataContent, node
@@ -194,7 +191,7 @@ contains
   end subroutine XML_List_Array_Read_One_Column
 
   subroutine XML_List_Double_Array_Read_Static_One_Column(xmlElements,arrayElementName,column1)
-    !!{
+    !!{RST
     Read one column of integer data from an array of XML elements.
     !!}
     use :: FoX_dom, only : extractDataContent, node
@@ -215,7 +212,7 @@ contains
   end subroutine XML_List_Double_Array_Read_Static_One_Column
 
   subroutine XML_List_Integer_Array_Read_Static_One_Column(xmlElements,arrayElementName,column1)
-    !!{
+    !!{RST
     Read one column of integer data from an array of XML elements.
     !!}
     use :: FoX_dom, only : extractDataContent, node
@@ -236,7 +233,7 @@ contains
   end subroutine XML_List_Integer_Array_Read_Static_One_Column
 
   subroutine XML_List_Character_Array_Read_Static_One_Column(xmlElements,arrayElementName,column1)
-    !!{
+    !!{RST
     Read one column of character data from an array of XML elements.
     !!}
     use :: FoX_dom, only : extractDataContent, node
@@ -257,7 +254,7 @@ contains
   end subroutine XML_List_Character_Array_Read_Static_One_Column
   
   subroutine XML_Get_Child_Elements(xmlElement,elements)
-    !!{
+    !!{RST
     Return a list of pointers to all child nodes.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -291,8 +288,8 @@ contains
   end subroutine XML_Get_Child_Elements
   
   recursive subroutine XML_Get_Elements_By_Tag_Name(xmlElement,tagName,elements)
-    !!{
-    Return a list of pointers to all nodes matching a given \mono{tagName}.
+    !!{RST
+    Return a list of pointers to all nodes matching a given ``tagName``.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: FoX_DOM      , only : Element_Node, getFirstChild, getNextSibling, getNodeName , &
@@ -343,8 +340,8 @@ contains
   end subroutine XML_Get_Elements_By_Tag_Name
   
   recursive function XML_Count_Elements_By_Tag_Name(xmlElement,tagName) result(countElements)
-    !!{
-    Return a count of all nodes matching a given \mono{tagName}.
+    !!{RST
+    Return a count of all nodes matching a given ``tagName``.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: FoX_DOM      , only : Element_Node, getFirstChild, getNextSibling, getNodeName, &
@@ -383,8 +380,8 @@ contains
   end function XML_Count_Elements_By_Tag_Name
 
   function XML_Get_First_Element_By_Tag_Name(xmlElement,tagName,directChildrenOnly) result(element)
-    !!{
-    Return a pointer to the first node in an XML node that matches the given \mono{tagName}.
+    !!{RST
+    Return a pointer to the first node in an XML node that matches the given ``tagName``.
     !!}
     use :: FoX_dom, only : getParentNode, node
     use :: Error  , only : Error_Report
@@ -441,8 +438,8 @@ contains
   end function XML_Get_First_Element_By_Tag_Name
 
   logical function XML_Path_Exists(xmlElement,path)
-    !!{
-    Return true if the supplied \mono{path} exists in the supplied \mono{xmlElement}.
+    !!{RST
+    Return true if the supplied ``path`` exists in the supplied ``xmlElement``.
     !!}
     use :: FoX_dom, only : ELEMENT_NODE , getElementsByTagName, getLength, getNodeType, &
           &                getParentNode, node
@@ -489,9 +486,8 @@ contains
   end function XML_Path_Exists
 
   subroutine XML_Extrapolation_Element_Decode(extrapolationElement,limitType,extrapolationMethod,allowedMethods)
-    !!{
-    Extracts information from a standard XML \mono{extrapolationElement}. Optionally a set of \mono{allowedMethods} can be
-    specified---if the extracted method does not match one of these an error is issued.
+    !!{RST
+    Extracts information from a standard XML ``extrapolationElement``. Optionally a set of ``allowedMethods`` can be specified---if the extracted method does not match one of these an error is issued.
     !!}
     use :: FoX_dom     , only : extractDataContent                , node
     use :: Error       , only : Error_Report
@@ -524,7 +520,7 @@ contains
   end subroutine XML_Extrapolation_Element_Decode
   
   function XML_Parse_VarStr(fileName,iostat,ex,fileNameCurrent) result(document)
-    !!{
+    !!{RST
     Parse an XML document, automatically resolve XInclude references.
     !!}
     use :: FoX_dom           , only : DOMException, node
@@ -541,7 +537,7 @@ contains
   end function XML_Parse_VarStr
   
   function XML_Parse_Char(fileName,iostat,ex,fileNameCurrent) result(document)
-    !!{
+    !!{RST
     Parse an XML document, automatically resolve XInclude references.
     !!}
     use :: File_Utilities    , only : File_Exists  , File_Name         , File_Path    , File_Name_Expand

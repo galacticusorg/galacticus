@@ -17,27 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a property extractor class for the orbital adiabatic ratio of disks.
 !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorAdiabaticRatioOrbitalDisk">
+  <nodePropertyExtractor name="nodePropertyExtractorAdiabaticRatioOrbitalDisk" docformat="rst">
     <description>
-      A property extractor class for the orbital adiabatic ratio of disks. The orbital adiabatic ratio, $\mathcal{R}$, is defined
-      as:
-      \begin{equation}
-      \mathcal{R} = \frac{r_\mathrm{p} / v_\mathrm{p}}{2 \pi R_\mathrm{d} / v_\mathrm{d}},
-      \end{equation}      
-      where $r_\mathrm{p}$ and $v_\mathrm{p}$ are the orbital radius and velocity at pericenter respectively, and $R_\mathrm{d}$
-      and $v_\mathrm{d}$ are the characteristic radius of the disk and the rotation curve at that radius respectively.
+    A property extractor class for the orbital adiabatic ratio of disks. The orbital adiabatic ratio, :math:`\mathcal{R}`, is defined as:
+
+    .. math::
+
+       \mathcal{R} = \frac{r_\mathrm{p} / v_\mathrm{p}}{2 \pi R_\mathrm{d} / v_\mathrm{d}},
+
+    where :math:`r_\mathrm{p}` and :math:`v_\mathrm{p}` are the orbital radius and velocity at pericenter respectively, and :math:`R_\mathrm{d}` and :math:`v_\mathrm{d}` are the characteristic radius of the disk and the rotation curve at that radius respectively.
     </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorAdiabaticRatioOrbitalDisk
-     !!{
+     !!{RST
      A property extractor class for the orbital adiabatic ratio of disks.
      !!}
      private
@@ -52,8 +52,8 @@ Implements a property extractor class for the orbital adiabatic ratio of disks.
   end type nodePropertyExtractorAdiabaticRatioOrbitalDisk
 
   interface nodePropertyExtractorAdiabaticRatioOrbitalDisk
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorAdiabaticRatioOrbitalDisk` property extractor class.
      !!}
      module procedure adiabaticRatioOrbitalDiskConstructorParameters
      module procedure adiabaticRatioOrbitalDiskConstructorInternal
@@ -62,8 +62,8 @@ Implements a property extractor class for the orbital adiabatic ratio of disks.
 contains
 
   function adiabaticRatioOrbitalDiskConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorAdiabaticRatioOrbitalDisk` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -83,8 +83,8 @@ contains
   end function adiabaticRatioOrbitalDiskConstructorParameters
 
   function adiabaticRatioOrbitalDiskConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorAdiabaticRatioOrbitalDisk` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorAdiabaticRatioOrbitalDisk)                        :: self
@@ -97,8 +97,8 @@ contains
   end function adiabaticRatioOrbitalDiskConstructorInternal
 
   subroutine adiabaticRatioOrbitalDiskDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorAdiabaticRatioOrbitalDisk} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorAdiabaticRatioOrbitalDisk` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorAdiabaticRatioOrbitalDisk), intent(inout) :: self
@@ -110,7 +110,7 @@ contains
   end subroutine adiabaticRatioOrbitalDiskDestructor
   
   double precision function adiabaticRatioOrbitalDiskExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement extraction of the orbital adiabatic ratio for disks.
     !!}
     use :: Galacticus_Nodes        , only : nodeComponentDisk                               , nodeComponentSatellite
@@ -150,7 +150,7 @@ contains
   end function adiabaticRatioOrbitalDiskExtract
 
   function adiabaticRatioOrbitalDiskName(self)
-    !!{
+    !!{RST
     Return the name of the orbital adiabatic ratio for disks property.
     !!}
     implicit none
@@ -163,7 +163,7 @@ contains
   end function adiabaticRatioOrbitalDiskName
 
   function adiabaticRatioOrbitalDiskDescription(self)
-    !!{
+    !!{RST
     Return a description of the orbital adiabatic ratio for disks property.
     !!}
     implicit none
@@ -176,7 +176,7 @@ contains
   end function adiabaticRatioOrbitalDiskDescription
 
   double precision function adiabaticRatioOrbitalDiskUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the orbital adiabatic ratio for disks property in the SI system.
     !!}
     implicit none
@@ -188,7 +188,7 @@ contains
   end function adiabaticRatioOrbitalDiskUnitsInSI
 
   function adiabaticRatioOrbitalDiskUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the adiabaticRatioOrbitalDisk property.
     !!}
     use :: Units_MetaData, only : unitType

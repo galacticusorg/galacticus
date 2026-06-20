@@ -19,12 +19,12 @@
 
 !+    Contributions to this file made by: Xiaolong Du, Andrew Benson.
 
-!!{
+!!{RST
 Contains a program which tests the calculation of dark matter halo radius enclosing a given mass.
 !!}
 
 program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
-  !!{
+  !!{RST
   Tests the calculation of dark matter halo radius enclosing a given mass.
   !!}
   use :: Cosmology_Parameters      , only : cosmologyParametersSimple

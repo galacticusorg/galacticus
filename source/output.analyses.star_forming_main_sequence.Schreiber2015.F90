@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements an output analysis class for the star forming main sequence measurements of \cite{schreiber_herschel_2015}.
+  !!{RST
+  Implements an output analysis class for the star forming main sequence measurements of :cite:t:`schreiber_herschel_2015`.
   !!}
 
   !![
-  <outputAnalysis name="outputAnalysisStarFormingMainSequenceSchreiber2015">
-    <description>Computes the star-forming main sequence (mean specific star formation rate vs. stellar mass) at one of six redshift indices for comparison with the Herschel \cite{schreiber_herschel_2015} measurements, with stellar mass and specific SFR random/systematic error polynomial coefficients.</description>
+  <outputAnalysis name="outputAnalysisStarFormingMainSequenceSchreiber2015" docformat="rst">
+    <description>
+    Computes the star-forming main sequence (mean specific star formation rate vs. stellar mass) at one of six redshift indices for comparison with the Herschel :cite:t:`schreiber_herschel_2015` measurements, with stellar mass and specific SFR random/systematic error polynomial coefficients.
+    </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisStarFormingMainSequence) :: outputAnalysisStarFormingMainSequenceSchreiber2015
-     !!{
-     An output analysis class for the star forming main sequence measurements of \cite{schreiber_herschel_2015}.
+     !!{RST
+     An output analysis class for the star forming main sequence measurements of :cite:t:`schreiber_herschel_2015`.
      !!}
      private
      class           (cosmologyParametersClass), pointer                     :: cosmologyParameters_                       => null()
@@ -41,8 +43,8 @@
   end type outputAnalysisStarFormingMainSequenceSchreiber2015
 
   interface outputAnalysisStarFormingMainSequenceSchreiber2015
-     !!{
-     Constructors for the \refClass{outputAnalysisStarFormingMainSequenceSchreiber2015} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisStarFormingMainSequenceSchreiber2015` output analysis class.
      !!}
      module procedure starFormingMainSequenceSchreiber2015ConstructorParameters
      module procedure starFormingMainSequenceSchreiber2015ConstructorInternal
@@ -51,8 +53,8 @@
 contains
 
   function starFormingMainSequenceSchreiber2015ConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisStarFormingMainSequenceSchreiber2015} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisStarFormingMainSequenceSchreiber2015` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Parameters, only : cosmologyParameters   , cosmologyParametersClass
     use :: Cosmology_Functions , only : cosmologyFunctions    , cosmologyFunctionsClass
@@ -87,45 +89,57 @@ contains
        allocate(weightSystematicErrorPolynomialCoefficient(1                                                   ))
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for SDSS stellar masses.</description>
+      <description>
+      The minimum random error for SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for SDSS stellar masses.</description>
+      <description>
+      The minimum random error for SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.07d0]</defaultValue>
-      <description>The coefficients of the random error polynomial for SDSS stellar masses.</description>
+      <description>
+      The coefficients of the random error polynomial for SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for SDSS stellar masses.</description>
+      <description>
+      The coefficients of the systematic error polynomial for SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>weightSystematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>weightSystematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for specific star formation rates.</description>
+      <description>
+      The coefficients of the systematic error polynomial for specific star formation rates.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftIndex</name>
       <source>parameters</source>
-      <description>The redshift index (1-6) for this analysis.</description>
+      <description>
+      The redshift index (1-6) for this analysis.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"                  name="cosmologyParameters_"                  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"                   name="cosmologyFunctions_"                   source="parameters"/>
@@ -148,8 +162,8 @@ contains
   end function starFormingMainSequenceSchreiber2015ConstructorParameters
 
   function starFormingMainSequenceSchreiber2015ConstructorInternal(redshiftIndex,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisStarFormingMainSequenceSchreiber2015} output analysis class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisStarFormingMainSequenceSchreiber2015` output analysis class.
     !!}
     use :: Error                                 , only : Error_Report
     use :: Cosmology_Functions                   , only : cosmologyFunctionsMatterLambda
@@ -350,8 +364,8 @@ contains
   end function starFormingMainSequenceSchreiber2015ConstructorInternal
 
   subroutine starFormingMainSequenceSchreiber2015Destructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisStarFormingMainSequenceSchreiber2015} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisStarFormingMainSequenceSchreiber2015` output analysis class.
     !!}
     implicit none
     type(outputAnalysisStarFormingMainSequenceSchreiber2015), intent(inout) :: self

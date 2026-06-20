@@ -17,38 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements gravitational lensing from large scale structure.
 !!}
 
 module Gravitational_Lensing
-  !!{
+  !!{RST
   Implements gravitational lensing from large scale structure.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
   <name>gravitationalLensing</name>
    <descriptiveName>Gravitational Lensing</descriptiveName>
    <description>
-    Class providing models of the gravitational lensing magnification distribution due to intervening
-    large-scale structure along a line of sight---the probability density and cumulative distribution
-    of the magnification factor $\mu$ as a function of source redshift and angular source size. Strong
-    lensing by massive halos can boost observed fluxes significantly, affecting number counts and
-    luminosity functions at the bright end. Implementations typically follow fitting functions calibrated
-    to ray-tracing simulations (e.g.\ \citealt{takahashi_full-sky_2017}) and depend on the matter
-    power spectrum and cosmological model.
+   Class providing models of the gravitational lensing magnification distribution due to intervening large-scale structure along a line of sight---the probability density and cumulative distribution of the magnification factor :math:`\mu` as a function of source redshift and angular source size. Strong lensing by massive halos can boost observed fluxes significantly, affecting number counts and luminosity functions at the bright end. Implementations typically follow fitting functions calibrated to ray-tracing simulations (e.g.\ :cite:author:`takahashi_full-sky_2017` :cite:year:`takahashi_full-sky_2017`) and depend on the matter power spectrum and cosmological model.
    </description>
    <default>takahashi2011</default>
    <method name="magnificationPDF" >
-    <description>Returns the differential probability $\mathrm{d}P/\mathrm{d}\mu$ for a source at the given \mono{redshift} and angular size \mono{scaleSource} to be magnified by factor \mono{magnification} due to gravitational lensing.</description>
+    <description>
+    Returns the differential probability :math:`\mathrm{d}P/\mathrm{d}\mu` for a source at the given ``redshift`` and angular size ``scaleSource`` to be magnified by factor ``magnification`` due to gravitational lensing.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: magnification, redshift, scaleSource</argument>
    </method>
    <method name="magnificationCDF" >
-    <description>Returns the cumulative probability $P(\mu' \le \mu)$ that a source at the given \mono{redshift} and angular size \mono{scaleSource} has a gravitational lensing magnification less than or equal to \mono{magnification}.</description>
+    <description>
+    Returns the cumulative probability :math:`P(\mu' \le \mu)` that a source at the given ``redshift`` and angular size ``scaleSource`` has a gravitational lensing magnification less than or equal to ``magnification``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: magnification, redshift, scaleSource</argument>

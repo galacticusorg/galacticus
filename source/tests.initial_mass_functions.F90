@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test stellar initial mass functions.
 !!}
 
 program Test_Initial_Mass_Functions
-  !!{
+  !!{RST
   Tests of stellar initial mass functions.
   !!}
   use :: Display                                   , only : displayVerbositySet             , verbosityLevelStandard
@@ -225,7 +225,7 @@ program Test_Initial_Mass_Functions
 contains
 
   double precision function initialMassFunctionIntegrand(mass)
-    !!{
+    !!{RST
     Integrand used to find the total mass in the initial mass function.
     !!}
     implicit none
@@ -237,7 +237,7 @@ contains
   end function initialMassFunctionIntegrand
 
   double precision function numberTypeIaSNeIntegrand(massSecondary)
-    !!{
+    !!{RST
     Integrand used to find the cumulative number of Type Ia SNe.
     !!}
     implicit none

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a zero rate stellar feedback model.
   !!}
 
   !![
-  <stellarFeedbackOutflows name="stellarFeedbackOutflowsZero">
-   <description>A stellar feedback outflow model that produces zero outflow rate, used to disable stellar feedback-driven gas ejection while still satisfying the interface requirements of the stellar feedback outflows class.</description>
+  <stellarFeedbackOutflows name="stellarFeedbackOutflowsZero" docformat="rst">
+   <description>
+   A stellar feedback outflow model that produces zero outflow rate, used to disable stellar feedback-driven gas ejection while still satisfying the interface requirements of the stellar feedback outflows class.
+   </description>
   </stellarFeedbackOutflows>
   !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsZero
-     !!{
+     !!{RST
      Implementation of a zero rate stellar feedback model.
      !!}
      private
@@ -36,7 +38,7 @@
   end type stellarFeedbackOutflowsZero
 
   interface stellarFeedbackOutflowsZero
-     !!{
+     !!{RST
      Constructors for the zero rate stellar feedback model.
      !!}
      module procedure zeroConstructorParameters
@@ -45,7 +47,7 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the stellar feedback class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -61,7 +63,7 @@ contains
   end function zeroConstructorParameters
 
   subroutine zeroOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
-    !!{
+    !!{RST
     Returns a zero outflow rate from disks
     !!}
     implicit none

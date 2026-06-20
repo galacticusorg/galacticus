@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements an N-body data operator which computes formation times of halos.
 !!}
 
@@ -25,12 +25,14 @@ Contains a module which implements an N-body data operator which computes format
   use            :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <nbodyOperator name="nbodyOperatorTimeOfFormation">
-   <description>An N-body data operator which computes formation times of halos.</description>
+  <nbodyOperator name="nbodyOperatorTimeOfFormation" docformat="rst">
+   <description>
+   An N-body data operator which computes formation times of halos.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorTimeOfFormation
-     !!{
+     !!{RST
      An N-body data operator which computes formation times of halos.
      !!}
      private
@@ -42,8 +44,8 @@ Contains a module which implements an N-body data operator which computes format
   end type nbodyOperatorTimeOfFormation
 
   interface nbodyOperatorTimeOfFormation
-     !!{
-     Constructors for the ``timeOfFormation'' N-body operator class.
+     !!{RST
+     Constructors for the "timeOfFormation" N-body operator class.
      !!}
      module procedure timeOfFormationConstructorParameters
      module procedure timeOfFormationConstructorInternal
@@ -52,8 +54,8 @@ Contains a module which implements an N-body data operator which computes format
 contains
 
   function timeOfFormationConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the ``timeOfFormation'' N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the "timeOfFormation" N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -63,10 +65,12 @@ contains
     double precision                                              :: fractionFormation
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionFormation</name>
       <source>parameters</source>
-      <description>The mass fraction used to define the formation epoch.</description>
+      <description>
+      The mass fraction used to define the formation epoch.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
@@ -79,8 +83,8 @@ contains
   end function timeOfFormationConstructorParameters
 
   function timeOfFormationConstructorInternal(fractionFormation,cosmologyFunctions_) result (self)
-    !!{
-    Internal constructor for the ``timeOfFormation'' N-body operator class.
+    !!{RST
+    Internal constructor for the "timeOfFormation" N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorTimeOfFormation)                        :: self
@@ -94,8 +98,8 @@ contains
   end function timeOfFormationConstructorInternal
   
   subroutine timeOfFormationDestructor(self)
-    !!{
-    Destructor for the ``timeOfFormation'' N-body operator class.
+    !!{RST
+    Destructor for the "timeOfFormation" N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorTimeOfFormation), intent(inout) :: self
@@ -107,7 +111,7 @@ contains
   end subroutine timeOfFormationDestructor
 
   subroutine timeOfFormationOperate(self,simulations)
-    !!{
+    !!{RST
     Compute formation times of halos.
     !!}
     use    :: Arrays_Search     , only : searchArray       , searchIndexed

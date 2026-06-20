@@ -19,130 +19,131 @@
 
 !+    Contributions to this file made by: Andrew Benson, Xiaolong Du.
 
-  !!{
+  !!{RST
   Implements a file-based transfer function class for fuzzy dark matter.
   !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass, darkMatterParticleFuzzyDarkMatter
 
   !![
-  <transferFunction name="transferFunctionFileFuzzyDarkMatter">
+  <transferFunction name="transferFunctionFileFuzzyDarkMatter" docformat="rst">
    <description>
-  Provides a fuzzy dark matter transfer function from a tabulation given in an HDF5 file with the following structure:
-  \begin{verbatim}
-  HDF5 "transferFunction.hdf5" {
-  GROUP "/" {
-     ATTRIBUTE "description" {
-        DATATYPE  H5T_STRING {
-           STRSIZE 71;
-           STRPAD H5T_STR_NULLTERM;
-           CSET H5T_CSET_ASCII;
-           CTYPE H5T_C_S1;
-        }
-        DATASPACE  SCALAR
-     }
-     ATTRIBUTE "fileFormat" {
-        DATATYPE  H5T_STD_I32LE
-        DATASPACE  SCALAR
-     }
-     ATTRIBUTE "redshift" {
-        DATATYPE  H5T_STD_I32LE
-        DATASPACE  SCALAR
-     }
-     GROUP "extrapolation" {
-        GROUP "wavenumber" {
-           ATTRIBUTE "high" {
-              DATATYPE  H5T_STRING {
-                 STRSIZE 11;
-                 STRPAD H5T_STR_NULLTERM;
-                 CSET H5T_CSET_ASCII;
-                 CTYPE H5T_C_S1;
-              }
-              DATASPACE  SCALAR
-           }
-           ATTRIBUTE "low" {
-              DATATYPE  H5T_STRING {
-                 STRSIZE 3;
-                 STRPAD H5T_STR_NULLTERM;
-                 CSET H5T_CSET_ASCII;
-                 CTYPE H5T_C_S1;
-              }
-              DATASPACE  SCALAR
-           }
-        }
-     }
-     GROUP "parameters" {
-        ATTRIBUTE "HubbleConstant" {
-           DATATYPE  H5T_STRING {
-              STRSIZE 4;
-              STRPAD H5T_STR_NULLTERM;
-              CSET H5T_CSET_ASCII;
-              CTYPE H5T_C_S1;
-           }
-           DATASPACE  SCALAR
-        }
-        ATTRIBUTE "OmegaBaryon" {
-           DATATYPE  H5T_STRING {
-              STRSIZE 6;
-              STRPAD H5T_STR_NULLTERM;
-              CSET H5T_CSET_ASCII;
-              CTYPE H5T_C_S1;
-           }
-           DATASPACE  SCALAR
-        }
-        ATTRIBUTE "OmegaDarkEnergy" {
-           DATATYPE  H5T_STRING {
-              STRSIZE 5;
-              STRPAD H5T_STR_NULLTERM;
-              CSET H5T_CSET_ASCII;
-              CTYPE H5T_C_S1;
-           }
-           DATASPACE  SCALAR
-        }
-        ATTRIBUTE "OmegaMatter" {
-           DATATYPE  H5T_STRING {
-              STRSIZE 5;
-              STRPAD H5T_STR_NULLTERM;
-              CSET H5T_CSET_ASCII;
-              CTYPE H5T_C_S1;
-           }
-           DATASPACE  SCALAR
-        }
-        ATTRIBUTE "fuzzyDMMass" {
-           DATATYPE  H5T_STRING {
-              STRSIZE 6;
-              STRPAD H5T_STR_NULLTERM;
-              CSET H5T_CSET_ASCII;
-              CTYPE H5T_C_S1;
-           }
-           DATASPACE  SCALAR
-        }
-        ATTRIBUTE "fuzzyDMDensityFraction" {
-           DATATYPE  H5T_STRING {
-              STRSIZE 6;
-              STRPAD H5T_STR_NULLTERM;
-              CSET H5T_CSET_ASCII;
-              CTYPE H5T_C_S1;
-           }
-           DATASPACE  SCALAR
-        }
-     }
-     DATASET "transferFunction" {
-        DATATYPE  H5T_IEEE_F64LE
-        DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
-     }
-     DATASET "wavenumber" {
-        DATATYPE  H5T_IEEE_F64LE
-        DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
-     }
-  }
-  }
-  \end{verbatim}
+   Provides a fuzzy dark matter transfer function from a tabulation given in an HDF5 file with the following structure:
+
+   .. code-block:: none
+
+      HDF5 "transferFunction.hdf5" {
+      GROUP "/" {
+         ATTRIBUTE "description" {
+            DATATYPE  H5T_STRING {
+               STRSIZE 71;
+               STRPAD H5T_STR_NULLTERM;
+               CSET H5T_CSET_ASCII;
+               CTYPE H5T_C_S1;
+            }
+            DATASPACE  SCALAR
+         }
+         ATTRIBUTE "fileFormat" {
+            DATATYPE  H5T_STD_I32LE
+            DATASPACE  SCALAR
+         }
+         ATTRIBUTE "redshift" {
+            DATATYPE  H5T_STD_I32LE
+            DATASPACE  SCALAR
+         }
+         GROUP "extrapolation" {
+            GROUP "wavenumber" {
+               ATTRIBUTE "high" {
+                  DATATYPE  H5T_STRING {
+                     STRSIZE 11;
+                     STRPAD H5T_STR_NULLTERM;
+                     CSET H5T_CSET_ASCII;
+                     CTYPE H5T_C_S1;
+                  }
+                  DATASPACE  SCALAR
+               }
+               ATTRIBUTE "low" {
+                  DATATYPE  H5T_STRING {
+                     STRSIZE 3;
+                     STRPAD H5T_STR_NULLTERM;
+                     CSET H5T_CSET_ASCII;
+                     CTYPE H5T_C_S1;
+                  }
+                  DATASPACE  SCALAR
+               }
+            }
+         }
+         GROUP "parameters" {
+            ATTRIBUTE "HubbleConstant" {
+               DATATYPE  H5T_STRING {
+                  STRSIZE 4;
+                  STRPAD H5T_STR_NULLTERM;
+                  CSET H5T_CSET_ASCII;
+                  CTYPE H5T_C_S1;
+               }
+               DATASPACE  SCALAR
+            }
+            ATTRIBUTE "OmegaBaryon" {
+               DATATYPE  H5T_STRING {
+                  STRSIZE 6;
+                  STRPAD H5T_STR_NULLTERM;
+                  CSET H5T_CSET_ASCII;
+                  CTYPE H5T_C_S1;
+               }
+               DATASPACE  SCALAR
+            }
+            ATTRIBUTE "OmegaDarkEnergy" {
+               DATATYPE  H5T_STRING {
+                  STRSIZE 5;
+                  STRPAD H5T_STR_NULLTERM;
+                  CSET H5T_CSET_ASCII;
+                  CTYPE H5T_C_S1;
+               }
+               DATASPACE  SCALAR
+            }
+            ATTRIBUTE "OmegaMatter" {
+               DATATYPE  H5T_STRING {
+                  STRSIZE 5;
+                  STRPAD H5T_STR_NULLTERM;
+                  CSET H5T_CSET_ASCII;
+                  CTYPE H5T_C_S1;
+               }
+               DATASPACE  SCALAR
+            }
+            ATTRIBUTE "fuzzyDMMass" {
+               DATATYPE  H5T_STRING {
+                  STRSIZE 6;
+                  STRPAD H5T_STR_NULLTERM;
+                  CSET H5T_CSET_ASCII;
+                  CTYPE H5T_C_S1;
+               }
+               DATASPACE  SCALAR
+            }
+            ATTRIBUTE "fuzzyDMDensityFraction" {
+               DATATYPE  H5T_STRING {
+                  STRSIZE 6;
+                  STRPAD H5T_STR_NULLTERM;
+                  CSET H5T_CSET_ASCII;
+                  CTYPE H5T_C_S1;
+               }
+               DATASPACE  SCALAR
+            }
+         }
+         DATASET "transferFunction" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
+         }
+         DATASET "wavenumber" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
+         }
+      }
+      }
    </description>
   </transferFunction>
   !!]
   type, extends(transferFunctionFile) :: transferFunctionFileFuzzyDarkMatter
-     !!{
+     !!{RST
      A transfer function class which interpolates a fuzzy dark matter transfer function given in a file.
      !!}
      private
@@ -154,7 +155,7 @@
   end type transferFunctionFileFuzzyDarkMatter
 
   interface transferFunctionFileFuzzyDarkMatter
-     !!{
+     !!{RST
      Constructors for the fileFuzzyDarkMatter transfer function class.
      !!}
      module procedure fileFuzzyDarkMatterConstructorParameters
@@ -164,7 +165,7 @@
 contains
 
   function fileFuzzyDarkMatterConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the fileFuzzyDarkMatter transfer function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -179,34 +180,44 @@ contains
     logical                                                              :: acceptNegativeValues
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>transferFunctionType</name>
       <source>parameters</source>
       <defaultValue>var_str('darkMatter')</defaultValue>
-      <description>Specifies whether to use the \mono{darkMatter} or \mono{total} transfer function.</description>
+      <description>
+      Specifies whether to use the ``darkMatter`` or ``total`` transfer function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <source>parameters</source>
-      <description>The name of the file from which to read a tabulated transfer function.</description>
+      <description>
+      The name of the file from which to read a tabulated transfer function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The redshift of the transfer function to read.</description>
+      <description>
+      The redshift of the transfer function to read.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorWavenumberSmoothExtrapolation</name>
       <source>parameters</source>
       <defaultValue>2.0d0</defaultValue>
-      <description>If positive, and extrapolation is used at high wavenumbers, the slope for extrapolation will be set by averaging over wavenumbers from $k_\mathrm{max}/f$ to $k_\mathrm{max}$, where $f=$\mono{[factorWavenumberSmoothExtrapolation]} and $k_\mathrm{max}$ is the highest wavenumber tabulated. This avoids spurious extrapolation for highly oscillatory transfer functions.</description>
+      <description>
+      If positive, and extrapolation is used at high wavenumbers, the slope for extrapolation will be set by averaging over wavenumbers from :math:`k_\mathrm{max}/f` to :math:`k_\mathrm{max}`, where :math:`f=`\ ``[factorWavenumberSmoothExtrapolation]`` and :math:`k_\mathrm{max}` is the highest wavenumber tabulated. This avoids spurious extrapolation for highly oscillatory transfer functions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>acceptNegativeValues</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, negative values in the transfer function are allowed (and the absolute value is taken prior to interpolation). Otherwise, negative values result in an error.</description>
+      <description>
+      If true, negative values in the transfer function are allowed (and the absolute value is taken prior to interpolation). Otherwise, negative values result in an error.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -223,7 +234,7 @@ contains
   end function fileFuzzyDarkMatterConstructorParameters
 
   function fileFuzzyDarkMatterConstructorInternal(fileName,transferFunctionType,redshift,acceptNegativeValues,factorWavenumberSmoothExtrapolation,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the fileFuzzyDarkMatter transfer function class.
     !!}
     implicit none
@@ -247,7 +258,7 @@ contains
   end function fileFuzzyDarkMatterConstructorInternal
 
   subroutine fileFuzzyDarkMatterReadFile(self,fileName,invalidateCache,lockCache)
-    !!{
+    !!{RST
     Read in the transfer function data from a file.
     !!}
     use :: Display             , only : displayMessage
@@ -292,16 +303,8 @@ contains
   end subroutine fileFuzzyDarkMatterReadFile
 
   double precision function fileFuzzyDarkMatterHalfModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is
-    suppressed by a factor of two relative to a \gls{cdm} transfer function. Here the
-    fitting function from \cite{hu_fuzzy_2000} has been used. Note that:
-    (1) In \cite{hu_fuzzy_2000}, the half-mode wavenumber is defined as the scale at
-        which the matter power spectrum, instead of the transfer function, is suppressed
-        by a factor of two. A correction factor has been added in the calculations to be
-        consistent with the common definition.
-    (2) For a mixed \gls{cdm} and \gls{fdm} model, the half-mode wavenumber
-        is not well defined.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function. Here the fitting function from :cite:t:`hu_fuzzy_2000` has been used. Note that: (1) In :cite:t:`hu_fuzzy_2000`, the half-mode wavenumber is defined as the scale at which the matter power spectrum, instead of the transfer function, is suppressed by a factor of two. A correction factor has been added in the calculations to be consistent with the common definition. (2) For a mixed :term:`CDM` and :term:`FDM` model, the half-mode wavenumber is not well defined.
     !!}
     use :: Error                       , only : errorStatusSuccess
     use :: Numerical_Constants_Math    , only : Pi
@@ -346,9 +349,8 @@ contains
   end function fileFuzzyDarkMatterHalfModeMass
 
   double precision function fileFuzzyDarkMatterQuarterModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is
-    suppressed by a factor of four relative to a \gls{cdm} transfer function.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative to a :term:`CDM` transfer function.
     !!}
     use :: Error                       , only : errorStatusSuccess
     use :: Numerical_Constants_Math    , only : Pi

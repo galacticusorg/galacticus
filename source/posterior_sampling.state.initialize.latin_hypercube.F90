@@ -17,23 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of Latin hypercube state initializer.
   !!}
 
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
-  <posteriorSampleStateInitialize name="posteriorSampleStateInitializeLatinHypercube">
+  <posteriorSampleStateInitialize name="posteriorSampleStateInitializeLatinHypercube" docformat="rst">
    <description>
-    This class uses a \gls{latinhypercube} design (in the cumulative prior probability distribution of each parameter) to assign
-    initial state vectors. In particular, a \gls{maximin} design is used in which a number of trial \glspl{latinhypercube} are
-    constructed and the hypercube with the greatest minimum distance between any pair of state vectors is selected. The \mono{[maximinTrialCount]} parameter is used to specify the number of trial hypercubes to construct.
+   This class uses a :term:`Latin hypercube` design (in the cumulative prior probability distribution of each parameter) to assign initial state vectors. In particular, a :term:`maximin` design is used in which a number of trial :term:`Latin hypercube` are constructed and the hypercube with the greatest minimum distance between any pair of state vectors is selected. The ``[maximinTrialCount]`` parameter is used to specify the number of trial hypercubes to construct.
    </description>
   </posteriorSampleStateInitialize>
   !!]
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeLatinHypercube
-     !!{
+     !!{RST
      Implementation of a posterior sampling state initialization class which samples the initial state at random from the priors using Latin Hypercube sampling.
      !!}
      private
@@ -45,8 +43,8 @@
   end type posteriorSampleStateInitializeLatinHypercube
 
   interface posteriorSampleStateInitializeLatinHypercube
-     !!{
-     Constructors for the \refClass{posteriorSampleStateInitializeLatinHypercube} posterior sampling state initialization class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSampleStateInitializeLatinHypercube` posterior sampling state initialization class.
      !!}
      module procedure latinHypercubeConstructorParameters
      module procedure latinHypercubeConstructorInternal
@@ -55,8 +53,8 @@
 contains
 
   function latinHypercubeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStateInitializeLatinHypercube} posterior sampling state initialization class.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleStateInitializeLatinHypercube` posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,10 +64,12 @@ contains
     integer                                                              :: maximinTrialCount
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>maximinTrialCount</name>
       <defaultValue>1000</defaultValue>
-      <description>The number of trial Latin Hypercubes to construct when seeking the maximum minimum separation sample.</description>
+      <description>
+      The number of trial Latin Hypercubes to construct when seeking the maximum minimum separation sample.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -83,8 +83,8 @@ contains
   end function latinHypercubeConstructorParameters
 
   function latinHypercubeConstructorInternal(maximinTrialCount,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStateInitializeLatinHypercube} posterior sampling state initialization class.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleStateInitializeLatinHypercube` posterior sampling state initialization class.
     !!}
     implicit none
     type   (posteriorSampleStateInitializeLatinHypercube)                        :: self
@@ -98,8 +98,8 @@ contains
   end function latinHypercubeConstructorInternal
 
   subroutine latinHypercubeDestructor(self)
-    !!{
-    Destructor for the \refClass{posteriorSampleStateInitializeLatinHypercube} posterior sampling state initialization class.
+    !!{RST
+    Destructor for the :galacticus-class:`posteriorSampleStateInitializeLatinHypercube` posterior sampling state initialization class.
     !!}
     implicit none
     type(posteriorSampleStateInitializeLatinHypercube), intent(inout) :: self
@@ -111,7 +111,7 @@ contains
   end subroutine latinHypercubeDestructor
 
   subroutine latinHypercubeInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
-    !!{
+    !!{RST
     Initialize simulation state by drawing at random from the parameter priors.
     !!}
     use, intrinsic :: ISO_C_Binding               , only : c_size_t

@@ -17,36 +17,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a simple tidal stripping class.
   !!}
 
   use :: Satellites_Tidal_Fields, only : satelliteTidalFieldClass
 
   !![
-  <tidalStripping name="tidalStrippingSimple">
+  <tidalStripping name="tidalStrippingSimple" docformat="rst">
     <description>
-      A simple model of tidal stripping.  Specifically, the mass loss rate is
-      \begin{equation}
-      \dot{M} = -\alpha M/\tau,
-      \end{equation}
-      where
-      \begin{equation}
-      \alpha = \beta F_\mathrm{tidal}/F_\mathrm{gravity},
-      \end{equation}
-      $F_\mathrm{tidal}=\mathcal{F}_\mathrm{tidal} r_{1/2}$, $\mathcal{F}_\mathrm{tidal}$ is the tidal field from the host halo
-      (see \refPhysics{satelliteTidalField}),      
-      \begin{equation}
-      F_\mathrm{gravity} = V_{1/2}^2(r_{1/2})/r_{1/2}
-      \end{equation}      
-      is the gravitational restoring force at the half-mass radius, $r_\mathrm{1/2}$, and $\tau =
-      r_\mathrm{s}/v_\mathrm{c}(r_\mathrm{s})$ is the dynamical time of the galactic component with $r_\mathrm{s}$ being the scale
-      radius of the component, and $v_\mathrm{c}(r)$ the circular velocity of the component at radius $r$.
+    A simple model of tidal stripping.  Specifically, the mass loss rate is
+
+    .. math::
+
+       \dot{M} = -\alpha M/\tau,
+
+    where
+
+    .. math::
+
+       \alpha = \beta F_\mathrm{tidal}/F_\mathrm{gravity},
+
+    :math:`F_\mathrm{tidal}=\mathcal{F}_\mathrm{tidal} r_{1/2}`, :math:`\mathcal{F}_\mathrm{tidal}` is the tidal field from the host halo (see :galacticus-class:`satelliteTidalField`),
+
+    .. math::
+
+       F_\mathrm{gravity} = V_{1/2}^2(r_{1/2})/r_{1/2}
+
+    is the gravitational restoring force at the half-mass radius, :math:`r_\mathrm{1/2}`, and :math:`\tau = r_\mathrm{s}/v_\mathrm{c}(r_\mathrm{s})` is the dynamical time of the galactic component with :math:`r_\mathrm{s}` being the scale radius of the component, and :math:`v_\mathrm{c}(r)` the circular velocity of the component at radius :math:`r`.
     </description>
   </tidalStripping>
   !!]
   type, extends(tidalStrippingClass) :: tidalStrippingSimple
-     !!{
+     !!{RST
      Implementation of a simple model of tidal stripping.
      !!}
      private
@@ -58,8 +61,8 @@
   end type tidalStrippingSimple
 
   interface tidalStrippingSimple
-     !!{
-     Constructors for the \refClass{tidalStrippingSimple} model of tidal stripping class.
+     !!{RST
+     Constructors for the :galacticus-class:`tidalStrippingSimple` model of tidal stripping class.
      !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
@@ -68,8 +71,8 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{tidalStrippingSimple} model of tidal stripping class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`tidalStrippingSimple` model of tidal stripping class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,16 +82,20 @@ contains
     double precision                                          :: rateFractionalMaximum, beta
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rateFractionalMaximum</name>
       <defaultValue>10.0d0</defaultValue>
-      <description>The maximum fractional mass loss rate per dynamical time in the simple model of mass loss due to tidal stripping.</description>
+      <description>
+      The maximum fractional mass loss rate per dynamical time in the simple model of mass loss due to tidal stripping.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The scaling factor which multiplies the tidal mass loss rate.</description>
+      <description>
+      The scaling factor which multiplies the tidal mass loss rate.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="satelliteTidalField" name="satelliteTidalField_" source="parameters"/>
@@ -102,8 +109,8 @@ contains
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(rateFractionalMaximum,beta,satelliteTidalField_) result(self)
-    !!{
-    Internal constructor for the \refClass{tidalStrippingSimple} model of tidal stripping class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`tidalStrippingSimple` model of tidal stripping class.
     !!}
     implicit none
     type            (tidalStrippingSimple    )                        :: self
@@ -117,8 +124,8 @@ contains
   end function simpleConstructorInternal
 
   subroutine simpleDestructor(self)
-    !!{
-    Destructor for the \refClass{tidalStrippingSimple} model of tidal stripping class.
+    !!{RST
+    Destructor for the :galacticus-class:`tidalStrippingSimple` model of tidal stripping class.
     !!}
     implicit none
     type(tidalStrippingSimple), intent(inout) :: self
@@ -130,7 +137,7 @@ contains
   end subroutine simpleDestructor
 
   double precision function simpleRateMassLoss(self,component)
-    !!{
+    !!{RST
     Computes the mass loss rate due to tidal stripping assuming a simple model.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentDisk    , nodeComponentSpheroid, treeNode

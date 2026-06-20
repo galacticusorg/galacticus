@@ -17,32 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements algorithms for the temperature exponent of proposal size in tempered differential evolution
-algorithms.
+!!{RST
+Contains a module which implements algorithms for the temperature exponent of proposal size in tempered differential evolution algorithms.
 !!}
 
 module Posterior_Sampling_Prop_Size_Temp_Exp
-  !!{
-  Implements algorithms for the temperature exponent of proposal size in tempered differential evolution
-  algorithms.
+  !!{RST
+  Implements algorithms for the temperature exponent of proposal size in tempered differential evolution algorithms.
   !!}
   use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
   use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>posteriorSampleDffrntlEvltnPrpslSzTmpExp</name>
    <descriptiveName>Posterior Sampling Differential Evolution Proposal Size Temperature Exponent</descriptiveName>
    <description>
-    Class providing temperature-dependence exponents for proposal sizes for differential evolution posterior
-    samplers. Specifically, this class provides the exponent, $\alpha$, for the temperature scaling of the proposal size
-    parameter, $\gamma$ (the fraction of the vector connecting to chain state to be used as the proposal for another chain),
-    for use in tempered differential evolution simulations
+   Class providing temperature-dependence exponents for proposal sizes for differential evolution posterior samplers. Specifically, this class provides the exponent, :math:`\alpha`, for the temperature scaling of the proposal size parameter, :math:`\gamma` (the fraction of the vector connecting to chain state to be used as the proposal for another chain), for use in tempered differential evolution simulations
    </description>
    <method name="exponent" >
-    <description>Return the temperature-scaling exponent $\alpha$ for the current simulation state, which controls how the proposal size $\gamma$ scales with the chain temperature in tempered differential evolution runs.</description>
+    <description>
+    Return the temperature-scaling exponent :math:`\alpha` for the current simulation state, which controls how the proposal size :math:`\gamma` scales with the chain temperature in tempered differential evolution runs.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class           (posteriorSampleStateClass      ), intent(inout), dimension(:) :: temperedStates</argument>

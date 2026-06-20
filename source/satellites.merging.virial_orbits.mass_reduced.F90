@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of virial orbits that modifies another \refClass{virialOrbitClass} by accounting for any reduction in mass of
-  the primary halo below its ``\gls{dmou}'' value.
+  !!{RST
+  An implementation of virial orbits that modifies another :galacticus-class:`virialOrbitClass` by accounting for any reduction in mass of the primary halo below its ":term:`dark matter-only universe`" value.
   !!}
 
   use :: Cosmology_Parameters    , only : cosmologyParametersClass
@@ -28,17 +27,15 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <virialOrbit name="virialOrbitMassReduced">
+  <virialOrbit name="virialOrbitMassReduced" docformat="rst">
    <description>
-    A virial orbit class that modifies another \refClass{virialOrbitClass} by accounting for any reduction in mass of the primary
-    halo below its ``\gls{dmou}'' value.
+   A virial orbit class that modifies another :galacticus-class:`virialOrbitClass` by accounting for any reduction in mass of the primary halo below its ":term:`dark matter-only universe`" value.
    </description>
   </virialOrbit>
   !!]
   type, extends(virialOrbitClass) :: virialOrbitMassReduced
-     !!{
-     A virial orbit class that modifies another \refClass{virialOrbitClass} by accounting for any reduction in mass of the primary
-     halo below its ``\gls{dmou}'' value.
+     !!{RST
+     A virial orbit class that modifies another :galacticus-class:`virialOrbitClass` by accounting for any reduction in mass of the primary halo below its ":term:`dark matter-only universe`" value.
      !!}
      private
      class(virialOrbitClass          ), pointer :: virialOrbit_           => null()
@@ -55,8 +52,8 @@
   end type virialOrbitMassReduced
 
   interface virialOrbitMassReduced
-     !!{
-     Constructors for the \refClass{virialOrbitMassReduced} virial orbits class.
+     !!{RST
+     Constructors for the :galacticus-class:`virialOrbitMassReduced` virial orbits class.
      !!}
      module procedure massReducedConstructorParameters
      module procedure massReducedConstructorInternal
@@ -65,8 +62,8 @@
 contains
 
   function massReducedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{virialOrbitMassReduced} virial orbits class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`virialOrbitMassReduced` virial orbits class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -98,8 +95,8 @@ contains
   end function massReducedConstructorParameters
 
   function massReducedConstructorInternal(virialOrbit_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{virialOrbitMassReduced} virial orbits class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`virialOrbitMassReduced` virial orbits class.
     !!}
     implicit none
     type (virialOrbitMassReduced    )                        :: self
@@ -116,8 +113,8 @@ contains
   end function massReducedConstructorInternal
 
   subroutine massReducedDestructor(self)
-    !!{
-    Destructor for the \refClass{virialOrbitMassReduced} virial orbits class.
+    !!{RST
+    Destructor for the :galacticus-class:`virialOrbitMassReduced` virial orbits class.
     !!}
     implicit none
     type(virialOrbitMassReduced), intent(inout) :: self
@@ -133,7 +130,7 @@ contains
   end subroutine massReducedDestructor
 
   function massReducedOrbit(self,node,host,acceptUnboundOrbits) result(orbit)
-    !!{
+    !!{RST
     Return massReduced orbital parameters for a satellite.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -228,7 +225,7 @@ contains
   end function massReducedOrbit
 
   function massReducedDensityContrastDefinition(self)
-    !!{
+    !!{RST
     Return a virial density contrast object defining that used in the definition of massReduced virial orbits.
     !!}
     implicit none
@@ -240,7 +237,7 @@ contains
   end function massReducedDensityContrastDefinition
 
   double precision function massReducedVelocityTotalRootMeanSquared(self,node,host) result (velocityRootMeanSquared)
-    !!{
+    !!{RST
     Return the root mean squared of the total velocity.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -295,7 +292,7 @@ contains
   end function massReducedVelocityTotalRootMeanSquared
 
   double precision function massReducedEnergyMean(self,node,host) result(energyMean)
-    !!{
+    !!{RST
     Return the mean energy of the orbits.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition

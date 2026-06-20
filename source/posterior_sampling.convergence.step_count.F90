@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling convergence class which declares convergence after a fixed number of steps.
   !!}
 
   !![
-  <posteriorSampleConvergence name="posteriorSampleConvergenceStepCount">
-   <description>A posterior sampling convergence class which declares convergence after a fixed number of steps.</description>
+  <posteriorSampleConvergence name="posteriorSampleConvergenceStepCount" docformat="rst">
+   <description>
+   A posterior sampling convergence class which declares convergence after a fixed number of steps.
+   </description>
   </posteriorSampleConvergence>
   !!]
   type, extends(posteriorSampleConvergenceClass) :: posteriorSampleConvergenceStepCount
-     !!{
+     !!{RST
      Implementation of a posterior sampling convergence class which declares convergence after a fixed number of steps.
      !!}
      private
@@ -42,8 +44,8 @@
   end type posteriorSampleConvergenceStepCount
 
   interface posteriorSampleConvergenceStepCount
-     !!{
-     Constructors for the \mono{stepCount} posterior sampling convergence class.
+     !!{RST
+     Constructors for the ``stepCount`` posterior sampling convergence class.
      !!}
      module procedure stepCountConstructorParameters
      module procedure stepCountConstructorInternal
@@ -52,8 +54,8 @@
 contains
 
   function stepCountConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \mono{stepCount} convergence class.
+    !!{RST
+    Constructor for the ``stepCount`` convergence class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,9 +64,11 @@ contains
     integer                                                     :: countSteps
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countSteps</name>
-      <description>The number of steps after which to declare the simulation as converged.</description>
+      <description>
+      The number of steps after which to declare the simulation as converged.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -76,8 +80,8 @@ contains
   end function stepCountConstructorParameters
 
   function stepCountConstructorInternal(countSteps) result(self)
-    !!{
-    Internal constructor for the \mono{stepCount} convergence class.
+    !!{RST
+    Internal constructor for the ``stepCount`` convergence class.
     !!}
     implicit none
     type   (posteriorSampleConvergenceStepCount)                :: self
@@ -92,7 +96,7 @@ contains
   end function stepCountConstructorInternal
 
   logical function stepCountIsConverged(self,simulationState,logLikelihood)
-    !!{
+    !!{RST
     Returns true if the posterior sampling is converged (which it stepCount is).
     !!}
     implicit none
@@ -107,7 +111,7 @@ contains
   end function stepCountIsConverged
 
   integer function stepCountConvergedAtStep(self)
-    !!{
+    !!{RST
     Return the step at which the simulation converged.
     !!}
     implicit none
@@ -118,7 +122,7 @@ contains
   end function stepCountConvergedAtStep
 
   subroutine stepCountReset(self)
-    !!{
+    !!{RST
     Reset the convergence object.
     !!}
     implicit none
@@ -130,8 +134,8 @@ contains
   end subroutine stepCountReset
 
   subroutine stepCountLogReport(self,fileUnit)
-    !!{
-    Write a convergence report to the given \mono{fileUnit}.
+    !!{RST
+    Write a convergence report to the given ``fileUnit``.
     !!}
     implicit none
     class  (posteriorSampleConvergenceStepCount), intent(inout) :: self
@@ -146,7 +150,7 @@ contains
   end subroutine stepCountLogReport
 
   logical function stepCountStateIsOutlier(self,stateIndex)
-    !!{
+    !!{RST
     Return true if the specified chain is deemed to be an outlier. In this case, chains are never outliers.
     !!}
     implicit none

@@ -19,30 +19,29 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-!!{
+!!{RST
 Contains a module that provides a class to perform calculations of the mass loss rate due to tidal stripping for satellites.
 !!}
 
 module Satellite_Tidal_Stripping
-  !!{
+  !!{RST
   Provides a class to perform calculations of the mass loss rate due to tidal stripping for satellites.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>satelliteTidalStripping</name>
    <descriptiveName>Tidal Stripping of Satellites</descriptiveName>
-   <description>Class providing models of tidal stripping for satellites---the gravitational removal of dark matter
-    and stellar mass from satellite halos as they orbit through the tidal field of their host halo. The tidal force
-    strips material outside the tidal radius, reducing the satellite mass over time at a rate (in $\mathrm{M}_\odot$~Gyr$^{-1}$)
-    that depends on the satellite's orbit, concentration, and the host potential. This mass loss sets the subhalo
-    abundance, the galaxy-to-halo mass ratio in satellites, and drives the evolution of satellite galaxies
-    toward quiescence.</description>
+   <description>
+   Class providing models of tidal stripping for satellites---the gravitational removal of dark matter and stellar mass from satellite halos as they orbit through the tidal field of their host halo. The tidal force strips material outside the tidal radius, reducing the satellite mass over time at a rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) that depends on the satellite's orbit, concentration, and the host potential. This mass loss sets the subhalo abundance, the galaxy-to-halo mass ratio in satellites, and drives the evolution of satellite galaxies toward quiescence.
+   </description>
    <default>zentner2005</default>
    <method name="massLossRate" >
-    <description>Returns the rate of tidal mass loss for \mono{node} (in units of $\mathrm{M}_\odot$/Gyr).</description>
+    <description>
+    Returns the rate of tidal mass loss for ``node`` (in units of :math:`\mathrm{M}_\odot`/Gyr).
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

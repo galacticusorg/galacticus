@@ -17,29 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a mass distribution class that mimics the ``hydrostatic'' profile used by the Enzo simulation code.
+  !!{RST
+  Implementation of a mass distribution class that mimics the "hydrostatic" profile used by the Enzo simulation code.
   !!}
 
   !![
-  <massDistribution name="massDistributionEnzoHydrostatic">
+  <massDistribution name="massDistributionEnzoHydrostatic" docformat="rst">
     <description>
-      A hot halo mass distribution class which adopts a spherically symmetric density profile for the hot halo motivated by the
-      ``hydrostatic'' profile available in the \gls{enzo} code. Specifically,
-      \begin{equation}
-      \rho_\mathrm{hot halo}(r) \propto \left\{ \begin{array}{ll} T^{-1} r^{-1} &amp; \hbox{ if } r &gt; r_\mathrm{core} \\ T^{-1}
-      r_\mathrm{core}^{-1} &amp; \hbox{ if } r \le r_\mathrm{core}, \end{array} \right.
-      \end{equation}
-      where the core radius, $r_\mathrm{core}$, is set using the selected cored profile core radius method (see
-      \refPhysics{hotHaloMassDistributionCoreRadius}). The profile is normalized such that the current mass in the
-      hot gas profile is contained within the outer radius of the hot halo, $r_\mathrm{hot, outer}$. Note that the \gls{enzo}
-      hydrostatic profile does not include this core, but without introducing this the profile mass can be divergent at small
-      radii.
+    A hot halo mass distribution class which adopts a spherically symmetric density profile for the hot halo motivated by the "hydrostatic" profile available in the :term:`ENZO` code. Specifically,
+
+    .. math::
+
+       \rho_\mathrm{hot halo}(r) \propto \left\{ \begin{array}{ll} T^{-1} r^{-1} &amp; \hbox{ if } r &gt; r_\mathrm{core} \\ T^{-1}
+       r_\mathrm{core}^{-1} &amp; \hbox{ if } r \le r_\mathrm{core}, \end{array} \right.
+
+    where the core radius, :math:`r_\mathrm{core}`, is set using the selected cored profile core radius method (see :galacticus-class:`hotHaloMassDistributionCoreRadius`). The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, :math:`r_\mathrm{hot, outer}`. Note that the :term:`ENZO` hydrostatic profile does not include this core, but without introducing this the profile mass can be divergent at small radii.
     </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionEnzoHydrostatic
-     !!{
+     !!{RST
      The Enzo hydrostatic mass distribution.
      !!}
      private
@@ -48,7 +45,7 @@
      logical          :: truncateAtOuterRadius, normalizationDensityComputed
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the normalization of the density profile." method="normalizationDensity" />
      </methods>
      !!]
@@ -58,8 +55,8 @@
   end type massDistributionEnzoHydrostatic
 
   interface massDistributionEnzoHydrostatic
-     !!{
-     Constructors for the \refClass{massDistributionEnzoHydrostatic} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionEnzoHydrostatic` mass distribution class.
      !!}
      module procedure enzoHydrostaticConstructorParameters
      module procedure enzoHydrostaticConstructorInternal
@@ -68,9 +65,8 @@
 contains
 
   function enzoHydrostaticConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionEnzoHydrostatic} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionEnzoHydrostatic` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -84,37 +80,49 @@ contains
     logical                                                          :: truncateAtOuterRadius
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
-      <description>The total mass (in $\mathrm{M}_\odot$) of the hot gas distribution enclosed within \mono{radiusOuter}; used to normalize the Enzo hydrostatic density profile.</description>
+      <description>
+      The total mass (in :math:`\mathrm{M}_\odot`) of the hot gas distribution enclosed within ``radiusOuter``; used to normalize the Enzo hydrostatic density profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusOuter</name>
-      <description>The outer radius of the mass distribution.</description>
+      <description>
+      The outer radius of the mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusScale</name>
-      <description>The core radius of the mass distribution.</description>
+      <description>
+      The core radius of the mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>truncateAtOuterRadius</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true then the mass distribution is truncated beyond the outer radius.</description>
+      <description>
+      If true then the mass distribution is truncated beyond the outer radius.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -126,8 +134,8 @@ contains
   end function enzoHydrostaticConstructorParameters
 
   function enzoHydrostaticConstructorInternal(mass,radiusOuter,radiusScale,truncateAtOuterRadius,componentType,massType) result(self)
-    !!{
-    Internal constructor for ``enzoHydrostatic'' mass distribution class.
+    !!{RST
+    Internal constructor for "enzoHydrostatic" mass distribution class.
     !!}
     implicit none
     type            (massDistributionEnzoHydrostatic)                          :: self
@@ -150,8 +158,8 @@ contains
   end function enzoHydrostaticConstructorInternal
 
   double precision function enzoHydrostaticNormalizationDensity(self) result(normalizationDensity)
-    !!{
-    Return the density normalization in a \mono{enzoHydrostatic} mass distribution.
+    !!{RST
+    Return the density normalization in a ``enzoHydrostatic`` mass distribution.
     !!}
     implicit none
     class           (massDistributionEnzoHydrostatic), intent(inout) :: self
@@ -179,8 +187,8 @@ contains
   end function enzoHydrostaticNormalizationDensity
 
   double precision function enzoHydrostaticDensity(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in an Enzo hydrostatic mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in an Enzo hydrostatic mass distribution.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
@@ -201,8 +209,8 @@ contains
   end function enzoHydrostaticDensity
 
   double precision function enzoHydrostaticDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
-    !!{
-    Return the density at the specified \mono{coordinates} in an EnzoHydrostatic \citep{navarro_structure_1996} mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in an EnzoHydrostatic :cite:p:`navarro_structure_1996` mass distribution.
     !!}
     implicit none
     class  (massDistributionEnzoHydrostatic), intent(inout), target   :: self

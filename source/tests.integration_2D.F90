@@ -19,12 +19,12 @@
 
 !+    Contributions to this file made by: Niusha Ahvazi
 
-!!{
+!!{RST
 Contains a 2D integration test for unit tests.
 !!}
 
   program Test_Integration2D
-    !!{
+    !!{RST
     Perform tests of 2D integration.
     !!}
     use :: Display                     , only: displayVerbositySet, verbosityLevelStandard

@@ -17,27 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that does a subsampling of satellites based on their properties at infall.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorSatelliteSubsampling">
+  <nodeOperator name="nodeOperatorSatelliteSubsampling" docformat="rst">
    <description>
-    A node operator class that does a subsampling of satellites based on their properties at infall. The sampling
-    function has a form of
-    \begin{equation}
-    f = \alpha (M_{\mathrm{sat}}/M_0)^\beta,
-    \end{equation}
-    where $M_\mathrm{sat}$ is the satellite's mass, $M_0$ is a reference mass scale. The normalization $\alpha$
-    and slope parameter $\beta$ can be set in the paremter file. A threshold on satellite's mass, infall time,
-    and pericenter distance when subsampling is done can also be set to avoid undersampling satellites that are 
-    less abundant, e.g. satellites with large mass, or in plunging orbit.
+   A node operator class that does a subsampling of satellites based on their properties at infall. The sampling function has a form of
+
+   .. math::
+
+      f = \alpha (M_{\mathrm{sat}}/M_0)^\beta,
+
+   where :math:`M_\mathrm{sat}` is the satellite's mass, :math:`M_0` is a reference mass scale. The normalization :math:`\alpha` and slope parameter :math:`\beta` can be set in the parameter file. A threshold on satellite's mass, infall time, and pericenter distance when subsampling is done can also be set to avoid undersampling satellites that are less abundant, e.g. satellites with large mass, or in plunging orbit.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteSubsampling
-     !!{
+     !!{RST
      A node operator class that does a subsampling of satellites based on their properties at infall.
      !!}
      private
@@ -47,7 +45,7 @@
      logical          :: applyOrbitCriterion
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute the sampling rate." method="samplingRate" />
      </methods>
      !!]
@@ -57,8 +55,8 @@
   end type nodeOperatorSatelliteSubsampling
   
   interface nodeOperatorSatelliteSubsampling
-     !!{
-     Constructors for the \refClass{nodeOperatorSatelliteSubsampling} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteSubsampling` node operator class.
      !!}
      module procedure satelliteSubsamplingConstructorParameters
      module procedure satelliteSubsamplingConstructorInternal
@@ -67,8 +65,8 @@
 contains
 
   function satelliteSubsamplingConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorSatelliteSubsampling} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteSubsampling` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -79,34 +77,44 @@ contains
          &                                                               samplingFunctionNormalization
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>samplingMassThreshold</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The satellite halo mass below which subsampling is applied; satellites more massive than this threshold are always retained with probability 1.</description>
+      <description>
+      The satellite halo mass below which subsampling is applied; satellites more massive than this threshold are always retained with probability 1.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>samplingInfallTimeThreshold</name>
       <defaultValue>huge(0.0d0)</defaultValue>
-      <description>The infall time (in Gyr) below which subsampling is applied; satellites that fell in more recently than this threshold are always retained with probability 1.</description>
+      <description>
+      The infall time (in Gyr) below which subsampling is applied; satellites that fell in more recently than this threshold are always retained with probability 1.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>samplingPericenterThreshold</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>Pericenter distance threshold above which satellites are subsampled in units of the distance to the host halo at infall. This criterion will be ignored if the \mono{virialOrbit} of satellite is not gettable.</description>
+      <description>
+      Pericenter distance threshold above which satellites are subsampled in units of the distance to the host halo at infall. This criterion will be ignored if the ``virialOrbit`` of satellite is not gettable.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>samplingFunctionSlope</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The power-law slope $\beta$ of the satellite subsampling function $f = \alpha (M_\mathrm{sat}/M_0)^\beta$, controlling how rapidly the sampling probability varies with satellite mass.</description>
+      <description>
+      The power-law slope :math:`\beta` of the satellite subsampling function :math:`f = \alpha (M_\mathrm{sat}/M_0)^\beta`, controlling how rapidly the sampling probability varies with satellite mass.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>samplingFunctionNormalization</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The normalization coefficient $\alpha$ of the satellite subsampling function $f = \alpha (M_\mathrm{sat}/M_0)^\beta$, setting the overall sampling probability at the reference mass $M_0$.</description>
+      <description>
+      The normalization coefficient :math:`\alpha` of the satellite subsampling function :math:`f = \alpha (M_\mathrm{sat}/M_0)^\beta`, setting the overall sampling probability at the reference mass :math:`M_0`.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -118,8 +126,8 @@ contains
   end function satelliteSubsamplingConstructorParameters
 
   function satelliteSubsamplingConstructorInternal(samplingMassThreshold,samplingInfallTimeThreshold,samplingPericenterThreshold,samplingFunctionSlope,samplingFunctionNormalization) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorSatelliteSubsampling} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteSubsampling` node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     use :: Error           , only : Error_Report
@@ -141,8 +149,8 @@ contains
   end function satelliteSubsamplingConstructorInternal
 
   subroutine satelliteSubsamplingDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorSatelliteSubsampling} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteSubsampling` node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteSubsampling), intent(inout) :: self
@@ -152,7 +160,7 @@ contains
   end subroutine satelliteSubsamplingDestructor
 
   subroutine satelliteSubsamplingNodesMerge(self,node)
-    !!{
+    !!{RST
     Does a subsampling of satellites based on their infall mass and orbital parameters.
     !!}
     use :: Galacticus_Nodes   , only : nodeComponentSatellite
@@ -209,7 +217,7 @@ contains
   end subroutine satelliteSubsamplingNodesMerge
   
   double precision function satelliteSubsamplingSamplingRate(self,node)
-    !!{
+    !!{RST
     Compute the sampling rate for a satellite based on its properties at infall.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite

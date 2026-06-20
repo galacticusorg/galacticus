@@ -17,53 +17,45 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a black hole winds class based on the model of \cite{ciotti_feedbackcentral_2009}.
+  !!{RST
+  Implements a black hole winds class based on the model of :cite:t:`ciotti_feedbackcentral_2009`.
   !!}
 
   use :: Black_Hole_Accretion_Rates, only : blackHoleAccretionRateClass
   use :: Accretion_Disks           , only : accretionDisksClass
 
   !![
-  <blackHoleWind name="blackHoleWindCiotti2009">
+  <blackHoleWind name="blackHoleWindCiotti2009" docformat="rst">
    <description>
-     A black hole winds class based (loosely) on the model of \cite{ciotti_feedbackcentral_2009}. The wind power is given by:
-     \begin{equation}
-     L_\mathrm{w} = \epsilon_\mathrm{w} \epsilon_\mathrm{r} f_\mathrm{w} \dot{M}_\bullet \mathrm{c}^2,
-     \end{equation}
-     where $\dot{M}_\bullet$ is the black hole accretion rate, $\epsilon_\mathrm{w}=$\mono{[efficiencyWind]} is
-     an overall efficiency parameter, $\epsilon_\mathrm{r}$ is the radiative efficiency of the accretion flow \emph{if}
-     \mono{[efficiencyWindScalesWithEfficiencyRadiative]=true}, and $1$ otherwise, and $f_\mathrm{w}$ represents
-     the fraction of the wind power that is coupled to the surrounding galaxy.
+   A black hole winds class based (loosely) on the model of :cite:t:`ciotti_feedbackcentral_2009`. The wind power is given by:
 
-     The model for $f_\mathrm{w}$ is inspired by \cite{ciotti_feedbackcentral_2009} who state:
-     \begin{quotation}     
-     If the pressure corresponding to the momentum ﬂow within the jet or wind is much greater than the pressure in the ambient
-     gas, very little mass, momentum and kinetic energy is taken from it and deposited in that ambient gas. But when the [ratio of
-     ISM to wind pressure] approaches unity, the ``working surface'' has been reached and the jet or wind discharges its content.
-     \end{quotation}
-     
-     The energy density (pressure) in the wind at some radius $r$ in the galaxy is simply $\epsilon_\mathrm{w} \epsilon_\mathrm{r}
-     \dot{M} \mathrm{c}^2 / 4 \pi r^2 v_\mathrm{w}$ (i.e. the energy input into a shell over time $\delta t$, $\epsilon_\mathrm{w}
-     \epsilon_\mathrm{r} \dot{M} \mathrm{c}^2 \delta t$, divided by the volume of the shell occupied by the wind in time $\delta
-     t$, $4 \pi r^2 v_\mathrm{w} \delta t$) where $v_\mathrm{w}$ is the wind velocity (assumed fixed at $10^4$~km/s). The
-     corresponding ISM pressure is just $(3/2) \mathrm{k}T \rho(r)/m_\mathrm{H}$ where $T$ is the ISM temperature (assumed fixed
-     at $10^4$~K) and $\rho$ is the ISM density. We approximate that the spheroid ISM density as $3 M/4/\pi/r^3$, where $M$ is the
-     total gas mass in the spheroid, such that we find a ratio of ISM to wind pressures of:     
-     \begin{equation}
+   .. math::
+
+      L_\mathrm{w} = \epsilon_\mathrm{w} \epsilon_\mathrm{r} f_\mathrm{w} \dot{M}_\bullet \mathrm{c}^2,
+
+   where :math:`\dot{M}_\bullet` is the black hole accretion rate, :math:`\epsilon_\mathrm{w}=`\ ``[efficiencyWind]`` is an overall efficiency parameter, :math:`\epsilon_\mathrm{r}` is the radiative efficiency of the accretion flow *if* ``[efficiencyWindScalesWithEfficiencyRadiative]=true``, and :math:`1` otherwise, and :math:`f_\mathrm{w}` represents the fraction of the wind power that is coupled to the surrounding galaxy.
+
+   The model for :math:`f_\mathrm{w}` is inspired by :cite:t:`ciotti_feedbackcentral_2009` who state:  If the pressure corresponding to the momentum ﬂow within the jet or wind is much greater than the pressure in the ambient gas, very little mass, momentum and kinetic energy is taken from it and deposited in that ambient gas. But when the [ratio of ISM to wind pressure] approaches unity, the "working surface" has been reached and the jet or wind discharges its content.
+
+   The energy density (pressure) in the wind at some radius :math:`r` in the galaxy is simply :math:`\epsilon_\mathrm{w} \epsilon_\mathrm{r} \dot{M} \mathrm{c}^2 / 4 \pi r^2 v_\mathrm{w}` (i.e. the energy input into a shell over time :math:`\delta t`, :math:`\epsilon_\mathrm{w} \epsilon_\mathrm{r} \dot{M} \mathrm{c}^2 \delta t`, divided by the volume of the shell occupied by the wind in time :math:`\delta t`, :math:`4 \pi r^2 v_\mathrm{w} \delta t`) where :math:`v_\mathrm{w}` is the wind velocity (assumed fixed at :math:`10^4` km/s). The corresponding ISM pressure is just :math:`(3/2) \mathrm{k}T \rho(r)/m_\mathrm{H}` where :math:`T` is the ISM temperature (assumed fixed at :math:`10^4` K) and :math:`\rho` is the ISM density. We approximate that the spheroid ISM density as :math:`3 M/4/\pi/r^3`, where :math:`M` is the total gas mass in the spheroid, such that we find a ratio of ISM to wind pressures of:
+
+   .. math::
+
       \frac{P_\mathrm{ISM}}{P_\mathrm{w}} = (3/2) \mathrm{k}T \rho(r)/m_\mathrm{H} \left/ \frac{\epsilon_\mathrm{w} \epsilon_\mathrm{r} \dot{M} \mathrm{c}^2}{4 \pi r^2 v_\mathrm{w}} \right. .
-     \end{equation}
-     We then smoothly interpolate $f_\mathrm{w}$ across the transition as:
-     \begin{equation}
-     f_\mathrm{w} = \left\{ \begin{array}{ll} 0 &amp; \hbox{if } x \le 0 \\ 3 x^2 - 2 x^3 &amp; \hbox{if } 0 &lt; x &lt; 1 \\ 1 &amp; \hbox{if } x \ge 1, \end{array} \right.
-     \end{equation}
-     where $x=P_\mathrm{ISM}/P_\mathrm{w}-1/2$.
-    </description>
+
+   We then smoothly interpolate :math:`f_\mathrm{w}` across the transition as:
+
+   .. math::
+
+      f_\mathrm{w} = \left\{ \begin{array}{ll} 0 &amp; \hbox{if } x \le 0 \\ 3 x^2 - 2 x^3 &amp; \hbox{if } 0 &lt; x &lt; 1 \\ 1 &amp; \hbox{if } x \ge 1, \end{array} \right.
+
+   where :math:`x=P_\mathrm{ISM}/P_\mathrm{w}-1/2`.
+   </description>
   </blackHoleWind>
   !!]
   type, extends(blackHoleWindClass) :: blackHoleWindCiotti2009
-     !!{
-     A black hole winds class based on the model of \cite{ciotti_feedbackcentral_2009}.
+     !!{RST
+     A black hole winds class based on the model of :cite:t:`ciotti_feedbackcentral_2009`.
      !!}
      private
      class           (blackHoleAccretionRateClass), pointer :: blackHoleAccretionRate_                     => null()
@@ -76,8 +68,8 @@
   end type blackHoleWindCiotti2009
   
   interface blackHoleWindCiotti2009
-     !!{
-     Constructors for the \refClass{blackHoleWindCiotti2009} black hole winds class.
+     !!{RST
+     Constructors for the :galacticus-class:`blackHoleWindCiotti2009` black hole winds class.
      !!}
      module procedure ciotti2009ConstructorParameters
      module procedure ciotti2009ConstructorInternal
@@ -86,8 +78,8 @@
 contains
 
   function ciotti2009ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{blackHoleWindCiotti2009} black hole winds class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`blackHoleWindCiotti2009` black hole winds class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -99,16 +91,20 @@ contains
     logical                                                      :: efficiencyWindScalesWithEfficiencyRadiative
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>efficiencyWind</name>
       <defaultValue>2.4d-3</defaultValue>
-      <description>The efficiency of the black hole accretion-driven wind: $L_\mathrm{wind} = \epsilon_\mathrm{wind} \dot{M}_\bullet \clight^2$.</description>
+      <description>
+      The efficiency of the black hole accretion-driven wind: :math:`L_\mathrm{wind} = \epsilon_\mathrm{wind} \dot{M}_\bullet \clight^2`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>efficiencyWindScalesWithEfficiencyRadiative</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether the black hole wind efficiency should scale with the radiative efficiency of the accretion disk.</description>
+      <description>
+      Specifies whether the black hole wind efficiency should scale with the radiative efficiency of the accretion disk.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="blackHoleAccretionRate" name="blackHoleAccretionRate_" source="parameters"/>
@@ -124,8 +120,8 @@ contains
   end function ciotti2009ConstructorParameters
 
   function ciotti2009ConstructorInternal(efficiencyWind,efficiencyWindScalesWithEfficiencyRadiative,blackHoleAccretionRate_,accretionDisks_) result(self)
-    !!{
-    Internal constructor for the \refClass{blackHoleWindCiotti2009} black hole winds class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`blackHoleWindCiotti2009` black hole winds class.
     !!}
     implicit none
     type            (blackHoleWindCiotti2009    )                        :: self
@@ -141,7 +137,7 @@ contains
   end function ciotti2009ConstructorInternal
 
   subroutine ciotti2009Destructor(self)
-    !!{
+    !!{RST
     Destructor for the ciotti2009 black hole winds class.
     !!}
     implicit none
@@ -155,7 +151,7 @@ contains
   end subroutine ciotti2009Destructor
   
   double precision function ciotti2009Power(self,blackHole) result(power)
-    !!{
+    !!{RST
     Compute the power of a black hole-driven wind that couples to the surrounding galaxy.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentSpheroid

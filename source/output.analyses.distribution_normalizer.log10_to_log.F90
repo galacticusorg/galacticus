@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a $\log_{10}\rightarrow \log$ output analysis distribution normalizer class.
+  !!{RST
+  Implements a :math:`\log_{10}\rightarrow \log` output analysis distribution normalizer class.
   !!}
 
   !![
-  <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerLog10ToLog">
-   <description>Converts distribution normalizations from $\log_{10}$ scaling to natural $\log$ scaling, enabling comparison of model predictions to observed distributions that use different logarithmic bases.</description>
+  <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerLog10ToLog" docformat="rst">
+   <description>
+   Converts distribution normalizations from :math:`\log_{10}` scaling to natural :math:`\log` scaling, enabling comparison of model predictions to observed distributions that use different logarithmic bases.
+   </description>
   </outputAnalysisDistributionNormalizer>
   !!]
   type, extends(outputAnalysisDistributionNormalizerClass) :: outputAnalysisDistributionNormalizerLog10ToLog
-     !!{
-     A $\log_{10}\rightarrow \log$ output distribution normalizer class.
+     !!{RST
+     A :math:`\log_{10}\rightarrow \log` output distribution normalizer class.
      !!}
      private
    contains
@@ -36,8 +38,8 @@
   end type outputAnalysisDistributionNormalizerLog10ToLog
 
   interface outputAnalysisDistributionNormalizerLog10ToLog
-     !!{
-     Constructors for the \refClass{outputAnalysisDistributionNormalizerLog10ToLog} output analysis distribution normalizer class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisDistributionNormalizerLog10ToLog` output analysis distribution normalizer class.
      !!}
      module procedure log10ToLogConstructorParameters
   end interface outputAnalysisDistributionNormalizerLog10ToLog
@@ -45,8 +47,8 @@
 contains
 
   function log10ToLogConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisDistributionNormalizerLog10ToLog} output analysis distribution normalizer class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisDistributionNormalizerLog10ToLog` output analysis distribution normalizer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function log10ToLogConstructorParameters
 
   subroutine log10ToLogNormalize(self,distribution,covariance,propertyValueMinimum,propertyValueMaximum)
-    !!{
+    !!{RST
     Implement a bin width output analysis distribution normalizer.
     !!}
     implicit none

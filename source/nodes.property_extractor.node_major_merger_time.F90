@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorNodeMajorMergerTime">
-   <description>Extracts the cosmic time of the most recent major halo merger event for each node, where major mergers are defined by a configurable mass ratio threshold applied to the merging halo pair.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorNodeMajorMergerTime" docformat="rst">
+   <description>
+   Extracts the cosmic time of the most recent major halo merger event for each node, where major mergers are defined by a configurable mass ratio threshold applied to the merging halo pair.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorNodeMajorMergerTime
-     !!{
+     !!{RST
      A property extractor which extracts the time of the last major merger for each node.
      !!}
      private
@@ -37,8 +39,8 @@
   end type nodePropertyExtractorNodeMajorMergerTime
 
   interface nodePropertyExtractorNodeMajorMergerTime
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorNodeMajorMergerTime} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorNodeMajorMergerTime` property extractor class.
      !!}
      module procedure nodeMajorMergerTimeConstructorParameters
      module procedure nodeMajorMergerTimeConstructorInternal
@@ -47,8 +49,8 @@
 contains
 
   function nodeMajorMergerTimeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorNodeMajorMergerTime} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorNodeMajorMergerTime` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -63,8 +65,8 @@ contains
   end function nodeMajorMergerTimeConstructorParameters
 
   function nodeMajorMergerTimeConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorNodeMajorMergerTime} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorNodeMajorMergerTime` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorNodeMajorMergerTime) :: self
@@ -76,7 +78,7 @@ contains
   end function nodeMajorMergerTimeConstructorInternal
 
   double precision function nodeMajorMergerTimeExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a nodeMajorMergerTime output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -93,8 +95,8 @@ contains
   end function nodeMajorMergerTimeExtract
   
   function nodeMajorMergerTimeName(self)
-    !!{
-    Return the names of the \mono{nodeMajorMergerTime} properties.
+    !!{RST
+    Return the names of the ``nodeMajorMergerTime`` properties.
     !!}
     implicit none
     type (varying_string                          )                :: nodeMajorMergerTimeName
@@ -106,8 +108,8 @@ contains
   end function nodeMajorMergerTimeName
 
   function nodeMajorMergerTimeDescription(self)
-    !!{
-    Return the descriptions of the \mono{nodeMajorMergerTime} properties.
+    !!{RST
+    Return the descriptions of the ``nodeMajorMergerTime`` properties.
     !!}
     implicit none
     type (varying_string                          )                :: nodeMajorMergerTimeDescription
@@ -119,8 +121,8 @@ contains
   end function nodeMajorMergerTimeDescription
 
   double precision function nodeMajorMergerTimeUnitsInSI(self)
-    !!{
-    Return the units of the \mono{nodeMajorMergerTime} properties in the SI system.
+    !!{RST
+    Return the units of the ``nodeMajorMergerTime`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
@@ -132,7 +134,7 @@ contains
   end function nodeMajorMergerTimeUnitsInSI
 
   function nodeMajorMergerTimeUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the node major merger time property.
     !!}
     use :: Units_MetaData, only : unitType

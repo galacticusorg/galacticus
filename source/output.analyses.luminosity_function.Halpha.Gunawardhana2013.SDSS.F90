@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a stellar mass function output analysis class.
 !!}
 
 
   !![
-  <outputAnalysis name="outputAnalysisLuminosityFunctionGunawardhana2013SDSS">
-   <description>Computes the H$\alpha$ emission line luminosity function for comparison with the SDSS \cite{gunawardhana_galaxy_2013} measurements, with H$\alpha$ luminosity random/systematic error polynomial coefficients, gravitational lensing source size, and binomial covariance matrix parameters.</description>
+  <outputAnalysis name="outputAnalysisLuminosityFunctionGunawardhana2013SDSS" docformat="rst">
+   <description>
+   Computes the H\ :math:`\alpha` emission line luminosity function for comparison with the SDSS :cite:t:`gunawardhana_galaxy_2013` measurements, with H\ :math:`\alpha` luminosity random/systematic error polynomial coefficients, gravitational lensing source size, and binomial covariance matrix parameters.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisLuminosityFunctionHalpha) :: outputAnalysisLuminosityFunctionGunawardhana2013SDSS
-     !!{
-     An SDSS H$\alpha$ luminosity function output analysis class for the \cite{gunawardhana_galaxy_2013} analysis.
+     !!{RST
+     An SDSS H\ :math:`\alpha` luminosity function output analysis class for the :cite:t:`gunawardhana_galaxy_2013` analysis.
      !!}
      private
      class           (gravitationalLensingClass), pointer                     :: gravitationalLensing_            => null()
@@ -41,8 +43,8 @@ Implements a stellar mass function output analysis class.
   end type outputAnalysisLuminosityFunctionGunawardhana2013SDSS
 
   interface outputAnalysisLuminosityFunctionGunawardhana2013SDSS
-     !!{
-     Constructors for the \refClass{outputAnalysisLuminosityFunctionGunawardhana2013SDSS} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisLuminosityFunctionGunawardhana2013SDSS` output analysis class.
      !!}
      module procedure luminosityFunctionGunawardhana2013SDSSConstructorParameters
      module procedure luminosityFunctionGunawardhana2013SDSSConstructorInternal
@@ -51,8 +53,8 @@ Implements a stellar mass function output analysis class.
 contains
 
   function luminosityFunctionGunawardhana2013SDSSConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisLuminosityFunctionGunawardhana2013SDSS} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisLuminosityFunctionGunawardhana2013SDSS` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters              , only : inputParameter                 , inputParameters
     use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
@@ -84,67 +86,85 @@ contains
        allocate(systematicErrorPolynomialCoefficient(1                                                   ))
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.1d0</defaultValue>
-      <description>The minimum random error for SDSS H$\alpha$ luminosities.</description>
+      <description>
+      The minimum random error for SDSS H\ :math:`\alpha` luminosities.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.1d0</defaultValue>
-      <description>The minimum random error for SDSS H$\alpha$ luminosities.</description>
+      <description>
+      The minimum random error for SDSS H\ :math:`\alpha` luminosities.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.1d0]</defaultValue>
-      <description>The coefficients of the random error polynomial for SDSS H$\alpha$ luminosities.</description>
+      <description>
+      The coefficients of the random error polynomial for SDSS H\ :math:`\alpha` luminosities.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for SDSS H$\alpha$ luminosities.</description>
+      <description>
+      The coefficients of the systematic error polynomial for SDSS H\ :math:`\alpha` luminosities.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sizeSourceLensing</name>
       <source>parameters</source>
       <variable>sizeSourceLensing</variable>
       <defaultValue>2.0d-3</defaultValue>
-      <description>The characteristic source size for gravitational lensing calculations.</description>
+      <description>
+      The characteristic source size for gravitational lensing calculations.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <variable>covarianceBinomialBinsPerDecade</variable>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing SDSS H$\alpha$ luminosity function covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing SDSS H\ :math:`\alpha` luminosity function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMinimum</variable>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing SDSS H$\alpha$ luminosity function covariance matrices for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing SDSS H\ :math:`\alpha` luminosity function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMaximum</variable>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing SDSS H$\alpha$ luminosity function covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing SDSS H\ :math:`\alpha` luminosity function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>depthOpticalISMCoefficient</name>
       <defaultValue>1.0d0</defaultValue>
       <source>parameters</source>
-      <description>Multiplicative coefficient for optical depth in the ISM.</description>
+      <description>
+      Multiplicative coefficient for optical depth in the ISM.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"            name="cosmologyFunctions_"            source="parameters"/>
     <objectBuilder class="outputTimes"                   name="outputTimes_"                   source="parameters"/>
@@ -168,8 +188,8 @@ contains
   end function luminosityFunctionGunawardhana2013SDSSConstructorParameters
 
   function luminosityFunctionGunawardhana2013SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisLuminosityFunctionGunawardhana2013SDSS} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisLuminosityFunctionGunawardhana2013SDSS` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -327,8 +347,8 @@ contains
   end function luminosityFunctionGunawardhana2013SDSSConstructorInternal
 
   subroutine luminosityFunctionGunawardhana2013SDSSDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisLuminosityFunctionGunawardhana2013SDSS} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisLuminosityFunctionGunawardhana2013SDSS` output analysis class.
     !!}
     implicit none
     type(outputAnalysisLuminosityFunctionGunawardhana2013SDSS), intent(inout) :: self

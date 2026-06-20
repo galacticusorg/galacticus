@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <task name="taskBuildToolAxionCAMB">
-   <description>A task which downloads, compiles, and installs the AxionCAMB Boltzmann code---a modification of CAMB that supports ultralight axion dark matter---making it available for computing transfer functions and power spectra in axion cosmologies.</description>
+  <task name="taskBuildToolAxionCAMB" docformat="rst">
+   <description>
+   A task which downloads, compiles, and installs the AxionCAMB Boltzmann code---a modification of CAMB that supports ultralight axion dark matter---making it available for computing transfer functions and power spectra in axion cosmologies.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildToolAxionCAMB
-     !!{
+     !!{RST
      Implementation of a task which builds the AxionCAMB tool.
      !!}
      private
@@ -33,8 +35,8 @@
   end type taskBuildToolAxionCAMB
 
   interface taskBuildToolAxionCAMB
-     !!{
-     Constructors for the \refClass{taskBuildToolAxionCAMB} task.
+     !!{RST
+     Constructors for the :galacticus-class:`taskBuildToolAxionCAMB` task.
      !!}
      module procedure buildToolAxionCAMBParameters
   end interface taskBuildToolAxionCAMB
@@ -42,8 +44,8 @@
 contains
 
   function buildToolAxionCAMBParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskBuildToolAxionCAMB} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskBuildToolAxionCAMB` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -56,7 +58,7 @@ contains
   end function buildToolAxionCAMBParameters
 
   subroutine buildToolAxionCAMBPerform(self,status)
-    !!{
+    !!{RST
     Builds the tabulation.
     !!}
     use :: Display             , only : displayIndent                 , displayMessage, displayUnindent
@@ -86,7 +88,7 @@ contains
   end subroutine buildToolAxionCAMBPerform
 
   logical function buildToolAxionCAMBRequiresOutputFile(self)
-    !!{
+    !!{RST
     Specifies that this task does not requires the main output file.
     !!}
     implicit none

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property extractor class.
 !!}
   use :: Chemical_States        , only : chemicalState      , chemicalStateClass
@@ -26,18 +26,15 @@ Implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorICMSZ">
+  <nodePropertyExtractor name="nodePropertyExtractorICMSZ" docformat="rst">
    <description>
-    An intracluster medium Sunyaev-Zeldovich Compton-$y$ parameter property extractor class. Specifically, the quantity
-    extracted is
-    \begin{equation}
-     Y = {\sigma_\mathrm{T} \over \mathrm{m}_\mathrm{e} \mathrm{c}^2} \int_0^{R_\mathrm{outer}} n_\mathrm{e}(R) \mathrm{k}_\mathrm{B} T(r) {4 \pi R^2 \mathrm{d} R \over D_\mathrm{A}^2},
-    \end{equation}
-    where $D_\mathrm{A}$ is the angular diameter distance to the halo, and the result is expressed in units of square
-    arcminutes. The angular diameter distance is, by default, computed from the epoch of the halo. Alternatively, a fixed
-    angular diameter distance can be specified via the \mono{[distanceAngular]} parameter. The outer radius,
-    $R_\mathrm{out}$, is either the halo virial radius (by default), or the radius enclosing the density contrast specified by
-    the optional \mono{[densityContrast]} parameter. This density contrast is relative to either \mono{mean} or \mono{critical} density as specified by the \mono{densityContrastRelativeTo} parameter.
+   An intracluster medium Sunyaev-Zeldovich Compton-:math:`y` parameter property extractor class. Specifically, the quantity extracted is
+
+   .. math::
+
+      Y = {\sigma_\mathrm{T} \over \mathrm{m}_\mathrm{e} \mathrm{c}^2} \int_0^{R_\mathrm{outer}} n_\mathrm{e}(R) \mathrm{k}_\mathrm{B} T(r) {4 \pi R^2 \mathrm{d} R \over D_\mathrm{A}^2},
+
+   where :math:`D_\mathrm{A}` is the angular diameter distance to the halo, and the result is expressed in units of square arcminutes. The angular diameter distance is, by default, computed from the epoch of the halo. Alternatively, a fixed angular diameter distance can be specified via the ``[distanceAngular]`` parameter. The outer radius, :math:`R_\mathrm{out}`, is either the halo virial radius (by default), or the radius enclosing the density contrast specified by the optional ``[densityContrast]`` parameter. This density contrast is relative to either ``mean`` or ``critical`` density as specified by the ``densityContrastRelativeTo`` parameter.
    </description>
    <deepCopy>
     <functionClass variables="densityContrastExtractor_"/>
@@ -48,7 +45,7 @@ Implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorICMSZ
-     !!{
+     !!{RST
      An intracluster medium Sunyaev-Zeldovich Compton-y parameter property extractor class.
      !!}
      private
@@ -71,8 +68,8 @@ Implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property
   end type nodePropertyExtractorICMSZ
 
   interface nodePropertyExtractorICMSZ
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorICMSZ} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorICMSZ` property extractor class.
      !!}
      module procedure icmSZConstructorParameters
      module procedure icmSZConstructorInternal
@@ -81,8 +78,8 @@ Implements an intracluster medium Sunyaev-Zeldovich Compton-y parameter property
 contains
 
   function icmSZConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorICMSZ} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorICMSZ` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters   , only : inputParameter                      , inputParameters
     use :: Cosmology_Functions, only : enumerationDensityCosmologicalEncode
@@ -104,14 +101,18 @@ contains
     !!]
     if (parameters%isPresent('densityContrast')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>densityContrast</name>
-         <description>The density contrast within which to compute the Sunyaev-Zeldovich parameter.</description>
+         <description>
+         The density contrast within which to compute the Sunyaev-Zeldovich parameter.
+         </description>
          <source>parameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>densityContrastRelativeTo</name>
-         <description>The density (\mono{mean} or \mono{critical}) used in defining the density contrast.</description>
+         <description>
+         The density (``mean`` or ``critical``) used in defining the density contrast.
+         </description>
          <source>parameters</source>
          <defaultValue>var_str('mean')</defaultValue>
        </inputParameter>
@@ -119,9 +120,11 @@ contains
     end if
     if (parameters%isPresent('distanceAngular')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>distanceAngular</name>
-         <description>The fixed angular diameter distance at which to compute the Sunyaev-Zeldovich parameter.</description>
+         <description>
+         The fixed angular diameter distance at which to compute the Sunyaev-Zeldovich parameter.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -143,8 +146,8 @@ contains
   end function icmSZConstructorParameters
 
   function icmSZConstructorInternal(cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,chemicalState_,densityContrast,densityContrastRelativeTo,distanceAngular) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorICMSZ} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorICMSZ` property extractor class.
     !!}
     use :: Cosmology_Functions, only : densityCosmologicalMean, enumerationDensityCosmologicalDecode, enumerationDensityCosmologicalType
     use :: ISO_Varying_String , only : char
@@ -190,8 +193,8 @@ contains
   end function icmSZConstructorInternal
 
   subroutine icmSZDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorICMSZ} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorICMSZ` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorICMSZ), intent(inout) :: self
@@ -211,7 +214,7 @@ contains
   end subroutine icmSZDestructor
 
   double precision function icmSZExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a Sunyaev-Zeldovich effect property extractor.
     !!}
     use :: Numerical_Integration           , only : integrator
@@ -268,7 +271,7 @@ contains
   contains
 
     double precision function integrandComptonY(radius)
-      !!{
+      !!{RST
       Integrand function used for computing ICM SZ properties.
       !!}
       use :: Abundances_Structure            , only : abundances
@@ -332,7 +335,7 @@ contains
   end function icmSZExtract
 
   function icmSZName(self)
-    !!{
+    !!{RST
     Return the name of the last isolated redshift property.
     !!}
     implicit none
@@ -344,7 +347,7 @@ contains
   end function icmSZName
 
   function icmSZDescription(self)
-    !!{
+    !!{RST
     Return a description of the intracluster medium Sunyaev-Zeldovich property.
     !!}
     implicit none
@@ -357,7 +360,7 @@ contains
   end function icmSZDescription
 
   double precision function icmSZUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the last isolated redshift property in the SI system.
     !!}
     implicit none
@@ -369,7 +372,7 @@ contains
   end function icmSZUnitsInSI
 
   function icmSZUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the ICMSZ property.
     !!}
     use :: Units_MetaData, only : unitType

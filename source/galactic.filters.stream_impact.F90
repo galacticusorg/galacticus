@@ -17,33 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a filter for subhalos that could impact a stream during the timestep.
 !!}
 
   use :: Output_Times, only : outputTimesClass
 
   !![
-  <galacticFilter name="galacticFilterStreamImpact">
+  <galacticFilter name="galacticFilterStreamImpact" docformat="rst">
    <description>
-     A filter for subhalos that could impact a stream during the timestep. We consider a subhalo, at time $t=0$ (defined as the
-     current time), at position $\mathbf{r}$ and moving with velocity $\mathbf{v}$. The time of closest approach to a point
-     $\mathbf{r}^\prime$ is given by
-     \begin{equation}
+   A filter for subhalos that could impact a stream during the timestep. We consider a subhalo, at time :math:`t=0` (defined as the current time), at position :math:`\mathbf{r}` and moving with velocity :math:`\mathbf{v}`. The time of closest approach to a point :math:`\mathbf{r}^\prime` is given by
+
+   .. math::
+
       t_\mathrm{impact} = (\mathbf{v}\cdot \mathbf{r}^\prime - \mathbf{v}\cdot \mathbf{r})/v^2.
-     \end{equation}     
-     We want to keep subhalos which may impact upon a stream of radius $r^\prime$ during the timestep, allowing for arbitrary
-     rotations of the subhalo system. Therefore, we must find the minimum and maximum possible values of $t_\mathrm{impact}$ when
-     considering all points on the sphere of radius $r^\prime$. These extrema clearly occur when $\mathbf{r}^\prime$ is aligned,
-     or anti-aligned with $\mathbf{v}$, i.e.:
-     \begin{equation}
+
+   We want to keep subhalos which may impact upon a stream of radius :math:`r^\prime` during the timestep, allowing for arbitrary rotations of the subhalo system. Therefore, we must find the minimum and maximum possible values of :math:`t_\mathrm{impact}` when considering all points on the sphere of radius :math:`r^\prime`. These extrema clearly occur when :math:`\mathbf{r}^\prime` is aligned, or anti-aligned with :math:`\mathbf{v}`, i.e.:
+
+   .. math::
+
       t_\mathrm{impact, min/max} = (\pm v r^\prime - \mathbf{v}\cdot \mathbf{r})/v^2.
-     \end{equation}
-  </description>
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterStreamImpact
-     !!{
+     !!{RST
      A filter for subhalos that could impact a stream during the timestep.
      !!}
      private
@@ -55,8 +53,8 @@ Implements a filter for subhalos that could impact a stream during the timestep.
   end type galacticFilterStreamImpact
 
   interface galacticFilterStreamImpact
-     !!{
-     Constructors for the \refClass{galacticFilterStreamImpact} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterStreamImpact` galactic filter class.
      !!}
      module procedure streamImpactConstructorParameters
      module procedure streamImpactConstructorInternal
@@ -65,8 +63,8 @@ Implements a filter for subhalos that could impact a stream during the timestep.
 contains
 
   function streamImpactConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterStreamImpact} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterStreamImpact` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,10 +74,12 @@ contains
     double precision                                            :: radiusOrbitalStream
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusOrbitalStream</name>
       <source>parameters</source>
-      <description>The orbital radius of the stream (which is assumed to be on a circular orbit).</description>
+      <description>
+      The orbital radius of the stream (which is assumed to be on a circular orbit).
+      </description>
     </inputParameter>
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
@@ -92,8 +92,8 @@ contains
   end function streamImpactConstructorParameters
 
   function streamImpactConstructorInternal(radiusOrbitalStream,outputTimes_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterStreamImpact} galactic filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticFilterStreamImpact` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterStreamImpact)                        :: self
@@ -107,8 +107,8 @@ contains
   end function streamImpactConstructorInternal
 
   subroutine streamImpactDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterStreamImpact} galactic filter class.
+    !!{RST
+    Destructor for the :galacticus-class:`galacticFilterStreamImpact` galactic filter class.
     !!}
     implicit none
     type(galacticFilterStreamImpact), intent(inout) :: self
@@ -120,7 +120,7 @@ contains
   end subroutine streamImpactDestructor
 
   logical function streamImpactPasses(self,node) result(passes)
-    !!{
+    !!{RST
     Filter based on whether a subhalo can impact a stream in the timestep.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentSatellite

@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorExcursion">
-   <description>Extracts the infimum of the excursion (the minimum value of the random walk trajectory above threshold) corresponding to the mass accretion history for each node in the excursion set formalism.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorExcursion" docformat="rst">
+   <description>
+   Extracts the infimum of the excursion (the minimum value of the random walk trajectory above threshold) corresponding to the mass accretion history for each node in the excursion set formalism.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorExcursion
-     !!{
+     !!{RST
      A property extractor which extracts the (infimum of the) excursion corresponding to the mass accretion history for each node.
      !!}
      private
@@ -38,8 +40,8 @@
   end type nodePropertyExtractorExcursion
 
   interface nodePropertyExtractorExcursion
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorExcursion} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorExcursion` property extractor class.
      !!}
      module procedure excursionConstructorParameters
      module procedure excursionConstructorInternal
@@ -48,8 +50,8 @@
 contains
 
   function excursionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorExcursion} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorExcursion` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,8 +66,8 @@ contains
   end function excursionConstructorParameters
 
   function excursionConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorExcursion} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorExcursion` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorExcursion) :: self
@@ -78,7 +80,7 @@ contains
   end function excursionConstructorInternal
 
   integer function excursionElementCount(self)
-    !!{
+    !!{RST
     Return a count of the number of properties extracted.
     !!}
     implicit none
@@ -89,7 +91,7 @@ contains
   end function excursionElementCount
 
   function excursionExtract(self,node,instance) result(excursion)
-    !!{
+    !!{RST
     Implement a excursion output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -113,8 +115,8 @@ contains
   end function excursionExtract
   
   subroutine excursionNames(self,names)
-    !!{
-    Return the names of the \mono{excursion} properties.
+    !!{RST
+    Return the names of the ``excursion`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorExcursion), intent(inout)                             :: self
@@ -128,8 +130,8 @@ contains
   end subroutine excursionNames
 
   subroutine excursionDescriptions(self,descriptions)
-    !!{
-    Return the descriptions of the \mono{excursion} properties.
+    !!{RST
+    Return the descriptions of the ``excursion`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorExcursion), intent(inout)                             :: self
@@ -143,8 +145,8 @@ contains
   end subroutine excursionDescriptions
 
   function excursionUnitsInSI(self) result(unitsInSI)
-    !!{
-    Return the units of the \mono{excursion} properties in the SI system.
+    !!{RST
+    Return the units of the ``excursion`` properties in the SI system.
     !!}
     implicit none
     double precision                                , dimension(:) , allocatable :: unitsInSI
@@ -157,7 +159,7 @@ contains
   end function excursionUnitsInSI
 
   function excursionUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the excursion properties.
     !!}
     use :: Units_MetaData, only : unitType

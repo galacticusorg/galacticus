@@ -17,30 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements calculations of satellite merging times using the \cite{jiang_fitting_2008} method.
+  !!{RST
+  Implements calculations of satellite merging times using the :cite:t:`jiang_fitting_2008` method.
   !!}
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <satelliteMergingTimescales name="satelliteMergingTimescalesJiang2008">
+  <satelliteMergingTimescales name="satelliteMergingTimescalesJiang2008" docformat="rst">
    <description>
-    A satellite merging timescales class which computes merging timescales using the dynamical friction calibration of
-    \cite{jiang_fitting_2008}. \cite{jiang_fitting_2008} find that their fitting formula does not perfectly capture the results
-    of N-body simulations, instead showing a scatter in the ratio $T_\mathrm{fit}/T_\mathrm{sim}$ where $T_\mathrm{fit}$ is the
-    merging time from their fitting formula and $T_\mathrm{sim}$ is that measured from their N-body simulation. Furthermore,
-    they show that the distribution of $T_\mathrm{fit}/T_\mathrm{sim}$ is well described by a log-normal with dispersion (in
-    $\log[T_\mathrm{fit}/T_\mathrm{sim}]$) of $\sigma=0.4$. Random perturbations can be applied to the merger times returned by
-    this implementation by setting $\sigma=$\mono{[scatter]}$>0$ which will cause the merger time to be drawn
-    from a log-normal distribution of width $\sigma$ with median equal to $T_\mathrm{fit}$.
+   A satellite merging timescales class which computes merging timescales using the dynamical friction calibration of :cite:t:`jiang_fitting_2008`. :cite:t:`jiang_fitting_2008` find that their fitting formula does not perfectly capture the results of N-body simulations, instead showing a scatter in the ratio :math:`T_\mathrm{fit}/T_\mathrm{sim}` where :math:`T_\mathrm{fit}` is the merging time from their fitting formula and :math:`T_\mathrm{sim}` is that measured from their N-body simulation. Furthermore, they show that the distribution of :math:`T_\mathrm{fit}/T_\mathrm{sim}` is well described by a log-normal with dispersion (in :math:`\log[T_\mathrm{fit}/T_\mathrm{sim}]`) of :math:`\sigma=0.4`. Random perturbations can be applied to the merger times returned by this implementation by setting :math:`\sigma=`\ ``[scatter]``\ :math:`&gt;0` which will cause the merger time to be drawn from a log-normal distribution of width :math:`\sigma` with median equal to :math:`T_\mathrm{fit}`.
    </description>
   </satelliteMergingTimescales>
   !!]
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesJiang2008
-     !!{
-     A class implementing the \cite{jiang_fitting_2008} method for satellite merging timescales.
+     !!{RST
+     A class implementing the :cite:t:`jiang_fitting_2008` method for satellite merging timescales.
      !!}
      private
      class          (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
@@ -54,8 +47,8 @@
   end type satelliteMergingTimescalesJiang2008
 
   interface satelliteMergingTimescalesJiang2008
-     !!{
-     Constructors for the \cite{jiang_fitting_2008} merging timescale class.
+     !!{RST
+     Constructors for the :cite:t:`jiang_fitting_2008` merging timescale class.
      !!}
      module procedure jiang2008ConstructorParameters
      module procedure jiang2008ConstructorInternal
@@ -64,8 +57,8 @@
 contains
 
   function jiang2008ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \cite{jiang_fitting_2008} merging timescale class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :cite:t:`jiang_fitting_2008` merging timescale class which builds the object from a parameter set.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : defaultBasicComponent
@@ -79,16 +72,20 @@ contains
 
     if (.not.defaultBasicComponent%massIsGettable()) call Error_Report('this method requires that the "mass" property of the basic component be gettable'//{introspection:location})
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescaleMultiplier</name>
       <defaultValue>0.75d0</defaultValue>
-      <description>A multiplier for the merging timescale in dynamical friction timescale calculations.</description>
+      <description>
+      A multiplier for the merging timescale in dynamical friction timescale calculations.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scatter</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>Specifies whether or not to add random scatter to the dynamical friction timescales in the \mono{Jiang2008} satellite merging time implementation.</description>
+      <description>
+      Specifies whether or not to add random scatter to the dynamical friction timescales in the ``Jiang2008`` satellite merging time implementation.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
@@ -104,8 +101,8 @@ contains
   end function jiang2008ConstructorParameters
 
   function jiang2008ConstructorInternal(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !!{
-    Constructor for the \cite{jiang_fitting_2008} merging timescale class.
+    !!{RST
+    Constructor for the :cite:t:`jiang_fitting_2008` merging timescale class.
     !!}
     implicit none
     type            (satelliteMergingTimescalesJiang2008)                        :: self
@@ -120,8 +117,8 @@ contains
   end function jiang2008ConstructorInternal
 
   subroutine jiang2008Destructor(self)
-    !!{
-    Destructor for the \refClass{satelliteMergingTimescalesJiang2008} satellite merging timescale class.
+    !!{RST
+    Destructor for the :galacticus-class:`satelliteMergingTimescalesJiang2008` satellite merging timescale class.
     !!}
     implicit none
     type(satelliteMergingTimescalesJiang2008), intent(inout) :: self
@@ -134,8 +131,8 @@ contains
   end subroutine jiang2008Destructor
 
   double precision function jiang2008TimeUntilMerging(self,node,orbit)
-    !!{
-    Return the timescale for merging satellites using the \cite{jiang_fitting_2008} method.
+    !!{RST
+    Return the timescale for merging satellites using the :cite:t:`jiang_fitting_2008` method.
     !!}
     use :: Error             , only : Error_Report
     use :: Galacticus_Nodes  , only : nodeComponentBasic                              , treeNode

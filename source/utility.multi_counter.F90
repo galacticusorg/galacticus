@@ -17,15 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Contains a module which implements multi-counters - objects which iterate over all combinations of an arbitrary number of
-  counters, each with an arbitrary range.
+  !!{RST
+  Contains a module which implements multi-counters - objects which iterate over all combinations of an arbitrary number of counters, each with an arbitrary range.
   !!}
 
 module Multi_Counters
-  !!{
-  Implements multi-counters - objects which iterate over all combinations of an arbitrary number of counters, each with an
-  arbitrary range.
+  !!{RST
+  Implements multi-counters - objects which iterate over all combinations of an arbitrary number of counters, each with an arbitrary range.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   implicit none
@@ -33,21 +31,20 @@ module Multi_Counters
   public :: multiCounter
 
   type :: multiCounter
-     !!{
-     Class providing multi-counters - objects which iterate over all combinations of an arbitrary number of counters, each with
-     an arbitrary range.
+     !!{RST
+     Class providing multi-counters - objects which iterate over all combinations of an arbitrary number of counters, each with an arbitrary range.
      !!}
      integer(c_size_t), allocatable, dimension(:) :: ranges, values
      logical                                      :: isNew
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="reset"     description="Reset the multi-counter back to its initial count state, such that the next increment will return the first count."                                                                                />
        <method method="count"     description="Return the number of counters configured in this multi-counter."                                                                                                                                   />
-       <method method="append"    description="Append a new counter to the multi-counter, with the specified \mono{range}."                                                                                                      />
-       <method method="increment" description="Increment the state of the multi-counter. Return \mono{.false.} if incrementing was not possible (i.e. counter was in the final state), \mono{.true.} otherwise."/>
-       <method method="isFinal"   description="Return \mono{.true.} if the counter is in its final state, \mono{.false.} otherwise."                                                                            />
-       <method method="state"     description="Return the state of the \mono{i}$^\mathrm{th}$ counter."                                                                                                                          />
+       <method method="append"    description="Append a new counter to the multi-counter, with the specified ``range``."                                                                                                      />
+       <method method="increment" description="Increment the state of the multi-counter. Return ``.false.`` if incrementing was not possible (i.e. counter was in the final state), ``.true.`` otherwise."/>
+       <method method="isFinal"   description="Return ``.true.`` if the counter is in its final state, ``.false.`` otherwise."                                                                            />
+       <method method="state"     description="Return the state of the ``i``\ :math:`^\mathrm{th}` counter."                                                                                                                          />
        <method method="states"    description="Return the states of all counters."                                                                                                                                                                />
      </methods>
      !!]
@@ -62,7 +59,7 @@ module Multi_Counters
   end type multiCounter
 
   interface multiCounter
-     !!{
+     !!{RST
      Constructors for multi-counters.
      !!}
      module procedure multiCounterConstructorNull
@@ -73,7 +70,7 @@ module Multi_Counters
 contains
 
   function multiCounterConstructor(ranges) result (self)
-    !!{
+    !!{RST
     Constructor for multi-counters where the ranges are provided.
     !!}
     use :: Error, only : Error_Report
@@ -92,7 +89,7 @@ contains
   end function multiCounterConstructor
 
   function multiCounterConstructorNull() result (self)
-    !!{
+    !!{RST
     Constructor for multi-counters where no ranges are provided.
     !!}
     implicit none
@@ -103,7 +100,7 @@ contains
   end function multiCounterConstructorNull
 
   function multiCounterConstructorShortInt(ranges) result (self)
-    !!{
+    !!{RST
     Constructor for multi-counters where the ranges are provided as short integers.
     !!}
     implicit none
@@ -115,7 +112,7 @@ contains
   end function multiCounterConstructorShortInt
   
   subroutine multiCounterDestructor(self)
-    !!{
+    !!{RST
     Destroy a multi-counter object.
     !!}
     type(multiCounter), intent(inout) :: self
@@ -126,7 +123,7 @@ contains
   end subroutine multiCounterDestructor
 
   subroutine multiCounterReset(self)
-    !!{
+    !!{RST
     Reset the state of the multi-counter.
     !!}
     implicit none
@@ -138,7 +135,7 @@ contains
   end subroutine multiCounterReset
 
   function multiCounterCount(self)
-    !!{
+    !!{RST
     Return the number of counters in the multi-counter.
     !!}
     use :: Error, only : Error_Report
@@ -154,7 +151,7 @@ contains
   end function multiCounterCount
 
   function multiCounterState(self,i)
-    !!{
+    !!{RST
     Return the state of the multi-counter.
     !!}
     use :: Error, only : Error_Report
@@ -172,7 +169,7 @@ contains
   end function multiCounterState
 
   function multiCounterStates(self) result(states)
-    !!{
+    !!{RST
     Return the states of the multi-counter.
     !!}
     implicit none
@@ -184,8 +181,8 @@ contains
   end function multiCounterStates
 
   subroutine multiCounterAppend(self,range)
-    !!{
-    Append a new counter with the given \mono{range}.
+    !!{RST
+    Append a new counter with the given ``range``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -213,7 +210,7 @@ contains
   end subroutine multiCounterAppend
 
   logical function multiCounterIncrement(self)
-    !!{
+    !!{RST
     Increment a multi-counter. Return true if increment was possible, false otherwise.
     !!}
     use :: Error, only : Error_Report
@@ -254,7 +251,7 @@ contains
   end function multiCounterIncrement
 
   logical function multiCounterIsFinal(self)
-    !!{
+    !!{RST
     Return true if a multi-counter is in its final state, false otherwise.
     !!}
     use :: Error, only : Error_Report

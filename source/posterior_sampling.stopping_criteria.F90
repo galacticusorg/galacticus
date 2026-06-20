@@ -17,30 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a stopping criteria class for constraint simulations.
 !!}
 
 module Posterior_Sampling_Stopping_Criteria
-  !!{
+  !!{RST
   Implements a stopping criteria class for constraint simulations.
   !!}
   use :: Posterior_Sampling_State, only : posteriorSampleStateClass
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>posteriorSampleStoppingCriterion</name>
    <descriptiveName>Posterior Sampling Stopping Criteria</descriptiveName>
-   <description>Class providing stopping criteria for Bayesian posterior sampling simulations---conditions that
-    terminate the MCMC run before the convergence criterion is satisfied. Implementations might stop
-    after a fixed number of steps, upon reaching a target log-likelihood, when an external signal is
-    received, or when a user-defined condition on the simulation state is met. The \mono{stop} method
-    is queried at each sampling step and returns true when the stopping condition is triggered,
-    allowing the sampler to exit cleanly.</description>
+   <description>
+   Class providing stopping criteria for Bayesian posterior sampling simulations---conditions that terminate the MCMC run before the convergence criterion is satisfied. Implementations might stop after a fixed number of steps, upon reaching a target log-likelihood, when an external signal is received, or when a user-defined condition on the simulation state is met. The ``stop`` method is queried at each sampling step and returns true when the stopping condition is triggered, allowing the sampler to exit cleanly.
+   </description>
    <default>never</default>
    <method name="stop" >
-    <description>Returns true if the posterior sampling should terminate immediately given the current simulation state, allowing the sampler to exit cleanly before reaching the maximum step count.</description>
+    <description>
+    Returns true if the posterior sampling should terminate immediately given the current simulation state, allowing the sampler to exit cleanly before reaching the maximum step count.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <argument>class(posteriorSampleStateClass), intent(inout) :: simulationState</argument>

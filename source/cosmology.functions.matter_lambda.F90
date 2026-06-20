@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of the cosmological functions class for cosmologies consisting of collisionless
-  matter plus a cosmological constant.
+  !!{RST
+  An implementation of the cosmological functions class for cosmologies consisting of collisionless matter plus a cosmological constant.
   !!}
 
   use :: Cosmology_Parameters   , only : cosmologyParameters, cosmologyParametersClass
@@ -36,15 +35,14 @@
   double precision, parameter :: matterLambdaDominateFactor               =100.0d0
 
   !![
-  <cosmologyFunctions name="cosmologyFunctionsMatterLambda">
+  <cosmologyFunctions name="cosmologyFunctionsMatterLambda" docformat="rst">
    <description>
-    Cosmological relations are computed assuming a universe that contains only collisionless matter and a cosmological
-    constant.
+   Cosmological relations are computed assuming a universe that contains only collisionless matter and a cosmological constant.
    </description>
   </cosmologyFunctions>
   !!]
   type, extends(cosmologyFunctionsClass) :: cosmologyFunctionsMatterLambda
-     !!{
+     !!{RST
      A cosmological functions class for cosmologies consisting of matter plus a cosmological constant.
      !!}
      private
@@ -72,7 +70,7 @@
      logical                                                               :: enableRangeChecks
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulate comoving distance as a function of cosmic time." method="distanceTabulate" />
        <method description="Tabulate expansion factor as a function of cosmic time." method="expansionFactorTabulate" />
      </methods>
@@ -113,7 +111,7 @@
   !$GLC ignore outlive :: self_
 
   interface cosmologyFunctionsMatterLambda
-     !!{
+     !!{RST
      Constructors for the matter plus cosmological constant cosmological functions class.
      !!}
      module procedure matterLambdaConstructorParameters
@@ -123,7 +121,7 @@
 contains
 
   function matterLambdaConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Parameter-based constructor for the matter plus cosmological constant cosmological functions class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -144,7 +142,7 @@ contains
   end function matterLambdaConstructorParameters
 
   function matterLambdaConstructorInternal(cosmologyParameters_) result(self)
-    !!{
+    !!{RST
     Constructor for the matter plus cosmological constant cosmological functions class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsTime
@@ -315,7 +313,7 @@ contains
   end function matterLambdaConstructorInternal
 
   subroutine matterLambdaDestructor(self)
-    !!{
+    !!{RST
     Destructor for the matter plus cosmological constant cosmological functions class.
     !!}
     implicit none
@@ -328,9 +326,8 @@ contains
   end subroutine matterLambdaDestructor
 
   subroutine matterLambdaEpochValidate(self,timeIn,expansionFactorIn,collapsingIn,timeOut,expansionFactorOut,collapsingOut)
-    !!{
-    Validate a cosmic epoch, specified either by time or expansion factor, and optionally return time, expansion factor, and
-    collapsing status.
+    !!{RST
+    Validate a cosmic epoch, specified either by time or expansion factor, and optionally return time, expansion factor, and collapsing status.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -390,7 +387,7 @@ contains
   end subroutine matterLambdaEpochValidate
 
   double precision function matterLambdaCosmicTime(self,expansionFactor,collapsingPhase)
-    !!{
+    !!{RST
     Return the cosmological matter density in units of the critical density at the present day.
     !!}
     implicit none
@@ -433,7 +430,7 @@ contains
   end function matterLambdaCosmicTime
 
   double precision function matterLambdaTimeBigCrunch(self)
-    !!{
+    !!{RST
     Return the time of the Big Crunch (or a negative value if no Big Crunch occurs).
     !!}
     implicit none
@@ -448,7 +445,7 @@ contains
   end function matterLambdaTimeBigCrunch
 
   integer function matterLambdaCollapseODEs(a,t,dtda)
-    !!{
+    !!{RST
     System of differential equations to solve for age vs. expansion factor.
     !!}
     use :: Interface_GSL, only : GSL_Success
@@ -467,8 +464,8 @@ contains
   end function matterLambdaCollapseODEs
 
   double precision function matterLambdaExpansionFactor(self,time)
-    !!{
-    Returns the expansion factor at cosmological time \mono{time}.
+    !!{RST
+    Returns the expansion factor at cosmological time ``time``.
     !!}
     use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : varying_string
@@ -539,8 +536,8 @@ contains
   end function matterLambdaExpansionFactor
 
   double precision function matterLambdaExpansionRate(self,expansionFactor)
-    !!{
-    Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor \mono{expansionFactor}.
+    !!{RST
+    Returns the cosmological expansion rate, :math:`\dot{a}/a` at expansion factor ``expansionFactor``.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard, hubbleUnitsTime
     implicit none
@@ -565,8 +562,8 @@ contains
   end function matterLambdaExpansionRate
 
   double precision function matterLambdaHubbleParameterEpochal(self,time,expansionFactor,collapsingPhase)
-    !!{
-    Returns the Hubble parameter at the request cosmological time, \mono{time}, or expansion factor, \mono{expansionFactor}.
+    !!{RST
+    Returns the Hubble parameter at the request cosmological time, ``time``, or expansion factor, ``expansionFactor``.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
     use :: Error               , only : Error_Report
@@ -616,8 +613,8 @@ contains
   end function matterLambdaHubbleParameterEpochal
 
   double precision function matterLambdaHubbleParameterRateOfChange(self,time,expansionFactor,collapsingPhase)
-    !!{
-    Returns the rate of change of the Hubble parameter at the request cosmological time, \mono{time}, or expansion factor, \mono{expansionFactor}.
+    !!{RST
+    Returns the rate of change of the Hubble parameter at the request cosmological time, ``time``, or expansion factor, ``expansionFactor``.
     !!}
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -649,8 +646,8 @@ contains
   end function matterLambdaHubbleParameterRateOfChange
 
   double precision function matterLambdaOmegaMatterEpochal(self,time,expansionFactor,collapsingPhase)
-    !!{
-    Return the matter density parameter at expansion factor \mono{expansionFactor}.
+    !!{RST
+    Return the matter density parameter at expansion factor ``expansionFactor``.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
     implicit none
@@ -677,8 +674,8 @@ contains
   end function matterLambdaOmegaMatterEpochal
 
   double precision function matterLambdaMatterDensityEpochal(self,time,expansionFactor,collapsingPhase)
-    !!{
-    Return the matter density at expansion factor \mono{expansionFactor}.
+    !!{RST
+    Return the matter density at expansion factor ``expansionFactor``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -709,8 +706,8 @@ contains
   end function matterLambdaMatterDensityEpochal
 
   double precision function matterLambdaOmegaMatterRateOfChange(self,time,expansionFactor,collapsingPhase)
-    !!{
-    Return the rate of change of the matter density parameter at expansion factor \mono{expansionFactor}.
+    !!{RST
+    Return the rate of change of the matter density parameter at expansion factor ``expansionFactor``.
     !!}
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -736,8 +733,8 @@ contains
   end function matterLambdaOmegaMatterRateOfChange
 
   double precision function matterLambdaOmegaDarkEnergyEpochal(self,time,expansionFactor,collapsingPhase)
-    !!{
-    Return the dark energy density parameter at expansion factor \mono{expansionFactor}.
+    !!{RST
+    Return the dark energy density parameter at expansion factor ``expansionFactor``.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
     implicit none
@@ -763,8 +760,8 @@ contains
   end function matterLambdaOmegaDarkEnergyEpochal
 
   double precision function matterLambdaTemperatureCMBEpochal(self,time,expansionFactor,collapsingPhase)
-    !!{
-    Return the temperature of the CMB at expansion factor \mono{expansionFactor}.
+    !!{RST
+    Return the temperature of the CMB at expansion factor ``expansionFactor``.
     !!}
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -831,7 +828,7 @@ contains
   end function matterLambdaDominationEpochMatter
 
   double precision function matterLambdaEqualityEpochMatterDarkEnergy(self,requestType)
-    !!{
+    !!{RST
     Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).
     !!}
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor, requestTypeTime
@@ -857,7 +854,7 @@ contains
   end function matterLambdaEqualityEpochMatterDarkEnergy
 
   double precision function matterLambdaEqualityEpochMatterCurvature(self,requestType)
-    !!{
+    !!{RST
     Return the epoch of matter-curvature magnitude equality (either expansion factor or cosmic time).
     !!}
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor, requestTypeTime
@@ -879,7 +876,7 @@ contains
   end function matterLambdaEqualityEpochMatterCurvature
 
   double precision function matterLambdaEqualityEpochMatterRadiation(self,requestType)
-    !!{
+    !!{RST
     Return the epoch of matter-radiation magnitude equality (either expansion factor or cosmic time).
     !!}
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor, requestTypeTime
@@ -901,7 +898,7 @@ contains
   end function matterLambdaEqualityEpochMatterRadiation
 
   subroutine matterLambdaMakeExpansionFactorTable(self,time)
-    !!{
+    !!{RST
     Builds a table of expansion factor vs. time.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsTime
@@ -1024,7 +1021,7 @@ contains
   end subroutine matterLambdaMakeExpansionFactorTable
 
   integer function matterLambdaAgeTableODEs(t,a,dadt)
-    !!{
+    !!{RST
     System of differential equations to solve for expansion factor vs. age.
     !!}
     use :: Interface_GSL, only : GSL_Success
@@ -1041,8 +1038,8 @@ contains
   end function matterLambdaAgeTableODEs
 
   double precision function matterLambdaTimeAtDistanceComoving(self,comovingDistance)
-    !!{
-    Returns the cosmological time corresponding to given \mono{comovingDistance}.
+    !!{RST
+    Returns the cosmological time corresponding to given ``comovingDistance``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -1072,8 +1069,8 @@ contains
   end function matterLambdaTimeAtDistanceComoving
 
   double precision function matterLambdaDistanceComoving(self,time)
-    !!{
-    Returns the comoving distance to cosmological time \mono{time}.
+    !!{RST
+    Returns the comoving distance to cosmological time ``time``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -1106,8 +1103,8 @@ contains
   end function matterLambdaDistanceComoving
 
   double precision function matterLambdaDistanceLuminosity(self,time)
-    !!{
-    Returns the luminosity distance to cosmological time \mono{time}.
+    !!{RST
+    Returns the luminosity distance to cosmological time ``time``.
     !!}
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
@@ -1119,8 +1116,8 @@ contains
   end function matterLambdaDistanceLuminosity
 
   double precision function matterLambdaDistanceAngular(self,time,timeOrigin) result(distance)
-    !!{
-    Returns the angular diameter distance to cosmological time \mono{time}.
+    !!{RST
+    Returns the angular diameter distance to cosmological time ``time``.
     !!}
     use :: Cosmology_Parameters            , only : hubbleUnitsTime
     use :: Error                           , only : Error_Report
@@ -1182,7 +1179,7 @@ contains
   end function matterLambdaDistanceAngular
 
   double precision function matterLambdaDistanceComovingConvert(self,output,distanceLuminosity,distanceModulus,distanceModulusKCorrected,redshift)
-    !!{
+    !!{RST
     Convert between different measures of distance.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
@@ -1237,8 +1234,8 @@ contains
   end function matterLambdaDistanceComovingConvert
 
   double precision function matterLambdaDistanceParticleHorizonComoving(self,time)
-    !!{
-    Returns the comoving distance to the particle horizon at cosmological time \mono{time}.
+    !!{RST
+    Returns the comoving distance to the particle horizon at cosmological time ``time``.
     !!}
     use :: Numerical_Integration, only : integrator
     implicit none
@@ -1253,7 +1250,7 @@ contains
   contains
 
     double precision function integrandParticleHorizon(time)
-      !!{
+      !!{RST
       Integrand used to compute the distance to the comoving particle horizon.
       !!}
       use :: Numerical_Constants_Physical    , only : speedLight
@@ -1275,7 +1272,7 @@ contains
   end function matterLambdaDistanceParticleHorizonComoving
   
   subroutine matterLambdaMakeDistanceTable(self,time)
-    !!{
+    !!{RST
     Builds a table of comoving distance vs. time.
     !!}
     use :: Numerical_Integration           , only : integrator
@@ -1393,7 +1390,7 @@ contains
   end subroutine matterLambdaMakeDistanceTable
 
   double precision function matterLambdaComovingDistanceIntegrand(expansionFactor)
-    !!{
+    !!{RST
     Integrand function used in computing the comoving distance.
     !!}
     implicit none
@@ -1404,7 +1401,7 @@ contains
   end function matterLambdaComovingDistanceIntegrand
 
   double precision function matterLambdaEquationOfStateDarkEnergy(self,time,expansionFactor)
-    !!{
+    !!{RST
     Return the dark energy equation of state.
     !!}
     implicit none
@@ -1417,7 +1414,7 @@ contains
   end function matterLambdaEquationOfStateDarkEnergy
 
   double precision function matterLambdaExponentDarkEnergy(self,time,expansionFactor)
-    !!{
+    !!{RST
     Return the dark energy equation of state.
     !!}
     implicit none

@@ -17,35 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class for calculations of stellar winds.
 !!}
 
 module Stellar_Astrophysics_Winds
-  !!{
+  !!{RST
   Implements a class for calculations of stellar winds.
   !!}
   implicit none
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>stellarWinds</name>
    <descriptiveName>Stellar Winds</descriptiveName>
-   <description>Class providing models of stellar winds, specifically the mass-loss rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$)
-    and terminal wind velocity (in km s$^{-1}$) as functions of initial stellar mass, age, and metallicity. Stellar
-    winds from massive OB stars and Wolf-Rayet stars are a significant source of mass and momentum input to the
-    \gls{ism} and contribute to the mechanical luminosity available for stellar feedback. The wind properties enter
-    the stellar feedback class to determine the energy and momentum coupling to the surrounding gas.</description>
+   <description>
+   Class providing models of stellar winds, specifically the mass-loss rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) and terminal wind velocity (in km s\ :math:`^{-1}`) as functions of initial stellar mass, age, and metallicity. Stellar winds from massive OB stars and Wolf-Rayet stars are a significant source of mass and momentum input to the :term:`ISM` and contribute to the mechanical luminosity available for stellar feedback. The wind properties enter the stellar feedback class to determine the energy and momentum coupling to the surrounding gas.
+   </description>
    <default>leitherer1992</default>
    <method name="rateMassLoss" >
-    <description>Return the mass loss rate (in $\mathrm{M}_\odot$/Gyr) from stars of given \mono{initialMass}, \mono{age} and \mono{metallicity}.</description>
+    <description>
+    Return the mass loss rate (in :math:`\mathrm{M}_\odot`/Gyr) from stars of given ``initialMass``, ``age`` and ``metallicity``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
    </method>
    <method name="velocityTerminal" >
-    <description>Return the terminal velocity (in km/s) of winds from stars of given \mono{initialMass}, \mono{age} and \mono{metallicity}.</description>
+    <description>
+    Return the terminal velocity (in km/s) of winds from stars of given ``initialMass``, ``age`` and ``metallicity``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>

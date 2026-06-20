@@ -20,14 +20,14 @@
   use :: Star_Formation_Histories, only : starFormationHistoryClass
 
   !![
-  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepStarFormationHistory">
+  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepStarFormationHistory" docformat="rst">
    <description>
-     A merger tree evolution timestepping class that limits the timestep to the next bin in the star formation history.
+   A merger tree evolution timestepping class that limits the timestep to the next bin in the star formation history.
    </description>
   </mergerTreeEvolveTimestep>
   !!]
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepStarFormationHistory
-     !!{
+     !!{RST
      A merger tree evolution timestepping class that limits the timestep to the next bin in the star formation history.
      !!}
      private
@@ -38,8 +38,8 @@
   end type mergerTreeEvolveTimestepStarFormationHistory
 
   interface mergerTreeEvolveTimestepStarFormationHistory
-     !!{
-     Constructors for the \refClass{mergerTreeEvolveTimestepStarFormationHistory} merger tree evolution timestep class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeEvolveTimestepStarFormationHistory` merger tree evolution timestep class.
      !!}
      module procedure starFormationHistoryConstructorParameters
      module procedure starFormationHistoryConstructorInternal
@@ -48,8 +48,8 @@
 contains
 
   function starFormationHistoryConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveTimestepStarFormationHistory} merger tree evolution timestep class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepStarFormationHistory` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,8 +69,8 @@ contains
   end function starFormationHistoryConstructorParameters
 
   function starFormationHistoryConstructorInternal(starFormationHistory_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeEvolveTimestepStarFormationHistory} merger tree evolution timestep class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeEvolveTimestepStarFormationHistory` merger tree evolution timestep class.
     !!}
     implicit none
     type (mergerTreeEvolveTimestepStarFormationHistory)                        :: self
@@ -83,8 +83,8 @@ contains
   end function starFormationHistoryConstructorInternal
 
   subroutine starFormationHistoryDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeEvolveTimestepStarFormationHistory} merger tree evolution timestep class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeEvolveTimestepStarFormationHistory` merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepStarFormationHistory), intent(inout) :: self
@@ -96,8 +96,8 @@ contains
   end subroutine starFormationHistoryDestructor
 
   double precision function starFormationHistoryTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType) result(timeEvolveTo)
-    !!{
-    Determine a suitable timestep for \mono{node} using the starFormationHistory method. This simply selects the smaller of \mono{timeStepAbsolute} and \mono{timeStepRelative}$H^{-1}(t)$.
+    !!{RST
+    Determine a suitable timestep for ``node`` using the starFormationHistory method. This simply selects the smaller of ``timeStepAbsolute`` and ``timeStepRelative``\ :math:`H^{-1}(t)`.
     !!}
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use :: Galacticus_Nodes      , only : nodeComponentBasic   , nodeComponentDisk, nodeComponentSpheroid

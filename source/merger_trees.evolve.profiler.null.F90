@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree evolve profiler that does nothing.
 !!}
 
   !![
-  <mergerTreeEvolveProfiler name="mergerTreeEvolveProfilerNull">
-   <description>A merger tree evolve profiler that does nothing.</description>
+  <mergerTreeEvolveProfiler name="mergerTreeEvolveProfilerNull" docformat="rst">
+   <description>
+   A merger tree evolve profiler that does nothing.
+   </description>
   </mergerTreeEvolveProfiler>
   !!]
   type, extends(mergerTreeEvolveProfilerClass) :: mergerTreeEvolveProfilerNull
-     !!{
+     !!{RST
      A merger tree evolve profiler that does nothing.
      !!}
      private
@@ -37,8 +39,8 @@ Implements a merger tree evolve profiler that does nothing.
   end type mergerTreeEvolveProfilerNull
 
   interface mergerTreeEvolveProfilerNull
-     !!{
-     Constructors for the \refClass{mergerTreeEvolveProfilerNull} merger tree evolve profiler class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeEvolveProfilerNull` merger tree evolve profiler class.
      !!}
      module procedure nullConstructorParameters
   end interface mergerTreeEvolveProfilerNull
@@ -46,8 +48,8 @@ Implements a merger tree evolve profiler that does nothing.
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveProfilerNull} merger tree evolve profiler class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeEvolveProfilerNull` merger tree evolve profiler class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,7 +64,7 @@ contains
   end function nullConstructorParameters
 
   subroutine nullStepDescriptor(self,descriptor)
-    !!{
+    !!{RST
     Set the descriptor for the current step.
     !!}
     implicit none
@@ -74,7 +76,7 @@ contains
   end subroutine nullStepDescriptor
   
   subroutine nullProfile(self,node,time,timeStart,timeEnd,timestep,countEvaluations,interrupted,propertyIndex,propertyName,propertyValue,propertyRate,propertyScale,propertyError,timeCPU)
-    !!{
+    !!{RST
     Profile the differential evolution step.
     !!}
     implicit none

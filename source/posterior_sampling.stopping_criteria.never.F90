@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling stopping class which never stops.
   !!}
 
   !![
-  <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionNever">
-   <description>A posterior sampling stopping criterion class that always returns false, allowing the sampler to run for the full maximum number of steps without terminating early based on any stopping condition.</description>
+  <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionNever" docformat="rst">
+   <description>
+   A posterior sampling stopping criterion class that always returns false, allowing the sampler to run for the full maximum number of steps without terminating early based on any stopping condition.
+   </description>
   </posteriorSampleStoppingCriterion>
   !!]
   type, extends(posteriorSampleStoppingCriterionClass) :: posteriorSampleStoppingCriterionNever
-     !!{
+     !!{RST
      Implementation of a posterior sampling convergence class which never converges.
      !!}
      private
@@ -36,8 +38,8 @@
   end type posteriorSampleStoppingCriterionNever
 
   interface posteriorSampleStoppingCriterionNever
-     !!{
-     Constructors for the \refClass{posteriorSampleStoppingCriterionNever} posterior sampling stopping class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSampleStoppingCriterionNever` posterior sampling stopping class.
      !!}
      module procedure neverConstructorParameters
   end interface posteriorSampleStoppingCriterionNever
@@ -45,8 +47,8 @@
 contains
 
   function neverConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStoppingCriterionNever} posterior sampling stopping class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleStoppingCriterionNever` posterior sampling stopping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function neverConstructorParameters
 
   logical function neverStop(self,simulationState)
-    !!{
+    !!{RST
     Returns true if the posterior sampling should stop (which it never should).
     !!}
     implicit none

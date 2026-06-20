@@ -20,23 +20,20 @@
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
   use :: Linear_Growth             , only : linearGrowthClass
 
-  !!{
-  An implementation of dark matter halo profile concentrations using the \cite{ludlow_mass-concentration-redshift_2016}
-  algorithm with an analytic model for formation time.
+  !!{RST
+  An implementation of dark matter halo profile concentrations using the :cite:t:`ludlow_mass-concentration-redshift_2016` algorithm with an analytic model for formation time.
   !!}
 
   !![
-  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusLudlow2016Analytic">
+  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusLudlow2016Analytic" docformat="rst">
     <description>
-      Dark matter halo scale radii are computed using the algorithm of \cite{ludlow_mass-concentration-redshift_2016} with an
-      analytic model for formation time.
-     </description>
+    Dark matter halo scale radii are computed using the algorithm of :cite:t:`ludlow_mass-concentration-redshift_2016` with an analytic model for formation time.
+    </description>
   </darkMatterProfileScaleRadius>
   !!]
   type, extends(darkMatterProfileScaleRadiusLudlow2016) :: darkMatterProfileScaleRadiusLudlow2016Analytic
-     !!{     
-     A dark matter halo profile scale radii class implementing the algorithm of \cite{ludlow_mass-concentration-redshift_2016}
-     with an analytic model for formation time.     
+     !!{RST
+     A dark matter halo profile scale radii class implementing the algorithm of :cite:t:`ludlow_mass-concentration-redshift_2016` with an analytic model for formation time.
      !!}
      private
      class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
@@ -50,8 +47,8 @@
   end type darkMatterProfileScaleRadiusLudlow2016Analytic
 
   interface darkMatterProfileScaleRadiusLudlow2016Analytic
-     !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusLudlow2016Analytic} dark matter halo profile scale radius class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileScaleRadiusLudlow2016Analytic` dark matter halo profile scale radius class.
      !!}
      module procedure ludlow2016AnalyticConstructorParameters
      module procedure ludlow2016AnalyticConstructorInternal
@@ -60,8 +57,8 @@
 contains
 
   function ludlow2016AnalyticConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{ludlow2016Analytic} dark matter halo profile scale radius class.
+    !!{RST
+    Default constructor for the ``ludlow2016Analytic`` dark matter halo profile scale radius class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -79,17 +76,21 @@ contains
     double precision                                                    :: C                            , f
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>C</name>
       <source>parameters</source>
       <defaultValue>650.0d0</defaultValue>
-      <description>The parameter $C$ appearing in the halo concentration algorithm of \cite[][see their footnote~7]{ludlow_mass-concentration-redshift_2016}.</description>
+      <description>
+      The parameter :math:`C` appearing in the halo concentration algorithm of :cite:t:`ludlow_mass-concentration-redshift_2016`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>f</name>
       <source>parameters</source>
       <defaultValue>0.02d0</defaultValue>
-      <description>The parameter $f$ appearing in the halo concentration algorithm of \cite{ludlow_mass-concentration-redshift_2016}.</description>
+      <description>
+      The parameter :math:`f` appearing in the halo concentration algorithm of :cite:t:`ludlow_mass-concentration-redshift_2016`.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
@@ -118,8 +119,8 @@ contains
   end function ludlow2016AnalyticConstructorParameters
 
   function ludlow2016AnalyticConstructorInternal(C,f,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,virialDensityContrast_,darkMatterProfileDMO_,darkMatterHaloScale_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusLudlow2016Analytic} dark matter halo profile scale radius class.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileScaleRadiusLudlow2016Analytic` dark matter halo profile scale radius class.
     !!}
     implicit none
     type            (darkMatterProfileScaleRadiusLudlow2016Analytic)                        :: self
@@ -146,8 +147,8 @@ contains
   end function ludlow2016AnalyticConstructorInternal
 
   subroutine ludlow2016AnalyticDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileScaleRadiusLudlow2016Analytic} dark matter halo profile scale radius class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileScaleRadiusLudlow2016Analytic` dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusLudlow2016Analytic), intent(inout) :: self
@@ -161,7 +162,7 @@ contains
   end subroutine ludlow2016AnalyticDestructor
 
   subroutine ludlow2016AnalyticFormationTimeRootFunctionSet(self,finder)
-    !!{
+    !!{RST
     Initialize the finder object to compute the relevant formation history.
     !!}
     use :: Root_Finder, only : rootFinder
@@ -180,8 +181,8 @@ contains
   end subroutine ludlow2016AnalyticFormationTimeRootFunctionSet
 
   double precision function ludlow2016AnalyticFormationTimeRoot(timeFormation) result(formationTimeRoot)
-    !!{
-    Function used to find the formation time of a halo in the \mono{ludlow2016Analytic} scale radius algorithm.
+    !!{RST
+    Function used to find the formation time of a halo in the ``ludlow2016Analytic`` scale radius algorithm.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic
@@ -239,7 +240,7 @@ contains
   end function ludlow2016AnalyticFormationTimeRoot
 
   logical function ludlow2016AnalyticRequireBranchHistory(self) result(requireBranchHistory)
-    !!{
+    !!{RST
     Specify if the branch history is required for the scale radius calculation.
     !!}
     implicit none

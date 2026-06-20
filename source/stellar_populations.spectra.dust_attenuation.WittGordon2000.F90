@@ -17,14 +17,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements calculations of attenuation of stellar spectra using the model of \cite{witt_multiple_2000}.
+  !!{RST
+  Implements calculations of attenuation of stellar spectra using the model of :cite:t:`witt_multiple_2000`.
   !!}
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>wittGordon2000Model</name>
-   <description>Enumerates the models available in the \mono{wittGordon2000} dust attenuation class.</description>
+   <description>
+   Enumerates the models available in the ``wittGordon2000`` dust attenuation class.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -34,13 +36,15 @@
   !!]
 
   !![
-  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationWittGordon2000">
-   <description>Returns the dust attenuation of stellar spectra according to the model of \cite{witt_multiple_2000}.</description>
+  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationWittGordon2000" docformat="rst">
+   <description>
+   Returns the dust attenuation of stellar spectra according to the model of :cite:t:`witt_multiple_2000`.
+   </description>
   </stellarSpectraDustAttenuation>
   !!]
   type, extends(stellarSpectraDustAttenuationTabulated) :: stellarSpectraDustAttenuationWittGordon2000
-     !!{
-     A class implementing calculations of attenuation of stellar spectra using the model of \cite{witt_multiple_2000}.
+     !!{RST
+     A class implementing calculations of attenuation of stellar spectra using the model of :cite:t:`witt_multiple_2000`.
      !!}
      private
      type(enumerationWittGordon2000ModelType) :: model
@@ -48,8 +52,8 @@
   end type stellarSpectraDustAttenuationWittGordon2000
 
   interface stellarSpectraDustAttenuationWittGordon2000
-     !!{
-     Constructors for the \refClass{stellarSpectraDustAttenuationWittGordon2000} stellar spectra dust attenuation class.
+     !!{RST
+     Constructors for the :galacticus-class:`stellarSpectraDustAttenuationWittGordon2000` stellar spectra dust attenuation class.
      !!}
      module procedure wittGordon2003ConstructorParameters
      module procedure wittGordon2003ConstructorInternal
@@ -58,8 +62,8 @@
 contains
 
   function wittGordon2003ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{wittGordon2003} stellar spectra dust attenuation class.
+    !!{RST
+    Default constructor for the ``wittGordon2003`` stellar spectra dust attenuation class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -68,10 +72,12 @@ contains
     type(varying_string                             )                :: model
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>model</name>
       <defaultValue>var_str('MilkyWayShellTau3.0')</defaultValue>
-      <description>The name of the model from \cite{witt_multiple_2000} to use in dust attenuation calculations.</description>
+      <description>
+      The name of the model from :cite:t:`witt_multiple_2000` to use in dust attenuation calculations.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -83,8 +89,8 @@ contains
   end function wittGordon2003ConstructorParameters
 
   function wittGordon2003ConstructorInternal(model) result(self)
-    !!{
-    Constructor for the \refClass{stellarSpectraDustAttenuationWittGordon2000} stellar spectra dust attenuation class.
+    !!{RST
+    Constructor for the :galacticus-class:`stellarSpectraDustAttenuationWittGordon2000` stellar spectra dust attenuation class.
     !!}
     use :: Array_Utilities                 , only : Array_Reverse
     use :: Error                           , only : Error_Report

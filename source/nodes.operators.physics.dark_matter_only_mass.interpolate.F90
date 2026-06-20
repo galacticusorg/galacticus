@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that interpolates the ``\gls{dmou}'' mass of the halo linearly between child and parent nodes.
+  !!{RST
+  Implements a node operator class that interpolates the ":term:`dark matter-only universe`" mass of the halo linearly between child and parent nodes.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorDMOInterpolate">
+  <nodeOperator name="nodeOperatorDMOInterpolate" docformat="rst">
    <description>
-    A node operator class that interpolates the ``\gls{dmou}'' mass of the halo linearly between child and parent nodes.
+   A node operator class that interpolates the ":term:`dark matter-only universe`" mass of the halo linearly between child and parent nodes.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDMOInterpolate
-     !!{
+     !!{RST
      A node operator class that causes dark matter profile scale radius to be interpolated linearly between child and parent nodes.
      !!}
      private
@@ -43,8 +43,8 @@
   end type nodeOperatorDMOInterpolate
   
   interface nodeOperatorDMOInterpolate
-     !!{
-     Constructors for the \refClass{nodeOperatorDMOInterpolate} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorDMOInterpolate` node operator class.
      !!}
      module procedure dmoInterpolateConstructorParameters
      module procedure dmoInterpolateConstructorInternal
@@ -53,8 +53,8 @@
 contains
   
   function dmoInterpolateConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorDMOInterpolate} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorDMOInterpolate` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -69,8 +69,8 @@ contains
   end function dmoInterpolateConstructorParameters
 
   function dmoInterpolateConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorDMOInterpolate} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorDMOInterpolate` node operator class.
     !!}
     implicit none
     type(nodeOperatorDMOInterpolate) :: self
@@ -82,8 +82,8 @@ contains
   end function dmoInterpolateConstructorInternal
 
   recursive subroutine dmoInterpolateNodeInitialize(self,node)
-    !!{
-    Compute the rate of growth of the ``\gls{dmou}'' mass of a halo assuming a constant growth rate.
+    !!{RST
+    Compute the rate of growth of the ":term:`dark matter-only universe`" mass of a halo assuming a constant growth rate.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -173,8 +173,8 @@ contains
   contains
     
     double precision function nodeMassUnresolved(node)
-      !!{
-      Return the unresolved mass for \mono{node}.
+      !!{RST
+      Return the unresolved mass for ``node``.
       !!}
       use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
       implicit none
@@ -200,7 +200,7 @@ contains
   end subroutine dmoInterpolateNodeInitialize
 
   subroutine dmoInterpolateDifferentialEvolutionAnalytics(self,node)
-    !!{
+    !!{RST
     Mark analytically-solvable properties.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -215,8 +215,8 @@ contains
   end subroutine dmoInterpolateDifferentialEvolutionAnalytics
 
   subroutine dmoInterpolateDifferentialEvolutionSolveAnalytics(self,node,time)
-    !!{
-    Evolve ``\gls{dmou}'' mass at a constant rate, to achieve linear interpolation in time.
+    !!{RST
+    Evolve ":term:`dark matter-only universe`" mass at a constant rate, to achieve linear interpolation in time.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -239,8 +239,8 @@ contains
   end subroutine dmoInterpolateDifferentialEvolutionSolveAnalytics
 
   subroutine dmoInterpolateNodePromote(self,node)
-    !!{
-    Ensure that \mono{node} is ready for promotion to its parent.
+    !!{RST
+    Ensure that ``node`` is ready for promotion to its parent.
     !!}
     use :: Error             , only : Error_Report
     use :: Galacticus_Nodes  , only : nodeComponentBasic
@@ -275,7 +275,7 @@ contains
   end subroutine dmoInterpolateNodePromote
 
   subroutine dmoInterpolateNodesMerge(self,node)
-    !!{
+    !!{RST
     Act on a merger between nodes.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

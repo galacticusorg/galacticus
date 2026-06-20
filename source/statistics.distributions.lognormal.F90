@@ -17,23 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a log-normal 1D distribution function.
   !!}
 
   !![
-  <distributionFunction1D name="distributionFunction1DLogNormal">
-   <description>A log-normal 1D distribution function class, implementing the distribution $p(x) \propto x^{-1}\exp(-[\ln x - \ln x_0]^2 / 2\sigma^2)$ parameterized by the median $x_0$ and logarithmic width $\sigma$, or equivalently by the mean and variance, optionally truncated to a finite interval.</description>
+  <distributionFunction1D name="distributionFunction1DLogNormal" docformat="rst">
+   <description>
+   A log-normal 1D distribution function class, implementing the distribution :math:`p(x) \propto x^{-1}\exp(-[\ln x - \ln x_0]^2 / 2\sigma^2)` parameterized by the median :math:`x_0` and logarithmic width :math:`\sigma`, or equivalently by the mean and variance, optionally truncated to a finite interval.
+   </description>
   </distributionFunction1D>
   !!]
   type, extends(distributionFunction1DNormal) :: distributionFunction1DLogNormal
-     !!{
+     !!{RST
      Implementation of a log-normal 1D distribution function:
-     \begin{equation}
-       p(x) = \frac{1}{x \sigma \sqrt{2\pi}} \exp\left( - \frac{[\log x - \log x_0]^2}{2\sigma^2} \right).
-     \end{equation}
-     The parameters of this distribution can be specified either directly via $x_0$ and $\sigma$, or indirectly via the mean and
-     variance $\exp(\log x_0 + \sigma^2/2)$ and $[\exp(\sigma^2)-1] \exp(2\log x_0 + \sigma^2)$.     
+
+     .. math::
+
+        p(x) = \frac{1}{x \sigma \sqrt{2\pi}} \exp\left( - \frac{[\log x - \log x_0]^2}{2\sigma^2} \right).
+
+     The parameters of this distribution can be specified either directly via :math:`x_0` and :math:`\sigma`, or indirectly via the mean and variance :math:`\exp(\log x_0 + \sigma^2/2)` and :math:`[\exp(\sigma^2)-1] \exp(2\log x_0 + \sigma^2)`.
      !!}
      private
      double precision :: x0, sigma
@@ -46,8 +49,8 @@
   end type distributionFunction1DLogNormal
 
   interface distributionFunction1DLogNormal
-     !!{
-     Constructors for the \refClass{distributionFunction1DLogNormal} 1D distribution function class.
+     !!{RST
+     Constructors for the :galacticus-class:`distributionFunction1DLogNormal` 1D distribution function class.
      !!}
      module procedure logNormalConstructorParameters
      module procedure logNormalConstructorInternal
@@ -56,9 +59,8 @@
 contains
 
   function logNormalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DLogNormal} 1D distribution function class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DLogNormal` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -74,14 +76,18 @@ contains
        if (.not.parameters%isPresent('variance')) call Error_Report('must specify both [mean] and [variance], or [x0] and [sigma]'//{introspection:location})
        if (parameters%isPresent('x0').or.parameters%isPresent('sigma')) call Error_Report('must specify either [mean] and [variance], or [x0] and [sigma], not both'//{introspection:location})
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>mean</name>
-	 <description>The mean of the log-normal distribution (\emph{ignoring} any imposed upper and lower limits).</description>
+	 <description>
+	 The mean of the log-normal distribution (*ignoring* any imposed upper and lower limits).
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>variance</name>
-	 <description>The variance of the log-normal distribution (\emph{ignoring} any imposed upper and lower limits).</description>
+	 <description>
+	 The variance of the log-normal distribution (*ignoring* any imposed upper and lower limits).
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
@@ -89,14 +95,18 @@ contains
        if (.not.parameters%isPresent('sigma')) call Error_Report('must specify both [mean] and [variance], or [x0] and [sigma]'//{introspection:location})
        if (parameters%isPresent('mean').or.parameters%isPresent('variance')) call Error_Report('must specify either [mean] and [variance], or [x0] and [sigma], not both'//{introspection:location})
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>x0</name>
-	 <description>The median (geometric mean) $x_0 > 0$ of the log-normal distribution; the distribution peaks at $x_0 \exp(-\sigma^2)$ and has median $x_0$.</description>
+	 <description>
+	 The median (geometric mean) :math:`x_0 &gt; 0` of the log-normal distribution; the distribution peaks at :math:`x_0 \exp(-\sigma^2)` and has median :math:`x_0`.
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>sigma</name>
-	 <description>The logarithmic width (standard deviation of $\ln x$) $\sigma > 0$ of the log-normal distribution; the distribution becomes more skewed and broader as $\sigma$ increases.</description>
+	 <description>
+	 The logarithmic width (standard deviation of :math:`\ln x`) :math:`\sigma &gt; 0` of the log-normal distribution; the distribution becomes more skewed and broader as :math:`\sigma` increases.
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
@@ -104,14 +114,18 @@ contains
        call Error_Report('must specify both [mean] and [variance], or [x0] and [sigma]'//{introspection:location})
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>limitLower</name>
-      <description>The lower truncation limit $x_\mathrm{min}$ of the log-normal distribution; when set, the distribution is renormalized over $[x_\mathrm{min}, x_\mathrm{max}]$ rather than $(0, \infty)$.</description>
+      <description>
+      The lower truncation limit :math:`x_\mathrm{min}` of the log-normal distribution; when set, the distribution is renormalized over :math:`[x_\mathrm{min}, x_\mathrm{max}]` rather than :math:`(0, \infty)`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>limitUpper</name>
-      <description>The upper truncation limit $x_\mathrm{max}$ of the log-normal distribution; when set, the distribution is renormalized over $[x_\mathrm{min}, x_\mathrm{max}]$ rather than $(0, \infty)$.</description>
+      <description>
+      The upper truncation limit :math:`x_\mathrm{max}` of the log-normal distribution; when set, the distribution is renormalized over :math:`[x_\mathrm{min}, x_\mathrm{max}]` rather than :math:`(0, \infty)`.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -131,8 +145,8 @@ contains
   end function logNormalConstructorParameters
 
   function logNormalConstructorInternal(mean,variance,x0,sigma,limitLower,limitUpper,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DLogNormal} 1D distribution function class.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DLogNormal` 1D distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -183,7 +197,7 @@ contains
   end function logNormalConstructorInternal
 
   double precision function logNormalMinimum(self)
-    !!{
+    !!{RST
     Return the minimum possible value of a uniform distribution.
     !!}
     implicit none
@@ -194,7 +208,7 @@ contains
   end function logNormalMinimum
 
   double precision function logNormalMaximum(self)
-    !!{
+    !!{RST
     Return the maximum possible value of a uniform distribution.
     !!}
     implicit none
@@ -205,7 +219,7 @@ contains
   end function logNormalMaximum
 
   double precision function logNormalDensity(self,x)
-    !!{
+    !!{RST
     Return the density of a normal distribution.
     !!}
     implicit none
@@ -222,7 +236,7 @@ contains
   end function logNormalDensity
 
   double precision function logNormalCumulative(self,x)
-    !!{
+    !!{RST
     Return the cumulative probability of a normal distribution.
     !!}
     implicit none
@@ -238,7 +252,7 @@ contains
   end function logNormalCumulative
 
   double precision function logNormalInverse(self,p)
-    !!{
+    !!{RST
     Return the inverse of a normal distribution.
     !!}
     implicit none

@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a merger tree filter class which is the ``all'' combination of a set of other filters.
+!!{RST
+Implements a merger tree filter class which is the "all" combination of a set of other filters.
 !!}
 
   !![
-  <mergerTreeFilter name="mergerTreeFilterAll">
-   <description>A merger tree filter class which is the \mono{all} combination of a set of other filters.</description>
+  <mergerTreeFilter name="mergerTreeFilterAll" docformat="rst">
+   <description>
+   A merger tree filter class which is the ``all`` combination of a set of other filters.
+   </description>
    <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="mergerTreeFilterClass"/>
   </mergerTreeFilter>
   !!]
   type, extends(mergerTreeFilterClass) :: mergerTreeFilterAll
-     !!{
-     A merger tree filter class which is the \mono{all} combination of a set of other filters.
+     !!{RST
+     A merger tree filter class which is the ``all`` combination of a set of other filters.
      !!}
      private
      type(filterList), pointer :: filters => null()
@@ -39,7 +41,7 @@ Implements a merger tree filter class which is the ``all'' combination of a set 
   end type mergerTreeFilterAll
 
   interface mergerTreeFilterAll
-     !!{
+     !!{RST
      Constructors for the all merger tree filter class.
      !!}
      module procedure allConstructorParameters
@@ -49,8 +51,8 @@ Implements a merger tree filter class which is the ``all'' combination of a set 
 contains
 
   function allConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeFilterAll} merger tree filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeFilterAll` merger tree filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,8 +82,8 @@ contains
   end function allConstructorParameters
 
   function allConstructorInternal(filters) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeFilterAll} merger tree filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeFilterAll` merger tree filter class.
     !!}
     implicit none
     type(mergerTreeFilterAll)                        :: self
@@ -100,7 +102,7 @@ contains
   end function allConstructorInternal
 
   subroutine allDestructor(self)
-    !!{
+    !!{RST
     Destructor for the all merger tree filter class.
     !!}
     implicit none
@@ -122,8 +124,8 @@ contains
   end subroutine allDestructor
 
   logical function allPasses(self,tree)
-    !!{
-    Apply a set of filters to a \mono{tree} combined with ``all'' operations.
+    !!{RST
+    Apply a set of filters to a ``tree`` combined with "all" operations.
     !!}
     implicit none
     class(mergerTreeFilterAll), intent(inout) :: self

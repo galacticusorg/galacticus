@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which handles inter-tree nodes events.
 !!}
 
 module Node_Events_Inter_Tree
-  !!{
+  !!{RST
   Handles inter-tree node events.
   !!}
   use            :: Galacticus_Nodes, only : treeNode
@@ -33,7 +33,7 @@ module Node_Events_Inter_Tree
   public :: Node_Push_From_Tree, Node_Pull_From_Tree, Inter_Tree_Event_Post_Evolve
 
   type :: interTreeTransfer
-     !!{
+     !!{RST
      Type used for transferring nodes between trees.
      !!}
      integer(c_size_t         )          :: splitForestUniqueID
@@ -52,7 +52,7 @@ module Node_Events_Inter_Tree
 contains
 
   logical function Node_Push_From_Tree(event,node,deadlockStatus)
-    !!{
+    !!{RST
     Push a node from the tree.
     !!}
     use :: Display                            , only : displayMessage               , verbosityLevelInfo
@@ -177,7 +177,7 @@ contains
   end function Node_Push_From_Tree
 
   logical function Node_Pull_From_Tree(event,node,deadlockStatus)
-    !!{
+    !!{RST
     Pull a node from the tree.
     !!}
     use :: Display                            , only : displayMessage            , verbosityLevelInfo           , verbosityLevelWarn
@@ -516,7 +516,7 @@ contains
   <universePostEvolveTask function="Inter_Tree_Event_Post_Evolve"/>
   !!]
   subroutine Inter_Tree_Event_Post_Evolve()
-    !!{
+    !!{RST
     Check that the inter-tree transfer list is empty after universe evolution.
     !!}
     use :: Display           , only : displayIndent, displayMessage, displayUnindent

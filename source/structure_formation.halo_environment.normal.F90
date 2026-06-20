@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a normally-distributed halo environment.
 !!}
 
@@ -30,8 +30,10 @@ Implements a normally-distributed halo environment.
   use :: Tables                    , only : table2DLinLinLin
 
   !![
-  <haloEnvironment name="haloEnvironmentNormal">
-   <description>Implements a halo environment in which the large-scale overdensity follows a Gaussian (normal) probability distribution, modeling the statistical distribution of cosmic large-scale density fields around dark matter halos. The filtering scale and redshift at which the environment is defined are set by \mono{[massEnvironment]} or \mono{[radiusEnvironment]} and \mono{[redshift]}.</description>
+  <haloEnvironment name="haloEnvironmentNormal" docformat="rst">
+   <description>
+   Implements a halo environment in which the large-scale overdensity follows a Gaussian (normal) probability distribution, modeling the statistical distribution of cosmic large-scale density fields around dark matter halos. The filtering scale and redshift at which the environment is defined are set by ``[massEnvironment]`` or ``[radiusEnvironment]`` and ``[redshift]``.
+   </description>
    <deepCopy>
     <functionClass variables="sphericalCollapseSolver_, distributionOverdensity, distributionOverdensityMassive"/>
    </deepCopy>
@@ -41,7 +43,7 @@ Implements a normally-distributed halo environment.
   </haloEnvironment>
   !!]
   type, extends(haloEnvironmentClass) :: haloEnvironmentNormal
-     !!{
+     !!{RST
      A normal halo environment class.
      !!}
      private
@@ -63,7 +65,7 @@ Implements a normally-distributed halo environment.
      type            (varying_string                                   )          :: propertyName
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset memoized calculations." method="calculationReset" />
      </methods>
      !!]
@@ -85,8 +87,8 @@ Implements a normally-distributed halo environment.
   end type haloEnvironmentNormal
 
   interface haloEnvironmentNormal
-     !!{
-     Constructors for the \refClass{haloEnvironmentNormal} halo environment class.
+     !!{RST
+     Constructors for the :galacticus-class:`haloEnvironmentNormal` halo environment class.
      !!}
      module procedure normalConstructorParameters
      module procedure normalConstructorInternal
@@ -95,8 +97,8 @@ Implements a normally-distributed halo environment.
 contains
 
   function normalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{haloEnvironmentNormal} halo environment class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`haloEnvironmentNormal` halo environment class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -116,23 +118,29 @@ contains
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massEnvironment</name>
       <source>parameters</source>
       <defaultValue>1.0d15</defaultValue>
-      <description>The mass within the sphere sphere used to determine the variance in the environmental density.</description>
+      <description>
+      The mass within the sphere sphere used to determine the variance in the environmental density.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusEnvironment</name>
       <source>parameters</source>
       <defaultValue>7.0d0</defaultValue>
-      <description>The radius of the sphere used to determine the variance in the environmental density.</description>
+      <description>
+      The radius of the sphere used to determine the variance in the environmental density.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The redshift at which the large-scale environmental overdensity is defined; the linear density variance and growth factor are evaluated at the corresponding cosmic time to normalize the Gaussian environmental PDF.</description>
+      <description>
+      The redshift at which the large-scale environmental overdensity is defined; the linear density variance and growth factor are evaluated at the corresponding cosmic time to normalize the Gaussian environmental PDF.
+      </description>
     </inputParameter>
     !!]
     time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
@@ -153,8 +161,8 @@ contains
   end function normalConstructorParameters
 
   function normalConstructorInternal(time,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_,radiusEnvironment,massEnvironment) result(self)
-    !!{
-    Internal constructor for the \refClass{haloEnvironmentNormal} halo environment class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`haloEnvironmentNormal` halo environment class.
     !!}
     use :: Error_Functions         , only : Error_Function
     use :: Numerical_Constants_Math, only : Pi
@@ -238,7 +246,7 @@ contains
   end function normalConstructorInternal
 
   subroutine normalAutoHook(self)
-    !!{
+    !!{RST
     Attach to the calculation reset event.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
@@ -250,8 +258,8 @@ contains
   end subroutine normalAutoHook
 
   subroutine normalDestructor(self)
-    !!{
-    Destructor for the \refClass{haloEnvironmentNormal} halo environment class.
+    !!{RST
+    Destructor for the :galacticus-class:`haloEnvironmentNormal` halo environment class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
@@ -272,7 +280,7 @@ contains
   end subroutine normalDestructor
 
   subroutine normalCalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the normal halo environment calculation.
     !!}
     use :: Galacticus_Nodes, only : treeNode
@@ -289,8 +297,8 @@ contains
   end subroutine normalCalculationReset
 
   double precision function normalOverdensityLinear(self,node,presentDay)
-    !!{
-    Return the environment of the given \mono{node}.
+    !!{RST
+    Return the environment of the given ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -349,8 +357,8 @@ contains
   end function normalOverdensityLinear
 
   double precision function normalOverdensityLinearGradientTime(self,node)
-    !!{
-    Return the time gradient of the environment of the given \mono{node}.
+    !!{RST
+    Return the time gradient of the environment of the given ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -368,8 +376,8 @@ contains
   end function normalOverdensityLinearGradientTime
 
   double precision function normalOverdensityNonLinear(self,node)
-    !!{
-    Return the environment of the given \mono{node}.
+    !!{RST
+    Return the environment of the given ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -389,7 +397,7 @@ contains
   end function normalOverdensityNonLinear
 
   double precision function normalEnvironmentRadius(self)
-    !!{
+    !!{RST
     Return the radius of the environment.
     !!}
     implicit none
@@ -400,7 +408,7 @@ contains
   end function normalEnvironmentRadius
 
   double precision function normalEnvironmentMass(self)
-    !!{
+    !!{RST
     Return the mass of the environment.
     !!}
     implicit none
@@ -411,8 +419,8 @@ contains
   end function normalEnvironmentMass
 
   double precision function normalOverdensityLinearMaximum(self)
-    !!{
-    Return the maximum overdensity for which the \gls{pdf} is non-zero.
+    !!{RST
+    Return the maximum overdensity for which the :term:`PDF` is non-zero.
     !!}
     implicit none
     class(haloEnvironmentNormal), intent(inout) :: self
@@ -422,7 +430,7 @@ contains
   end function normalOverdensityLinearMaximum
 
   double precision function normalPDF(self,overdensity)
-    !!{
+    !!{RST
     Return the PDF of the environmental overdensity.
     !!}
     implicit none
@@ -434,7 +442,7 @@ contains
   end function normalPDF
 
   double precision function normalCDF(self,overdensity)
-    !!{
+    !!{RST
     Return the CDF of the environmental overdensity.
     !!}
     implicit none
@@ -446,8 +454,8 @@ contains
   end function normalCDF
 
   subroutine normalOverdensityLinearSet(self,node,overdensity)
-    !!{
-    Set the environmental linear overdensity in the given \mono{node}.
+    !!{RST
+    Set the environmental linear overdensity in the given ``node``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -463,7 +471,7 @@ contains
   end subroutine normalOverdensityLinearSet
 
   double precision function normalVolumeFractionOccupied(self)
-    !!{
+    !!{RST
     Return the fraction of the volume occupied by regions described by this environment.
     !!}
     implicit none
@@ -474,7 +482,7 @@ contains
   end function normalVolumeFractionOccupied
 
   logical function normalIsNodeDependent(self)
-    !!{
+    !!{RST
     Return false as the environment is not dependent on the node.
     !!}
     implicit none
@@ -486,7 +494,7 @@ contains
   end function normalIsNodeDependent
 
   logical function normalIsTreeDependent(self)
-    !!{
+    !!{RST
     Return true as the environment is dependent on the tree.
     !!}
     implicit none

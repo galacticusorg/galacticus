@@ -17,23 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Provides a kinematic distribution class implementing the ``isothermal'' approximation to the effects of SIDM based on the model
-  of \cite{jiang_semi-analytic_2023}.
+  !!{RST
+  Provides a kinematic distribution class implementing the "isothermal" approximation to the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023`.
   !!}
 
   !![
-  <kinematicsDistribution name="kinematicsDistributionSIDMIsothermal">
+  <kinematicsDistribution name="kinematicsDistributionSIDMIsothermal" docformat="rst">
     <description>
-      A kinematic distribution class implementing the ``isothermal'' approximation to the effects of SIDM based on the model of
-      \cite{jiang_semi-analytic_2023}.
+    A kinematic distribution class implementing the "isothermal" approximation to the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023`.
     </description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionSIDMIsothermal
-     !!{
-     A kinematic distribution class implementing the ``isothermal'' approximation to the effects of SIDM based on the model
-     of \cite{jiang_semi-analytic_2023}.
+     !!{RST
+     A kinematic distribution class implementing the "isothermal" approximation to the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023`.
      !!}
    contains
      procedure :: isCollisional        => sidmIsothermalIsCollisional
@@ -41,8 +38,8 @@
   end type kinematicsDistributionSIDMIsothermal
 
   interface kinematicsDistributionSIDMIsothermal
-     !!{
-     Constructors for the \refClass{kinematicsDistributionSIDMIsothermal} kinematic distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`kinematicsDistributionSIDMIsothermal` kinematic distribution class.
      !!}
      module procedure sidmIsothermalConstructorParameters
   end interface kinematicsDistributionSIDMIsothermal
@@ -50,9 +47,8 @@
 contains
 
   function sidmIsothermalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionSIDMIsothermal} kinematic distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`kinematicsDistributionSIDMIsothermal` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,7 +63,7 @@ contains
   end function sidmIsothermalConstructorParameters
   
   logical function sidmIsothermalIsCollisional(self)
-    !!{
+    !!{RST
     Return true indicating that the sidmIsothermal kinematic distribution represents collisional particles.
     !!}
     implicit none
@@ -78,8 +74,8 @@ contains
   end function sidmIsothermalIsCollisional
 
   double precision function sidmIsothermalVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
-    !!{
-    Return the 1D velocity dispersion at the specified \mono{coordinates} in an SIDMIsothermal kinematic distribution.
+    !!{RST
+    Return the 1D velocity dispersion at the specified ``coordinates`` in an SIDMIsothermal kinematic distribution.
     !!}
     use :: ISO_Varying_String, only : char
     implicit none

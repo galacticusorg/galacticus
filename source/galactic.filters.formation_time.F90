@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic filter which removes recently-formed halos.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterFormationTime">
+  <galacticFilter name="galacticFilterFormationTime" docformat="rst">
    <description>
-   A filter which removes recently-formed halos. Halos with a formation time greater than the current time minus $\Delta
-   t=$\mono{[timeRecent]} are removed.
+   A filter which removes recently-formed halos. Halos with a formation time greater than the current time minus :math:`\Delta t=`\ ``[timeRecent]`` are removed.
    </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterFormationTime
-     !!{
+     !!{RST
      A galactic filter which implements a galactic filter which removes recently-formed halos.
      !!}
      private
@@ -41,8 +40,8 @@ Implements a galactic filter which removes recently-formed halos.
   end type galacticFilterFormationTime
 
   interface galacticFilterFormationTime
-     !!{
-     Constructors for the \refClass{galacticFilterFormationTime} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterFormationTime` galactic filter class.
      !!}
      module procedure formationTimeConstructorParameters
      module procedure formationTimeConstructorInternal
@@ -51,8 +50,8 @@ Implements a galactic filter which removes recently-formed halos.
 contains
 
   function formationTimeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterFormationTime} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterFormationTime` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -62,11 +61,13 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeRecent</name>
       <source>parameters</source>
       <variable>timeRecent</variable>
-      <description>The parameter $\Delta t$ (in units of Gyr) appearing in the formation time galactic filter class.</description>
+      <description>
+      The parameter :math:`\Delta t` (in units of Gyr) appearing in the formation time galactic filter class.
+      </description>
     </inputParameter>
     !!]
     self=galacticFilterFormationTime(timeRecent)
@@ -77,8 +78,8 @@ contains
   end function formationTimeConstructorParameters
 
   function formationTimeConstructorInternal(timeRecent) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterFormationTime} galactic filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticFilterFormationTime` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterFormationTime)                :: self
@@ -94,7 +95,7 @@ contains
   end function formationTimeConstructorInternal
 
   logical function formationTimePasses(self,node)
-    !!{
+    !!{RST
     Implement a filter which rejects halos that formed too recently.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

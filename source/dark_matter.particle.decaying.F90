@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a decaying dark matter particle class.
 !!}
 
   !![
-  <darkMatterParticle name="darkMatterParticleDecayingDarkMatter">
-   <description>Provides a decaying dark matter particle candidate in which the parent particle decays to a lighter daughter particle plus radiation. The particle is characterized by its \mono{[lifetime]} in Gyr, the \mono{[massSplitting]} between parent and daughter, and the \mono{[velocityKick]} imparted to the daughter particle upon decay.</description>
+  <darkMatterParticle name="darkMatterParticleDecayingDarkMatter" docformat="rst">
+   <description>
+   Provides a decaying dark matter particle candidate in which the parent particle decays to a lighter daughter particle plus radiation. The particle is characterized by its ``[lifetime]`` in Gyr, the ``[massSplitting]`` between parent and daughter, and the ``[velocityKick]`` imparted to the daughter particle upon decay.
+   </description>
   </darkMatterParticle>
   !!]
   type, extends(darkMatterParticleClass) :: darkMatterParticleDecayingDarkMatter
-     !!{
+     !!{RST
      A decaying dark matter particle class.
      !!}
      private
@@ -36,7 +38,7 @@ Implements a decaying dark matter particle class.
           &                                                velocityKick_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the lifetime of the dark matter particle." method="lifetime"     />
        <method description="Return the mass splitting of the decay."          method="massSplitting"/>
        <method description="Return the velocity kick imparted by the decay."  method="velocityKick" />
@@ -50,8 +52,8 @@ Implements a decaying dark matter particle class.
   end type darkMatterParticleDecayingDarkMatter
 
   interface darkMatterParticleDecayingDarkMatter
-     !!{
-     Constructors for the \refClass{darkMatterParticleDecayingDarkMatter} dark matter particle class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterParticleDecayingDarkMatter` dark matter particle class.
      !!}
      module procedure decayingDMConstructorParameters
      module procedure decayingDMConstructorInternal
@@ -60,8 +62,8 @@ Implements a decaying dark matter particle class.
 contains
 
   function decayingDMConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterParticleDecayingDarkMatter} dark matter particle class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterParticleDecayingDarkMatter` dark matter particle class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
@@ -73,28 +75,34 @@ contains
          &                                                                   velocityKick
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lifetime</name>
       <source>parameters</source>
       <variable>lifetime</variable>
-      <description>The mean lifetime (in Gyr) of the decaying dark matter particle before it decays into lighter daughter particles, controlling the timescale over which dark matter density is reduced by decay.</description>
+      <description>
+      The mean lifetime (in Gyr) of the decaying dark matter particle before it decays into lighter daughter particles, controlling the timescale over which dark matter density is reduced by decay.
+      </description>
     </inputParameter>
     !!]
     if      (parameters%isPresent('massSplitting')) then
        if (parameters%isPresent('velocityKick')) call Error_Report('specify [massSplitting] or [velocityKick], not both'//{introspection:location})
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>massSplitting</name>
 	 <source>parameters</source>
-	 <description>The fractional mass splitting $\epsilon = \Delta m / m$ between the parent and daughter dark matter particles in the decay, used to compute the velocity kick imparted to the daughter particle.</description>
+	 <description>
+	 The fractional mass splitting :math:`\epsilon = \Delta m / m` between the parent and daughter dark matter particles in the decay, used to compute the velocity kick imparted to the daughter particle.
+	 </description>
        </inputParameter>
        !!]
     else if (parameters%isPresent('velocityKick' )) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>velocityKick</name>
 	 <source>parameters</source>
-	 <description>The velocity kick (in km/s) imparted to the daughter dark matter particle when the parent decays, which heats and disrupts the dark matter distribution in halos over time.</description>
+	 <description>
+	 The velocity kick (in km/s) imparted to the daughter dark matter particle when the parent decays, which heats and disrupts the dark matter distribution in halos over time.
+	 </description>
        </inputParameter>
        !!]
     else
@@ -114,8 +122,8 @@ contains
   end function decayingDMConstructorParameters
 
   function decayingDMConstructorInternal(darkMatterParticle_,lifetime,massSplitting,velocityKick) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterParticleDecayingDarkMatter} dark matter particle class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterParticleDecayingDarkMatter` dark matter particle class.
     !!}
     use :: Error                       , only : Error_Report
     use :: Numerical_Constants_Physical, only : speedLight
@@ -148,8 +156,8 @@ contains
   end function decayingDMConstructorInternal
 
   subroutine decayingDMDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterParticleDecayingDarkMatter} dark matter particle class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterParticleDecayingDarkMatter` dark matter particle class.
     !!}
     implicit none
     type(darkMatterParticleDecayingDarkMatter), intent(inout) :: self
@@ -161,7 +169,7 @@ contains
   end subroutine decayingDMDestructor
 
   double precision function decayingDMMass(self) result(mass)
-    !!{
+    !!{RST
     Return the mass, in units of keV, of a decaying dark matter particle.
     !!}
     implicit none
@@ -172,7 +180,7 @@ contains
   end function decayingDMMass
 
   double precision function decayingDMLifetime(self) result(lifetime)
-    !!{
+    !!{RST
     Return the lifetime, in units of Gyr, of a decaying dark matter particle.
     !!}
     implicit none
@@ -183,7 +191,7 @@ contains
   end function decayingDMLifetime
 
   double precision function decayingDMMassSplitting(self) result(massSplitting)
-    !!{
+    !!{RST
     Return the mass splitting of a decaying dark matter particle.
     !!}
     implicit none
@@ -194,7 +202,7 @@ contains
   end function decayingDMMassSplitting
 
   double precision function decayingDMVelocityKick(self) result(velocityKick)
-    !!{
+    !!{RST
     Return the velocity kick imparted by a decaying dark matter particle.
     !!}
     implicit none

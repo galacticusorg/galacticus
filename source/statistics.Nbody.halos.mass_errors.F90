@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which provides a class that implements errors on dark matter halo masses in
-N-body simulations.
+!!{RST
+Contains a module which provides a class that implements errors on dark matter halo masses in N-body simulations.
 !!}
 
 module Statistics_NBody_Halo_Mass_Errors
@@ -28,30 +27,33 @@ module Statistics_NBody_Halo_Mass_Errors
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>nbodyHaloMassError</name>
    <descriptiveName>N-body Halo Mass Errors</descriptiveName>
-   <description>Class providing models of measurement errors on dark matter halo masses in N-body simulations
-    ---the fractional uncertainty $\delta M/M$ arising from finite particle sampling, halo finder
-    systematics, or projection effects. Methods return the fractional mass error and the correlation
-    between mass errors of pairs of halos. These errors are used when comparing \glc\ halo mass
-    function predictions with N-body halo counts, or when fitting model parameters to clustering or
-    abundance statistics derived from N-body simulations.</description>
+   <description>
+   Class providing models of measurement errors on dark matter halo masses in N-body simulations ---the fractional uncertainty :math:`\delta M/M` arising from finite particle sampling, halo finder systematics, or projection effects. Methods return the fractional mass error and the correlation between mass errors of pairs of halos. These errors are used when comparing Galacticus halo mass function predictions with N-body halo counts, or when fitting model parameters to clustering or abundance statistics derived from N-body simulations.
+   </description>
    <default>null</default>
    <method name="errorFractional" >
-    <description>Return the fractional error on the mass of an N-body halo corresponding to the given \mono{\gls{node}}.</description>
+    <description>
+    Return the fractional error on the mass of an N-body halo corresponding to the given ``node``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="correlation" >
-    <description>Return the correlation in the  error on the mass of a pair of N-body halos corresponding to the given \mono{node1} and \mono{node2}.</description>
+    <description>
+    Return the correlation in the  error on the mass of a pair of N-body halos corresponding to the given ``node1`` and ``node2``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node1, node2</argument>
    </method>
    <method name="errorZeroAlways" >
-    <description>Return \mono{true} if the mass error is always zero for any halo.</description>
+    <description>
+    Return ``true`` if the mass error is always zero for any halo.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <code>

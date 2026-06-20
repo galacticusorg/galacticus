@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that accumulates an estimate of the energy radiated from the hot halo due to cooling
-  following the model of \cite{benson_galaxy_2010-1}.
+  !!{RST
+  Implements a node operator class that accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of :cite:t:`benson_galaxy_2010-1`.
   !!}
 
   use :: Radiation_Fields       , only : radiationFieldCosmicMicrowaveBackground
@@ -29,8 +28,10 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <nodeOperator name="nodeOperatorCoolingEnergyRadiated">
-   <description>A node operator class that accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of \cite{benson_galaxy_2010-1}.</description>
+  <nodeOperator name="nodeOperatorCoolingEnergyRadiated" docformat="rst">
+   <description>
+   A node operator class that accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of :cite:t:`benson_galaxy_2010-1`.
+   </description>
    <deepCopy>
     <functionClass variables="radiation"/>
    </deepCopy>
@@ -40,8 +41,8 @@
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorCoolingEnergyRadiated
-     !!{
-     A node operator class that accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of \cite{benson_galaxy_2010-1}.
+     !!{RST
+     A node operator class that accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of :cite:t:`benson_galaxy_2010-1`.
      !!}
      private
      class  (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_  => null()
@@ -60,8 +61,8 @@
   end type nodeOperatorCoolingEnergyRadiated
   
   interface nodeOperatorCoolingEnergyRadiated
-     !!{
-     Constructors for the \refClass{nodeOperatorCoolingEnergyRadiated} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorCoolingEnergyRadiated` node operator class.
      !!}
      module procedure coolingEnergyRadiatedConstructorParameters
      module procedure coolingEnergyRadiatedConstructorInternal
@@ -70,8 +71,8 @@
 contains
 
   function coolingEnergyRadiatedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorCoolingEnergyRadiated} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorCoolingEnergyRadiated` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -100,8 +101,8 @@ contains
   end function coolingEnergyRadiatedConstructorParameters
 
   function coolingEnergyRadiatedConstructorInternal(cosmologyFunctions_,coolingFunction_,chemicalState_,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorCoolingEnergyRadiated} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorCoolingEnergyRadiated` node operator class.
     !!}
     implicit none
     type (nodeOperatorCoolingEnergyRadiated)                        :: self
@@ -122,7 +123,7 @@ contains
   end function coolingEnergyRadiatedConstructorInternal
 
   subroutine coolingEnergyRadiatedAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : openMPThreadBindingAtLevel, hotHaloMassEjectionEvent
@@ -134,8 +135,8 @@ contains
   end subroutine coolingEnergyRadiatedAutoHook
 
   subroutine coolingEnergyRadiatedDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorCoolingEnergyRadiated} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorCoolingEnergyRadiated` node operator class.
     !!}
     use :: Events_Hooks, only : hotHaloMassEjectionEvent
     implicit none
@@ -153,8 +154,8 @@ contains
   end subroutine coolingEnergyRadiatedDestructor
 
   subroutine coolingEnergyRadiatedDifferentialEvolutionScales(self,node)
-    !!{
-    Set absolute ODE solver scale for the energy radiated from the hot halo due to cooling following the model of \cite{benson_galaxy_2010-1}.
+    !!{RST
+    Set absolute ODE solver scale for the energy radiated from the hot halo due to cooling following the model of :cite:t:`benson_galaxy_2010-1`.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentHotHalo, nodeComponentBasic
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -188,8 +189,8 @@ contains
   end subroutine coolingEnergyRadiatedDifferentialEvolutionScales
   
   subroutine coolingEnergyRadiatedDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
-    Accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of \cite{benson_galaxy_2010-1}.
+    !!{RST
+    Accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of :cite:t:`benson_galaxy_2010-1`.
     !!}
     use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , nodeComponentHotHalo
     use :: Abundances_Structure             , only : abundances
@@ -317,7 +318,7 @@ contains
   end subroutine coolingEnergyRadiatedDifferentialEvolution
 
   subroutine coolingEnergyRadiatedNodePromote(self,node)
-    !!{
+    !!{RST
     Zero the radiated energy of the hot halo component of nodes about to merge.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo
@@ -343,7 +344,7 @@ contains
   end subroutine coolingEnergyRadiatedNodePromote
   
   subroutine coolingEnergyRadiatedGalaxiesMerge(self,node)
-    !!{
+    !!{RST
     Zero the radiated energy of the hot halo component of galaxies about to merge.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo
@@ -368,8 +369,8 @@ contains
   end subroutine coolingEnergyRadiatedGalaxiesMerge
   
   subroutine coolingEnergyRadiatedHotHaloMassEjection(self,hotHalo,massRate)
-    !!{
-    Respond to mass ejection from the hot halo component.    
+    !!{RST
+    Respond to mass ejection from the hot halo component.
     !!}
     use :: Error                     , only : Error_Report
     use :: Galacticus_Nodes          , only : nodeComponentBasic   , nodeComponentHotHalo

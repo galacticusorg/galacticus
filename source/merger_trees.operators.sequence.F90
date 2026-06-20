@@ -17,13 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a sequence of operators on merger trees.
 !!}
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorSequence">
-   <description>Provides a sequence of operators on merger trees.</description>
+  <mergerTreeOperator name="mergerTreeOperatorSequence" docformat="rst">
+   <description>
+   Provides a sequence of operators on merger trees.
+   </description>
    <linkedList type="operatorList" variable="operators" next="next" object="operator_" objectType="mergerTreeOperatorClass"/>
   </mergerTreeOperator>
   !!]
@@ -34,7 +36,7 @@ Implements a sequence of operators on merger trees.
   end type operatorList
 
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorSequence
-     !!{
+     !!{RST
      A sequence merger tree operator class.
      !!}
      private
@@ -49,7 +51,7 @@ Implements a sequence of operators on merger trees.
   end type mergerTreeOperatorSequence
 
   interface mergerTreeOperatorSequence
-     !!{
+     !!{RST
      Constructors for the sequence merger tree operator class.
      !!}
      module procedure sequenceConstructorParameters
@@ -59,7 +61,7 @@ Implements a sequence of operators on merger trees.
 contains
 
   function sequenceConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the sequence merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -90,7 +92,7 @@ contains
   end function sequenceConstructorParameters
 
   function sequenceConstructorInternal(operators) result(self)
-    !!{
+    !!{RST
     Internal constructor for the sequence merger tree operator class.
     !!}
     implicit none
@@ -110,7 +112,7 @@ contains
   end function sequenceConstructorInternal
 
   subroutine sequenceDestructor(self)
-    !!{
+    !!{RST
     Destructor for the merger tree operator function class.
     !!}
     implicit none
@@ -132,7 +134,7 @@ contains
   end subroutine sequenceDestructor
 
   subroutine sequenceOperatePreConstruction(self)
-    !!{
+    !!{RST
     Perform a sequence operation on a merger tree.
     !!}
     implicit none
@@ -148,7 +150,7 @@ contains
   end subroutine sequenceOperatePreConstruction
 
   subroutine sequenceOperatePreInitialization(self,tree)
-    !!{
+    !!{RST
     Perform a sequence operation on a merger tree.
     !!}
     implicit none
@@ -165,7 +167,7 @@ contains
   end subroutine sequenceOperatePreInitialization
 
   subroutine sequenceOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Perform a sequence operation on a merger tree.
     !!}
     implicit none
@@ -182,7 +184,7 @@ contains
   end subroutine sequenceOperatePreEvolution
 
   subroutine sequenceOperatePostEvolution(self)
-    !!{
+    !!{RST
     Perform a sequence operation on a merger tree.
     !!}
     implicit none
@@ -198,7 +200,7 @@ contains
   end subroutine sequenceOperatePostEvolution
 
   subroutine sequenceFinalize(self)
-    !!{
+    !!{RST
     Perform a finalization on a sequence of operators on a merger tree.
     !!}
     implicit none

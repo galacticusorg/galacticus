@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a galaxy size vs stellar mass relation analysis class.
   !!}
 
@@ -27,64 +27,50 @@
   use            :: Star_Formation_Rates_Nuclear_Star_Clusters, only : starFormationRateNuclearStarClustersClass
 
   !![
-  <outputAnalysis name="outputAnalysisSizeVsStellarMassRelation">
+  <outputAnalysis name="outputAnalysisSizeVsStellarMassRelation" docformat="rst">
     <description>
-      A size vs. stellar mass relation output analysis class. Target data is read from an \gls{hdf5} file specified by the
-      \mono{[fileNameTarget]} parameter. This file must contain one or more groups named \mono{sampleN} where \mono{N} is an integer. Each such group specifies the galaxy size---stellar mass relation
-      for one sample (a combination of redshift interval and any selection criteria), and must contain the following datasets and
-      attributes:
-      \begin{itemize}
-       \item dataset \mono{massStellar}: stellar mass in units of $\mathrm{M}_\odot$;
-       \item dataset \mono{radiusEffective}: effective radius in units of Mpc;
-       \item dataset \mono{radiusEffectiveError}: uncertainty in effective radius in units of Mpc;
-       \item dataset \mono{radiusEffectiveScatter}: scatter in effective radius in units of dex;
-       \item dataset \mono{radiusEffectiveScatterError}: uncertainty in scatter in effective radius in units of dex;
-       \item attribute \mono{redshiftMinimum}: the minimum redshift associated with this sample;
-       \item attribute \mono{redshiftMaximum}: the maximum redshift associated with this sample.
-      \end{itemize}
-      While not required, it is recommended that each of these datasets has attributes \mono{description} and
-      \mono{unitsInSI} that provide a description of the dataset, and the multiplicative factor needed to convert
-      them to SI standard units, respectively.
+    A size vs. stellar mass relation output analysis class. Target data is read from an :term:`HDF5` file specified by the ``[fileNameTarget]`` parameter. This file must contain one or more groups named ``sampleN`` where ``N`` is an integer. Each such group specifies the galaxy size---stellar mass relation for one sample (a combination of redshift interval and any selection criteria), and must contain the following datasets and attributes:
 
-      Additionally, the file must contain a \mono{cosmology} group that specifies the cosmological model assumed
-      in constructing the dataset, and which has attributes:
-      \begin{itemize}
-       \item \mono{OmegaMatter}: the matter density in units of the critical density, $\Omega_\mathrm{M}$;
-       \item \mono{OmegaDarkEnergy}: the dark energy density in units of the critical density, $\Omega_\Lambda$;
-       \item \mono{OmegaBaryon}: the baryon density in units of the critical density, $\Omega_\mathrm{b}$;
-       \item \mono{HubbleConstant}: the Hubble constant in units of km/s/Mpc.
-      \end{itemize}
+    * dataset ``massStellar``: stellar mass in units of :math:`\mathrm{M}_\odot`;
+    * dataset ``radiusEffective``: effective radius in units of Mpc;
+    * dataset ``radiusEffectiveError``: uncertainty in effective radius in units of Mpc;
+    * dataset ``radiusEffectiveScatter``: scatter in effective radius in units of dex;
+    * dataset ``radiusEffectiveScatterError``: uncertainty in scatter in effective radius in units of dex;
+    * attribute ``redshiftMinimum``: the minimum redshift associated with this sample;
+    * attribute ``redshiftMaximum``: the maximum redshift associated with this sample.
 
-      Each \mono{sampleN} group must have an attribute \mono{selection} which specifies the
-      selection criterion used in constructing the dataset. Allowed values are:      
-      \begin{itemize}
-       \item \mono{`none'}: no selection criterion will be applied;
-       \item \mono{`star forming'}: only galaxies on or above the star forming main sequence are included;
-       \item \mono{`quiescent}: only galaxies below the star forming main sequence are included.
-      \end{itemize}
-      For the ``\mono{star forming}'' and ``\mono{quiescent}'' options, a dataset \mono{mainSequenceSFR} must be specified in the \mono{sampleN} group which specifies the mean
-      (of the logarithm of star formation rate in units of $\mathrm{M}_\odot/\hbox{yr}^{-1}$) of the star forming main sequence at
-      the center of each bin, and an attribute \mono{offsetMainSequenceSFR} which specifies an offset below the
-      mean of the star forming main sequence below which galaxies are considered to be quiescent. That is, a galaxy will be
-      classified as quiescent if
-      \begin{equation}
-      \log_{10} ( \dot{\phi} / \mathrm{M}_\odot \hbox{yr}^{-1}) &lt; \log_{10} ( \dot{M}_{\star,ms} / \mathrm{M}_\odot \hbox{yr}^{-1}) - \Delta_{\star},
-      \end{equation}
-      where $\log_{10} ( \dot{\phi} / \mathrm{M}_\odot \hbox{yr}^{-1})$ is the star formation rate in the galaxy, $\log_{10} (
-      \dot{M}_{\star,ms} / \mathrm{M}_\odot \hbox{yr}^{-1})$ is the mean of the star forming main sequence (as specified by
-      \mono{mainSequenceSFR} and interpolated to the stellar mass of the galaxy, and $\Delta_{\star}$ is
-      \mono{offsetMainSequenceSFR},
-								  
-      Lastly, the file must have two attributes used to identify and level the dataset:
-      \begin{itemize}
-       \item \mono{label}: a space-free label that will be appended to the analysis group in the output, e.g. \mono{vanDerWel2014};
-       \item \mono{reference}: a reference for the dataset suitable for inclusion in figures, e.g. \mono{van der Wel et al. (2014)}.
-      \end{itemize}
+    While not required, it is recommended that each of these datasets has attributes ``description`` and ``unitsInSI`` that provide a description of the dataset, and the multiplicative factor needed to convert them to SI standard units, respectively.
+
+    Additionally, the file must contain a ``cosmology`` group that specifies the cosmological model assumed in constructing the dataset, and which has attributes:
+
+    * ``OmegaMatter``: the matter density in units of the critical density, :math:`\Omega_\mathrm{M}`;
+    * ``OmegaDarkEnergy``: the dark energy density in units of the critical density, :math:`\Omega_\Lambda`;
+    * ``OmegaBaryon``: the baryon density in units of the critical density, :math:`\Omega_\mathrm{b}`;
+    * ``HubbleConstant``: the Hubble constant in units of km/s/Mpc.
+
+    Each ``sampleN`` group must have an attribute ``selection`` which specifies the selection criterion used in constructing the dataset. Allowed values are:
+
+    * ``'none'``: no selection criterion will be applied;
+    * ``'star forming'``: only galaxies on or above the star forming main sequence are included;
+    * ``'quiescent``: only galaxies below the star forming main sequence are included.
+
+    For the "``star forming``" and "``quiescent``" options, a dataset ``mainSequenceSFR`` must be specified in the ``sampleN`` group which specifies the mean (of the logarithm of star formation rate in units of :math:`\mathrm{M}_\odot/\hbox{yr}^{-1}`) of the star forming main sequence at the center of each bin, and an attribute ``offsetMainSequenceSFR`` which specifies an offset below the mean of the star forming main sequence below which galaxies are considered to be quiescent. That is, a galaxy will be classified as quiescent if
+
+    .. math::
+
+       \log_{10} ( \dot{\phi} / \mathrm{M}_\odot \hbox{yr}^{-1}) &lt; \log_{10} ( \dot{M}_{\star,ms} / \mathrm{M}_\odot \hbox{yr}^{-1}) - \Delta_{\star},
+
+    where :math:`\log_{10} ( \dot{\phi} / \mathrm{M}_\odot \hbox{yr}^{-1})` is the star formation rate in the galaxy, :math:`\log_{10} ( \dot{M}_{\star,ms} / \mathrm{M}_\odot \hbox{yr}^{-1})` is the mean of the star forming main sequence (as specified by ``mainSequenceSFR`` and interpolated to the stellar mass of the galaxy, and :math:`\Delta_{\star}` is ``offsetMainSequenceSFR``,
+
+    Lastly, the file must have two attributes used to identify and level the dataset:
+
+    * ``label``: a space-free label that will be appended to the analysis group in the output, e.g. ``vanDerWel2014``;
+    * ``reference``: a reference for the dataset suitable for inclusion in figures, e.g. ``van der Wel et al. (2014)``.
     </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisSizeVsStellarMassRelation
-     !!{
+     !!{RST
      A stellar vs halo mass relation output analysis class.
      !!}
      private
@@ -115,8 +101,8 @@
   end type outputAnalysisSizeVsStellarMassRelation
 
   interface outputAnalysisSizeVsStellarMassRelation
-     !!{
-     Constructors for the \refClass{outputAnalysisSizeVsStellarMassRelation} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisSizeVsStellarMassRelation` output analysis class.
      !!}
      module procedure sizeVsStellarMassRelationConstructorParameters
      module procedure sizeVsStellarMassRelationConstructorInternal
@@ -125,8 +111,8 @@
 contains
 
   function sizeVsStellarMassRelationConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSizeVsStellarMassRelation} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisSizeVsStellarMassRelation` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions    , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters   , only : cosmologyParametersClass
@@ -163,16 +149,15 @@ contains
           allocate(likelihoodBins(parameters%count('likelihoodBins')))
           likelihoodBinsAutomatic=.false.
           !![
-	  <inputParameter>
+	  <inputParameter docformat="rst">
 	    <name>likelihoodBins</name>
 	    <source>parameters</source>
 	    <description>
-	      Controls which bins in the effective radius--stellar mass relation will be used in computing the likelihood:
-	      \begin{itemize}
-	      \item \emph{not present}: all bins are included in the likelihood calculation;
-	      \item \emph{list of integers}: use only the mass bin(s) given in this list in the likelihood calculation;
-	      \item \mono{auto}: use only bins which have a non-zero number of halos contributing to them in the likelihood calculation.
-	      \end{itemize}
+	    Controls which bins in the effective radius--stellar mass relation will be used in computing the likelihood:
+
+	    * *not present*: all bins are included in the likelihood calculation;
+	    * *list of integers*: use only the mass bin(s) given in this list in the likelihood calculation;
+	    * ``auto``: use only bins which have a non-zero number of halos contributing to them in the likelihood calculation.
 	    </description>
 	  </inputParameter>
           !!]
@@ -182,61 +167,79 @@ contains
        likelihoodBinsAutomatic   =.false.
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileNameTarget</name>
       <source>parameters</source>
-      <description>The name of the file containing the target data.</description>
+      <description>
+      The name of the file containing the target data.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sample</name>
       <source>parameters</source>
       <defaultValue>1</defaultValue>
-      <description>The integer index (starting at 1) of the \mono{sampleN} group within the target HDF5 file to use when computing the size--stellar mass relation likelihood.</description>
+      <description>
+      The integer index (starting at 1) of the ``sampleN`` group within the target HDF5 file to use when computing the size--stellar mass relation likelihood.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>likelihoodNormalize</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, then normalize the likelihood to make it a probability density.</description>
+      <description>
+      If true, then normalize the likelihood to make it a probability density.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>computeScatter</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, the scatter in log10(radius effective) is computed. Otherwise, the mean is computed.</description>
+      <description>
+      If true, the scatter in log10(radius effective) is computed. Otherwise, the mean is computed.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for effective radius in the effective radius vs stellar mass relation.</description>
+      <description>
+      The coefficients of the systematic error polynomial for effective radius in the effective radius vs stellar mass relation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorMassStellarPolynomialCoefficient</name>
       <source>parameters</source>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for stellar mass in the effective radius vs stellar mass relation.</description>
+      <description>
+      The coefficients of the systematic error polynomial for stellar mass in the effective radius vs stellar mass relation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMassStellarPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorMassStellarPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the random error polynomial for stellar mass in the effective radius vs stellar mass relation.</description>
+      <description>
+      The coefficients of the random error polynomial for stellar mass in the effective radius vs stellar mass relation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMassStellarMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMassStellarMinimum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for stellar masses.</description>
+      <description>
+      The minimum random error for stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMassStellarMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMassStellarMaximum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for stellar masses.</description>
+      <description>
+      The minimum random error for stellar masses.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"                  name="cosmologyParameters_"                  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"                   name="cosmologyFunctions_"                   source="parameters"/>
@@ -259,8 +262,8 @@ contains
   end function sizeVsStellarMassRelationConstructorParameters
 
   function sizeVsStellarMassRelationConstructorInternal(fileNameTarget,sample,likelihoodBinsAutomatic,likelihoodBins,likelihoodNormalize,computeScatter,systematicErrorPolynomialCoefficient,systematicErrorMassStellarPolynomialCoefficient,randomErrorMassStellarPolynomialCoefficient,randomErrorMassStellarMinimum,randomErrorMassStellarMaximum,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSizeVsStellarMassRelation} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisSizeVsStellarMassRelation` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                                       , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                                      , cosmologyParametersSimple
@@ -747,7 +750,7 @@ contains
   end function sizeVsStellarMassRelationConstructorInternal
 
   subroutine sizeVsStellarMassRelationAnalyze(self,node,iOutput)
-    !!{
+    !!{RST
     Implement a sizeVsStellarMassRelation output analysis.
     !!}
     implicit none
@@ -760,8 +763,8 @@ contains
   end subroutine sizeVsStellarMassRelationAnalyze
 
   subroutine sizeVsStellarMassRelationDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisSizeVsStellarMassRelation} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisSizeVsStellarMassRelation` output analysis class.
     !!}
     implicit none
     type(outputAnalysisSizeVsStellarMassRelation), intent(inout) :: self
@@ -779,8 +782,8 @@ contains
   end subroutine sizeVsStellarMassRelationDestructor
 
   subroutine sizeVsStellarMassRelationReduce(self,reduced)
-    !!{
-    Implement reduction for the \mono{sizeVsStellarMassRelation} output analysis class.
+    !!{RST
+    Implement reduction for the ``sizeVsStellarMassRelation`` output analysis class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -797,8 +800,8 @@ contains
   end subroutine sizeVsStellarMassRelationReduce
 
   subroutine sizeVsStellarMassRelationFinalize(self,groupName)
-    !!{
-    Implement a \mono{sizeVsStellarMassRelation} output analysis finalization.
+    !!{RST
+    Implement a ``sizeVsStellarMassRelation`` output analysis finalization.
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
@@ -827,8 +830,8 @@ contains
   end subroutine sizeVsStellarMassRelationFinalize
 
   double precision function sizeVsStellarMassRelationLogLikelihood(self) result(logLikelihood)
-    !!{
-    Return the log-likelihood of a \mono{sizeVsStellarMassRelation} output analysis.
+    !!{RST
+    Return the log-likelihood of a ``sizeVsStellarMassRelation`` output analysis.
     !!}
     use :: Error                       , only : Error_Report
     use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector

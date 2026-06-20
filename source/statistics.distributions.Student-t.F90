@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a 1D Student-t distribution function.
   !!}
 
@@ -27,28 +27,30 @@
   use, intrinsic :: ISO_C_Binding, only : c_double
   
   !![
-  <distributionFunction1D name="distributionFunction1DStudentT">
+  <distributionFunction1D name="distributionFunction1DStudentT" docformat="rst">
    <description>
-    Student's t-distribution:
-    \begin{equation}
-     P(x) \propto \left(1 + {x^2\over \nu}\right)^{-(\nu+1)/2}
-    \end{equation}
-    Specified using:
-    \begin{description}
-    \item[\mono{degreesOfFreedom}] The number of degrees of freedom, $\nu$.
-    \end{description}
+   Student's t-distribution:
+
+   .. math::
+
+      P(x) \propto \left(1 + {x^2\over \nu}\right)^{-(\nu+1)/2}
+
+   Specified using:
+
+   ``degreesOfFreedom``
+      The number of degrees of freedom, :math:`\nu`.
    </description>
   </distributionFunction1D>
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DStudentT
-     !!{
+     !!{RST
      Implementation of a 1D Student-t distribution function.
      !!}
      private
      double precision :: degreesOfFreedom
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="The upper-tail cumulative distribution function." method="cumulativeUpper" />
        <method description="The upper-tail inverse cumulative distribution function." method="inverseUpper" />
      </methods>
@@ -61,8 +63,8 @@
   end type distributionFunction1DStudentT
 
   interface distributionFunction1DStudentT
-     !!{
-     Constructors for the \refClass{distributionFunction1DStudentT} 1D distribution function class.
+     !!{RST
+     Constructors for the :galacticus-class:`distributionFunction1DStudentT` 1D distribution function class.
      !!}
      module procedure studentTConstructorParameters
      module procedure studentTConstructorInternal
@@ -70,7 +72,7 @@
 
   interface
      function gsl_ran_tdist_pdf(x,nu) bind(c,name='gsl_ran_tdist_pdf')
-       !!{
+       !!{RST
        Template for the GSL Student t-distribution probability density.
        !!}
        import
@@ -79,7 +81,7 @@
      end function gsl_ran_tdist_pdf
 
      function gsl_cdf_tdist_P(x,nu) bind(c,name='gsl_cdf_tdist_P')
-       !!{
+       !!{RST
        Template for the GSL Student t-distribution cumulative probability function.
        !!}
        import
@@ -88,7 +90,7 @@
      end function gsl_cdf_tdist_P
 
      function gsl_cdf_tdist_Pinv(P,nu) bind(c,name='gsl_cdf_tdist_Pinv')
-       !!{
+       !!{RST
        Template for the GSL Student t-distribution inverse cumulative probability function.
        !!}
        import
@@ -97,7 +99,7 @@
      end function gsl_cdf_tdist_Pinv
 
      function gsl_cdf_tdist_Q(x,nu) bind(c,name='gsl_cdf_tdist_Q')
-       !!{
+       !!{RST
        Template for the GSL Student t-distribution upper-tail cumulative probability function.
        !!}
        import
@@ -106,7 +108,7 @@
      end function gsl_cdf_tdist_Q
 
      function gsl_cdf_tdist_Qinv(Q,nu) bind(c,name='gsl_cdf_tdist_Qinv')
-       !!{
+       !!{RST
        Template for the GSL Student t-distribution inverse upper-tail cumulative probability function.
        !!}
        import
@@ -118,9 +120,8 @@
 contains
 
   function studentTConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DStudentT} 1D distribution function class which builds
-    the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DStudentT` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -130,9 +131,11 @@ contains
     double precision                                                :: degreesOfFreedom
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>degreesOfFreedom</name>
-      <description>The degrees of freedom of the Student-t distribution function.</description>
+      <description>
+      The degrees of freedom of the Student-t distribution function.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -146,8 +149,8 @@ contains
   end function studentTConstructorParameters
 
   function studentTConstructorInternal(degreesOfFreedom,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DStudentT} 1D distribution function class.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DStudentT` 1D distribution function class.
     !!}
     type            (distributionFunction1DStudentT)                                  :: self
     double precision                                , intent(in   )                   :: degreesOfFreedom
@@ -160,7 +163,7 @@ contains
   end function studentTConstructorInternal
 
   double precision function studentTDensity(self,x)
-    !!{
+    !!{RST
     Return the density of a Student-t distribution.
     !!}
     implicit none
@@ -172,7 +175,7 @@ contains
   end function studentTDensity
 
   double precision function studentTCumulative(self,x)
-    !!{
+    !!{RST
     Return the cumulative probability of a Student-t distribution.
     !!}
     implicit none
@@ -184,7 +187,7 @@ contains
   end function studentTCumulative
 
   double precision function studentTInverse(self,p)
-    !!{
+    !!{RST
     Return the inverse of the cumulative probability of a Student-t distribution.
     !!}
     use :: Error, only : Error_Report
@@ -202,7 +205,7 @@ contains
   end function studentTInverse
 
   double precision function studentTCumulativeUpper(self,x)
-    !!{
+    !!{RST
     Return the upper-tail cumulative probability of a Student-t distribution.
     !!}
     implicit none
@@ -214,7 +217,7 @@ contains
   end function studentTCumulativeUpper
 
   double precision function studentTInverseUpper(self,q)
-    !!{
+    !!{RST
     Return the inverse of the upper-tail cumulative probability of a Student-t distribution.
     !!}
     use :: Error, only : Error_Report

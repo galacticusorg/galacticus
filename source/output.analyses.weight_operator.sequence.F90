@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a sequence output analysis weight operator class.
 !!}
 
@@ -27,20 +27,22 @@ Implements a sequence output analysis weight operator class.
   end type weightOperatorList
 
   !![
-  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorSequence">
-   <description>Applies a sequence of \refClass{outputAnalysisWeightOperatorClass} objects in order to a weight value, enabling construction of complex multi-step weighting schemes from composable weight operators.</description>
+  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorSequence" docformat="rst">
+   <description>
+   Applies a sequence of :galacticus-class:`outputAnalysisWeightOperatorClass` objects in order to a weight value, enabling construction of complex multi-step weighting schemes from composable weight operators.
+   </description>
    <linkedList type="weightOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisWeightOperatorClass"/>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorSequence
-     !!{
+     !!{RST
      A sequence output weight operator class.
      !!}
      private
      type(weightOperatorList), pointer :: operators => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Prepend an operator to a sequence of weight operators." method="prepend" />
      </methods>
      !!]
@@ -50,8 +52,8 @@ Implements a sequence output analysis weight operator class.
   end type outputAnalysisWeightOperatorSequence
 
   interface outputAnalysisWeightOperatorSequence
-     !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorSequence} output analysis weight operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisWeightOperatorSequence` output analysis weight operator class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
@@ -60,8 +62,8 @@ Implements a sequence output analysis weight operator class.
 contains
 
   function sequenceConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisWeightOperatorSequence} output analysis weight operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisWeightOperatorSequence` output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,7 +93,7 @@ contains
   end function sequenceConstructorParameters
 
   function sequenceConstructorInternal(operators) result (self)
-    !!{
+    !!{RST
     Internal constructor for the sequence output analysis weight operator class.
     !!}
     implicit none
@@ -111,7 +113,7 @@ contains
   end function sequenceConstructorInternal
 
   subroutine sequenceDestructor(self)
-    !!{
+    !!{RST
     Destructor for the sequence weight operator class.
     !!}
     implicit none
@@ -133,7 +135,7 @@ contains
   end subroutine sequenceDestructor
 
   double precision function sequenceOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
-    !!{
+    !!{RST
     Implement an sequence output analysis weight operator.
     !!}
     implicit none
@@ -156,7 +158,7 @@ contains
   end function sequenceOperate
 
   subroutine sequencePrepend(self,operator_)
-    !!{
+    !!{RST
     Prepend an operator to the sequence.
     !!}
     implicit none

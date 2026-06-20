@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements calculations of factorials.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module which implements calculations of factorials.
 !; gsl
 
 module Factorials
-  !!{
+  !!{RST
   Implements calculations of factorials
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_double, c_int
@@ -35,7 +35,7 @@ module Factorials
 
   interface
      function gsl_sf_fact(n) bind(c,name='gsl_sf_fact')
-       !!{
+       !!{RST
        Template for the GSL factorial function.
        !!}
        import
@@ -46,7 +46,7 @@ module Factorials
   
   interface
      function gsl_sf_lnfact(n) bind(c,name='gsl_sf_lnfact')
-       !!{
+       !!{RST
        Template for the GSL logarithm of the factorial function.
        !!}
        import
@@ -58,8 +58,8 @@ module Factorials
 contains
 
   double precision function Factorial(argument)
-    !!{
-    Computes the factorial of \mono{argument}.
+    !!{RST
+    Computes the factorial of ``argument``.
     !!}
     implicit none
     integer, intent(in   ) :: argument
@@ -69,8 +69,8 @@ contains
   end function Factorial
 
   impure elemental double precision function Logarithmic_Factorial(argument)
-    !!{
-    Computes the logarithmic of the factorial of \mono{argument}.
+    !!{RST
+    Computes the logarithmic of the factorial of ``argument``.
     !!}
     implicit none
     integer, intent(in   ) :: argument
@@ -80,8 +80,8 @@ contains
   end function Logarithmic_Factorial
 
   double precision function Logarithmic_Double_Factorial(argument)
-    !!{
-    Computes the natural logarithm of the double factorial, $k!!$.
+    !!{RST
+    Computes the natural logarithm of the double factorial, :math:`k!!`.
     !!}
     implicit none
     integer, intent(in   ) :: argument

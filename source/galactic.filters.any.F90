@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a galactic filter class which is the ``any'' combination of a set of other filters.
+!!{RST
+Implements a galactic filter class which is the "any" combination of a set of other filters.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterAny">
-   <description>Implements a logical \mono{OR} combination of multiple \refClass{galacticFilterClass} objects, passing nodes that satisfy at least one filter in the list, enabling flexible union-based selection criteria from simpler component filters.</description>
+  <galacticFilter name="galacticFilterAny" docformat="rst">
+   <description>
+   Implements a logical ``OR`` combination of multiple :galacticus-class:`galacticFilterClass` objects, passing nodes that satisfy at least one filter in the list, enabling flexible union-based selection criteria from simpler component filters.
+   </description>
    <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="galacticFilterClass"/>
   </galacticFilter>
   !!]
 
   type, extends(galacticFilterClass) :: galacticFilterAny
-     !!{
-     A galactic filter class which is the ``any'' combination of a set of other filters.
+     !!{RST
+     A galactic filter class which is the "any" combination of a set of other filters.
      !!}
      private
      type(filterList), pointer :: filters => null()
@@ -40,7 +42,7 @@ Implements a galactic filter class which is the ``any'' combination of a set of 
   end type galacticFilterAny
 
   interface galacticFilterAny
-     !!{
+     !!{RST
      Constructors for the any galactic filter class.
      !!}
      module procedure anyConstructorParameters
@@ -50,8 +52,8 @@ Implements a galactic filter class which is the ``any'' combination of a set of 
 contains
 
   function anyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterAny} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterAny` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,8 +83,8 @@ contains
   end function anyConstructorParameters
 
   function anyConstructorInternal(filters) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterAny} galactic filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticFilterAny` galactic filter class.
     !!}
     implicit none
     type(galacticFilterAny)                        :: self
@@ -101,8 +103,8 @@ contains
   end function anyConstructorInternal
 
   subroutine anyDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterAny} galactic filter class.
+    !!{RST
+    Destructor for the :galacticus-class:`galacticFilterAny` galactic filter class.
     !!}
     implicit none
     type(galacticFilterAny), intent(inout) :: self
@@ -123,8 +125,8 @@ contains
   end subroutine anyDestructor
 
   logical function anyPasses(self,node)
-    !!{
-    Apply a set of filters to a \mono{node} combined with ``any'' operations.
+    !!{RST
+    Apply a set of filters to a ``node`` combined with "any" operations.
     !!}
     implicit none
     class(galacticFilterAny), intent(inout)         :: self

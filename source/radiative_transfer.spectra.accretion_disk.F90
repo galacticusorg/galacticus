@@ -20,12 +20,14 @@
   use :: Accretion_Disk_Spectra, only : accretionDiskSpectraClass
 
   !![
-  <radiativeTransferSpectrum name="radiativeTransferSpectrumAccretionDisk">
-   <description>A photon spectrum class that computes the spectral luminosity of radiation emitted by an accreting black hole accretion disk in radiative transfer calculations. The black hole mass and Eddington-scaled accretion rate are set by the \mono{[blackHoleMass]} and \mono{[accretionRateEddington]} parameters.</description>
+  <radiativeTransferSpectrum name="radiativeTransferSpectrumAccretionDisk" docformat="rst">
+   <description>
+   A photon spectrum class that computes the spectral luminosity of radiation emitted by an accreting black hole accretion disk in radiative transfer calculations. The black hole mass and Eddington-scaled accretion rate are set by the ``[blackHoleMass]`` and ``[accretionRateEddington]`` parameters.
+   </description>
   </radiativeTransferSpectrum>
   !!]
   type, extends(radiativeTransferSpectrumClass) :: radiativeTransferSpectrumAccretionDisk
-     !!{
+     !!{RST
      Implementation of a black body spectrum for radiative transfer calculations.
      !!}
      private
@@ -39,8 +41,8 @@
   end type radiativeTransferSpectrumAccretionDisk
   
   interface radiativeTransferSpectrumAccretionDisk
-     !!{
-     Constructors for the \refClass{radiativeTransferSpectrumAccretionDisk} radiative transfer spectrum class.
+     !!{RST
+     Constructors for the :galacticus-class:`radiativeTransferSpectrumAccretionDisk` radiative transfer spectrum class.
      !!}
      module procedure accretionDiskConstructorParameters
      module procedure accretionDiskConstructorInternal
@@ -49,9 +51,8 @@
 contains
       
   function accretionDiskConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiativeTransferSpectrumAccretionDisk} radiative transfer spectrum class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the :galacticus-class:`radiativeTransferSpectrumAccretionDisk` radiative transfer spectrum class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
     implicit none
@@ -61,16 +62,20 @@ contains
     double precision                                                        :: massBlackHole        , accretionRateEddington
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massBlackHole</name>
       <defaultValue>1.0d6</defaultValue>
-      <description>The mass of the black hole at the center of the accretion disk.</description>
+      <description>
+      The mass of the black hole at the center of the accretion disk.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>accretionRateEddington</name>
       <defaultValue>1.0d-1</defaultValue>
-      <description>Accretion rate onto the black hole in units of the Eddington rate.</description>
+      <description>
+      Accretion rate onto the black hole in units of the Eddington rate.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="accretionDiskSpectra" name="accretionDiskSpectra_" source="parameters"/>
@@ -84,8 +89,8 @@ contains
   end function accretionDiskConstructorParameters
 
   function accretionDiskConstructorInternal(massBlackHole,accretionRateEddington,accretionDiskSpectra_) result(self)
-    !!{
-    Internal constructor for the \refClass{radiativeTransferSpectrumAccretionDisk} radiative transfer spectrum class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`radiativeTransferSpectrumAccretionDisk` radiative transfer spectrum class.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
@@ -112,8 +117,8 @@ contains
   end function accretionDiskConstructorInternal
 
   subroutine accretionDiskDestructor(self)
-    !!{
-    Destructor for the \refClass{radiativeTransferSpectrumAccretionDisk} radiative transfer spectrum class.
+    !!{RST
+    Destructor for the :galacticus-class:`radiativeTransferSpectrumAccretionDisk` radiative transfer spectrum class.
     !!}
     implicit none
     type(radiativeTransferSpectrumAccretionDisk), intent(inout) :: self
@@ -125,7 +130,7 @@ contains
   end subroutine accretionDiskDestructor
 
   double precision function accretionDiskLuminosity(self,wavelengthMinimum,wavelengthMaximum)
-    !!{
+    !!{RST
     Compute the luminosity in the given wavelength range for an accretion disk.
     !!}
     use :: Numerical_Integration, only : integrator
@@ -141,7 +146,7 @@ contains
   contains
 
     double precision function integrand(wavelength)
-      !!{
+      !!{RST
       Integrand over black body spectrum.
       !!}
       implicit none
@@ -154,7 +159,7 @@ contains
   end function accretionDiskLuminosity
 
   double precision function accretionDiskSpectrum(self,wavelength)
-    !!{
+    !!{RST
     Return the spectrum of the accretion disk.
     !!}
     use :: Numerical_Constants_Physical, only : speedLight

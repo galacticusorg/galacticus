@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a two-point correlation function class in which the correlation function is found by Fourier
-transforming a power spectrum.
+!!{RST
+Implements a two-point correlation function class in which the correlation function is found by Fourier transforming a power spectrum.
 !!}
   
   use :: Numerical_Interpolation, only : interpolator
@@ -29,12 +28,14 @@ transforming a power spectrum.
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
 
   !![
-  <correlationFunctionTwoPoint name="correlationFunctionTwoPointPowerSpectrumTransform">
-   <description>Provides a two-point correlation function class in which the correlation function is found by Fourier transforming a power spectrum.</description>
+  <correlationFunctionTwoPoint name="correlationFunctionTwoPointPowerSpectrumTransform" docformat="rst">
+   <description>
+   Provides a two-point correlation function class in which the correlation function is found by Fourier transforming a power spectrum.
+   </description>
   </correlationFunctionTwoPoint>
   !!]
   type, extends(correlationFunctionTwoPointClass) :: correlationFunctionTwoPointPowerSpectrumTransform
-     !!{
+     !!{RST
      A two-point correlation function class in which the correlation function is found by Fourier transforming a power spectrum.
      !!}
      private
@@ -54,8 +55,8 @@ transforming a power spectrum.
   end type correlationFunctionTwoPointPowerSpectrumTransform
 
   interface correlationFunctionTwoPointPowerSpectrumTransform
-     !!{
-     Constructors for the \refClass{correlationFunctionTwoPointPowerSpectrumTransform} two-point correlation function class.
+     !!{RST
+     Constructors for the :galacticus-class:`correlationFunctionTwoPointPowerSpectrumTransform` two-point correlation function class.
      !!}
      module procedure powerSpectrumTransformConstructorParameters
      module procedure powerSpectrumTransformConstructorInternal
@@ -64,9 +65,8 @@ transforming a power spectrum.
 contains
 
   function powerSpectrumTransformConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{correlationFunctionTwoPointPowerSpectrumTransform} two-point correlation function class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`correlationFunctionTwoPointPowerSpectrumTransform` two-point correlation function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -111,8 +111,8 @@ contains
   end function powerSpectrumTransformConstructorParameters
 
   function powerSpectrumTransformConstructorInternal(powerSpectrumNonlinear_,powerSpectrum_,cosmologyFunctions_,linearGrowth_) result(self)
-    !!{
-    Internal constructor for the \refClass{correlationFunctionTwoPointPowerSpectrumTransform} two-point correlation function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`correlationFunctionTwoPointPowerSpectrumTransform` two-point correlation function class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -145,8 +145,8 @@ contains
   end function powerSpectrumTransformConstructorInternal
 
   subroutine powerSpectrumTransformDestructor(self)
-    !!{
-    Destructor for the \refClass{correlationFunctionTwoPointPowerSpectrumTransform} two-point correlation function class.
+    !!{RST
+    Destructor for the :galacticus-class:`correlationFunctionTwoPointPowerSpectrumTransform` two-point correlation function class.
     !!}
     implicit none
     type(correlationFunctionTwoPointPowerSpectrumTransform), intent(inout) :: self
@@ -161,7 +161,7 @@ contains
   end subroutine powerSpectrumTransformDestructor
 
   double precision function powerSpectrumTransformCorrelation(self,separation,time)
-    !!{
+    !!{RST
     Return a two-point correlation function by Fourier transforming a power spectrum.
     !!}
     use :: FFTLogs                 , only : FFTLogSineTransform, fftLogForward
@@ -228,20 +228,24 @@ contains
   end function powerSpectrumTransformCorrelation
   
   double precision function powerSpectrumTransformCorrelationVolumeAveraged(self,separation,time)
-    !!{
-    Return a volume-averaged two-point correlation function by Fourier transforming a power spectrum. The volume-averaged
-    two-point correlation function is defined as:
-    \begin{equation}
-     \bar{\xi}(r) = \int_0^2 \mathrm{d} r 4 \pi r^2 \xi(r) /  \int_0^2 \mathrm{d} r 4 \pi r^2.
-    \end{equation}
+    !!{RST
+    Return a volume-averaged two-point correlation function by Fourier transforming a power spectrum. The volume-averaged two-point correlation function is defined as:
+
+    .. math::
+
+       \bar{\xi}(r) = \int_0^2 \mathrm{d} r 4 \pi r^2 \xi(r) /  \int_0^2 \mathrm{d} r 4 \pi r^2.
+
     Since
-    \begin{equation}
-     \xi(r) = \int \mathrm{d}k {P(k) \over (2 \pi)^3} 4 \pi {k^2 \over k r} \sin (k r),
-    \end{equation}
+
+    .. math::
+
+       \xi(r) = \int \mathrm{d}k {P(k) \over (2 \pi)^3} 4 \pi {k^2 \over k r} \sin (k r),
+
     then
-    \begin{equation}
-     \bar{\xi}(r) = 3 \int \mathrm{d}k {P(k) \over (2 \pi)^3} 4 \pi {k^2 \over (k r)^2} \left[ {\sin (k r) \over k r} - \cos(k r) \right].
-    \end{equation}
+
+    .. math::
+
+       \bar{\xi}(r) = 3 \int \mathrm{d}k {P(k) \over (2 \pi)^3} 4 \pi {k^2 \over (k r)^2} \left[ {\sin (k r) \over k r} - \cos(k r) \right].
     !!}
     use :: FFTLogs                 , only : FFTLog      , fftLogForward
     use :: Numerical_Constants_Math, only : Pi

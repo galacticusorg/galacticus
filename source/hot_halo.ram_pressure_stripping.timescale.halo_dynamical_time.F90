@@ -17,22 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a class for the timescale of ram pressure stripping of hot halos in which the timescale is equal to the halo
-  dynamical timescale.
+  !!{RST
+  Implements a class for the timescale of ram pressure stripping of hot halos in which the timescale is equal to the halo dynamical timescale.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleHaloDynamicalTime">
+  <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleHaloDynamicalTime" docformat="rst">
    <description>
-    A hot halo ram pressure timescale class in which the timescale is equal to the halo dynamical time of the associated halo.
+   A hot halo ram pressure timescale class in which the timescale is equal to the halo dynamical time of the associated halo.
    </description>
   </hotHaloRamPressureTimescale>
   !!]
   type, extends(hotHaloRamPressureTimescaleClass) :: hotHaloRamPressureTimescaleHaloDynamicalTime
-     !!{
+     !!{RST
      Implementation of a hot halo ram pressure timescale class in which the timescale is equal to the halo dynamical time.
      !!}
      private
@@ -43,8 +42,8 @@
   end type hotHaloRamPressureTimescaleHaloDynamicalTime
 
   interface hotHaloRamPressureTimescaleHaloDynamicalTime
-     !!{
-     Constructors for the \refClass{hotHaloRamPressureTimescaleHaloDynamicalTime} hot halo ram pressure timescale class.
+     !!{RST
+     Constructors for the :galacticus-class:`hotHaloRamPressureTimescaleHaloDynamicalTime` hot halo ram pressure timescale class.
      !!}
      module procedure haloDynamicalTimeConstructorParameters
      module procedure haloDynamicalTimeConstructorInternal
@@ -53,8 +52,8 @@
 contains
 
   function haloDynamicalTimeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{hotHaloRamPressureTimescaleHaloDynamicalTime} hot halo ram pressure timescale class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`hotHaloRamPressureTimescaleHaloDynamicalTime` hot halo ram pressure timescale class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,8 +74,8 @@ contains
   end function haloDynamicalTimeConstructorParameters
 
   function haloDynamicalTimeConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{hotHaloRamPressureTimescaleHaloDynamicalTime} hot halo ram pressure timescale class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`hotHaloRamPressureTimescaleHaloDynamicalTime` hot halo ram pressure timescale class.
     !!}
     implicit none
     type (hotHaloRamPressureTimescaleHaloDynamicalTime)                        :: self
@@ -89,8 +88,8 @@ contains
   end function haloDynamicalTimeConstructorInternal
 
   subroutine haloDynamicalTimeDestructor(self)
-    !!{
-    Destructor for the \refClass{hotHaloRamPressureTimescaleHaloDynamicalTime} hot halo ram pressure timescale class.
+    !!{RST
+    Destructor for the :galacticus-class:`hotHaloRamPressureTimescaleHaloDynamicalTime` hot halo ram pressure timescale class.
     !!}
     implicit none
     type(hotHaloRamPressureTimescaleHaloDynamicalTime), intent(inout) :: self
@@ -102,7 +101,7 @@ contains
   end subroutine haloDynamicalTimeDestructor
 
   double precision function haloDynamicalTimeTimescale(self,node)
-    !!{
+    !!{RST
     Return a ram pressure timescale due to the hot halo assuming that it equals the halo dynamical time.
     !!}
     implicit none

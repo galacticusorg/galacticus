@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class which provides an analytic solution for the evolution of satellite
-  galaxies represented by the \mono{verySimple} disk component.
+  !!{RST
+  Implements a node operator class which provides an analytic solution for the evolution of satellite galaxies represented by the ``verySimple`` disk component.
   !!}
 
   use :: Abundances_Structure         , only : abundances
@@ -29,21 +28,15 @@
   use :: Stellar_Population_Properties, only : stellarPopulationPropertiesClass
 
   !![
-  <nodeOperator name="nodeOperatorDiskVerySimpleAnalyticSolver">
+  <nodeOperator name="nodeOperatorDiskVerySimpleAnalyticSolver" docformat="rst">
    <description>
-     A node operator class that analytically integrates the evolution of satellite disks for the
-     \refClass{nodeComponentDiskVerySimple} disk component. At the start of each ODE step the
-     timescales for fuel depletion, star formation and outflow are computed; the disk gas and
-     stellar masses (and optionally their abundances), together with the host hot halo's outflowed
-     mass and abundances, are then provided as closed-form analytic solutions during the
-     integration. Satellites that are too small to ever be of interest, and that will not merge
-     before the present day, are pruned from the tree at this point.
+   A node operator class that analytically integrates the evolution of satellite disks for the :galacticus-class:`nodeComponentDiskVerySimple` disk component. At the start of each ODE step the timescales for fuel depletion, star formation and outflow are computed; the disk gas and stellar masses (and optionally their abundances), together with the host hot halo's outflowed mass and abundances, are then provided as closed-form analytic solutions during the integration. Satellites that are too small to ever be of interest, and that will not merge before the present day, are pruned from the tree at this point.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDiskVerySimpleAnalyticSolver
-     !!{
-     A node operator class that provides an analytic ODE solution for the \mono{verySimple} disk component.
+     !!{RST
+     A node operator class that provides an analytic ODE solution for the ``verySimple`` disk component.
      !!}
      private
      class           (cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_          => null()
@@ -68,8 +61,8 @@
   end type nodeOperatorDiskVerySimpleAnalyticSolver
 
   interface nodeOperatorDiskVerySimpleAnalyticSolver
-     !!{
-     Constructors for the \refClass{nodeOperatorDiskVerySimpleAnalyticSolver} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorDiskVerySimpleAnalyticSolver` node operator class.
      !!}
      module procedure diskVerySimpleAnalyticSolverConstructorParameters
      module procedure diskVerySimpleAnalyticSolverConstructorInternal
@@ -78,8 +71,8 @@
 contains
 
   function diskVerySimpleAnalyticSolverConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorDiskVerySimpleAnalyticSolver} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorDiskVerySimpleAnalyticSolver` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,22 +86,28 @@ contains
     logical                                                                   :: trackAbundances
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>pruneMassGas</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>Gas mass below which the analytic solver will prune a satellite from the tree.</description>
+      <description>
+      Gas mass below which the analytic solver will prune a satellite from the tree.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>pruneMassStars</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>Stellar mass below which the analytic solver will prune a satellite from the tree.</description>
+      <description>
+      Stellar mass below which the analytic solver will prune a satellite from the tree.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>trackAbundances</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, also analytically evolve disk and outflowed abundances.</description>
+      <description>
+      If true, also analytically evolve disk and outflowed abundances.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
@@ -128,8 +127,8 @@ contains
   end function diskVerySimpleAnalyticSolverConstructorParameters
 
   function diskVerySimpleAnalyticSolverConstructorInternal(pruneMassGas,pruneMassStars,trackAbundances,cosmologyFunctions_,stellarPopulationProperties_,stellarFeedbackOutflows_,starFormationRateDisks_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorDiskVerySimpleAnalyticSolver} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorDiskVerySimpleAnalyticSolver` node operator class.
     !!}
     implicit none
     type            (nodeOperatorDiskVerySimpleAnalyticSolver)                        :: self
@@ -149,8 +148,8 @@ contains
   end function diskVerySimpleAnalyticSolverConstructorInternal
 
   subroutine diskVerySimpleAnalyticSolverDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorDiskVerySimpleAnalyticSolver} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorDiskVerySimpleAnalyticSolver` node operator class.
     !!}
     implicit none
     type(nodeOperatorDiskVerySimpleAnalyticSolver), intent(inout) :: self
@@ -165,10 +164,8 @@ contains
   end subroutine diskVerySimpleAnalyticSolverDestructor
 
   subroutine diskVerySimpleAnalyticSolverPre(self,node)
-    !!{
-    Capture the initial state and rates for an analytic solution at the start of each ODE step. If the
-    satellite is too small to ever be of interest and will not merge before the present day, prune it
-    from the tree, distributing its outflowed mass over future host halos.
+    !!{RST
+    Capture the initial state and rates for an analytic solution at the start of each ODE step. If the satellite is too small to ever be of interest and will not merge before the present day, prune it from the tree, distributing its outflowed mass over future host halos.
     !!}
     use :: Abundances_Structure, only : abundances            , max              , operator(*)
     use :: Error               , only : Error_Report
@@ -310,7 +307,7 @@ contains
   end subroutine diskVerySimpleAnalyticSolverPre
 
   subroutine diskVerySimpleAnalyticSolverAnalytics(self,node)
-    !!{
+    !!{RST
     Mark the analytically-solvable properties of the disk and host hot halo.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentDiskVerySimple, nodeComponentHotHalo
@@ -343,7 +340,7 @@ contains
   end subroutine diskVerySimpleAnalyticSolverAnalytics
 
   subroutine diskVerySimpleAnalyticSolverSolveAnalytics(self,node,time)
-    !!{
+    !!{RST
     Set the values of the analytically-solvable disk and outflow properties at the given time.
     !!}
     use :: Abundances_Structure, only : abundances
@@ -435,9 +432,8 @@ contains
   end subroutine diskVerySimpleAnalyticSolverSolveAnalytics
 
   subroutine diskVerySimpleAnalyticSolverRates(self,node,fuelMassRate,fuelAbundancesRate,stellarMassRate,stellarAbundancesRate,massOutflowRate)
-    !!{
-    Compute the rates of change of disk gas and stellar mass, abundances, and outflowing mass that are needed to construct the
-    analytic solution.
+    !!{RST
+    Compute the rates of change of disk gas and stellar mass, abundances, and outflowing mass that are needed to construct the analytic solution.
     !!}
     use :: Abundances_Structure          , only : abundances         , zeroAbundances
     use :: Galacticus_Nodes              , only : nodeComponentDisk  , nodeComponentDiskVerySimple

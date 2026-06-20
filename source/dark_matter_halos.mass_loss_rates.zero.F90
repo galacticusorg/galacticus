@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of zero mass loss rate from dark matter halos.
   !!}
 
   !![
-  <darkMatterHaloMassLossRate name="darkMatterHaloMassLossRateZero">
+  <darkMatterHaloMassLossRate name="darkMatterHaloMassLossRateZero" docformat="rst">
    <description>
-    A dark matter halo mass loss rate class which assumes a zero rate of mass loss from dark matter halos.
+   A dark matter halo mass loss rate class which assumes a zero rate of mass loss from dark matter halos.
    </description>
   </darkMatterHaloMassLossRate>
   !!]
   type, extends(darkMatterHaloMassLossRateClass) :: darkMatterHaloMassLossRateZero
-     !!{
+     !!{RST
      Implementation of a dark matter halo mass loss rate class which assumes a zero rate of mass loss.
      !!}
      private
@@ -38,7 +38,7 @@
   end type darkMatterHaloMassLossRateZero
 
   interface darkMatterHaloMassLossRateZero
-     !!{
+     !!{RST
      Constructors for the zero dark matter halo mass loss rate class.
      !!}
      module procedure zeroConstructorParameters
@@ -47,7 +47,7 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the zero dark matter halo mass loss rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -63,8 +63,8 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroRate(self,node)
-    !!{
-    Returns the mass loss rate from the dark matter halo of the given \gls{node} in units of $\mathrm{M}_\odot$/Gyr.
+    !!{RST
+    Returns the mass loss rate from the dark matter halo of the given :term:`node` in units of :math:`\mathrm{M}_\odot`/Gyr.
     !!}
     implicit none
     class(darkMatterHaloMassLossRateZero), intent(inout) :: self

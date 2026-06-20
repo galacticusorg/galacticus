@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-An implementation of the hot halo outflow stripping class using a simple estimate based on the outer radius of the \gls{cgm}.
+!!{RST
+An implementation of the hot halo outflow stripping class using a simple estimate based on the outer radius of the :term:`CGM`.
 !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <hotHaloOutflowStripping name="hotHaloOutflowStrippingStandard">
-   <description>An implementation of the hot halo outflow stripping class using a simple estimate based on the outer radius of the \gls{cgm}.</description>
+  <hotHaloOutflowStripping name="hotHaloOutflowStrippingStandard" docformat="rst">
+   <description>
+   An implementation of the hot halo outflow stripping class using a simple estimate based on the outer radius of the :term:`CGM`.
+   </description>
   </hotHaloOutflowStripping>
   !!]
   type, extends(hotHaloOutflowStrippingClass) :: hotHaloOutflowStrippingStandard
-     !!{
-     An implementation of the hot halo outflow stripping class using a simple estimate based on the outer radius of the \gls{cgm}.
+     !!{RST
+     An implementation of the hot halo outflow stripping class using a simple estimate based on the outer radius of the :term:`CGM`.
      !!}
      private
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
@@ -42,8 +44,8 @@ An implementation of the hot halo outflow stripping class using a simple estimat
   end type hotHaloOutflowStrippingStandard
 
   interface hotHaloOutflowStrippingStandard
-     !!{
-     Constructors for the \refClass{hotHaloOutflowStrippingStandard} hot halo outflow stripping class.
+     !!{RST
+     Constructors for the :galacticus-class:`hotHaloOutflowStrippingStandard` hot halo outflow stripping class.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -52,9 +54,8 @@ An implementation of the hot halo outflow stripping class using a simple estimat
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{standard} hot halo outflow stripping class which takes a parameter set
-    as input.
+    !!{RST
+    Default constructor for the ``standard`` hot halo outflow stripping class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,11 +65,13 @@ contains
     double precision                                                 :: efficiency
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>efficiency</name>
       <source>parameters</source>
       <defaultValue>0.1d0</defaultValue>
-      <description>Specifies the efficiency with which outflowing gas is stripped from the hot halo, following the prescription of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; i.e. this is the parameter $\epsilon_\mathrm{strip}$ in their eqn.~6).</description>
+      <description>
+      Specifies the efficiency with which outflowing gas is stripped from the hot halo, following the prescription of :cite:author:`font_colours_2008` (:cite:year:`font_colours_2008`; i.e. this is the parameter :math:`\epsilon_\mathrm{strip}` in their eqn. 6).
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
@@ -81,8 +84,8 @@ contains
   end function standardConstructorParameters
 
   function standardConstructorInternal(efficiency,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{hotHaloOutflowStrippingStandard} hot halo outflow stripping class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`hotHaloOutflowStrippingStandard` hot halo outflow stripping class.
     !!}
     implicit none
     type            (hotHaloOutflowStrippingStandard)                        :: self
@@ -96,8 +99,8 @@ contains
   end function standardConstructorInternal
 
   subroutine standardDestructor(self)
-    !!{
-    Destructor for the \refClass{hotHaloOutflowStrippingStandard} hot halo outflow stripping class.
+    !!{RST
+    Destructor for the :galacticus-class:`hotHaloOutflowStrippingStandard` hot halo outflow stripping class.
     !!}
     implicit none
     type(hotHaloOutflowStrippingStandard), intent(inout) :: self
@@ -109,7 +112,7 @@ contains
   end subroutine standardDestructor
 
   logical function standardNeverStripped(self,node) result(neverStripped)
-    !!{
+    !!{RST
     Indicate if outflowing mass is never stripped in the hot halo.
     !!}
     implicit none
@@ -122,7 +125,7 @@ contains
   end function standardNeverStripped
 
   double precision function standardFractionStripped(self,node) result(fractionStripped)
-    !!{
+    !!{RST
     Return the fraction of outflowing mass stripped in the hot halo.
     !!}
     use :: Mass_Distributions        , only : massDistributionClass

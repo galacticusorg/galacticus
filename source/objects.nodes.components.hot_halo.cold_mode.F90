@@ -17,15 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements an extension to the standard hot halo node component which
-supports a cold mode reservoir.
+!!{RST
+Contains a module which implements an extension to the standard hot halo node component which supports a cold mode reservoir.
 !!}
 
 module Node_Component_Hot_Halo_Cold_Mode
-  !!{
-  Implements an extension to the standard hot halo node component which supports a cold mode
-  reservoir.
+  !!{RST
+  Implements an extension to the standard hot halo node component which supports a cold mode reservoir.
   !!}
   use :: Accretion_Halos                      , only : accretionHaloClass
   use :: Dark_Matter_Halo_Scales              , only : darkMatterHaloScaleClass
@@ -111,7 +109,7 @@ contains
   <nodeComponentInitializationTask function="Node_Component_Hot_Halo_Cold_Mode_Initialize"/>
   !!]
   subroutine Node_Component_Hot_Halo_Cold_Mode_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the tree node hot halo methods module.
     !!}
     use :: Abundances_Structure, only : Abundances_Property_Count
@@ -141,7 +139,7 @@ contains
   <nodeComponentThreadInitializationTask function="Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the tree node hot halo cold mode methods module.
     !!}
     use :: Events_Hooks                         , only : nodePromotionEvent      , satelliteMergerEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
@@ -174,7 +172,7 @@ contains
   <nodeComponentThreadUninitializationTask function="Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize()
-    !!{
+    !!{RST
     Uninitializes the tree node hot halo cold mode methods module.
     !!}
     use :: Events_Hooks    , only : nodePromotionEvent     , satelliteMergerEvent, haloFormationEvent
@@ -198,8 +196,8 @@ contains
   <scaleSetTask function="Node_Component_Hot_Halo_Cold_Mode_Scale_Set"/>
   !!]
   subroutine Node_Component_Hot_Halo_Cold_Mode_Scale_Set(node)
-    !!{
-    Set scales for properties of \mono{node}.
+    !!{RST
+    Set scales for properties of ``node``.
     !!}
     use :: Abundances_Structure, only : unitAbundances
     use :: Galacticus_Nodes    , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloColdMode, treeNode, &
@@ -237,9 +235,8 @@ contains
   <mergerTreeInitializeTask function="Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize" after="Node_Component_Hot_Halo_Standard_Tree_Initialize"/>
   !!]
   subroutine Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize(node)
-    !!{
-    Initialize the contents of the hot halo component for any sub-resolution accretion (i.e. the gas that would have been
-    accreted if the merger tree had infinite resolution).
+    !!{RST
+    Initialize the contents of the hot halo component for any sub-resolution accretion (i.e. the gas that would have been accreted if the merger tree had infinite resolution).
     !!}
     use :: Accretion_Halos , only : accretionModeCold
     use :: Galacticus_Nodes, only : defaultHotHaloComponent  , nodeComponentBasic, nodeComponentHotHalo, nodeEvent, &
@@ -290,8 +287,8 @@ contains
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize
 
   subroutine satelliteMerger(self,node)
-    !!{
-    Remove any cold mode gas associated with \mono{node} before it merges with its host halo.
+    !!{RST
+    Remove any cold mode gas associated with ``node`` before it merges with its host halo.
     !!}
     use :: Abundances_Structure                 , only : abundances          , zeroAbundances
     use :: Galacticus_Nodes                     , only : nodeComponentHotHalo, nodeComponentHotHaloColdMode, nodeComponentSpin, nodeComponentBasic, &
@@ -347,10 +344,8 @@ contains
   end subroutine satelliteMerger
 
   subroutine nodePromotion(self,node)
-    !!{
-    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply
-    update the cold mode mass of \mono{node} to account for any cold mode gas already in the
-    parent.
+    !!{RST
+    Ensure that ``node`` is ready for promotion to its parent. In this case, we simply update the cold mode mass of ``node`` to account for any cold mode gas already in the parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentHotHaloColdMode, treeNode
     implicit none
@@ -384,7 +379,7 @@ contains
   end subroutine nodePromotion
 
   subroutine haloFormation(self,node)
-    !!{
+    !!{RST
     Updates the hot halo gas distribution at a formation event, if requested.
     !!}
     use :: Abundances_Structure                 , only : abundances              , zeroAbundances
@@ -433,7 +428,7 @@ contains
   <stateStoreTask function="Node_Component_Hot_Halo_Cold_Mode_State_Store"/>
   !!]
   subroutine Node_Component_Hot_Halo_Cold_Mode_State_Store(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Store object state,
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo
@@ -454,7 +449,7 @@ contains
   <stateRetrieveTask function="Node_Component_Hot_Halo_Cold_Mode_State_Restore"/>
   !!]
   subroutine Node_Component_Hot_Halo_Cold_Mode_State_Restore(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Retrieve object state.
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo
@@ -472,7 +467,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Cold_Mode_State_Restore
 
   function Node_Component_Hot_Halo_Cold_Mode_Mass_Distribution(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
-    !!{
+    !!{RST
     Return the mass distribution associated with the hot halo.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentHotHaloStandard, nodeComponentHotHaloColdMode

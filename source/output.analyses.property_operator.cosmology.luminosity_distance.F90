@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a cosmological luminosity distance corrector analysis property operator class.
 !!}
 
@@ -25,20 +25,14 @@ Implements a cosmological luminosity distance corrector analysis property operat
   use :: Output_Times       , only : outputTimesClass
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc">
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc" docformat="rst">
    <description>
-   An output analysis property operator class which corrects properties for the difference in cosmological luminosity distance
-   between true and assumed (i.e. in the observational analysis) cosmologies. Typically the observational data will have been
-   analyzed assuming some specific set of cosmological parameters which will differ from that in the current model. Therefore,
-   the luminosity or mass of a galaxy must be adjusted to match what would be inferred if they were assessed using the same
-   cosmological parameters as were used for the observational data. Typically, this will mean that luminosities and stellar
-   masses are scaled in proportion to $D^{\prime 2}_\mathrm{L}(z)/D_\mathrm{L}^2(z)$, where $D_\mathrm{L}(z)$ and
-   $D^\prime_\mathrm{L}(z)$ are the luminosity distances to redshift $z$ in the true and assumed cosmologies respectively.
-  </description>
+   An output analysis property operator class which corrects properties for the difference in cosmological luminosity distance between true and assumed (i.e. in the observational analysis) cosmologies. Typically the observational data will have been analyzed assuming some specific set of cosmological parameters which will differ from that in the current model. Therefore, the luminosity or mass of a galaxy must be adjusted to match what would be inferred if they were assessed using the same cosmological parameters as were used for the observational data. Typically, this will mean that luminosities and stellar masses are scaled in proportion to :math:`D^{\prime 2}_\mathrm{L}(z)/D_\mathrm{L}^2(z)`, where :math:`D_\mathrm{L}(z)` and :math:`D^\prime_\mathrm{L}(z)` are the luminosity distances to redshift :math:`z` in the true and assumed cosmologies respectively.
+   </description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc
-     !!{
+     !!{RST
      A cosmological luminosity distance corrector analysis property operator class.
      !!}
      private
@@ -51,8 +45,8 @@ Implements a cosmological luminosity distance corrector analysis property operat
   end type outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc
 
   interface outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc
-     !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc} output analysis property operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc` output analysis property operator class.
      !!}
      module procedure csmlgyLuminosityDistanceConstructorParameters
      module procedure csmlgyLuminosityDistanceConstructorInternal
@@ -61,8 +55,8 @@ Implements a cosmological luminosity distance corrector analysis property operat
 contains
 
   function csmlgyLuminosityDistanceConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc} output analysis property operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,8 +85,8 @@ contains
   end function csmlgyLuminosityDistanceConstructorParameters
 
   function csmlgyLuminosityDistanceConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData,outputTimes_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc} output analysis property operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc` output analysis property operator class.
     !!}
     use            :: Error            , only : Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
@@ -147,8 +141,8 @@ contains
   end function csmlgyLuminosityDistanceConstructorInternal
 
   subroutine csmlgyLuminosityDistanceDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc} output analysis property operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc` output analysis property operator class.
     !!}
     implicit none
     type(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), intent(inout) :: self
@@ -163,7 +157,7 @@ contains
   end subroutine csmlgyLuminosityDistanceDestructor
 
   double precision function csmlgyLuminosityDistanceOperate(self,propertyValue,node,propertyType,outputIndex)
-    !!{
+    !!{RST
     Implement an csmlgyLuminosityDistance output analysis property operator.
     !!}
     use :: Error                  , only : Error_Report

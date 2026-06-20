@@ -17,36 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class of merger tree builders.
 !!}
 
 module Merger_Trees_Builders
-  !!{
+  !!{RST
   Provides a class of merger tree builders.
   !!}
   use :: Galacticus_Nodes, only : mergerTree
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>mergerTreeBuilder</name>
    <descriptiveName>Merger Tree Builders</descriptiveName>
-   <description>Class providing merger tree builders---algorithms that construct the branching history (merger
-    tree) of a dark matter halo by stochastically sampling halo merging rates from the extended Press-Schechter
-    formalism or similar approaches. Starting from a root halo at the present epoch, a builder walks backward
-    in cosmic time, placing progenitor halos at each branching event until the tree reaches its mass resolution
-    limit or a specified early time.</description>
+   <description>
+   Class providing merger tree builders---algorithms that construct the branching history (merger tree) of a dark matter halo by stochastically sampling halo merging rates from the extended Press-Schechter formalism or similar approaches. Starting from a root halo at the present epoch, a builder walks backward in cosmic time, placing progenitor halos at each branching event until the tree reaches its mass resolution limit or a specified early time.
+   </description>
    <default>cole2000</default>
    <method name="build" >
-    <description>Builds and returns a merger tree given the root \mono{node}.</description>
+    <description>
+    Builds and returns a merger tree given the root ``node``.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
     <argument>type(mergerTree), intent(inout), target :: tree</argument>
    </method>
    <method name="timeEarliestSet">
-    <description>Set the earliest time for the builder to the given value.</description>
+    <description>
+    Set the earliest time for the builder to the given value.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: timeEarliest</argument>

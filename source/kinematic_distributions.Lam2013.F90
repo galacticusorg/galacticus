@@ -17,21 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a kinematic distribution class for the \cite{lam_modeling_2013} model of halo accretion flows.
+  !!{RST
+  Implementation of a kinematic distribution class for the :cite:t:`lam_modeling_2013` model of halo accretion flows.
   !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Numerical_Interpolation, only : interpolator
 
   !![
-  <kinematicsDistribution name="kinematicsDistributionLam2013">
-   <description>A kinematic distribution class implementing the \cite{lam_modeling_2013} model of radial velocity infall in halo accretion flows. The radial velocity profile is computed from the volume-averaged two-point correlation function and cosmological linear growth rate, encoding the infall dynamics around collapsed halos at a given redshift and virial mass.</description>
+  <kinematicsDistribution name="kinematicsDistributionLam2013" docformat="rst">
+   <description>
+   A kinematic distribution class implementing the :cite:t:`lam_modeling_2013` model of radial velocity infall in halo accretion flows. The radial velocity profile is computed from the volume-averaged two-point correlation function and cosmological linear growth rate, encoding the infall dynamics around collapsed halos at a given redshift and virial mass.
+   </description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionCollisionless) :: kinematicsDistributionLam2013
-     !!{
-     A kinematics distribution for the \cite{lam_modeling_2013} model of halo accretion flows.
+     !!{RST
+     A kinematics distribution for the :cite:t:`lam_modeling_2013` model of halo accretion flows.
      !!}
      class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_                => null()
      type            (interpolator           )                            :: correlationFunctionVolumeAveraged_
@@ -46,8 +48,8 @@
   end type kinematicsDistributionLam2013
 
   interface kinematicsDistributionLam2013
-     !!{
-     Constructors for the \refClass{kinematicsDistributionLam2013} kinematic distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`kinematicsDistributionLam2013` kinematic distribution class.
      !!}
      module procedure lam2013ConstructorParameters
      module procedure lam2013ConstructorInternal
@@ -56,9 +58,8 @@
 contains
 
   function lam2013ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionLam2013} kinematic distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`kinematicsDistributionLam2013` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,45 +72,61 @@ contains
          &                                                                          scaleFactorVelocity, rateLinearGrowth
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scaleFactorVelocity</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>A scale factor to be applied to inflow velocities.</description>
+      <description>
+      A scale factor to be applied to inflow velocities.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
-      <description>The cosmological redshift of the halo, used to evaluate the cosmic time and the \cite{lam_modeling_2013} infall velocity profile at the appropriate epoch.</description>
+      <description>
+      The cosmological redshift of the halo, used to evaluate the cosmic time and the :cite:t:`lam_modeling_2013` infall velocity profile at the appropriate epoch.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massVirial</name>
-      <description>The virial mass (in $\mathrm{M}_\odot$) of the halo whose accretion flow kinematics are modeled by the \cite{lam_modeling_2013} framework.</description>
+      <description>
+      The virial mass (in :math:`\mathrm{M}_\odot`) of the halo whose accretion flow kinematics are modeled by the :cite:t:`lam_modeling_2013` framework.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusVirial</name>
-      <description>The virial radius (in Mpc) of the halo, setting the spatial scale for the \cite{lam_modeling_2013} radial infall velocity profile.</description>
+      <description>
+      The virial radius (in Mpc) of the halo, setting the spatial scale for the :cite:t:`lam_modeling_2013` radial infall velocity profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>overdensityCritical</name>
-      <description>The critical linear overdensity threshold for collapse used in the \cite{lam_modeling_2013} accretion flow model to normalize the radial infall velocity.</description>
+      <description>
+      The critical linear overdensity threshold for collapse used in the :cite:t:`lam_modeling_2013` accretion flow model to normalize the radial infall velocity.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rateLinearGrowth</name>
-      <description>The logarithmic derivative of the linear growth factor with respect to expansion factor.</description>
+      <description>
+      The logarithmic derivative of the linear growth factor with respect to expansion factor.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radius</name>
-      <description>The radius in the tabulated volume-averaged correlation function.</description>
+      <description>
+      The radius in the tabulated volume-averaged correlation function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>correlationFunctionVolumeAveraged</name>
-      <description>The correlation in the tabulated volume-averaged correlation function.</description>
+      <description>
+      The correlation in the tabulated volume-averaged correlation function.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
@@ -123,8 +140,8 @@ contains
   end function lam2013ConstructorParameters
   
   function lam2013ConstructorInternal(massVirial,radiusVirial,time,overdensityCritical,rateLinearGrowth,scaleFactorVelocity,radius,correlationFunctionVolumeAveraged,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionLam2013} kinematic distribution class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`kinematicsDistributionLam2013` kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionLam2013)                              :: self
@@ -143,8 +160,8 @@ contains
   end function lam2013ConstructorInternal
   
   subroutine lam2013Destructor(self)
-    !!{
-    Destructor for the \refClass{kinematicsDistributionLam2013} kinematic distribution class.
+    !!{RST
+    Destructor for the :galacticus-class:`kinematicsDistributionLam2013` kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionLam2013), intent(inout) :: self
@@ -156,9 +173,9 @@ contains
   end subroutine lam2013Destructor
   
   double precision function lam2013VelocityRadial(self,coordinates,massDistributionEmbedding) result(velocityRadial)
-    !!{
-     Return the radial velocity at the specified \mono{coordinates} in the \cite{lam_modeling_2013} model for the accretion flow around a halo.
-     !!}
+    !!{RST
+    Return the radial velocity at the specified ``coordinates`` in the :cite:t:`lam_modeling_2013` model for the accretion flow around a halo.
+    !!}
      implicit none
     class           (kinematicsDistributionLam2013), intent(inout) :: self
     class           (coordinate                   ), intent(in   ) :: coordinates

@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which handles events where a satellite is moved to a new host halo.
 !!}
 
 module Satellite_Promotion
-  !!{
+  !!{RST
   Handles events where a satellite is moved to a new host halo.
   !!}
   implicit none
@@ -32,8 +32,8 @@ module Satellite_Promotion
 contains
 
   subroutine Satellite_Move_To_New_Host(satelliteNode,newHostNode)
-    !!{
-    Move \mono{satelliteNode} to be a satellite of \mono{newHostNode}.
+    !!{RST
+    Move ``satelliteNode`` to be a satellite of ``newHostNode``.
     !!}
     use :: Display           , only : displayMessage    , displayVerbosity, verbosityLevelInfo
     use :: Galacticus_Nodes  , only : nodeComponentBasic, treeNode

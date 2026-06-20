@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements the effects of inclination on disk size in an output analysis distribution operator class.
   !!}
 
   use :: Tables, only : table1D, table1DLinearLinear
 
   !![
-  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorDiskSizeInclntn">
-   <description>Models the effect of random disk inclination on apparent disk size measurements, smearing the intrinsic size distribution by the projection factor $\cos(i)$ to enable comparison with observations of randomly oriented galaxies.</description>
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorDiskSizeInclntn" docformat="rst">
+   <description>
+   Models the effect of random disk inclination on apparent disk size measurements, smearing the intrinsic size distribution by the projection factor :math:`\cos(i)` to enable comparison with observations of randomly oriented galaxies.
+   </description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorDiskSizeInclntn
-     !!{
+     !!{RST
      An output distribution operator class which implements the effects of inclination on disk size.
      !!}
      private
@@ -42,8 +44,8 @@
   end type outputAnalysisDistributionOperatorDiskSizeInclntn
 
   interface outputAnalysisDistributionOperatorDiskSizeInclntn
-     !!{
-     Constructors for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output analysis distribution operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorDiskSizeInclntn` output analysis distribution operator class.
      !!}
      module procedure diskSizeInclinationConstructorParameters
      module procedure diskSizeInclinationConstructorInternal
@@ -56,8 +58,8 @@
 contains
 
   function diskSizeInclinationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output analysis distribution operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorDiskSizeInclntn` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,8 +74,8 @@ contains
   end function diskSizeInclinationConstructorParameters
 
   function diskSizeInclinationConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output analysis distribution operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorDiskSizeInclntn` output analysis distribution operator class.
     !!}
     use :: File_Utilities    , only : Directory_Make           , File_Exists                  , File_Lock                    , File_Unlock, &
           &                           lockDescriptor
@@ -150,8 +152,8 @@ contains
   end function diskSizeInclinationConstructorInternal
 
   subroutine diskSizeInclinationDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisDistributionOperatorDiskSizeInclntn} output analysis distribution operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisDistributionOperatorDiskSizeInclntn` output analysis distribution operator class.
     !!}
     implicit none
     type(outputAnalysisDistributionOperatorDiskSizeInclntn), intent(inout) :: self
@@ -165,7 +167,7 @@ contains
   end subroutine diskSizeInclinationDestructor
 
   double precision function diskSizeInclntnRoot(xHalf)
-    !!{
+    !!{RST
     Function used in solving for the half-light radii of inclined disks.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -182,7 +184,7 @@ contains
   end function diskSizeInclntnRoot
 
   double precision function diskSizeInclntnIntegrandX(x)
-    !!{
+    !!{RST
     Integral for half-light radius.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -199,7 +201,7 @@ contains
   end function diskSizeInclntnIntegrandX
 
   double precision function diskSizeInclntnIntegrandPhi(phi)
-    !!{
+    !!{RST
     Integral for half-light radius.
     !!}
     implicit none
@@ -210,7 +212,7 @@ contains
   end function diskSizeInclntnIntegrandPhi
 
   function diskSizeInclinationOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !!{
+    !!{RST
     Implement a disk size inclination output analysis distribution operator.
     !!}
     implicit none
@@ -235,7 +237,7 @@ contains
   end function diskSizeInclinationOperateScalar
 
   function diskSizeInclinationOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !!{
+    !!{RST
     Implement a disk size inclination output analysis distribution operator.
     !!}
     use :: Error, only : Error_Report

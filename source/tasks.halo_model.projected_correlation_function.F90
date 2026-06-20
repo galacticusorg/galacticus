@@ -29,12 +29,14 @@
   use :: Power_Spectra             , only : powerSpectrum               , powerSpectrumClass
 
   !![
-  <task name="taskHaloModelProjectedCorrelationFunction">
-   <description>A task which analytically computes the projected two-point correlation function $w_\mathrm{p}(r_\mathrm{p})$ using a halo occupation distribution (HOD) model, combining the one-halo term (galaxy pairs within the same halo, sourced from the dark matter profile) and the two-halo term (pairs in different halos, sourced from the linear power spectrum and halo bias), then convolves with the survey geometry and line-of-sight integral depth.</description>
+  <task name="taskHaloModelProjectedCorrelationFunction" docformat="rst">
+   <description>
+   A task which analytically computes the projected two-point correlation function :math:`w_\mathrm{p}(r_\mathrm{p})` using a halo occupation distribution (HOD) model, combining the one-halo term (galaxy pairs within the same halo, sourced from the dark matter profile) and the two-halo term (pairs in different halos, sourced from the linear power spectrum and halo bias), then convolves with the survey geometry and line-of-sight integral depth.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskHaloModelProjectedCorrelationFunction
-     !!{
+     !!{RST
      Implementation of a task which analytically computes the projected two-point correlation function using a halo model approach combining the one-halo and two-halo terms.
      !!}
      private
@@ -64,8 +66,8 @@
   end type taskHaloModelProjectedCorrelationFunction
 
   interface taskHaloModelProjectedCorrelationFunction
-     !!{
-     Constructors for the \refClass{taskHaloModelProjectedCorrelationFunction} task.
+     !!{RST
+     Constructors for the :galacticus-class:`taskHaloModelProjectedCorrelationFunction` task.
      !!}
      module procedure haloModelProjectedCorrelationFunctionConstructorParameters
      module procedure haloModelProjectedCorrelationFunctionConstructorInternal
@@ -74,8 +76,8 @@
 contains
 
   function haloModelProjectedCorrelationFunctionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskHaloModelProjectedCorrelationFunction} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskHaloModelProjectedCorrelationFunction` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
@@ -116,60 +118,80 @@ contains
     end if
     self%nodeComponentsInitialized=.true.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>separationMinimum</name>
-      <description>The minimum separation at which to compute the projected correlation function.</description>
+      <description>
+      The minimum separation at which to compute the projected correlation function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>separationMaximum</name>
-      <description>The maximum separation at which to compute the projected correlation function.</description>
+      <description>
+      The maximum separation at which to compute the projected correlation function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countSeparations</name>
-      <description>The number of separations at which to compute the projected correlation function.</description>
+      <description>
+      The number of separations at which to compute the projected correlation function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>depthLineOfSight</name>
-      <description>The maximum line of sight depth to which to integrate when computing the projected correlation function.</description>
+      <description>
+      The maximum line of sight depth to which to integrate when computing the projected correlation function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>halfIntegral</name>
       <defaultValue>.false.</defaultValue>
-      <description>Set to \mono{true} if the projected correlation function is computed as $w_\mathrm{p}(r_\mathrm{p})=\int_0^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi$, instead of the usual $w_\mathrm{p}(r_\mathrm{p})=\int_{-\pi_\mathrm{max}}^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi$.</description>
+      <description>
+      Set to ``true`` if the projected correlation function is computed as :math:`w_\mathrm{p}(r_\mathrm{p})=\int_0^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi`, instead of the usual :math:`w_\mathrm{p}(r_\mathrm{p})=\int_{-\pi_\mathrm{max}}^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum mass of galaxies to include in the projected correlation function calculation.</description>
+      <description>
+      The minimum mass of galaxies to include in the projected correlation function calculation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMaximum</name>
       <defaultValue>1.0d12</defaultValue>
-      <description>The maximum mass of galaxies to include in the projected correlation function calculation.</description>
+      <description>
+      The maximum mass of galaxies to include in the projected correlation function calculation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massHaloMinimum</name>
       <defaultValue>1.0d6</defaultValue>
-      <description>The minimum halo mass to use when integrating over the halo mass function.</description>
+      <description>
+      The minimum halo mass to use when integrating over the halo mass function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massHaloMaximum</name>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to use when integrating over the halo mass function.</description>
+      <description>
+      The maximum halo mass to use when integrating over the halo mass function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputGroup</name>
       <defaultValue>var_str('projectedCorrelationFunction')</defaultValue>
-      <description>The HDF5 output group within which to write the projected correlation function.</description>
+      <description>
+      The HDF5 output group within which to write the projected correlation function.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="conditionalMassFunction"      name="conditionalMassFunction_"      source="parameters"/>
@@ -199,8 +221,8 @@ contains
   end function haloModelProjectedCorrelationFunctionConstructorParameters
 
   function haloModelProjectedCorrelationFunctionConstructorInternal(separationMinimum,separationMaximum,countSeparations,massMinimum,massMaximum,massHaloMinimum,massHaloMaximum,depthLineOfSight,halfIntegral,outputGroup,conditionalMassFunction_,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskHaloModelProjectedCorrelationFunction} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskHaloModelProjectedCorrelationFunction` task class which takes a parameter set as input.
     !!}
     use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
@@ -234,8 +256,8 @@ contains
   end function haloModelProjectedCorrelationFunctionConstructorInternal
 
   subroutine haloModelProjectedCorrelationFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{taskHaloModelProjectedCorrelationFunction} task class.
+    !!{RST
+    Destructor for the :galacticus-class:`taskHaloModelProjectedCorrelationFunction` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
@@ -257,7 +279,7 @@ contains
   end subroutine haloModelProjectedCorrelationFunctionDestructor
 
   subroutine haloModelProjectedCorrelationFunctionPerform(self,status)
-    !!{
+    !!{RST
     Generate a mock galaxy catalog using a simple halo model approach.
     !!}
     use :: Display                          , only : displayIndent                    , displayUnindent
@@ -305,7 +327,7 @@ contains
   end subroutine haloModelProjectedCorrelationFunctionPerform
 
   logical function haloModelProjectedCorrelationFunctionRequiresOutputFile(self)
-    !!{
+    !!{RST
     Specifies that this task does not requires the main output file.
     !!}
     implicit none

@@ -17,21 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a transfer function class for fuzzy dark matter using the fitting function of
-  \cite{murgia_non-cold_2017}.
+  !!{RST
+  Implements a transfer function class for fuzzy dark matter using the fitting function of :cite:t:`murgia_non-cold_2017`.
   !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !![
-  <transferFunction name="transferFunctionFuzzyDMMurgia2017">
-   <description>A transfer function class for fuzzy dark matter using the fitting function of \cite{murgia_non-cold_2017}.</description>
+  <transferFunction name="transferFunctionFuzzyDMMurgia2017" docformat="rst">
+   <description>
+   A transfer function class for fuzzy dark matter using the fitting function of :cite:t:`murgia_non-cold_2017`.
+   </description>
   </transferFunction>
   !!]
   type, extends(transferFunctionMurgia2017) :: transferFunctionFuzzyDMMurgia2017
-     !!{
-     A transfer function class for fuzzy dark matter using the fitting function of \cite{murgia_non-cold_2017}.
+     !!{RST
+     A transfer function class for fuzzy dark matter using the fitting function of :cite:t:`murgia_non-cold_2017`.
      !!}
      private
      double precision                                   :: m22
@@ -39,8 +40,8 @@
   end type transferFunctionFuzzyDMMurgia2017
    
   interface transferFunctionFuzzyDMMurgia2017
-     !!{
-     Constructors for the \refClass{transferFunctionFuzzyDMMurgia2017} transfer function class.
+     !!{RST
+     Constructors for the :galacticus-class:`transferFunctionFuzzyDMMurgia2017` transfer function class.
      !!}
      module procedure fuzzyDMMurgia2017ConstructorParameters
      module procedure fuzzyDMMurgia2017ConstructorInternal
@@ -49,8 +50,8 @@
 contains
 
   function fuzzyDMMurgia2017ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{transferFunctionFuzzyDMMurgia2017} transfer function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`transferFunctionFuzzyDMMurgia2017` transfer function class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
@@ -70,29 +71,39 @@ contains
     ! Read parameters.
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <source>parameters</source>
       <defaultValue>5.475d0</defaultValue>
-      <defaultSource>\citep[][average of values in Table~4]{murgia_non-cold_2017}</defaultSource>
-      <description>The parameter $\beta$, which controls the shape of the cut-off, appearing in the transfer function \citep{murgia_non-cold_2017}.</description>
+      <defaultSource>
+      :cite:p:`murgia_non-cold_2017`
+      </defaultSource>
+      <description>
+      The parameter :math:`\beta`, which controls the shape of the cut-off, appearing in the transfer function :cite:p:`murgia_non-cold_2017`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma</name>
       <source>parameters</source>
       <defaultValue>-2.0d0</defaultValue>
-      <defaultSource>\citep[][average of values in Table~4]{murgia_non-cold_2017}</defaultSource>
-      <description>The parameter $\gamma$, which controls the shape of the cut-off, appearing in the transfer function \citep{murgia_non-cold_2017}.</description>
+      <defaultSource>
+      :cite:p:`murgia_non-cold_2017`
+      </defaultSource>
+      <description>
+      The parameter :math:`\gamma`, which controls the shape of the cut-off, appearing in the transfer function :cite:p:`murgia_non-cold_2017`.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
       <source>parameters</source>
       <defaultValue>cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%equalityEpochMatterRadiation(requestTypeExpansionFactor))</defaultValue>
-      <description>The redshift of the epoch at which the transfer function is defined.</description>
+      <description>
+      The redshift of the epoch at which the transfer function is defined.
+      </description>
     </inputParameter>
     !!]
     self=transferFunctionFuzzyDMMurgia2017(transferFunctionCDM,beta,gamma,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_)
@@ -107,8 +118,8 @@ contains
   end function fuzzyDMMurgia2017ConstructorParameters
 
   function fuzzyDMMurgia2017ConstructorInternal(transferFunctionCDM,beta,gamma,time,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_) result(self)
-    !!{
-    Internal constructor for the \refClass{transferFunctionFuzzyDMMurgia2017} transfer function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`transferFunctionFuzzyDMMurgia2017` transfer function class.
     !!}
     use :: Dark_Matter_Particles       , only : darkMatterParticleFuzzyDarkMatter
     use :: Error                       , only : Error_Report

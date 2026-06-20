@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger trees analysis class which combines multiple other analyses.
   !!}
 
@@ -27,13 +27,15 @@
   end type multiAnalysisList
 
   !![
-  <outputAnalysis name="outputAnalysisMulti">
-   <description>Combines multiple \refClass{outputAnalysisClass} objects into a single analysis that runs all of them, enabling modular composition of independent analyses into a single output analysis configuration.</description>
+  <outputAnalysis name="outputAnalysisMulti" docformat="rst">
+   <description>
+   Combines multiple :galacticus-class:`outputAnalysisClass` objects into a single analysis that runs all of them, enabling modular composition of independent analyses into a single output analysis configuration.
+   </description>
    <linkedList type="multiAnalysisList" variable="analyses" next="next" object="analysis_" objectType="outputAnalysisClass"/>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisMulti
-     !!{
+     !!{RST
      Implementation of a merger tree analysis class which combines multiple other analyses.
      !!}
      private
@@ -48,8 +50,8 @@
   end type outputAnalysisMulti
 
   interface outputAnalysisMulti
-     !!{
-     Constructors for the \refClass{outputAnalysisMulti} merger tree analysis.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisMulti` merger tree analysis.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -58,8 +60,8 @@
 contains
 
   function multiConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMulti} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisMulti` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -89,8 +91,8 @@ contains
   end function multiConstructorParameters
 
   function multiConstructorInternal(analyses) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisMulti} output analysis class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisMulti` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMulti)                        :: self
@@ -109,8 +111,8 @@ contains
   end function multiConstructorInternal
 
   subroutine multiDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisMulti} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisMulti` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMulti), intent(inout) :: self
@@ -131,7 +133,7 @@ contains
   end subroutine multiDestructor
 
   subroutine multiNewTree(self,tree,iOutput)
-    !!{
+    !!{RST
     Output from all analyses.
     !!}
     implicit none
@@ -149,7 +151,7 @@ contains
   end subroutine multiNewTree
 
   subroutine multiAnalyze(self,node,iOutput)
-    !!{
+    !!{RST
     Output from all analyses.
     !!}
     implicit none
@@ -167,7 +169,7 @@ contains
   end subroutine multiAnalyze
 
   subroutine multiFinalize(self,groupName)
-    !!{
+    !!{RST
     Finalize all analyses.
     !!}
     implicit none
@@ -184,7 +186,7 @@ contains
   end subroutine multiFinalize
 
   double precision function multiLogLikelihood(self)
-    !!{
+    !!{RST
     Find the log-likelihood over all analyses. This assumes that the analyses are independent.
     !!}
     implicit none
@@ -201,7 +203,7 @@ contains
   end function multiLogLikelihood
 
   subroutine multiReduce(self,reduced)
-    !!{
+    !!{RST
     Reduce over the analysis.
     !!}
     use :: Error, only : Error_Report

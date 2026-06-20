@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an intracluster medium X-ray luminosity-weighted temperature property extractor class.
 !!}
 
@@ -26,12 +26,14 @@ Implements an intracluster medium X-ray luminosity-weighted temperature property
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorICMXRayTemperature">
-   <description>Extracts the X-ray luminosity-weighted temperature of the intracluster medium, computed as the emission-weighted mean temperature integrated over the hot halo out to the virial radius. This quantity directly corresponds to the spectroscopic temperature observable in X-ray spectroscopy of galaxy clusters.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorICMXRayTemperature" docformat="rst">
+   <description>
+   Extracts the X-ray luminosity-weighted temperature of the intracluster medium, computed as the emission-weighted mean temperature integrated over the hot halo out to the virial radius. This quantity directly corresponds to the spectroscopic temperature observable in X-ray spectroscopy of galaxy clusters.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorICMXRayTemperature
-     !!{
+     !!{RST
      An ICM luminosity-weighted temperature property extractor class.
      !!}
      private
@@ -48,8 +50,8 @@ Implements an intracluster medium X-ray luminosity-weighted temperature property
   end type nodePropertyExtractorICMXRayTemperature
 
   interface nodePropertyExtractorICMXRayTemperature
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorICMXRayTemperature} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorICMXRayTemperature` property extractor class.
      !!}
      module procedure icmXRayTemperatureConstructorParameters
      module procedure icmXRayTemperatureConstructorInternal
@@ -58,8 +60,8 @@ Implements an intracluster medium X-ray luminosity-weighted temperature property
 contains
 
   function icmXRayTemperatureConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorICMXRayTemperature} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorICMXRayTemperature` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,8 +87,8 @@ contains
   end function icmXRayTemperatureConstructorParameters
 
   function icmXRayTemperatureConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,coolingFunction_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorICMXRayTemperature} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorICMXRayTemperature` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorICMXRayTemperature)                        :: self
@@ -101,8 +103,8 @@ contains
   end function icmXRayTemperatureConstructorInternal
 
   subroutine icmXRayTemperatureDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorICMXRayTemperature} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorICMXRayTemperature` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorICMXRayTemperature), intent(inout) :: self
@@ -116,7 +118,7 @@ contains
   end subroutine icmXRayTemperatureDestructor
 
   double precision function icmXRayTemperatureExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement an ICM X-ray properties extractor.
     !!}
     use :: Galacticus_Nodes            , only : nodeComponentHotHalo                   , treeNode
@@ -172,7 +174,7 @@ contains
   contains
 
     double precision function integrandLuminosityXray(radius)
-      !!{
+      !!{RST
       Integrand function used for computing ICM X-ray luminosities.
       !!}
       use :: Abundances_Structure             , only : abundances
@@ -234,7 +236,7 @@ contains
     end function integrandLuminosityXray
 
     double precision function integrandTemperatureXray(radius)
-      !!{
+      !!{RST
       Integrand function used for computing ICM X-ray luminosity-weighted temperatures.
       !!}
       use :: Coordinates, only : coordinateSpherical, assignment(=)
@@ -251,8 +253,8 @@ contains
   end function icmXRayTemperatureExtract
 
   function icmXRayTemperatureName(self)
-    !!{
-    Return the names of the \mono{icmXRayTemperature} properties.
+    !!{RST
+    Return the names of the ``icmXRayTemperature`` properties.
     !!}
     implicit none
     type (varying_string                         )                :: icmXRayTemperatureName
@@ -264,8 +266,8 @@ contains
   end function icmXRayTemperatureName
 
   function icmXRayTemperatureDescription(self)
-    !!{
-    Return descriptions of the \mono{icmXRayTemperature} properties.
+    !!{RST
+    Return descriptions of the ``icmXRayTemperature`` properties.
     !!}
     implicit none
     type (varying_string                         )                :: icmXRayTemperatureDescription
@@ -277,8 +279,8 @@ contains
   end function icmXRayTemperatureDescription
 
   double precision function icmXRayTemperatureUnitsInSI(self)
-    !!{
-    Return the units of the \mono{icmXRayTemperature} properties in the SI system.
+    !!{RST
+    Return the units of the ``icmXRayTemperature`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Prefixes, only : kilo
     use :: Numerical_Constants_Units   , only : electronVolt
@@ -291,7 +293,7 @@ contains
   end function icmXRayTemperatureUnitsInSI
 
   function iCMXRayTemperatureUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the iCMXRayTemperature property.
     !!}
     use :: Units_MetaData, only : unitType

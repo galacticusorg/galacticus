@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a binomial 1D discrete distribution function.
   !!}
 
   !![
-  <distributionFunctionDiscrete1D name="distributionFunctionDiscrete1DBinomial">
-   <description>A 1D binomial discrete distribution function class, modeling the number of successes $k$ in $n$ independent Bernoulli trials each with success probability $p$, with probability mass function $P(k) = \binom{n}{k} p^k (1-p)^{n-k}$.</description>
+  <distributionFunctionDiscrete1D name="distributionFunctionDiscrete1DBinomial" docformat="rst">
+   <description>
+   A 1D binomial discrete distribution function class, modeling the number of successes :math:`k` in :math:`n` independent Bernoulli trials each with success probability :math:`p`, with probability mass function :math:`P(k) = \binom{n}{k} p^k (1-p)^{n-k}`.
+   </description>
   </distributionFunctionDiscrete1D>
   !!]
   type, extends(distributionFunctionDiscrete1DClass) :: distributionFunctionDiscrete1DBinomial
-     !!{
+     !!{RST
      Implementation of a binomial 1D discrete distribution function.
      !!}
      private
@@ -44,8 +46,8 @@
   end type distributionFunctionDiscrete1DBinomial
 
   interface distributionFunctionDiscrete1DBinomial
-     !!{
-     Constructors for the \refClass{distributionFunctionDiscrete1DBinomial} 1D discrete distribution function class.
+     !!{RST
+     Constructors for the :galacticus-class:`distributionFunctionDiscrete1DBinomial` 1D discrete distribution function class.
      !!}
      module procedure binomialConstructorParameters
      module procedure binomialConstructorInternal
@@ -54,9 +56,8 @@
 contains
 
   function binomialConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunctionDiscrete1DBinomial} 1D discrete distribution function class which builds
-    the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunctionDiscrete1DBinomial` 1D discrete distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -67,14 +68,18 @@ contains
     integer                                                                 :: countTrials
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>probabilitySuccess</name>
-      <description>The probability $p \in [0,1]$ of success on a single Bernoulli trial, which determines the mean ($np$) and variance ($np(1-p)$) of the resulting binomial distribution.</description>
+      <description>
+      The probability :math:`p \in [0,1]` of success on a single Bernoulli trial, which determines the mean (:math:`np`) and variance (:math:`np(1-p)`) of the resulting binomial distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countTrials</name>
-      <description>The total number of independent Bernoulli trials $n$, which sets the range of the distribution from 0 to $n$ and controls the overall scale of the mean and variance.</description>
+      <description>
+      The total number of independent Bernoulli trials :math:`n`, which sets the range of the distribution from 0 to :math:`n` and controls the overall scale of the mean and variance.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -88,8 +93,8 @@ contains
   end function binomialConstructorParameters
 
   function binomialConstructorInternal(probabilitySuccess,countTrials,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunctionDiscrete1DBinomial} 1D discrete distribution function class.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunctionDiscrete1DBinomial` 1D discrete distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -118,7 +123,7 @@ contains
   end function binomialConstructorInternal
 
   double precision function binomialMass(self,x)
-    !!{
+    !!{RST
     Return the mass of a binomial discrete distribution.
     !!}
     use :: Factorials, only : Factorial
@@ -137,7 +142,7 @@ contains
   end function binomialMass
 
   double precision function binomialMassLogarithmic(self,x)
-    !!{
+    !!{RST
     Return the logarithmic mass of a binomial discrete distribution.
     !!}
     implicit none
@@ -149,7 +154,7 @@ contains
   end function binomialMassLogarithmic
 
   double precision function binomialCumulative(self,x,status)
-    !!{
+    !!{RST
     Return the cumulative probability of a binomial discrete distribution.
     !!}
     use :: Error        , only : Error_Report
@@ -166,7 +171,7 @@ contains
   end function binomialCumulative
 
   integer function binomialInverse(self,p)
-    !!{
+    !!{RST
     Return the inverse of a binomial discrete distribution.
     !!}
     use :: Error, only : Error_Report
@@ -183,7 +188,7 @@ contains
   end function binomialInverse
 
   integer function binomialMinimum(self)
-    !!{
+    !!{RST
     Return the minimum possible value in a binomial discrete distribution.
     !!}
     implicit none
@@ -195,7 +200,7 @@ contains
   end function binomialMinimum
 
   integer function binomialMaximum(self)
-    !!{
+    !!{RST
     Return the maximum possible value in a binomial discrete distribution.
     !!}
     implicit none

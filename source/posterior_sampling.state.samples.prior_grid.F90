@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior state samples class which draws samples from a grid in the cumulative distribution of the priors.
   !!}
 
   !![
-  <posteriorSamples name="posteriorSamplesPriorGrid">
+  <posteriorSamples name="posteriorSamplesPriorGrid" docformat="rst">
    <description>
-    A posterior state samples class which draws samples from a grid in the cumulative distribution of the priors.
+   A posterior state samples class which draws samples from a grid in the cumulative distribution of the priors.
    </description>
   </posteriorSamples>
   !!]
   type, extends(posteriorSamplesClass) :: posteriorSamplesPriorGrid
-     !!{
+     !!{RST
      Implementation of a posterior state samples class which draws samples from a grid in the cumulative distribution of the priors.
      !!}
      private
@@ -39,8 +39,8 @@
   end type posteriorSamplesPriorGrid
 
   interface posteriorSamplesPriorGrid
-     !!{
-     Constructors for the \refClass{posteriorSamplesPriorGrid} posterior sampling state initialization class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSamplesPriorGrid` posterior sampling state initialization class.
      !!}
      module procedure priorGridConstructorParameters
      module procedure priorGridConstructorInternal
@@ -49,8 +49,8 @@
 contains
 
   function priorGridConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSamplesPriorGrid} posterior sampling state initialization class.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSamplesPriorGrid` posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -59,9 +59,11 @@ contains
     integer                                           :: countGrid
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countGrid</name>
-      <description>The number of grid steps in each parameter.</description>
+      <description>
+      The number of grid steps in each parameter.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -73,8 +75,8 @@ contains
   end function priorGridConstructorParameters
 
   function priorGridConstructorInternal(countGrid) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSamplesPriorGrid} posterior sampling state initialization class.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSamplesPriorGrid` posterior sampling state initialization class.
     !!}
     implicit none
     type   (posteriorSamplesPriorGrid)                :: self
@@ -87,7 +89,7 @@ contains
   end function priorGridConstructorInternal
 
   subroutine priorGridSamples(self,simulationStates,modelParameters_)
-    !!{
+    !!{RST
     Generate simulation states by sampling on a grid in the cumulative distribution of priors.
     !!}
     use, intrinsic :: ISO_C_Binding , only : c_size_t

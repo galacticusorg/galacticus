@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test the numerical range making code.
 !!}
 
 program Test_Make_Ranges
-  !!{
+  !!{RST
   Tests that numerical range making code works correctly.
   !!}
   use :: Array_Utilities , only : Array_Reverse

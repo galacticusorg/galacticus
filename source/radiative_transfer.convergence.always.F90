@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <radiativeTransferConvergence name="radiativeTransferConvergenceAlways">
-   <description>A convergence criterion for radiative transfer which always passes.</description>
+  <radiativeTransferConvergence name="radiativeTransferConvergenceAlways" docformat="rst">
+   <description>
+   A convergence criterion for radiative transfer which always passes.
+   </description>
   </radiativeTransferConvergence>
   !!]
   type, extends(radiativeTransferConvergenceClass) :: radiativeTransferConvergenceAlways
-     !!{
+     !!{RST
      A convergence criterion for radiative transfer which always passes.
      !!}
      private
@@ -33,8 +35,8 @@
   end type radiativeTransferConvergenceAlways
   
   interface radiativeTransferConvergenceAlways
-     !!{
-     Constructors for the \refClass{radiativeTransferConvergenceAlways} radiative transfer matter class.
+     !!{RST
+     Constructors for the :galacticus-class:`radiativeTransferConvergenceAlways` radiative transfer matter class.
      !!}
      module procedure alwaysConstructorParameters
   end interface radiativeTransferConvergenceAlways
@@ -42,8 +44,8 @@
 contains  
 
   function alwaysConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiativeTransferConvergenceAlways} radiative transfer matter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`radiativeTransferConvergenceAlways` radiative transfer matter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -58,7 +60,7 @@ contains
   end function alwaysConstructorParameters
 
   subroutine alwaysTestConvergence(self,radiativeTransferMatter_,properties,statusCell,converged)
-    !!{
+    !!{RST
     Test convergence in the computational domain cell.
     !!}
     implicit none
@@ -74,7 +76,7 @@ contains
   end subroutine alwaysTestConvergence
 
   subroutine alwaysPhotonPacketEscapes(self,photonPacket)
-    !!{
+    !!{RST
     Process an escaping photon packet.
     !!}
     implicit none

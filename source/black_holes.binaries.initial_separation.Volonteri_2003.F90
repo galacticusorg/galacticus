@@ -19,30 +19,29 @@
 
 !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-  !!{
-  Implements a class for black hole binary initial separation based on the model of \cite{volonteri_assembly_2003}.
+  !!{RST
+  Implements a class for black hole binary initial separation based on the model of :cite:t:`volonteri_assembly_2003`.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <blackHoleBinaryInitialSeparation name="blackHoleBinaryInitialSeparationVolonteri2003">
+  <blackHoleBinaryInitialSeparation name="blackHoleBinaryInitialSeparationVolonteri2003" docformat="rst">
    <description>
-    A black hole binary initial separation class that assumes that the initial separation follows the relationship described in
-    \cite{volonteri_assembly_2003}
-    \begin{equation}
-     r_\mathrm{initial} = { \mathrm{G} (M_{\bullet,1} + M_{\bullet, 2}) \over 2
-    \sigma_\mathrm{DM}^2 }
-    \end{equation}
-    where $M_{\bullet, 1}$ and $M_{\bullet, 2}$ are the masses of the black holes
-    and $\sigma_\mathrm{DM}$ is the velocity dispersion of the dark matter, which we
-    assume to equal the virial velocity of the dark matter halo.
+   A black hole binary initial separation class that assumes that the initial separation follows the relationship described in :cite:t:`volonteri_assembly_2003`
+
+   .. math::
+
+       r_\mathrm{initial} = { \mathrm{G} (M_{\bullet,1} + M_{\bullet, 2}) \over 2
+      \sigma_\mathrm{DM}^2 }
+
+   where :math:`M_{\bullet, 1}` and :math:`M_{\bullet, 2}` are the masses of the black holes and :math:`\sigma_\mathrm{DM}` is the velocity dispersion of the dark matter, which we assume to equal the virial velocity of the dark matter halo.
    </description>
   </blackHoleBinaryInitialSeparation>
   !!]
   type, extends(blackHoleBinaryInitialSeparationClass) :: blackHoleBinaryInitialSeparationVolonteri2003
-     !!{
-     A black hole binary initial separation class based on the model of \cite{volonteri_assembly_2003}.
+     !!{RST
+     A black hole binary initial separation class based on the model of :cite:t:`volonteri_assembly_2003`.
      !!}
      private
      class(darkMatterHaloScaleClass), pointer:: darkMatterHaloScale_ => null()
@@ -52,8 +51,8 @@
   end type blackHoleBinaryInitialSeparationVolonteri2003
 
   interface blackHoleBinaryInitialSeparationVolonteri2003
-     !!{
-     Constructors for the \refClass{blackHoleBinaryInitialSeparationVolonteri2003} black hole binary initial separation class.
+     !!{RST
+     Constructors for the :galacticus-class:`blackHoleBinaryInitialSeparationVolonteri2003` black hole binary initial separation class.
      !!}
      module procedure volonteri2003ConstructorParameters
      module procedure volonteri2003ConstructorInternal
@@ -62,9 +61,8 @@
 contains
 
   function volonteri2003ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{blackHoleBinaryInitialSeparationVolonteri2003} black hole binary initial separation class which takes a parameter
-    list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`blackHoleBinaryInitialSeparationVolonteri2003` black hole binary initial separation class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,9 +82,8 @@ contains
   end function volonteri2003ConstructorParameters
 
   function volonteri2003ConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
-    Constructor for the \refClass{blackHoleBinaryInitialSeparationVolonteri2003} black hole binary initial separation class which takes a parameter
-    list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`blackHoleBinaryInitialSeparationVolonteri2003` black hole binary initial separation class which takes a parameter list as input.
     !!}
     implicit none
     type (blackHoleBinaryInitialSeparationVolonteri2003)                        :: self
@@ -99,8 +96,8 @@ contains
   end function volonteri2003ConstructorInternal
 
   subroutine volonteri2003Destructor(self)
-    !!{
-    Destructor for the \refClass{blackHoleBinaryInitialSeparationVolonteri2003} black hole binary initial separation class.
+    !!{RST
+    Destructor for the :galacticus-class:`blackHoleBinaryInitialSeparationVolonteri2003` black hole binary initial separation class.
     !!}
     implicit none
     type(blackHoleBinaryInitialSeparationVolonteri2003), intent(inout) :: self
@@ -112,9 +109,8 @@ contains
   end subroutine volonteri2003Destructor
 
   double precision function volonteri2003SeparationInitial(self,node,nodeHost)
-    !!{
-    Returns an initial separation for binary black holes using the method of \cite{volonteri_assembly_2003}, with the
-    assumption that the local velocity dispersion is approximately the dark matter halo virial velocity.
+    !!{RST
+    Returns an initial separation for binary black holes using the method of :cite:t:`volonteri_assembly_2003`, with the assumption that the local velocity dispersion is approximately the dark matter halo virial velocity.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole        , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal

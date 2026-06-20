@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which computes power spectra from point distributions.
 !!}
 
 module Statistics_Points_Power_Spectra
-  !!{
+  !!{RST
   Compute power spectra from point distributions.
   !!}
   private
@@ -31,7 +31,7 @@ module Statistics_Points_Power_Spectra
 contains
 
   subroutine Statistics_Points_Power_Spectrum(dataPosition,boxLength,wavenumberMinimum,wavenumberMaximum,wavenumberCount,wavenumber,powerSpectrum)
-    !!{
+    !!{RST
     Compute the power spectrum from a set of points in a periodic cube.
     !!}
     use            :: Display                 , only : displayMessage

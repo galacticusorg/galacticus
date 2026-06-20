@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a black hole CGM heating class using the accretion disk jet power.
   !!}
 
@@ -25,14 +25,14 @@
   use :: Accretion_Disks           , only : accretionDisksClass
 
   !![
-  <blackHoleCGMHeating name="blackHoleCGMHeatingJetPower">
+  <blackHoleCGMHeating name="blackHoleCGMHeatingJetPower" docformat="rst">
    <description>
-    A black hole CGM heating class that models AGN radio-mode feedback by coupling the accretion disk jet power to the circumgalactic medium. The fraction of jet power deposited as heat in the \gls{cgm} is set by the \mono{[efficiencyRadioMode]} parameter.
+   A black hole CGM heating class that models AGN radio-mode feedback by coupling the accretion disk jet power to the circumgalactic medium. The fraction of jet power deposited as heat in the :term:`CGM` is set by the ``[efficiencyRadioMode]`` parameter.
    </description>
   </blackHoleCGMHeating>
   !!]
   type, extends(blackHoleCGMHeatingClass) :: blackHoleCGMHeatingJetPower
-     !!{
+     !!{RST
      A black hole CGM heating class using the accretion disk jet power.
      !!}
      private
@@ -45,8 +45,8 @@
   end type blackHoleCGMHeatingJetPower
   
   interface blackHoleCGMHeatingJetPower
-     !!{
-     Constructors for the \refClass{blackHoleCGMHeatingJetPower} black hole winds class.
+     !!{RST
+     Constructors for the :galacticus-class:`blackHoleCGMHeatingJetPower` black hole winds class.
      !!}
      module procedure jetPowerConstructorParameters
      module procedure jetPowerConstructorInternal
@@ -55,8 +55,8 @@
 contains
 
   function jetPowerConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{blackHoleCGMHeatingJetPower} black hole winds class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`blackHoleCGMHeatingJetPower` black hole winds class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,10 +67,12 @@ contains
     double precision                                             :: efficiencyRadioMode
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>efficiencyRadioMode</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>Efficiency with which radio-mode feedback is coupled to the \gls{cgm}.</description>
+      <description>
+      Efficiency with which radio-mode feedback is coupled to the :term:`CGM`.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="blackHoleAccretionRate" name="blackHoleAccretionRate_" source="parameters"/>
@@ -86,8 +88,8 @@ contains
   end function jetPowerConstructorParameters
 
   function jetPowerConstructorInternal(efficiencyRadioMode,blackHoleAccretionRate_,accretionDisks_) result(self)
-    !!{
-    Internal constructor for the \refClass{blackHoleCGMHeatingJetPower} black hole winds class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`blackHoleCGMHeatingJetPower` black hole winds class.
     !!}
     implicit none
     type            (blackHoleCGMHeatingJetPower)                        :: self
@@ -102,7 +104,7 @@ contains
   end function jetPowerConstructorInternal
 
   subroutine jetPowerDestructor(self)
-    !!{
+    !!{RST
     Destructor for the jetPower black hole CGM heating class.
     !!}
     implicit none
@@ -116,7 +118,7 @@ contains
   end subroutine jetPowerDestructor
   
   double precision function jetPowerHeatingRate(self,blackHole) result(rateHeating)
-    !!{
+    !!{RST
     Compute the heating rate of the CGM based on the accretion disk jet power.
     !!}
     implicit none

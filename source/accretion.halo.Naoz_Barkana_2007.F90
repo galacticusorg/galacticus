@@ -19,9 +19,8 @@
 
 !+ Contributions to this file made by: Daniel McAndrew.
 
-  !!{
-  An implementation of accretion from the \gls{igm} onto halos using filtering mass of the \gls{igm}
-  calculated from an equation from \cite{naoz_formation_2007}.
+  !!{RST
+  An implementation of accretion from the :term:`IGM` onto halos using filtering mass of the :term:`IGM` calculated from an equation from :cite:t:`naoz_formation_2007`.
   !!}
   
   use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass, intergalacticMediumFilteringMassClass
@@ -29,42 +28,41 @@
   use :: Virial_Density_Contrast              , only : virialDensityContrastClass
 
   !![
-  <accretionHalo name="accretionHaloNaozBarkana2007">
+  <accretionHalo name="accretionHaloNaozBarkana2007" docformat="rst">
    <description>
-    Accretion of baryonic onto halos is compute using the filtering mass prescription of
-    \cite{naoz_formation_2007}. Specifically, \cite{naoz_formation_2007} assume that the gas mass content of halos is given by
-    $M_\mathrm{g}(M_\mathrm{200b},M_\mathrm{F}) = (\Omega_\mathrm{b} / \Omega_\mathrm{M}) f(M_\mathrm{200b}/M_\mathrm{F})
-    M_\mathrm{200b}$ where $M_\mathrm{F}$ is the filtering mass, as first introduced by \cite{gnedin_effect_2000} but defined
-    following \cite{naoz_formation_2007}, $M_\mathrm{200b}$ is the halo mass defined by a density threshold of 200 times the
-    mean background, and
-    \begin{equation}
+   Accretion of baryonic onto halos is compute using the filtering mass prescription of :cite:t:`naoz_formation_2007`. Specifically, :cite:t:`naoz_formation_2007` assume that the gas mass content of halos is given by :math:`M_\mathrm{g}(M_\mathrm{200b},M_\mathrm{F}) = (\Omega_\mathrm{b} / \Omega_\mathrm{M}) f(M_\mathrm{200b}/M_\mathrm{F}) M_\mathrm{200b}` where :math:`M_\mathrm{F}` is the filtering mass, as first introduced by :cite:t:`gnedin_effect_2000` but defined following :cite:t:`naoz_formation_2007`, :math:`M_\mathrm{200b}` is the halo mass defined by a density threshold of 200 times the mean background, and
+
+   .. math::
+
       f(x) = [1-(2^{1/3}-1) x^{-1}]^{-3}.
-    \end{equation}
-    The accretion rate onto the halo is therefore assumed to be
-    \begin{equation}
+
+   The accretion rate onto the halo is therefore assumed to be
+
+   .. math::
+
       \dot{M}_\mathrm{g} = {\Omega_\mathrm{b} \over \Omega_\mathrm{M}} {\mathrm{d} \over \mathrm{d} M_\mathrm{200b}} \left[
       f(M_\mathrm{200b}/M_\mathrm{F}) M_\mathrm{200b} \right] \dot{M}_\mathrm{total}.
-    \end{equation}
-    This would result in a precise match to the \cite{naoz_formation_2007} assumption if:
-    \begin{enumerate}
-    \item The filtering mass is constant in time;
-    \item $M_\mathrm{total}$ corresponds to $M_\mathrm{200b}$; and
-    \item The growth of halos occurs through smooth accretion, not through merging of smaller halos.
-    \end{enumerate}
-    In practice all three assumptions are violated. As such, the mass fraction in the halo will differ from
-    $f(M_\mathrm{200b}/M_\mathrm{F})$. To address this issue, mass is additionally assumed to flow from the hot halo reservoir
-    to the unaccreted mass reservoir at a rate:
-    \begin{equation}
-    \dot{M}_\mathrm{hot} = - {\alpha_\mathrm{adjust} \over \tau_\mathrm{dyn}} [M_\mathrm{hot}+M_\mathrm{unaccreted}]
-    [f_\mathrm{accreted}-f(M_\mathrm{200b}/M_\mathrm{F})],
-    \end{equation}
-    where $\alpha_\mathrm{adjust} = $[\mono{rateAdjust}].
+
+   This would result in a precise match to the :cite:t:`naoz_formation_2007` assumption if:
+
+   #. The filtering mass is constant in time;
+   #. :math:`M_\mathrm{total}` corresponds to :math:`M_\mathrm{200b}`; and
+   #. The growth of halos occurs through smooth accretion, not through merging of smaller halos.
+
+   In practice all three assumptions are violated. As such, the mass fraction in the halo will differ from :math:`f(M_\mathrm{200b}/M_\mathrm{F})`. To address this issue, mass is additionally assumed to flow from the hot halo reservoir to the unaccreted mass reservoir at a rate:
+
+   .. math::
+
+      \dot{M}_\mathrm{hot} = - {\alpha_\mathrm{adjust} \over \tau_\mathrm{dyn}} [M_\mathrm{hot}+M_\mathrm{unaccreted}]
+      [f_\mathrm{accreted}-f(M_\mathrm{200b}/M_\mathrm{F})],
+
+   where :math:`\alpha_\mathrm{adjust} =`\ [``rateAdjust``].
    </description>
   </accretionHalo>
   !!]
   type, extends(accretionHaloSimple) :: accretionHaloNaozBarkana2007
-     !!{
-     A halo accretion class using filtering mass of the \gls{igm} calculated from an equation from \cite{naoz_formation_2007}.
+     !!{RST
+     A halo accretion class using filtering mass of the :term:`IGM` calculated from an equation from :cite:t:`naoz_formation_2007`.
      !!}
      private
      double precision                                                 :: rateAdjust                                 , massMinimum             , &
@@ -78,13 +76,13 @@
      class           (darkMatterProfileDMOClass            ), pointer :: darkMatterProfileDMO_             => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset memoized calculations."                                                                                                    method="calculationReset"       />
        <method description="Initialize the object after construction."                                                                                       method="initialize"             />
-       <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded."                                     method="filteredFraction"       />
-       <method description="Returns the fraction of potential accretion rate onto a halo from the \gls{igm} which succeeds."                                 method="filteredFractionRate"   />
-       <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded given the halo and filtering masses." method="filteredFractionCompute"/>
-       <method description="Compute the rate (in units of Gyr$^{-1}$) for the corrective flow of mass between accreted and unaccreted reservoirs."           method="rateCorrection"         />
+       <method description="Returns the fraction of potential accretion onto a halo from the :term:`IGM` which succeeded."                                     method="filteredFraction"       />
+       <method description="Returns the fraction of potential accretion rate onto a halo from the :term:`IGM` which succeeds."                                 method="filteredFractionRate"   />
+       <method description="Returns the fraction of potential accretion onto a halo from the :term:`IGM` which succeeded given the halo and filtering masses." method="filteredFractionCompute"/>
+       <method description="Compute the rate (in units of Gyr\ :math:`^{-1}`) for the corrective flow of mass between accreted and unaccreted reservoirs."           method="rateCorrection"         />
      </methods>
      !!]
      final     ::                              naozBarkana2007Destructor
@@ -106,8 +104,8 @@
   end type accretionHaloNaozBarkana2007
 
   interface accretionHaloNaozBarkana2007
-     !!{
-     Constructors for the \refClass{accretionHaloNaozBarkana2007} halo accretion class.
+     !!{RST
+     Constructors for the :galacticus-class:`accretionHaloNaozBarkana2007` halo accretion class.
      !!}
      module procedure naozBarkana2007ConstructorParameters
      module procedure naozBarkana2007ConstructorInternal
@@ -119,8 +117,8 @@
 contains
 
   function naozBarkana2007ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{accretionHaloNaozBarkana2007} halo accretion class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`accretionHaloNaozBarkana2007` halo accretion class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -129,17 +127,21 @@ contains
 
     self%accretionHaloSimple=accretionHaloSimple(parameters)
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rateAdjust</name>
       <defaultValue>0.3d0</defaultValue>
-      <description>The dimensionless multiplier for the rate at which the halo gas content adjusts to changes in the filtering mass.</description>
+      <description>
+      The dimensionless multiplier for the rate at which the halo gas content adjusts to changes in the filtering mass.
+      </description>
       <source>parameters</source>
       <variable>self%rateAdjust</variable>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum mass of gas accreted into a halo below which the mass is truncated to zero.</description>
+      <description>
+      The minimum mass of gas accreted into a halo below which the mass is truncated to zero.
+      </description>
       <source>parameters</source>
       <variable>self%massMinimum</variable>
     </inputParameter>
@@ -153,8 +155,8 @@ contains
   end function naozBarkana2007ConstructorParameters
 
   function naozBarkana2007ConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,rateAdjust,massMinimum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,intergalacticMediumFilteringMass_,virialDensityContrast_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{accretionHaloNaozBarkana2007} halo accretion class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`accretionHaloNaozBarkana2007` halo accretion class.
     !!}
     use :: Kind_Numbers, only : kind_int8
     use :: Error       , only : Error_Report
@@ -182,7 +184,7 @@ contains
   end function naozBarkana2007ConstructorInternal
 
   subroutine naozBarkana2007Initialize(self)
-    !!{
+    !!{RST
     Initialize the object after construction.
     !!}
     implicit none
@@ -196,7 +198,7 @@ contains
   end subroutine naozBarkana2007Initialize
 
   subroutine naozBarkana2007AutoHook(self)
-    !!{
+    !!{RST
     Attach to the calculation reset event.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
@@ -208,8 +210,8 @@ contains
   end subroutine naozBarkana2007AutoHook
 
   subroutine naozBarkana2007Destructor(self)
-    !!{
-    Destructor for the \refClass{accretionHaloNaozBarkana2007} halo accretion class.
+    !!{RST
+    Destructor for the :galacticus-class:`accretionHaloNaozBarkana2007` halo accretion class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
@@ -225,7 +227,7 @@ contains
   end subroutine naozBarkana2007Destructor
 
   subroutine naozBarkana2007CalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the accretion rate calculation.
     !!}
     use :: Kind_Numbers, only : kind_int8
@@ -243,7 +245,7 @@ contains
   end subroutine naozBarkana2007CalculationReset
 
   logical function naozBarkana2007BranchHasBaryons(self,node)
-    !!{
+    !!{RST
     Returns true if this branch can accrete any baryons.
     !!}
     use :: Galacticus_Nodes   , only : nodeComponentBasic                 , treeNode
@@ -273,7 +275,7 @@ contains
   end function naozBarkana2007BranchHasBaryons
 
   double precision function naozBarkana2007FilteredFraction(self,node)
-    !!{
+    !!{RST
     Returns the baryonic mass fraction in a halo after the effects of the filtering mass.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -309,7 +311,7 @@ contains
   end function naozBarkana2007FilteredFraction
 
   double precision function naozBarkana2007FilteredFractionRate(self,node)
-    !!{
+    !!{RST
     Returns the baryonic mass accretion rate fraction in a halo after the effects of the filtering mass.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -361,7 +363,7 @@ contains
   end function naozBarkana2007FilteredFractionRate
 
   double precision function naozBarkana2007FilteredFractionCompute(self,massHalo,massFiltering)
-    !!{
+    !!{RST
     Compute the filtered fraction.
     !!}
     implicit none
@@ -384,8 +386,8 @@ contains
   end function naozBarkana2007FilteredFractionCompute
 
   double precision function naozBarkana2007RateCorrection(self,node) result(rateCorrection)
-    !!{
-    Compute the rate (in units of Gyr$^{-1}$) for the corrective flow of mass between accreted and unaccreted reservoirs.
+    !!{RST
+    Compute the rate (in units of Gyr\ :math:`^{-1}`) for the corrective flow of mass between accreted and unaccreted reservoirs.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
@@ -422,8 +424,8 @@ contains
   end function naozBarkana2007RateCorrection
   
   double precision function naozBarkana2007AccretionRate(self,node,accretionMode)
-    !!{
-    Computes the baryonic accretion rate onto \mono{node}.
+    !!{RST
+    Computes the baryonic accretion rate onto ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
@@ -467,8 +469,8 @@ contains
   end function naozBarkana2007AccretionRate
 
   double precision function naozBarkana2007AccretedMass(self,node,accretionMode)
-    !!{
-    Computes the mass of baryons accreted into \mono{node}.
+    !!{RST
+    Computes the mass of baryons accreted into ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -494,8 +496,8 @@ contains
   end function naozBarkana2007AccretedMass
 
   double precision function naozBarkana2007FailedAccretionRate(self,node,accretionMode)
-    !!{
-    Computes the baryonic accretion rate onto \mono{node}.
+    !!{RST
+    Computes the baryonic accretion rate onto ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
@@ -543,8 +545,8 @@ contains
   end function naozBarkana2007FailedAccretionRate
 
   double precision function naozBarkana2007FailedAccretedMass(self,node,accretionMode)
-    !!{
-    Computes the mass of baryons accreted into \mono{node}.
+    !!{RST
+    Computes the mass of baryons accreted into ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -573,8 +575,8 @@ contains
   end function naozBarkana2007FailedAccretedMass
 
   function naozBarkana2007AccretionRateMetals(self,node,accretionMode)
-    !!{
-    Computes the rate of mass of abundance accretion (in $\mathrm{M}_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Computes the rate of mass of abundance accretion (in :math:`\mathrm{M}_\odot/`\ Gyr) onto ``node`` from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : abundances        , zeroAbundances      , metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo
@@ -639,8 +641,8 @@ contains
   end function naozBarkana2007AccretionRateMetals
 
   function naozBarkana2007FailedAccretionRateMetals(self,node,accretionMode)
-    !!{
-    Computes the rate of failed mass of abundance accretion (in $\mathrm{M}_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Computes the rate of failed mass of abundance accretion (in :math:`\mathrm{M}_\odot/`\ Gyr) onto ``node`` from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : abundances        , zeroAbundances      , metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo
@@ -705,10 +707,8 @@ contains
   end function naozBarkana2007FailedAccretionRateMetals
 
   function naozBarkana2007AccretionRateChemicals(self,node,accretionMode)
-    !!{
-    Computes the rate of mass of chemicals accretion (in $\mathrm{M}_\odot/$Gyr) onto \mono{node} from the intergalactic medium. Assumes a
-    primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
-    temperature.
+    !!{RST
+    Computes the rate of mass of chemicals accretion (in :math:`\mathrm{M}_\odot/`\ Gyr) onto ``node`` from the intergalactic medium. Assumes a primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial temperature.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo
     implicit none

@@ -17,22 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that cleans any remaining stubs of the merger tree left in place by subsampling.  
+  !!{RST
+  Implements a node operator class that cleans any remaining stubs of the merger tree left in place by subsampling.
   !!}
   
   !![
-  <nodeOperator name="nodeOperatorCleanSubsampleStubs">
+  <nodeOperator name="nodeOperatorCleanSubsampleStubs" docformat="rst">
    <description>
-    A node operator class that removes stub branches left in merger trees by the subsampling algorithm, which retains only
-    a statistical subset of minor-progenitor branches. \mono{factorMassGrowthConsolidate} sets the maximum allowed mass
-    growth factor between adjacent stub nodes for consolidation (non-positive values disable consolidation). This operator
-    should be applied before any physics operators that depend on correct tree topology.
+   A node operator class that removes stub branches left in merger trees by the subsampling algorithm, which retains only a statistical subset of minor-progenitor branches. ``factorMassGrowthConsolidate`` sets the maximum allowed mass growth factor between adjacent stub nodes for consolidation (non-positive values disable consolidation). This operator should be applied before any physics operators that depend on correct tree topology.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorCleanSubsampleStubs
-     !!{
+     !!{RST
      A node operator class that cleans any remaining stubs of the merger tree left in place by subsampling.
      !!}
      private
@@ -42,8 +39,8 @@
   end type nodeOperatorCleanSubsampleStubs
   
   interface nodeOperatorCleanSubsampleStubs
-     !!{
-     Constructors for the \refClass{nodeOperatorCleanSubsampleStubs} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorCleanSubsampleStubs` node operator class.
      !!}
      module procedure cleanSubsampleStubsConstructorParameters
      module procedure cleanSubsampleStubsConstructorInternal
@@ -52,8 +49,8 @@
 contains
   
   function cleanSubsampleStubsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorCleanSubsampleStubs} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorCleanSubsampleStubs` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,10 +59,12 @@ contains
     double precision                                                 :: factorMassGrowthConsolidate
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorMassGrowthConsolidate</name>
       <source>parameters</source>
-      <description>The maximum factor by which the mass is allowed to grow between child and parent when consolidating nodes. A non-positive value prevents consolidation.</description>
+      <description>
+      The maximum factor by which the mass is allowed to grow between child and parent when consolidating nodes. A non-positive value prevents consolidation.
+      </description>
       <defaultValue>0.0d0</defaultValue>
     </inputParameter>
     !!]
@@ -77,8 +76,8 @@ contains
   end function cleanSubsampleStubsConstructorParameters
 
   function cleanSubsampleStubsConstructorInternal(factorMassGrowthConsolidate) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorCleanSubsampleStubs} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorCleanSubsampleStubs` node operator class.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -92,7 +91,7 @@ contains
   end function cleanSubsampleStubsConstructorInternal
 
   subroutine cleanSubsampleStubsNodeTreeInitialize(self,node)
-    !!{
+    !!{RST
     Clean the tree of any stub branches left over from subsampling the merger tree.
     !!}
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes

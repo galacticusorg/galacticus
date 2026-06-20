@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides an object that implements concentrations of dark matter halo profiles.
 !!}
 
 module Dark_Matter_Profiles_Concentration
-  !!{
+  !!{RST
   Provides a class that implements concentrations of dark matter halo profiles.
   !!}
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO , darkMatterProfileDMOClass
@@ -32,38 +32,42 @@ module Dark_Matter_Profiles_Concentration
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>darkMatterProfileConcentration</name>
    <descriptiveName>Dark Matter Profile Concentrations</descriptiveName>
    <description>
-    Class providing the concentration parameter $c = r_\mathrm{vir}/r_\mathrm{s}$ of dark matter halo density profiles, where
-    $r_\mathrm{vir}$ is the virial radius and $r_\mathrm{s}$ is the characteristic scale radius. The concentration encodes the
-    inner density structure of a halo and depends on halo mass and formation history. Implementations provide both the
-    instantaneous concentration (i.e., including any scatter around the mean) and the mean concentration--mass relation, along
-    with definitions of the density contrast and dark matter profile used in computing the concentration.
+   Class providing the concentration parameter :math:`c = r_\mathrm{vir}/r_\mathrm{s}` of dark matter halo density profiles, where :math:`r_\mathrm{vir}` is the virial radius and :math:`r_\mathrm{s}` is the characteristic scale radius. The concentration encodes the inner density structure of a halo and depends on halo mass and formation history. Implementations provide both the instantaneous concentration (i.e., including any scatter around the mean) and the mean concentration--mass relation, along with definitions of the density contrast and dark matter profile used in computing the concentration.
    </description>
    <default>gao2008</default>
    <method name="concentration" >
-    <description>Returns the concentration parameter for the given \mono{node}.</description>
+    <description>
+    Returns the concentration parameter for the given ``node``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
     <argument>type(treeNode), intent(inout), target :: node</argument>
    </method>
    <method name="concentrationMean" >
-    <description>Returns the mean concentration parameter for a \mono{node} of the given mass.</description>
+    <description>
+    Returns the mean concentration parameter for a ``node`` of the given mass.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout), target :: node</argument>
     <code>darkMatterProfileConcentrationConcentrationMean=self%concentration(node)</code>
    </method>
    <method name="densityContrastDefinition" >
-    <description>Returns a \mono{virialDensityContrast} object describing the virial density contrast used to define this concentration.</description>
+    <description>
+    Returns a ``virialDensityContrast`` object describing the virial density contrast used to define this concentration.
+    </description>
     <type>class(virialDensityContrastClass)</type>
     <pass>yes</pass>
    </method>
    <method name="darkMatterProfileDMODefinition" >
-    <description>Returns a \mono{darkMatterProfileDMO} object describing the dark matter density profile used to define this concentration.</description>
+    <description>
+    Returns a ``darkMatterProfileDMO`` object describing the dark matter density profile used to define this concentration.
+    </description>
     <type>class(darkMatterProfileDMOClass)</type>
     <pass>yes</pass>
    </method>

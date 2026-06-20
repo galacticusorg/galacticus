@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which computes correlations between mass functions at different redshifts.
 !!}
 
@@ -25,12 +25,14 @@ Implements an N-body data operator which computes correlations between mass func
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
 
   !![
-  <nbodyOperator name="nbodyOperatorMassFunctionCorrelation">
-   <description>An N-body data operator which computes correlations between mass functions at different redshifts.</description>
+  <nbodyOperator name="nbodyOperatorMassFunctionCorrelation" docformat="rst">
+   <description>
+   An N-body data operator which computes correlations between mass functions at different redshifts.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorMassFunctionCorrelation
-     !!{
+     !!{RST
      An N-body data operator which computes correlations between mass functions at different redshifts.
      !!}
      private
@@ -46,15 +48,15 @@ Implements an N-body data operator which computes correlations between mass func
   end type nbodyOperatorMassFunctionCorrelation
 
   interface nbodyOperatorMassFunctionCorrelation
-     !!{
-     Constructors for the \refClass{nbodyOperatorMassFunctionCorrelation} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorMassFunctionCorrelation` N-body operator class.
      !!}
      module procedure massFunctionCorrelationConstructorParameters
      module procedure massFunctionCorrelationConstructorInternal
   end interface nbodyOperatorMassFunctionCorrelation
 
   type :: simulationData
-     !!{
+     !!{RST
      Type used to store simulation data for correlation analysis.
      !!}
      double precision                                  :: boxSize
@@ -65,8 +67,8 @@ Implements an N-body data operator which computes correlations between mass func
 contains
 
   function massFunctionCorrelationConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorMassFunctionCorrelation} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorMassFunctionCorrelation` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -80,46 +82,62 @@ contains
          &                                                                   description
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>missingRootHalosAreFatal</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, if a hosted root halo is not found then a fatal error occurs. Otherwise, such cases are ignored and will not contribute to the halo mass function.</description>
+      <description>
+      If true, if a hosted root halo is not found then a fatal error occurs. Otherwise, such cases are ignored and will not contribute to the halo mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <source>parameters</source>
-      <description>The minimum mass to consider counts.</description>
+      <description>
+      The minimum mass to consider counts.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMaximum</name>
       <source>parameters</source>
-      <description>The maximum mass to consider.</description>
+      <description>
+      The maximum mass to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massCountPerDecade</name>
       <source>parameters</source>
-      <description>The number of bins per decade of mass.</description>
+      <description>
+      The number of bins per decade of mass.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countBootstraps</name>
       <source>parameters</source>
-      <description>The number of bootstrap samples to perform.</description>
+      <description>
+      The number of bootstrap samples to perform.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>description</name>
       <source>parameters</source>
-      <description>A description of this mass function.</description>
+      <description>
+      A description of this mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>simulationReference</name>
       <source>parameters</source>
-      <description>A reference for the simulation.</description>
+      <description>
+      A reference for the simulation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>simulationURL</name>
       <source>parameters</source>
-      <description>A URL for the simulation.</description>
+      <description>
+      A URL for the simulation.
+      </description>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
@@ -132,8 +150,8 @@ contains
   end function massFunctionCorrelationConstructorParameters
 
   function massFunctionCorrelationConstructorInternal(massMinimum,massMaximum,massCountPerDecade,countBootstraps,missingRootHalosAreFatal,description,simulationReference,simulationURL,randomNumberGenerator_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorMassFunctionCorrelation} N-body operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyOperatorMassFunctionCorrelation` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorMassFunctionCorrelation)                        :: self
@@ -151,8 +169,8 @@ contains
   end function massFunctionCorrelationConstructorInternal
   
   subroutine massFunctionCorrelationDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorMassFunctionCorrelation} N-body operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nbodyOperatorMassFunctionCorrelation` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorMassFunctionCorrelation), intent(inout) :: self
@@ -164,7 +182,7 @@ contains
   end subroutine massFunctionCorrelationDestructor
 
   subroutine massFunctionCorrelationOperate(self,simulations)
-    !!{
+    !!{RST
     Compute mass functions of particles.
     !!}
     use    :: Arrays_Search     , only : searchIndexed

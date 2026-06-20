@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an N-body data operator which computes mass functions.
   !!}
   
@@ -25,17 +25,14 @@
   use, intrinsic :: ISO_C_Binding       , only : c_size_t
 
   !![
-  <nbodyOperator name="nbodyOperatorSpinDistributionFunction">
+  <nbodyOperator name="nbodyOperatorSpinDistributionFunction" docformat="rst">
     <description>
-      An N-body data operator which computes the halo spin distribution function by binning halos as a function of dimensionless
-      spin parameter within a specified mass and spin range. Mass limits and binning are set by \mono{[massMinimum]},
-      \mono{[massMaximum]}, and \mono{[massCountPerDecade]}, spin limits and binning by \mono{[spinMinimum]},
-      \mono{[spinMaximum]}, and \mono{[spinCountPerDecade]}.
+    An N-body data operator which computes the halo spin distribution function by binning halos as a function of dimensionless spin parameter within a specified mass and spin range. Mass limits and binning are set by ``[massMinimum]``, ``[massMaximum]``, and ``[massCountPerDecade]``, spin limits and binning by ``[spinMinimum]``, ``[spinMaximum]``, and ``[spinCountPerDecade]``.
     </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSpinDistributionFunction
-     !!{
+     !!{RST
      An N-body data operator which computes mass functions.
      !!}
      private
@@ -51,8 +48,8 @@
   end type nbodyOperatorSpinDistributionFunction
 
   interface nbodyOperatorSpinDistributionFunction
-     !!{
-     Constructors for the \refClass{nbodyOperatorSpinDistributionFunction} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorSpinDistributionFunction` N-body operator class.
      !!}
      module procedure spinDistributionFunctionConstructorParameters
      module procedure spinDistributionFunctionConstructorInternal
@@ -61,8 +58,8 @@
 contains
 
   function spinDistributionFunctionConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorSpinDistributionFunction} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorSpinDistributionFunction` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,50 +73,68 @@ contains
          &                                                                    description
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <source>parameters</source>
-      <description>The minimum mass to consider.</description>
+      <description>
+      The minimum mass to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMaximum</name>
       <source>parameters</source>
-      <description>The maximum mass to consider.</description>
+      <description>
+      The maximum mass to consider.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massCountPerDecade</name>
       <source>parameters</source>
-      <description>The number of logarithmic bins per decade of mass used when constructing the spin distribution function.</description>
+      <description>
+      The number of logarithmic bins per decade of mass used when constructing the spin distribution function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>spinMinimum</name>
       <source>parameters</source>
-      <description>The minimum dimensionless spin parameter below which halos are excluded from the spin distribution function histogram.</description>
+      <description>
+      The minimum dimensionless spin parameter below which halos are excluded from the spin distribution function histogram.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>spinMaximum</name>
       <source>parameters</source>
-      <description>The maximum dimensionless spin parameter above which halos are excluded from the spin distribution function histogram.</description>
+      <description>
+      The maximum dimensionless spin parameter above which halos are excluded from the spin distribution function histogram.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>spinCountPerDecade</name>
       <source>parameters</source>
-      <description>The number of logarithmic bins per decade of spin parameter used when constructing the spin distribution function.</description>
+      <description>
+      The number of logarithmic bins per decade of spin parameter used when constructing the spin distribution function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>description</name>
       <source>parameters</source>
-      <description>A human-readable description of this spin distribution function dataset, stored as metadata in the output file.</description>
+      <description>
+      A human-readable description of this spin distribution function dataset, stored as metadata in the output file.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>simulationReference</name>
       <source>parameters</source>
-      <description>A bibliographic reference for the N-body simulation from which this spin distribution is derived, stored as output metadata.</description>
+      <description>
+      A bibliographic reference for the N-body simulation from which this spin distribution is derived, stored as output metadata.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>simulationURL</name>
       <source>parameters</source>
-      <description>A URL pointing to the publicly accessible dataset or documentation for the N-body simulation, stored as output metadata.</description>
+      <description>
+      A URL pointing to the publicly accessible dataset or documentation for the N-body simulation, stored as output metadata.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
@@ -132,8 +147,8 @@ contains
   end function spinDistributionFunctionConstructorParameters
 
   function spinDistributionFunctionConstructorInternal(massMinimum,massMaximum,massCountPerDecade,spinMinimum,spinMaximum,spinCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorSpinDistributionFunction} N-body operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyOperatorSpinDistributionFunction` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorSpinDistributionFunction)                        :: self
@@ -151,8 +166,8 @@ contains
   end function spinDistributionFunctionConstructorInternal
   
   subroutine spinDistributionFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorSpinDistributionFunction} N-body operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nbodyOperatorSpinDistributionFunction` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSpinDistributionFunction), intent(inout) :: self
@@ -164,7 +179,7 @@ contains
   end subroutine spinDistributionFunctionDestructor
 
   subroutine spinDistributionFunctionOperate(self,simulations)
-    !!{
+    !!{RST
     Compute spin distribution function of particles.
     !!}
     use    :: Dates_and_Times   , only : Formatted_Date_and_Time

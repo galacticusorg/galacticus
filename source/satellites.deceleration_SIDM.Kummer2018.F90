@@ -19,9 +19,8 @@
 
   !+    Contributions to this file made by: Niusha Ahvazi
 
-  !!{
-  Implementation of a satellite deceleration due to dark matter self-interactions using the model of
-  \cite{kummer_effective_2018}.
+  !!{RST
+  Implementation of a satellite deceleration due to dark matter self-interactions using the model of :cite:t:`kummer_effective_2018`.
   !!}
 
   use :: Cosmology_Parameters    , only : cosmologyParametersClass
@@ -31,14 +30,15 @@
   use :: Numerical_Interpolation , only : interpolator2D
 
   !![
-  <satelliteDecelerationSIDM name="satelliteDecelerationSIDMKummer2018">
-   <description>A satellite deceleration due to dark matter self-interactions using the model of \cite{kummer_effective_2018}.</description>
+  <satelliteDecelerationSIDM name="satelliteDecelerationSIDMKummer2018" docformat="rst">
+   <description>
+   A satellite deceleration due to dark matter self-interactions using the model of :cite:t:`kummer_effective_2018`.
+   </description>
   </satelliteDecelerationSIDM>
   !!]
   type, extends(satelliteDecelerationSIDMClass) :: satelliteDecelerationSIDMKummer2018
-     !!{
-     Implementation of a satellite deceleration due to dark matter self-interactions using the model of
-     \cite{kummer_effective_2018}.
+     !!{RST
+     Implementation of a satellite deceleration due to dark matter self-interactions using the model of :cite:t:`kummer_effective_2018`.
      !!}
      private
      class           (cosmologyParametersClass ), pointer     :: cosmologyParameters_        => null()
@@ -51,7 +51,7 @@
           &                                                      fractionDarkMatter
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulate the deceleration factor."                  method="tabulate"           />
        <method description="Return the dynamical-friction deceleration factor." method="decelerationFactor" />
      </methods>
@@ -63,8 +63,8 @@
   end type satelliteDecelerationSIDMKummer2018
 
   interface satelliteDecelerationSIDMKummer2018
-     !!{
-     Constructors for the \refClass{satelliteDecelerationSIDMKummer2018} satellite deceleration due to dark matter self-interactions class.
+     !!{RST
+     Constructors for the :galacticus-class:`satelliteDecelerationSIDMKummer2018` satellite deceleration due to dark matter self-interactions class.
      !!}
      module procedure kummer2018ConstructorParameters
      module procedure kummer2018ConstructorInternal
@@ -73,9 +73,8 @@
 contains
 
   function kummer2018ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{satelliteDecelerationSIDMKummer2018} satellite deceleration due to dark matter self-interactions class
-    which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`satelliteDecelerationSIDMKummer2018` satellite deceleration due to dark matter self-interactions class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,9 +103,8 @@ contains
   end function kummer2018ConstructorParameters
 
   function kummer2018ConstructorInternal(cosmologyParameters_,darkMatterParticle_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{satelliteDecelerationSIDMKummer2018} satellite deceleration due to dark matter self-interactions
-    class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`satelliteDecelerationSIDMKummer2018` satellite deceleration due to dark matter self-interactions class.
     !!}
     implicit none
     type (satelliteDecelerationSIDMKummer2018)                        :: self
@@ -133,8 +131,8 @@ contains
   end function kummer2018ConstructorInternal
 
   subroutine kummer2018Destructor(self)
-    !!{
-    Destructor for the \refClass{satelliteDecelerationSIDMKummer2018} satellite deceleration due to dark matter self-interactions class.
+    !!{RST
+    Destructor for the :galacticus-class:`satelliteDecelerationSIDMKummer2018` satellite deceleration due to dark matter self-interactions class.
     !!}
     implicit none
     type(satelliteDecelerationSIDMKummer2018), intent(inout) :: self
@@ -149,8 +147,8 @@ contains
   end subroutine kummer2018Destructor
 
   function kummer2018Acceleration(self,node)
-    !!{
-    Return a deceleration for satellites due to dark matter self-interactions using the formulation of \cite{kummer_effective_2018}.
+    !!{RST
+    Return a deceleration for satellites due to dark matter self-interactions using the formulation of :cite:t:`kummer_effective_2018`.
     !!}
     use :: Coordinates                     , only : coordinateSpherical                        , coordinateCartesian        , assignment(=)
     use :: Galactic_Structure_Options      , only : coordinateSystemCartesian                  , radiusLarge                , massTypeDark
@@ -308,8 +306,8 @@ contains
   end function kummer2018Acceleration
 
   subroutine kummer2018Tabulate(self,xMaximum,velocityMinimum,velocityMaximum)
-    !!{
-    Tabulate the deceleration factor, $\chi_\mathrm{d}$.
+    !!{RST
+    Tabulate the deceleration factor, :math:`\chi_\mathrm{d}`.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     use :: Numerical_Integration, only : integrator
@@ -363,8 +361,8 @@ contains
   contains
     
     double precision function integrandDecelerationFactor(theta)
-      !!{
-      The integrand used to evaluate $\chi_\mathrm{d}$ from \cite[][eqn.~9]{kummer_effective_2018}.
+      !!{RST
+      The integrand used to evaluate :math:`\chi_\mathrm{d}` from :cite:t:`kummer_effective_2018`.
       !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
@@ -382,8 +380,8 @@ contains
   end subroutine kummer2018Tabulate
   
   double precision function kummer2018DecelerationFactor(self,x,speedOrbital)
-    !!{
-    Compute the deceleration factor, $\chi_\mathrm{d}$, as defined by \cite[][eqn.~8]{kummer_effective_2018}.
+    !!{RST
+    Compute the deceleration factor, :math:`\chi_\mathrm{d}`, as defined by :cite:t:`kummer_effective_2018`.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSIDMVelocityDependent, darkMatterParticleSelfInteractingDarkMatterConstant
     use :: Error                , only : Error_Report

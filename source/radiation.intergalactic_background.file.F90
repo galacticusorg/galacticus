@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a class for intergalactic background light.
   !!}
 
@@ -26,48 +26,45 @@
   use            :: Numerical_Interpolation, only : interpolator
 
   !![
-  <radiationField name="radiationFieldIntergalacticBackgroundFile">
+  <radiationField name="radiationFieldIntergalacticBackgroundFile" docformat="rst">
    <description>
-    A radiation field class for intergalactic background light with properties read from file. The flux is determined by
-    linearly interpolating to the required time and wavelength. The XML or HDF5 file to read is specified by \mono{[fileName]}. An example of the required file structure for XML files is:
-    \begin{verbatim}
-    &lt;spectrum>
-      &lt;URL>http://adsabs.harvard.edu/abs/1996ApJ...461...20H&lt;/URL>
-      &lt;description>Cosmic background radiation spectrum from quasars alone.&lt;/description>
-      &lt;reference>Haardt, F. &amp; Madau, P. 1996, ApJ, 461, 20&lt;/reference>
-      &lt;source>Francesco Haardt on Aug 6 2005, via Cloudy 08.00&lt;/source>
-      &lt;wavelengths>
-        &lt;datum>0.0002481&lt;/datum>
-        &lt;datum>0.001489&lt;/datum>
-        .
-        .
-        .
-        &lt;units>Angstroms&lt;/units>
-      &lt;/wavelengths>
-      &lt;spectra>
-        &lt;datum>7.039E-49&lt;/datum>
-        &lt;datum>8.379E-48&lt;/datum>
-        &lt;datum>1.875E-39&lt;/datum>
-        &lt;datum>7.583E-38&lt;/datum>
-        .
-        .
-        .
-        &lt;redshift>0&lt;/redshift>
-        &lt;units>erg cm^-2 s^-1 Hz^-1 sr^-1&lt;/units>
-      &lt;/spectra>
-    &lt;/spectrum>
-    \end{verbatim}
-    The optional \mono{URL}, \mono{description}, \mono{reference} and
-    \mono{source} elements can be used to give the provenance of the data. The \mono{wavelengths} element should contain a set of \mono{datum} elements each containing a wavelength (in
-    increasing order) at which the spectrum will be tabulated. Wavelengths must be given in Angstroms. Multiple \mono{spectra} elements can be given, each specifying the spectrum at a redshift as given in the \mono{redshift} element. Each \mono{spectra} element must contain an array of \mono{datum}
-    elements that gives the spectrum at each wavelength listed in the \mono{wavelength} element. Spectra must
-    be in units of erg cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ sr$^{-1}$.
+   A radiation field class for intergalactic background light with properties read from file. The flux is determined by linearly interpolating to the required time and wavelength. The XML or HDF5 file to read is specified by ``[fileName]``. An example of the required file structure for XML files is:
+
+   .. code-block:: none
+
+      &lt;spectrum&gt;
+        &lt;URL&gt;http://adsabs.harvard.edu/abs/1996ApJ...461...20H&lt;/URL&gt;
+        &lt;description&gt;Cosmic background radiation spectrum from quasars alone.&lt;/description&gt;
+        &lt;reference&gt;Haardt, F. &amp; Madau, P. 1996, ApJ, 461, 20&lt;/reference&gt;
+        &lt;source&gt;Francesco Haardt on Aug 6 2005, via Cloudy 08.00&lt;/source&gt;
+        &lt;wavelengths&gt;
+          &lt;datum&gt;0.0002481&lt;/datum&gt;
+          &lt;datum&gt;0.001489&lt;/datum&gt;
+          .
+          .
+          .
+          &lt;units&gt;Angstroms&lt;/units&gt;
+        &lt;/wavelengths&gt;
+        &lt;spectra&gt;
+          &lt;datum&gt;7.039E-49&lt;/datum&gt;
+          &lt;datum&gt;8.379E-48&lt;/datum&gt;
+          &lt;datum&gt;1.875E-39&lt;/datum&gt;
+          &lt;datum&gt;7.583E-38&lt;/datum&gt;
+          .
+          .
+          .
+          &lt;redshift&gt;0&lt;/redshift&gt;
+          &lt;units&gt;erg cm^-2 s^-1 Hz^-1 sr^-1&lt;/units&gt;
+        &lt;/spectra&gt;
+      &lt;/spectrum&gt;
+
+   The optional ``URL``, ``description``, ``reference`` and ``source`` elements can be used to give the provenance of the data. The ``wavelengths`` element should contain a set of ``datum`` elements each containing a wavelength (in increasing order) at which the spectrum will be tabulated. Wavelengths must be given in Angstroms. Multiple ``spectra`` elements can be given, each specifying the spectrum at a redshift as given in the ``redshift`` element. Each ``spectra`` element must contain an array of ``datum`` elements that gives the spectrum at each wavelength listed in the ``wavelength`` element. Spectra must be in units of erg cm\ :math:`^{-2}` s\ :math:`^{-1}` Hz\ :math:`^{-1}` sr\ :math:`^{-1}`.
    </description>
    <runTimeFileDependencies paths="fileName"/>
   </radiationField>
   !!]
   type, extends(radiationFieldIntergalacticBackground) :: radiationFieldIntergalacticBackgroundFile
-     !!{
+     !!{RST
      A radiation field class for intergalactic background light with properties read from file.
      !!}
      private
@@ -89,8 +86,8 @@
   end type radiationFieldIntergalacticBackgroundFile
 
   interface radiationFieldIntergalacticBackgroundFile
-     !!{
-     Constructors for the \refClass{radiationFieldIntergalacticBackgroundFile} radiation field class.
+     !!{RST
+     Constructors for the :galacticus-class:`radiationFieldIntergalacticBackgroundFile` radiation field class.
      !!}
      module procedure intergalacticBackgroundFileConstructorParameters
      module procedure intergalacticBackgroundFileConstructorInternal
@@ -102,8 +99,8 @@
 contains
 
   function intergalacticBackgroundFileConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiationFieldIntergalacticBackgroundFile} radiation field class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`radiationFieldIntergalacticBackgroundFile` radiation field class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -113,9 +110,11 @@ contains
     type (varying_string                           )                :: fileName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
-      <description>The name of the file from which to read intergalactic background light properties.</description>
+      <description>
+      The name of the file from which to read intergalactic background light properties.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
@@ -129,8 +128,8 @@ contains
   end function intergalacticBackgroundFileConstructorParameters
 
   function intergalacticBackgroundFileConstructorInternal(fileName,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{radiationFieldIntergalacticBackgroundFile} radiation field class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`radiationFieldIntergalacticBackgroundFile` radiation field class.
     !!}
     use :: Array_Utilities, only : Array_Is_Monotonic               , Array_Reverse        , directionIncreasing
     use :: FoX_DOM        , only : destroy                          , extractDataContent   , node
@@ -248,8 +247,8 @@ contains
   end function intergalacticBackgroundFileConstructorInternal
 
   subroutine intergalacticBackgroundFileDestructor(self)
-    !!{
-    Destructor for the \refClass{radiationFieldIntergalacticBackgroundFile} radiation field class.
+    !!{RST
+    Destructor for the :galacticus-class:`radiationFieldIntergalacticBackgroundFile` radiation field class.
     !!}
     implicit none
     type(radiationFieldIntergalacticBackgroundFile), intent(inout) :: self
@@ -261,7 +260,7 @@ contains
   end subroutine intergalacticBackgroundFileDestructor
 
   double precision function intergalacticBackgroundFileFlux(self,wavelength,node)
-    !!{
+    !!{RST
     Return the flux in the intergalactic background radiation field.
     !!}
     implicit none
@@ -299,7 +298,7 @@ contains
   end function intergalacticBackgroundFileFlux
 
   double precision function intergalacticBackgroundFileTime(self)
-    !!{
+    !!{RST
     Set the time of the intergalactic background radiation field.
     !!}
     implicit none
@@ -310,7 +309,7 @@ contains
   end function intergalacticBackgroundFileTime
 
   subroutine intergalacticBackgroundFileTimeSet(self,time)
-    !!{
+    !!{RST
     Set the time of the intergalactic background radiation field.
     !!}
     implicit none
@@ -324,7 +323,7 @@ contains
   end subroutine intergalacticBackgroundFileTimeSet
 
   logical function intergalacticBackgroundFileTimeDependentOnly(self)
-    !!{
+    !!{RST
     Return true as this radiation field depends on time only.
     !!}
     implicit none

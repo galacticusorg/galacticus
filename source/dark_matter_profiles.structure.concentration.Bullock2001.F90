@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo profile concentrations using the \cite{navarro_structure_1996} algorithm.
+  !!{RST
+  An implementation of dark matter halo profile concentrations using the :cite:t:`navarro_structure_1996` algorithm.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
@@ -27,8 +27,10 @@
   use :: Virial_Density_Contrast   , only : virialDensityContrastClass   , virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
 
   !![
-  <darkMatterProfileConcentration name="darkMatterProfileConcentrationBullock2001">
-   <description>Computes dark matter halo concentrations using the mass-collapse epoch relation of \cite{bullock_profiles_2001}, in which concentration scales with the ratio of the virial radius to the collapse-epoch scale factor. The two free parameters of the model are \mono{[F]}, which determines the collapse mass fraction, and \mono{[K]}, which sets the concentration normalization.</description>
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationBullock2001" docformat="rst">
+   <description>
+   Computes dark matter halo concentrations using the mass-collapse epoch relation of :cite:t:`bullock_profiles_2001`, in which concentration scales with the ratio of the virial radius to the collapse-epoch scale factor. The two free parameters of the model are ``[F]``, which determines the collapse mass fraction, and ``[K]``, which sets the concentration normalization.
+   </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
    </deepCopy>
@@ -38,8 +40,8 @@
   </darkMatterProfileConcentration>
   !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationBullock2001
-     !!{
-     A dark matter halo profile concentration class implementing the algorithm of \cite{bullock_profiles_2001}.
+     !!{RST
+     A dark matter halo profile concentration class implementing the algorithm of :cite:t:`bullock_profiles_2001`.
      !!}
      private
      class           (cosmologyParametersClass                                      ), pointer :: cosmologyParameters_             => null()
@@ -58,8 +60,8 @@
   end type darkMatterProfileConcentrationBullock2001
 
   interface darkMatterProfileConcentrationBullock2001
-     !!{
-     Constructors for the \refClass{darkMatterProfileConcentrationBullock2001} dark matter halo profile concentration class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationBullock2001` dark matter halo profile concentration class.
      !!}
      module procedure bullock2001ConstructorParameters
      module procedure bullock2001ConstructorInternal
@@ -68,9 +70,8 @@
 contains
 
   function bullock2001ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{bullock2001} dark matter halo profile
-    concentration class.
+    !!{RST
+    Default constructor for the ``bullock2001`` dark matter halo profile concentration class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,19 +86,27 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>F</name>
       <source>parameters</source>
       <defaultValue>0.01d0</defaultValue>
-      <defaultSource>\cite{bullock_profiles_2001}</defaultSource>
-      <description>The parameter $F$ appearing in the halo concentration algorithm of \cite{bullock_profiles_2001}.</description>
+      <defaultSource>
+      :cite:t:`bullock_profiles_2001`
+      </defaultSource>
+      <description>
+      The parameter :math:`F` appearing in the halo concentration algorithm of :cite:t:`bullock_profiles_2001`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>K</name>
       <source>parameters</source>
       <defaultValue>4.0d0</defaultValue>
-      <defaultSource>\cite{bullock_profiles_2001}</defaultSource>
-      <description>The parameter $K$ appearing in the halo concentration algorithm of \cite{bullock_profiles_2001}.</description>
+      <defaultSource>
+      :cite:t:`bullock_profiles_2001`
+      </defaultSource>
+      <description>
+      The parameter :math:`K` appearing in the halo concentration algorithm of :cite:t:`bullock_profiles_2001`.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -118,9 +127,8 @@ contains
   end function bullock2001ConstructorParameters
 
   function bullock2001ConstructorInternal(F,K,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileConcentrationBullock2001} dark matter halo profile
-    concentration class.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationBullock2001` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     implicit none
@@ -171,8 +179,8 @@ contains
   end function bullock2001ConstructorInternal
 
   subroutine bullock2001Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileConcentrationBullock2001} dark matter halo profile concentration class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationBullock2001` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationBullock2001), intent(inout) :: self
@@ -190,9 +198,8 @@ contains
   end subroutine bullock2001Destructor
 
   double precision function bullock2001Concentration(self,node)
-    !!{
-    Return the concentration of the dark matter halo profile of \mono{node}
-    using the \cite{bullock_profiles_2001} algorithm.
+    !!{RST
+    Return the concentration of the dark matter halo profile of ``node`` using the :cite:t:`bullock_profiles_2001` algorithm.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
@@ -237,9 +244,8 @@ contains
   end function bullock2001Concentration
 
   function bullock2001DensityContrastDefinition(self)
-    !!{
-    Return a virial density contrast object defining that used in the definition of concentration in the
-    \cite{bullock_profiles_2001} algorithm.
+    !!{RST
+    Return a virial density contrast object defining that used in the definition of concentration in the :cite:t:`bullock_profiles_2001` algorithm.
     !!}
     implicit none
     class(virialDensityContrastClass               ), pointer       :: bullock2001DensityContrastDefinition
@@ -250,9 +256,8 @@ contains
   end function bullock2001DensityContrastDefinition
 
   function bullock2001DarkMatterProfileDefinition(self)
-    !!{
-    Return a dark matter density profile object defining that used in the definition of concentration in the
-    \cite{bullock_profiles_2001} algorithm.
+    !!{RST
+    Return a dark matter density profile object defining that used in the definition of concentration in the :cite:t:`bullock_profiles_2001` algorithm.
     !!}
     implicit none
     class(darkMatterProfileDMOClass                ), pointer       :: bullock2001DarkMatterProfileDefinition

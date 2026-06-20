@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provieds tools for working with sets of points.
 !!}
 
 module Points
-  !!{
+  !!{RST
   Provide tools for working with sets of points.
   !!}
   private
@@ -31,7 +31,7 @@ module Points
 contains
 
   subroutine Points_Prune(points,mask)
-    !!{
+    !!{RST
     Prune a set of points.
     !!}
     implicit none
@@ -55,7 +55,7 @@ contains
   end subroutine Points_Prune
 
   subroutine Points_Translate(points,shift,periodicLength)
-    !!{
+    !!{RST
     Apply a simple translation to a set of points.
     !!}
     implicit none
@@ -83,7 +83,7 @@ contains
   end subroutine Points_Translate
 
   subroutine Points_Replicate(points,periodicLength,replicantStart,replicantEnd)
-    !!{
+    !!{RST
     Apply a simple translation to a set of points.
     !!}
     implicit none
@@ -115,7 +115,7 @@ contains
   end subroutine Points_Replicate
 
   subroutine Points_Rotate(points,axis,angle)
-    !!{
+    !!{RST
     Apply a rotation to a set of points.
     !!}
     use :: Vectors, only : Vector_Magnitude
@@ -159,7 +159,7 @@ contains
   end subroutine Points_Rotate
 
   subroutine Points_Survey_Geometry(points,surveyGeometry_,mass)
-    !!{
+    !!{RST
     Select a set of points that lie within a given survey geometry
     !!}
     use :: Display          , only : displayCounter     , displayCounterClear, displayIndent, displayUnindent

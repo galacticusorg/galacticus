@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module of functions for root finding unit tests.
 !!}
 
 module Test_Root_Finding_Functions
-  !!{
+  !!{RST
   Contains functions for root finding unit tests.
   !!}
   implicit none
@@ -33,7 +33,7 @@ module Test_Root_Finding_Functions
 contains
 
   double precision function Root_Function_1(x)
-    !!{
+    !!{RST
     Function for root finding unit tests.
     !!}
     double precision, intent(in   ) :: x
@@ -42,7 +42,7 @@ contains
   end function Root_Function_1
 
   double precision function Root_Function_2(x)
-    !!{
+    !!{RST
     Function for root finding unit tests.
     !!}
     double precision, intent(in   ) :: x
@@ -51,7 +51,7 @@ contains
   end function Root_Function_2
 
   double precision function Root_Function_2_Derivative(x)
-    !!{
+    !!{RST
     Function for root finding unit tests.
     !!}
     double precision, intent(in   ) :: x
@@ -60,7 +60,7 @@ contains
   end function Root_Function_2_Derivative
 
   subroutine  Root_Function_2_Both(x,f,df)
-    !!{
+    !!{RST
     Function for root finding unit tests.
     !!}
     double precision, intent(in   ) :: x
@@ -71,7 +71,7 @@ contains
   end subroutine Root_Function_2_Both
 
   double precision function Root_Function_3(x)
-    !!{
+    !!{RST
     Function for root finding unit tests.
     !!}
     double precision, intent(in   ) :: x
@@ -80,7 +80,7 @@ contains
   end function Root_Function_3
 
   double precision function Root_Function_4(x)
-    !!{
+    !!{RST
     Function for root finding unit tests.
     !!}
     double precision, intent(in   ) :: x
@@ -94,7 +94,7 @@ contains
   end function Root_Function_4
 
   double precision function Root_Function_4_Derivative(x)
-    !!{
+    !!{RST
     Function for root finding unit tests.
     !!}
     double precision, intent(in   ) :: x
@@ -108,7 +108,7 @@ contains
   end function Root_Function_4_Derivative
 
   subroutine  Root_Function_4_Both(x,f,df)
-    !!{
+    !!{RST
     Function for root finding unit tests.
     !!}
     double precision, intent(in   ) :: x

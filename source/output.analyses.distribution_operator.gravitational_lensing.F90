@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a gravitational lensing output analysis distribution operator class.
 !!}
 
@@ -29,9 +29,11 @@ Implements a gravitational lensing output analysis distribution operator class.
   end type grvtnlLnsngTransferMatrix
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>lensedProperty</name>
-   <description>Enumeration of the galaxy properties that can be modified by gravitational lensing magnification, currently supporting luminosity and apparent size.</description>
+   <description>
+   Enumeration of the galaxy properties that can be modified by gravitational lensing magnification, currently supporting luminosity and apparent size.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -41,12 +43,14 @@ Implements a gravitational lensing output analysis distribution operator class.
   !!]
 
   !![
-  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorGrvtnlLnsng">
-   <description>Applies gravitational lensing magnification to a specified galaxy property (luminosity or size) during output analysis, convolving with the lensing magnification distribution computed for a characteristic source size set by \mono{sizeSource}.</description>
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorGrvtnlLnsng" docformat="rst">
+   <description>
+   Applies gravitational lensing magnification to a specified galaxy property (luminosity or size) during output analysis, convolving with the lensing magnification distribution computed for a characteristic source size set by ``sizeSource``.
+   </description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorGrvtnlLnsng
-     !!{
+     !!{RST
      A gravitational lensing output distribution operator class.
      !!}
      private
@@ -62,8 +66,8 @@ Implements a gravitational lensing output analysis distribution operator class.
   end type outputAnalysisDistributionOperatorGrvtnlLnsng
 
   interface outputAnalysisDistributionOperatorGrvtnlLnsng
-     !!{
-     Constructors for the \refClass{outputAnalysisDistributionOperatorGrvtnlLnsng} output analysis distribution operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorGrvtnlLnsng` output analysis distribution operator class.
      !!}
      module procedure grvtnlLnsngConstructorParameters
      module procedure grvtnlLnsngConstructorInternal
@@ -77,8 +81,8 @@ Implements a gravitational lensing output analysis distribution operator class.
 contains
 
   function grvtnlLnsngConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisDistributionOperatorGrvtnlLnsng} output analysis distribution operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorGrvtnlLnsng` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,17 +94,21 @@ contains
     double precision                                                               :: sizeSource
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lensedProperty</name>
       <source>parameters</source>
       <defaultValue>var_str('luminosity')</defaultValue>
-      <description>The property (luminosity, or size) to be affected by gravitational lensing.</description>
+      <description>
+      The property (luminosity, or size) to be affected by gravitational lensing.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sizeSource</name>
       <source>parameters</source>
       <defaultValue>0.001d0</defaultValue>
-      <description>The source size to assume for gravitational lensing calculations.</description>
+      <description>
+      The source size to assume for gravitational lensing calculations.
+      </description>
     </inputParameter>
     <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
     <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
@@ -116,8 +124,8 @@ contains
   end function grvtnlLnsngConstructorParameters
 
   function grvtnlLnsngConstructorInternal(gravitationalLensing_,outputTimes_,sizeSource,lensedProperty) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisDistributionOperatorGrvtnlLnsng} output analysis distribution operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorGrvtnlLnsng` output analysis distribution operator class.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Error        , only : Error_Report
@@ -140,8 +148,8 @@ contains
   end function grvtnlLnsngConstructorInternal
 
   subroutine grvtnlLnsngDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisDistributionOperatorGrvtnlLnsng} output analysis distribution operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisDistributionOperatorGrvtnlLnsng` output analysis distribution operator class.
     !!}
     implicit none
     type(outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout) :: self
@@ -154,7 +162,7 @@ contains
   end subroutine grvtnlLnsngDestructor
 
   function grvtnlLnsngOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node) result(distributionNew)
-    !!{
+    !!{RST
     Implement a gravitational lensing output analysis distribution operator.
     !!}
     use :: Error, only : Error_Report
@@ -174,7 +182,7 @@ contains
   end function grvtnlLnsngOperateScalar
 
   function grvtnlLnsngOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node) result(distributionNew)
-    !!{
+    !!{RST
     Implement a gravitational lensing output analysis distribution operator.
     !!}
     use :: Numerical_Integration, only : integrator
@@ -241,7 +249,7 @@ contains
   contains
 
     double precision function magnificationCDFIntegrand(propertyValue)
-      !!{
+      !!{RST
       Integrand over the gravitational lensing magnification cumulative distribution.
       !!}
       use :: Error                  , only : Error_Report

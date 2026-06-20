@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus cosmological constant universe.
   !!}
 
@@ -26,15 +26,14 @@
   use :: Tables                    , only : table1D
 
   !![
-  <virialDensityContrast name="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt">
+  <virialDensityContrast name="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt" docformat="rst">
    <description>
-    A class implementing dark matter halo virial density contrasts based on the spherical collapse model in a universe which
-    contains collisionless matter and a cosmological constant (see, for example, \citealt{percival_cosmological_2005}).
+   A class implementing dark matter halo virial density contrasts based on the spherical collapse model in a universe which contains collisionless matter and a cosmological constant (see, for example, :cite:author:`percival_cosmological_2005` :cite:year:`percival_cosmological_2005`).
    </description>
   </virialDensityContrast>
   !!]
   type, extends(virialDensityContrastClass) :: virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
-     !!{
+     !!{RST
      A dark matter halo virial density contrast class based on spherical collapse in a matter plus cosmological constant universe.
      !!}
      private
@@ -47,7 +46,7 @@
      class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), pointer     :: sphericalCollapseSolver_ => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulate spherical collapse virial density contrast." method="retabulate" />
      </methods>
      !!]
@@ -59,8 +58,8 @@
   end type virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
 
   interface virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
-     !!{
-     Constructors for the \refClass{virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class.
+     !!{RST
+     Constructors for the :galacticus-class:`virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt` dark matter halo virial density contrast class.
      !!}
      module procedure sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters
      module procedure sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal
@@ -69,8 +68,8 @@
 contains
 
   function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class that takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt` dark matter halo virial density contrast class that takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -80,11 +79,13 @@ contains
     logical                                                                                :: tableStore
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tableStore</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, store/restore the tabulated solution to/from file when possible.</description>
+      <description>
+      If true, store/restore the tabulated solution to/from file when possible.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
@@ -97,8 +98,8 @@ contains
   end function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorParameters
 
   function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal(tableStore,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt` dark matter halo virial density contrast class.
     !!}
     implicit none
     type   (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                        :: self
@@ -121,8 +122,8 @@ contains
   end function sphericalCollapseClsnlssMttrCsmlgclCnstntConstructorInternal
 
   subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntDestructor(self)
-    !!{
-    Destructor for the \refClass{virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt} dark matter halo virial density contrast class.
+    !!{RST
+    Destructor for the :galacticus-class:`virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt` dark matter halo virial density contrast class.
     !!}
     implicit none
     type (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout) :: self
@@ -143,7 +144,7 @@ contains
   end subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntDestructor
 
   subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntRetabulate(self,time)
-    !!{
+    !!{RST
     Recompute the look-up tables for virial density contrast.
     !!}
     implicit none
@@ -167,7 +168,7 @@ contains
   end subroutine sphericalCollapseClsnlssMttrCsmlgclCnstntRetabulate
 
   double precision function sphericalCollapseClsnlssMttrCsmlgclCnstntDensityContrast(self,mass,time,expansionFactor,collapsing)
-    !!{
+    !!{RST
     Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     !!}
     use :: Error, only : Error_Report
@@ -207,7 +208,7 @@ contains
   end function sphericalCollapseClsnlssMttrCsmlgclCnstntDensityContrast
 
   double precision function sphericalCollapseClsnlssMttrCsmlgclCnstntDensityContrastRtChng(self,mass,time,expansionFactor,collapsing)
-    !!{
+    !!{RST
     Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     !!}
     use :: Error, only : Error_Report
@@ -247,9 +248,8 @@ contains
   end function sphericalCollapseClsnlssMttrCsmlgclCnstntDensityContrastRtChng
 
   double precision function sphericalCollapseClsnlssMttrCsmlgclCnstntTrnrndVrlRd(self,mass,time,expansionFactor,collapsing)
-    !!{
-    Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
-    constant universe.
+    !!{RST
+    Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     !!}
     implicit none
     class           (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout)           :: self

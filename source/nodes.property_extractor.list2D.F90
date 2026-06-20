@@ -20,20 +20,22 @@
   use :: Dictionaries, only : doubleDictionary, rank1DoubleDictionary
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorList2D" abstract="yes">
-   <description>An abstract base class for node property extractors that provide a 2D list (array of arrays) of floating-point properties, enabling extraction of variable-length per-node data such as merger histories or multi-epoch quantities.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorList2D" abstract="yes" docformat="rst">
+   <description>
+   An abstract base class for node property extractors that provide a 2D list (array of arrays) of floating-point properties, enabling extraction of variable-length per-node data such as merger histories or multi-epoch quantities.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorList2D
-     !!{
+     !!{RST
      A 2D list property extractor.
      !!}
      private
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="elementCount" description="Return a count of the number of properties extracted."         />
-       <method method="extract"      description="Extract the properties from the given \mono{node}."            />
+       <method method="extract"      description="Extract the properties from the given ``node``."            />
        <method method="names"        description="Return the name of the properties extracted."                  />
        <method method="descriptions" description="Return a description of the properties extracted."             />
        <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."/>
@@ -52,7 +54,7 @@
 
   abstract interface
      function list2DElementCount(self)
-       !!{
+       !!{RST
        Interface for list2D property count.
        !!}
        import nodePropertyExtractorList2D
@@ -63,7 +65,7 @@
 
   abstract interface
      function list2DExtract(self,node,instance)
-       !!{
+       !!{RST
        Interface for list2D property extraction.
        !!}
        import nodePropertyExtractorList2D, treeNode, multiCounter
@@ -76,7 +78,7 @@
 
   abstract interface
      subroutine list2DNames(self,names)
-       !!{
+       !!{RST
        Interface for list2D names.
        !!}
        import varying_string, nodePropertyExtractorList2D
@@ -87,7 +89,7 @@
 
   abstract interface
      subroutine list2DDescriptions(self,descriptions)
-       !!{
+       !!{RST
        Interface for list2D descriptions.
        !!}
        import varying_string, nodePropertyExtractorList2D
@@ -98,7 +100,7 @@
 
   abstract interface
      function list2DUnitsInSI(self)
-       !!{
+       !!{RST
        Interface for list2D property units.
        !!}
        import nodePropertyExtractorList2D
@@ -110,9 +112,8 @@
 contains
 
   function list2DUnits(self) result(units_)
-    !!{
-    Default implementation: wraps the deferred \mono{nodePropertyExtractorList2D}{unitsInSI} array into an array of
-    \mono{unitType}.
+    !!{RST
+    Default implementation: wraps the deferred ``nodePropertyExtractorList2D``\ unitsInSI array into an array of ``unitType``.
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
@@ -130,7 +131,7 @@ contains
   end function list2DUnits
 
   subroutine list2DMetaData(self,node,time,metaDataRank0,metaDataRank1)
-    !!{
+    !!{RST
     Interface for list2D property meta-data.
     !!}
     implicit none

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of a spectrum postprocessor that keeps only unescaped populations.
   !!}
 
   !![
-  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorUnescaped">
-   <description>A stellar population spectra postprocessor that retains only the emission from stellar populations that have not yet escaped their birth environment (i.e., those younger than a specified timescale), suppressing the contribution of stars older than the escape timescale.</description>
+  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorUnescaped" docformat="rst">
+   <description>
+   A stellar population spectra postprocessor that retains only the emission from stellar populations that have not yet escaped their birth environment (i.e., those younger than a specified timescale), suppressing the contribution of stars older than the escape timescale.
+   </description>
   </stellarPopulationSpectraPostprocessor>
   !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorUnescaped
-     !!{
+     !!{RST
      An unescaped spectrum postprocessor.
      !!}
      private
@@ -38,7 +40,7 @@
   end type stellarPopulationSpectraPostprocessorUnescaped
 
   interface stellarPopulationSpectraPostprocessorUnescaped
-     !!{
+     !!{RST
      Constructors for the unescaped spectrum postprocessor class.
      !!}
      module procedure unescapedConstructorParameters
@@ -48,7 +50,7 @@
 contains
 
   function unescapedConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the unescaped spectrum postprocessor class which accepts a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -58,10 +60,12 @@ contains
     double precision                                                                :: timescale
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescale</name>
       <defaultValue>1.0d-2</defaultValue>
-      <description>The timescale for ``escape'' of stellar populations in the ``unescaped'' spectra postprocessing method.</description>
+      <description>
+      The timescale for "escape" of stellar populations in the "unescaped" spectra postprocessing method.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -73,7 +77,7 @@ contains
   end function unescapedConstructorParameters
 
   function unescapedConstructorInternal(timescale) result(self)
-    !!{
+    !!{RST
     Internal constructor for the unescaped spectrum postprocessor class.
     !!}
     implicit none
@@ -87,7 +91,7 @@ contains
   end function unescapedConstructorInternal
 
   double precision function unescapedMultiplier(self,wavelength,age,redshift)
-    !!{
+    !!{RST
     Perform an unescaped postprocessing on a spectrum.
     !!}
     implicit none
@@ -101,7 +105,7 @@ contains
   end function unescapedMultiplier
 
   logical function unescapedIsRedshiftDependent(self) result(isRedshiftDependent)
-    !!{
+    !!{RST
     Return false indicating that the postprocessor is redshift independent.
     !!}
     implicit none

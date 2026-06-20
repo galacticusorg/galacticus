@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which provides various interfaces to the \gls{class} code.
+!!{RST
+Contains a module which provides various interfaces to the :term:`CLASS` code.
 !!}
 
 module Interfaces_CLASS
-  !!{
-  Provides various interfaces to the \gls{class} code.
+  !!{RST
+  Provides various interfaces to the :term:`CLASS` code.
   !!}
   use :: File_Utilities, only : lockDescriptor
   private
@@ -37,9 +37,11 @@ module Interfaces_CLASS
   double precision                , parameter :: classLogWavenumberMaximumDefault=log(10.0d0)
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>classSpecies</name>
-   <description>Enumeration of particle species tracked by the CLASS Boltzmann code when computing transfer functions: \mono{photons}, \mono{darkMatter}, and \mono{baryons}, used to select which species' transfer function is returned.</description>
+   <description>
+   Enumeration of particle species tracked by the CLASS Boltzmann code when computing transfer functions: ``photons``, ``darkMatter``, and ``baryons``, used to select which species' transfer function is returned.
+   </description>
    <visibility>public</visibility>
    <indexing>1</indexing>
    <entry label="photons"   />
@@ -56,7 +58,7 @@ module Interfaces_CLASS
 contains
 
   subroutine Interface_CLASS_Initialize(classPath,classVersion,static)
-    !!{
+    !!{RST
     Initialize the interface with CLASS, including downloading and compiling CLASS if necessary.
     !!}
     use :: Dependencies      , only : dependencyVersion
@@ -115,7 +117,7 @@ contains
   contains
 
     function flagsRetrieve(flagsLength)
-      !!{
+      !!{RST
       Retrieve the compiler flags.
       !!}
       implicit none
@@ -131,7 +133,7 @@ contains
   end subroutine Interface_CLASS_Initialize
 
   subroutine Interface_CLASS_Perturbations(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,fileName,wavenumberMaximumReached,perturbationsDarkMatter,perturbationsBaryons)
-    !!{
+    !!{RST
     Run CLASS as necessary to compute perturbations.
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
@@ -383,7 +385,7 @@ contains
   end subroutine Interface_CLASS_Perturbations
 
   subroutine Interface_CLASS_Transfer_Function(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionBaryons)
-    !!{
+    !!{RST
     Run CLASS as necessary to compute transfer functions.
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
@@ -634,8 +636,8 @@ contains
   end subroutine Interface_CLASS_Transfer_Function
 
   double precision function Interface_CLASS_Normalization(cosmologyParameters_) result(normalization)
-    !!{
-    Run CLASS to compute the ratio $\sigma_8^2/A_s$.
+    !!{RST
+    Run CLASS to compute the ratio :math:`\sigma_8^2/A_s`.
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass
     use               :: File_Utilities                  , only : Directory_Make          , File_Exists       , File_Lock     , File_Unlock, &
@@ -703,7 +705,7 @@ contains
   end function Interface_CLASS_Normalization
 
   subroutine Interface_CLASS_Run(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,wavenumberMaximumReached,wavenumbers,transferFunctions,perturbations,ratioSigma8SquaredAs)
-    !!{
+    !!{RST
     Run CLASS and extract required information.
     !!}
 #ifdef USEMPI

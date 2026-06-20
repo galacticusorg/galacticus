@@ -17,22 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an ISM metallicity output analysis property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMetallicityISM">
-   <description>A property extractor that returns the gas-phase metallicity of the interstellar medium
-    (ISM), defined as the mass ratio of a specified element to hydrogen, $Z = M_X / M_\mathrm{H}$,
-    summed over disk and spheroid gas components. The \mono{element} parameter specifies the atomic
-    symbol (e.g.\ \mono{Fe}, \mono{O}, \mono{Si}) for the element used to define metallicity. Only
-    elements being actively tracked in the abundances structure are valid choices. Returns zero for
-    nodes with no cold gas.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorMetallicityISM" docformat="rst">
+   <description>
+   A property extractor that returns the gas-phase metallicity of the interstellar medium (ISM), defined as the mass ratio of a specified element to hydrogen, :math:`Z = M_X / M_\mathrm{H}`, summed over disk and spheroid gas components. The ``element`` parameter specifies the atomic symbol (e.g.\ ``Fe``, ``O``, ``Si``) for the element used to define metallicity. Only elements being actively tracked in the abundances structure are valid choices. Returns zero for nodes with no cold gas.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMetallicityISM
-     !!{
+     !!{RST
      An ISM metallicity output analysis property extractor class.
      !!}
      private
@@ -47,8 +44,8 @@ Implements an ISM metallicity output analysis property extractor class.
   end type nodePropertyExtractorMetallicityISM
 
   interface nodePropertyExtractorMetallicityISM
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMetallicityISM} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorMetallicityISM` property extractor class.
      !!}
      module procedure metallicityISMConstructorParameters
      module procedure metallicityISMConstructorInternal
@@ -57,8 +54,8 @@ Implements an ISM metallicity output analysis property extractor class.
 contains
 
   function metallicityISMConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMetallicityISM} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorMetallicityISM` property extractor class which takes a parameter set as input.
     !!}
     use :: Abundances_Structure, only : Abundances_Index_From_Name
     use :: Input_Parameters    , only : inputParameter            , inputParameters
@@ -70,10 +67,12 @@ contains
     character(len=3                              )                :: element
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>element</name>
       <source>parameters</source>
-      <description>The atomic symbol for the element to use to define metallicity.</description>
+      <description>
+      The atomic symbol for the element to use to define metallicity.
+      </description>
     </inputParameter>
     !!]
     indexElement=Abundances_Index_From_Name(element)
@@ -86,8 +85,8 @@ contains
   end function metallicityISMConstructorParameters
 
   function metallicityISMConstructorInternal(indexElement) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMetallicityISM} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMetallicityISM` property extractor class.
     !!}
     use :: Abundances_Structure, only : Abundances_Names
     implicit none
@@ -102,7 +101,7 @@ contains
   end function metallicityISMConstructorInternal
 
   double precision function metallicityISMExtract(self,node,instance)
-    !!{
+    !!{RST
     Extracts the metallicity (defined as the mass ratio of a specified element to hydrogen) in the ISM.
     !!}
     use :: Abundances_Structure, only : abundances
@@ -144,7 +143,7 @@ contains
 
 
   function metallicityISMName(self)
-    !!{
+    !!{RST
     Return the name of the metallicityISM property.
     !!}
     use :: Abundances_Structure, only : Abundances_Names
@@ -158,7 +157,7 @@ contains
   end function metallicityISMName
 
   function metallicityISMDescription(self)
-    !!{
+    !!{RST
     Return a description of the metallicityISM property.
     !!}
     use :: Abundances_Structure, only : Abundances_Names
@@ -172,7 +171,7 @@ contains
   end function metallicityISMDescription
 
   double precision function metallicityISMUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the metallicityISM property in the SI system.
     !!}
     implicit none
@@ -184,7 +183,7 @@ contains
   end function metallicityISMUnitsInSI
 
   function metallicityISMUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the metallicityISM property.
     !!}
     use :: Units_MetaData, only : unitType

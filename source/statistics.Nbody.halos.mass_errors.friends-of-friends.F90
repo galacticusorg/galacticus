@@ -17,18 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements an N-body dark matter halo mass error class using a fit appropriate for friends-of-friends
-  group finders.
+  !!{RST
+  Implements an N-body dark matter halo mass error class using a fit appropriate for friends-of-friends group finders.
   !!}
 
   !![
-  <nbodyHaloMassError name="nbodyHaloMassErrorFriendsOfFriends">
-   <description>An N-body dark matter halo mass error class that models the statistical mass errors in halos identified by friends-of-friends group finding algorithms, using a fitting function calibrated against simulations. The simulation particle mass required for the error model is set by the \mono{[massParticle]} parameter.</description>
+  <nbodyHaloMassError name="nbodyHaloMassErrorFriendsOfFriends" docformat="rst">
+   <description>
+   An N-body dark matter halo mass error class that models the statistical mass errors in halos identified by friends-of-friends group finding algorithms, using a fitting function calibrated against simulations. The simulation particle mass required for the error model is set by the ``[massParticle]`` parameter.
+   </description>
   </nbodyHaloMassError>
   !!]
   type, extends(nbodyHaloMassErrorPowerLaw) :: nbodyHaloMassErrorFriendsOfFriends
-     !!{
+     !!{RST
      An N-body halo mass error class which uses a fit appropriate for friends-of-friends group finders.
      !!}
      private
@@ -37,8 +38,8 @@
   end type nbodyHaloMassErrorFriendsOfFriends
 
   interface nbodyHaloMassErrorFriendsOfFriends
-     !!{
-     Constructors for the \refClass{nbodyHaloMassErrorFriendsOfFriends} N-body halo mass error class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyHaloMassErrorFriendsOfFriends` N-body halo mass error class.
      !!}
      module procedure friendsOfFriendsConstructorParameters
      module procedure friendsOfFriendsConstructorInternal
@@ -47,8 +48,8 @@
 contains
 
   function friendsOfFriendsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nbodyHaloMassErrorFriendsOfFriends} N-body halo mass error class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyHaloMassErrorFriendsOfFriends` N-body halo mass error class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -58,11 +59,13 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParticle</name>
       <source>parameters</source>
       <variable>massParticle</variable>
-      <description>The mass of the particle in the N-body simulation in which friends-of-friends groups were found.</description>
+      <description>
+      The mass of the particle in the N-body simulation in which friends-of-friends groups were found.
+      </description>
     </inputParameter>
     !!]
     self=nbodyHaloMassErrorFriendsOfFriends(massParticle)
@@ -73,8 +76,8 @@ contains
   end function friendsOfFriendsConstructorParameters
 
   function friendsOfFriendsConstructorInternal(massParticle) result(self)
-    !!{
-    Internal constructor for the \refClass{nbodyHaloMassErrorFriendsOfFriends} N-body halo mass error class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyHaloMassErrorFriendsOfFriends` N-body halo mass error class.
     !!}
     implicit none
     type            (nbodyHaloMassErrorFriendsOfFriends)                :: self

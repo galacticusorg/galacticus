@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module of useful physical constants.
 !!}
 
 module Numerical_Constants_Physical
-  !!{
+  !!{RST
   Contains various useful physical constants.
   !!}
   use :: Numerical_Constants_Math, only : Pi

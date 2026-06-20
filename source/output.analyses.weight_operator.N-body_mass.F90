@@ -17,20 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a weight operator class in which the weight is multiplied by an integral over the N-body
-halo mass distribution.
+!!{RST
+Implements a weight operator class in which the weight is multiplied by an integral over the N-body halo mass distribution.
 !!}
 
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
   !![
-  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorNbodyMass">
-   <description>An output analysis weight operator that multiplies the galaxy weight by an integral over the N-body halo mass distribution between \mono{rangeLower} and \mono{rangeUpper}, accounting for the dispersion in N-body halo masses when comparing model predictions to simulation data.</description>
+  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorNbodyMass" docformat="rst">
+   <description>
+   An output analysis weight operator that multiplies the galaxy weight by an integral over the N-body halo mass distribution between ``rangeLower`` and ``rangeUpper``, accounting for the dispersion in N-body halo masses when comparing model predictions to simulation data.
+   </description>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorNormal) :: outputAnalysisWeightOperatorNbodyMass
-     !!{
+     !!{RST
      A weight operator class in which the weight is multiplied by an integral over the N-body halo mass distribution.
      !!}
      private
@@ -41,8 +42,8 @@ halo mass distribution.
   end type outputAnalysisWeightOperatorNbodyMass
 
   interface outputAnalysisWeightOperatorNbodyMass
-     !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorNbodyMass} output analysis weight operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisWeightOperatorNbodyMass` output analysis weight operator class.
      !!}
      module procedure nbodyMassConstructorParameters
      module procedure nbodyMassConstructorInternal
@@ -51,8 +52,8 @@ halo mass distribution.
 contains
 
   function nbodyMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisWeightOperatorNbodyMass} output analysis weight operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisWeightOperatorNbodyMass` output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,15 +66,19 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rangeLower</name>
       <source>parameters</source>
-      <description>Lower integration limit for the nbodyMass distribution weight operator.</description>
+      <description>
+      Lower integration limit for the nbodyMass distribution weight operator.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rangeUpper</name>
       <source>parameters</source>
-      <description>Upper integration limit for the nbodyMass distribution weight operator.</description>
+      <description>
+      Upper integration limit for the nbodyMass distribution weight operator.
+      </description>
     </inputParameter>
     <objectBuilder class="nodePropertyExtractor"           name="nodePropertyExtractor_"           source="parameters"/>
     <objectBuilder class="outputAnalysisPropertyOperator"  name="outputAnalysisPropertyOperator_"  source="parameters"/>
@@ -90,8 +95,8 @@ contains
   end function nbodyMassConstructorParameters
 
   function nbodyMassConstructorInternal(rangeLower,rangeUpper,nodePropertyExtractor_,outputAnalysisPropertyOperator_,nbodyHaloMassError_) result (self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisWeightOperatorNbodyMass} output analysis weight operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisWeightOperatorNbodyMass` output analysis weight operator class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
@@ -115,8 +120,8 @@ contains
   end function nbodyMassConstructorInternal
 
   subroutine nbodyMassDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisWeightOperatorNbodyMass} output analysis weight operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisWeightOperatorNbodyMass` output analysis weight operator class.
     !!}
     type(outputAnalysisWeightOperatorNbodyMass), intent(inout) :: self
 
@@ -129,8 +134,8 @@ contains
   end subroutine nbodyMassDestructor
 
   double precision function nbodyMassRootVariance(self,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
-    !!{
-    Return the root variance for use in the \mono{nbodyMass} output analysis weight operator class.
+    !!{RST
+    Return the root variance for use in the ``nbodyMass`` output analysis weight operator class.
     !!}
     use :: Node_Property_Extractors, only : nodePropertyExtractorScalar
     implicit none

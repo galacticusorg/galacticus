@@ -18,15 +18,15 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMassCooled">
+  <nodePropertyExtractor name="nodePropertyExtractorMassCooled" docformat="rst">
    <description>
-     A node property extractor which extracts the mass of gas cooled out of the \gls{cgm}. If the parameter \mono{[resetAfterExtract]}$=$\mono{true} then the cooled mass is reset to zero after extraction.
+   A node property extractor which extracts the mass of gas cooled out of the :term:`CGM`. If the parameter ``[resetAfterExtract]``\ :math:`=`\ ``true`` then the cooled mass is reset to zero after extraction.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassCooled
-     !!{
-     A property extractor which extracts the mass of gas cooled out of the \gls{cgm}.
+     !!{RST
+     A property extractor which extracts the mass of gas cooled out of the :term:`CGM`.
      !!}
      private
      integer :: massCooledID
@@ -40,8 +40,8 @@
   end type nodePropertyExtractorMassCooled
 
   interface nodePropertyExtractorMassCooled
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMassCooled} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassCooled` property extractor class.
      !!}
      module procedure massCooledConstructorParameters
      module procedure massCooledConstructorInternal
@@ -50,8 +50,8 @@
 contains
 
   function massCooledConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMassCooled} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassCooled` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -60,10 +60,12 @@ contains
     logical                                                 :: resetAfterExtract
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>resetAfterExtract</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, the mass of gas cooled is reset to zero after being extracted.</description>
+      <description>
+      If true, the mass of gas cooled is reset to zero after being extracted.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -75,8 +77,8 @@ contains
   end function massCooledConstructorParameters
 
   function massCooledConstructorInternal(resetAfterExtract) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMassCooled} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMassCooled` property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorMassCooled)                :: self
@@ -92,8 +94,8 @@ contains
   end function massCooledConstructorInternal
 
   double precision function massCooledExtract(self,node,instance)
-    !!{
-    Implement an output extractor for the mass of gas cooled out of the \gls{cgm}.
+    !!{RST
+    Implement an output extractor for the mass of gas cooled out of the :term:`CGM`.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
@@ -116,8 +118,8 @@ contains
   end function massCooledExtract
 
   function massCooledName(self)
-    !!{
-    Return the names of the \mono{massCooled} property.
+    !!{RST
+    Return the names of the ``massCooled`` property.
     !!}
     implicit none
     type (varying_string                 )                :: massCooledName
@@ -129,8 +131,8 @@ contains
   end function massCooledName
 
   function massCooledDescription(self)
-    !!{
-    Return the description of the \mono{massCooled} property.
+    !!{RST
+    Return the description of the ``massCooled`` property.
     !!}
     implicit none
     type (varying_string                 )                :: massCooledDescription
@@ -142,8 +144,8 @@ contains
   end function massCooledDescription
 
   double precision function massCooledUnitsInSI(self)
-    !!{
-    Return the units of the \mono{massCooled} property in the SI system.
+    !!{RST
+    Return the units of the ``massCooled`` property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
@@ -155,7 +157,7 @@ contains
   end function massCooledUnitsInSI
 
   function massCooledUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the massCooled property.
     !!}
     use :: Units_MetaData, only : unitType

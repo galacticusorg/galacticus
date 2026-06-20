@@ -23,13 +23,15 @@
   end type stellarFeedbackOutflowsList
 
   !![
-  <stellarFeedbackOutflows name="stellarFeedbackOutflowsSummation">
-   <description>A stellar feedback outflow class that combines multiple outflow models by summing their ejective and expulsive outflow rates, allowing complex multi-component feedback prescriptions to be built from simpler models.</description>
+  <stellarFeedbackOutflows name="stellarFeedbackOutflowsSummation" docformat="rst">
+   <description>
+   A stellar feedback outflow class that combines multiple outflow models by summing their ejective and expulsive outflow rates, allowing complex multi-component feedback prescriptions to be built from simpler models.
+   </description>
    <linkedList type="stellarFeedbackOutflowsList" variable="stellarFeedbackOutflowss" next="next" object="stellarFeedbackOutflows" objectType="stellarFeedbackOutflowsClass"/>
   </stellarFeedbackOutflows>
   !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsSummation
-     !!{
+     !!{RST
      Implementation of a summation stellar feedback class.
      !!}
      private
@@ -40,8 +42,8 @@
   end type stellarFeedbackOutflowsSummation
 
   interface stellarFeedbackOutflowsSummation
-     !!{
-     Constructors for the \refClass{stellarFeedbackOutflowsSummation} stellar feedback class.
+     !!{RST
+     Constructors for the :galacticus-class:`stellarFeedbackOutflowsSummation` stellar feedback class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -50,8 +52,8 @@
 contains
 
   function summationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarFeedbackOutflowsSummation} stellar feedback class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`stellarFeedbackOutflowsSummation` stellar feedback class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -81,8 +83,8 @@ contains
   end function summationConstructorParameters
 
   function summationConstructorInternal(stellarFeedbackOutflowss) result(self)
-    !!{
-    Internal constructor for the \refClass{stellarFeedbackOutflowsSummation} stellar feedback class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`stellarFeedbackOutflowsSummation` stellar feedback class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -102,8 +104,8 @@ contains
   end function summationConstructorInternal
 
   subroutine summationDestructor(self)
-    !!{
-    Destructor for the \refClass{stellarFeedbackOutflowsSummation} stellar feedback class.
+    !!{RST
+    Destructor for the :galacticus-class:`stellarFeedbackOutflowsSummation` stellar feedback class.
     !!}
     implicit none
     type(stellarFeedbackOutflowsSummation), intent(inout) :: self
@@ -122,7 +124,7 @@ contains
   end subroutine summationDestructor
   
   subroutine summationOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
-    !!{
+    !!{RST
     Initialize the photon packet.
     !!}
     implicit none

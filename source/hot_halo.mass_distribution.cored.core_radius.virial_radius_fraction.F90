@@ -17,21 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a hot halo mass distribution core radius class which sets the core radius to a fraction of the virial radius.
 !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <hotHaloMassDistributionCoreRadius name="hotHaloMassDistributionCoreRadiusVirialFraction">
+  <hotHaloMassDistributionCoreRadius name="hotHaloMassDistributionCoreRadiusVirialFraction" docformat="rst">
    <description>
-    A hot halo mass distribution core radius class which sets the core radius equal to a fraction \mono{[coreRadiusOverVirialRadius]} of the node's virial radius.
+   A hot halo mass distribution core radius class which sets the core radius equal to a fraction ``[coreRadiusOverVirialRadius]`` of the node's virial radius.
    </description>
   </hotHaloMassDistributionCoreRadius>
   !!]
   type, extends(hotHaloMassDistributionCoreRadiusClass) :: hotHaloMassDistributionCoreRadiusVirialFraction
-     !!{
+     !!{RST
      An implementation of the hot halo mass distribution core radius class which sets the core radius to a fraction of the virial radius.
      !!}
      private
@@ -43,8 +43,8 @@ Implements a hot halo mass distribution core radius class which sets the core ra
   end type hotHaloMassDistributionCoreRadiusVirialFraction
 
   interface hotHaloMassDistributionCoreRadiusVirialFraction
-     !!{
-     Constructors for the \refClass{hotHaloMassDistributionCoreRadiusVirialFraction} hot halo mass distribution core radius class.
+     !!{RST
+     Constructors for the :galacticus-class:`hotHaloMassDistributionCoreRadiusVirialFraction` hot halo mass distribution core radius class.
      !!}
      module procedure virialFractionConstructorParameters
      module procedure virialFractionConstructorInternal
@@ -53,9 +53,8 @@ Implements a hot halo mass distribution core radius class which sets the core ra
 contains
 
   function virialFractionConstructorParameters(parameters) result(self)
-    !!{
-    A constructor for the \mono{virialFraction} hot halo mass distribution core radius class which builds the
-    object from a parameter set.
+    !!{RST
+    A constructor for the ``virialFraction`` hot halo mass distribution core radius class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,10 +64,12 @@ contains
     double precision                                                                 :: coreRadiusOverVirialRadius
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>coreRadiusOverVirialRadius</name>
       <defaultValue>0.3d0</defaultValue>
-      <description>The core radius in the hot halo density profile in units of the virial radius.</description>
+      <description>
+      The core radius in the hot halo density profile in units of the virial radius.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
@@ -82,8 +83,8 @@ contains
   end function virialFractionConstructorParameters
 
   function virialFractionConstructorInternal(coreRadiusOverVirialRadius,darkMatterHaloScale_) result(self)
-    !!{
-    Default constructor for the \mono{virialFraction} hot halo mass distribution core radius class.
+    !!{RST
+    Default constructor for the ``virialFraction`` hot halo mass distribution core radius class.
     !!}
     implicit none
     type            (hotHaloMassDistributionCoreRadiusVirialFraction)                        :: self
@@ -97,8 +98,8 @@ contains
   end function virialFractionConstructorInternal
 
   subroutine virialFractionDestructor(self)
-    !!{
-    Destructor for the \refClass{hotHaloMassDistributionCoreRadiusVirialFraction} hot halo mass distribution core radius class.
+    !!{RST
+    Destructor for the :galacticus-class:`hotHaloMassDistributionCoreRadiusVirialFraction` hot halo mass distribution core radius class.
     !!}
     implicit none
     type(hotHaloMassDistributionCoreRadiusVirialFraction), intent(inout) :: self
@@ -110,7 +111,7 @@ contains
   end subroutine virialFractionDestructor
 
   double precision function virialFractionRadius(self,node)
-    !!{
+    !!{RST
     Return the core radius of the hot halo mass distribution.
     !!}
     implicit none

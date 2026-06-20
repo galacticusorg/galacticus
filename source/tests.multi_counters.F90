@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test multi-counters.
 !!}
 
 program Test_Multi_Counters
-  !!{
+  !!{RST
   Tests of multi-counters.
   !!}
   use            :: Display       , only : displayVerbositySet, verbosityLevelStandard

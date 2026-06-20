@@ -19,28 +19,29 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-!!{
+!!{RST
 Contains a module that implements a class for computing tidal heating rates for satellites.
 !!}
 
 module Satellite_Tidal_Heating
-  !!{
+  !!{RST
   Implements a class for calculations of tidal heating for satellites.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>satelliteTidalHeatingRate</name>
    <descriptiveName>Satellite Halo Tidal Heating Rates</descriptiveName>
    <description>
-    Class providing models of tidal heating rates in satellite halos. Specifically, the integrated, normalized (i.e. the energy
-    divided by radius squared) tidal heating energy, $Q_\mathrm{tidal}$.
+   Class providing models of tidal heating rates in satellite halos. Specifically, the integrated, normalized (i.e. the energy divided by radius squared) tidal heating energy, :math:`Q_\mathrm{tidal}`.
    </description>
    <default>zero</default>
    <method name="heatingRate" >
-    <description>Return the satellite tidal heating rate for \mono{node} (in units of (km/s/Mpc)$^2$/Gyr).</description>
+    <description>
+    Return the satellite tidal heating rate for ``node`` (in units of (km/s/Mpc)\ :math:`^2`/Gyr).
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

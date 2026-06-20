@@ -158,8 +158,11 @@ def iterate(simulations, options, stop_after='redshift'):
 
             for resolution in hash_list(group.get('resolution', {}), key_as='name'):
                 res_name = resolution['name']
+                # Pre-filter: `is_best_resolution=True` lets resolutions through
+                # when the selection uses the `best` keyword; the proper per-
+                # (simulation, realization) `is_best` check happens below.
                 if not match_selection(selections, suite=suite_name, group=group_name,
-                                       resolution=res_name):
+                                       resolution=res_name, is_best_resolution=True):
                     continue
 
                 # Lazily load subvolumes, particle mass, and epoch lists.
@@ -173,7 +176,8 @@ def iterate(simulations, options, stop_after='redshift'):
                 for simulation in hash_list(resolution.get('simulation', {}), key_as='name'):
                     sim_name = simulation['name']
                     if not match_selection(selections, suite=suite_name, group=group_name,
-                                           resolution=res_name, simulation=sim_name):
+                                           resolution=res_name, simulation=sim_name,
+                                           is_best_resolution=True):
                         continue
 
                     # Build realization list.

@@ -17,30 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements a class for black hole heating of the \gls{cgm}.
+!!{RST
+Contains a module which implements a class for black hole heating of the :term:`CGM`.
 !!}
 
 module Black_Hole_CGM_Heating
-  !!{
-  Implements a class for black hole heating of the \gls{cgm}.
+  !!{RST
+  Implements a class for black hole heating of the :term:`CGM`.
   !!}
   use :: Galacticus_Nodes, only : nodeComponentBlackHole
   implicit none
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>blackHoleCGMHeating</name>
    <descriptiveName>Black Hole CGM Heating</descriptiveName>
-   <description>Class providing models of the heating rate (in $\mathrm{M}_\odot$ (km/s)$^2$ Gyr$^{-1}$) delivered by an active galactic nucleus
-    to the \gls{cgm} of its host halo. AGN heating of the \gls{cgm} is a key mechanism for quenching star
-    formation in massive galaxies (``radio-mode'' or ``maintenance-mode'' feedback), counterbalancing radiative
-    cooling of the hot gas atmosphere. Implementations may couple the jet power, the wind power, or a fixed
-    fraction of the AGN bolometric luminosity to the surrounding hot gas.</description>
+   <description>
+   Class providing models of the heating rate (in :math:`\mathrm{M}_\odot` (km/s)\ :math:`^2` Gyr\ :math:`^{-1}`) delivered by an active galactic nucleus to the :term:`CGM` of its host halo. AGN heating of the :term:`CGM` is a key mechanism for quenching star formation in massive galaxies ("radio-mode" or "maintenance-mode" feedback), counterbalancing radiative cooling of the hot gas atmosphere. Implementations may couple the jet power, the wind power, or a fixed fraction of the AGN bolometric luminosity to the surrounding hot gas.
+   </description>
    <default>jetPower</default>
    <method name="heatingRate" >
-    <description>Compute the heating rate of the CGM due to the given \mono{blackHole}.</description>
+    <description>
+    Compute the heating rate of the CGM due to the given ``blackHole``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(nodeComponentBlackHole), intent(inout) :: blackHole</argument>

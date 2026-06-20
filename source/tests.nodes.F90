@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program which tests the \glspl{node} implementation.
+!!{RST
+Contains a program which tests the :term:`node` implementation.
 !!}
 
 program Test_Nodes
-  !!{
-  Tests the \glspl{node} implementation.
+  !!{RST
+  Tests the :term:`node` implementation.
   !!}
   use :: Array_Utilities           , only : Array_Reverse
   use :: Display                   , only : displayVerbositySet       , verbosityLevelStandard

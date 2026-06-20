@@ -17,13 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Tests of the self-interacting dark matter particle cross sections. For the velocity-dependent model the total, differential,
-momentum-transfer, and viscosity cross sections are checked against their closed forms, and the effective cross section against
-the analytic result for this model. For the constant model the differential and effective cross sections are checked. The
-velocity-dependent model is $\mathrm{d}\sigma/\mathrm{d}\theta = (\sigma_0/2) \sin\theta w^4/[w^2+v^2(1-\cos\theta)/2]^2$ with
-characteristic velocity $w$; the analytic effective cross section uses an effective velocity dispersion
-$v_\mathrm{eff}=0.64\,V_\mathrm{max}$.
+!!{RST
+Tests of the self-interacting dark matter particle cross sections. For the velocity-dependent model the total, differential, momentum-transfer, and viscosity cross sections are checked against their closed forms, and the effective cross section against the analytic result for this model. For the constant model the differential and effective cross sections are checked. The velocity-dependent model is :math:`\mathrm{d}\sigma/\mathrm{d}\theta = (\sigma_0/2) \sin\theta w^4/[w^2+v^2(1-\cos\theta)/2]^2` with characteristic velocity :math:`w`; the analytic effective cross section uses an effective velocity dispersion :math:`v_\mathrm{eff}=0.64\,V_\mathrm{max}`.
 !!}
 
 program Tests_SIDM_Cross_Sections

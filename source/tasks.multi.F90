@@ -23,13 +23,15 @@
   end type multiTaskList
 
   !![
-  <task name="taskMulti">
-   <description>A task which sequentially performs multiple other tasks, iterating through a linked list of \refClass{taskClass} objects and calling each one's \mono{perform} method in order. This allows combining several independent computations (e.g., evolving forests plus computing a power spectrum) into a single \glc\ run.</description>
+  <task name="taskMulti" docformat="rst">
+   <description>
+   A task which sequentially performs multiple other tasks, iterating through a linked list of :galacticus-class:`taskClass` objects and calling each one's ``perform`` method in order. This allows combining several independent computations (e.g., evolving forests plus computing a power spectrum) into a single Galacticus run.
+   </description>
    <linkedList type="multiTaskList" variable="tasks" next="next" object="task_" objectType="taskClass"/>
   </task>
   !!]
   type, extends(taskClass) :: taskMulti
-     !!{
+     !!{RST
      Implementation of a task which performs multiple other tasks.
      !!}
      private
@@ -41,8 +43,8 @@
   end type taskMulti
 
   interface taskMulti
-     !!{
-     Constructors for the \refClass{taskMulti} task.
+     !!{RST
+     Constructors for the :galacticus-class:`taskMulti` task.
      !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
@@ -51,8 +53,8 @@
 contains
 
   function multiConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskMulti} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskMulti` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -82,8 +84,8 @@ contains
   end function multiConstructorParameters
 
   function multiConstructorInternal(tasks) result(self)
-    !!{
-    Internal constructor for the \refClass{taskMulti} task class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`taskMulti` task class.
     !!}
     implicit none
     type(taskMulti    )                        :: self
@@ -102,8 +104,8 @@ contains
   end function multiConstructorInternal
 
   subroutine multiDestructor(self)
-    !!{
-    Destructor for the \refClass{taskMulti} task class.
+    !!{RST
+    Destructor for the :galacticus-class:`taskMulti` task class.
     !!}
     implicit none
     type(taskMulti    ), intent(inout) :: self
@@ -124,7 +126,7 @@ contains
   end subroutine multiDestructor
 
   subroutine multiPerform(self,status)
-    !!{
+    !!{RST
     Perform all tasks.
     !!}
     use :: Display, only : displayIndent     , displayUnindent
@@ -147,7 +149,7 @@ contains
   end subroutine multiPerform
 
   logical function multiRequiresOutputFile(self)
-    !!{
+    !!{RST
     Returns true if any sub-task requires that the output file be open.
     !!}
     implicit none

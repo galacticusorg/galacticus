@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a null N-body data operator.
 !!}
 
   !![
-  <nbodyOperator name="nbodyOperatorNull">
-   <description>A null (no-op) N-body data operator that performs no transformation on the simulation data, used as a default or placeholder in operator pipelines.</description>
+  <nbodyOperator name="nbodyOperatorNull" docformat="rst">
+   <description>
+   A null (no-op) N-body data operator that performs no transformation on the simulation data, used as a default or placeholder in operator pipelines.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorNull
-     !!{
+     !!{RST
      A null N-body data operator.
      !!}
      private
@@ -36,8 +38,8 @@ Implements a null N-body data operator.
   end type nbodyOperatorNull
 
   interface nbodyOperatorNull
-     !!{
-     Constructors for the \refClass{nbodyOperatorNull} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorNull` N-body operator class.
      !!}
      module procedure nullConstructorParameters
   end interface nbodyOperatorNull
@@ -45,8 +47,8 @@ Implements a null N-body data operator.
 contains
 
   function nullConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorNull} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorNull` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function nullConstructorParameters
 
   subroutine nullOperate(self,simulations)
-    !!{
+    !!{RST
     Perform a null operation on N-body simulation data.
     !!}
     implicit none

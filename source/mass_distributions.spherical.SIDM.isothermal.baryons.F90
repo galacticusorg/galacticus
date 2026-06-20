@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{  
-  Provides a mass distribution implementing the ``isothermal'' approximation to the effects of SIDM, including the baryonic
-  potential, based on the model of \cite{jiang_semi-analytic_2023}.
+  !!{RST
+  Provides a mass distribution implementing the "isothermal" approximation to the effects of SIDM, including the baryonic potential, based on the model of :cite:t:`jiang_semi-analytic_2023`.
   !!}
 
   use, intrinsic :: ISO_C_Binding          , only : c_size_t
@@ -29,31 +28,33 @@
   public :: sphericalSIDMIsothermalBaryonsInitializor
   
   !![
-  <massDistribution name="massDistributionSphericalSIDMIsothermalBaryons">
+  <massDistribution name="massDistributionSphericalSIDMIsothermalBaryons" docformat="rst">
    <description>
-      Mass distributions for self-interacting dark matter following the ``isothermal'' model of \cite{jiang_semi-analytic_2023}. This
-      model assumes that the dark matter within the interaction radius, $r_1$, has thermalized and can therefore be described by a
-      constant velocity dispersion, $\sigma_0$. Under this assumption the spherical Jeans equation has a solution of the form:
-      \begin{equation}
+   Mass distributions for self-interacting dark matter following the "isothermal" model of :cite:t:`jiang_semi-analytic_2023`. This model assumes that the dark matter within the interaction radius, :math:`r_1`, has thermalized and can therefore be described by a constant velocity dispersion, :math:`\sigma_0`. Under this assumption the spherical Jeans equation has a solution of the form:
+
+   .. math::
+
       \rho(r) = \rho_0 \exp\left[-\frac{\phi(r)}{\sigma_0^2}\right],
-      \end{equation}
-      where $\rho(r)$ is the density $\rho_0$ is the density at $r=0$, and the gravitational potential satisfies \citep{jiang_semi-analytic_2023}:
-      \begin{equation}
+
+   where :math:`\rho(r)` is the density :math:`\rho_0` is the density at :math:`r=0`, and the gravitational potential satisfies :cite:p:`jiang_semi-analytic_2023`:
+
+   .. math::
+
       \nabla^2 \phi(r) = 4 \pi \mathrm{G} \left[ \rho_0 \exp \left( - \frac{\phi(r)}{\sigma_0^2} \right) + \rho_\mathrm{b}(r) \right],
-      \end{equation}
-      where $\rho_\mathrm{b}(r)$ is the density of the baryonic component. This second-order differential equation is solved using the boundary conditions $\phi(r=0)=0$ and
-      $\mathrm{d}\phi/\mathrm{d}r(r=0)=0$. The values of $\rho_0$ and $\sigma_0$ are then found by minimizing a function      
-      \begin{equation}
+
+   where :math:`\rho_\mathrm{b}(r)` is the density of the baryonic component. This second-order differential equation is solved using the boundary conditions :math:`\phi(r=0)=0` and :math:`\mathrm{d}\phi/\mathrm{d}r(r=0)=0`. The values of :math:`\rho_0` and :math:`\sigma_0` are then found by minimizing a function
+
+   .. math::
+
       \delta^2(\rho_0,\sigma_0) = \left[ \frac{\rho(r_1)}{\rho^\prime(r_1)} - 1 \right]^2 + \left[ \frac{M(r_1)}{M^\prime(r_1)} - 1 \right]^2,
-      \end{equation}
-      where $M(r)$ is the mass contained within radius $r$, and primes indicate the profile prior to SIDM thermalization.
+
+   where :math:`M(r)` is the mass contained within radius :math:`r`, and primes indicate the profile prior to SIDM thermalization.
    </description>
   </massDistribution>
   !!]
   type, extends(massDistributionSphericalSIDM) :: massDistributionSphericalSIDMIsothermalBaryons
-     !!{
-     A mass distribution implementing the ``isothermal'' approximation to the effects of SIDM, including the baryonic potential,
-     based on the model of \cite{jiang_semi-analytic_2023}.
+     !!{RST
+     A mass distribution implementing the "isothermal" approximation to the effects of SIDM, including the baryonic potential, based on the model of :cite:t:`jiang_semi-analytic_2023`.
      !!}
      private
      double precision                                                                 :: velocityDispersionCentral
@@ -65,7 +66,7 @@
      class           (*                                        ), pointer             :: initializationSelf        => null(), initializationArgument => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="setBaryonicComponent" description="Set baryonic components in the mass distribution."         />
        <method method="computeSolution"      description="Compute a solution for the isothermal core of a SIDM halo."/>
      </methods>
@@ -81,8 +82,8 @@
   end type massDistributionSphericalSIDMIsothermalBaryons
 
   interface massDistributionSphericalSIDMIsothermalBaryons
-     !!{
-     Constructors for the \refClass{massDistributionSphericalSIDMIsothermalBaryons} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionSphericalSIDMIsothermalBaryons` mass distribution class.
      !!}
      module procedure sphericalSIDMIsothermalBaryonsConstructorParameters
      module procedure sphericalSIDMIsothermalBaryonsConstructorInternal
@@ -90,7 +91,7 @@
 
   abstract interface 
      subroutine sphericalSIDMIsothermalBaryonsInitializor(initializationSelf,initializationArgument,massDistributionBaryonic)
-       !!{
+       !!{RST
        Interface for call-back functions for as-needed initialization of the baryonic component.
        !!}
        import massDistributionClass
@@ -102,8 +103,8 @@
 contains
 
   function sphericalSIDMIsothermalBaryonsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalSIDMIsothermalBaryons} mass distribution class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionSphericalSIDMIsothermalBaryons` mass distribution class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -119,32 +120,42 @@ contains
     double precision                                                                :: timeAge               , velocityRelativeMean
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeAge</name>
       <source>parameters</source>
-      <description>The age of the halo (in Gyr) since its formation, setting the time available for SIDM interactions to thermalize the dark matter core while the baryonic potential influences the resulting density profile.</description>
+      <description>
+      The age of the halo (in Gyr) since its formation, setting the time available for SIDM interactions to thermalize the dark matter core while the baryonic potential influences the resulting density profile.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityRelativeMean</name>
       <source>parameters</source>
-      <description>Mean relative velocity to calculate self interaction cross section.</description>
+      <description>
+      Mean relative velocity to calculate self interaction cross section.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>
+      Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring heating is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution"   name="massDistribution_"                                                 source="parameters"/>
@@ -169,8 +180,8 @@ contains
   end function sphericalSIDMIsothermalBaryonsConstructorParameters
 
   function sphericalSIDMIsothermalBaryonsConstructorInternal(timeAge,velocityRelativeMean,nonAnalyticSolver,massDistribution_,massDistributionBaryonic,darkMatterParticle_,initializationFunction,initializationSelf,initializationArgument,componentType,massType) result(self)
-    !!{
-    Internal constructor for the \refClass{massDistributionSphericalSIDMIsothermalBaryons} mass distribution class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`massDistributionSphericalSIDMIsothermalBaryons` mass distribution class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -202,8 +213,8 @@ contains
   end function sphericalSIDMIsothermalBaryonsConstructorInternal
 
   subroutine sphericalSIDMIsothermalBaryonsDestructor(self)
-    !!{
-    Destructor for the abstract \refClass{massDistributionSphericalSIDMIsothermalBaryons} mass distribution class.
+    !!{RST
+    Destructor for the abstract :galacticus-class:`massDistributionSphericalSIDMIsothermalBaryons` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalSIDMIsothermalBaryons), intent(inout) :: self
@@ -217,7 +228,7 @@ contains
   end subroutine sphericalSIDMIsothermalBaryonsDestructor
 
   subroutine sphericalSIDMIsothermalBaryonsSetBaryonicComponent(self)
-    !!{
+    !!{RST
     Set the baryonic component properties in an adiabatically-contracted spherical mass distribution.
     !!}
     implicit none
@@ -234,7 +245,7 @@ contains
   end subroutine sphericalSIDMIsothermalBaryonsSetBaryonicComponent
 
   subroutine sphericalSIDMIsothermalBaryonsComputeSolution(self)
-    !!{
+    !!{RST
     Compute a solution for the isothermal core of an SIDM halo.
     !!}
     use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
@@ -315,7 +326,7 @@ contains
   contains
     
     double precision function sidmIsothermalFitMetric(propertiesCentral)
-      !!{
+      !!{RST
       Evaluate the fit metric.
       !!}
       implicit none
@@ -344,7 +355,7 @@ contains
     end function sidmIsothermalFitMetric
   
     integer function sidmIsothermalODEs(radius,properties,propertiesRateOfChange)
-      !!{
+      !!{RST
       Define the ODE system to solve for isothermal self-interacting dark matter cores.
       !!}
       use :: Interface_GSL                   , only : GSL_Success
@@ -388,9 +399,8 @@ contains
   end subroutine sphericalSIDMIsothermalBaryonsComputeSolution
 
   double precision function sphericalSIDMIsothermalBaryonsDensity(self,coordinates) result(density)
-    !!{
-    Compute the density at the specified \mono{coordinates} for the \mono{sphericalSIDMIsothermalBaryons}
-    mass distribution.
+    !!{RST
+    Compute the density at the specified ``coordinates`` for the ``sphericalSIDMIsothermalBaryons`` mass distribution.
     !!}
     implicit none
     class(massDistributionSphericalSIDMIsothermalBaryons), intent(inout) :: self
@@ -406,8 +416,8 @@ contains
   end function sphericalSIDMIsothermalBaryonsDensity
 
   double precision function sphericalSIDMIsothermalBaryonsDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
-    !!{
-    Return the density at the specified \mono{coordinates} in a truncated spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a truncated spherical mass distribution.
     !!}
     implicit none
     class  (massDistributionSphericalSIDMIsothermalBaryons), intent(inout) , target   :: self
@@ -430,9 +440,8 @@ contains
   end function sphericalSIDMIsothermalBaryonsDensityGradientRadial
   
   double precision function sphericalSIDMIsothermalBaryonsMassEnclosedBySphere(self,radius) result(mass)
-    !!{   
-    Computes the mass enclosed within a sphere of given \mono{radius} for the \mono{sphericalSIDMIsothermalBaryons}
-    mass distribution.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for the ``sphericalSIDMIsothermalBaryons`` mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalSIDMIsothermalBaryons), intent(inout) , target :: self
@@ -448,7 +457,7 @@ contains
   end function sphericalSIDMIsothermalBaryonsMassEnclosedBySphere
 
   logical function sphericalSIDMIsothermalBaryonsPotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return if the potential has an analytic form.
     !!}
     implicit none
@@ -459,8 +468,8 @@ contains
   end function sphericalSIDMIsothermalBaryonsPotentialIsAnalytic
 
   double precision function sphericalSIDMIsothermalBaryonsPotential(self,coordinates,status) result(potential)
-    !!{
-    Return the potential at the specified \mono{coordinates} in an burkert mass distribution.
+    !!{RST
+    Return the potential at the specified ``coordinates`` in an burkert mass distribution.
     !!}
     use :: Coordinates               , only : coordinateSpherical      , assignment(=)
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess

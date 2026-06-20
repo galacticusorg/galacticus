@@ -17,16 +17,18 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a random error output analysis distribution operator class.
 !!}
   !![
-  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorFixed">
-   <description>An output analysis distribution operator that convolves a property distribution with a fixed-width Gaussian random error of root variance \mono{rootVariance}, modeling constant measurement scatter across all property values.</description>
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorFixed" docformat="rst">
+   <description>
+   An output analysis distribution operator that convolves a property distribution with a fixed-width Gaussian random error of root variance ``rootVariance``, modeling constant measurement scatter across all property values.
+   </description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRandomErrorFixed
-     !!{
+     !!{RST
      A random error output distribution operator class which has a fixed error magnitude.
      !!}
      private
@@ -36,8 +38,8 @@ Implements a random error output analysis distribution operator class.
   end type outputAnalysisDistributionOperatorRandomErrorFixed
 
   interface outputAnalysisDistributionOperatorRandomErrorFixed
-     !!{
-     Constructors for the \refClass{outputAnalysisDistributionOperatorRandomErrorFixed} output analysis distribution operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorFixed` output analysis distribution operator class.
      !!}
      module procedure randomErrorFixedConstructorParameters
      module procedure randomErrorFixedConstructorInternal
@@ -46,8 +48,8 @@ Implements a random error output analysis distribution operator class.
 contains
 
   function randomErrorFixedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisDistributionOperatorRandomErrorFixed} output analysis distribution operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorFixed` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -57,11 +59,13 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rootVariance</name>
       <source>parameters</source>
       <variable>rootVariance_</variable>
-      <description>The root variance of the random error distribution.</description>
+      <description>
+      The root variance of the random error distribution.
+      </description>
     </inputParameter>
     !!]
     ! Construct the object.
@@ -73,8 +77,8 @@ contains
   end function randomErrorFixedConstructorParameters
 
   function randomErrorFixedConstructorInternal(rootVariance_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisDistributionOperatorRandomErrorFixed} output analysis distribution operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorFixed` output analysis distribution operator class.
     !!}
     implicit none
     type            (outputAnalysisDistributionOperatorRandomErrorFixed)                :: self
@@ -87,7 +91,7 @@ contains
   end function randomErrorFixedConstructorInternal
 
   double precision function randomErrorFixedRootVariance(self,propertyValue,node)
-    !!{
+    !!{RST
     Return the root-variance in the fixed random error distribution operator.
     !!}
     implicit none

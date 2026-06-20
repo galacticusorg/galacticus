@@ -17,21 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a timescale for star formation which limits the timescale to be above a given multiple of the component
-  dynamical time.
+  !!{RST
+  Implementation of a timescale for star formation which limits the timescale to be above a given multiple of the component dynamical time.
   !!}
 
   !![
-  <starFormationTimescale name="starFormationTimescaleLowerLimited">
-   <description>A timescale for star formation which limits the timescale to be above a given multiple of the component dynamical time.
+  <starFormationTimescale name="starFormationTimescaleLowerLimited" docformat="rst">
+   <description>
+   A timescale for star formation which limits the timescale to be above a given multiple of the component dynamical time.
    </description>
   </starFormationTimescale>
   !!]
   type, extends(starFormationTimescaleClass) :: starFormationTimescaleLowerLimited
-     !!{
-     Implementation of a timescale for star formation which limits the timescale to be above a given multiple of the component
-     dynamical time.
+     !!{RST
+     Implementation of a timescale for star formation which limits the timescale to be above a given multiple of the component dynamical time.
      !!}
      private
      class           (starFormationTimescaleClass), pointer :: starFormationTimescale_ => null()
@@ -42,8 +41,8 @@
   end type starFormationTimescaleLowerLimited
 
   interface starFormationTimescaleLowerLimited
-     !!{
-     Constructors for the \refClass{starFormationTimescaleLowerLimited} timescale for star formation class.
+     !!{RST
+     Constructors for the :galacticus-class:`starFormationTimescaleLowerLimited` timescale for star formation class.
      !!}
      module procedure lowerLimitedConstructorParameters
      module procedure lowerLimitedConstructorInternal
@@ -52,9 +51,8 @@
 contains
 
   function lowerLimitedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{starFormationTimescaleLowerLimited} timescale for star formation class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the :galacticus-class:`starFormationTimescaleLowerLimited` timescale for star formation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,10 +62,12 @@ contains
     double precision                                                    :: timescaleMinimum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescaleMinimum</name>
       <defaultValue>1.0d-3</defaultValue>
-      <description>The minimum timescale for star formation in units of the dynamical time.</description>
+      <description>
+      The minimum timescale for star formation in units of the dynamical time.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="starFormationTimescale"  name="starFormationTimescale_"  source="parameters"/>
@@ -81,8 +81,8 @@ contains
   end function lowerLimitedConstructorParameters
 
   function lowerLimitedConstructorInternal(timescaleMinimum,starFormationTimescale_) result(self)
-    !!{
-    Internal constructor for the \refClass{starFormationTimescaleLowerLimited} timescale for star formation class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`starFormationTimescaleLowerLimited` timescale for star formation class.
     !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent, defaultSpheroidComponent
     implicit none
@@ -103,9 +103,8 @@ contains
   end function lowerLimitedConstructorInternal
 
   double precision function lowerLimitedTimescale(self,component)
-    !!{
-    Return a star formation rate for the given \mono{component} which is limited to be no smaller than a given
-    multiple of the dynamical time.
+    !!{RST
+    Return a star formation rate for the given ``component`` which is limited to be no smaller than a given multiple of the dynamical time.
     !!}
     use :: Array_Utilities                 , only : operator(.intersection.)
     use :: Error                           , only : Error_Report

@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <task name="taskLocalGroupDatabase">
-   <description>A task which updates the Local Group database, downloading and processing observational data on Local Group galaxies (such as stellar masses, star formation rates, and structural parameters) for use as constraints in galaxy formation models.</description>
+  <task name="taskLocalGroupDatabase" docformat="rst">
+   <description>
+   A task which updates the Local Group database, downloading and processing observational data on Local Group galaxies (such as stellar masses, star formation rates, and structural parameters) for use as constraints in galaxy formation models.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskLocalGroupDatabase
-     !!{
+     !!{RST
      Implementation of a task which updates the Local Group database.
      !!}
      private
@@ -33,8 +35,8 @@
   end type taskLocalGroupDatabase
 
   interface taskLocalGroupDatabase
-     !!{
-     Constructors for the \refClass{taskLocalGroupDatabase} task.
+     !!{RST
+     Constructors for the :galacticus-class:`taskLocalGroupDatabase` task.
      !!}
      module procedure localGroupDatabaseParameters
   end interface taskLocalGroupDatabase
@@ -42,8 +44,8 @@
 contains
 
   function localGroupDatabaseParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskLocalGroupDatabase} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskLocalGroupDatabase` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -56,7 +58,7 @@ contains
   end function localGroupDatabaseParameters
 
   subroutine localGroupDatabasePerform(self,status)
-    !!{
+    !!{RST
     Update the database.
     !!}
     use :: Display                 , only : displayIndent     , displayUnindent
@@ -77,7 +79,7 @@ contains
   end subroutine localGroupDatabasePerform
 
   logical function localGroupDatabaseRequiresOutputFile(self)
-    !!{
+    !!{RST
     Specifies that this task does not requires the main output file.
     !!}
     implicit none

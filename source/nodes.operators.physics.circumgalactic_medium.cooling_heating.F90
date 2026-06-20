@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that implements inflow/outflow of gas from the \gls{cgm} due to cooling/heating.
+  !!{RST
+  Implements a node operator class that implements inflow/outflow of gas from the :term:`CGM` due to cooling/heating.
   !!}
 
   use :: Cooling_Rates                   , only : coolingRateClass
@@ -32,19 +32,15 @@
   use :: Cooling_Options                 , only : enumerationCoolingFromType
 
   !![
-  <nodeOperator name="nodeOperatorCGMCoolingHeating">
+  <nodeOperator name="nodeOperatorCGMCoolingHeating" docformat="rst">
    <description>
-    A node operator class that drives cooling-driven gas infall from the \gls{cgm} into a galaxy component and, optionally,
-    heating-driven gas expulsion. \mono{component} selects the destination (disk or spheroid); \mono{coolingFrom} specifies
-    whether angular momentum is computed from \mono{currentNode} or \mono{formationNode}; \mono{excessHeatDrivesOutflow}
-    enables AGN/stellar heating to expel gas from the \gls{cgm}; \mono{rateMaximumExpulsion} caps the outflow rate.
-    Cooling rates and angular momenta are supplied by \refClass{coolingRateClass} and \refClass{coolingSpecificAngularMomentumClass}.
+   A node operator class that drives cooling-driven gas infall from the :term:`CGM` into a galaxy component and, optionally, heating-driven gas expulsion. ``component`` selects the destination (disk or spheroid); ``coolingFrom`` specifies whether angular momentum is computed from ``currentNode`` or ``formationNode``; ``excessHeatDrivesOutflow`` enables AGN/stellar heating to expel gas from the :term:`CGM`; ``rateMaximumExpulsion`` caps the outflow rate. Cooling rates and angular momenta are supplied by :galacticus-class:`coolingRateClass` and :galacticus-class:`coolingSpecificAngularMomentumClass`.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorCGMCoolingHeating
-     !!{
-     A node operator class that implements inflow/outflow of gas from the \gls{cgm} due to cooling/heating.
+     !!{RST
+     A node operator class that implements inflow/outflow of gas from the :term:`CGM` due to cooling/heating.
      !!}
      private
      class           (coolingRateClass                   ), pointer :: coolingRate_                    => null()
@@ -64,8 +60,8 @@
   end type nodeOperatorCGMCoolingHeating
   
   interface nodeOperatorCGMCoolingHeating
-     !!{
-     Constructors for the \refClass{nodeOperatorCGMCoolingHeating} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorCGMCoolingHeating` node operator class.
      !!}
      module procedure cgmCoolingHeatingConstructorParameters
      module procedure cgmCoolingHeatingConstructorInternal
@@ -74,8 +70,8 @@
 contains
   
   function cgmCoolingHeatingConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorCGMCoolingHeating} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorCGMCoolingHeating` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
@@ -95,28 +91,36 @@ contains
     double precision                                                     :: rateMaximumExpulsion
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>component</name>
       <source>parameters</source>
-      <description>The component to which cooling gas should be directed.</description>
+      <description>
+      The component to which cooling gas should be directed.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>coolingFrom</name>
       <defaultValue>var_str('currentNode')</defaultValue>
-      <description>Specifies whether the angular momentum of cooling gas should be computed from the \mono{currentNode} or the \mono{formationNode}.</description>
+      <description>
+      Specifies whether the angular momentum of cooling gas should be computed from the ``currentNode`` or the ``formationNode``.
+      </description>
       <source>parameters</source>
       <variable>coolingFrom</variable>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>excessHeatDrivesOutflow</name>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
-      <description>Specifies whether heating of the halo in excess of its cooling rate will drive an outflow from the halo.</description>
+      <description>
+      Specifies whether heating of the halo in excess of its cooling rate will drive an outflow from the halo.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rateMaximumExpulsion</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>Specifies the maximum rate at which mass can be expelled from the hot halo in units of the inverse halo dynamical time.</description>
+      <description>
+      Specifies the maximum rate at which mass can be expelled from the hot halo in units of the inverse halo dynamical time.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="coolingRate"                    name="coolingRate_"                    source="parameters"/>
@@ -142,8 +146,8 @@ contains
   end function cgmCoolingHeatingConstructorParameters
 
   function cgmCoolingHeatingConstructorInternal(component,coolingFrom,excessHeatDrivesOutflow,rateMaximumExpulsion,coolingRate_,coolingInfallRadius_,coolingSpecificAngularMomentum_,coolingInfallTorque_,circumgalacticMediumHeating_,hotHaloOutflowStripping_,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorCGMCoolingHeating} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorCGMCoolingHeating` node operator class.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNone
     use :: Error                     , only : Error_Report
@@ -175,8 +179,8 @@ contains
   end function cgmCoolingHeatingConstructorInternal
 
   subroutine cgmCoolingHeatingDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorCGMCoolingHeating} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorCGMCoolingHeating` node operator class.
     !!}
     implicit none
     type(nodeOperatorCGMCoolingHeating), intent(inout) :: self
@@ -194,8 +198,8 @@ contains
   end subroutine cgmCoolingHeatingDestructor
 
   subroutine cgmCoolingHeatingDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
-    Perform inflow/outflow of \gls{cgm} gas due to cooling/heating.
+    !!{RST
+    Perform inflow/outflow of :term:`CGM` gas due to cooling/heating.
     !!}
     use :: Abundances_Structure         , only : abundances            , operator(*)
     use :: Chemical_Abundances_Structure, only : chemicalAbundances

@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides data for the standard hot halo node component.
 !!}
 
 module Node_Component_Hot_Halo_Standard_Data
-  !!{
+  !!{RST
   Provides data for the standard hot halo node component.
   !!}
   public

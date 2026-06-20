@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that tracks the mass and metals arriving in the \gls{cgm} from outflows.
+  !!{RST
+  Implements a node operator class that tracks the mass and metals arriving in the :term:`CGM` from outflows.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorTrackOutflowedMass">
-   <description>Tracks the cumulative mass and metal content arriving in the circumgalactic medium (\gls{cgm}) via stellar and AGN-driven outflows, enabling analysis of feedback-driven enrichment histories.</description>
+  <nodeOperator name="nodeOperatorTrackOutflowedMass" docformat="rst">
+   <description>
+   Tracks the cumulative mass and metal content arriving in the circumgalactic medium (:term:`CGM`) via stellar and AGN-driven outflows, enabling analysis of feedback-driven enrichment histories.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorTrackOutflowedMass
-     !!{
-     A node operator class that tracks the mass and metals arriving in the \gls{cgm} from outflows.
+     !!{RST
+     A node operator class that tracks the mass and metals arriving in the :term:`CGM` from outflows.
      !!}
      private
      integer :: massOutflowedID, massMetalsOutflowedID
@@ -39,8 +41,8 @@
   end type nodeOperatorTrackOutflowedMass
   
   interface nodeOperatorTrackOutflowedMass
-     !!{
-     Constructors for the \refClass{nodeOperatorTrackOutflowedMass} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorTrackOutflowedMass` node operator class.
      !!}
      module procedure trackOutflowedMassConstructorParameters
      module procedure trackOutflowedMassConstructorInternal
@@ -49,8 +51,8 @@
 contains
 
   function trackOutflowedMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorTrackOutflowedMass} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorTrackOutflowedMass` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,8 +67,8 @@ contains
   end function trackOutflowedMassConstructorParameters
 
   function trackOutflowedMassConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorTrackOutflowedMass} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorTrackOutflowedMass` node operator class.
     !!}
     implicit none
     type(nodeOperatorTrackOutflowedMass) :: self
@@ -79,7 +81,7 @@ contains
   end function trackOutflowedMassConstructorInternal
 
   subroutine trackOutflowedMassAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : openMPThreadBindingAtLevel, hotHaloMassEjectionEvent, hotHaloMassInflowEvent, hotHaloMassReincorporationEvent
@@ -93,8 +95,8 @@ contains
   end subroutine trackOutflowedMassAutoHook
 
   subroutine trackOutflowedMassDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorTrackOutflowedMass} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorTrackOutflowedMass` node operator class.
     !!}
     use :: Events_Hooks, only : hotHaloMassEjectionEvent, hotHaloMassInflowEvent, hotHaloMassReincorporationEvent
     implicit none
@@ -107,8 +109,8 @@ contains
   end subroutine trackOutflowedMassDestructor
 
   subroutine trackOutflowedMassDifferentialEvolutionScales(self,node)
-    !!{
-    Set absolute ODE solver scale for the outflowed mass in the \gls{cgm}.
+    !!{RST
+    Set absolute ODE solver scale for the outflowed mass in the :term:`CGM`.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentHotHalo, nodeComponentBasic
     use :: Numerical_Constants_Astronomical, only : gigaYear            , massSolar
@@ -134,8 +136,8 @@ contains
   end subroutine trackOutflowedMassDifferentialEvolutionScales
 
   subroutine trackOutflowedMassHotHaloMassRemoval(self,hotHalo,massRate)
-    !!{
-    Respond to mass removal from the hot halo component.    
+    !!{RST
+    Respond to mass removal from the hot halo component.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentHotHalo
@@ -155,8 +157,8 @@ contains
   end subroutine trackOutflowedMassHotHaloMassRemoval
 
   subroutine trackOutflowedMassHotHaloMassReincorporation(self,hotHalo,rateMassReturn,rateAbundancesReturn)
-    !!{
-    Respond to mass removal from the hot halo component.    
+    !!{RST
+    Respond to mass removal from the hot halo component.
     !!}
     use :: Error               , only : Error_Report
     use :: Galacticus_Nodes    , only : nodeComponentHotHalo

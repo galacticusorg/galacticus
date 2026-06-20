@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling convergence class which never converges.
   !!}
 
   !![
-  <posteriorSampleConvergence name="posteriorSampleConvergenceNever">
+  <posteriorSampleConvergence name="posteriorSampleConvergenceNever" docformat="rst">
    <description>
-    This option assumes that the simulation never converges, and so the calculation will run indefinitely. It is intended primarily
-    for testing purposes.
+   This option assumes that the simulation never converges, and so the calculation will run indefinitely. It is intended primarily for testing purposes.
    </description>
   </posteriorSampleConvergence>
   !!]
   type, extends(posteriorSampleConvergenceClass) :: posteriorSampleConvergenceNever
-     !!{
+     !!{RST
      Implementation of a posterior sampling convergence class which never converges.
      !!}
      private
@@ -43,8 +42,8 @@
   end type posteriorSampleConvergenceNever
 
   interface posteriorSampleConvergenceNever
-     !!{
-     Constructors for the \refClass{posteriorSampleConvergenceNever} posterior sampling convergence class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSampleConvergenceNever` posterior sampling convergence class.
      !!}
      module procedure neverConstructorParameters
   end interface posteriorSampleConvergenceNever
@@ -52,8 +51,8 @@
 contains
 
   function neverConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleConvergenceNever} posterior sampling convergence class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleConvergenceNever` posterior sampling convergence class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -68,7 +67,7 @@ contains
   end function neverConstructorParameters
 
   logical function neverIsConverged(self,simulationState,logLikelihood)
-    !!{
+    !!{RST
     Returns true if the posterior sampling is converged (which it never is).
     !!}
     implicit none
@@ -82,7 +81,7 @@ contains
   end function neverIsConverged
 
   integer function neverConvergedAtStep(self)
-    !!{
+    !!{RST
     Return the step at which the simulation converged.
     !!}
     implicit none
@@ -94,7 +93,7 @@ contains
   end function neverConvergedAtStep
 
   subroutine neverReset(self)
-    !!{
+    !!{RST
     Reset the convergence object.
     !!}
     implicit none
@@ -105,8 +104,8 @@ contains
   end subroutine neverReset
 
   subroutine neverLogReport(self,fileUnit)
-    !!{
-    Write a convergence report to the given \mono{fileUnit}.
+    !!{RST
+    Write a convergence report to the given ``fileUnit``.
     !!}
     implicit none
     class  (posteriorSampleConvergenceNever), intent(inout) :: self
@@ -118,7 +117,7 @@ contains
   end subroutine neverLogReport
 
   logical function neverStateIsOutlier(self,stateIndex)
-    !!{
+    !!{RST
     Return true if the specified chain is deemed to be an outlier. In this case, chains are never outliers.
     !!}
     implicit none

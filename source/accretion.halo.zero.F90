@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of zero accretion from the \gls{igm} onto halos.
+  !!{RST
+  An implementation of zero accretion from the :term:`IGM` onto halos.
   !!}
 
   !![
-  <accretionHalo name="accretionHaloZero">
-   <description>A null implementation of halo accretion that assumes zero accretion of baryonic matter from the intergalactic medium onto halos at all times. Useful for isolating other physical processes or testing purposes.</description>
+  <accretionHalo name="accretionHaloZero" docformat="rst">
+   <description>
+   A null implementation of halo accretion that assumes zero accretion of baryonic matter from the intergalactic medium onto halos at all times. Useful for isolating other physical processes or testing purposes.
+   </description>
   </accretionHalo>
   !!]
   type, extends(accretionHaloClass) :: accretionHaloZero
-     !!{
+     !!{RST
      A halo accretion class that assumes no accretion.
      !!}
      private
@@ -46,8 +48,8 @@
   end type accretionHaloZero
 
   interface accretionHaloZero
-     !!{
-     Constructors for the \refClass{accretionHaloZero} halo accretion class.
+     !!{RST
+     Constructors for the :galacticus-class:`accretionHaloZero` halo accretion class.
      !!}
      module procedure zeroConstructorParameters
   end interface accretionHaloZero
@@ -55,8 +57,8 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{accretionHaloZero} halo accretion class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`accretionHaloZero` halo accretion class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,7 +73,7 @@ contains
   end function zeroConstructorParameters
 
   logical function zeroBranchHasBaryons(self,node)
-    !!{
+    !!{RST
     Returns true if this branch can accrete any baryons.
     !!}
     implicit none
@@ -84,8 +86,8 @@ contains
   end function zeroBranchHasBaryons
 
   double precision function zeroAccretionRate(self,node,accretionMode)
-    !!{
-    Computes the baryonic accretion rate onto \mono{node}.
+    !!{RST
+    Computes the baryonic accretion rate onto ``node``.
     !!}
     implicit none
     class(accretionHaloZero           ), intent(inout) :: self
@@ -98,8 +100,8 @@ contains
   end function zeroAccretionRate
 
   double precision function zeroAccretedMass(self,node,accretionMode)
-    !!{
-    Computes the mass of baryons accreted into \mono{node}.
+    !!{RST
+    Computes the mass of baryons accreted into ``node``.
     !!}
     implicit none
     class(accretionHaloZero           ), intent(inout) :: self
@@ -112,8 +114,8 @@ contains
   end function zeroAccretedMass
 
   double precision function zeroFailedAccretionRate(self,node,accretionMode)
-    !!{
-    Computes the baryonic accretion rate onto \mono{node}.
+    !!{RST
+    Computes the baryonic accretion rate onto ``node``.
     !!}
     implicit none
     class(accretionHaloZero           ), intent(inout) :: self
@@ -126,8 +128,8 @@ contains
   end function zeroFailedAccretionRate
 
   double precision function zeroFailedAccretedMass(self,node,accretionMode)
-    !!{
-    Computes the mass of baryons accreted into \mono{node}.
+    !!{RST
+    Computes the mass of baryons accreted into ``node``.
     !!}
     implicit none
     class(accretionHaloZero           ), intent(inout) :: self
@@ -140,8 +142,8 @@ contains
   end function zeroFailedAccretedMass
 
   function zeroAccretionRateMetals(self,node,accretionMode)
-    !!{
-    Computes the rate of mass of abundance accretion (in $\mathrm{M}_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Computes the rate of mass of abundance accretion (in :math:`\mathrm{M}_\odot/`\ Gyr) onto ``node`` from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
@@ -156,8 +158,8 @@ contains
   end function zeroAccretionRateMetals
 
   function zeroAccretedMassMetals(self,node,accretionMode)
-    !!{
-    Computes the mass of abundances accreted (in $\mathrm{M}_\odot$) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Computes the mass of abundances accreted (in :math:`\mathrm{M}_\odot`) onto ``node`` from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
@@ -172,8 +174,8 @@ contains
   end function zeroAccretedMassMetals
 
   function zeroFailedAccretionRateMetals(self,node,accretionMode)
-    !!{
-    Computes the rate of failed mass of abundance accretion (in $\mathrm{M}_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Computes the rate of failed mass of abundance accretion (in :math:`\mathrm{M}_\odot/`\ Gyr) onto ``node`` from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
@@ -188,8 +190,8 @@ contains
   end function zeroFailedAccretionRateMetals
 
   function zeroFailedAccretedMassMetals(self,node,accretionMode)
-    !!{
-    Computes the mass of abundances that failed to accrete (in $\mathrm{M}_\odot$) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Computes the mass of abundances that failed to accrete (in :math:`\mathrm{M}_\odot`) onto ``node`` from the intergalactic medium.
     !!}
     use :: Abundances_Structure, only : abundances, zeroAbundances
     implicit none
@@ -204,8 +206,8 @@ contains
   end function zeroFailedAccretedMassMetals
 
   function zeroAccretionRateChemicals(self,node,accretionMode)
-    !!{
-    Computes the rate of mass of chemicals accretion (in $\mathrm{M}_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Computes the rate of mass of chemicals accretion (in :math:`\mathrm{M}_\odot/`\ Gyr) onto ``node`` from the intergalactic medium.
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances, zeroChemicalAbundances
     implicit none
@@ -220,8 +222,8 @@ contains
   end function zeroAccretionRateChemicals
 
   function zeroAccretedMassChemicals(self,node,accretionMode)
-    !!{
-    Computes the mass of chemicals accreted (in $\mathrm{M}_\odot$) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Computes the mass of chemicals accreted (in :math:`\mathrm{M}_\odot`) onto ``node`` from the intergalactic medium.
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances, zeroChemicalAbundances
     implicit none

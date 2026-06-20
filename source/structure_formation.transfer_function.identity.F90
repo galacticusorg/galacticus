@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an identity transfer function class.
 !!}
 
   !![
-  <transferFunction name="transferFunctionIdentity">
-   <description>Provides an identity transfer function, i.e. $T(k)=1$ for all $k$.</description>
+  <transferFunction name="transferFunctionIdentity" docformat="rst">
+   <description>
+   Provides an identity transfer function, i.e. :math:`T(k)=1` for all :math:`k`.
+   </description>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionIdentity
-     !!{
+     !!{RST
      A identity transfer function class.
      !!}
      private
@@ -43,7 +45,7 @@ Implements an identity transfer function class.
   end type transferFunctionIdentity
 
   interface transferFunctionIdentity
-     !!{
+     !!{RST
      Constructors for the identity transfer function class.
      !!}
      module procedure identityConstructorParameters
@@ -53,7 +55,7 @@ Implements an identity transfer function class.
 contains
 
   function identityConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the identity transfer function class which takes a parameter set as input.
     !!}
     use :: Cosmology_Parameters, only : cosmologyParametersClass
@@ -67,11 +69,13 @@ contains
     double precision                                          :: redshift
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The redshift at which the transfer function is defined.</description>
+      <description>
+      The redshift at which the transfer function is defined.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -86,7 +90,7 @@ contains
   end function identityConstructorParameters
 
   function identityConstructorInternal(time,cosmologyParameters_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the identity transfer function class.
     !!}
     implicit none
@@ -101,7 +105,7 @@ contains
   end function identityConstructorInternal
 
   subroutine identityDestructor(self)
-    !!{
+    !!{RST
     Destructor for the identity transfer function class.
     !!}
     implicit none
@@ -114,7 +118,7 @@ contains
   end subroutine identityDestructor
 
   double precision function identityValue(self,wavenumber)
-    !!{
+    !!{RST
     Return the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -127,7 +131,7 @@ contains
   end function identityValue
 
   double precision function identityLogarithmicDerivative(self,wavenumber)
-    !!{
+    !!{RST
     Return the logarithmic derivative of the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -140,9 +144,8 @@ contains
   end function identityLogarithmicDerivative
 
   double precision function identityHalfModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    to a \gls{cdm} transfer function. Not supported in this implementation.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function. Not supported in this implementation.
     !!}
     use :: Error, only : Error_Report, errorStatusFail
     implicit none
@@ -160,9 +163,8 @@ contains
   end function identityHalfModeMass
 
   double precision function identityQuarterModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
-    to a \gls{cdm} transfer function. Not supported in this implementation.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative to a :term:`CDM` transfer function. Not supported in this implementation.
     !!}
     use :: Error, only : Error_Report, errorStatusFail
     implicit none
@@ -180,7 +182,7 @@ contains
   end function identityQuarterModeMass
 
   double precision function identityEpochTime(self)
-    !!{
+    !!{RST
     Return the cosmic time at the epoch at which this transfer function is defined.
     !!}
     implicit none
@@ -191,7 +193,7 @@ contains
   end function identityEpochTime
 
   subroutine identityDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
-    !!{
+    !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
     use :: Input_Parameters, only : inputParameters

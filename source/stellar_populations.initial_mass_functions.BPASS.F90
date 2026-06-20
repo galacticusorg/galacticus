@@ -17,26 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a stellar initial mass function class used by the \href{https://bpass.auckland.ac.nz/}{BPASS} library.
+  !!{RST
+  Implements a stellar initial mass function class used by the `BPASS <https://bpass.auckland.ac.nz/>`_ library.
   !!}
 
   !![
-  <initialMassFunction name="initialMassFunctionBPASS">
+  <initialMassFunction name="initialMassFunctionBPASS" docformat="rst">
    <description>
-    A stellar initial mass function class used by the \href{https://bpass.auckland.ac.nz/}{BPASS} library:
-    \begin{equation}
-     \phi(M) \propto \left\{ \begin{array}{ll}
-     M^{-1.30} &amp; \hbox{ for } 0.1\mathrm{M}_\odot &lt; M &lt; 0.5\mathrm{M}_\odot \\
-     M^{-2.35} &amp; \hbox{ for } 1\mathrm{M}_\odot &lt; M &lt; 120\mathrm{M}_\odot \\
-    0 &amp; \hbox {otherwise.} \end{array} \right.
-    \end{equation}
+   A stellar initial mass function class used by the `BPASS &lt;https://bpass.auckland.ac.nz/&gt;`_ library:
+
+   .. math::
+
+       \phi(M) \propto \left\{ \begin{array}{ll}
+       M^{-1.30} &amp; \hbox{ for } 0.1\mathrm{M}_\odot &lt; M &lt; 0.5\mathrm{M}_\odot \\
+       M^{-2.35} &amp; \hbox{ for } 1\mathrm{M}_\odot &lt; M &lt; 120\mathrm{M}_\odot \\
+      0 &amp; \hbox {otherwise.} \end{array} \right.
    </description>
   </initialMassFunction>
   !!]
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionBPASS
-     !!{
-     A stellar initial mass function class used by the \href{https://bpass.auckland.ac.nz/}{BPASS} library.
+     !!{RST
+     A stellar initial mass function class used by the `BPASS <https://bpass.auckland.ac.nz/>`_ library.
      !!}
      private
    contains
@@ -44,8 +45,8 @@
   end type initialMassFunctionBPASS
 
   interface initialMassFunctionBPASS
-     !!{
-     Constructors for the \refClass{initialMassFunctionBPASS} initial mass function class.
+     !!{RST
+     Constructors for the :galacticus-class:`initialMassFunctionBPASS` initial mass function class.
      !!}
      module procedure bpassConstructorParameters
      module procedure bpassConstructorInternal
@@ -54,8 +55,8 @@
 contains
 
   function bpassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{initialMassFunctionBPASS} initial mass function class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`initialMassFunctionBPASS` initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -70,8 +71,8 @@ contains
   end function bpassConstructorParameters
 
   function bpassConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{initialMassFunctionBPASS} initial mass function.
+    !!{RST
+    Internal constructor for the :galacticus-class:`initialMassFunctionBPASS` initial mass function.
     !!}
     implicit none
     type(initialMassFunctionBPASS):: self
@@ -84,8 +85,8 @@ contains
   end function bpassConstructorInternal
 
   function bpassLabel(self)
-    !!{
-    Return a label for this \gls{imf}.
+    !!{RST
+    Return a label for this :term:`IMF`.
     !!}
     implicit none
     class(initialMassFunctionBPASS), intent(inout) :: self

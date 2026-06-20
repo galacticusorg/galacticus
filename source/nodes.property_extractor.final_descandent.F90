@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an ISM mass output analysis property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorFinalDescendant">
-   <description>Extracts the index of the final descendant node at the base of the merger tree for each node, enabling identification of the present-day halo into which a given progenitor will ultimately merge. Facilitates comparisons between progenitor states and their final descendants.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorFinalDescendant" docformat="rst">
+   <description>
+   Extracts the index of the final descendant node at the base of the merger tree for each node, enabling identification of the present-day halo into which a given progenitor will ultimately merge. Facilitates comparisons between progenitor states and their final descendants.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorFinalDescendant
-     !!{
+     !!{RST
      A stellar mass output analysis class.
      !!}
      private
@@ -38,8 +40,8 @@ Implements an ISM mass output analysis property extractor class.
   end type nodePropertyExtractorFinalDescendant
 
   interface nodePropertyExtractorFinalDescendant
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorFinalDescendant} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorFinalDescendant` property extractor class.
      !!}
      module procedure finalDescendantConstructorParameters
   end interface nodePropertyExtractorFinalDescendant
@@ -47,8 +49,8 @@ Implements an ISM mass output analysis property extractor class.
 contains
 
   function finalDescendantConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorFinalDescendant} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorFinalDescendant` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,8 +65,8 @@ contains
   end function finalDescendantConstructorParameters
 
   function finalDescendantExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{finalDescendant} node property extractor.
+    !!{RST
+    Implement a ``finalDescendant`` node property extractor.
     !!}
     implicit none
     integer         (kind_int8                           )                          :: finalDescendantExtract
@@ -88,7 +90,7 @@ contains
   end function finalDescendantExtract
 
   function finalDescendantName(self)
-    !!{
+    !!{RST
     Return the name of the finalDescendant property.
     !!}
     implicit none
@@ -101,7 +103,7 @@ contains
   end function finalDescendantName
 
   function finalDescendantDescription(self)
-    !!{
+    !!{RST
     Return a description of the finalDescendant property.
     !!}
     implicit none

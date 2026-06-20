@@ -17,27 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a spin parameter distribution output analysis class.
 !!}
 
   use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
   
   !![
-  <outputAnalysis name="outputAnalysisSpinDistributionBett2007">
-    <description>Computes the distribution of dark matter halo spin parameters for comparison with the \cite{bett_spin_2007} N-body simulation data, accounting for N-body measurement errors via log-normal convolution with a truncation range \mono{logNormalRange}; \mono{errorTolerant} controls behavior on integration failures.</description>
+  <outputAnalysis name="outputAnalysisSpinDistributionBett2007" docformat="rst">
+    <description>
+    Computes the distribution of dark matter halo spin parameters for comparison with the :cite:t:`bett_spin_2007` N-body simulation data, accounting for N-body measurement errors via log-normal convolution with a truncation range ``logNormalRange``; ``errorTolerant`` controls behavior on integration failures.
+    </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisSpinDistribution) :: outputAnalysisSpinDistributionBett2007
-     !!{
+     !!{RST
      A spinDistributionBett2007 output analysis class.
      !!}
      private
   end type outputAnalysisSpinDistributionBett2007
 
   interface outputAnalysisSpinDistributionBett2007
-     !!{
-     Constructors for the \refClass{outputAnalysisSpinDistributionBett2007} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisSpinDistributionBett2007` output analysis class.
      !!}
      module procedure spinDistributionBett2007ConstructorParameters
      module procedure spinDistributionBett2007ConstructorInternal
@@ -46,8 +48,8 @@ Implements a spin parameter distribution output analysis class.
 contains
 
   function spinDistributionBett2007ConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSpinDistributionBett2007} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisSpinDistributionBett2007` output analysis class which takes a parameter set as input.
     !!}
     use :: Functions_Global, only : Virial_Density_Contrast_Percolation_Objects_Constructor_
     use :: Input_Parameters, only : inputParameter                                          , inputParameters
@@ -67,18 +69,24 @@ contains
     logical                                                                 :: errorTolerant
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>errorTolerant</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>Error tolerance for the N-body spin distribution operator.</description>
+      <description>
+      Error tolerance for the N-body spin distribution operator.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logNormalRange</name>
       <source>parameters</source>
       <defaultValue>100.0d0</defaultValue>
-      <defaultSource>Approximately the range expected for the \cite{bett_spin_2007} ``QE'' cut.</defaultSource>
-      <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=$\mono{[logNormalRange]}</description>
+      <defaultSource>
+      Approximately the range expected for the :cite:t:`bett_spin_2007` "QE" cut.
+      </defaultSource>
+      <description>
+      The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range :math:`(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R`, where :math:`\lambda_\mathrm{m}` is the measured spin, and :math:`R=`\ ``[logNormalRange]``
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
@@ -106,8 +114,8 @@ contains
   end function spinDistributionBett2007ConstructorParameters
 
   function spinDistributionBett2007ConstructorInternal(logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_,virialDensityContrast_,outputTimes_,percolationObjects_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisSpinDistributionBett2007} output analysis class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisSpinDistributionBett2007` output analysis class.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: Dark_Matter_Halo_Scales          , only : darkMatterHaloScaleClass

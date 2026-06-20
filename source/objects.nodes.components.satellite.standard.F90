@@ -17,11 +17,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module of satellite orbit tree node methods.
 !!}
 module Node_Component_Satellite_Standard
-  !!{
+  !!{RST
   Implements the standard satellite component.
   !!}
   implicit none
@@ -70,7 +70,7 @@ contains
   <nodeComponentInitializationTask function="Node_Component_Satellite_Standard_Initialize"/>
   !!]
   subroutine Node_Component_Satellite_Standard_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the standard satellite orbit component module.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatelliteStandard
@@ -84,10 +84,12 @@ contains
        ! Find our parameters.
        subParameters=parameters%subParameters('componentSatellite')
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>inactiveBoundMass</name>
          <defaultValue>.false.</defaultValue>
-         <description>Specifies whether or not the bound mass variable of the standard satellite component is inactive (i.e. does not appear in any ODE being solved).</description>
+         <description>
+         Specifies whether or not the bound mass variable of the standard satellite component is inactive (i.e. does not appear in any ODE being solved).
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -99,7 +101,7 @@ contains
   <nodeComponentThreadInitializationTask function="Node_Component_Satellite_Standard_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Satellite_Standard_Thread_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the tree node standard satellite module.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
@@ -123,7 +125,7 @@ contains
   <nodeComponentThreadUninitializationTask function="Node_Component_Satellite_Standard_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Satellite_Standard_Thread_Uninitialize()
-    !!{
+    !!{RST
     Uninitializes the tree node standard satellite module.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
@@ -138,9 +140,8 @@ contains
   end subroutine Node_Component_Satellite_Standard_Thread_Uninitialize
 
   subroutine nodePromotion(self,node)
-    !!{
-    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply copy any preexisting satellite orbit
-    from the parent.
+    !!{RST
+    Ensure that ``node`` is ready for promotion to its parent. In this case, we simply copy any preexisting satellite orbit from the parent.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : treeNode    , nodeComponentSatellite, nodeComponentSatelliteStandard
@@ -166,8 +167,8 @@ contains
   end subroutine nodePromotion
 
   subroutine subhaloPromotion(self,node,nodePromotion)
-    !!{
-    Remove the satellite component from the subhalo about to be promoted to an isolated halo (which should have no satellite component).    
+    !!{RST
+    Remove the satellite component from the subhalo about to be promoted to an isolated halo (which should have no satellite component).
     !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
@@ -183,8 +184,8 @@ contains
   <inactiveSetTask function="Node_Component_Satellite_Standard_Inactive"/>
   !!]
   subroutine Node_Component_Satellite_Standard_Inactive(node)
-    !!{
-    Set Jacobian zero status for properties of \mono{node}.
+    !!{RST
+    Set Jacobian zero status for properties of ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentSatelliteStandard, treeNode
     implicit none
@@ -205,8 +206,8 @@ contains
   <scaleSetTask function="Node_Component_Satellite_Standard_Scale_Set"/>
   !!]
   subroutine Node_Component_Satellite_Standard_Scale_Set(node)
-    !!{
-    Set scales for properties of \mono{node}.
+    !!{RST
+    Set scales for properties of ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, nodeComponentSatelliteStandard, treeNode
     implicit none

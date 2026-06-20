@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements unit testing.
 !!}
 
 module Unit_Tests
-  !!{
+  !!{RST
   Implements unit testing.
   !!}
   use :: ISO_Varying_String, only : varying_string
@@ -63,9 +63,11 @@ module Unit_Tests
   integer, parameter, public :: compareGreaterThanOrEqual=5
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>test</name>
-   <description>Statuses for unit tests.</description>
+   <description>
+   Statuses for unit tests.
+   </description>
    <entry label="passed"/>
    <entry label="failed" />
    <entry label="skipped"/>
@@ -74,7 +76,7 @@ module Unit_Tests
 
   ! Type for assert results.
   type assertResult
-     !!{
+     !!{RST
      A derived type for storing results of asserts.
      !!}
      type    (enumerationTestType)          :: result
@@ -90,7 +92,7 @@ module Unit_Tests
 
   ! Interface for assert routines.
   interface Assert
-     !!{
+     !!{RST
      Generic interface for assert routines.
      !!}
      module procedure Assert{Type¦label}
@@ -99,7 +101,7 @@ module Unit_Tests
 contains
 
   function getStatus(passed)
-    !!{
+    !!{RST
     Return the status code for a test on the basis of a boolean pass/fail.
     !!}
     implicit none
@@ -115,7 +117,7 @@ contains
   end function getStatus
 
   subroutine Skip(testName,reason)
-    !!{
+    !!{RST
     Record that a test was skipped.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
@@ -132,7 +134,7 @@ contains
   end subroutine Skip
 
   subroutine Assert{Type¦label}(testName,value1,value2,compare{Type¦match¦^(double|real)¦,absTol,relTol¦})
-    !!{
+    !!{RST
     Assess and record an assertion.
     !!}
     use                                  :: Error               , only : Error_Report
@@ -217,7 +219,7 @@ contains
   end subroutine Assert{Type¦label}
 
   subroutine Unit_Tests_Begin_Group(groupName)
-    !!{
+    !!{RST
     Marks that a unit test group has begun.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
@@ -232,7 +234,7 @@ contains
   end subroutine Unit_Tests_Begin_Group
 
   subroutine Unit_Tests_End_Group
-    !!{
+    !!{RST
     Marks that a unit test group has ended.
     !!}
     implicit none
@@ -244,7 +246,7 @@ contains
   end subroutine Unit_Tests_End_Group
 
   subroutine Unit_Tests_Finish
-    !!{
+    !!{RST
     Write out the results of unit testing.
     !!}
     use :: Display           , only : displayIndent, displayMessage, displayUnindent
@@ -309,7 +311,7 @@ contains
   end subroutine Unit_Tests_Finish
 
   function Get_New_Assert_Result() result(newResult)
-    !!{
+    !!{RST
     Get a new assert result object.
     !!}
     use :: ISO_Varying_String, only : assignment(=)

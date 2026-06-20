@@ -19,13 +19,13 @@
 
 !+ Contributions to this file made by: Stephanie Dörschner.
 
-!!{
-Contains a module which implements an object to store merger tree data for processing into \glc's preferred file format.
+!!{RST
+Contains a module which implements an object to store merger tree data for processing into Galacticus's preferred file format.
 !!}
 
 module Merger_Tree_Data_Structure
-  !!{
-  Implements an object to store merger tree data for processing into \glc's preferred file format.
+  !!{RST
+  Implements an object to store merger tree data for processing into Galacticus's preferred file format.
   !!}
   use, intrinsic :: ISO_C_Binding     , only : c_size_t
   use            :: ISO_Varying_String, only : varying_string
@@ -36,9 +36,11 @@ module Merger_Tree_Data_Structure
 
   ! Output formats.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>mergerTreeFormat</name>
-   <description>Used to specify which output format to use for merger tree data.</description>
+   <description>
+   Used to specify which output format to use for merger tree data.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -49,9 +51,11 @@ module Merger_Tree_Data_Structure
 
   ! Property labels.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>propertyType</name>
-   <description>Used to specify properties in a \mono{mergerTreeData} structure.</description>
+   <description>
+   Used to specify properties in a ``mergerTreeData`` structure.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
    <validator>yes</validator>
@@ -107,9 +111,11 @@ module Merger_Tree_Data_Structure
 
   ! Units labels.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>units</name>
-   <description>Used to specify the type of units being stored in a \mono{mergerTreeData} structure.</description>
+   <description>
+   Used to specify the type of units being stored in a ``mergerTreeData`` structure.
+   </description>
    <validator>yes</validator>
    <visibility>public</visibility>
    <entry label="mass"     />
@@ -120,7 +126,7 @@ module Merger_Tree_Data_Structure
   !!]
 
   type unitsMetaData
-     !!{
+     !!{RST
      A structure that holds metadata on units used.
      !!}
      double precision                              :: unitsInSI
@@ -130,9 +136,11 @@ module Merger_Tree_Data_Structure
 
   ! Metadata labels.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>metaDataType</name>
-   <description>Used to specify the type of metadata being stored in a \mono{mergerTreeData} structure.</description>
+   <description>
+   Used to specify the type of metadata being stored in a ``mergerTreeData`` structure.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
    <validator>yes</validator>
@@ -148,9 +156,11 @@ module Merger_Tree_Data_Structure
 
   ! Data types for metadata.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>dataType</name>
-   <description>Used to specify the type of data being stored in a \mono{mergerTreeData} structure metadata entry.</description>
+   <description>
+   Used to specify the type of data being stored in a ``mergerTreeData`` structure metadata entry.
+   </description>
    <visibility>public</visibility>
    <entry label="null"    />
    <entry label="integer" />
@@ -160,7 +170,7 @@ module Merger_Tree_Data_Structure
   !!]
 
   type treeMetaData
-     !!{
+     !!{RST
      Structure that holds metadata for the trees.
      !!}
      type            (enumerationMetaDataTypeType) :: metadataType
@@ -172,7 +182,7 @@ module Merger_Tree_Data_Structure
   end type treeMetaData
 
   type mergerTreeData
-     !!{
+     !!{RST
      A structure that holds raw merger tree data.
      !!}
      private
@@ -235,7 +245,7 @@ module Merger_Tree_Data_Structure
      type            (treeMetaData               ), allocatable, dimension(               :               ) :: metaData
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset the data structure." method="reset" />
        <method description="Set the total number of forests in the data structure." method="forestCountSet" />
        <method description="Set the total number of nodes in the data structure." method="nodeCountSet" />
@@ -291,7 +301,7 @@ module Merger_Tree_Data_Structure
 contains
 
   subroutine Merger_Tree_Data_Structure_Reset(mergerTrees)
-    !!{
+    !!{RST
     Reset a merger tree data object.
     !!}
     implicit none
@@ -367,7 +377,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Reset
 
   subroutine Merger_Tree_Data_Structure_Make_References(mergerTrees,makeReferences)
-    !!{
+    !!{RST
     Specify whether or not to make merger tree dataset references.
     !!}
     implicit none
@@ -379,7 +389,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Make_References
 
   subroutine Merger_Tree_Data_Structure_Add_Metadata_Double(mergerTrees,metadataType,label,doubleValue)
-    !!{
+    !!{RST
     Add a double metadatum.
     !!}
     implicit none
@@ -395,7 +405,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Add_Metadata_Double
 
   subroutine Merger_Tree_Data_Structure_Add_Metadata_Integer(mergerTrees,metadataType,label,integerValue)
-    !!{
+    !!{RST
     Add an integer metadatum.
     !!}
     implicit none
@@ -409,7 +419,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Add_Metadata_Integer
 
   subroutine Merger_Tree_Data_Structure_Add_Metadata_Text(mergerTrees,metadataType,label,textValue)
-    !!{
+    !!{RST
     Add a double metadatum.
     !!}
     implicit none
@@ -423,7 +433,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Add_Metadata_Text
 
   subroutine Merger_Tree_Data_Structure_Add_Metadata(mergerTrees,metadataType,label,integerValue,doubleValue,textValue)
-    !!{
+    !!{RST
     Add a metadatum.
     !!}
     use :: Error             , only : Error_Report
@@ -484,7 +494,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Add_Metadata
 
   subroutine Merger_Tree_Data_Structure_Set_Forest_Count(mergerTrees,forestCount)
-    !!{
+    !!{RST
     Set the total number of trees in merger trees.
     !!}
     implicit none
@@ -498,7 +508,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Forest_Count
 
   subroutine Merger_Tree_Data_Structure_Set_Node_Count(mergerTrees,nodeCount)
-    !!{
+    !!{RST
     Set the total number of nodes in merger trees.
     !!}
     implicit none
@@ -512,7 +522,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Node_Count
 
   subroutine Merger_Tree_Data_Structure_Set_Particle_Count(mergerTrees,particleCount)
-    !!{
+    !!{RST
     Set the total number of particles in merger trees.
     !!}
     implicit none
@@ -526,7 +536,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Particle_Count
 
   subroutine Merger_Tree_Data_Structure_Set_Particle_Mass(mergerTrees,particleMass)
-    !!{
+    !!{RST
     Set the particle mass used in the trees.
     !!}
     implicit none
@@ -540,7 +550,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Particle_Mass
 
   subroutine Merger_Tree_Data_Structure_Set_Self_Contained(mergerTrees,areSelfContained)
-    !!{
+    !!{RST
     Set the particle mass used in the trees.
     !!}
     implicit none
@@ -554,7 +564,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Self_Contained
 
   subroutine Merger_Tree_Data_Structure_Set_Includes_Hubble_Flow(mergerTrees,includesHubbleFlow)
-    !!{
+    !!{RST
     Set the particle mass used in the trees.
     !!}
     implicit none
@@ -568,7 +578,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Includes_Hubble_Flow
 
   subroutine Merger_Tree_Data_Structure_Set_Is_Periodic(mergerTrees,isPeriodic)
-    !!{
+    !!{RST
     Set whether or not positions are periodic.
     !!}
     implicit none
@@ -582,7 +592,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Is_Periodic
 
   subroutine Merger_Tree_Data_Structure_Set_Includes_Subhalo_Masses(mergerTrees,includesSubhaloMasses)
-    !!{
+    !!{RST
     Set the particle mass used in the trees.
     !!}
     implicit none
@@ -596,7 +606,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Includes_Subhalo_Masses
 
   subroutine Merger_Tree_Data_Structure_Set_Self_Hosting_Halo_Id(mergerTrees,dummyHostId)
-    !!{
+    !!{RST
     Set the host ID in case of self-hosting halos. Default is host ID = node ID.
     !!}
     implicit none
@@ -610,7 +620,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Self_Hosting_Halo_Id
 
   subroutine Merger_Tree_Data_Structure_Set_Conversion_Factor(mergerTrees,propertyType,conversionFactor)
-    !!{
+    !!{RST
     Set Conversion factor for property type with inconsistent unit.
     !!}
     use :: Error, only : Error_Report
@@ -628,7 +638,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Conversion_Factor
 
   subroutine Merger_Tree_Data_Structure_Set_Units(mergerTrees,unitType,unitsInSI,hubbleExponent,scaleFactorExponent,name)
-    !!{
+    !!{RST
     Set the units system.
     !!}
     use :: Error             , only : Error_Report
@@ -676,7 +686,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Units
 
   subroutine Merger_Tree_Data_Structure_Set_Particle_Property_Column(mergerTrees,propertyType,columnNumber)
-    !!{
+    !!{RST
     Set column mapping from the input file.
     !!}
     implicit none
@@ -704,7 +714,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Particle_Property_Column
 
   subroutine Merger_Tree_Data_Structure_Set_Property_Column(mergerTrees,propertyType,columnNumber)
-    !!{
+    !!{RST
     Set column mapping from the input file.
     !!}
     implicit none
@@ -732,7 +742,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Property_Column
 
   subroutine Merger_Tree_Data_Structure_Set_Property_Integer8(mergerTrees,propertyType,property)
-    !!{
+    !!{RST
     Set a property in the merger trees.
     !!}
     use :: Error            , only : Error_Report
@@ -779,7 +789,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Property_Integer8
 
   subroutine Merger_Tree_Data_Structure_Set_Property_Double(mergerTrees,propertyType,property)
-    !!{
+    !!{RST
     Set a property in the merger trees.
     !!}
     use :: Error, only : Error_Report
@@ -925,7 +935,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Property_Double
 
   subroutine Merger_Tree_Data_Structure_Read_ASCII(mergerTrees,inputFile,columnHeaders,commentCharacter,separator,maximumRedshift)
-    !!{
+    !!{RST
     Read in merger tree data from an ASCII file.
     !!}
     use :: Display           , only : displayMessage
@@ -1300,7 +1310,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Read_ASCII
 
   subroutine Merger_Tree_Data_Structure_Convert_Property_Units(mergerTrees,propertyType,conversionFactor)
-    !!{
+    !!{RST
     Convert the property with inconsistent units.
     !!}
     use :: Error, only : Error_Report
@@ -1358,7 +1368,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Convert_Property_Units
 
   subroutine Merger_Tree_Data_Structure_Set_Tree_Indices(mergerTrees)
-    !!{
+    !!{RST
     Set the merger tree index arrays.
     !!}
     implicit none
@@ -1402,7 +1412,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Set_Tree_Indices
 
   subroutine Merger_Tree_Data_Structure_Read_Particles_ASCII(mergerTrees,inputFile,columnHeaders,commentCharacter,separator)
-    !!{
+    !!{RST
     Read in particle data from an ASCII file.
     !!}
     use :: File_Utilities   , only : Count_Lines_In_File
@@ -1540,7 +1550,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Read_Particles_ASCII
 
   subroutine Merger_Tree_Data_Structure_Export(mergerTrees,outputFileName,outputFormat,hdfChunkSize,hdfCompressionLevel,append)
-    !!{
+    !!{RST
     Output a set of merger trees to an HDF5 file.
     !!}
     use :: Error         , only : Error_Report
@@ -1575,7 +1585,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Export
 
   subroutine Merger_Tree_Data_Structure_Export_Galacticus(mergerTrees,outputFileName,hdfChunkSize,hdfCompressionLevel,append)
-    !!{
+    !!{RST
     Output a set of merger trees to a Galacticus-format HDF5 file.
     !!}
     use :: File_Utilities    , only : File_Exists
@@ -1826,7 +1836,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Export_Galacticus
 
   subroutine Merger_Tree_Data_Structure_Export_IRATE(mergerTrees,outputFileName,hdfChunkSize,hdfCompressionLevel,append)
-    !!{
+    !!{RST
     Output a set of merger trees to an IRATE-format HDF5 file.
     !!}
     use :: Array_Utilities   , only : Array_Index  , Array_Which
@@ -2087,7 +2097,7 @@ contains
   end subroutine Merger_Tree_Data_Structure_Export_IRATE
 
   subroutine Store_Unit_Attributes_Galacticus(unitType,unitLabel,mergerTrees,unitsGroup)
-    !!{
+    !!{RST
     Store attributes describing the unit system.
     !!}
     use :: IO_HDF5, only : hdf5Object
@@ -2104,7 +2114,7 @@ contains
   end subroutine Store_Unit_Attributes_Galacticus
 
   subroutine Store_Unit_Attributes_IRATE(unitType,mergerTrees,dataset)
-    !!{
+    !!{RST
     Store unit attributes in IRATE format files.
     !!}
     use :: IO_HDF5                     , only : hdf5Object
@@ -2158,7 +2168,7 @@ contains
   end subroutine Store_Unit_Attributes_IRATE
 
   subroutine Merger_Tree_Data_Validate_Trees(mergerTrees)
-    !!{
+    !!{RST
     Validate the merger trees.
     !!}
     use :: Error, only : Error_Report
@@ -2173,7 +2183,7 @@ contains
   end subroutine Merger_Tree_Data_Validate_Trees
 
   subroutine Merger_Tree_Data_Set_Subhalo_Masses(mergerTrees)
-    !!{
+    !!{RST
     Set the masses of any subhalos (which have zero mass by default) based on particle count.
     !!}
     use :: Display, only : displayMagenta, displayReset
@@ -2190,7 +2200,7 @@ contains
   end subroutine Merger_Tree_Data_Set_Subhalo_Masses
 
   subroutine Merger_Tree_Data_Construct_Particle_Indices(mergerTrees)
-    !!{
+    !!{RST
     If we have most-bound particle indices and particle data has been read, construct arrays giving position of particle data for each node.
     !!}
     use :: Error            , only : Error_Report

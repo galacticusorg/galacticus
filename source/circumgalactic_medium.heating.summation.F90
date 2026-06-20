@@ -17,14 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a \gls{cgm} heating class that sums over other heating rate classes.
+  !!{RST
+  Implements a :term:`CGM` heating class that sums over other heating rate classes.
   !!}
 
   !![
-  <circumgalacticMediumHeating name="circumgalacticMediumHeatingSummation">
+  <circumgalacticMediumHeating name="circumgalacticMediumHeatingSummation" docformat="rst">
    <description>
-    A circumgalactic medium heating class that computes the total CGM heating rate as the sum of contributions from a list of other heating rate classes. This allows multiple heating mechanisms (e.g. AGN feedback, stellar feedback) to be combined additively.
+   A circumgalactic medium heating class that computes the total CGM heating rate as the sum of contributions from a list of other heating rate classes. This allows multiple heating mechanisms (e.g. AGN feedback, stellar feedback) to be combined additively.
    </description>
    <linkedList type="heaterList" variable="heaters" next="next" object="circumgalacticMediumHeating" objectType="circumgalacticMediumHeatingClass"/>
   </circumgalacticMediumHeating>
@@ -36,8 +36,8 @@
   end type heaterList
 
   type, extends(circumgalacticMediumHeatingClass) :: circumgalacticMediumHeatingSummation
-     !!{
-     A \gls{cgm} heating class that sums over other heating rate classes.
+     !!{RST
+     A :term:`CGM` heating class that sums over other heating rate classes.
      !!}
      private
      type(heaterList), pointer :: heaters => null()
@@ -47,8 +47,8 @@
   end type circumgalacticMediumHeatingSummation
   
   interface circumgalacticMediumHeatingSummation
-     !!{
-     Constructors for the \refClass{circumgalacticMediumHeatingSummation} circumgalactic medium heating class.
+     !!{RST
+     Constructors for the :galacticus-class:`circumgalacticMediumHeatingSummation` circumgalactic medium heating class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -57,8 +57,8 @@
 contains
 
   function summationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{circumgalacticMediumHeatingSummation} circumgalactic medium heating class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`circumgalacticMediumHeatingSummation` circumgalactic medium heating class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -87,8 +87,8 @@ contains
   end function summationConstructorParameters
 
   function summationConstructorInternal(heaters) result(self)
-    !!{
-    Internal constructor for the \refClass{circumgalacticMediumHeatingSummation} circumgalactic medium heating class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`circumgalacticMediumHeatingSummation` circumgalactic medium heating class.
     !!}
     implicit none
     type(circumgalacticMediumHeatingSummation)                        :: self
@@ -107,8 +107,8 @@ contains
   end function summationConstructorInternal
 
   subroutine summationDestructor(self)
-    !!{
-    Destructor for the \refClass{circumgalacticMediumHeatingSummation} circumgalactic medium heating class.
+    !!{RST
+    Destructor for the :galacticus-class:`circumgalacticMediumHeatingSummation` circumgalactic medium heating class.
     !!}
     implicit none
     type(circumgalacticMediumHeatingSummation), intent(inout) :: self
@@ -129,8 +129,8 @@ contains
   end subroutine summationDestructor
 
   double precision function summationHeatingRate(self,node) result(rateHeating)
-    !!{
-    Compute the heating rate of the \gls{cgm}, assumed to be always summation.
+    !!{RST
+    Compute the heating rate of the :term:`CGM`, assumed to be always summation.
     !!}
     implicit none
     class(circumgalacticMediumHeatingSummation), intent(inout) :: self

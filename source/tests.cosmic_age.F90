@@ -18,9 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_Cosmic_Age
-  !!{
-  Tests cosmic age calculations for various Universes. Ages calculated using Python
-  \href{http://www.astro.ucla.edu/~wright/CC.python}{implementation} of Ned Wright's cosmology calculator.
+  !!{RST
+  Tests cosmic age calculations for various Universes. Ages calculated using Python `implementation <http://www.astro.ucla.edu/~wright/CC.python>`_ of Ned Wright's cosmology calculator.
   !!}
   use :: Cosmology_Functions     , only : cosmologyFunctions       , cosmologyFunctionsClass, cosmologyFunctionsMatterDarkEnergy, cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters    , only : cosmologyParametersSimple, hubbleUnitsTime

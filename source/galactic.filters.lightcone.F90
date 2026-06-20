@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic filter on lightcone geometry.
 !!}
 
   use :: Geometry_Lightcones, only : geometryLightconeClass
 
   !![
-  <galacticFilter name="galacticFilterLightcone">
-   <description>Passes nodes that fall within a lightcone geometry as defined by a \refClass{geometryLightconeClass} object, enabling mock catalog construction by selecting only galaxies observable within the survey volume.</description>
+  <galacticFilter name="galacticFilterLightcone" docformat="rst">
+   <description>
+   Passes nodes that fall within a lightcone geometry as defined by a :galacticus-class:`geometryLightconeClass` object, enabling mock catalog construction by selecting only galaxies observable within the survey volume.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterLightcone
-     !!{
+     !!{RST
      A galactic filter class on lightcone geometry.
      !!}
      private
@@ -40,8 +42,8 @@ Implements a galactic filter on lightcone geometry.
   end type galacticFilterLightcone
 
   interface galacticFilterLightcone
-     !!{
-     Constructors for the \refClass{galacticFilterLightcone} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterLightcone` galactic filter class.
      !!}
      module procedure lightconeConstructorParameters
      module procedure lightconeConstructorInternal
@@ -50,8 +52,8 @@ Implements a galactic filter on lightcone geometry.
 contains
 
   function lightconeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterLightcone} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterLightcone` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -71,8 +73,8 @@ contains
   end function lightconeConstructorParameters
 
   function lightconeConstructorInternal(geometryLightcone_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterLightcone} galactic filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticFilterLightcone` galactic filter class.
     !!}
     implicit none
     type (galacticFilterLightcone)                        :: self
@@ -85,8 +87,8 @@ contains
   end function lightconeConstructorInternal
 
   subroutine lightconeDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterLightcone} galactic filter class.
+    !!{RST
+    Destructor for the :galacticus-class:`galacticFilterLightcone` galactic filter class.
     !!}
     implicit none
     type(galacticFilterLightcone), intent(inout) :: self
@@ -98,7 +100,7 @@ contains
   end subroutine lightconeDestructor
 
   logical function lightconePasses(self,node)
-    !!{
+    !!{RST
     Implement a lightcone geometry galactic filter.
     !!}
     implicit none

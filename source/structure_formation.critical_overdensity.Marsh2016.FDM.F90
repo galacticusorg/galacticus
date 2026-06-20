@@ -17,38 +17,41 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a critical overdensity for collapse using the \gls{fdm} modifier of \cite{marsh_warmAndFuzzy_2016}.
+  !!{RST
+  Implements a critical overdensity for collapse using the :term:`FDM` modifier of :cite:t:`marsh_warmandfuzzy_2016`.
   !!}
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Dark_Matter_Particles  , only : darkMatterParticleClass
   use :: Numerical_Interpolation, only : interpolator
 
   !![
-  <criticalOverdensity name="criticalOverdensityMarsh2016FDM">
+  <criticalOverdensity name="criticalOverdensityMarsh2016FDM" docformat="rst">
    <description>
-    A critical overdensity for collapse class based on the \gls{fdm} modifier of \cite{marsh_warmAndFuzzy_2016} applied to
-    some other, \gls{cdm} critical overdensity class. Specifically, the critical overdensity is multiplied by a factor
-    \begin{equation}
-     h_\mathrm{F}(x) \exp [a_3 x^{-a_4}]+[1-h_\mathrm{F}(x)]\exp [a_5 x^{-a_6}],
-    \end{equation}
-    where $x=M/M_J$ with $M$ the mass in question, $M_\mathrm{J}$ the effective Jeans mass of the fuzzy dark matter as defined by
-    \citeauthor{marsh_warmAndFuzzy_2016}~[\citeyear{marsh_warmAndFuzzy_2016}; their eqn.~18]:
-    \begin{equation}
-     M_\mathrm{J} = a_1\times 10^8 \left(\frac{m_a}{10^{-22}\text{ eV}}\right)^{-3/2}\left(\frac{\Omega_m h^2}{0.14} \right)^{1/4} h^{-1}M_{\odot},
-    \end{equation}
-    the function $h_\mathrm{F}$ is given by
-    \begin{equation}
-     h_\mathrm{F}(x) =(1/2)\{1-\tanh [M_J(x-a_2)]\}.
-    \end{equation}
-    The best-fit parameters $a_i$ are
-    $\{a_1,a_2,a_3,a_4,a_5,a_6\}=\{3.4,1.0,1.8,0.5,1.7,0.9\}$.
+   A critical overdensity for collapse class based on the :term:`FDM` modifier of :cite:t:`marsh_warmandfuzzy_2016` applied to some other, :term:`CDM` critical overdensity class. Specifically, the critical overdensity is multiplied by a factor
+
+   .. math::
+
+      h_\mathrm{F}(x) \exp [a_3 x^{-a_4}]+[1-h_\mathrm{F}(x)]\exp [a_5 x^{-a_6}],
+
+   where :math:`x=M/M_J` with :math:`M` the mass in question, :math:`M_\mathrm{J}` the effective Jeans mass of the fuzzy dark matter as defined by :cite:author:`marsh_warmandfuzzy_2016` [:cite:year:`marsh_warmandfuzzy_2016`; their eqn. 18]:
+
+   .. math::
+
+      M_\mathrm{J} = a_1\times 10^8 \left(\frac{m_a}{10^{-22}\text{ eV}}\right)^{-3/2}\left(\frac{\Omega_m h^2}{0.14} \right)^{1/4} h^{-1}M_{\odot},
+
+   the function :math:`h_\mathrm{F}` is given by
+
+   .. math::
+
+      h_\mathrm{F}(x) =(1/2)\{1-\tanh [M_J(x-a_2)]\}.
+
+   The best-fit parameters :math:`a_i` are :math:`\{a_1,a_2,a_3,a_4,a_5,a_6\}=\{3.4,1.0,1.8,0.5,1.7,0.9\}`.
    </description>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityMarsh2016FDM
-     !!{
-     A critical overdensity for collapse class which modifies another transfer function using the \gls{fdm} modifier of \cite{marsh_warmAndFuzzy_2016}.
+     !!{RST
+     A critical overdensity for collapse class which modifies another transfer function using the :term:`FDM` modifier of :cite:t:`marsh_warmandfuzzy_2016`.
      !!}
      private
      class           (criticalOverdensityClass), pointer                   :: criticalOverdensityCDM => null()
@@ -70,8 +73,8 @@
   end type criticalOverdensityMarsh2016FDM
 
   interface criticalOverdensityMarsh2016FDM
-     !!{
-     Constructors for the \refClass{criticalOverdensityMarsh2016FDM} critical overdensity for collapse class.
+     !!{RST
+     Constructors for the :galacticus-class:`criticalOverdensityMarsh2016FDM` critical overdensity for collapse class.
      !!}
      module procedure marsh2016FDMConstructorParameters
      module procedure marsh2016FDMConstructorInternal
@@ -88,8 +91,8 @@
 contains
 
   function marsh2016FDMConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{criticalOverdensityMarsh2016FDM} critical overdensity for collapse class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`criticalOverdensityMarsh2016FDM` critical overdensity for collapse class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,11 +107,13 @@ contains
     logical                                                          :: useFittingFunction
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>useFittingFunction</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether the fuzzy dark matter critical overdensity mass scaling should be computed from a fitting function or from tabulated data.</description>
+      <description>
+      Specifies whether the fuzzy dark matter critical overdensity mass scaling should be computed from a fitting function or from tabulated data.
+      </description>
     </inputParameter>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensityCDM"    source="parameters"/>
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
@@ -132,8 +137,8 @@ contains
   end function marsh2016FDMConstructorParameters
 
   function marsh2016FDMConstructorInternal(criticalOverdensityCDM,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,linearGrowth_,useFittingFunction) result(self)
-    !!{
-    Internal constructor for the \refClass{criticalOverdensityMarsh2016FDM} critical overdensity for collapse class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`criticalOverdensityMarsh2016FDM` critical overdensity for collapse class.
     !!}
     use :: Cosmology_Parameters        , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles       , only : darkMatterParticleFuzzyDarkMatter
@@ -199,7 +204,7 @@ contains
   end function marsh2016FDMConstructorInternal
 
   subroutine marsh2016FDMDestructor(self)
-    !!{
+    !!{RST
     Destructor for the marsh2016FDM critical overdensity for collapse class.
     !!}
     implicit none
@@ -217,10 +222,8 @@ contains
   end subroutine marsh2016FDMDestructor
 
   double precision function marsh2016FDMValue(self,time,expansionFactor,collapsing,mass,node)
-    !!{
-    Returns a mass scaling for critical overdensities based on the results of \cite{marsh_warmAndFuzzy_2016}. This method
-    assumes that their results for the critical overdensity scale with the Jeans mass of the fuzzy dark matter particle
-    as computed using their eqn.~(18).
+    !!{RST
+    Returns a mass scaling for critical overdensities based on the results of :cite:t:`marsh_warmandfuzzy_2016`. This method assumes that their results for the critical overdensity scale with the Jeans mass of the fuzzy dark matter particle as computed using their eqn. (18).
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -283,7 +286,7 @@ contains
   end function marsh2016FDMValue
 
   double precision function marsh2016FDMGradientTime(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the gradient with respect to time of critical overdensity at the given time and mass.
     !!}
     implicit none
@@ -301,7 +304,7 @@ contains
   end function marsh2016FDMGradientTime
 
   double precision function marsh2016FDMGradientMass(self,time,expansionFactor,collapsing,mass,node)
-    !!{
+    !!{RST
     Return the gradient with respect to mass of critical overdensity at the given time and mass.
     !!}
     use :: Error, only : Error_Report
@@ -400,7 +403,7 @@ contains
   end function marsh2016FDMGradientMass
 
   logical function marsh2016FDMIsMassDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is mass dependent.
     !!}
     implicit none
@@ -412,7 +415,7 @@ contains
   end function marsh2016FDMIsMassDependent
 
   logical function marsh2016FDMIsNodeDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is node dependent.
     !!}
     implicit none
@@ -424,7 +427,7 @@ contains
   end function marsh2016FDMIsNodeDependent
 
   logical function marsh2016FDMIsTreeDependent(self)
-    !!{
+    !!{RST
     Return whether the critical overdensity is tree dependent.
     !!}
     implicit none

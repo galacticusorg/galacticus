@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a excursion set first crossing statistics class for linear barriers.
 !!}
 
@@ -25,19 +25,20 @@ Implements a excursion set first crossing statistics class for linear barriers.
   use :: Excursion_Sets_Barriers   , only : excursionSetBarrierClass
 
   !![
-  <excursionSetFirstCrossing name="excursionSetFirstCrossingLinearBarrier">
+  <excursionSetFirstCrossing name="excursionSetFirstCrossingLinearBarrier" docformat="rst">
    <description>
-    An excursion set first crossing statistics class for linear barriers. Specifically, the first crossing distribution is
-    \begin{equation}
-     f(S,t) = B(0,t) \exp(- B(S,t)^2/2S)/S/\sqrt{2 pi S},
-    \end{equation}
-    where $B(S,t)$ is the (assumed-to-be-linear-in-$S$) barrier at time $t$ and variance $S$. The first crossing rate is
-    computed using a finite difference approximation between two closely-spaced times. The non-crossing rate is zero.
+   An excursion set first crossing statistics class for linear barriers. Specifically, the first crossing distribution is
+
+   .. math::
+
+      f(S,t) = B(0,t) \exp(- B(S,t)^2/2S)/S/\sqrt{2 pi S},
+
+   where :math:`B(S,t)` is the (assumed-to-be-linear-in-:math:`S`) barrier at time :math:`t` and variance :math:`S`. The first crossing rate is computed using a finite difference approximation between two closely-spaced times. The non-crossing rate is zero.
    </description>
   </excursionSetFirstCrossing>
   !!]
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingLinearBarrier
-     !!{
+     !!{RST
      A linearBarrier excursion set barrier class.
      !!}
      private
@@ -53,7 +54,7 @@ Implements a excursion set first crossing statistics class for linear barriers.
   end type excursionSetFirstCrossingLinearBarrier
 
   interface excursionSetFirstCrossingLinearBarrier
-     !!{
+     !!{RST
      Constructors for the linearBarrier excursion set barrier class.
      !!}
      module procedure linearBarrierConstructorParameters
@@ -63,7 +64,7 @@ Implements a excursion set first crossing statistics class for linear barriers.
 contains
 
   function linearBarrierConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -75,11 +76,13 @@ contains
     double precision                                                        :: fractionalTimeStep
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionalTimeStep</name>
       <defaultValue>0.01d0</defaultValue>
       <source>parameters</source>
-      <description>The fractional time step used when computing barrier crossing rates (i.e. the step used in finite difference calculations).</description>
+      <description>
+      The fractional time step used when computing barrier crossing rates (i.e. the step used in finite difference calculations).
+      </description>
     </inputParameter>
     <objectBuilder class="excursionSetBarrier"      name="excursionSetBarrier_"      source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
@@ -94,7 +97,7 @@ contains
   end function linearBarrierConstructorParameters
 
   function linearBarrierConstructorInternal(fractionalTimeStep,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
-    !!{
+    !!{RST
     Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
     !!}
     implicit none
@@ -110,7 +113,7 @@ contains
   end function linearBarrierConstructorInternal
 
   subroutine linearBarrierDestructor(self)
-    !!{
+    !!{RST
     Destructor for the critical overdensity excursion set barrier class.
     !!}
     implicit none
@@ -124,7 +127,7 @@ contains
   end subroutine linearBarrierDestructor
 
   double precision function linearBarrierProbability(self,variance,time,node)
-    !!{
+    !!{RST
     Return the excursion set barrier at the given variance and time.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -149,7 +152,7 @@ contains
   end function linearBarrierProbability
 
   double precision function linearBarrierRate(self,variance,varianceProgenitor,time,node)
-    !!{
+    !!{RST
     Return the excursion set barrier at the given variance and time.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -200,7 +203,7 @@ contains
   contains
 
     double precision function barrierEffective(variance0,time0,variance1,time1)
-      !!{
+      !!{RST
       The effective barrier for conditional excursion sets.
       !!}
       implicit none
@@ -215,7 +218,7 @@ contains
   end function linearBarrierRate
 
   double precision function linearBarrierRateNonCrossing(self,variance,massMinimum,time,node)
-    !!{
+    !!{RST
     Return the rate for excursion set non-crossing assuming a linear barrier.
     !!}
     use :: Error_Functions, only : Error_Function

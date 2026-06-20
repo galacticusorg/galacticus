@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements calculations of vectors.
 !!}
 
 module Vectors
-  !!{
+  !!{RST
   Implements calculations of vectors.
   !!}
   implicit none
@@ -41,8 +41,8 @@ module Vectors
 contains
 
   pure double precision function Vector_Magnitude(vector1)
-    !!{
-    Computes the magnitude of \mono{vector1}.
+    !!{RST
+    Computes the magnitude of ``vector1``.
     !!}
     implicit none
     double precision, dimension(3), intent(in   ) :: vector1
@@ -52,8 +52,8 @@ contains
   end function Vector_Magnitude
 
   pure function Vector_Product(vector1,vector2) result(vector3)
-    !!{
-    Computes the vector product of \mono{vector1} and \mono{vector2}.
+    !!{RST
+    Computes the vector product of ``vector1`` and ``vector2``.
     !!}
     implicit none
     double precision, dimension(3)                :: vector3
@@ -66,7 +66,7 @@ contains
   end function Vector_Product
 
  function Vector_Outer_Product_Distinct(vector1,vector2)
-    !!{
+    !!{RST
     Returns the outer product of two vectors.
     !!}
     implicit none
@@ -80,7 +80,7 @@ contains
   end function Vector_Outer_Product_Distinct
 
  function Vector_Outer_Product_Self(vector1,symmetrize)
-    !!{
+    !!{RST
     Returns the outer product of a vector with itself.
     !!}
     implicit none
@@ -96,11 +96,8 @@ contains
   end function Vector_Outer_Product_Self
 
   subroutine Vector_Outer_Product_Accumulate_Self(vector1,matrix,symmetrize,sparse)
-    !!{
-    Compute the outer product of a vector with itself and accumulate it to the given
-    matrix. Compute only the upper triangle unless the symmetrize option is set to true. If
-    the sparse option is set to true, assume a sparse matrix and accumulate only non-zero
-    terms.
+    !!{RST
+    Compute the outer product of a vector with itself and accumulate it to the given matrix. Compute only the upper triangle unless the symmetrize option is set to true. If the sparse option is set to true, assume a sparse matrix and accumulate only non-zero terms.
     !!}
     implicit none
     double precision, dimension(:  ), intent(in   ) :: vector1
@@ -139,7 +136,7 @@ contains
   end subroutine Vector_Outer_Product_Accumulate_Self
 
   function Matrix_Copy_Upper_To_Lower_Triangle(matrix)
-    !!{
+    !!{RST
     Copies the upper triangle of a square matrix to the lower triangle.
     !!}
     use :: Error, only : Error_Report
@@ -159,7 +156,7 @@ contains
   end function Matrix_Copy_Upper_To_Lower_Triangle
 
  function Vector_Matrix_Multiply(vector,matrix)
-    !!{
+    !!{RST
     Returns the product of a vector with a matrix.
     !!}
     implicit none

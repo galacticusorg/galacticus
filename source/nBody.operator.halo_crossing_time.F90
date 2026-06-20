@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which computes the crossing time of halos.
 !!}
 
   !![
-  <nbodyOperator name="nbodyOperatorHaloCrossingTime">
-   <description>An N-body data operator which computes and stores the crossing time of halos defined as $t_\mathrm{cross} = 2 r_\mathrm{vir}/V_\mathrm{vir}$.</description>
+  <nbodyOperator name="nbodyOperatorHaloCrossingTime" docformat="rst">
+   <description>
+   An N-body data operator which computes and stores the crossing time of halos defined as :math:`t_\mathrm{cross} = 2 r_\mathrm{vir}/V_\mathrm{vir}`.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorHaloCrossingTime
-     !!{
+     !!{RST
      An N-body data operator which computes the crossing time of halos.
      !!}
      private
@@ -36,8 +38,8 @@ Implements an N-body data operator which computes the crossing time of halos.
   end type nbodyOperatorHaloCrossingTime
 
   interface nbodyOperatorHaloCrossingTime
-     !!{
-     Constructors for the \refClass{nbodyOperatorHaloCrossingTime} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorHaloCrossingTime` N-body operator class.
      !!}
      module procedure haloCrossingTimeConstructorParameters
   end interface nbodyOperatorHaloCrossingTime
@@ -45,8 +47,8 @@ Implements an N-body data operator which computes the crossing time of halos.
 contains
 
   function haloCrossingTimeConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorHaloCrossingTime} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorHaloCrossingTime` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function haloCrossingTimeConstructorParameters
 
   subroutine haloCrossingTimeOperate(self,simulations)
-    !!{
+    !!{RST
     Compute the crossing times of halos.
     !!}
     use :: Display                         , only : displayIndent                 , displayUnindent  , verbosityLevelStandard

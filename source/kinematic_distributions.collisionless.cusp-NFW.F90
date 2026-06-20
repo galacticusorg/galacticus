@@ -17,26 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a kinematic distribution class for the cusp-NFW \citep{delos_cusp-halo_2025} mass distribution.
+  !!{RST
+  Implementation of a kinematic distribution class for the cusp-NFW :cite:p:`delos_cusp-halo_2025` mass distribution.
   !!}
 
   !![
-  <kinematicsDistribution name="kinematicsDistributionCuspNFW">
-   <description>A kinematic distribution class for the cusp-NFW dark matter profile of \citep{delos_cusp-halo_2025}, which describes halos with a central density cusp transitioning to an NFW envelope. The 1D velocity dispersion is computed from tabulated solutions to the isotropic Jeans equation for this two-component density profile.</description>
+  <kinematicsDistribution name="kinematicsDistributionCuspNFW" docformat="rst">
+   <description>
+   A kinematic distribution class for the cusp-NFW dark matter profile of :cite:p:`delos_cusp-halo_2025`, which describes halos with a central density cusp transitioning to an NFW envelope. The 1D velocity dispersion is computed from tabulated solutions to the isotropic Jeans equation for this two-component density profile.
+   </description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionCollisionlessTabulated) :: kinematicsDistributionCuspNFW
-     !!{
-     A kinematics distribution for the cusp-NFW \citep{delos_cusp-halo_2025} mass distribution.
+     !!{RST
+     A kinematics distribution for the cusp-NFW :cite:p:`delos_cusp-halo_2025` mass distribution.
      !!}
    contains
      procedure :: velocityDispersion1D => cuspNFWKinematicsVelocityDispersion1D
   end type kinematicsDistributionCuspNFW
 
   interface kinematicsDistributionCuspNFW
-     !!{
-     Constructors for the \refClass{kinematicsDistributionCuspNFW} kinematic distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`kinematicsDistributionCuspNFW` kinematic distribution class.
      !!}
      module procedure cuspNFWKinematicsConstructorParameters
      module procedure cuspNFWKinematicsConstructorInternal
@@ -46,9 +48,8 @@
 contains
 
   function cuspNFWKinematicsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionCuspNFW} kinematic distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`kinematicsDistributionCuspNFW` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -57,17 +58,21 @@ contains
     double precision                                               :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersion</name>
       <defaultValue>1.0d-6</defaultValue>
       <source>parameters</source>
-      <description>The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+      <description>
+      The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersionMaximum</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+      <description>
+      The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.
+      </description>
     </inputParameter>
     !!]
     self=kinematicsDistributionCuspNFW(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum)
@@ -78,8 +83,8 @@ contains
   end function cuspNFWKinematicsConstructorParameters
 
   function cuspNFWKinematicsConstructorInternal(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionCuspNFW} kinematic distribution class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`kinematicsDistributionCuspNFW` kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionCuspNFW)                          :: self
@@ -92,8 +97,8 @@ contains
   end function cuspNFWKinematicsConstructorInternal
   
   function cuspNFWKinematicsConstructorDecorated(kinematicsDistribution_) result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionCuspNFW} kinematic distribution class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`kinematicsDistributionCuspNFW` kinematic distribution class.
     !!}
     implicit none
     type (kinematicsDistributionCuspNFW)                :: self
@@ -105,7 +110,7 @@ contains
   end function cuspNFWKinematicsConstructorDecorated
   
   logical function cuspNFWKinematicsIsCollisional(self)
-    !!{
+    !!{RST
     Return false indicating that the cusp-NFW distribution represents collisionless particles.
     !!}
     implicit none
@@ -117,8 +122,8 @@ contains
   end function cuspNFWKinematicsIsCollisional
 
   double precision function cuspNFWKinematicsVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
-    !!{
-    Return the 1D velocity dispersion at the specified \mono{coordinates} in a cusp-NFW kinematic distribution.
+    !!{RST
+    Return the 1D velocity dispersion at the specified ``coordinates`` in a cusp-NFW kinematic distribution.
     !!}
     use :: Error      , only : Error_Report
     use :: Coordinates, only : coordinateSpherical, assignment(=)

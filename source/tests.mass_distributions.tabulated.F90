@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test tabulated mass distributions.
 !!}
 
 program Test_Mass_Distributions_Tabulated
-  !!{
+  !!{RST
   Tests mass distributions.
   !!}
   use :: Coordinates                     , only : coordinateSpherical    , assignment(=)

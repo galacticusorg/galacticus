@@ -17,23 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Contains a module which implements a dark matter halo mass function class which modifies another mass function by adding in a
-  population of pseudo-halos.
+  !!{RST
+  Contains a module which implements a dark matter halo mass function class which modifies another mass function by adding in a population of pseudo-halos.
   !!}
 
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmological_Density_Field, only : haloEnvironmentClass
 
   !![
-  <haloMassFunction name="haloMassFunctionPseudoHalos">
+  <haloMassFunction name="haloMassFunctionPseudoHalos" docformat="rst">
     <description>
-      The halo mass function is computed by adding a population of pseudo-halos to another halo mass function.
+    The halo mass function is computed by adding a population of pseudo-halos to another halo mass function.
     </description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionPseudoHalos
-     !!{
+     !!{RST
      A halo mass function class that modifies another mass function by adding in a population of pseudo-halos.
      !!}
      private
@@ -53,8 +52,8 @@
   end type haloMassFunctionPseudoHalos
 
   interface haloMassFunctionPseudoHalos
-     !!{
-     Constructors for the \mono{pseudoHalos} halo mass function class.
+     !!{RST
+     Constructors for the ``pseudoHalos`` halo mass function class.
      !!}
      module procedure pseudoHalosConstructorParameters
      module procedure pseudoHalosConstructorInternal
@@ -63,8 +62,8 @@
 contains
 
   function pseudoHalosConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \mono{pseudoHalos} halo mass function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``pseudoHalos`` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,55 +80,75 @@ contains
          &                                                          exponentNormalization , countParticleMinimum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massZeroPointReference</name>
       <source>parameters</source>
-      <description>The mass zero-point reference $M^\prime_0$ in the relation $M_0(m_\mathrm{p}) = M^\prime_0 (m_\mathrm{p}/m^\prime_\mathrm{p})^\gamma$.</description>
+      <description>
+      The mass zero-point reference :math:`M^\prime_0` in the relation :math:`M_0(m_\mathrm{p}) = M^\prime_0 (m_\mathrm{p}/m^\prime_\mathrm{p})^\gamma`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParticleReference</name>
       <source>parameters</source>
-      <description>The particle mass reference $m^\prime_\mathrm{p}$ in the relation $M_0(m_\mathrm{p}) = M^\prime_0 (m_\mathrm{p}/m^\prime_\mathrm{p})^\gamma$.</description>
+      <description>
+      The particle mass reference :math:`m^\prime_\mathrm{p}` in the relation :math:`M_0(m_\mathrm{p}) = M^\prime_0 (m_\mathrm{p}/m^\prime_\mathrm{p})^\gamma`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParticle</name>
       <source>parameters</source>
-      <description>The particle mass $m_\mathrm{p}$ in the relation $M_0(m_\mathrm{p}) = M^\prime_0 (m_\mathrm{p}/m^\prime_\mathrm{p})^\gamma$.</description>
+      <description>
+      The particle mass :math:`m_\mathrm{p}` in the relation :math:`M_0(m_\mathrm{p}) = M^\prime_0 (m_\mathrm{p}/m^\prime_\mathrm{p})^\gamma`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countParticleMinimum</name>
       <source>parameters</source>
-      <description>The minimum number of particles in a detectable halo.</description>
+      <description>
+      The minimum number of particles in a detectable halo.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentMassParticle</name>
       <source>parameters</source>
-      <description>The exponent $\gamma$ in the relation $M_0(m_\mathrm{p}) = M^\prime_0 (m_\mathrm{p}/m^\prime_\mathrm{p})^\gamma$.</description>
+      <description>
+      The exponent :math:`\gamma` in the relation :math:`M_0(m_\mathrm{p}) = M^\prime_0 (m_\mathrm{p}/m^\prime_\mathrm{p})^\gamma`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentNormalization</name>
       <source>parameters</source>
-      <description>The exponent $\xi$ in the relation $n(M) = n_0 [M^\prime_0/M_0(m_\mathrm{p})]^\xi [M/M_0(m_\mathrm{p})])^\alpha (1+z)^\beta (1+\delta_\mathrm{c})^\mu$.</description>
+      <description>
+      The exponent :math:`\xi` in the relation :math:`n(M) = n_0 [M^\prime_0/M_0(m_\mathrm{p})]^\xi [M/M_0(m_\mathrm{p})])^\alpha (1+z)^\beta (1+\delta_\mathrm{c})^\mu`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>normalization</name>
       <source>parameters</source>
-      <description>The normalization $n_0$ in the pseudo-halo mass function $n(M) = n_0 [M^\prime_0/M_0(m_\mathrm{p})]^\xi [M^\prime_0/M_0(m_\mathrm{p})]^\xi [M/M_0(m_\mathrm{p})])^\alpha (1+z)^\beta (1+\delta_\mathrm{c})^\mu$.</description>
+      <description>
+      The normalization :math:`n_0` in the pseudo-halo mass function :math:`n(M) = n_0 [M^\prime_0/M_0(m_\mathrm{p})]^\xi [M^\prime_0/M_0(m_\mathrm{p})]^\xi [M/M_0(m_\mathrm{p})])^\alpha (1+z)^\beta (1+\delta_\mathrm{c})^\mu`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentMass</name>
       <source>parameters</source>
-      <description>The exponent $\alpha$ in the pseudo-halo mass function $n(M) = n_0 [M^\prime_0/M_0(m_\mathrm{p})]^\xi [M/M_0(m_\mathrm{p})])^\alpha (1+z)^\beta (1+\delta_\mathrm{c})^\mu$.</description>
+      <description>
+      The exponent :math:`\alpha` in the pseudo-halo mass function :math:`n(M) = n_0 [M^\prime_0/M_0(m_\mathrm{p})]^\xi [M/M_0(m_\mathrm{p})])^\alpha (1+z)^\beta (1+\delta_\mathrm{c})^\mu`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentRedshift</name>
       <source>parameters</source>
-      <description>The exponent $\beta$ in the pseudo-halo mass function $n(M) = n_0 [M^\prime_0/M_0(m_\mathrm{p})]^\xi [M/M_0(m_\mathrm{p})])^\alpha (1+z)^\beta (1+\delta_\mathrm{c})^\mu$.</description>
+      <description>
+      The exponent :math:`\beta` in the pseudo-halo mass function :math:`n(M) = n_0 [M^\prime_0/M_0(m_\mathrm{p})]^\xi [M/M_0(m_\mathrm{p})])^\alpha (1+z)^\beta (1+\delta_\mathrm{c})^\mu`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentOverdensity</name>
       <source>parameters</source>
-      <description>The exponent $\mu$ in the pseudo-halo mass function $n(M) = n_0 [M/M_0(m_\mathrm{p})])^\alpha (1+z)^\beta (1+\delta_\mathrm{c})^\mu$.</description>
+      <description>
+      The exponent :math:`\mu` in the pseudo-halo mass function :math:`n(M) = n_0 [M/M_0(m_\mathrm{p})])^\alpha (1+z)^\beta (1+\delta_\mathrm{c})^\mu`.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="haloMassFunction"    name="massFunction_"        source="parameters"/>
@@ -148,8 +167,8 @@ contains
   end function pseudoHalosConstructorParameters
 
   function pseudoHalosConstructorInternal(normalization,exponentMass,exponentRedshift,exponentOverdensity,massZeroPointReference,massParticleReference,massParticle,countParticleMinimum,exponentMassParticle,exponentNormalization,massFunction_,cosmologyParameters_,cosmologyFunctions_,haloEnvironment_) result(self)
-    !!{
-    Internal constructor for the \mono{pseudoHalos} halo mass function class.
+    !!{RST
+    Internal constructor for the ``pseudoHalos`` halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionPseudoHalos)                        :: self
@@ -175,8 +194,8 @@ contains
   end function pseudoHalosConstructorInternal
 
   subroutine pseudoHalosDestructor(self)
-    !!{
-    Destructor for the \mono{pseudoHalos} halo mass function class.
+    !!{RST
+    Destructor for the ``pseudoHalos`` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionPseudoHalos), intent(inout) :: self
@@ -191,7 +210,7 @@ contains
   end subroutine pseudoHalosDestructor
 
   double precision function pseudoHalosDifferential(self,time,mass,node) result(massFunction)
-    !!{
+    !!{RST
     Return the differential halo mass function at the given time and mass.
     !!}
     implicit none
@@ -215,7 +234,7 @@ contains
   end function pseudoHalosDifferential
   
   double precision function pseudoHalosIntegrated(self,time,massLow,massHigh,node,status) result(massFunction)
-    !!{
+    !!{RST
     Return the integrated halo mass function at the given time and mass.
     !!}
     implicit none
