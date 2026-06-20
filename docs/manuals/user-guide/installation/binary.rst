@@ -13,12 +13,14 @@ To do this:
    wget https://github.com/galacticusorg/datasets/archive/master.zip -O datasets.zip
    unzip galacticus.zip
    unzip datasets.zip
+   mv galacticus-master galacticus
+   mv datasets-master datasets
 
 * download and unpack the `tools <https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/tools.tar.bz2>`_ that are needed at run-time:
 
 .. code-block:: bash
 
-   cd datasets-master
+   cd datasets
    wget https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/tools.tar.bz2
    tar xvfj tools.tar.bz2
 
@@ -26,7 +28,7 @@ To do this:
 
 .. code-block:: bash
 
-   cd galacticus
+   cd ../galacticus
    wget https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus.exe
    chmod u=wrx Galacticus.exe
 
@@ -34,8 +36,8 @@ To do this:
 
 .. code-block:: bash
 
-   export GALACTICUS_EXEC_PATH=/path/to/galacticus/folder
-   export GALACTICUS_DATA_PATH=/path/to/datasets/folder
+   export GALACTICUS_EXEC_PATH=/path/to/galacticus
+   export GALACTICUS_DATA_PATH=/path/to/datasets
 
 .. note::
 

@@ -7,9 +7,9 @@ Installing from Source (macOS)
 
 A beta-release of an installation script (that automates the process of installing Galacticus from source) for MacOS is available in the `installationScripts <https://github.com/galacticusorg/installationscripts>`_ repo. You can find instructions for using this script `here <https://github.com/galacticusorg/installationscripts/wiki>`_.
 
-.. warning::
+.. note::
 
-   The compiler versions referenced in the per-library build commands below are inconsistent (they use a mix of GCC 12, 15, and 16) and are currently under review. Readers should use a single recent GCC (16) consistently and adjust the commands accordingly.
+   **GCC 16** is the minimum supported compiler version. These instructions install GCC and the build dependencies through `MacPorts <https://www.macports.org/>`_, so the compilers are named ``gcc-mp-16``, ``g++-mp-16``, and ``gfortran-mp-16`` throughout. If you install GCC through a different package manager (e.g. Homebrew), substitute the corresponding executable names (``gcc-16``, ``g++-16``, ``gfortran-16``).
 
 Install Xcode Command Line Tools
 --------------------------------
@@ -55,23 +55,17 @@ Download the appropriate MacPorts for your system. The following will detect you
 Install GCC
 -----------
 
-A recent GCC is required to build Galacticus. The following will install version 16 with an ``-16`` suffix on the executables to avoid possible conflict with other installations of GCC on your system.
+GCC 16 is required to build Galacticus. Install it through MacPorts:
 
 .. code-block:: bash
 
-   brew install gcc16
+   sudo port install gcc16
 
-.. warning::
+This provides the ``gcc-mp-16``, ``g++-mp-16``, and ``gfortran-mp-16`` executables used in the remaining steps.
 
-   (06/04/2026) A "bottle" for GCC 16 has not yet been created by HomeBrew.
+.. note::
 
-So the above command will currently not work. Until a bottle is created, you can install the very latest GCC from HomeBrew using:
-
-.. code-block:: bash
-
-   brew install gcc --HEAD
-
-Note that this will need to build from source which can be very slow.
+   GCC 16 is very recent and may not yet be packaged for your system. If ``port install gcc16`` cannot find it, install the most recent GCC that is available (adjusting the ``-16`` suffixes in the commands below to match), or build GCC from source as described in the `Linux instructions <https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/source-linux.html>`_.
 
 Install Guile
 -------------
@@ -123,11 +117,11 @@ Install HDF5
    curl -L https://support.hdfgroup.org/releases/hdf5/v1_14/v1_14_5/downloads/hdf5-1.14.5.tar.gz --output hdf5-1.14.5.tar.gz
    tar -vxzf hdf5-1.14.5.tar.gz
    cd hdf5-1.14.5
-   if [[ "${OS_VER}" -eq 13 ]]; then
+   if [[ "${ver}" -eq 13 ]]; then
       # For MacOS 13 force use of the classic linker as the new linker does not support the '-commons' option - see https://trac.macports.org/ticket/68194#comment:15
-      CC=gcc-15 CXX=g++-15 FC=gfortran-12 LDFLAGS=-Wl,-ld_classic ./configure --prefix=/usr/local --enable-fortran --enable-build-mode=production
+      CC=gcc-mp-16 CXX=g++-mp-16 FC=gfortran-mp-16 LDFLAGS=-Wl,-ld_classic ./configure --prefix=/usr/local --enable-fortran --enable-build-mode=production
    else
-      CC=gcc-15 CXX=g++-15 FC=gfortran-12                         ./configure --prefix=/usr/local --enable-fortran --enable-build-mode=production
+      CC=gcc-mp-16 CXX=g++-mp-16 FC=gfortran-mp-16                         ./configure --prefix=/usr/local --enable-fortran --enable-build-mode=production
    fi
    make -j3
    sudo make install
@@ -170,7 +164,7 @@ Install ANN
    curl -L http://www.cs.umd.edu/~mount/ANN/Files/1.1.2/ann_1.1.2.tar.gz --output ann_1.1.2.tar.gz
    tar xvfz ann_1.1.2.tar.gz
    cd ann_1.1.2
-   sed -E -i~ s/"C\+\+ = g\+\+"/"C\+\+ = g\+\+\-mp\-12"/ Make-config
+   sed -E -i~ s/"C\+\+ = g\+\+"/"C\+\+ = g\+\+\-mp\-16"/ Make-config
    make macosx-g++
    sudo cp bin/* /usr/local/bin/.
    sudo cp lib/* /usr/local/lib/.
