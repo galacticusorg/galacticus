@@ -9,7 +9,7 @@ projected from the observer through the Universe.
 
 Generating such a mock catalog using Galacticus involves first extracting the
 halos (and their merger trees) within this "lightcone" from a suitable N-body
-simulation, and then processing them through. In this tutorial, we will assume
+simulation, and then processing them through Galacticus. In this tutorial, we will assume
 that you have merger trees from a cosmological simulation available in
 Galacticus' merger tree file format.
 
@@ -60,7 +60,7 @@ galaxies which intersect the lightcone to be output—for example:
      />
    </geometryLightcone>
 
-In the above causes lightcone coordinate information (i.e. the position
+In the above, ``outputLightconeData=true`` causes lightcone coordinate information (i.e. the position
 and velocity of each galaxy in a coordinate system with axes aligned
 along the line of sight of the lightcone and parallel to the two edges
 of the square field of view, along with the redshift) to be output (see the documentation on the ``lightcone`` `nodePropertyExtractor <https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/index.html>`_), and is set to ``pruneLightcone`` to

@@ -287,7 +287,7 @@ This block applies various physical processes to subhalos.
        </outputAnalysis>
      </outputAnalysis>
 
-Finally we specify the outputs that we want. Here we request a number of additional properties to be output, and also request the summary analyses (subhalo mass function, :math:`V_\mathrm{max}` function, and radial distribution - each compared to results from the Caterpillar simulations) to be computed and output.
+Finally we specify the outputs that we want. Here we request a number of additional properties to be output, and also request three summary analyses (subhalo mass function, :math:`V_\mathrm{max}` function, and radial distribution - each compared to results from the Caterpillar simulations) to be computed and output.
 
 Understanding the output
 ------------------------

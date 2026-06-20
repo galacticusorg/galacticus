@@ -783,7 +783,7 @@ parent. By default, Galacticus will output a ``parentIndex`` dataset,
 which therefore specifies either the descendant or host, depending on
 whether the node in question is isolated or not. To additionally output
 information which matches the use of “descendant” and “host” in these
-merger tree files, set both of the input parameters and to
+merger tree files, set both of the input parameters ``presetMergerNodes`` and ``presetMergerTimes`` to
 ``true``. This will result in the output of two additional
 datasets, ``descendantIndex`` and ``hostIndex`` which
 correspond to the definitions used in the merger tree file.

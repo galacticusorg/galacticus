@@ -323,7 +323,7 @@ becoming a subhalo.
 The remainder of this section gives more detail about many of the
 parameters described above and how they affect handling of merger trees
 read from file. Further parameters can be set to control what
-information from the stored trees will be used in . Examples are given
+information from the stored trees will be used in Galacticus' calculations. Examples are given
 below.
 
 Further Details
@@ -392,7 +392,7 @@ option to ``true`` causes only bound orbits to be
 preset—unbound orbits are ignored. Note that some orbits cannot be
 propagated to the virial radius (i.e. their pericenter is larger than
 the virial radius). The option, if true, will cause such orbits to be
-assigned randomly using the selected , such that all orbits are
+assigned randomly using the selected virial orbits distribution function, such that all orbits are
 assigned. The option requires that all orbits be set—if
 ``presetOrbitsSetAll=false`` and ``presetOrbitsAssertAllSet=true`` then Galacticus will exit with an
 error message if any orbit cannot be set.
@@ -448,7 +448,7 @@ subhalo merges with another subhalo. Setting
    </mergerTreeConstructor>
 
 will cause the target node with which each merger should occur to be
-determined from the merger tree structure and preset for use in .
+determined from the merger tree structure and preset for use in Galacticus.
 
 It is possible to add a delay between the last time at which a subhalo
 was seen in a simulation and the time at which it is considered to
@@ -753,7 +753,7 @@ For non-subhalos this property is equal to the usual
    occur in merger trees created using Press-Schechter-based algorithms
    for example.
 
-.. [#footnote3] That is, the subhalo's descendent is hosted by a other than the
+.. [#footnote3] That is, the subhalo's descendent is hosted by a halo other than the
    descendent of the subhalo's host.
 
 .. [#footnote4] Before doing this, it is important to be sure that the angular
