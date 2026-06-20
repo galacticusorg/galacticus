@@ -31,11 +31,11 @@ module Node_Component_Disk_Standard
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
   implicit none
   private
-  public :: Node_Component_Disk_Standard_Scale_Set                 , Node_Component_Disk_Standard_Pre_Evolve                  , &
-       &    Node_Component_Disk_Standard_Radius_Solver_Plausibility, Node_Component_Disk_Standard_Radius_Solver               , &
-       &    Node_Component_Disk_Standard_Post_Step                 , Node_Component_Disk_Standard_Thread_Uninitialize         , &
-       &    Node_Component_Disk_Standard_Initialize                , Node_Component_Disk_Standard_Thread_Initialize           , &
-       &    Node_Component_Disk_Standard_State_Store               , Node_Component_Disk_Standard_State_Retrieve              , &
+  public :: Node_Component_Disk_Standard_Scale_Set                 , Node_Component_Disk_Standard_Pre_Evolve         , &
+       &    Node_Component_Disk_Standard_Radius_Solver_Plausibility, Node_Component_Disk_Standard_Radius_Solver      , &
+       &    Node_Component_Disk_Standard_Post_Step                 , Node_Component_Disk_Standard_Thread_Uninitialize, &
+       &    Node_Component_Disk_Standard_Initialize                , Node_Component_Disk_Standard_Thread_Initialize  , &
+       &    Node_Component_Disk_Standard_State_Store               , Node_Component_Disk_Standard_State_Retrieve     , &
        &    Node_Component_Disk_Standard_Inactive
 
   !![
@@ -387,13 +387,17 @@ contains
     !!}
     use :: Events_Hooks                     , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeExtraOutputEvent
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
-    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_
+    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_, scalerStellarPool, &
+         &                                           scalerGasPool
     implicit none
 
     if (defaultDiskComponent%standardIsActive()) then
        if (satelliteMergerEvent      %isAttached(thread,satelliteMerger      )) call satelliteMergerEvent      %detach(thread,satelliteMerger      )
        if (postEvolveEvent           %isAttached(thread,postEvolve           )) call postEvolveEvent           %detach(thread,postEvolve           )
        if (mergerTreeExtraOutputEvent%isAttached(thread,mergerTreeExtraOutput)) call mergerTreeExtraOutputEvent%detach(thread,mergerTreeExtraOutput)
+       ! Release the pooled scaler mass distributions before the dimensionless distributions they wrap.
+       call scalerStellarPool%destroy()
+       call scalerGasPool    %destroy()
        !![
        <objectDestructor name="darkMatterHaloScale_"        />
        <objectDestructor name="stellarPopulationProperties_"/>

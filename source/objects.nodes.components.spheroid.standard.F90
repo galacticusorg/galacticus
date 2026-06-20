@@ -377,13 +377,17 @@ contains
     !!}
     use :: Events_Hooks                         , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeExtraOutputEvent
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
-    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_
+    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_, scalerStellarPool, &
+         &                                               scalerGasPool
     implicit none
 
     if (defaultSpheroidComponent%standardIsActive()) then
        if (postEvolveEvent           %isAttached(thread,postEvolve           )) call postEvolveEvent           %detach(thread,postEvolve           )
        if (satelliteMergerEvent      %isAttached(thread,satelliteMerger      )) call satelliteMergerEvent      %detach(thread,satelliteMerger      )
        if (mergerTreeExtraOutputEvent%isAttached(thread,mergerTreeExtraOutput)) call mergerTreeExtraOutputEvent%detach(thread,mergerTreeExtraOutput)
+       ! Release the pooled scaler mass distributions before the dimensionless distributions they wrap.
+       call scalerStellarPool%destroy()
+       call scalerGasPool    %destroy()
        !![
        <objectDestructor name="stellarPopulationProperties_"/>
        <objectDestructor name="darkMatterHaloScale_"        />

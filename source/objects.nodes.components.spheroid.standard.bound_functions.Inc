@@ -27,7 +27,8 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self,componentType,m
   !!}
   use :: Mass_Distributions                   , only : massDistributionClass    , massDistributionSphericalScaler, massDistributionComposite   , massDistributionList   , &
         &                                              massDistributionSpherical, massDistributionMatches_
-  use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_           , kinematicDistribution_
+  use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_           , kinematicDistribution_      , scalerStellarPool      , &
+       &                                               scalerGasPool
   use :: Galactic_Structure_Options           , only : componentTypeSpheroid    , massTypeStellar                , massTypeGaseous             , enumerationWeightByType, &
        &                                               weightByMass             , weightByLuminosity             , enumerationComponentTypeType, enumerationMassTypeType
   implicit none
@@ -44,7 +45,9 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self,componentType,m
   !$omp threadprivate(luminosities)
   double precision                                                           :: massStellar               , massGas            , &
        &                                                                        radiusScale
-  logical                                                                    :: includeGas                , includeStars
+  logical                                                                    :: includeGas                , includeStars       , &
+       &                                                                        reusedStellar             , reusedGas
+  integer                                                                    :: iStellar                  , iGas
   !![
   <optionalArgument name="weightBy" defaultsTo="weightByMass" />
   !!]
@@ -74,24 +77,53 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self,componentType,m
      massDistributionStellar => null()
      massDistributionGas     => null()
      if (includeStars) then
-        allocate(massDistributionStellar)
-        select type (massDistributionStellar_)
-        class is (massDistributionSpherical)
+        ! Acquire a stellar scaler from the per-thread pool: re-initialize its scaling factors on
+        ! re-use, or construct a new one (wrapping the dimensionless stellar distribution) on a miss.
+        call scalerStellarPool%acquire(iStellar,reusedStellar)
+        if (.not.reusedStellar) allocate(massDistributionSphericalScaler :: scalerStellarPool%slots(iStellar)%object_)
+        select type (scaler_ => scalerStellarPool%slots(iStellar)%object_)
+        type is (massDistributionSphericalScaler)
+           if (reusedStellar) then
+              call scaler_%initialize(factorScalingLength=radiusScale,factorScalingMass=massStellar)
+           else
+              select type (massDistributionStellar_)
+              class is (massDistributionSpherical)
+                 !![
+                 <referenceConstruct object="scaler_" constructor="massDistributionSphericalScaler(factorScalingLength=radiusScale,factorScalingMass=massStellar,massDistribution_=massDistributionStellar_)"/>
+                 !!]
+              end select
+           end if
+           call scaler_%setKinematicsDistribution(kinematicDistribution_)
+           ! Add the local-handle reference (the pool retains its own); from here the function manages
+           ! this handle exactly as it would a freshly-constructed scaler.
            !![
-           <referenceConstruct object="massDistributionStellar" constructor="massDistributionSphericalScaler(factorScalingLength=radiusScale,factorScalingMass=massStellar,massDistribution_=massDistributionStellar_)"/>
+           <referenceCountIncrement object="scaler_"/>
            !!]
+           massDistributionStellar => scaler_
         end select
-        call massDistributionStellar%setKinematicsDistribution(kinematicDistribution_)
      end if
      if (includeGas  ) then
-        allocate(massDistributionGas  )
-        select type (massDistributionGas_    )
-        class is (massDistributionSpherical)
+        ! Acquire a gas scaler from the per-thread pool (see the stellar case above).
+        call scalerGasPool%acquire(iGas,reusedGas)
+        if (.not.reusedGas) allocate(massDistributionSphericalScaler :: scalerGasPool%slots(iGas)%object_)
+        select type (scaler_ => scalerGasPool%slots(iGas)%object_)
+        type is (massDistributionSphericalScaler)
+           if (reusedGas) then
+              call scaler_%initialize(factorScalingLength=radiusScale,factorScalingMass=massGas)
+           else
+              select type (massDistributionGas_)
+              class is (massDistributionSpherical)
+                 !![
+                 <referenceConstruct object="scaler_" constructor="massDistributionSphericalScaler(factorScalingLength=radiusScale,factorScalingMass=massGas,massDistribution_=massDistributionGas_)"/>
+                 !!]
+              end select
+           end if
+           call scaler_%setKinematicsDistribution(kinematicDistribution_)
            !![
-           <referenceConstruct object="massDistributionGas"     constructor="massDistributionSphericalScaler(factorScalingLength=radiusScale,factorScalingMass=massGas    ,massDistribution_=massDistributionGas_      )"/>
+           <referenceCountIncrement object="scaler_"/>
            !!]
+           massDistributionGas => scaler_
         end select
-        call massDistributionGas    %setKinematicsDistribution(kinematicDistribution_)
      end if
      ! Combine the distributions as necessary.
      if      (includeStars .and. includeGas) then

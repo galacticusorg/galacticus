@@ -44,10 +44,12 @@
    contains
      !![
      <methods docformat="rst">
-       <method method="unscaled" description="Return a pointer to the unscaled mass distribution."/>
+       <method method="unscaled"   description="Return a pointer to the unscaled mass distribution."/>
+       <method method="initialize" description="(Re)initialize the scaling factors of the scaled mass distribution."/>
      </methods>
      !!]
      final     ::                                            cylindricalScalerDestructor
+     procedure :: initialize                              => cylindricalScalerInitialize
      procedure :: unscaled                                => cylindricalScalerUnscaled
      procedure :: assumeMonotonicDecreasingSurfaceDensity => cylindricalScalerAssumeMonotonicDecreasingSurfaceDensity
      procedure :: massTotal                               => cylindricalScalerMassTotal
@@ -141,6 +143,19 @@ contains
     self%     massType=massDistribution_%     massType
     return
   end function cylindricalScalerConstructorInternal
+
+  subroutine cylindricalScalerInitialize(self,factorScalingLength,factorScalingMass)
+    !!{RST
+    (Re)initialize the scaling factors of a :galacticus-class:`massDistributionCylindricalScaler` mass distribution. Used to re-use a pooled scaler for a new system without reallocating it (and without disturbing the wrapped, dimensionless mass distribution, which is unchanged). The scaler holds no scale-dependent cached state of its own, so only the two scaling factors need to be reset.
+    !!}
+    implicit none
+    class           (massDistributionCylindricalScaler), intent(inout) :: self
+    double precision                                   , intent(in   ) :: factorScalingLength, factorScalingMass
+
+    self%factorScalingLength=factorScalingLength
+    self%factorScalingMass  =factorScalingMass
+    return
+  end subroutine cylindricalScalerInitialize
 
   subroutine cylindricalScalerDestructor(self)
     !!{RST
