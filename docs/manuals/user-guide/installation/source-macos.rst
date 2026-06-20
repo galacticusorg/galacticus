@@ -9,7 +9,7 @@ A beta-release of an installation script (that automates the process of installi
 
 .. note::
 
-   **GCC 16** is the minimum supported compiler version. These instructions install GCC and the build dependencies through `MacPorts <https://www.macports.org/>`_, so the compilers are named ``gcc-mp-16``, ``g++-mp-16``, and ``gfortran-mp-16`` throughout. If you install GCC through a different package manager (e.g. Homebrew), substitute the corresponding executable names (``gcc-16``, ``g++-16``, ``gfortran-16``).
+   **GCC 16** is the minimum supported compiler version. These instructions install GCC and the build dependencies through `Homebrew <https://brew.sh/>`_, so the compilers are named ``gcc-16``, ``g++-16``, and ``gfortran-16`` throughout. If you install GCC through a different package manager, substitute the corresponding executable names.
 
 Install Xcode Command Line Tools
 --------------------------------
@@ -21,65 +21,52 @@ If you don't already have the Xcode command line tools installed, install them n
    if [[ ! $(xcode-select -p) ]]; then
        xcode-select --install
    fi
-   export PATH=$PATH:/opt/local/bin:/usr/local/bin
+   export PATH=$PATH:$(brew --prefix)/bin:/usr/local/bin
 
-Install MacPorts
+Install Homebrew
 ----------------
 
-Download the appropriate MacPorts for your system. The following will detect your OS version and download and install the correct version.
+If you don't already have `Homebrew <https://brew.sh/>`_ installed, install it now:
+
+.. code-block:: bash
+
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+Also record your macOS major version. It is used for a linker workaround in the HDF5 and Galacticus build steps below:
 
 .. code-block:: bash
 
    os_ver=$(sw_vers -productVersion)
    IFS='.' read -r -a ver <<< "$os_ver"
-   if [[ "${ver}" -eq 11 ]]; then
-       macportsversion=2.7.1
-       macportsbase=2.7.1-11-BigSur
-   elif [[ "${ver}" -eq 12 ]]; then
-       macportsversion=2.9.1
-       macportsbase=2.9.1-12-Monterey
-   elif [[ "${ver}" -eq 13 ]]; then
-       macportsversion=2.9.1
-       macportsbase=2.9.1-13-Ventura
-   elif [[ "${ver}" -eq 14 ]]; then
-       macportsversion=2.9.1
-       macportsbase=2.9.1-14-Sonoma
-   else
-       echo Unknown MacOS version: ${os_ver}
-       exit 1
-   fi
-   curl -L https://github.com/macports/macports-base/releases/download/v${macportsversion}/MacPorts-${macportsbase}.pkg --output MacPorts-${macportsbase}.pkg
-   sudo installer -pkg ./MacPorts-${macportsbase}.pkg -target /
-   rm ./MacPorts-${macportsbase}.pkg
 
 Install GCC
 -----------
 
-GCC 16 is required to build Galacticus. Install it through MacPorts:
+GCC 16 is required to build Galacticus. Install it through Homebrew:
 
 .. code-block:: bash
 
-   sudo port install gcc16
+   brew install gcc16
 
-This provides the ``gcc-mp-16``, ``g++-mp-16``, and ``gfortran-mp-16`` executables used in the remaining steps.
+This provides the ``gcc-16``, ``g++-16``, and ``gfortran-16`` executables used in the remaining steps.
 
 .. note::
 
-   GCC 16 is very recent and may not yet be packaged for your system. If ``port install gcc16`` cannot find it, install the most recent GCC that is available (adjusting the ``-16`` suffixes in the commands below to match), or build GCC from source as described in the `Linux instructions <https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/source-linux.html>`_.
+   GCC 16 is very recent. If a pre-built bottle is not yet available for your system, ``brew install gcc16`` may need to compile GCC from source, which can be slow. Alternatively, build GCC from source as described in the `Linux instructions <https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/source-linux.html>`_.
 
 Install Guile
 -------------
 
 .. code-block:: bash
 
-   sudo port install guile-3.0
+   brew install guile
 
 Install GSL
 -----------
 
 .. code-block:: bash
 
-   sudo port install gsl
+   brew install gsl
 
 Install ``libmatheval``
 -----------------------
@@ -90,7 +77,7 @@ Install ``libmatheval``
    tar xvfz libmatheval-1.1.13.tar.gz
    cd libmatheval-1.1.13
    sed -E -i~ s/"#undef HAVE_SCM_T_BITS"/"#define HAVE_SCM_T_BITS 1"/ config.h.in
-   CC=gcc-mp-16 ./configure --prefix=/usr/local
+   CC=gcc-16 ./configure --prefix=/usr/local
    make -j
    sudo make install
    cd ..
@@ -104,7 +91,7 @@ Install QHull
    curl -L http://www.qhull.org/download/qhull-2020-src-8.0.2.tgz --output qhull-2020-src-8.0.2.tgz
    tar xvfz qhull-2020-src-8.0.2.tgz
    cd qhull-2020.2
-   make -j CC=gcc-mp-16 CXX=g++-mp-16
+   make -j CC=gcc-16 CXX=g++-16
    sudo make install
    cd ..
    rm -rf qhull-2020-src-8.0.2.tgz qhull-2020.2
@@ -119,9 +106,9 @@ Install HDF5
    cd hdf5-1.14.5
    if [[ "${ver}" -eq 13 ]]; then
       # For MacOS 13 force use of the classic linker as the new linker does not support the '-commons' option - see https://trac.macports.org/ticket/68194#comment:15
-      CC=gcc-mp-16 CXX=g++-mp-16 FC=gfortran-mp-16 LDFLAGS=-Wl,-ld_classic ./configure --prefix=/usr/local --enable-fortran --enable-build-mode=production
+      CC=gcc-16 CXX=g++-16 FC=gfortran-16 LDFLAGS=-Wl,-ld_classic ./configure --prefix=/usr/local --enable-fortran --enable-build-mode=production
    else
-      CC=gcc-mp-16 CXX=g++-mp-16 FC=gfortran-mp-16                         ./configure --prefix=/usr/local --enable-fortran --enable-build-mode=production
+      CC=gcc-16 CXX=g++-16 FC=gfortran-16                         ./configure --prefix=/usr/local --enable-fortran --enable-build-mode=production
    fi
    make -j3
    sudo make install
@@ -136,7 +123,7 @@ Install FoX
    curl -L https://github.com/galacticusorg/fox/archive/refs/tags/v4.1.3.tar.gz --output FoX-4.1.3.tar.gz
    tar xvfz FoX-4.1.3.tar.gz
    cd fox-4.1.3
-   FC=gfortran-mp-16 ./configure --prefix=/usr/local
+   FC=gfortran-16 ./configure --prefix=/usr/local
    make -j
    sudo make install
    cd ..
@@ -150,7 +137,7 @@ Install FFTW3
    curl -L ftp://ftp.fftw.org/pub/fftw/fftw-3.3.4.tar.gz --output fftw-3.3.4.tar.gz
    tar xvfz fftw-3.3.4.tar.gz
    cd fftw-3.3.4
-   F77=gfortran-mp-16 CC=gcc-mp-16 ./configure --prefix=/usr/local
+   F77=gfortran-16 CC=gcc-16 ./configure --prefix=/usr/local
    make -j
    sudo make install
    cd ..
@@ -164,7 +151,7 @@ Install ANN
    curl -L http://www.cs.umd.edu/~mount/ANN/Files/1.1.2/ann_1.1.2.tar.gz --output ann_1.1.2.tar.gz
    tar xvfz ann_1.1.2.tar.gz
    cd ann_1.1.2
-   sed -E -i~ s/"C\+\+ = g\+\+"/"C\+\+ = g\+\+\-mp\-16"/ Make-config
+   sed -E -i~ s/"C\+\+ = g\+\+"/"C\+\+ = g\+\+\-16"/ Make-config
    make macosx-g++
    sudo cp bin/* /usr/local/bin/.
    sudo cp lib/* /usr/local/lib/.
@@ -194,16 +181,16 @@ Install Galacticus
    git clone https://github.com/galacticusorg/galacticus.git
    cd galacticus
    export GALACTICUS_EXEC_PATH=`pwd`
-   export FCCOMPILER=gfortran-mp-16
-   export CCOMPILER=gcc-mp-16
-   export CPPCOMPILER=g++-mp-16
+   export FCCOMPILER=gfortran-16
+   export CCOMPILER=gcc-16
+   export CPPCOMPILER=g++-16
    export LIBRARY_PATH=/Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk/usr/lib
-   export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/finclude -L/usr/local/lib -L/opt/local/lib -I/Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk/usr/include"
+   export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/finclude -L/usr/local/lib -L$(brew --prefix)/lib -I/Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk/usr/include"
    if [[ "${ver}" -eq 13 ]]; then
        export GALACTICUS_FCFLAGS="$GALACTICUS_FCFLAGS -Wl,-ld_classic"
    fi
-   export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include -I/Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk/usr/include"
-   export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include -I/Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk/usr/include"
+   export GALACTICUS_CFLAGS="-I/usr/local/include -I$(brew --prefix)/include -I/Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk/usr/include"
+   export GALACTICUS_CPPFLAGS="-I/usr/local/include -I$(brew --prefix)/include -I/Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk/usr/include"
    make -j Galacticus.exe
 
 .. note::
