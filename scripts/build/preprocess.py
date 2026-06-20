@@ -27,7 +27,6 @@ _configure_default()
 # statements at the top of perl/Galacticus/Build/SourceTree.pm.
 import Galacticus.Build.SourceTree.Process.AddMetaProperty          # noqa: F401
 import Galacticus.Build.SourceTree.Process.Allocate                 # noqa: F401
-import Galacticus.Build.SourceTree.Process.ClassDocumentation       # noqa: F401
 import Galacticus.Build.SourceTree.Process.ConditionalCall          # noqa: F401
 import Galacticus.Build.SourceTree.Process.Constants                # noqa: F401
 import Galacticus.Build.SourceTree.Process.Constructors             # noqa: F401

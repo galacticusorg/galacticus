@@ -52,7 +52,7 @@ contains
 #ifndef USEMPI
           if (stdOutIsATTY()) then
              ! Display our ASCII art logo. This was created using the `px2ansi` tool (https://github.com/Nellousan/px2ansi) from
-             ! https://github.com/galacticusorg/galacticus/blob/master/doc/New_Logo_Galaxy_192_Transparent.png after reducing to
+             ! https://github.com/galacticusorg/galacticus/blob/master/docs/New_Logo_Galaxy_192_Transparent.png after reducing to
              ! 64 pixels using `convert -scale 64`.
              write (output_unit,*) "[0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m"
              write (output_unit,*) "[0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m"

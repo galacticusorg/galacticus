@@ -63,7 +63,7 @@ sphinxcontrib.bibtex.plugin.register_plugin(
     'author_year_round', _RoundAuthorYearStyle)
 
 # Bibliography (the same database used by the LaTeX/PDF manuals).
-bibtex_bibfiles = ['../doc/Galacticus.bib']
+bibtex_bibfiles = ['Galacticus.bib']
 bibtex_default_style = 'plain'
 bibtex_reference_style = 'author_year_round'
 

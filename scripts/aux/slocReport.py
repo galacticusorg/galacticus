@@ -17,7 +17,7 @@ HISTORY_PATH = ".github/metrics/slocHistory.json"
 
 
 def count_fortran_xml_latex():
-    """Walk source/ and doc/ to count Fortran/embedded-XML/embedded-LaTeX/LaTeX lines."""
+    """Walk source/ and docs/ to count Fortran/embedded-XML/embedded-LaTeX/LaTeX lines."""
     counts = {}
     source_files = []
     for root, _dirs, files in os.walk('source'):
@@ -25,7 +25,7 @@ def count_fortran_xml_latex():
             if f.endswith('.F90') or f.endswith('.Inc'):
                 source_files.append(os.path.join(root, f))
     doc_files = []
-    for root, _dirs, files in os.walk('doc'):
+    for root, _dirs, files in os.walk('docs'):
         for f in files:
             if f.endswith('.tex'):
                 doc_files.append(os.path.join(root, f))

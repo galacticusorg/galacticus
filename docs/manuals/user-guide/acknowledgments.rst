@@ -10,4 +10,4 @@ Contributors
 
 The following people have contributed to the Galacticus project:
 
-Alex Merson, Andrew Benson, Andrew Robertson, Anthony Pullen, Arya Farahi, Charles Gannon, Christoph Behrens, Copilot, Daniel McAndrew, Ethan Nadler, Ivan Esteban, Jianling Gan, Luiz Felippe S. Rodrigues, Markus Haider, Martin White, Matías Liempi, Niusha Ahvazi, Omid Sameie, Paul Menker, Sachi Weerasooriya, Stephanie Dörschner, Stéphane Mangeon, Xiaolong Du, Yu Zhao.
+.. include:: contributors.rst

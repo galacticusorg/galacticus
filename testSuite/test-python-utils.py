@@ -60,7 +60,6 @@ import Galacticus.Build.SourceTree.Process.EventHooks                # noqa: F40
 import Galacticus.Build.SourceTree.Process.ThreadSafeIO              # noqa: F401
 import Galacticus.Build.SourceTree.Process.SourceDigest              # noqa: F401
 import Galacticus.Build.SourceTree.Process.ObjectBuilder             # noqa: F401
-import Galacticus.Build.SourceTree.Process.ClassDocumentation        # noqa: F401
 from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import (
     latex_breakable, trimlc, striplc, lctrim, strip_variable_name,
     declaration_rank, class_dependencies,
@@ -91,7 +90,7 @@ from Galacticus.Build.SourceTree.Process.FunctionClass import (
     _build_descriptor_methods, _descriptor_discover_class,
     _load_and_sort_classes,
     _generate_type_definition, _generate_constructor,
-    _generate_method_functions, _generate_documentation,
+    _generate_method_functions,
     _generate_class_submodules,
     _format_variable_definitions, _source_digest_binding,
     _STATE_STORABLES_HOLDER     as _fc_state_storables_holder,
@@ -3609,89 +3608,6 @@ def test_process_reference_increment_acquire_construct():
 
 
 # ============================================================================
-# Process.ClassDocumentation tests
-# ============================================================================
-
-def test_process_class_documentation_disabled():
-    print("\n=== Testing Process.ClassDocumentation (disabled by default) ===")
-
-    saved = os.environ.pop('GALACTICUS_BUILD_DOCS', None)
-    try:
-        root = _parse_text(
-            "module m\n"
-            "type :: aT\n"
-            "end type aT\n"
-            "end module m\n"
-        )
-        before = serialize(root)
-        from Galacticus.Build.SourceTree.Process.ClassDocumentation import \
-            process_class_documentation
-        process_class_documentation(root, {})
-        assert_equal(serialize(root), before,
-                     "no changes when GALACTICUS_BUILD_DOCS is not 'yes'")
-    finally:
-        if saved is not None:
-            os.environ['GALACTICUS_BUILD_DOCS'] = saved
-
-
-def test_process_class_documentation_enabled():
-    print("\n=== Testing Process.ClassDocumentation (enabled, writes XML) ===")
-
-    tmpdir = tempfile.mkdtemp()
-    saved_build = os.environ.get('BUILDPATH')
-    saved_docs  = os.environ.get('GALACTICUS_BUILD_DOCS')
-    os.environ['BUILDPATH']             = tmpdir
-    os.environ['GALACTICUS_BUILD_DOCS'] = 'yes'
-
-    # Write the source to a real file so `tree.get('name')` matches the
-    # `<base>.F90` shape that triggers the XML dump.
-    src_path = os.path.join(tmpdir, 'driver.F90')
-    with open(src_path, 'w') as fh:
-        fh.write(
-            "module m\n"
-            "type :: aT\n"
-            "contains\n"
-            "  procedure :: doIt => aT_doIt\n"
-            "end type aT\n"
-            "contains\n"
-            "subroutine aT_doIt(self, x)\n"
-            "class(aT), intent(inout) :: self\n"
-            "real,       intent(in   ) :: x\n"
-            "end subroutine aT_doIt\n"
-            "end module m\n"
-        )
-    try:
-        # Reset module-level output-previous tracker so we get a fresh write.
-        import Galacticus.Build.SourceTree.Process.ClassDocumentation as CD
-        CD._OUTPUT_PREVIOUS.clear()
-
-        tree = parse_file(src_path)
-        from Galacticus.Build.SourceTree.Process.ClassDocumentation import \
-            process_class_documentation
-        process_class_documentation(tree, {})
-
-        out_xml = os.path.join(tmpdir, 'driver.classes.xml')
-        assert_equal(os.path.exists(out_xml), True,
-                     "<basename>.classes.xml written to BUILDPATH")
-        with open(out_xml, 'r') as fh:
-            payload = fh.read()
-        assert_equal('<classes>' in payload, True, "root element is <classes>")
-        assert_equal('<aT>' in payload or '<aT/>' in payload, True,
-                     "class 'aT' recorded in the XML")
-    finally:
-        if saved_build is None:
-            del os.environ['BUILDPATH']
-        else:
-            os.environ['BUILDPATH'] = saved_build
-        if saved_docs is None:
-            del os.environ['GALACTICUS_BUILD_DOCS']
-        else:
-            os.environ['GALACTICUS_BUILD_DOCS'] = saved_docs
-        import shutil
-        shutil.rmtree(tmpdir)
-
-
-# ============================================================================
 # Process.FunctionClass.Utils tests
 # ============================================================================
 
@@ -4611,65 +4527,6 @@ def test_functionclass_generate_method_functions():
                  "methods with explicit function= are skipped")
 
 
-def test_functionclass_generate_documentation_basic():
-    print("\n=== Testing FunctionClass._generate_documentation (basic write) ===")
-    # Set up a minimal tree for one class that has an interface block naming
-    # a module-procedure constructor — the walker needs both to emit the
-    # class's `\\subsection{}` header without parameter details.
-    class_src = (
-        "module m\n"
-        "  interface myFooCore\n"
-        "    module procedure myFooCoreConstructor\n"
-        "  end interface myFooCore\n"
-        "end module m\n"
-    )
-    tree = _parse_text(class_src)
-    classes = {
-        'myFooCore': {
-            'name':        'myFooCore',
-            'description': 'The core implementation.',
-            'tree':        tree,
-            'extends':     'myFoo',
-        },
-    }
-    non_abstract_classes = [classes['myFooCore']]
-    directive = {
-        'name':            'myFoo',
-        'descriptiveName': 'My Foo Example',
-        'description':     'A toy functionClass for unit tests.',
-    }
-
-    cwd = os.getcwd()
-    tmpdir = tempfile.mkdtemp()
-    try:
-        os.chdir(tmpdir)
-        _generate_documentation(directive, classes, non_abstract_classes)
-        out_path = os.path.join(
-            tmpdir, 'doc', 'physics', 'my_foo_example.tex')
-        assert_equal(os.path.exists(out_path), True,
-                     "documentation file written at expected path")
-        with open(out_path, 'r') as fh:
-            payload = fh.read()
-        assert_equal('\\section{My Foo Example}' in payload, True,
-                     "\\section header with descriptive name")
-        assert_equal('\\refClass{myFooCore}' in payload, True,
-                     "\\refClass reference to the implementation emitted")
-        assert_equal('The core implementation.' in payload, True,
-                     "class description spliced into subsection body")
-    finally:
-        os.chdir(cwd)
-        import shutil
-        shutil.rmtree(tmpdir)
-
-
-# ============================================================================
-# Main
-# ============================================================================
-
-# ---------------------------------------------------------------------------
-# D.7.3c build_* method tests
-# ---------------------------------------------------------------------------
-
 def _make_simple_class(name, extends, member_declarations=None,
                        constructor_children=None, opener=None):
     """Helper: build a minimal class_record tree with a type block and
@@ -5069,8 +4926,6 @@ def main():
     test_process_source_digest()
     test_process_object_destructor()
     test_process_reference_increment_acquire_construct()
-    test_process_class_documentation_disabled()
-    test_process_class_documentation_enabled()
     test_functionclass_utils_small_helpers()
     test_functionclass_utils_class_dependencies()
     test_functionclass_descriptor_classification()
@@ -5101,7 +4956,6 @@ def main():
     test_functionclass_generate_type_definition()
     test_functionclass_generate_constructor_with_default_and_recursion()
     test_functionclass_generate_method_functions()
-    test_functionclass_generate_documentation_basic()
     test_functionclass_build_assignment_method()
     test_functionclass_build_deep_copy_methods()
     test_functionclass_build_state_store_methods()

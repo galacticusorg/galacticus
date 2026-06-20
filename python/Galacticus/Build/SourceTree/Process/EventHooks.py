@@ -114,7 +114,7 @@ def _code_node(content, source='EventHooks', line=1):
 # when no hooks are attached (the guard reads zero and short-circuits). That lock guards
 # only the single-integer read — the loops below iterate `hooks_` unlocked — so it
 # provides no consistency or traversal safety that a lockless read does not (see
-# eventHookCountLockless() / the Event Hooks section of doc/Coding.tex). We therefore use
+# eventHookCountLockless() / the Event Hooks section of the developer guide). We therefore use
 # the lockless `countLockless()` (an `!$omp atomic read`, paired with `!$omp atomic update`
 # on the count_ writes in attach/detach), hoisted into a single local that drives both the
 # guard and the loop bound. This removes the lock from the dispatch path entirely.

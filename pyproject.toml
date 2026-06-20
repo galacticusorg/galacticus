@@ -34,7 +34,6 @@ dependencies = [
     "requests",
     "PyYAML",
     "GitPython",
-    "PyPDF2",
     "termcolor",
 ]
 

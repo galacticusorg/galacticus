@@ -28,7 +28,7 @@ Usage::
     --dry-run    Do not write; print a unified diff to stdout.
     --report     After processing, list files containing constructs (tables,
                  figures, …) that need manual review.
-    --glossary   Path to Glossary.tex (default: ``doc/Glossary.tex``).
+    --glossary   Path to Glossary.tex (default: ``docs/Glossary.tex``).
 
 Andrew Benson / Galacticus — RST documentation migration (2026).
 """
@@ -282,8 +282,8 @@ def main() -> int:
                          '(for CI: enforces that all docstrings are already RST)')
     ap.add_argument('--report', action='store_true',
                     help='list files with constructs needing manual review')
-    ap.add_argument('--glossary', default='doc/Glossary.tex',
-                    help='path to Glossary.tex (default: doc/Glossary.tex)')
+    ap.add_argument('--glossary', default='docs/Glossary.tex',
+                    help='path to Glossary.tex (default: docs/Glossary.tex)')
     args = ap.parse_args()
 
     glsmap = glossary_display_map(parse_glossary(args.glossary))
