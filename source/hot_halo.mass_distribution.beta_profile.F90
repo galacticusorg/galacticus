@@ -23,6 +23,7 @@ An implementation of the hot halo mass distribution class for :math:`\beta`-prof
 
   use :: Hot_Halo_Mass_Distributions_Core_Radii, only : hotHaloMassDistributionCoreRadiusClass
   use :: Mass_Distributions                    , only : massDistributionBetaProfile
+  use :: Object_Pools                          , only : objectPool
 
   !![
   <hotHaloMassDistribution name="hotHaloMassDistributionBetaProfile" docformat="rst">
@@ -35,6 +36,9 @@ An implementation of the hot halo mass distribution class for :math:`\beta`-prof
 
    where the core radius, :math:`r_\mathrm{core}`, is set using the selected cored profile core radius method (see :galacticus-class:`hotHaloMassDistributionCoreRadius`). The value of :math:`\beta` is specified by the ``[beta]`` parameter. The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, :math:`r_\mathrm{hot, outer}`.
    </description>
+   <deepCopy>
+     <deallocate variables="pool"/>
+   </deepCopy>
   </hotHaloMassDistribution>
   !!]
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionBetaProfile
@@ -42,8 +46,9 @@ An implementation of the hot halo mass distribution class for :math:`\beta`-prof
      A :math:`\beta`-profile implementation of the hot halo mass distribution class.
      !!}
      private
-     double precision                                                  :: beta
-     class           (hotHaloMassDistributionCoreRadiusClass), pointer :: hotHaloMassDistributionCoreRadius_ => null()
+     double precision                                                      :: beta
+     class           (hotHaloMassDistributionCoreRadiusClass), pointer     :: hotHaloMassDistributionCoreRadius_ => null()
+     type            (objectPool                            ), allocatable :: pool
    contains
      final     ::        betaProfileDestructor
      procedure :: get => betaProfileGet
@@ -141,6 +146,8 @@ contains
     implicit none
     type(hotHaloMassDistributionBetaProfile), intent(inout) :: self
 
+    ! Release any pooled mass distributions so that they are not leaked when this object is destroyed.
+    if (allocated(self%pool)) call self%pool%destroy()
     !![
     <objectDestructor name="self%hotHaloMassDistributionCoreRadius_"/>
     !!]
@@ -162,6 +169,8 @@ contains
     class           (nodeComponentHotHalo              ), pointer                 :: hotHalo
     double precision                                                              :: radiusScale      , radiusOuter, &
          &                                                                           mass
+    logical                                                                       :: reused
+    integer                                                                       :: i
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -177,25 +186,47 @@ contains
     mass        =  hotHalo                                   %mass       (    )
     ! If outer radius is non-positive return a null profile.
     if (radiusOuter <= 0.0d0 .or. mass <= 0.0d0) return
-    ! Create the beta-profile distribution.
-    allocate(massDistributionBetaProfile :: massDistribution_)
-    select type(massDistribution_)
+    ! Acquire a pool slot, creating the pool itself on first use. If an existing object is available
+    ! for re-use "reused" is returned true, otherwise we must create a new object.
+    if (.not.allocated(self%pool)) allocate(self%pool)
+    call self%pool%acquire(i,reused)
+    if (.not.reused) allocate(massDistributionBetaProfile :: self%pool%slots(i)%object_)
+    select type (massDistribution__ => self%pool%slots(i)%object_)
     type is (massDistributionBetaProfile)
+       if (reused) then
+          ! An existing distribution in the pool is available for re-use - update its properties for
+          ! this node.
+          call massDistribution__%initialize(                                   &
+               &                             beta                 =self%beta  , &
+               &                             coreRadius           =radiusScale, &
+               &                             mass                 =mass       , &
+               &                             outerRadius          =radiusOuter, &
+               &                             truncateAtOuterRadius=.true.       &
+               &                            )
+       else
+          ! No pool object was available - construct a new distribution.
+          !![
+          <referenceConstruct object="massDistribution__">
+	    <constructor>
+              massDistributionBetaProfile(                                                 &amp;
+                &amp;                     beta                 =self%beta                , &amp;
+                &amp;                     coreRadius           =     radiusScale         , &amp;
+                &amp;                     mass                 =     mass                , &amp;
+                &amp;                     outerRadius          =     radiusOuter         , &amp;
+                &amp;                     truncateAtOuterRadius=     .true.              , &amp;
+                &amp;                     componentType        =     componentTypeHotHalo, &amp;
+                &amp;                     massType             =     massTypeGaseous       &amp;
+                &amp;                    )
+	    </constructor>
+          </referenceConstruct>
+          !!]
+       end if
+       ! Increment the reference count since we are returning the object to a calling function which
+       ! will therefore hold a reference to it.
        !![
-       <referenceConstruct object="massDistribution_">
-	 <constructor>
-           massDistributionBetaProfile(                                                 &amp;
-             &amp;                     beta                 =self%beta                , &amp;
-             &amp;                     coreRadius           =     radiusScale         , &amp;
-             &amp;                     mass                 =     mass                , &amp;
-             &amp;                     outerRadius          =     radiusOuter         , &amp;
-             &amp;                     truncateAtOuterRadius=     .true.              , &amp;
-             &amp;                     componentType        =     componentTypeHotHalo, &amp;
-             &amp;                     massType             =     massTypeGaseous       &amp;
-             &amp;                    )
-	 </constructor>
-       </referenceConstruct>
+       <referenceCountIncrement object="massDistribution__"/>
        !!]
+       massDistribution_ => massDistribution__
     end select
     return
   end function betaProfileGet

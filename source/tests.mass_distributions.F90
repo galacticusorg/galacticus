@@ -38,7 +38,7 @@ program Test_Mass_Distributions
        &                                    massDistributionList                 , massDistributionSymmetryCylindrical, enumerationMassDistributionSymmetryType, massDistributionSphericalScaler             , &
        &                                    massDistributionCylindricalScaler    , massDistributionCylindrical        , massDistributionPatejLoeb2015          , massDistributionNFW                         , &
        &                                    massDistributionIsothermal           , kinematicsDistributionClass        , kinematicsDistributionLocal            , kinematicsDistributionCollisionlessTabulated, &
-       &                                    massDistributionSIDMParametricProfile
+       &                                    massDistributionSIDMParametricProfile, massDistributionBlackHole
   use :: Numerical_Constants_Math  , only : Pi                                   , e
   use :: Tensors                   , only : assignment(=)
   use :: Unit_Tests                , only : Assert                               , Unit_Tests_Begin_Group             , Unit_Tests_End_Group                   , Unit_Tests_Finish
@@ -77,33 +77,38 @@ program Test_Mass_Distributions
   double precision                                         , dimension(sersicTableCount       )              :: sersicTableDensityTarget             =[2.5553d+06,3.5797d+5,4.2189d+4,3.7044d+3,1.9679d+2,4.4047d+0,2.1943d-2,7.8166d-6]
   ! Potential targets for Sersic profile from Young (1976).
   double precision                                         , dimension(sersicTableCount       )              :: sersicTablePotentialTarget           =[1.0000d+00,9.9993d-1,9.9908d-1,9.9027d-1,9.2671d-1,6.7129d-1,2.4945d-1,3.7383d-2]
-  double precision                                         , dimension(sersicTableCount       )              :: sersicTableDensity                                                                                                      , sersicTableMass                            , &
+  double precision                                         , dimension(sersicTableCount       )              :: sersicTableDensity                                                                                                      , sersicTableMass                                  , &
        &                                                                                                        sersicTablePotential
-  type            (coordinateSpherical                    )                                                  :: position                                                                                                                , positionZero                               , &
+  type            (coordinateSpherical                    )                                                  :: position                                                                                                                , positionZero                                     , &
        &                                                                                                        positionReference
   type            (coordinateCartesian                    )                                                  :: positionCartesian
   type            (enumerationMassDistributionSymmetryType)                                                  :: symmetry_
   integer                                                                                                    :: i
-  double precision                                                                                           :: radiusInProjection                                                                                                      , radius                                     , &
-       &                                                                                                        rotationCurveGradientAnalytic                                                                                           , rotationCurveGradientNumerical             , &
+  double precision                                                                                           :: radiusInProjection                                                                                                      , radius                                           , &
+       &                                                                                                        rotationCurveGradientAnalytic                                                                                           , rotationCurveGradientNumerical                   , &
        &                                                                                                        massFraction                                                                                                            , time
+  ! Parameters and reference values for the black hole re-initialization (pool re-use) test.
+  double precision                                         , parameter                                       :: massBlackHoleA                       =1.0d+6                                                                            , massBlackHoleB                             =4.0d8, &
+       &                                                                                                        radiusBlackHoleTest                  =1.0d-3
+  double precision                                                                                           :: enclosedReferenceA                                                                                                      , enclosedReferenceB                               , &
+       &                                                                                                        rotationReferenceA                                                                                                      , rotationReferenceB
   double precision                                         , parameter                                       :: epsilonFiniteDifference              =0.01d0
   character       (len=4                                  )                                                  :: label
   double precision                                         , dimension(3,3)                                  :: tidalTensorComponents                                                                                                   , tidalTensorSphericalComponents
   double precision                                         , dimension(3  )                                  :: acceleration
-  double precision                                         , dimension(4  )                                  :: massPatejLoeb                                                                                                           , densityPatejLoeb                           , &
-       &                                                                                                        densitySlopePatejLoeb                                                                                                   , densityMomentPatejLoeb                     , &
+  double precision                                         , dimension(4  )                                  :: massPatejLoeb                                                                                                           , densityPatejLoeb                                 , &
+       &                                                                                                        densitySlopePatejLoeb                                                                                                   , densityMomentPatejLoeb                           , &
        &                                                                                                        potentialPatejLoeb
-  double precision                                         , dimension(4  )                                  :: massIsothermal                                                                                                          , densityIsothermal                          , &
-       &                                                                                                        densitySlopeIsothermal                                                                                                  , densityMomentIsothermal                    , &
-       &                                                                                                        potentialIsothermal                                                                                                     , fourierTransformIsothermal                 , &
-       &                                                                                                        radiusFreeFallIsothermal                                                                                                , radiusFreeFallGrowthRateIsothermal         , &
-       &                                                                                                        massIsothermalNumerical                                                                                                 , potentialIsothermalDifferenceNumerical     , &
-       &                                                                                                        fourierTransformIsothermalNumerical                                                                                     , radiusFreeFallIsothermalNumerical          , &
-       &                                                                                                        radiusFreeFallGrowthRateIsothermalNumerical                                                                             , densitySlopeIsothermalNumerical            , &
-       &                                                                                                        radiusEnclosingMassIsothermal                                                                                           , radiusEnclosingMassIsothermalNumerical     , &
-       &                                                                                                        radiusEnclosingDensityIsothermal                                                                                        , radiusEnclosingDensityIsothermalNumerical  , &
-       &                                                                                                        radiiIsothermal                                                                                                         , radiusFromSpecificAngularMomentumIsothermal, &
+  double precision                                         , dimension(4  )                                  :: massIsothermal                                                                                                          , densityIsothermal                                , &
+       &                                                                                                        densitySlopeIsothermal                                                                                                  , densityMomentIsothermal                          , &
+       &                                                                                                        potentialIsothermal                                                                                                     , fourierTransformIsothermal                       , &
+       &                                                                                                        radiusFreeFallIsothermal                                                                                                , radiusFreeFallGrowthRateIsothermal               , &
+       &                                                                                                        massIsothermalNumerical                                                                                                 , potentialIsothermalDifferenceNumerical           , &
+       &                                                                                                        fourierTransformIsothermalNumerical                                                                                     , radiusFreeFallIsothermalNumerical                , &
+       &                                                                                                        radiusFreeFallGrowthRateIsothermalNumerical                                                                             , densitySlopeIsothermalNumerical                  , &
+       &                                                                                                        radiusEnclosingMassIsothermal                                                                                           , radiusEnclosingMassIsothermalNumerical           , &
+       &                                                                                                        radiusEnclosingDensityIsothermal                                                                                        , radiusEnclosingDensityIsothermalNumerical        , &
+       &                                                                                                        radiiIsothermal                                                                                                         , radiusFromSpecificAngularMomentumIsothermal      , &
        &                                                                                                        radiusFromSpecificAngularMomentumIsothermalNumerical                                                                    , velocityCircularIsothermal
   type            (vector                                 ), dimension(:  )                    , allocatable :: axes
   
@@ -847,6 +852,36 @@ program Test_Mass_Distributions
        &      -3.58417d15                                                                                , &
        &      relTol=1.0d-3                                                                                &
        &     )
+  call Unit_Tests_End_Group()
+
+  ! Black hole mass distribution: verify that re-initialization (as used by the object pool to re-use
+  ! a pooled object for a new node) fully resets the object's state, leaving no stale residue. This
+  ! directly exercises the "initialize" method on which the black hole component's object pool relies.
+  call Unit_Tests_Begin_Group("Black hole mass distribution (re-initialization for pool re-use)")
+  if (allocated(massDistribution_)) deallocate(massDistribution_)
+  allocate(massDistributionBlackHole :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionBlackHole)
+     ! Reference outputs from freshly-constructed objects of each mass.
+     massDistribution_ =massDistributionBlackHole             (mass=massBlackHoleA)
+     enclosedReferenceA=massDistribution_%massEnclosedBySphere(radiusBlackHoleTest)
+     rotationReferenceA=massDistribution_%rotationCurve       (radiusBlackHoleTest)
+     massDistribution_ =massDistributionBlackHole             (mass=massBlackHoleB)
+     enclosedReferenceB=massDistribution_%massEnclosedBySphere(radiusBlackHoleTest)
+     rotationReferenceB=massDistribution_%rotationCurve       (radiusBlackHoleTest)
+     ! The object now holds state for massBlackHoleB. Re-initialize it to massBlackHoleA (as the pool
+     ! does on re-use) and confirm every output matches a freshly-constructed massBlackHoleA object.
+     call massDistribution_%initialize(mass=massBlackHoleA)
+     call Assert("re-use B->A: total mass"    ,massDistribution_%massTotal           (                   ),massBlackHoleA    ,relTol=1.0d-9)
+     call Assert("re-use B->A: mass enclosed" ,massDistribution_%massEnclosedBySphere(radiusBlackHoleTest),enclosedReferenceA,relTol=1.0d-9)
+     call Assert("re-use B->A: rotation curve",massDistribution_%rotationCurve       (radiusBlackHoleTest),rotationReferenceA,relTol=1.0d-9)
+     ! Re-initialize back to massBlackHoleB and confirm no stale state survived from massBlackHoleA.
+     call massDistribution_%initialize(mass=massBlackHoleB)
+     call Assert("re-use A->B: total mass"    ,massDistribution_%massTotal           (                   ),massBlackHoleB    ,relTol=1.0d-9)
+     call Assert("re-use A->B: mass enclosed" ,massDistribution_%massEnclosedBySphere(radiusBlackHoleTest),enclosedReferenceB,relTol=1.0d-9)
+     call Assert("re-use A->B: rotation curve",massDistribution_%rotationCurve       (radiusBlackHoleTest),rotationReferenceB,relTol=1.0d-9)
+  end select
+  deallocate(massDistribution_)
   call Unit_Tests_End_Group()
 
   ! End unit tests.
