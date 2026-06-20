@@ -207,62 +207,75 @@ contains
       use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
       implicit none
       double precision, intent(in   ) :: radius
-      double precision                :: radiusScaleFree, radiusFactor
+      double precision, parameter     :: radiusScaleFreeTiny=1.0d-6
+      double precision                :: radiusScaleFree           , radiusFactor
 
       select type (massDistributionEmbedding)
       class is (massDistributionSolitonNFW)
-         radiusScaleFree     =+                          radius                   &
-              &               /massDistributionEmbedding%radiusCore
-         radiusFactor        =+coefficientCore                                    &
-              &               *radiusScaleFree**2
-         jeansIntegralSoliton=+Pi                                                 &
-              &               *gravitationalConstant_internal                     &
-              &               *massDistributionEmbedding%radiusCore           **2 &
-              &               *massDistributionEmbedding%densitySolitonCentral**2 &
-              &               /2.003828736d10                                     &
-              &               /coefficientCore**1.5d0                             &
-              &               *(                                                  &
-              &                 -sqrt(coefficientCore)                            &
-              &                 *(                                                &
-              &                   + 169995.0d0                                    &
-              &                   + 631540.0d0*radiusFactor                       &
-              &                   +1200199.0d0*radiusFactor**2                    &
-              &                   +1317888.0d0*radiusFactor**3                    &
-              &                   + 849849.0d0*radiusFactor**4                    &
-              &                   + 300300.0d0*radiusFactor**5                    &
-              &                   +  45045.0d0*radiusFactor**6                    &
-              &                  )                                                &
-              &                 *(                                                &
-              &                   +  28672.0d0                                    &
-              &                   + 169995.0d0*radiusFactor                       &
-              &                   + 631540.0d0*radiusFactor**2                    &
-              &                   +1200199.0d0*radiusFactor**3                    &
-              &                   +1317888.0d0*radiusFactor**4                    &
-              &                   + 849849.0d0*radiusFactor**5                    &
-              &                   + 300300.0d0*radiusFactor**6                    &
-              &                   +  45045.0d0*radiusFactor**7                    &
-              &                  )                                                &
-              &                 /(1.0d0+radiusFactor)**14                         &
-              &                 +45045.0d0                                        &
-              &                 *atan(sqrt(coefficientCore)*radiusScaleFree)      &
-              &                 *(                                                &
-              &                   -2.0d0                                          &
-              &                   *(                                              &
-              &                     +  14336.0d0                                  &
-              &                     + 169995.0d0*radiusFactor                     &
-              &                     + 631540.0d0*radiusFactor**2                  &
-              &                     +1200199.0d0*radiusFactor**3                  &
-              &                     +1317888.0d0*radiusFactor**4                  &
-              &                     + 849849.0d0*radiusFactor**5                  &
-              &                     + 300300.0d0*radiusFactor**6                  &
-              &                     +  45045.0d0*radiusFactor**7                  &
-              &                    )                                              &
-              &                   /(radiusScaleFree*(1.0d0+radiusFactor)**7)      &
-              &                   -45045.0d0                                      &
-              &                   *     sqrt(coefficientCore)                     &
-              &                   *atan(sqrt(coefficientCore)*radiusScaleFree)    &
-              &                  )                                                &
-              &                )
+         radiusScaleFree=+                          radius     &
+              &          /massDistributionEmbedding%radiusCore
+         if (radiusScaleFree < radiusScaleFreeTiny) then
+            ! Series solution for small radii.
+            jeansIntegralSoliton=+Pi                                                                                        &
+                 &               *massDistributionEmbedding%densitySolitonCentral**2                                        &
+                 &               *(                                                                                         &
+                 &                - 4.0d0/13.0d0*massDistributionEmbedding%radiusCore**2                   /coefficientCore &
+                 &                + 2.0d0/ 3.0d0                                        *radiusScaleFree**2                 &
+                 &                -64.0d0/15.0d0/massDistributionEmbedding%radiusCore**2*radiusScaleFree**4*coefficientCore &
+                 &               )
+         else
+            ! Full solution.
+            radiusFactor        =+coefficientCore                                    &
+                 &               *radiusScaleFree**2
+            jeansIntegralSoliton=+Pi                                                 &
+                 &               *gravitationalConstant_internal                     &
+                 &               *massDistributionEmbedding%radiusCore           **2 &
+                 &               *massDistributionEmbedding%densitySolitonCentral**2 &
+                 &               /2.003828736d10                                     &
+                 &               /coefficientCore**1.5d0                             &
+                 &               *(                                                  &
+                 &                 -sqrt(coefficientCore)                            &
+                 &                 *(                                                &
+                 &                   + 169995.0d0                                    &
+                 &                   + 631540.0d0*radiusFactor                       &
+                 &                   +1200199.0d0*radiusFactor**2                    &
+                 &                   +1317888.0d0*radiusFactor**3                    &
+                 &                   + 849849.0d0*radiusFactor**4                    &
+                 &                   + 300300.0d0*radiusFactor**5                    &
+                 &                   +  45045.0d0*radiusFactor**6                    &
+                 &                  )                                                &
+                 &                 *(                                                &
+                 &                   +  28672.0d0                                    &
+                 &                   + 169995.0d0*radiusFactor                       &
+                 &                   + 631540.0d0*radiusFactor**2                    &
+                 &                   +1200199.0d0*radiusFactor**3                    &
+                 &                   +1317888.0d0*radiusFactor**4                    &
+                 &                   + 849849.0d0*radiusFactor**5                    &
+                 &                   + 300300.0d0*radiusFactor**6                    &
+                 &                   +  45045.0d0*radiusFactor**7                    &
+                 &                  )                                                &
+                 &                 /(1.0d0+radiusFactor)**14                         &
+                 &                 +45045.0d0                                        &
+                 &                 *atan(sqrt(coefficientCore)*radiusScaleFree)      &
+                 &                 *(                                                &
+                 &                   -2.0d0                                          &
+                 &                   *(                                              &
+                 &                     +  14336.0d0                                  &
+                 &                     + 169995.0d0*radiusFactor                     &
+                 &                     + 631540.0d0*radiusFactor**2                  &
+                 &                     +1200199.0d0*radiusFactor**3                  &
+                 &                     +1317888.0d0*radiusFactor**4                  &
+                 &                     + 849849.0d0*radiusFactor**5                  &
+                 &                     + 300300.0d0*radiusFactor**6                  &
+                 &                     +  45045.0d0*radiusFactor**7                  &
+                 &                    )                                              &
+                 &                   /(radiusScaleFree*(1.0d0+radiusFactor)**7)      &
+                 &                   -45045.0d0                                      &
+                 &                   *     sqrt(coefficientCore)                     &
+                 &                   *atan(sqrt(coefficientCore)*radiusScaleFree)    &
+                 &                  )                                                &
+                 &                )
+         end if
       class default
          jeansIntegralSoliton=0.0d0
          call Error_Report('expecting a soliton-NFW mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
