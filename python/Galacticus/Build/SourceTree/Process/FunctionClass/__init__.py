@@ -28,7 +28,6 @@ from List.ExtraUtils                                         import as_array
 from Sort.Topo                                               import sort as topo_sort
 from XML.Utils                                               import xml_to_dict
 from Galacticus.Build.StateStorables                         import (
-    function_class_entries  as _shared_function_class_entries,
     function_class_names    as _shared_function_class_names,
     function_class_instances as _shared_function_class_instances,
 )
@@ -569,13 +568,6 @@ def _update_if_changed(target, tmp):
 # ---------------------------------------------------------------------------
 # Stubs for the heavy method-builders / body-emitters (D.7.3b, D.7.3c)
 # ---------------------------------------------------------------------------
-
-def _not_implemented(name):
-    raise NotImplementedError(
-        f"process_function_class: {name} is deferred to a later PR "
-        f"(D.7.3b or D.7.3c) of the FunctionClass port"
-    )
-
 
 def _levenshtein(a, b):
     """Iterative Wagner-Fischer edit distance.  Stand-in for Perl
