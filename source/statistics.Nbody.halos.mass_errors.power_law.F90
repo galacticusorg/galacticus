@@ -94,13 +94,7 @@ contains
       <name>exponent</name>
       <source>parameters</source>
       <description>
-      Parameter :math:`\gamma` appearing in model for random errors in the halo mass function. Specifically, the fractional error is given by
-
-      .. math::
-
-         \sigma(M) = \left[ \sigma^2_{12} \left({M_\mathrm{halo} \over 10^{12}\mathrm{M}_\odot}\right)^{2\gamma} + \sigma^2_\infty \right]^{1/2},
-
-      where :math:`\sigma_{12}=`\ ``[normalization]``, and :math:`\gamma=`\ ``[exponent]``.
+      Parameter :math:`\gamma` appearing in model for random errors in the halo mass function. Specifically, the fractional error is given by :math:`\sigma(M) = \left[ \sigma^2_{12} \left({M_\mathrm{halo} \over 10^{12}\mathrm{M}_\odot}\right)^{2\gamma} + \sigma^2_\infty \right]^{1/2}`, where :math:`\sigma_{12}=`\ ``[normalization]`` and :math:`\gamma=`\ ``[exponent]``.
       </description>
     </inputParameter>
     <inputParameter docformat="rst">

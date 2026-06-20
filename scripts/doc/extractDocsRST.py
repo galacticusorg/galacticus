@@ -51,6 +51,11 @@ _METHOD_RE = re.compile(r'<method\b([^>]*?)>(.*?)</method>', re.DOTALL)
 # An <entry label="…" [description="…"]/> inside an enumeration block.
 _ENTRY_RE = re.compile(r'<entry\b([^>]*?)/?>')
 _ARG_RE = re.compile(r'<argument>(.*?)</argument>', re.DOTALL)
+# Repeatable leaf directives: a single ``!![ … !!]`` block may declare several
+# of these, so every occurrence must be swept (not just the block's first).
+_INPUT_PARAM_RE = re.compile(r'<inputParameter\b[^>]*>(.*?)</inputParameter>',
+                             re.DOTALL)
+_WORKAROUND_RE = re.compile(r'<workaround\b([^>]*)>(.*?)</workaround>', re.DOTALL)
 
 
 def _attr(attrs: str, name: str) -> str | None:
@@ -232,10 +237,51 @@ def scan_source(source_dir: str):
                 block = bm.group(1)
                 if 'docformat="rst"' not in block:
                     continue
+
+                # Repeatable leaf directives first: a single ``!![ … !!]`` block
+                # routinely declares several <inputParameter> directives (and, in
+                # one case, two <workaround> directives).  Sweep *every*
+                # occurrence — the earlier code processed only the block's first
+                # directive, silently dropping the majority of parameter docs and
+                # any second workaround.
+                for pm in _INPUT_PARAM_RE.finditer(block):
+                    pbody = pm.group(1)
+                    name = _child(pbody, 'name')
+                    if not name:
+                        continue
+                    pdesc = _DESC_RE.search(pbody)
+                    params_by_file.setdefault(base, []).append({
+                        'name':        name,
+                        'default':     _child(pbody, 'defaultValue'),
+                        'description': pdesc.group(1) if pdesc else None,
+                    })
+                for wm in _WORKAROUND_RE.finditer(block):
+                    wattrs, wbody = wm.group(1), wm.group(2)
+                    wdesc = _DESC_RE.search(wbody)
+                    if wdesc is None:
+                        continue
+                    workarounds.append({
+                        'type':        _attr(wattrs, 'type'),
+                        'pr':          _attr(wattrs, 'PR'),
+                        'url':         _attr(wattrs, 'url'),
+                        'description': wdesc.group(1),
+                        'seeAlso':     [{'type': _attr(s, 'type'),
+                                         'pr':   _attr(s, 'PR'),
+                                         'url':  _attr(s, 'url')}
+                                        for s in re.findall(
+                                            r'<seeAlso\b([^>]*?)/?>', wbody)],
+                        'file':        base,
+                    })
+
+                # Container / root directive (one per block): functionClass,
+                # enumeration, or an implementation class.  inputParameter and
+                # workaround roots are already handled by the sweeps above.
                 rm = _ROOT_RE.search(block)
                 if not rm:
                     continue
                 rtype, attrs = rm.group(1), rm.group(2)
+                if rtype in ('inputParameter', 'workaround'):
+                    continue
                 desc_m = _DESC_RE.search(block)
                 desc_raw = desc_m.group(1) if desc_m else None
 
@@ -250,21 +296,6 @@ def scan_source(source_dir: str):
                         'methods':         _extract_methods(block),
                     }
                     class_by_file[base] = name
-                elif rtype == 'workaround':
-                    if desc_raw is None:
-                        continue
-                    workarounds.append({
-                        'type':        _attr(attrs, 'type'),
-                        'pr':          _attr(attrs, 'PR'),
-                        'url':         _attr(attrs, 'url'),
-                        'description': desc_raw,
-                        'seeAlso':     [{'type': _attr(s, 'type'),
-                                         'pr':   _attr(s, 'PR'),
-                                         'url':  _attr(s, 'url')}
-                                        for s in re.findall(
-                                            r'<seeAlso\b([^>]*?)/?>', block)],
-                        'file':        base,
-                    })
                 elif rtype == 'enumeration':
                     name = _child(block, 'name')
                     if not name:
@@ -274,15 +305,6 @@ def scan_source(source_dir: str):
                         'description': desc_raw,
                         'entries':     _extract_entries(block),
                         'module':      module_name,
-                    })
-                elif rtype == 'inputParameter':
-                    name = _child(block, 'name')
-                    if not name:
-                        continue
-                    params_by_file.setdefault(base, []).append({
-                        'name':        name,
-                        'default':     _child(block, 'defaultValue'),
-                        'description': desc_raw,
                     })
                 else:
                     name = _attr(attrs, 'name')
