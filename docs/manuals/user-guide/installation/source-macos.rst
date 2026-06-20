@@ -42,17 +42,17 @@ Also record your macOS major version. It is used for a linker workaround in the 
 Install GCC
 -----------
 
-GCC 16 is required to build Galacticus. Install it through Homebrew:
+GCC 16 (the minimum supported version) is required to build Galacticus. Install the GCC compilers through Homebrew:
 
 .. code-block:: bash
 
-   brew install gcc16
+   brew install gcc
 
-This provides the ``gcc-16``, ``g++-16``, and ``gfortran-16`` executables used in the remaining steps.
+Homebrew names the executables with their major version — ``gcc-16``, ``g++-16``, and ``gfortran-16`` — and these names are used throughout the remaining steps.
 
 .. note::
 
-   GCC 16 is very recent. If a pre-built bottle is not yet available for your system, ``brew install gcc16`` may need to compile GCC from source, which can be slow. Alternatively, build GCC from source as described in the `Linux instructions <https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/source-linux.html>`_.
+   ``brew install gcc`` installs the current GCC release. If Homebrew installs a major version newer than 16, adjust the ``-16`` suffixes in the commands below to match (and ensure the version is at least 16).
 
 Install Guile
 -------------
