@@ -100,7 +100,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The physics pages are generated; do not fail the build on the occasional
 # duplicate label that can arise from auto-generated cross-reference anchors.
-suppress_warnings = ['epub.unknown_project_files']
+suppress_warnings = ['epub.unknown_project_files', 'misc.highlighting_failure']
 
 
 # --- ``:galacticus-class:`` role -------------------------------------------

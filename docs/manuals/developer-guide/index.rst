@@ -7,3 +7,7 @@ Developer Guide
    development
    coding
    methods
+   creating-a-new-class
+   traversing-a-merger-tree
+   building-docker-images
+   versions-and-releases
