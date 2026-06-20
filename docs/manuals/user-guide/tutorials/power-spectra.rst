@@ -94,7 +94,7 @@ This section deals with structure growth. We choose to model linear growth assum
 .. code-block:: xml
 
    <!-- Output options -->
-   <galacticusOutputFileName value="haloMassFunction.hdf5"/>
+   <galacticusOutputFileName value="powerSpectrum.hdf5"/>
    <outputTimes value="list">
      <redshifts value="0.0 1.0"/>
    </outputTimes>
@@ -176,7 +176,7 @@ You can also explore the content of the HDF5 file using the ``h5dump`` tool, whi
 .. code-block:: console
 
    $ h5dump -A -g Outputs/Output2 powerSpectrum.hdf5
-   HDF5 "haloMassFunction.hdf5" {
+   HDF5 "powerSpectrum.hdf5" {
       ATTRIBUTE "outputRedshift" {
          DATATYPE  H5T_IEEE_F64LE
          DATASPACE  SCALAR

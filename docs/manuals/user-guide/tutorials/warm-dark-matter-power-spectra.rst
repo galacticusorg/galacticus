@@ -12,7 +12,7 @@ To run an example of a warm dark matter power spectrum calculation, do the follo
 
    $ ./Galacticus.exe parameters/tutorials/powerSpectrumWarmDarkMatter.xml
 
-If everything is working a file ``powerSpectrumnWarmDarkMatter.hdf5`` will have been created.
+If everything is working a file ``powerSpectrumWarmDarkMatter.hdf5`` will have been created.
 
 Understanding the input
 -----------------------

@@ -17,7 +17,7 @@ To track and output galaxy merger trees requires adding a ``nodeOperator`` and `
      </nodePropertyExtractor>
    </nodeOperator>
 
-This ``nodeOperator`` records information needed to describe the merger tree of each galaxy. The ``timestep`` determines how frequently the properties of each galaxy are sampled in the tree. The ``nodePropertyExtractor``\ s here determine which properties are recorded for each galaxy. (Currently any member of the ``nodePropertyExtractorScalar`` class can be used here.)
+This ``nodeOperator`` records information needed to describe the merger tree of each galaxy. The ``timeStep`` determines how frequently the properties of each galaxy are sampled in the tree. The ``nodePropertyExtractor``\ s here determine which properties are recorded for each galaxy. (Currently any member of the ``nodePropertyExtractorScalar`` class can be used here.)
 
 .. code-block:: xml
 

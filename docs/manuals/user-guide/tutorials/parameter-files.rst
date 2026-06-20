@@ -440,7 +440,7 @@ Math expressions in a parameter are indicated by starting the ``value`` element 
 
 .. code-block:: xml
 
-   <massHalo value="=10.0^13.5/>
+   <massHalo value="=10.0^13.5"/>
 
 which would cause the ``massHalo`` parameter to evaluate to :math:`10^{13.5} \approx 3.16 \times 10^{13}`.
 
