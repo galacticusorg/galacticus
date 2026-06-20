@@ -155,6 +155,7 @@ contains
     write (error_unit,*) " => Command line was: ",char(commandLine())
     call BackTrace  (           )
     call Warn_Review(           )
+    call Error_Help_Message()
     call Flush      (output_unit)
     call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
@@ -177,6 +178,32 @@ contains
 #endif
     return
   end subroutine Error_Report_Char
+
+  subroutine Error_Help_Message(isCrash)
+    !!{RST
+    Write pointers to help resources (the troubleshooting guide and the bug
+    tracker) to standard error, to be shown after a fatal error or crash. If
+    ``isCrash`` is present and true the message states that the problem is
+    unexpected and most likely a bug.
+    !!}
+    use, intrinsic :: ISO_Fortran_Env, only : error_unit
+    implicit none
+    logical, intent(in   ), optional :: isCrash
+    logical                          :: crash
+
+    crash=.false.
+    if (present(isCrash)) crash=isCrash
+    write (error_unit,'(a)') " => For help diagnosing this error, see the troubleshooting guide:"
+    write (error_unit,'(a)') "      https://galacticus.readthedocs.io/en/latest/manuals/user-guide/troubleshooting/index.html"
+    if (crash) then
+       write (error_unit,'(a)') " => This is unexpected and most likely indicates a bug. Please report it (include the message and backtrace above, plus your parameter file):"
+    else
+       write (error_unit,'(a)') " => If you believe this is a bug, please report it (include the message and backtrace above, plus your parameter file):"
+    end if
+    write (error_unit,'(a)') "      https://github.com/galacticusorg/galacticus/issues/new/choose"
+    write (error_unit,'(a)') " => Note: backtrace line numbers refer to the preprocessed sources under work/build/ (files ending in .p.F90)."
+    return
+  end subroutine Error_Help_Message
 
   subroutine Warn_VarStr(message)
     !!{RST
@@ -363,6 +390,7 @@ contains
 #endif
     call BackTrace  (           )
     call Warn_Review(           )
+    call Error_Help_Message(.true.)
     call Flush      (output_unit)
     call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
@@ -421,6 +449,7 @@ contains
 #endif
     call BackTrace  (           )
     call Warn_Review(           )
+    call Error_Help_Message(.true.)
     call Flush      (output_unit)
     call Flush      ( error_unit)
 #ifdef UNCLEANEXIT
