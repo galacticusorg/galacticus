@@ -13,9 +13,9 @@ runs:
         echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
         echo "PATH=$PATH:/opt/local/bin:/usr/local/bin" >> $GITHUB_ENV
         echo "GALACTICUS_EXEC_PATH=`pwd`" >> $GITHUB_ENV
-        echo "FCCOMPILER=/opt/gcc-16/bin/gfortran" >> $GITHUB_ENV
-        echo "CCOMPILER=/opt/gcc-16/bin/gcc" >> $GITHUB_ENV
-        echo "CPPCOMPILER=/opt/gcc-16/bin/g++" >> $GITHUB_ENV
+        echo "FCCOMPILER=gfortran-16" >> $GITHUB_ENV
+        echo "CCOMPILER=gcc-16" >> $GITHUB_ENV
+        echo "CPPCOMPILER=g++-16" >> $GITHUB_ENV
         echo "BUILDPATH=./work/build" >> $GITHUB_ENV
         if [[ "${ver[0]}" -eq 13 ]]; then
           # For MacOS 13 force use of the classic linker as the new linker does not support the '-commons' option - see https://trac.macports.org/ticket/68194#comment:15
@@ -59,34 +59,15 @@ runs:
         curl -L --fail --retry 5 --retry-all-errors --retry-max-time 120 https://github.com/macports/macports-base/releases/download/v${macportsversion}/MacPorts-${macportsbase}.pkg --output MacPorts-${macportsbase}.pkg
         sudo installer -pkg ./MacPorts-${macportsbase}.pkg -target /
         rm ./MacPorts-${macportsbase}.pkg
-    #- name: Install GCC
-    #  shell: bash
-    #  run: brew install gcc@12
     - name: Install GCC 16 (gcc/g++/gfortran)
       shell: bash
       run: |
-        set -euo pipefail
-        BASE="https://users.obs.carnegiescience.edu/abenson/galacticus"
-        case "$(uname -m)" in
-          arm64)  TARBALL="gcc-16.0.1-arm64-78d52d13407.tar.gz" ;;
-          x86_64) TARBALL="gcc-16.1.0-x86_64-release.tar.gz" ;;
-          *) echo "Unsupported arch: $(uname -m)" >&2; exit 1 ;;
-        esac
-        echo "Fetching $TARBALL"
-        curl -fsSL --retry 5 --retry-all-errors --retry-max-time 120 -o "$RUNNER_TEMP/gcc16.tar.gz"        "$BASE/$TARBALL"
-        curl -fsSL --retry 5 --retry-all-errors --retry-max-time 120 -o "$RUNNER_TEMP/gcc16.tar.gz.sha256" "$BASE/$TARBALL.sha256"
-        # The .sha256 records the build-time path, so compare hashes directly.
-        EXPECTED=$(awk '{print $1}' "$RUNNER_TEMP/gcc16.tar.gz.sha256")
-        ACTUAL=$(shasum -a 256 "$RUNNER_TEMP/gcc16.tar.gz" | awk '{print $1}')
-        if [ "$EXPECTED" != "$ACTUAL" ]; then
-          echo "Checksum mismatch for $TARBALL" >&2
-          echo "  expected: $EXPECTED" >&2
-          echo "  actual:   $ACTUAL"   >&2
-          exit 1
-        fi
-        echo "Checksum OK: $ACTUAL"
-        sudo tar -C / -xzf "$RUNNER_TEMP/gcc16.tar.gz"
-        echo "/opt/gcc-16/bin" >> "$GITHUB_PATH"
+        # Refresh the formula index first: the runner image ships an older
+        # `gcc` (e.g. 15.2.0) and a stale tap that reports it as current, so a
+        # bare `brew install gcc` is a no-op and no `gcc-16` binary appears.
+        brew update
+        brew install gcc
+        brew upgrade gcc
     - name: Install guile
       shell: bash
       run: |
