@@ -169,7 +169,7 @@ Halo spin parameters are also modeled using a random walk approach `Benson, Behr
      <!-- Galaxy mergers -->
      <mergerRemnantSize value="null"/>
 
-The preceeding block acts to switch off various baryonic physics which we want to exclude from this model.
+The preceding block acts to switch off various baryonic physics which we want to exclude from this model.
 
 .. code-block:: xml
 
@@ -287,7 +287,7 @@ This block applies various physical processes to subhalos.
        </outputAnalysis>
      </outputAnalysis>
 
-Finally we specify the outputs that we want. Here we request a number of additional properties to be output, and also request thee summary analyses (subhalo mass function, :math:`V_\mathrm{max}` function, and radial distribution - each compared to results from the Caterpillar simulations) to be computed and output.
+Finally we specify the outputs that we want. Here we request a number of additional properties to be output, and also request the summary analyses (subhalo mass function, :math:`V_\mathrm{max}` function, and radial distribution - each compared to results from the Caterpillar simulations) to be computed and output.
 
 Understanding the output
 ------------------------

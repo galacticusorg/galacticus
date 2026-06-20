@@ -125,7 +125,7 @@ The next line:
 
      private
 
-declares that all content of this module is private by default - it can be exported to other parts of the code. Setting this default is also good practice - it prevents the rest of the code from accessing module content that it shouldn't. Of course, our module needs to export *something* in order to be useful! Galacticus knows that it needs to exploit that class that we are about to create in this module, and will do so automatically.
+declares that all content of this module is private by default - it cannot be exported to other parts of the code unless explicitly made public. Setting this default is also good practice - it prevents the rest of the code from accessing module content that it shouldn't. Of course, our module needs to export *something* in order to be useful! Galacticus knows that it needs to exploit that class that we are about to create in this module, and will do so automatically.
 
 The class!
 ^^^^^^^^^^
@@ -687,7 +687,7 @@ We begin by defining the function name and interface:
 
 Here we define the arguments to this function - for this required constructor there must be precisely one argument, called ``parameters``. We also define the name of the variable that will hold the result of the constructor (the object of our implementation that it builds) - this should always be called ``self``, so we have ``result(self)``.
 
-Next we have the usual description for inclusion into the ReadTheDocs document. This is followed by any module imports that we migth need:
+Next we have the usual description for inclusion into the ReadTheDocs document. This is followed by any module imports that we might need:
 
 .. code-block:: fortran
 
@@ -809,7 +809,7 @@ Our second constructor is the *internal* constructor - this refers to a construc
        return
      end function haloScalingConstructorInternal
 
-It begins by defining the function arguments are return value:
+It begins by defining the function arguments and return value:
 
 .. code-block:: fortran
 
@@ -830,13 +830,13 @@ There is then the usual brief description text, after which we define the types 
 
 As usual, we begin with ``implicit none`` to assert that all variables must be declared. The ``self`` object must be of ``type(starFormationTimescaleHaloScaling)`` in any constructor, so we declare that here. Then we give the types of all of the arguments.
 
-A common thing that we want to do in a constructor is to take the arguments given to us, and assign them to the variables inside of our ``self`` object. Galacticus provides a directive, ``constructorAssign``, to do this for us. It takes less code than writing these assignments out one at a time, and it also does some reference counting behind the scenes to ensure that we keep track of any other classs objects being used.
+A common thing that we want to do in a constructor is to take the arguments given to us, and assign them to the variables inside of our ``self`` object. Galacticus provides a directive, ``constructorAssign``, to do this for us. It takes less code than writing these assignments out one at a time, and it also does some reference counting behind the scenes to ensure that we keep track of any other class objects being used.
 
 .. code-block:: xml
 
        <constructorAssign variables="exponentVelocityVirial, exponentRedshift, *cosmologyFunctions_, *darkMatterHaloScale_"/>
 
-This tells Galacticus to assign each of the named ``variables`` to the corresponding object in ``self``. For the pointers to other objects, we add a ``*`` prefix - this tells Gaalcticus to do pointer assignment (instead of copying the object) and handles reference counting.
+This tells Galacticus to assign each of the named ``variables`` to the corresponding object in ``self``. For the pointers to other objects, we add a ``*`` prefix - this tells Galacticus to do pointer assignment (instead of copying the object) and handles reference counting.
 
 We can now do any other initialization that may be needed for our object. In our example we have:
 
@@ -942,7 +942,7 @@ In our example implementation we also have a function ``haloScalingCalculationRe
 The physics!
 ^^^^^^^^^^^^
 
-Finally, we get to implementing the actual physics of this class. (Object-oriented programming can be very verbose - we did a lot of work above just to get to the point of writing this simple function that actually does the physics. The advanatge of this however is that we then have a lot of flexibility in how we piece together different parts of the model.)
+Finally, we get to implementing the actual physics of this class. (Object-oriented programming can be very verbose - we did a lot of work above just to get to the point of writing this simple function that actually does the physics. The advantage of this however is that we then have a lot of flexibility in how we piece together different parts of the model.)
 
 In our example, our function looks like this:
 
@@ -1008,7 +1008,7 @@ and other arguments must match their definitions in our `class <#the-class>`_:
 
        class           (nodeComponent                    ), intent(inout) :: component
 
-The remainder of the function does whatever it needs to do to evaluate this particular model of the star formation timescale. We won't dicuss this in detail in this tutorial, but a few things are worth noticing:
+The remainder of the function does whatever it needs to do to evaluate this particular model of the star formation timescale. We won't discuss this in detail in this tutorial, but a few things are worth noticing:
 
 #. To make use of memoization we do:
 

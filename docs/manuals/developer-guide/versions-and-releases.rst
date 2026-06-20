@@ -8,7 +8,7 @@ Galacticus follows the concepts of `semantic versioning <https://semver.org/>`_,
 
 #. The major version, ``X``, is incremented when incompatible `API <https://en.wikipedia.org/wiki/API>`_ changes are made;
 #. The minor version, ``Y``, is incremented when adding functionality that is backward compatible; and,
-#. The patch version, ``Z``, is incremented when a backwards compatible big fix is made.
+#. The patch version, ``Z``, is incremented when a backwards compatible bug fix is made.
 
 The "API" for Galacticus consists of:
 
@@ -59,7 +59,7 @@ You will see output similar to:
    MM:     Built with: :GSL_version[2.6]:FoX_version[4.1.2]:HDF5_version[1.8.9]:FCCOMPILER[gfortran]:PREPROCESSOR[cpp]:CCOMPILER[gcc]:CPPCOMPILER[g++]:FCFLAGS[-ffree-line-length-none -frecursive -DBUILDPATH='./work/build' -J./work/build/moduleBuild/ -I./work/build/ -fintrinsic-modules-path /home/abenson/Galacticus/Tools/finclude -fintrinsic-modules-path /home/abenson/Galacticus/Tools/include -fintrinsic-modules-path /home/abenson/Galacticus/Tools/include/gfortran -fintrinsic-modules-path /home/abenson/Galacticus/Tools/lib/gfortran/modules -L/home/abenson/Galacticus/Tools/lib -L/home/abenson/Galacticus/Tools/lib64 -pthread -Wall -fbacktrace -ffpe-trap=invalid,zero,overflow -fdump-core -O3 -ffinite-math-only -fno-math-errno -fopenmp -g -DPROCPS -DOFDUNAVAIL -DFFTW3AVAIL -DANNAVAIL -DQHULLAVAIL -DMATHEVALAVAIL]:FCFLAGS_NOOPT[-ffree-line-length-none -frecursive -DBUILDPATH='./work/build' -J./work/build/moduleBuild/ -I./work/build/ -fintrinsic-modules-path /home/abenson/Galacticus/Tools/finclude -fintrinsic-modules-path /home/abenson/Galacticus/Tools/include -fintrinsic-modules-path /home/abenson/Galacticus/Tools/include/gfortran -fintrinsic-modules-path /home/abenson/Galacticus/Tools/lib/gfortran/modules -L/home/abenson/Galacticus/Tools/lib -L/home/abenson/Galacticus/Tools/lib64 -pthread -Wall -fbacktrace -ffpe-trap=invalid,zero,overflow -fdump-core -g]:CFLAGS[-fopenmp -DBUILDPATH='./work/build' -I./source/ -I./work/build/ -I/home/abenson/Galacticus/Tools/include -g -DOFDLOCKS -DPROCPS -DOFDUNAVAIL]:CPPFLAGS[-fopenmp -DBUILDPATH='./work/build' -I./source/ -I./work/build/ -I/home/abenson/Galacticus/Tools/include -I/home/abenson/Galacticus/Tools/include/libqhullcpp -g -DOFDLOCKS -DPROCPS -DOFDUNAVAIL -DANNAVAIL -DQHULLAVAIL -DMATHEVALAVAIL]:FCCOMPILER_VERSION[...]
    MM: <- Done task: report
 
-The ``fb96dd63391b52e801e8c1059e6ece2ca433efd6`` in the above is the Git revision has from which this copy of Galacticus was built.
+The ``fb96dd63391b52e801e8c1059e6ece2ca433efd6`` in the above is the Git revision hash from which this copy of Galacticus was built.
 
 Release Steps
 -------------
@@ -114,7 +114,7 @@ MacOS Binaries
 
 Compilation instructions for MacOS are given `here <https://github.com/galacticusorg/galacticus/wiki/Installation-from-source-on-MacOS>`_. To create statically-linked binaries on MacOS proceed as follows:
 
-#. Compiler Galacticus as usual.
+#. Compile Galacticus as usual.
 #. Run ``./Galacticus.exe parameters/buildTools.xml`` to build all run-time tools (RecFast, FSPS, CAMB, Class, Cloudy).
 #. Since MacOS does not really support static-linking we need to do some manual re-linking to making statically linked binaries. To make this easier a script ``./scripts/build/staticRelinker.py`` is provided. Static executables can be created using the following commands:
 

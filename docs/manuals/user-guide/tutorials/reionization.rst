@@ -1,7 +1,7 @@
 Reionization Calculations
 =========================
 
-Galacticus can self-consistently solve for the evolution of the as it becomes
+Galacticus can self-consistently solve for the evolution of the IGM as it becomes
 photoionized by light emitted by stars and AGN. To activate this
 calculation, include the following in your parameters file:
 
@@ -44,13 +44,13 @@ accretion rates, and will take the filtering mass from the internal
 evolution calculation.
 
 With these three sets of configurations, Galacticus will perform a self-consistent
-evolution of the IGM—in the sense that the is ionized by photons emitted by
+evolution of the IGM—in the sense that the IGM is ionized by photons emitted by
 model galaxies and AGN, while galaxy evolution is affected by the
 computed state of the model IGM. Note that, when run in this way, Galacticus needs to
 keep all merger trees in memory simultaneously (as they are run
 synchronously to allow the properties to evolved alongside galaxy
 properties).
 
-Once completed, data on the and background radiation are written to the
+Once completed, data on the IGM and background radiation are written to the
 output file in the ``igmProperties`` and
 ``backgroundRadiation`` groups respectively.

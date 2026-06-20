@@ -19,7 +19,7 @@ Importantly, for tree traversal purposes, each node contains pointers to other n
 * ``parent`` - a pointer to the parent node;
 * ``sibling`` - a pointer to the next child of the same parent.
 
-Not all all these pointers will actually point to anything - some nodes do not have a sibling for example. In those cases, the relevant pointer will be ``null``.
+Not all of these pointers will actually point to anything - some nodes do not have a sibling for example. In those cases, the relevant pointer will be ``null``.
 
 An example simple tree structure:
 
@@ -68,7 +68,7 @@ Suppose we are given a ``treeNode`` object ``node``, and we want to visit each o
       ! Go back to the top of the loop.
    end do
 
-We begin by pointing our worker node at the original ``node`` that we were given. We the enter a loop - in the loop condition we check if our node worker is ``associated()`` - i.e. that it is not ``null``. This will allow us to exit the loop once no more primary progenitors are available. We next do whatever calculation we want to do on ``nodeWorker``, knowing that it points to a primary progenitor of the original ``node``. Then we simply move to the next primary progenitor by following the ``firstChild`` pointer attached to ``nodeWorker``.
+We begin by pointing our worker node at the original ``node`` that we were given. We then enter a loop - in the loop condition we check if our node worker is ``associated()`` - i.e. that it is not ``null``. This will allow us to exit the loop once no more primary progenitors are available. We next do whatever calculation we want to do on ``nodeWorker``, knowing that it points to a primary progenitor of the original ``node``. Then we simply move to the next primary progenitor by following the ``firstChild`` pointer attached to ``nodeWorker``.
 
 Visit all descendants until our branch merges
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -95,4 +95,4 @@ Suppose we are given a ``treeNode`` object ``node``, and we want to visit each o
       ! Go back to the top of the loop.
    end do
 
-We begin by pointing our worker node at the original ``node`` that we were given. We the enter a loop - in the loop condition we check if our node worker is ``associated()`` - i.e. that it is not ``null``. This will allow us to exit the loop once no more descendants are available. We next do whatever calculation we want to do on ``nodeWorker``, knowing that it points to a descendant of the original ``node``. Then we check if the current worker node is the primary progenitor of its parent. If it is, we move to that parent by following the ``firstChild`` pointer attached to ``nodeWorker``, otherwise we make ``nodeWorker`` point to ``null`` so that the loop will exit.
+We begin by pointing our worker node at the original ``node`` that we were given. We then enter a loop - in the loop condition we check if our node worker is ``associated()`` - i.e. that it is not ``null``. This will allow us to exit the loop once no more descendants are available. We next do whatever calculation we want to do on ``nodeWorker``, knowing that it points to a descendant of the original ``node``. Then we check if the current worker node is the primary progenitor of its parent. If it is, we move to that parent by following the ``firstChild`` pointer attached to ``nodeWorker``, otherwise we make ``nodeWorker`` point to ``null`` so that the loop will exit.

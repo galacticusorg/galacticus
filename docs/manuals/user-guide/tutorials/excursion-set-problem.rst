@@ -1,9 +1,9 @@
 Solving the Excursion Set Problem
 =================================
 
-In this tutorial we'll use Galacticus to compute and output solutions to the excursion set problem, which is an important ingredient in Press-Schechter-like halo mass function calculations. Briefly, the problem is to consider a set of random walk trajectories in overdensity, :math:`\delta`, as a function of variance (of the cosmological density field), :math:`S`, and the compute the fraction, :math:`f(S)\mathrm{d}S`, of these trajectories which make their first upcrossing through a barrier, :math:`B(S)`, between :math:`S` and :math:`S+\mathrm{d}S`.
+In this tutorial we'll use Galacticus to compute and output solutions to the excursion set problem, which is an important ingredient in Press-Schechter-like halo mass function calculations. Briefly, the problem is to consider a set of random walk trajectories in overdensity, :math:`\delta`, as a function of variance (of the cosmological density field), :math:`S`, and then compute the fraction, :math:`f(S)\mathrm{d}S`, of these trajectories which make their first upcrossing through a barrier, :math:`B(S)`, between :math:`S` and :math:`S+\mathrm{d}S`.
 
-This tutorial assumes that you've previously completed some of the earlier tutorials, so are familiar with the basics of Galacticus usage. If you haven't a good place to start is with the `halo mass function <https://github.com/galacticusorg/galacticus/wiki/Tutorial:-Dark-matter-halo-mass-function>`_ tutorial.
+This tutorial assumes that you've previously completed some of the earlier tutorials, so are familiar with the basics of Galacticus usage. If you haven't, a good place to start is with the `halo mass function <https://github.com/galacticusorg/galacticus/wiki/Tutorial:-Dark-matter-halo-mass-function>`_ tutorial.
 
 A more mathematical and detailed discussion of the excursion set problem, and how it is implemented in Galacticus can be found `here <https://hackmd.io/@galacticus/r1gOkpTat>`_.
 

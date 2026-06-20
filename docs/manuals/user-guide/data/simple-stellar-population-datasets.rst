@@ -1,7 +1,7 @@
 Simple Stellar Population Datasets
 ==================================
 
-This pages provides links to several datasets containing tabulations of stellar population spectra as a function of age and metallicity. All files are in the prefered format used by Galacticus, and have been derived from a variety of published sources.
+This page provides links to several datasets containing tabulations of stellar population spectra as a function of age and metallicity. All files are in the preferred format used by Galacticus, and have been derived from a variety of published sources.
 
 Bruzual & Charlot (2003)
 ------------------------
@@ -163,70 +163,70 @@ The BPASS models of `Eldridge, Stanway et al. (2017) <https://ui.adsabs.harvard.
 
   + Broken power law IMF (α=-1.30 from 0.1M\ :sub:`☉`\ -0.5M\ :sub:`☉`\ , α=-2.35 from 0.5M\ :sub:`☉`\  to 300M\ :sub:`☉`\ )
   + Does not include binary stars
-  + α-alement enhancement of Δlog\ :sub:`10`\ (α/Fe)=-0.2
+  + α-element enhancement of Δlog\ :sub:`10`\ (α/Fe)=-0.2
   + Uses v2.3 of BPASS
 
 * ``SSP_Spectra_BPASSv2.3_sin-imf135_300-alpha+00.hdf5``
 
   + Broken power law IMF (α=-1.30 from 0.1M\ :sub:`☉`\ -0.5M\ :sub:`☉`\ , α=-2.35 from 0.5M\ :sub:`☉`\  to 300M\ :sub:`☉`\ )
   + Does not include binary stars
-  + α-alement enhancement of Δlog\ :sub:`10`\ (α/Fe)=+0.0
+  + α-element enhancement of Δlog\ :sub:`10`\ (α/Fe)=+0.0
   + Uses v2.3 of BPASS
 
 * ``SSP_Spectra_BPASSv2.3_sin-imf135_300-alpha+02.hdf5``
 
   + Broken power law IMF (α=-1.30 from 0.1M\ :sub:`☉`\ -0.5M\ :sub:`☉`\ , α=-2.35 from 0.5M\ :sub:`☉`\  to 300M\ :sub:`☉`\ )
   + Does not include binary stars
-  + α-alement enhancement of Δlog\ :sub:`10`\ (α/Fe)=+0.2
+  + α-element enhancement of Δlog\ :sub:`10`\ (α/Fe)=+0.2
   + Uses v2.3 of BPASS
 
 * ``SSP_Spectra_BPASSv2.3_sin-imf135_300-alpha+04.hdf5``
 
   + Broken power law IMF (α=-1.30 from 0.1M\ :sub:`☉`\ -0.5M\ :sub:`☉`\ , α=-2.35 from 0.5M\ :sub:`☉`\  to 300M\ :sub:`☉`\ )
   + Does not include binary stars
-  + α-alement enhancement of Δlog\ :sub:`10`\ (α/Fe)=+0.4
+  + α-element enhancement of Δlog\ :sub:`10`\ (α/Fe)=+0.4
   + Uses v2.3 of BPASS
 
 * ``SSP_Spectra_BPASSv2.3_sin-imf135_300-alpha+06.hdf5``
 
   + Broken power law IMF (α=-1.30 from 0.1M\ :sub:`☉`\ -0.5M\ :sub:`☉`\ , α=-2.35 from 0.5M\ :sub:`☉`\  to 300M\ :sub:`☉`\ )
   + Does not include binary stars
-  + α-alement enhancement of Δlog\ :sub:`10`\ (α/Fe)=+0.6
+  + α-element enhancement of Δlog\ :sub:`10`\ (α/Fe)=+0.6
   + Uses v2.3 of BPASS
 
 * ``SSP_Spectra_BPASSv2.3_bin-imf135_300-alpha-02.hdf5``
 
   + Broken power law IMF (α=-1.30 from 0.1M\ :sub:`☉`\ -0.5M\ :sub:`☉`\ , α=-2.35 from 0.5M\ :sub:`☉`\  to 300M\ :sub:`☉`\ )
   + Includes binary stars
-  + α-alement enhancement of Δlog\ :sub:`10`\ (α/Fe)=-0.2
+  + α-element enhancement of Δlog\ :sub:`10`\ (α/Fe)=-0.2
   + Uses v2.3 of BPASS
 
 * ``SSP_Spectra_BPASSv2.3_bin-imf135_300-alpha+00.hdf5``
 
   + Broken power law IMF (α=-1.30 from 0.1M\ :sub:`☉`\ -0.5M\ :sub:`☉`\ , α=-2.35 from 0.5M\ :sub:`☉`\  to 300M\ :sub:`☉`\ )
   + Includes binary stars
-  + α-alement enhancement of Δlog\ :sub:`10`\ (α/Fe)=+0.0
+  + α-element enhancement of Δlog\ :sub:`10`\ (α/Fe)=+0.0
   + Uses v2.3 of BPASS
 
 * ``SSP_Spectra_BPASSv2.3_bin-imf135_300-alpha+02.hdf5``
 
   + Broken power law IMF (α=-1.30 from 0.1M\ :sub:`☉`\ -0.5M\ :sub:`☉`\ , α=-2.35 from 0.5M\ :sub:`☉`\  to 300M\ :sub:`☉`\ )
   + Includes binary stars
-  + α-alement enhancement of Δlog\ :sub:`10`\ (α/Fe)=+0.2
+  + α-element enhancement of Δlog\ :sub:`10`\ (α/Fe)=+0.2
   + Uses v2.3 of BPASS
 
 * ``SSP_Spectra_BPASSv2.3_bin-imf135_300-alpha+04.hdf5``
 
   + Broken power law IMF (α=-1.30 from 0.1M\ :sub:`☉`\ -0.5M\ :sub:`☉`\ , α=-2.35 from 0.5M\ :sub:`☉`\  to 300M\ :sub:`☉`\ )
   + Includes binary stars
-  + α-alement enhancement of Δlog\ :sub:`10`\ (α/Fe)=+0.4
+  + α-element enhancement of Δlog\ :sub:`10`\ (α/Fe)=+0.4
   + Uses v2.3 of BPASS
 
 * ``SSP_Spectra_BPASSv2.3_bin-imf135_300-alpha+06.hdf5``
 
   + Broken power law IMF (α=-1.30 from 0.1M\ :sub:`☉`\ -0.5M\ :sub:`☉`\ , α=-2.35 from 0.5M\ :sub:`☉`\  to 300M\ :sub:`☉`\ )
   + Includes binary stars
-  + α-alement enhancement of Δlog\ :sub:`10`\ (α/Fe)=+0.6
+  + α-element enhancement of Δlog\ :sub:`10`\ (α/Fe)=+0.6
   + Uses v2.3 of BPASS
 
 Conroy et al. (2010)

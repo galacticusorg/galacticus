@@ -198,7 +198,7 @@ We begin by specifying the "task" to perform - we choose ``posteriorSample`` whi
      <evolveForestsVerbosity   value="silent"                           />
    </posteriorSampleLikelihood>
 
-In this section we specify how the likelihood function for the model should be computed. Many different likelihood functions can be used, but here we use the ``galaxyPopulation`` likelihood function - which causes Galacticus to run a model generating a population of galaxies, computed some observables from that population, and then find the likelihood of that model given some target datasets. We specify a ``baseParametersFileName`` which gives the path to a parameter file describing the galaxy population model to run - this will be described in more detail below (note that a set of `parameter change files <https://galacticus.readthedocs.io/en/latest/manuals/user-guide/tutorials/parameter-files.html#changing-parameters>`_ can be applied to this base parameter file before it is used - these can be specified as a space-separated list via the ``changeParametersFileNames`` parameter added to the above section). We also specify a path for the output of failed parameter sets - sometimes while exploring the model parameter space a model will fail to complete - its parameters will be output to this file for further exploration. The ``randomize`` option specifies whether or not to change the random number seed for the model on each evaluation. Finally, we set ``evolveForestsVerbosity`` to ``silent`` to switch off output of logging messages while running the galaxy population calculation (this just keeps the amount of output reasonable).
+In this section we specify how the likelihood function for the model should be computed. Many different likelihood functions can be used, but here we use the ``galaxyPopulation`` likelihood function - which causes Galacticus to run a model generating a population of galaxies, computing some observables from that population, and then find the likelihood of that model given some target datasets. We specify a ``baseParametersFileName`` which gives the path to a parameter file describing the galaxy population model to run - this will be described in more detail below (note that a set of `parameter change files <https://galacticus.readthedocs.io/en/latest/manuals/user-guide/tutorials/parameter-files.html#changing-parameters>`_ can be applied to this base parameter file before it is used - these can be specified as a space-separated list via the ``changeParametersFileNames`` parameter added to the above section). We also specify a path for the output of failed parameter sets - sometimes while exploring the model parameter space a model will fail to complete - its parameters will be output to this file for further exploration. The ``randomize`` option specifies whether or not to change the random number seed for the model on each evaluation. Finally, we set ``evolveForestsVerbosity`` to ``silent`` to switch off output of logging messages while running the galaxy population calculation (this just keeps the amount of output reasonable).
 
 .. code-block:: xml
 
@@ -228,7 +228,7 @@ Next we specify the type of object used to store the state of each chain - here 
      <maximinTrialCount value="100"/>
    </posteriorSampleStateInitialize>
 
-Each MCMC chain must be assigned some initial position in the model parameter space. He we choose to assign those positions using a Latin hypercube design, in which we generate 100 trial Latin hypercubes and keep the hypercube with the maximum minimum distance between chains - this ensures a good coverage of the parameter space.
+Each MCMC chain must be assigned some initial position in the model parameter space. Here we choose to assign those positions using a Latin hypercube design, in which we generate 100 trial Latin hypercubes and keep the hypercube with the maximum minimum distance between chains - this ensures a good coverage of the parameter space.
 
 .. code-block:: xml
 
@@ -295,7 +295,7 @@ Most importantly, we have to specify the model parameters that we wish to constr
 
    </posteriorSampleSimulation>
 
-Finally, we close the ``posteriodSampleSimulation`` section.
+Finally, we close the ``posteriorSampleSimulation`` section.
 
 .. code-block:: xml
 

@@ -24,7 +24,7 @@ Luminosities are output separately for disk and spheroid components. For example
    diskLuminositiesStellar:RGO_I:rest:z0.000
    spheroidLuminositiesStellar:RGO_I:rest:z0.000
 
-Luminosities are output in units corresponding to the zero-point of the `AB-magnitude system <https://en.wikipedia.org/wiki/AB_magnitude>`_ This allows for convenient conversion into AB magnitudes simply using:
+Luminosities are output in units corresponding to the zero-point of the `AB-magnitude system <https://en.wikipedia.org/wiki/AB_magnitude>`_. This allows for convenient conversion into AB magnitudes simply using:
 
 .. math::
 

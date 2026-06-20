@@ -6,7 +6,7 @@ Basic File Format
 
 Merger trees are stored in HDF5 files for portability and convenience.
 Additionally, the format is intended to be sufficiently flexible to
-allow it to desribe merger trees obtained in a wide variety of ways,
+allow it to describe merger trees obtained in a wide variety of ways,
 including Monte Carlo algorithms (e.g. extended Press-Schechter
 algorithms) and from N-body simulations.
 
@@ -36,7 +36,7 @@ A Note on Scalar Attributes
 
 Many of the HDF5 attributes discussed in this document are indicated to
 be scalar (rank 0) attributes. It is allowable within the standard that
-these be pseudo-scalars (rank 1 arrays contaning a single element). This
+these be pseudo-scalars (rank 1 arrays containing a single element). This
 allows such attributes to be created using the
 `h5lt <https://support.hdfgroup.org/documentation/hdf5/latest/group___h5_l_t.html>`_ API for
 example.

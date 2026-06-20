@@ -8,7 +8,7 @@ instantaneous recycling approximation for all calculations of stellar
 populations. The recycled fraction and metal yield are determined from the ``stellarPopulation`` provided by a ``stellarPopulationSelector``.
 
 Setting ``stellarPopulationProperties=noninstantaneous`` causes Galacticus to use a fully
-non-instantaneous, metal-depdendent calculation of recycling, metal
+non-instantaneous, metal-dependent calculation of recycling, metal
 production and rates. These rates are determined from the ``stellarPopulation`` provided by a ``stellarPopulationSelector``. However, it is possible to force this method to
 operate in the instantaneous recycling approximation limit (which can be
 useful for testing and comparison) by setting:
@@ -41,7 +41,7 @@ where the recycled fraction and metal yield are specified directly, or
      <ageEffective value="13.8"/>
    </stellarPopulationProperties>
 
-in which case the recycled fraction and metal yield will be computed that all stars with mass greater than ``massLongLived`` have fully evolved, and energy input (from stellar winds and supernovae) will be computed assuming that stellar populations instantaneously reach an age of ``ageEffective``.
+in which case the recycled fraction and metal yield will be computed assuming that all stars with mass greater than ``massLongLived`` have fully evolved, and energy input (from stellar winds and supernovae) will be computed assuming that stellar populations instantaneously reach an age of ``ageEffective``.
 
 Similar options are available to control whether metal yields and energy input from stellar populations are computed using the fully non-instantaneous or instantaneous approximations, e.g.:
 

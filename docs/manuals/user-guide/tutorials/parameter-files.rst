@@ -199,7 +199,7 @@ Warnings of the type:
 
    unrecognized parameter [cosmologyFnuctions] (did you mean [cosmologyFunctions]?)
 
-indicate that the named parameter ("``cosmologyFnuctions``" in this case) was not recognized as an allowed parameter name. Sometimes this can be due to a typo - Galacticus will try to guess what you actually meany and offer a suggestion if it can. In the above, it guessed that you actually meant "``cosmologyFunctions``" - correcting this will remove the warning.
+indicate that the named parameter ("``cosmologyFnuctions``" in this case) was not recognized as an allowed parameter name. Sometimes this can be due to a typo - Galacticus will try to guess what you actually meant and offer a suggestion if it can. In the above, it guessed that you actually meant "``cosmologyFunctions``" - correcting this will remove the warning.
 
 Where to find information about available parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -302,7 +302,7 @@ Many classes also make use of other classes. For example, the ``cosmologyFunctio
      </cosmologyParameters>
    </cosmologyFunctions>
 
-When some object is looking for a helper object in the parameter file, the the helper is first looked for inside the object itself - in the above the helper object is ``cosmologyParameters``, and is located inside the ``cosmologyFunctions`` object that needs it. If the helper is not found, Galacticus proceeds to look for the helper object at the next higher level in the parameter file. For example in:
+When some object is looking for a helper object in the parameter file, the helper is first looked for inside the object itself - in the above the helper object is ``cosmologyParameters``, and is located inside the ``cosmologyFunctions`` object that needs it. If the helper is not found, Galacticus proceeds to look for the helper object at the next higher level in the parameter file. For example in:
 
 .. code-block:: xml
 
@@ -623,8 +623,8 @@ Each ``change`` element must also have a ``type`` attribute which specifies the 
 * ``remove``: This will remove the parameter specified by the ``path`` attribute.
 * ``update``: This will update the value of the parameter specified by the ``path`` attribute with that given by the ``value`` attribute of the ``change`` element - if the optional ``append`` attribute is set to ``true`` then the value is appended to the current value (instead of replacing it).
 
-Outputing changed parameter files
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Outputting changed parameter files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It is possible to have Galacticus output a new parameter file after processing any ``XInclude`` elements (to include other parameter files) and applying any change files as described above. The new parameter file will therefore be a standalone file that can be run without reference to any included files or changes files, and will maintain the structure and comments from the original files.
 

@@ -82,7 +82,7 @@ In this block we're setting up a cosmological model. The first option specifies 
      <tolerance value="1.0e-3"/>
    </cosmologicalMassVariance>
 
-Next we set up the linear theory power spectrum. We choose to use the `Eisenstein & Hu (1999) <http://adsabs.harvard.edu/abs/1999ApJ...511....5E>`_ CDM transfer function, a power-law primordial power spectrum (with no running of the index). The "``powerSpectrumPrimordialTransferred``" options specifies how to combine these into the linear theory power spectrum. The "``simple``" option just multiplies the primordial power spectrum by the transfer function squared. Finally, we specify a normalization for the power spectrum by choosing an option for computing the variance of the mas density field ("``filteredPower``" just means that we integrate the power spectrum under some window function - a top-hat function by default - to compute the variance), and then giving a value for the sigma_8 parameter. We also specify a tolerance for the integration of the power spectrum here - this determines how accurately the variance of the mass density field will be computed.
+Next we set up the linear theory power spectrum. We choose to use the `Eisenstein & Hu (1999) <http://adsabs.harvard.edu/abs/1999ApJ...511....5E>`_ CDM transfer function, a power-law primordial power spectrum (with no running of the index). The "``powerSpectrumPrimordialTransferred``" options specifies how to combine these into the linear theory power spectrum. The "``simple``" option just multiplies the primordial power spectrum by the transfer function squared. Finally, we specify a normalization for the power spectrum by choosing an option for computing the variance of the mass density field ("``filteredPower``" just means that we integrate the power spectrum under some window function - a top-hat function by default - to compute the variance), and then giving a value for the sigma_8 parameter. We also specify a tolerance for the integration of the power spectrum here - this determines how accurately the variance of the mass density field will be computed.
 
 .. code-block:: xml
 
@@ -104,7 +104,7 @@ Finally we specify a file to output the results to, and a set of redshifts at wh
 Understanding the output
 ------------------------
 
-The output file ``powerSpectrum.hdf5`` is an `HDF5 <https://docs.hdfgroup.org/documentation/hdf5/latest/_intro_h_d_f5.html>`_ file - it contains datasets organized into a hierarchical tree of "groups" (like files in a directories in a filesystem). Most programming languages have tools to interact with HDF5 files. Here we'll explore the output file using the command-line tools `h5ls <https://docs.hdfgroup.org/archive/support/HDF5/doc/RM/Tools.html#Tools-Ls>`_ and `h5dump <https://docs.hdfgroup.org/archive/support/HDF5/doc/RM/Tools.html#Tools-Dump>`_.
+The output file ``powerSpectrum.hdf5`` is an `HDF5 <https://docs.hdfgroup.org/documentation/hdf5/latest/_intro_h_d_f5.html>`_ file - it contains datasets organized into a hierarchical tree of "groups" (like files in directories in a filesystem). Most programming languages have tools to interact with HDF5 files. Here we'll explore the output file using the command-line tools `h5ls <https://docs.hdfgroup.org/archive/support/HDF5/doc/RM/Tools.html#Tools-Ls>`_ and `h5dump <https://docs.hdfgroup.org/archive/support/HDF5/doc/RM/Tools.html#Tools-Dump>`_.
 
 To see the content of the file use:
 
@@ -169,7 +169,7 @@ and
 
 The "``-d``" option to ``h5ls`` tells it to actually output the content of the dataset.
 
-As you'd expect, ``wavenumber`` contains a list of wavenumbers (in units of Mpc\ :sup:`-1`) at which thepower spectrumn was tabulated, while ``powerSpectrum`` contains the power spectrum itself (in units of Mpc\ :sup:`3`).
+As you'd expect, ``wavenumber`` contains a list of wavenumbers (in units of Mpc\ :sup:`-1`) at which the power spectrum was tabulated, while ``powerSpectrum`` contains the power spectrum itself (in units of Mpc\ :sup:`3`).
 
 You can also explore the content of the HDF5 file using the ``h5dump`` tool, which shows some extra, useful information (I'll cut out much of the very long output for brevity):
 

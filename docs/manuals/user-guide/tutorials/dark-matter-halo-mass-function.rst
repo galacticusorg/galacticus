@@ -81,7 +81,7 @@ In this block we're setting up a cosmological model. The first option specifies 
      <sigma_8 value="0.807"/>
    </cosmologicalMassVariance>
 
-Next we set up the linear theory power spectrum. We choose to use the `Eisenstein & Hu (1999) <http://adsabs.harvard.edu/abs/1999ApJ...511....5E>`_ CDM transfer function, a power-law primordial power spectrum (with no running of the index). The "``powerSpectrumPrimordialTransferred``" options specifies how to combine these into the linear theory power spectrum. The "``simple``" option just multiplies the primordial power spectrum by the transfer function squared. Finally, we specify a normalization for the power spectrum by choosing an option for computing the variance of the mas density field ("``filteredPower``" just means that we integrate the power spectrum under some window function - a top-hat function by default - to compute the variance), and then giving a value for the sigma_8 parameter.
+Next we set up the linear theory power spectrum. We choose to use the `Eisenstein & Hu (1999) <http://adsabs.harvard.edu/abs/1999ApJ...511....5E>`_ CDM transfer function, a power-law primordial power spectrum (with no running of the index). The "``powerSpectrumPrimordialTransferred``" options specifies how to combine these into the linear theory power spectrum. The "``simple``" option just multiplies the primordial power spectrum by the transfer function squared. Finally, we specify a normalization for the power spectrum by choosing an option for computing the variance of the mass density field ("``filteredPower``" just means that we integrate the power spectrum under some window function - a top-hat function by default - to compute the variance), and then giving a value for the sigma_8 parameter.
 
 .. code-block:: xml
 
@@ -109,7 +109,7 @@ We next specify how dark matter halo density profiles should be computed. We cho
      <redshifts value="0.0 1.0"/>
    </outputTimes>
 
-Finally we specify an file to output the results to, and a set of redshifts at which we want the halo mass function to be computed and output.
+Finally we specify a file to output the results to, and a set of redshifts at which we want the halo mass function to be computed and output.
 
 Controlling the range of masses
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -133,7 +133,7 @@ The parameters have the following meanings:
 Understanding the output
 ------------------------
 
-The output file ``haloMassFunction.hdf5`` is an `HDF5 <https://docs.hdfgroup.org/documentation/hdf5/latest/_intro_h_d_f5.html>`_ file - it contains datasets organized into a hierarchical tree of "groups" (like files in a directories in a filesystem). Most programming languages have tools to interact with HDF5 files. Here we'll explore the output file using the command-line tools `h5ls <https://docs.hdfgroup.org/archive/support/HDF5/doc/RM/Tools.html#Tools-Ls>`_ and `h5dump <https://docs.hdfgroup.org/archive/support/HDF5/doc/RM/Tools.html#Tools-Dump>`_.
+The output file ``haloMassFunction.hdf5`` is an `HDF5 <https://docs.hdfgroup.org/documentation/hdf5/latest/_intro_h_d_f5.html>`_ file - it contains datasets organized into a hierarchical tree of "groups" (like files in directories in a filesystem). Most programming languages have tools to interact with HDF5 files. Here we'll explore the output file using the command-line tools `h5ls <https://docs.hdfgroup.org/archive/support/HDF5/doc/RM/Tools.html#Tools-Ls>`_ and `h5dump <https://docs.hdfgroup.org/archive/support/HDF5/doc/RM/Tools.html#Tools-Dump>`_.
 
 To see the content of the file use:
 
@@ -259,7 +259,7 @@ For example, you can see that the output group contains some "attributes" such a
 More details on the output
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``Outputs/OutputN`` groups contain atrributes and datasets which give properties at the corresponding output time as follows:
+The ``Outputs/OutputN`` groups contain attributes and datasets which give properties at the corresponding output time as follows:
 
 * ``massHaloCharacteristic``: The characteristic mass scale (in units of :math:`M_\odot`), :math:`M_*`, at which :math:`\sigma(M)=\delta_\mathrm{c}(z)`;
 * ``criticalOverdensity``: The critical overdensity for collapse of halos, :math:`\delta_\mathrm{c}`;
@@ -270,7 +270,7 @@ The ``Outputs/OutputN`` groups contain atrributes and datasets which give proper
 * ``virialDensityContrast``: The virial density contrast of halos.
 * ``haloMass``: The mass of the halo, :math:`M_\mathrm{halo}` (in :math:`M_\odot`);
 * ``haloSigma``: The root-variance of the mass field smoothed in top-hat spheres, :math:`\sigma(M)`;
-* ``haloAlpha``: The loagrithmic gradient of the root-variance of the mass field smoothed in top-hat spheres with mass, :math:`\mathrm{d} \log\sigma(M)/\mathrm{d} \log M_\mathrm{halo}`;
+* ``haloAlpha``: The logarithmic gradient of the root-variance of the mass field smoothed in top-hat spheres with mass, :math:`\mathrm{d} \log\sigma(M)/\mathrm{d} \log M_\mathrm{halo}`;
 * ``haloPeakHeightNu``: The peak height of the halo, :math:`\nu = \delta_\mathrm{c}/\sigma(M)`;
 * ``haloMassFunctionM``: The halo mass function per halo mass, :math:`\mathrm{d}n/\mathrm{d}M_\mathrm{halo}` (in units of :math:`\mathrm{Mpc}^{-3} M_\odot^{-1}`);
 * ``haloMassFunctionLnM``: The halo mass function per logarithmic halo mass, :math:`\mathrm{d}n/\mathrm{d}\log M_\mathrm{halo}` (in units of :math:`\mathrm{Mpc}^{-3}`);
@@ -288,4 +288,4 @@ The ``Outputs/OutputN`` groups contain atrributes and datasets which give proper
 
 Dimensionful datasets have a ``unitsInSI`` attribute that gives their units in the SI system.
 
-Additionally, an attribute giving the critical density of the universe (in units of :math:`M_\odot \mathrm{Mpc}^{-3}`) is written to the ``cosmology`` group and, if such a scale is well-defined, an attribute given the mass corresponding to the scale at which the power spectrum is reduce by half relative to a CDM power spectrum in units of :math:`M_\odot` is written as ``massHalfMode`` to the ``powerSpectrum`` group.
+Additionally, an attribute giving the critical density of the universe (in units of :math:`M_\odot \mathrm{Mpc}^{-3}`) is written to the ``cosmology`` group and, if such a scale is well-defined, an attribute giving the mass corresponding to the scale at which the power spectrum is reduced by half relative to a CDM power spectrum in units of :math:`M_\odot` is written as ``massHalfMode`` to the ``powerSpectrum`` group.

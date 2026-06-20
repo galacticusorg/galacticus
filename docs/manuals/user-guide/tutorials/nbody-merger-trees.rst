@@ -35,7 +35,7 @@ you will use for the run:
    </mergerTreeImporter>
 
 The first of these ``mergerTreeConstruct=read`` tells Galacticus that merger trees will be
-constructed by reading them from a file. The second, ``mergerTreeImporter``, gives the type of importer to use - in this case we use the ``galacticus`` importer which knows how to import data from the standard Galacticus merger to file format.
+constructed by reading them from a file. The second, ``mergerTreeImporter``, gives the type of importer to use - in this case we use the ``galacticus`` importer which knows how to import data from the standard Galacticus merger tree file format.
 
 There are many sub-parameters which can be set to change the behavior of merger tree reading. In order to choose sensible settings for the various parameters that
 control merger trees read from file, it is recommended that you read
@@ -68,7 +68,7 @@ follows:
      <running             value="0.000"/>
    </powerSpectrumPrimordial>
 
-**Existance at Final Time:** Normally, Galacticus assumes that all
+**Existence at Final Time:** Normally, Galacticus assumes that all
 merger trees will exist (i.e. have at least one node present) at the
 final output time. This may not be true of trees extracted from an
 N-body simulation—in this case Galacticus can be informed of this fact by setting the subparameter ``allTreesExistAtFinalTime=false`` in the ``mergerTreeEvolver`` block:
@@ -91,7 +91,7 @@ precisely these output times. In such cases it is useful to set the subparameter
 which ensures that the times of nodes are adjusted to lie at precisely
 the output time if that time is within the specified relative tolerance
 (this avoids any small differences between node times and output times
-that can arises due to rounding errors when converting from redshifts to
+that can arise due to rounding errors when converting from redshifts to
 times and vice-versa).
 
 **Missing Hosts:** Galacticus expects to find each node's host present in
@@ -111,7 +111,7 @@ incorrect tree evolution however, so the recommended setting is:
 trees contain subhalos they will most likely exhibit two specific
 behaviors [#footnote2]_: i) halos which are subhalos in one timestep may become
 non-subhalos (isolated halos) in a subsequent timestep ("subhalo
-promotion"), and ii) which are subhalos in one branch of the tree may
+promotion"), and ii) halos which are subhalos in one branch of the tree may
 "jump" to another branch [#footnote3]_ of the tree becoming a subhalo there
 ("branch jumping"). These behaviors are fully supported by Galacticus and so we
 recommend the following settings for subparameters in the ``mergerTreeConstructor`` block:
@@ -156,7 +156,7 @@ If your trees do not contain subhalos, recommended settings are instead:
 
 **Halo Positions/Velocities:** If your trees contain
 position and velocity information for halos, those positions and
-velocities can be preset in the position component of each . This
+velocities can be preset in the position component of each node. This
 requires the use of a position component which allows presetting of
 positions and velocities. Recommended settings are therefore:
 
@@ -228,7 +228,7 @@ and computed using the last known orbital properties of the subhalo.
 
 **Halo Scale Radii:** If your merger trees contain
 information on halo scale radii or half-mass radii, these can be used to
-preset the scale radius of each . This requires the use of a dark matter
+preset the scale radius of each node. This requires the use of a dark matter
 profile component which allows presetting of scale length. Recommended
 settings are therefore:
 
@@ -295,7 +295,7 @@ should be used instead.
 
 If your merger tree file contains 3D spin or angular momentum
 information, you can choose to make that information available within
-Galacticus be using the settings:
+Galacticus by using the settings:
 
 .. code-block:: xml
 
@@ -418,7 +418,7 @@ times are to be computed in this way set
    </mergerTreeConstructor>
 
 which select a satellite orbit method that allows merger times to be
-present and tell the merger tree construction method to preset those
+preset and tell the merger tree construction method to preset those
 merger times respectively. If merger times are not to be computed in
 this way then instead set, for example,
 
@@ -672,7 +672,7 @@ To add particle tracking data to a merger tree file, follow these steps:
       included for the halo);
 
    #. ``particleIndexCount`` which should indicate the number
-      of entries in the datasets in the ``particles``> group
+      of entries in the datasets in the ``particles`` group
       for each halo (or -0 if no particle data is included for
       the halo).
 

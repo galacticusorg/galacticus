@@ -30,7 +30,7 @@ Files
 Kim, Martin, and Hendry (1994) grains
 -------------------------------------
 
-Dust grain properties are taken from `Kim, Martin, and Hendry (1994) <http://adsabs.harvard.edu/abs/1994ApJ...422..164K>`_, specifically their model with with *R*\ :sub:`V`\ =3.1 and either a full scattering calculation or Henyey-Greenstein scattering.
+Dust grain properties are taken from `Kim, Martin, and Hendry (1994) <http://adsabs.harvard.edu/abs/1994ApJ...422..164K>`_, specifically their model with *R*\ :sub:`V`\ =3.1 and either a full scattering calculation or Henyey-Greenstein scattering.
 
 Stellar Geometry
 ~~~~~~~~~~~~~~~~~
@@ -51,7 +51,7 @@ Files
 Grasil-like models
 ------------------
 
-These models are intended to mimic the mimic the geometries used by `Grasil <https://adlibitum.oats.inaf.it/silva/grasil/grasil.html>`_.
+These models are intended to mimic the geometries used by `Grasil <https://adlibitum.oats.inaf.it/silva/grasil/grasil.html>`_.
 
 Dust grain properties are taken from `Draine (2003) <http://adsabs.harvard.edu/abs/2003ARA%26A..41..241D>`_ - specifically their model with either *R*\ :sub:`V`\ =3.1 or *R*\ :sub:`V`\ =5.5 as encoded in the file name with prefix ``dustD03``.
 
