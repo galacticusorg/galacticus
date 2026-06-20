@@ -20,7 +20,7 @@ We welcome many types of contributions:
 
 Before developing, ensure you have:
 
-- A modern Fortran compiler (e.g., `gfortran` ≥ 11)
+- A modern Fortran compiler (`gfortran` ≥ 16; earlier versions will not compile Galacticus)
 - `make`
 - HDF5, FFTW3, and GSL libraries
 - Python 3 (≥ 3.9)
@@ -77,7 +77,7 @@ For simple changes, you can work on `master` and follow the [simple changes work
 
 When making changes:
 
-1. **Follow code conventions** - See the [Coding](https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf#coding) documentation for detailed style guidelines, naming conventions, and component patterns
+1. **Follow code conventions** - See the [Coding](https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/coding.html) documentation for detailed style guidelines, naming conventions, and component patterns
 2. **Test locally** - Build and test your changes before submitting
 3. **Add yourself as a contributor** (see [Contributor Attribution](#contributor-attribution) below)
 4. **Document your changes** - Update comments and documentation as needed
@@ -204,7 +204,7 @@ This is **not a distrust of AI**—it's professional responsibility. Just as you
 - **Questions?** Ask in the [discussion forum](https://github.com/galacticusorg/galacticus/discussions)
 - **Found a bug?** Open an [issue](https://github.com/galacticusorg/galacticus/issues) with details about your system and the error
 - **Need more details?** See the comprehensive [wiki](https://github.com/galacticusorg/galacticus/wiki/Contributing)
-- **Development docs?** Check the [Development](https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf#development) documentation for build system details and the [Coding](https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf#coding) documentation for code conventions
+- **Development docs?** Check the [Development](https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/development.html) documentation for build system details and the [Coding](https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/coding.html) documentation for code conventions
 
 ## License
 
