@@ -3,6 +3,62 @@
 Coding Galacticus
 =================
 
+.. _manual-sec-styleConventions:
+
+Style Conventions
+-----------------
+
+The following conventions are used throughout the Galacticus source code.
+
+Variable names
+~~~~~~~~~~~~~~~
+
+* Variable names use ``camelCase``.
+* Variable names should be descriptive: ``massStellarDisk`` is preferred over ``m`` or ``mass``.
+
+For a variable that is set via an input parameter, the internal variable name should match the parameter name (this allows the automatic generation of descriptor functions). If the parameter name clashes with the name of a method of the class, append an underscore to the internal variable name. For example, the ``stellarFeedbackOutflowsPowerLaw`` class has a method ``velocityCharacteristic`` and also reads a parameter of the same name, so the corresponding internal variable is named ``velocityCharacteristic_``.
+
+Variable declarations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Declare at most two variables per line, using continuation lines for more. Instead of:
+
+.. code-block:: fortran
+
+    logical, intent(  out) :: diskRequired, spheroidRequired, radiusVirialRequired, radiusScaleRequired
+
+write:
+
+.. code-block:: fortran
+
+    logical, intent(  out) :: diskRequired        , spheroidRequired   , &
+         &                    radiusVirialRequired, radiusScaleRequired
+
+Constants
+~~~~~~~~~
+
+* Floating-point constants must be written as explicitly double precision: use ``7.0d0`` rather than ``7.0``.
+* Avoid arbitrary "magic" numbers in the code. Instead of ``3.2408d-14``, define a descriptively named constant so that its meaning is clear:
+
+  .. code-block:: fortran
+
+     double precision, parameter :: importantPhysicalConstant=3.2408d-14
+
+* Constants that convert between units should be named ``unitAToUnitB``, meaning that multiplying a quantity in ``unitA`` by ``unitAToUnitB`` yields the quantity in ``unitB`` (for example ``metersToAngstroms`` :math:`=10^{10}`).
+* The unit system in which a defined constant is expressed is indicated by a suffix; see :ref:`manual-sec-definedConstants` and the *Indicating Units of Defined Constants* section below.
+
+Comments
+~~~~~~~~
+
+* Documentation comments — the ``!!{ ... !!}`` blocks and the ``<description>`` elements of embedded directives that are rendered into this documentation — are written in reStructuredText (the codebase migrated from its older LaTeX dialect to reStructuredText for ReadTheDocs). Comments *outside* such blocks should avoid markup and prefer Unicode symbols where helpful — e.g. ``! km s¯¹`` rather than ``! km s^{-1}``.
+* Where a line of code implements an equation or model from a paper, cite it in a comment, preferably linking to the NASA ADS entry:
+
+  .. code-block:: fortran
+
+     ! Critical mass model from Author1 & Author2 (2015; http://.......).
+
+* Cite papers in class ``<description>`` elements too, using ``\cite{key}``, and add the corresponding entry to ``docs/Galacticus.bib``. The preferred workflow is to add the NASA ADS record to the Galacticus `Zotero library <https://www.zotero.org/groups/16170/galacticus/library>`_ and export it to ``docs/Galacticus.bib`` (it is then included automatically in the documentation bibliography).
+
 Node Class Hierarchy Builder
 ----------------------------
 

@@ -6,6 +6,7 @@ Developer Guide
 
    development
    coding
+   continuous-integration
    methods
    creating-a-new-class
    traversing-a-merger-tree

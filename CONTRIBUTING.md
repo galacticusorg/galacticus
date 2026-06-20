@@ -56,8 +56,36 @@ For detailed setup instructions, see the [README](README.md).
 
 5. (Optional) Run the Python unit tests:
    ```bash
-   pytest
+   export GALACTICUS_EXEC_PATH=`pwd`
+   python -m pytest -v
    ```
+   These cover the build-system modules under `python/` and the documentation tooling under `scripts/doc/`. They do **not** run the model regression tests.
+
+6. (Optional) Run the model regression suite — the tests CI relies on to check the compiled model:
+   ```bash
+   python3 testSuite/test-all.py
+   ```
+   This runs every `testSuite/test-*.py` script (logs are written to `testSuite/outputs/`); you can also run one directly, e.g. `python3 testSuite/test-Python-interface.py`. Most of these require a built `Galacticus.exe` and the run-time datasets (`GALACTICUS_DATA_PATH`).
+
+See the [Testing and Continuous Integration](https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/continuous-integration.html) guide for full details on the test suites and the CI pipeline.
+
+### Installing the git hooks
+
+Galacticus uses git hooks (kept in the separate [`gitHooks`](https://github.com/galacticusorg/gitHooks) repository) to run pre-commit checks and to enforce the commit-message format. They are recommended for all contributors and are **required** if you commit directly to the repository. The simplest way to install them is to clone the hooks repository and point your Galacticus clone at it:
+
+```bash
+git clone https://github.com/galacticusorg/gitHooks.git
+git config core.hooksPath /path/to/gitHooks
+```
+
+The hooks provide:
+
+- **`commit-msg`** — enforces [Conventional Commits](https://www.conventionalcommits.org) format (see [Submitting a Pull Request](#submitting-a-pull-request) below for the allowed types).
+- **`pre-commit`** — runs static checks on staged files (Fortran static analysis; `.bib`, XML, YAML, and Python validation; docstring and spell checks; leftover-debug detection) and, if [`claude`](https://docs.claude.com/en/docs/claude-code/overview) is installed, an automated review.
+- **`prepare-commit-msg`** — pre-fills a suggested Conventional-Commits message (when `claude` is installed).
+- **`pre-push`** — asks you to confirm before pushing directly to `master`.
+
+See the [`gitHooks` README](https://github.com/galacticusorg/gitHooks) for more detail.
 
 For more help, see the [README troubleshooting section](README.md#troubleshooting).
 
@@ -71,7 +99,7 @@ For new features or bug fixes, create a branch:
 git checkout -b feature/your-feature-name
 ```
 
-For simple changes, you can work on `master` and follow the [simple changes workflow](https://github.com/galacticusorg/galacticus/wiki/Contributing#making-simple-changes).
+For simple changes (e.g. fixing a typo) you can commit directly to `master`; for anything larger, use a branch and open a pull request.
 
 ### Making Changes
 
@@ -107,15 +135,15 @@ When your changes are ready:
    - How to test your changes
    - Confirmation that you've tested locally
 
-3. **Follow Conventional Commits** - Use clear, descriptive commit messages:
+3. **Follow Conventional Commits** - The `commit-msg` hook enforces the [Conventional Commits](https://www.conventionalcommits.org) format `type(scope): summary`. Use clear, descriptive messages:
    ```
    fix: resolve memory leak in component initialization
    feat: add new parameter for galactic winds model
-   docs: update building instructions for Fortran 11
+   docs: update building instructions for gfortran 16
    ```
-   See the [wiki](https://github.com/galacticusorg/galacticus/wiki/Contributing#commit-messages) for details.
+   The allowed types are: `fix`, `feat`, `build`, `chore`, `ci`, `docs`, `style`, `test`, `refactor`, `perf`, `revert`, and `clean`. For a breaking change, append `!` after the type/scope (e.g. `feat!: …`) and include a `BREAKING CHANGE:` footer.
 
-4. **Address CI/CD checks** - Our automated tests will run on your PR. If any checks fail, review the error messages and update your code accordingly.
+4. **Address CI/CD checks** - Automated checks run on your PR (see [Testing and Continuous Integration](https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/continuous-integration.html) for what runs and when). If any checks fail, review the error messages and update your code accordingly.
 
 5. **Respond to code review** - A maintainer will review your PR and may request changes. This is normal and helps maintain code quality!
 
@@ -203,7 +231,7 @@ This is **not a distrust of AI**—it's professional responsibility. Just as you
 
 - **Questions?** Ask in the [discussion forum](https://github.com/galacticusorg/galacticus/discussions)
 - **Found a bug?** Open an [issue](https://github.com/galacticusorg/galacticus/issues) with details about your system and the error
-- **Need more details?** See the comprehensive [wiki](https://github.com/galacticusorg/galacticus/wiki/Contributing)
+- **Need more details?** See the [developer guide](https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/index.html) on ReadTheDocs
 - **Development docs?** Check the [Development](https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/development.html) documentation for build system details and the [Coding](https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/coding.html) documentation for code conventions
 
 ## License
