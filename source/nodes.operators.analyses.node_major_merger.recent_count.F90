@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that counts the number of recent major mergers between nodes prior to each output time.
   !!}
 
@@ -25,9 +25,11 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>intervalType</name>
-   <description>Enumeration of the time units used to define the lookback interval for ``recent'' major mergers: absolute (Gyr) or dynamical (in units of the halo dynamical time).</description>
+   <description>
+   Enumeration of the time units used to define the lookback interval for "recent" major mergers: absolute (Gyr) or dynamical (in units of the halo dynamical time).
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -37,12 +39,14 @@
   !!]
 
   !![
-  <nodeOperator name="nodeOperatorNodeMajorMergerRecentCount">
-   <description>A node operator class that counts the number of dark matter halo--halo major mergers (mass ratio $\geq$ \mono{massRatioMajor}, default 0.25) occurring within a lookback interval \mono{intervalRecent} before each output time. \mono{intervalType} selects absolute Gyr or dynamical-time units; \mono{intervalFromInfall} measures the interval from satellite infall rather than from the output time.</description>
+  <nodeOperator name="nodeOperatorNodeMajorMergerRecentCount" docformat="rst">
+   <description>
+   A node operator class that counts the number of dark matter halo--halo major mergers (mass ratio :math:`\geq` ``massRatioMajor``, default 0.25) occurring within a lookback interval ``intervalRecent`` before each output time. ``intervalType`` selects absolute Gyr or dynamical-time units; ``intervalFromInfall`` measures the interval from satellite infall rather than from the output time.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorNodeMajorMergerRecentCount
-     !!{
+     !!{RST
      A node operator class that counts the number of recent major mergers between nodes prior to each output time.
      !!}
      private
@@ -60,8 +64,8 @@
   end type nodeOperatorNodeMajorMergerRecentCount
   
   interface nodeOperatorNodeMajorMergerRecentCount
-     !!{
-     Constructors for the \refClass{nodeOperatorNodeMajorMergerRecentCount} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorNodeMajorMergerRecentCount` node operator class.
      !!}
      module procedure nodeMajorMergerRecentCountConstructorParameters
      module procedure nodeMajorMergerRecentCountConstructorInternal
@@ -70,8 +74,8 @@
 contains
 
   function nodeMajorMergerRecentCountConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorNodeMajorMergerRecentCount} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorNodeMajorMergerRecentCount` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -84,39 +88,35 @@ contains
     logical                                                                 :: intervalFromInfall
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massRatioMajor</name>
       <defaultValue>0.25d0</defaultValue>
       <description>
-	The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be
-	``major''.
+      The mass ratio (:math:`M_2/M_1` where :math:`M_2 &lt; M_1`) of merging halos above which the merger should be considered to be "major".
       </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>intervalRecent</name>
       <defaultValue>2.0d0</defaultValue>
       <description>
-	The time interval used to define ``recent'' mergers. This parameter is in units of Gyr if \mono{[intervalType]}$=$\mono{absolute}, or in units of the halo dynamical time if \mono{[intervalType]}$=$\mono{dynamical}.
+      The time interval used to define "recent" mergers. This parameter is in units of Gyr if ``[intervalType]``\ :math:`=`\ ``absolute``, or in units of the halo dynamical time if ``[intervalType]``\ :math:`=`\ ``dynamical``.
       </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>intervalType</name>
       <defaultValue>var_str('dynamical')</defaultValue>
       <description>
-	Specifies the units for the \mono{[intervalRecent]} parameter. If set to \mono{absolute}
-	then \mono{[intervalRecent]} is given in Gyr, while if set to \mono{dynamical}
-	\mono{[intervalRecent]} is given in units of the halo dynamical time.
+      Specifies the units for the ``[intervalRecent]`` parameter. If set to ``absolute`` then ``[intervalRecent]`` is given in Gyr, while if set to ``dynamical`` ``[intervalRecent]`` is given in units of the halo dynamical time.
       </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>intervalFromInfall</name>
       <defaultValue>.false.</defaultValue>
       <description>
-	Specifies whether ``recent'' for satellite galaxies is measured from the current time, or from the time at which they were
-	last isolated.
+      Specifies whether "recent" for satellite galaxies is measured from the current time, or from the time at which they were last isolated.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -133,8 +133,8 @@ contains
   end function nodeMajorMergerRecentCountConstructorParameters
 
   function nodeMajorMergerRecentCountConstructorInternal(massRatioMajor,intervalRecent,intervalType,intervalFromInfall,outputTimes_,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorNodeMajorMergerRecentCount} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorNodeMajorMergerRecentCount` node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -155,8 +155,8 @@ contains
   end function nodeMajorMergerRecentCountConstructorInternal
 
   subroutine nodeMajorMergerRecentCountDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorNodeMajorMergerRecentCount} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorNodeMajorMergerRecentCount` node operator class.
     !!}
     implicit none
     type(nodeOperatorNodeMajorMergerRecentCount), intent(inout) :: self
@@ -169,7 +169,7 @@ contains
   end subroutine nodeMajorMergerRecentCountDestructor
 
   subroutine nodeMajorMergerRecentCountNodeInitialize(self,node)
-    !!{
+    !!{RST
     Record counts of galaxy-galaxy major mergers.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -184,7 +184,7 @@ contains
   end subroutine nodeMajorMergerRecentCountNodeInitialize
 
   subroutine nodeMajorMergerRecentCountNodePromote(self,node)
-    !!{
+    !!{RST
     Record counts of galaxy-galaxy major mergers.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -208,7 +208,7 @@ contains
   end subroutine nodeMajorMergerRecentCountNodePromote
   
   subroutine nodeMajorMergerRecentCountNodesMerge(self,node)
-    !!{
+    !!{RST
     Record counts of galaxy-galaxy major mergers.
     !!}
     use :: Error           , only : Error_Report

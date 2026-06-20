@@ -17,17 +17,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   A dark matter halo profile heating class which accounts for heating from tidal shocking.
   !!}
 
   use :: Object_Pools, only : objectPool
 
   !![
-  <darkMatterProfileHeating name="darkMatterProfileHeatingTidal">
+  <darkMatterProfileHeating name="darkMatterProfileHeatingTidal" docformat="rst">
    <description>
-    A dark matter profile heating class that constructs \refClass{massDistributionHeatingTidal} objects to compute heating due to
-    tidal shocks.
+   A dark matter profile heating class that constructs :galacticus-class:`massDistributionHeatingTidal` objects to compute heating due to tidal shocks.
    </description>
    <deepCopy>
      <deallocate variables="pool"/>
@@ -35,7 +34,7 @@
   </darkMatterProfileHeating>
   !!]
   type, extends(darkMatterProfileHeatingClass) :: darkMatterProfileHeatingTidal
-     !!{
+     !!{RST
      A dark matter profile heating class which accounts for heating due to tidal shocking.
      !!}
      private
@@ -48,8 +47,8 @@
   end type darkMatterProfileHeatingTidal
 
   interface darkMatterProfileHeatingTidal
-     !!{
-     Constructors for the \refClass{darkMatterProfileHeatingTidal} dark matter profile heating class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileHeatingTidal` dark matter profile heating class.
      !!}
      module procedure tidalConstructorParameters
      module procedure tidalConstructorInternal
@@ -58,8 +57,8 @@
 contains
 
   function tidalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileHeatingTidal} dark matter profile heating class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileHeatingTidal` dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -69,29 +68,37 @@ contains
          &                                                            coefficientSecondOrder1  , coefficientSecondOrder2
          
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>coefficientSecondOrder0</name>
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
-      <description>The coefficient, $a_0$, appearing in the second-order heating term, $f_2 = a_0 + a_1 \mathrm{d}\log \rho/\mathrm{d} \log r + a_2 (\mathrm{d}\log \rho/\mathrm{d} \log r)^2$.</description>
+      <description>
+      The coefficient, :math:`a_0`, appearing in the second-order heating term, :math:`f_2 = a_0 + a_1 \mathrm{d}\log \rho/\mathrm{d} \log r + a_2 (\mathrm{d}\log \rho/\mathrm{d} \log r)^2`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>coefficientSecondOrder1</name>
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
-      <description>The coefficient, $a_1$, appearing in the second-order heating term, $f_2 = a_0 + a_1 \mathrm{d}\log \rho/\mathrm{d} \log r + a_2 (\mathrm{d}\log \rho/\mathrm{d} \log r)^2$.</description>
+      <description>
+      The coefficient, :math:`a_1`, appearing in the second-order heating term, :math:`f_2 = a_0 + a_1 \mathrm{d}\log \rho/\mathrm{d} \log r + a_2 (\mathrm{d}\log \rho/\mathrm{d} \log r)^2`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>coefficientSecondOrder2</name>
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
-      <description>The coefficient, $a_2$, appearing in the second-order heating term, $f_2 = a_0 + a_1 \mathrm{d}\log \rho/\mathrm{d} \log r + a_2 (\mathrm{d}\log \rho/\mathrm{d} \log r)^2$.</description>
+      <description>
+      The coefficient, :math:`a_2`, appearing in the second-order heating term, :math:`f_2 = a_0 + a_1 \mathrm{d}\log \rho/\mathrm{d} \log r + a_2 (\mathrm{d}\log \rho/\mathrm{d} \log r)^2`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>correlationVelocityRadius</name>
       <defaultValue>-1.0d0</defaultValue>
       <source>parameters</source>
-      <description>The velocity-position correlation function, $\chi_\mathrm{r,v}$, as defined by \cite[][eqn.~B1]{gnedin_self-consistent_1999} which controls the strength of the second order heating term.</description>
+      <description>
+      The velocity-position correlation function, :math:`\chi_\mathrm{r,v}`, as defined by :cite:t:`gnedin_self-consistent_1999` which controls the strength of the second order heating term.
+      </description>
     </inputParameter>
     !!]
     self=darkMatterProfileHeatingTidal(coefficientSecondOrder0,coefficientSecondOrder1,coefficientSecondOrder2,correlationVelocityRadius)
@@ -102,8 +109,8 @@ contains
   end function tidalConstructorParameters
 
   function tidalConstructorInternal(coefficientSecondOrder0,coefficientSecondOrder1,coefficientSecondOrder2,correlationVelocityRadius) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileHeatingTidal} dark matter profile heating class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterProfileHeatingTidal` dark matter profile heating class.
     !!}
     implicit none
     type            (darkMatterProfileHeatingTidal)                :: self
@@ -117,8 +124,8 @@ contains
   end function tidalConstructorInternal
 
   subroutine tidalDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileHeatingTidal} dark matter profile heating class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileHeatingTidal` dark matter profile heating class.
     !!}
     implicit none
     type(darkMatterProfileHeatingTidal), intent(inout) :: self
@@ -130,8 +137,8 @@ contains
   end subroutine tidalDestructor
 
   function tidalGet(self,node) result(massDistributionHeating_)
-    !!{
-    Return the dark matter mass distribution heating for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution heating for the given ``node``.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentSatellite
     use :: Mass_Distributions, only : massDistributionHeatingTidal

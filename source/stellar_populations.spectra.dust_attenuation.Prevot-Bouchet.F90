@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements calculations of attenuation of stellar spectra using the model of \cite{prevot_typical_1984} and \cite{bouchet_visible_1985}.
+  !!{RST
+  Implements calculations of attenuation of stellar spectra using the model of :cite:t:`prevot_typical_1984` and :cite:t:`bouchet_visible_1985`.
   !!}
 
   !![
-  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationPrevotBouchet">
-   <description>Returns the dust attenuation of stellar spectra according to the model of \cite{prevot_typical_1984} and \cite{bouchet_visible_1985}.</description>
+  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationPrevotBouchet" docformat="rst">
+   <description>
+   Returns the dust attenuation of stellar spectra according to the model of :cite:t:`prevot_typical_1984` and :cite:t:`bouchet_visible_1985`.
+   </description>
   </stellarSpectraDustAttenuation>
   !!]
   type, extends(stellarSpectraDustAttenuationTabulated) :: stellarSpectraDustAttenuationPrevotBouchet
-     !!{
-     A class implementing calculations of attenuation of stellar spectra using the model of \cite{prevot_typical_1984} and \cite{bouchet_visible_1985}.
+     !!{RST
+     A class implementing calculations of attenuation of stellar spectra using the model of :cite:t:`prevot_typical_1984` and :cite:t:`bouchet_visible_1985`.
      !!}
      private
      double precision :: Rv
@@ -36,8 +38,8 @@
   end type stellarSpectraDustAttenuationPrevotBouchet
 
   interface stellarSpectraDustAttenuationPrevotBouchet
-     !!{
-     Constructors for the \refClass{stellarSpectraDustAttenuationPrevotBouchet} stellar spectra dust attenuation class.
+     !!{RST
+     Constructors for the :galacticus-class:`stellarSpectraDustAttenuationPrevotBouchet` stellar spectra dust attenuation class.
      !!}
      module procedure prevotBouchetConstructorParameters
      module procedure prevotBouchetConstructorInternal
@@ -46,8 +48,8 @@
 contains
 
   function prevotBouchetConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarSpectraDustAttenuationPrevotBouchet} stellar spectra dust attenuation class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`stellarSpectraDustAttenuationPrevotBouchet` stellar spectra dust attenuation class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -57,10 +59,12 @@ contains
     double precision                                                            :: Rv
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>Rv</name>
       <defaultValue>2.7d0</defaultValue>
-      <description>The ratio of total to selective extinction $R_\mathrm{V} = A_\mathrm{V}/E(B-V)$ in the \cite{prevot_typical_1984}/\cite{bouchet_visible_1985} SMC-like dust attenuation law; the default value of 2.7 is typical for the Small Magellanic Cloud, which lacks the 2175\,\AA\ bump seen in Milky Way dust.</description>
+      <description>
+      The ratio of total to selective extinction :math:`R_\mathrm{V} = A_\mathrm{V}/E(B-V)` in the :cite:t:`prevot_typical_1984`/:cite:t:`bouchet_visible_1985` SMC-like dust attenuation law; the default value of 2.7 is typical for the Small Magellanic Cloud, which lacks the 2175 \AA\ bump seen in Milky Way dust.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -72,8 +76,8 @@ contains
   end function prevotBouchetConstructorParameters
 
   function prevotBouchetConstructorInternal(Rv) result(self)
-    !!{
-    Constructor for the \refClass{stellarSpectraDustAttenuationPrevotBouchet} stellar spectra dust attenuation class. Data read directly from Table~3 of \cite{bouchet_visible_1985}.
+    !!{RST
+    Constructor for the :galacticus-class:`stellarSpectraDustAttenuationPrevotBouchet` stellar spectra dust attenuation class. Data read directly from Table 3 of :cite:t:`bouchet_visible_1985`.
     !!}
     use :: Error       , only : Error_Report
     use :: Table_Labels, only : extrapolationTypeExtrapolate

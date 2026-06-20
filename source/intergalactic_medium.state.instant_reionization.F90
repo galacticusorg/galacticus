@@ -17,19 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of the \gls{igm} state class for a simplistic model of instantaneous and full reionization with some other class providing the pre-reionization state.
+  !!{RST
+  An implementation of the :term:`IGM` state class for a simplistic model of instantaneous and full reionization with some other class providing the pre-reionization state.
   !!}
 
   !![
-  <intergalacticMediumState name="intergalacticMediumStateInstantReionization">
-   <description>The intergalactic medium is assumed to be instantaneously and fully reionized at a fixed redshift, and heated to a fixed temperature. Prior to that, the reionization state is provided by some other class.</description>
+  <intergalacticMediumState name="intergalacticMediumStateInstantReionization" docformat="rst">
+   <description>
+   The intergalactic medium is assumed to be instantaneously and fully reionized at a fixed redshift, and heated to a fixed temperature. Prior to that, the reionization state is provided by some other class.
+   </description>
   </intergalacticMediumState>
   !!]
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateInstantReionization
-     !!{
-     An \gls{igm} state class for a model in which the \gls{igm} is assumed to be instantaneously and fully reionized at a
-     fixed redshift, and heated to a fixed temperature. Prior to that, the reionization state is provided by some other class.
+     !!{RST
+     An :term:`IGM` state class for a model in which the :term:`IGM` is assumed to be instantaneously and fully reionized at a fixed redshift, and heated to a fixed temperature. Prior to that, the reionization state is provided by some other class.
      !!}
      private
      class           (intergalacticMediumStateClass), pointer :: preReionizationState  => null()
@@ -46,8 +47,8 @@
   end type intergalacticMediumStateInstantReionization
 
   interface intergalacticMediumStateInstantReionization
-     !!{
-     Constructors for the instantReionization \gls{igm} state class.
+     !!{RST
+     Constructors for the instantReionization :term:`IGM` state class.
      !!}
      module procedure instantReionizationIGMConstructorParameters
      module procedure instantReionizationIGMConstructorInternal
@@ -56,8 +57,8 @@
 contains
 
   function instantReionizationIGMConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the instantReionization \gls{igm} state class which takes a parameter set as input.
+    !!{RST
+    Constructor for the instantReionization :term:`IGM` state class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -77,40 +78,50 @@ contains
     if (haveReionizationRedshift.and.haveElectronScatteringOpticalDepth) call Error_Report('only one of [reionizationRedshift] or [electronScatteringOpticalDepth] can be provided'//{introspection:location})
     if (haveElectronScatteringOpticalDepth) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>electronScatteringOpticalDepth</name>
          <source>parameters</source>
          <variable>electronScatteringOpticalDepth</variable>
-         <description>The optical depth to reionization in the instantReionization \gls{igm} state model.</description>
+         <description>
+         The optical depth to reionization in the instantReionization :term:`IGM` state model.
+         </description>
        </inputParameter>
        !!]
      else
        haveReionizationRedshift=.true.
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>reionizationRedshift</name>
          <source>parameters</source>
          <variable>reionizationRedshift</variable>
          <defaultValue>9.97d0</defaultValue>
-         <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
-         <description>The redshift of reionization in the instantReionization \gls{igm} state model.</description>
+         <defaultSource>
+         (:cite:author:`hinshaw_nine-year_2012` :cite:year:`hinshaw_nine-year_2012`; CMB\ :math:`+H_0+`\ BAO)
+         </defaultSource>
+         <description>
+         The redshift of reionization in the instantReionization :term:`IGM` state model.
+         </description>
        </inputParameter>
        !!]
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>reionizationTemperature</name>
       <source>parameters</source>
       <variable>reionizationTemperature</variable>
       <defaultValue>1.0d4</defaultValue>
-      <description>The post-reionization temperature (in units of Kelvin) in the instantReionization \gls{igm} state model.</description>
+      <description>
+      The post-reionization temperature (in units of Kelvin) in the instantReionization :term:`IGM` state model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presentDayTemperature</name>
       <source>parameters</source>
       <variable>presentDayTemperature</variable>
       <defaultValue>1.0d3</defaultValue>
-      <description>The present day temperature (in units of Kelvin) in the instantReionization \gls{igm} state model.</description>
+      <description>
+      The present day temperature (in units of Kelvin) in the instantReionization :term:`IGM` state model.
+      </description>
     </inputParameter>
     <objectBuilder class="intergalacticMediumState" name="preReionizationState" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"  source="parameters"/>
@@ -132,8 +143,8 @@ contains
   end function instantReionizationIGMConstructorParameters
 
   function instantReionizationIGMConstructorInternal(cosmologyFunctions_,cosmologyParameters_,preReionizationState,reionizationTemperature,presentDayTemperature,reionizationRedshift,electronScatteringOpticalDepth) result(self)
-    !!{
-    Constructor for the instantReionization \gls{igm} state class.
+    !!{RST
+    Constructor for the instantReionization :term:`IGM` state class.
     !!}
     use :: Error      , only : Error_Report
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
@@ -207,9 +218,8 @@ contains
   contains
 
     double precision function opticalDepth(time)
-      !!{
-      Compute the optical depth to electron scattering assuming instant reionization at the given time. Subtract from this the
-      target optical depth so that we have a function whose root gives the epoch of instantaneous reionization.
+      !!{RST
+      Compute the optical depth to electron scattering assuming instant reionization at the given time. Subtract from this the target optical depth so that we have a function whose root gives the epoch of instantaneous reionization.
       !!}
       implicit none
       double precision, intent(in   ) :: time
@@ -227,8 +237,8 @@ contains
   end function instantReionizationIGMConstructorInternal
 
   subroutine instantReionizationDestructor(self)
-    !!{
-    Destructor for the instant reionization \gls{igm} state class.
+    !!{RST
+    Destructor for the instant reionization :term:`IGM` state class.
     !!}
     implicit none
     type(intergalacticMediumStateInstantReionization), intent(inout) :: self
@@ -242,8 +252,8 @@ contains
   end subroutine instantReionizationDestructor
 
   double precision function instantReionizationElectronFraction(self,time)
-    !!{
-    Return the electron fraction of the \gls{igm} in the instantReionization model.
+    !!{RST
+    Return the electron fraction of the :term:`IGM` in the instantReionization model.
     !!}
     use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, hydrogenByMassPrimordial
     use :: Numerical_Constants_Atomic      , only : atomicMassHelium      , atomicMassHydrogen
@@ -264,8 +274,8 @@ contains
   end function instantReionizationElectronFraction
 
   double precision function instantReionizationNeutralHydrogenFraction(self,time)
-    !!{
-    Return the neutral hydrogen fraction of the \gls{igm} in the instantReionization model.
+    !!{RST
+    Return the neutral hydrogen fraction of the :term:`IGM` in the instantReionization model.
     !!}
     implicit none
     class           (intergalacticMediumStateInstantReionization), intent(inout) :: self
@@ -280,8 +290,8 @@ contains
   end function instantReionizationNeutralHydrogenFraction
 
   double precision function instantReionizationNeutralHeliumFraction(self,time)
-    !!{
-    Return the neutral helium fraction of the \gls{igm} in the instantReionization model.
+    !!{RST
+    Return the neutral helium fraction of the :term:`IGM` in the instantReionization model.
     !!}
     implicit none
     class           (intergalacticMediumStateInstantReionization), intent(inout) :: self
@@ -296,8 +306,8 @@ contains
   end function instantReionizationNeutralHeliumFraction
 
   double precision function instantReionizationSinglyIonizedHeliumFraction(self,time)
-    !!{
-    Return the singly-ionized helium fraction of the \gls{igm} in the instantReionization model.
+    !!{RST
+    Return the singly-ionized helium fraction of the :term:`IGM` in the instantReionization model.
     !!}
     implicit none
     class           (intergalacticMediumStateInstantReionization), intent(inout) :: self
@@ -312,8 +322,8 @@ contains
   end function instantReionizationSinglyIonizedHeliumFraction
 
   double precision function instantReionizationTemperature(self,time)
-    !!{
-    Return the temperature of the \gls{igm} in the instantReionization model.
+    !!{RST
+    Return the temperature of the :term:`IGM` in the instantReionization model.
     !!}
     implicit none
     class           (intergalacticMediumStateInstantReionization), intent(inout) :: self
@@ -336,7 +346,7 @@ contains
   end function instantReionizationTemperature
 
   subroutine instantReionizationDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
-    !!{
+    !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
     use :: Input_Parameters, only : inputParameters

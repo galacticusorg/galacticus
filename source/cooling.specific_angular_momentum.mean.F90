@@ -17,24 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a specific angular momentum of cooling gas class in which all gas has the mean specific angular momentum of
-  the hot gas halo.
+  !!{RST
+  Implementation of a specific angular momentum of cooling gas class in which all gas has the mean specific angular momentum of the hot gas halo.
   !!}
 
   !![
-  <coolingSpecificAngularMomentum name="coolingSpecificAngularMomentumMean">
+  <coolingSpecificAngularMomentum name="coolingSpecificAngularMomentumMean" docformat="rst">
    <description>
-    A cooling specific angular momentum class in which the specific angular momentum of cooling gas is given by
-  \begin{equation}
-     j_\mathrm{cool} = J_\mathrm{hot}/M_\mathrm{hot},
-    \end{equation}
-    where $J_\mathrm{hot}$ and $M_\mathrm{hot}$ are the total angular momentum and mass of the hot halo respectively.
+   A cooling specific angular momentum class in which the specific angular momentum of cooling gas is given by
+
+   .. math::
+
+      j_\mathrm{cool} = J_\mathrm{hot}/M_\mathrm{hot},
+
+   where :math:`J_\mathrm{hot}` and :math:`M_\mathrm{hot}` are the total angular momentum and mass of the hot halo respectively.
    </description>
   </coolingSpecificAngularMomentum>
   !!]
   type, extends(coolingSpecificAngularMomentumClass) :: coolingSpecificAngularMomentumMean
-     !!{
+     !!{RST
      Implementation of the specific angular momentum of cooling gas class in which all gas has the mean specific angular momentum of the hot gas halo.
      !!}
      private
@@ -43,7 +44,7 @@
   end type coolingSpecificAngularMomentumMean
 
   interface coolingSpecificAngularMomentumMean
-     !!{
+     !!{RST
      Constructors for the mean specific angular momentum of cooling gas class.
      !!}
      module procedure meanConstructorParameters
@@ -52,7 +53,7 @@
 contains
 
   function meanConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the mean freefall radius class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -68,7 +69,7 @@ contains
   end function meanConstructorParameters
 
   double precision function meanAngularMomentumSpecific(self,node,radius)
-    !!{
+    !!{RST
     Return the specific angular momentum of cooling gas in the mean model.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode

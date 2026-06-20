@@ -17,6 +17,8 @@
       <xs:attribute name="copy"                        />
       <xs:attribute name="parameterName"               />
       <xs:attribute name="threadPrivate"               />
+      <!-- docformat="rst" marks the description as reStructuredText. -->
+      <xs:attribute name="docformat"                   />
     </xs:complexType>
   </xs:element>
   

@@ -37,12 +37,14 @@
   use            :: Universe_Operators             , only : universeOperator           , universeOperatorClass
 
   !![
-  <task name="taskEvolveForests">
-   <description>A task which evolves galaxies within a set of merger tree forests.</description>
+  <task name="taskEvolveForests" docformat="rst">
+   <description>
+   A task which evolves galaxies within a set of merger tree forests.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskEvolveForests
-     !!{
+     !!{RST
      Implementation of a task which evolves galaxies within a set of merger tree forests.
      !!}
      private
@@ -87,7 +89,7 @@
      type            (resourceManager            )          :: nodeComponentsManager                   , nodeHierarchyManager
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Suspend a tree (to memory or to file)." method="suspendTree"/>
        <method description="Restore a suspended tree."              method="resumeTree" />
      </methods>
@@ -100,8 +102,8 @@
   end type taskEvolveForests
 
   interface taskEvolveForests
-     !!{
-     Constructors for the \refClass{taskEvolveForests} task.
+     !!{RST
+     Constructors for the :galacticus-class:`taskEvolveForests` task.
      !!}
      module procedure evolveForestsConstructorParameters
      module procedure evolveForestsConstructorInternal
@@ -119,8 +121,8 @@
 contains
 
   function evolveForestsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskEvolveForests} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskEvolveForests` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Node_Components , only : Node_Components_Initialize
@@ -160,59 +162,75 @@ contains
        call Node_Components_Initialize  (parameters    )
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countForestsMaximum</name>
       <defaultValue>-1_c_size_t</defaultValue>
-      <description>If set to a positive number, this is the maximum number of forests that will be evolved.</description>
+      <description>
+      If set to a positive number, this is the maximum number of forests that will be evolved.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>walltimeMaximum</name>
       <defaultValue>-1_kind_int8</defaultValue>
-      <description>If set to a positive number, this is the maximum wall time for which forest evolution is allowed to proceed before the task gives up.</description>
+      <description>
+      If set to a positive number, this is the maximum wall time for which forest evolution is allowed to proceed before the task gives up.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerateFailures</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true then failures to evolve a forest are tolerated. The forest is evolved no further, but evolution of other forests continues.</description>
+      <description>
+      If true then failures to evolve a forest are tolerated. The forest is evolved no further, but evolution of other forests continues.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>evolveForestsInParallel</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true then each forest is evolved by a separate OpenMP thread. Otherwise, a single thread evolves all forests.</description>
+      <description>
+      If true then each forest is evolved by a separate OpenMP thread. Otherwise, a single thread evolves all forests.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>suspendToRAM</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether trees should be suspended to RAM (otherwise they are suspend to file).</description>
+      <description>
+      Specifies whether trees should be suspended to RAM (otherwise they are suspend to file).
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
     if (.not.suspendToRAM) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>suspendPath</name>
-         <description>The path to which tree suspension files will be stored.</description>
+         <description>
+         The path to which tree suspension files will be stored.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeIntervalCheckpoint</name>
       <defaultValue>-1_kind_int8</defaultValue>
-      <description>If positive, gives the time in seconds between storing of checkpoint files. If zero or negative, no checkpointing is performed..</description>
+      <description>
+      If positive, gives the time in seconds between storing of checkpoint files. If zero or negative, no checkpointing is performed..
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
     if (timeIntervalCheckpoint> 0_kind_int8) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>fileNameCheckpoint</name>
-         <description>The path to which checkpoint data will be stored.</description>
+         <description>
+         The path to which checkpoint data will be stored.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -241,8 +259,10 @@ contains
     allocate(self%nodeComponents_)
     allocate(self%nodeHierarchy_ )
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_              => self%nodeComponents_
     self%nodeComponentsManager =  resourceManager(dummyPointer_)
@@ -268,8 +288,8 @@ contains
   end function evolveForestsConstructorParameters
 
   function evolveForestsConstructorInternal(tolerateFailures,evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters) result(self)
-    !!{
-    Internal constructor for the \refClass{taskEvolveForests} task class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`taskEvolveForests` task class.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: Error        , only : Error_Report
@@ -320,7 +340,7 @@ contains
   end function evolveForestsConstructorInternal
 
   subroutine evolveForestsAutoHook(self)
-    !!{
+    !!{RST
     Attach to state store/restore event hooks.
     !!}
     use :: Events_Hooks, only : openMPThreadBindingNone, stateRestoreEventGlobal, stateStoreEventGlobal
@@ -333,7 +353,7 @@ contains
   end subroutine evolveForestsAutoHook
 
   subroutine evolveForestsStateStore(self,stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Store the internal state of this object.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_ptr, c_size_t
@@ -354,7 +374,7 @@ contains
   end subroutine evolveForestsStateStore
 
   subroutine evolveForestsStateRestore(self,stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Store the internal state of this object.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_ptr, c_size_t
@@ -375,7 +395,7 @@ contains
   end subroutine evolveForestsStateRestore
 
   subroutine evolveForestsCheckpoint(self,node)
-    !!{
+    !!{RST
     Checkpoint the current tree.
     !!}
     use :: File_Utilities          , only : File_Rename
@@ -405,8 +425,8 @@ contains
   end subroutine evolveForestsCheckpoint
 
   subroutine evolveForestsDestructor(self)
-    !!{
-    Destructor for the \refClass{taskEvolveForests} task class.
+    !!{RST
+    Destructor for the :galacticus-class:`taskEvolveForests` task class.
     !!}
     use :: Events_Hooks, only : stateRestoreEventGlobal, stateStoreEventGlobal
     implicit none
@@ -432,7 +452,7 @@ contains
   end subroutine evolveForestsDestructor
 
   subroutine evolveForestsPerform(self,status)
-    !!{
+    !!{RST
     Evolves the complete set of merger trees as specified.
     !!}
     use               :: Display                 , only : displayIndent                    , displayMessage                     , displayUnindent, verbosityLevelInfo
@@ -953,7 +973,7 @@ contains
   end subroutine evolveForestsPerform
 
   subroutine evolveForestsSuspendTree(self,tree)
-    !!{
+    !!{RST
     Suspend processing of a tree.
     !!}
 #ifdef USEMPI
@@ -999,7 +1019,7 @@ contains
   end subroutine evolveForestsSuspendTree
 
   subroutine evolveForestsResumeTree(self,tree)
-    !!{
+    !!{RST
     Resume processing of a tree.
     !!}
     use :: ISO_Varying_String      , only : operator(//)           , varying_string

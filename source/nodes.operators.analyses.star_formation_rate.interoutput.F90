@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that tracks the mean star formation rate between successive outputs.
   !!}
 
@@ -28,15 +28,14 @@
   use :: Star_Formation_Rates_Nuclear_Star_Clusters, only : starFormationRateNuclearStarClustersClass
 
   !![
-  <nodeOperator name="nodeOperatorStarFormationRateInterOutput">
+  <nodeOperator name="nodeOperatorStarFormationRateInterOutput" docformat="rst">
     <description>
-      A node operator class that tracks the mean star formation rate between successive outputs. Intended to be paired with the
-      \refClass{nodePropertyExtractorStarFormationRateInterOutput} property extractor class to extract those rates for output.
+    A node operator class that tracks the mean star formation rate between successive outputs. Intended to be paired with the :galacticus-class:`nodePropertyExtractorStarFormationRateInterOutput` property extractor class to extract those rates for output.
     </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorStarFormationRateInterOutput
-     !!{
+     !!{RST
      A node operator class that tracks the mean star formation rate between successive outputs.
      !!}
      private
@@ -56,8 +55,8 @@
   end type nodeOperatorStarFormationRateInterOutput
   
   interface nodeOperatorStarFormationRateInterOutput
-     !!{
-     Constructors for the \refClass{nodeOperatorStarFormationRateInterOutput} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorStarFormationRateInterOutput` node operator class.
      !!}
      module procedure starFormationRateInterOutputConstructorParameters
      module procedure starFormationRateInterOutputConstructorInternal
@@ -66,8 +65,8 @@
 contains
 
   function starFormationRateInterOutputConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorStarFormationRateInterOutput} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorStarFormationRateInterOutput` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -99,8 +98,8 @@ contains
   end function starFormationRateInterOutputConstructorParameters
 
   function starFormationRateInterOutputConstructorInternal(outputTimes_,mergerMassMovements_,starFormationRateDisks_,starFormationRateSpheroids_,starFormationRateNuclearStarClusters_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorStarFormationRateInterOutput} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorStarFormationRateInterOutput` node operator class.
     !!}
     implicit none
     type (nodeOperatorStarFormationRateInterOutput )                        :: self
@@ -124,8 +123,8 @@ contains
   end function starFormationRateInterOutputConstructorInternal
 
   subroutine starFormationRateInterOutputDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorStarFormationRateInterOutput} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorStarFormationRateInterOutput` node operator class.
     !!}
     implicit none
     type(nodeOperatorStarFormationRateInterOutput), intent(inout) :: self
@@ -141,7 +140,7 @@ contains
   end subroutine starFormationRateInterOutputDestructor
 
   subroutine starFormationRateInterOutputDifferentialEvolutionPre(self,node)
-    !!{
+    !!{RST
     Reset the inter-output mean star formation rate to zero when starting a new output interval.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
@@ -183,8 +182,8 @@ contains
   end subroutine starFormationRateInterOutputDifferentialEvolutionPre
 
   subroutine starFormationRateInterOutputDifferentialEvolutionScales(self,node)
-    !!{
-    Set absolute ODE solver scale for the mass cooled out of the \gls{cgm}.    
+    !!{RST
+    Set absolute ODE solver scale for the mass cooled out of the :term:`CGM`.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
     implicit none
@@ -225,7 +224,7 @@ contains
   end subroutine starFormationRateInterOutputDifferentialEvolutionScales
   
   subroutine starFormationRateInterOutputDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Accumulate the mean rate of star formation between outputs.
     !!}
     use :: Galacticus_Nodes, only : propertyInactive, nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid, &
@@ -276,7 +275,7 @@ contains
   end subroutine starFormationRateInterOutputDifferentialEvolution
 
   subroutine starFormationRateInterOutputGalaxiesMerge(self,node)
-    !!{
+    !!{RST
     Combine integrals of star formation rate when galaxies merge.
     !!}
     use :: Error                           , only : Error_Report

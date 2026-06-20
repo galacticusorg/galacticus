@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a dark matter profile SIDM interaction radius property extractor class.
 !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM">
-   <description>Extracts the self-interaction radius $r_1$ from the dark matter halo density profile under self-interacting dark matter (SIDM) models. This scale marks the boundary within which dark matter particles experience significant scattering, driving core formation and suppressing central density cusps.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM" docformat="rst">
+   <description>
+   Extracts the self-interaction radius :math:`r_1` from the dark matter halo density profile under self-interacting dark matter (SIDM) models. This scale marks the boundary within which dark matter particles experience significant scattering, driving core formation and suppressing central density cusps.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM
-     !!{
+     !!{RST
      A dark matter profile SIDM interaction radius property extractor class.
      !!}
      private
@@ -44,8 +46,8 @@ Implements a dark matter profile SIDM interaction radius property extractor clas
   end type nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM
 
   interface nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM` property extractor class.
      !!}
      module procedure darkMatterProfileRadiusInteractionSIDMConstructorParameters
      module procedure darkMatterProfileRadiusInteractionSIDMConstructorInternal
@@ -54,8 +56,8 @@ Implements a dark matter profile SIDM interaction radius property extractor clas
 contains
 
   function darkMatterProfileRadiusInteractionSIDMConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,8 +76,8 @@ contains
   end function darkMatterProfileRadiusInteractionSIDMConstructorParameters
 
   function darkMatterProfileRadiusInteractionSIDMConstructorInternal(darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM)                        :: self
@@ -88,8 +90,8 @@ contains
   end function darkMatterProfileRadiusInteractionSIDMConstructorInternal
 
   subroutine darkMatterProfileRadiusInteractionSIDMDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDarkMatterProfileRadiusInteractionSIDM), intent(inout) :: self
@@ -101,8 +103,8 @@ contains
   end subroutine darkMatterProfileRadiusInteractionSIDMDestructor
 
   double precision function darkMatterProfileRadiusInteractionSIDMExtract(self,node,instance)
-    !!{
-    Implement a \mono{darkMatterProfileRadiusInteractionSIDM} output analysis.
+    !!{RST
+    Implement a ``darkMatterProfileRadiusInteractionSIDM`` output analysis.
     !!}
     use :: Mass_Distributions, only : massDistributionSphericalSIDM, massDistributionClass
     implicit none
@@ -126,8 +128,8 @@ contains
   end function darkMatterProfileRadiusInteractionSIDMExtract
 
   function darkMatterProfileRadiusInteractionSIDMName(self)
-    !!{
-    Return the name of the \mono{darkMatterProfileRadiusInteractionSIDM} property.
+    !!{RST
+    Return the name of the ``darkMatterProfileRadiusInteractionSIDM`` property.
     !!}
     implicit none
     type (varying_string                                             )                :: darkMatterProfileRadiusInteractionSIDMName
@@ -139,8 +141,8 @@ contains
   end function darkMatterProfileRadiusInteractionSIDMName
 
   function darkMatterProfileRadiusInteractionSIDMDescription(self)
-    !!{
-    Return a description of the \mono{darkMatterProfileRadiusInteractionSIDM} property.
+    !!{RST
+    Return a description of the ``darkMatterProfileRadiusInteractionSIDM`` property.
     !!}
     implicit none
     type (varying_string                                             )                :: darkMatterProfileRadiusInteractionSIDMDescription
@@ -152,8 +154,8 @@ contains
   end function darkMatterProfileRadiusInteractionSIDMDescription
 
   double precision function darkMatterProfileRadiusInteractionSIDMUnitsInSI(self)
-    !!{
-    Return the units of the \mono{darkMatterProfileRadiusInteractionSIDM} property in the SI system.
+    !!{RST
+    Return the units of the ``darkMatterProfileRadiusInteractionSIDM`` property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
@@ -165,7 +167,7 @@ contains
   end function darkMatterProfileRadiusInteractionSIDMUnitsInSI
 
   function darkMatterProfileRadiusInteractionSIDMUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the darkMatterProfileRadiusInteractionSIDM property.
     !!}
     use :: Units_MetaData, only : unitType

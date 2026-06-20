@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which determines the subset of particles that are self-bound.
 !!}
 
@@ -25,12 +25,14 @@ Implements an N-body data operator which determines the subset of particles that
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
-  <nbodyOperator name="nbodyOperatorSelfBound">
-   <description>An N-body data operator which iteratively determines the gravitationally self-bound subset of particles within an N-body halo. Parameters control convergence tolerance, the minimum number of representative particles, the sampling rate, the bound fraction used to compute the halo center, and how prior-snapshot binding information is used.</description>
+  <nbodyOperator name="nbodyOperatorSelfBound" docformat="rst">
+   <description>
+   An N-body data operator which iteratively determines the gravitationally self-bound subset of particles within an N-body halo. Parameters control convergence tolerance, the minimum number of representative particles, the sampling rate, the bound fraction used to compute the halo center, and how prior-snapshot binding information is used.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSelfBound
-     !!{
+     !!{RST
      An N-body data operator which determines the subset of particles that are self-bound.
      !!}
      private
@@ -45,8 +47,8 @@ Implements an N-body data operator which determines the subset of particles that
   end type nbodyOperatorSelfBound
 
   interface nbodyOperatorSelfBound
-     !!{
-     Constructors for the \refClass{nbodyOperatorSelfBound} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorSelfBound` N-body operator class.
      !!}
      module procedure selfBoundConstructorParameters
      module procedure selfBoundConstructorInternal
@@ -55,8 +57,8 @@ Implements an N-body data operator which determines the subset of particles that
 contains
 
   function selfBoundConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorSelfBound} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorSelfBound` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,47 +71,61 @@ contains
     logical                                                     :: analyzeAllParticles   , useVelocityMostBound
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bootstrapSampleCount</name>
       <source>parameters</source>
       <defaultValue>30_c_size_t</defaultValue>
-      <description>The number of bootstrap resamples of the particles that should be used.</description>
+      <description>
+      The number of bootstrap resamples of the particles that should be used.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>representativeMinimumCount</name>
       <source>parameters</source>
       <defaultValue>10_c_size_t</defaultValue>
-      <description>Minimum number of representative particles used to compute the center of a halo.</description>
+      <description>
+      Minimum number of representative particles used to compute the center of a halo.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerance</name>
       <source>parameters</source>
       <defaultValue>1.0d-2</defaultValue>
-      <description>The tolerance in the summed weight of bound particles which must be attained to declare convergence.</description>
+      <description>
+      The tolerance in the summed weight of bound particles which must be attained to declare convergence.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bootstrapSampleRate</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The sampling rate for particles.</description>
+      <description>
+      The sampling rate for particles.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>representativeFraction</name>
       <source>parameters</source>
       <defaultValue>0.05d0</defaultValue>
-      <description>Fraction of bound particles used to compute the center of a halo.</description>
+      <description>
+      Fraction of bound particles used to compute the center of a halo.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>analyzeAllParticles</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, all particles are assumed to be self-bound at the beginning of the analysis. Unbound particles at previous times are allowed to become bound in the current snapshot. If false and the self-bound information from the previous snapshot is available, only the particles that are self-bound at the previous snapshot are assumed to be bound at the beginning of the analysis.</description>
+      <description>
+      If true, all particles are assumed to be self-bound at the beginning of the analysis. Unbound particles at previous times are allowed to become bound in the current snapshot. If false and the self-bound information from the previous snapshot is available, only the particles that are self-bound at the previous snapshot are assumed to be bound at the beginning of the analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>useVelocityMostBound</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, the velocity of the most bound particle in velocity space is used as the representative velocity of the satellite. If false, use the mass weighted mean velocity (center-of-mass velocity) of self-bound particles instead.</description>
+      <description>
+      If true, the velocity of the most bound particle in velocity space is used as the representative velocity of the satellite. If false, use the mass weighted mean velocity (center-of-mass velocity) of self-bound particles instead.
+      </description>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
@@ -122,8 +138,8 @@ contains
   end function selfBoundConstructorParameters
 
   function selfBoundConstructorInternal(tolerance,bootstrapSampleCount,bootstrapSampleRate,representativeMinimumCount,representativeFraction,analyzeAllParticles,useVelocityMostBound,randomNumberGenerator_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorSelfBound} N-body operator class
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyOperatorSelfBound` N-body operator class
     !!}
     implicit none
     type            (nbodyOperatorSelfBound    )                        :: self
@@ -143,8 +159,8 @@ contains
   end function selfBoundConstructorInternal
 
   subroutine selfBoundDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorSelfBound} N-body operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nbodyOperatorSelfBound` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorSelfBound), intent(inout) :: self
@@ -156,7 +172,7 @@ contains
   end subroutine selfBoundDestructor
   
   subroutine selfBoundOperate(self,simulations)
-    !!{
+    !!{RST
     Determine the subset of N-body particles which are self-bound.
     !!}
     use :: Display                         , only : displayIndent                 , displayUnindent  , displayMessage
@@ -633,9 +649,8 @@ contains
   end subroutine selfBoundOperate
 
   pure function selfBoundPotential(separation,separationSquared)
-    !!{
-    Compute the potential for an array of particle separations. Currently assumes the functional form of the softening used by
-    Gadget.
+    !!{RST
+    Compute the potential for an array of particle separations. Currently assumes the functional form of the softening used by Gadget.
     !!}
     implicit none
     double precision, intent(in   ), dimension(:               ) :: separation        , separationSquared

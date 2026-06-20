@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a bin width output analysis distribution normalizer class.
   !!}
 
   !![
-  <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerBinWidth">
-   <description>An output analysis distribution normalizer class that divides each bin's count by the width of that bin, converting raw counts into a number density per unit property interval (e.g.\ $\mathrm{d}N/\mathrm{d}\log_{10}M$).</description>
+  <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerBinWidth" docformat="rst">
+   <description>
+   An output analysis distribution normalizer class that divides each bin's count by the width of that bin, converting raw counts into a number density per unit property interval (e.g.\ :math:`\mathrm{d}N/\mathrm{d}\log_{10}M`).
+   </description>
   </outputAnalysisDistributionNormalizer>
   !!]
   type, extends(outputAnalysisDistributionNormalizerClass) :: outputAnalysisDistributionNormalizerBinWidth
-     !!{
+     !!{RST
      A bin width output distribution normalizer class.
      !!}
      private
@@ -36,8 +38,8 @@
   end type outputAnalysisDistributionNormalizerBinWidth
 
   interface outputAnalysisDistributionNormalizerBinWidth
-     !!{
-     Constructors for the \refClass{outputAnalysisDistributionNormalizerBinWidth} output analysis distribution normalizer class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisDistributionNormalizerBinWidth` output analysis distribution normalizer class.
      !!}
      module procedure binWidthConstructorParameters
   end interface outputAnalysisDistributionNormalizerBinWidth
@@ -45,8 +47,8 @@
 contains
 
   function binWidthConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisDistributionNormalizerBinWidth} output analysis distribution normalizer class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisDistributionNormalizerBinWidth` output analysis distribution normalizer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function binWidthConstructorParameters
 
   subroutine binWidthNormalize(self,distribution,covariance,propertyValueMinimum,propertyValueMaximum)
-    !!{
+    !!{RST
     Implement a bin width output analysis distribution normalizer.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

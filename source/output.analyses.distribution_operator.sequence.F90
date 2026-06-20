@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a sequence output analysis distribution operator class.
 !!}
 
@@ -27,20 +27,22 @@ Implements a sequence output analysis distribution operator class.
   end type distributionOperatorList
 
   !![
-  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorSequence">
-   <description>An output analysis distribution operator class that applies a linked list of child \refClass{outputAnalysisDistributionOperatorClass} objects sequentially, enabling composite transformations such as convolution with a measurement error kernel followed by a survey selection function.</description>
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorSequence" docformat="rst">
+   <description>
+   An output analysis distribution operator class that applies a linked list of child :galacticus-class:`outputAnalysisDistributionOperatorClass` objects sequentially, enabling composite transformations such as convolution with a measurement error kernel followed by a survey selection function.
+   </description>
    <linkedList type="distributionOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisDistributionOperatorClass"/>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorSequence
-     !!{
+     !!{RST
      A sequence output distribution operator class.
      !!}
      private
      type(distributionOperatorList), pointer :: operators => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Prepend an operator to a sequence of distribution operators." method="prepend" />
      </methods>
      !!]
@@ -51,8 +53,8 @@ Implements a sequence output analysis distribution operator class.
   end type outputAnalysisDistributionOperatorSequence
 
   interface outputAnalysisDistributionOperatorSequence
-     !!{
-     Constructors for the \refClass{outputAnalysisDistributionOperatorSequence} output analysis distribution operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorSequence` output analysis distribution operator class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
@@ -61,8 +63,8 @@ Implements a sequence output analysis distribution operator class.
 contains
 
   function sequenceConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisDistributionOperatorSequence} output analysis distribution operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorSequence` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -92,7 +94,7 @@ contains
   end function sequenceConstructorParameters
 
   function sequenceConstructorInternal(operators) result (self)
-    !!{
+    !!{RST
     Internal constructor for the sequence merger tree normalizer class.
     !!}
     implicit none
@@ -112,7 +114,7 @@ contains
   end function sequenceConstructorInternal
 
   subroutine sequenceDestructor(self)
-    !!{
+    !!{RST
     Destructor for the sequence distribution operator class.
     !!}
     implicit none
@@ -134,7 +136,7 @@ contains
   end subroutine sequenceDestructor
 
   function sequenceOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !!{
+    !!{RST
     Implement an sequence output analysis distribution operator.
     !!}
     implicit none
@@ -161,7 +163,7 @@ contains
   end function sequenceOperateScalar
 
   function sequenceOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !!{
+    !!{RST
     Implement a random error output analysis distribution operator.
     !!}
     implicit none
@@ -184,7 +186,7 @@ contains
   end function sequenceOperateDistribution
 
   subroutine sequencePrepend(self,operator_)
-    !!{
+    !!{RST
     Prepend an operator to the sequence.
     !!}
     implicit none

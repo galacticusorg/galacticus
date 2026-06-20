@@ -17,16 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program which tests spherical collapse calculations for a dark energy Universe, specifically using a flat,
-$\omega=-0.6$ cosmology.
+!!{RST
+Contains a program which tests spherical collapse calculations for a dark energy Universe, specifically using a flat, :math:`\omega=-0.6` cosmology.
 !!}
 
 program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Six
-  !!{
-  Tests spherical collapse calculations for a dark energy Universe, specifically using a flat, $\omega=-0.6$
-  cosmology. Compares results to points read from Figure~6 of \cite{horellou_dark_2005} using
-  \href{http://datathief.org/}{\normalfont \scshape DataThief}.
+  !!{RST
+  Tests spherical collapse calculations for a dark energy Universe, specifically using a flat, :math:`\omega=-0.6` cosmology. Compares results to points read from Figure 6 of :cite:t:`horellou_dark_2005` using `DataThief <http://datathief.org/>`_.
   !!}
   use :: Cosmology_Functions       , only : cosmologyFunctionsMatterDarkEnergy
   use :: Cosmology_Parameters      , only : cosmologyParametersSimple

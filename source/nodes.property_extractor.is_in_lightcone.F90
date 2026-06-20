@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a property extractor for ``in lightcone'' status.
+!!{RST
+Implements a property extractor for "in lightcone" status.
 !!}
 
   use :: Geometry_Lightcones, only : geometryLightconeClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorIsInLightcone">
-   <description>Extracts a boolean flag (1 or 0) indicating whether a node falls within the observer's past lightcone geometry, accounting for the node's 3D position and cosmic time via the \refClass{geometryLightconeClass} interface. Enables construction of mock observational catalogs from simulations.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorIsInLightcone" docformat="rst">
+   <description>
+   Extracts a boolean flag (1 or 0) indicating whether a node falls within the observer's past lightcone geometry, accounting for the node's 3D position and cosmic time via the :galacticus-class:`geometryLightconeClass` interface. Enables construction of mock observational catalogs from simulations.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIsInLightcone
-     !!{
-     An ``in lightcone'' status property extractor.
+     !!{RST
+     An "in lightcone" status property extractor.
      !!}
      private
      class(geometryLightconeClass), pointer :: geometryLightcone_ => null()
@@ -42,8 +44,8 @@ Implements a property extractor for ``in lightcone'' status.
   end type nodePropertyExtractorIsInLightcone
 
   interface nodePropertyExtractorIsInLightcone
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorIsInLightcone} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorIsInLightcone` property extractor class.
      !!}
      module procedure isInLightconeConstructorParameters
      module procedure isInLightconeConstructorInternal
@@ -52,8 +54,8 @@ Implements a property extractor for ``in lightcone'' status.
 contains
 
   function isInLightconeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorIsInLightcone} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorIsInLightcone` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -73,8 +75,8 @@ contains
   end function isInLightconeConstructorParameters
 
   function isInLightconeConstructorInternal(geometryLightcone_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorIsInLightcone} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorIsInLightcone` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorIsInLightcone)                        :: self
@@ -87,8 +89,8 @@ contains
   end function isInLightconeConstructorInternal
 
   subroutine isInLightconeDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorIsInLightcone} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorIsInLightcone` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorIsInLightcone), intent(inout) :: self
@@ -100,8 +102,8 @@ contains
   end subroutine isInLightconeDestructor
 
   function isInLightconeExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{isInLightcone} node property extractor.
+    !!{RST
+    Implement a ``isInLightcone`` node property extractor.
     !!}
     implicit none
     integer         (kind_int8                         )                          :: isInLightconeExtract
@@ -121,8 +123,8 @@ contains
 
 
   function isInLightconeName(self)
-    !!{
-    Return the name of the ``in lightcone'' property.
+    !!{RST
+    Return the name of the "in lightcone" property.
     !!}
     implicit none
     type (varying_string                    )                :: isInLightconeName
@@ -134,8 +136,8 @@ contains
   end function isInLightconeName
 
   function isInLightconeDescription(self)
-    !!{
-    Return a description of the ``in lightcone'' property.
+    !!{RST
+    Return a description of the "in lightcone" property.
     !!}
     implicit none
     type (varying_string                     )                :: isInLightconeDescription

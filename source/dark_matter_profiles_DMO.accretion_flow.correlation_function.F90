@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of a dark matter density profile which includes the accretion flow surrounding the halo.
   !!}
 
@@ -29,17 +29,15 @@
   use :: Linear_Growth                  , only : linearGrowthClass
   
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOAccretionFlowCorrelationFunction">
+  <darkMatterProfileDMO name="darkMatterProfileDMOAccretionFlowCorrelationFunction" docformat="rst">
     <description>
-       An accretion flow class which models the accretion flow using the 2-halo correlation function by building
-       \refClass{massDistributionCorrelationFunction} objects.
+    An accretion flow class which models the accretion flow using the 2-halo correlation function by building :galacticus-class:`massDistributionCorrelationFunction` objects.
     </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOAccretionFlowCorrelationFunction
-     !!{
-     A dark matter halo profile class which implements a dark matter density profile which includes the accretion flow using the
-     2-halo correlation function.
+     !!{RST
+     A dark matter halo profile class which implements a dark matter density profile which includes the accretion flow using the 2-halo correlation function.
      !!}
      private
      class           (darkMatterHaloScaleClass        ), pointer :: darkMatterHaloScale_         => null()
@@ -57,8 +55,8 @@
   end type darkMatterProfileDMOAccretionFlowCorrelationFunction
 
   interface darkMatterProfileDMOAccretionFlowCorrelationFunction
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMOAccretionFlowCorrelationFunction} dark matter halo profile class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileDMOAccretionFlowCorrelationFunction` dark matter halo profile class.
      !!}
      module procedure accretionFlowCorrelationFunctionConstructorParameters
      module procedure accretionFlowCorrelationFunctionConstructorInternal
@@ -67,8 +65,8 @@
 contains
 
   function accretionFlowCorrelationFunctionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileDMOAccretionFlowCorrelationFunction} dark matter halo profile class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileDMOAccretionFlowCorrelationFunction` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,11 +83,13 @@ contains
     double precision :: scaleFactorVelocity
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scaleFactorVelocity</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>A dimensionless multiplicative scale factor applied to the inflow velocities computed from the correlation-function-based accretion flow model, allowing calibration of the infall velocity amplitude relative to the two-point clustering prediction.</description>
+      <description>
+      A dimensionless multiplicative scale factor applied to the inflow velocities computed from the correlation-function-based accretion flow model, allowing calibration of the infall velocity amplitude relative to the two-point clustering prediction.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
     <objectBuilder class="criticalOverdensity"         name="criticalOverdensity_"         source="parameters"/>
@@ -116,8 +116,8 @@ contains
   end function accretionFlowCorrelationFunctionConstructorParameters
 
   function accretionFlowCorrelationFunctionConstructorInternal(scaleFactorVelocity,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,darkMatterHaloBias_,correlationFunctionTwoPoint_,darkMatterProfileDMO_,darkMatterHaloScale_,linearGrowth_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOAccretionFlowCorrelationFunction} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOAccretionFlowCorrelationFunction` dark matter halo profile class.
     !!}
     implicit none
     type            (darkMatterProfileDMOAccretionFlowCorrelationFunction)                        :: self
@@ -138,8 +138,8 @@ contains
   end function accretionFlowCorrelationFunctionConstructorInternal
 
   subroutine accretionFlowCorrelationFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMOAccretionFlowCorrelationFunction} dark matter halo profile class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileDMOAccretionFlowCorrelationFunction` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOAccretionFlowCorrelationFunction), intent(inout) :: self
@@ -157,8 +157,8 @@ contains
   end subroutine accretionFlowCorrelationFunctionDestructor
 
   function accretionFlowCorrelationFunctionGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo      , massTypeDark                          , weightByMass

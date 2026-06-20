@@ -17,22 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling likelihood class which simply heats another likelihood to a specified temperature
   !!}
 
   !![
-  <posteriorSampleLikelihood name="posteriorSampleLikelihoodHeated">
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodHeated" docformat="rst">
    <description>
-     The likelihood of the provided class is heated to a temperature $T=$\mono{[temperature]}, such that
-     \begin{equation}
-     \log \mathcal{L} \rightarrow T^{-1} \log \mathcal{L}.
-     \end{equation}
+   The likelihood of the provided class is heated to a temperature :math:`T=`\ ``[temperature]``, such that
+
+   .. math::
+
+      \log \mathcal{L} \rightarrow T^{-1} \log \mathcal{L}.
    </description>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodHeated
-     !!{
+     !!{RST
      Implementation of a posterior sampling likelihood class which simply heats another likelihood to a specified temperature.
      !!}
      private
@@ -45,8 +46,8 @@
   end type posteriorSampleLikelihoodHeated
 
   interface posteriorSampleLikelihoodHeated
-     !!{
-     Constructors for the \mono{heated} posterior sampling likelihood class.
+     !!{RST
+     Constructors for the ``heated`` posterior sampling likelihood class.
      !!}
      module procedure heatedConstructorParameters
      module procedure heatedConstructorInternal
@@ -55,9 +56,8 @@
 contains
 
   function heatedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \mono{heated} posterior sampling likelihood class which builds the object
-    from a parameter set.
+    !!{RST
+    Constructor for the ``heated`` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -67,9 +67,11 @@ contains
     double precision                                                 :: temperature
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>temperature</name>
-      <description>The (dimensionless) temperature to which to heat the provided likelihood.</description>
+      <description>
+      The (dimensionless) temperature to which to heat the provided likelihood.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="posteriorSampleLikelihood" name="posteriorSampleLikelihood_" source="parameters"/>
@@ -83,8 +85,8 @@ contains
   end function heatedConstructorParameters
 
   function heatedConstructorInternal(temperature,posteriorSampleLikelihood_) result(self)
-    !!{
-    Constructor for ``heated'' posterior sampling likelihood class.
+    !!{RST
+    Constructor for "heated" posterior sampling likelihood class.
     !!}
     implicit none
     type            (posteriorSampleLikelihoodHeated)                        :: self
@@ -97,8 +99,8 @@ contains
   end function heatedConstructorInternal
 
   subroutine heatedDestructor(self)
-    !!{
-    Destructor for ``heated posterior sampling likelihood class.
+    !!{RST
+    Destructor for "heated posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodHeated), intent(inout) :: self
@@ -110,8 +112,8 @@ contains
   end subroutine heatedDestructor
 
   double precision function heatedEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !!{
-    Return the log-likelihood for a ``heated'' likelihood function.
+    !!{RST
+    Return the log-likelihood for a "heated" likelihood function.
     !!}
     use :: Models_Likelihoods_Constants, only : logImprobable
     implicit none
@@ -135,7 +137,7 @@ contains
   end function heatedEvaluate
 
   subroutine heatedFunctionChanged(self)
-    !!{
+    !!{RST
     Respond to possible changes in the likelihood function.
     !!}
     implicit none

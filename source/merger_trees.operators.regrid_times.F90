@@ -17,28 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree operator which restructures the tree onto a fixed grid of timesteps.
   !!}
 
   use :: Output_Times, only : outputTimesClass
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorRegridTimes">
+  <mergerTreeOperator name="mergerTreeOperatorRegridTimes" docformat="rst">
    <description>
-    A merger tree operator class which will interpolate the merger tree structure onto a new array of timesteps. The timestep
-    array is specified via an \refClass{outputTimesClass} object. Along each branch of the tree, new halos are inserted at
-    times corresponding to the times in the resulting array. The masses of these nodes are linearly interpolated between the
-    existing nodes on the branch. Once these new nodes have been added, all other nodes are removed from the tree\footnote{The
-    base node of the tree is never removed, even if it does not lie on one of the times in the constructed array.} The
-    processing is useful to construct representations of trees as they would be if only sparse time sampling were available. As
-    such, it is useful for exploring how the number of snapshots in merger trees extracted from N-body simulations\index{merger
-    tree!N-body} affects the properties of galaxies that form in them.
+   A merger tree operator class which will interpolate the merger tree structure onto a new array of timesteps. The timestep array is specified via an :galacticus-class:`outputTimesClass` object. Along each branch of the tree, new halos are inserted at times corresponding to the times in the resulting array. The masses of these nodes are linearly interpolated between the existing nodes on the branch. Once these new nodes have been added, all other nodes are removed from the tree\footnoteThe base node of the tree is never removed, even if it does not lie on one of the times in the constructed array. The processing is useful to construct representations of trees as they would be if only sparse time sampling were available. As such, it is useful for exploring how the number of snapshots in merger trees extracted from N-body simulations affects the properties of galaxies that form in them.
    </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorRegridTimes
-     !!{
+     !!{RST
      A merger tree operator class which restructures the tree onto a fixed grid of timesteps.
      !!}
      private
@@ -53,7 +46,7 @@
   end type mergerTreeOperatorRegridTimes
 
   interface mergerTreeOperatorRegridTimes
-     !!{
+     !!{RST
      Constructors for the regrid times merger tree operator class.
      !!}
      module procedure regridTimesConstructorParameters
@@ -63,7 +56,7 @@
 contains
 
   function regridTimesConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the regrid times merger tree operator class which takes a parameter set as input.
     !!}
     implicit none
@@ -75,29 +68,37 @@ contains
     double precision                                               :: snapTolerance
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dumpTrees</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not to dump merger trees as they are regridded.</description>
+      <description>
+      Specifies whether or not to dump merger trees as they are regridded.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>removeUngridded</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, remove nodes not at gridded times. Otherwise, leave them in place.</description>
+      <description>
+      If true, remove nodes not at gridded times. Otherwise, leave them in place.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propagateLabels</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, any labels attached to progenitor nodes are propagated to newly inserted nodes.</description>
+      <description>
+      If true, any labels attached to progenitor nodes are propagated to newly inserted nodes.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>snapTolerance</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The fractional tolerance used in deciding if a node should be snapped to a time on the grid.</description>
+      <description>
+      The fractional tolerance used in deciding if a node should be snapped to a time on the grid.
+      </description>
     </inputParameter>
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
@@ -110,7 +111,7 @@ contains
   end function regridTimesConstructorParameters
 
   function regridTimesConstructorInternal(snapTolerance,dumpTrees,removeUngridded,propagateLabels,outputTimes_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the regrid times merger tree operator class.
     !!}
     use :: Error, only : Error_Report
@@ -135,7 +136,7 @@ contains
   end function regridTimesConstructorInternal
 
   subroutine regridTimesDestructor(self)
-    !!{
+    !!{RST
     Destructor for the merger tree operator function class.
     !!}
     implicit none
@@ -148,7 +149,7 @@ contains
   end subroutine regridTimesDestructor
 
   subroutine regridTimesOperatePreInitialization(self,tree)
-    !!{
+    !!{RST
     Perform a regrid times operation on a merger tree.
     !!}
     use            :: Display                , only : displayIndent           , displayMessage               , displayUnindent       , verbosityLevelWorking, &

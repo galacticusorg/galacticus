@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a cold mode infall rate property extractor class.
 !!}
 
   use :: Cooling_Cold_Mode_Infall_Rates, only : coldModeInfallRate, coldModeInfallRateClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRateInfallColdMode">
-   <description>Extracts the infall rate of cold-mode gas accreting onto a galaxy, capturing the filamentary cold-stream accretion channel that bypasses virial shock heating and directly feeds star formation. Particularly relevant for high-redshift galaxies in massive halos.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorRateInfallColdMode" docformat="rst">
+   <description>
+   Extracts the infall rate of cold-mode gas accreting onto a galaxy, capturing the filamentary cold-stream accretion channel that bypasses virial shock heating and directly feeds star formation. Particularly relevant for high-redshift galaxies in massive halos.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRateInfallColdMode
-     !!{
+     !!{RST
      A cold mode infall rate property extractor class.
      !!}
      private
@@ -44,8 +46,8 @@ Implements a cold mode infall rate property extractor class.
   end type nodePropertyExtractorRateInfallColdMode
 
   interface nodePropertyExtractorRateInfallColdMode
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRateInfallColdMode} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorRateInfallColdMode` property extractor class.
      !!}
      module procedure rateInfallColdModeConstructorParameters
      module procedure rateInfallColdModeConstructorInternal
@@ -54,8 +56,8 @@ Implements a cold mode infall rate property extractor class.
 contains
 
   function rateInfallColdModeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRateInfallColdMode} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorRateInfallColdMode` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,8 +77,8 @@ contains
   end function rateInfallColdModeConstructorParameters
 
   function rateInfallColdModeConstructorInternal(coldModeInfallRate_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRateInfallColdMode} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRateInfallColdMode` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRateInfallColdMode)                        :: self
@@ -89,8 +91,8 @@ contains
   end function rateInfallColdModeConstructorInternal
 
   subroutine rateInfallColdModeDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorRateInfallColdMode} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorRateInfallColdMode` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRateInfallColdMode), intent(inout) :: self
@@ -102,8 +104,8 @@ contains
   end subroutine rateInfallColdModeDestructor
 
   double precision function rateInfallColdModeExtract(self,node,instance)
-    !!{
-    Implement a \mono{rateInfallColdMode} property extractor.
+    !!{RST
+    Implement a ``rateInfallColdMode`` property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -117,8 +119,8 @@ contains
   end function rateInfallColdModeExtract
 
   function rateInfallColdModeName(self)
-    !!{
-    Return the name of the \mono{rateInfallColdMode} property.
+    !!{RST
+    Return the name of the ``rateInfallColdMode`` property.
     !!}
     implicit none
     type (varying_string                         )                :: rateInfallColdModeName
@@ -130,8 +132,8 @@ contains
   end function rateInfallColdModeName
 
   function rateInfallColdModeDescription(self)
-    !!{
-    Return a description of the \mono{rateInfallColdMode} property.
+    !!{RST
+    Return a description of the ``rateInfallColdMode`` property.
     !!}
     implicit none
     type (varying_string                         )                :: rateInfallColdModeDescription
@@ -143,8 +145,8 @@ contains
   end function rateInfallColdModeDescription
 
   double precision function rateInfallColdModeUnitsInSI(self)
-    !!{
-    Return the units of the \mono{rateInfallColdMode} property in the SI system.
+    !!{RST
+    Return the units of the ``rateInfallColdMode`` property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, massSolar
     implicit none
@@ -156,7 +158,7 @@ contains
   end function rateInfallColdModeUnitsInSI
 
   function rateInfallColdModeUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the rateInfallColdMode property.
     !!}
     use :: Units_MetaData, only : unitType

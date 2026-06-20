@@ -19,12 +19,12 @@
 
 !+    Contributions to this file made by:  Alex Merson.
 
-!!{
+!!{RST
 Contains a module which initializes data for the stellar luminosities class.
 !!}
 
 module Stellar_Luminosities_Initialization
-  !!{
+  !!{RST
   Initializes data for the stellar luminosities class.
   !!}
   implicit none
@@ -37,7 +37,7 @@ contains
   <nodeComponentInitializationTask function="Stellar_Luminosities_Initialize"/>
   !!]
   subroutine Stellar_Luminosities_Initialize(parameters)
-    !!{
+    !!{RST
     Extract and store a list of output redshifts.
     !!}
     use, intrinsic :: ISO_C_Binding            , only : c_size_t

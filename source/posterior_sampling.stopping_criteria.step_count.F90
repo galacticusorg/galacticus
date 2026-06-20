@@ -17,21 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling stopping class which stepCount stops.
   !!}
 
   use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
 
   !![
-  <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionStepCount">
+  <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionStepCount" docformat="rst">
    <description>
-    This type will cause the simulation to stop when at least a number of steps (as specified by \mono{[stopAfterCount]}) have accrued post-convergence.
+   This type will cause the simulation to stop when at least a number of steps (as specified by ``[stopAfterCount]``) have accrued post-convergence.
    </description>
   </posteriorSampleStoppingCriterion>
   !!]
   type, extends(posteriorSampleStoppingCriterionClass) :: posteriorSampleStoppingCriterionStepCount
-     !!{
+     !!{RST
      Implementation of a posterior sampling convergence class which stepCount converges.
      !!}
      private
@@ -43,8 +43,8 @@
   end type posteriorSampleStoppingCriterionStepCount
 
   interface posteriorSampleStoppingCriterionStepCount
-     !!{
-     Constructors for the \refClass{posteriorSampleStoppingCriterionStepCount} posterior sampling stopping class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSampleStoppingCriterionStepCount` posterior sampling stopping class.
      !!}
      module procedure stepCountConstructorParameters
      module procedure stepCountConstructorInternal
@@ -53,8 +53,8 @@
 contains
 
   function stepCountConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStoppingCriterionStepCount} posterior sampling stopping class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleStoppingCriterionStepCount` posterior sampling stopping class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,9 +64,11 @@ contains
     integer                                                           :: stopAfterCount
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>stopAfterCount</name>
-      <description>The number of steps to continue after convergence before stopping.</description>
+      <description>
+      The number of steps to continue after convergence before stopping.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="posteriorSampleConvergence" name="posteriorSampleConvergence_" source="parameters"/>
@@ -80,8 +82,8 @@ contains
   end function stepCountConstructorParameters
 
   function stepCountConstructorInternal(stopAfterCount,posteriorSampleConvergence_) result(self)
-    !!{
-    Internal constructor for the \refClass{posteriorSampleStoppingCriterionStepCount} posterior sampling stopping class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`posteriorSampleStoppingCriterionStepCount` posterior sampling stopping class.
     !!}
     implicit none
     type   (posteriorSampleStoppingCriterionStepCount)                        :: self
@@ -95,8 +97,8 @@ contains
  end function stepCountConstructorInternal
 
   subroutine stepCountDestructor(self)
-    !!{
-    Destructor for the \refClass{posteriorSampleStoppingCriterionStepCount} posterior sampling stopping class.
+    !!{RST
+    Destructor for the :galacticus-class:`posteriorSampleStoppingCriterionStepCount` posterior sampling stopping class.
     !!}
     implicit none
     type(posteriorSampleStoppingCriterionStepCount), intent(inout) :: self
@@ -108,7 +110,7 @@ contains
   end subroutine stepCountDestructor
 
   logical function stepCountStop(self,simulationState)
-    !!{
+    !!{RST
     Returns true if the posterior sampling should stop.
     !!}
     implicit none

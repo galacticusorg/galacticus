@@ -17,21 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a dark matter halo mass function class which accelerates another mass function using tabulation.
-  !!}
+!!}
 
   use :: Numerical_Interpolation, only : interpolator
 
   !![
-  <haloMassFunction name="haloMassFunctionAccelerator">
+  <haloMassFunction name="haloMassFunctionAccelerator" docformat="rst">
    <description>
-    A dark matter halo mass function class which accelerates another mass function using tabulation.
+   A dark matter halo mass function class which accelerates another mass function using tabulation.
    </description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionAccelerator
-     !!{
+     !!{RST
      A dark matter halo mass function class which accelerates another mass function using tabulation.
      !!}
      private
@@ -44,8 +44,8 @@ Implements a dark matter halo mass function class which accelerates another mass
           &                                                                time
    contains
      !![
-     <methods>
-       <method method="tabulate" description="Tabualte the mass function."/>
+     <methods docformat="rst">
+       <method method="tabulate" description="Tabulate the mass function."/>
      </methods>
      !!]
      final     ::                 acceleratorDestructor
@@ -56,8 +56,8 @@ Implements a dark matter halo mass function class which accelerates another mass
   end type haloMassFunctionAccelerator
 
   interface haloMassFunctionAccelerator
-     !!{
-     Constructors for the \mono{accelerator} halo mass function class.
+     !!{RST
+     Constructors for the ``accelerator`` halo mass function class.
      !!}
      module procedure acceleratorConstructorParameters
      module procedure acceleratorConstructorInternal
@@ -69,8 +69,8 @@ Implements a dark matter halo mass function class which accelerates another mass
 contains
 
   function acceleratorConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \mono{accelerator} halo mass function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the ``accelerator`` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -93,8 +93,8 @@ contains
   end function acceleratorConstructorParameters
 
   function acceleratorConstructorInternal(cosmologyParameters_,haloMassFunction_) result(self)
-    !!{
-    Internal constructor for the \mono{accelerator} halo mass function class.
+    !!{RST
+    Internal constructor for the ``accelerator`` halo mass function class.
     !!}
     implicit none
     type (haloMassFunctionAccelerator)                        :: self
@@ -111,8 +111,8 @@ contains
   end function acceleratorConstructorInternal
 
   subroutine acceleratorDestructor(self)
-    !!{
-    Destructor for the \mono{accelerator} halo mass function class.
+    !!{RST
+    Destructor for the ``accelerator`` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionAccelerator), intent(inout) :: self
@@ -125,7 +125,7 @@ contains
   end subroutine acceleratorDestructor
 
   double precision function acceleratorDifferential(self,time,mass,node) result(massFunction)
-    !!{
+    !!{RST
     Return the differential halo mass function at the given time and mass.
     !!}
     implicit none
@@ -139,7 +139,7 @@ contains
   end function acceleratorDifferential
 
   double precision function acceleratorIntegrated(self,time,massLow,massHigh,node,status) result(massFunction)
-    !!{
+    !!{RST
     Return the integrated halo mass function at the given time and mass.
     !!}
     use :: Error, only : errorStatusSuccess
@@ -158,7 +158,7 @@ contains
   end function acceleratorIntegrated
   
   double precision function acceleratorMassFraction(self,time,massLow,massHigh,node) result(massFraction)
-    !!{
+    !!{RST
     Return the integrated halo mass fraction at the given time and mass.
     !!}
     implicit none
@@ -174,7 +174,7 @@ contains
   end function acceleratorMassFraction
 
   subroutine acceleratorTabulate(self,time,massLow,massHigh,node)
-    !!{
+    !!{RST
     Tabulate the mass function.
     !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t

@@ -17,25 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a property extractor class for the projected density at a set of radii.
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorProjectedDensity">
+  <nodePropertyExtractor name="nodePropertyExtractorProjectedDensity" docformat="rst">
    <description>
-    A property extractor class for the projected density at a set of radii. The radii and types of projected density to output
-    is specified by the \mono{radiusSpecifiers} parameter. This parameter's value can contain multiple
-    entries, each of which should be a valid
-    \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
-    specifier}.
+   A property extractor class for the projected density at a set of radii. The radii and types of projected density to output is specified by the ``radiusSpecifiers`` parameter. This parameter's value can contain multiple entries, each of which should be a valid :ref:`radius specifier &lt;manual-sec-radiusspecifiers&gt;`.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorProjectedDensity
-     !!{
+     !!{RST
      A property extractor class for the projected density at a set of radii.
      !!}
      private
@@ -61,8 +57,8 @@
   end type nodePropertyExtractorProjectedDensity
 
   interface nodePropertyExtractorProjectedDensity
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorProjectedDensity} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorProjectedDensity` property extractor class.
      !!}
      module procedure projectedDensityConstructorParameters
      module procedure projectedDensityConstructorInternal
@@ -75,8 +71,8 @@
 contains
 
   function projectedDensityConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorProjectedDensity} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorProjectedDensity` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -88,21 +84,27 @@ contains
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusSpecifiers</name>
-      <description>A list of radius specifiers at which to output the projected density profile.</description>
+      <description>
+      A list of radius specifiers at which to output the projected density profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeRadii</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not the radii at which projected density data are output should also be included in the output file.</description>
+      <description>
+      Specifies whether or not the radii at which projected density data are output should also be included in the output file.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerateIntegrationFailures</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not failures in integration of the projected density should be tolerated.</description>
+      <description>
+      Specifies whether or not failures in integration of the projected density should be tolerated.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
@@ -116,8 +118,8 @@ contains
   end function projectedDensityConstructorParameters
 
   function projectedDensityConstructorInternal(radiusSpecifiers,includeRadii,tolerateIntegrationFailures,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorProjectedDensity} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorProjectedDensity` property extractor class.
     !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
@@ -150,8 +152,8 @@ contains
   end function projectedDensityConstructorInternal
 
   subroutine projectedDensityDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorProjectedDensity} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorProjectedDensity` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorProjectedDensity), intent(inout) :: self
@@ -163,8 +165,8 @@ contains
   end subroutine projectedDensityDestructor
 
   integer function projectedDensityElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{projectedDensity} property extractors.
+    !!{RST
+    Return the number of elements in the ``projectedDensity`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedDensity), intent(inout) :: self
@@ -176,8 +178,8 @@ contains
   end function projectedDensityElementCount
 
   function projectedDensitySize(self,time)
-    !!{
-    Return the number of array elements in the \mono{projectedDensity} property extractors.
+    !!{RST
+    Return the number of array elements in the ``projectedDensity`` property extractors.
     !!}
     implicit none
     integer         (c_size_t                             )                :: projectedDensitySize
@@ -190,8 +192,8 @@ contains
   end function projectedDensitySize
 
   function projectedDensityExtract(self,node,time,instance) result(densityProjected)
-    !!{
-    Implement a \mono{projectedDensity} property extractor.
+    !!{RST
+    Implement a ``projectedDensity`` property extractor.
     !!}
     use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic            , massTypeStellar
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius                      , radiusTypeGalacticLightFraction   , &
@@ -334,7 +336,7 @@ contains
   contains
 
     double precision function projectedDensityIntegrand(radiusLogarithmic)
-      !!{
+      !!{RST
       Integrand function used for computing projected densities.
       !!}
       implicit none
@@ -360,8 +362,8 @@ contains
   end function projectedDensityExtract
 
   subroutine projectedDensityNames(self,names,time)
-    !!{
-    Return the names of the \mono{projectedDensity} properties.
+    !!{RST
+    Return the names of the ``projectedDensity`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedDensity), intent(inout)                             :: self
@@ -377,8 +379,8 @@ contains
   end subroutine projectedDensityNames
 
   subroutine projectedDensityDescriptions(self,descriptions,time)
-    !!{
-    Return descriptions of the \mono{projectedDensity} property.
+    !!{RST
+    Return descriptions of the ``projectedDensity`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorProjectedDensity), intent(inout)                             :: self
@@ -394,8 +396,8 @@ contains
   end subroutine projectedDensityDescriptions
 
   subroutine projectedDensityColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
-    !!{
-    Return column descriptions of the \mono{projectedDensity} property.
+    !!{RST
+    Return column descriptions of the ``projectedDensity`` property.
     !!}
     use            :: Units_MetaData, only : unitType
     use, intrinsic :: ISO_C_Binding , only : c_int
@@ -417,8 +419,8 @@ contains
   end subroutine projectedDensityColumnDescriptions
 
   function projectedDensityUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{projectedDensity} properties in the SI system.
+    !!{RST
+    Return the units of the ``projectedDensity`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
@@ -435,7 +437,7 @@ contains
   end function projectedDensityUnitsInSI
 
   function projectedDensityUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the projectedDensity properties.
     !!}
     use :: Units_MetaData, only : unitType

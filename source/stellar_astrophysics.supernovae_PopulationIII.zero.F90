@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a Population III supernovae class with no population III supernovae.
   !!}
   
   !![
-  <supernovaePopulationIII name="supernovaePopulationIIIZero">
+  <supernovaePopulationIII name="supernovaePopulationIIIZero" docformat="rst">
    <description>
-    A Population III supernovae class that has zero population III supernovae.
+   A Population III supernovae class that has zero population III supernovae.
    </description>
   </supernovaePopulationIII>
   !!]
   type, extends(supernovaePopulationIIIClass) :: supernovaePopulationIIIZero
-     !!{
+     !!{RST
      A Population III supernovae class that has zero population III supernovae.
      !!}
      private
@@ -38,8 +38,8 @@
   end type supernovaePopulationIIIZero
 
   interface supernovaePopulationIIIZero
-     !!{
-     Constructors for the \refClass{supernovaePopulationIIIZero} Population III supernovae class.
+     !!{RST
+     Constructors for the :galacticus-class:`supernovaePopulationIIIZero` Population III supernovae class.
      !!}
      module procedure zeroConstructorParameters
   end interface supernovaePopulationIIIZero
@@ -47,8 +47,8 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{supernovaePopulationIIIZero} Population III supernovae class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`supernovaePopulationIIIZero` Population III supernovae class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -63,9 +63,8 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroEnergyCumulative(self,initialMass,age,metallicity) result(energy)
-    !!{
-    Compute the cumulative energy input from Population III supernovae - there are zero population III supernovae in this model,
-    so zero energy.    
+    !!{RST
+    Compute the cumulative energy input from Population III supernovae - there are zero population III supernovae in this model, so zero energy.
     !!}
     implicit none
     class           (supernovaePopulationIIIZero), intent(inout) :: self

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements useful debugging utilities.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module that implements useful debugging utilities.
 !: $(BUILDPATH)/backtrace.o
   
 module Debugging
-  !!{
+  !!{RST
   Implements useful debugging utilities.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_int, c_char
@@ -44,7 +44,7 @@ module Debugging
 
   interface
      subroutine getCallerC(callerSize,caller) bind(c,name='getCallerC')
-       !!{
+       !!{RST
        Template for a C function that returns the name of the caller function.
        !!}
        import
@@ -56,7 +56,7 @@ module Debugging
 contains
 
   subroutine initialize()
-    !!{
+    !!{RST
     Initialize debug output.
     !!}
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
@@ -73,7 +73,7 @@ contains
   end subroutine initialize
 
   subroutine debugOn()
-    !!{
+    !!{RST
     Switch debugging on.
     !!}
 
@@ -82,7 +82,7 @@ contains
   end subroutine debugOn
 
   subroutine debugOff()
-    !!{
+    !!{RST
     Switch debugging off.
     !!}
 
@@ -91,7 +91,7 @@ contains
   end subroutine debugOff
 
   logical function isDebugging()
-    !!{
+    !!{RST
     Return true if debugging is on.
     !!}
 
@@ -100,7 +100,7 @@ contains
   end function isDebugging
   
   subroutine debugLog(message)
-    !!{
+    !!{RST
     Write a message to the debug log.
     !!}
     use :: ISO_Varying_String, only : varying_string, char
@@ -113,7 +113,7 @@ contains
   end subroutine debugLog
   
   function getCaller()
-    !!{
+    !!{RST
     Return the name of the calling function.
     !!}
     use :: ISO_Varying_String, only : varying_string     , index, extract

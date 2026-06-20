@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test calculations for tidal track dark matter profiles.
 !!}
 
 program Test_Dark_Matter_Profiles_Tidal_Tracks
-  !!{
+  !!{RST
   Test calculations for tidal track dark matter profiles.
   !!}
   use :: Calculations_Resets       , only : Calculations_Reset

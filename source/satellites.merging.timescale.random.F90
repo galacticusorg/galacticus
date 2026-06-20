@@ -19,18 +19,20 @@
 
   !+    Contributions to this file made by:  Alex Merson.
 
-  !!{
+  !!{RST
   Implements calculations of satellite merging times that are chosen to occur randomly between snapshots.
   !!}
 
   !![
-  <satelliteMergingTimescales name="satelliteMergingTimescalesRandom">
-   <description>Returns a satellite merging timescale chosen randomly between the current snapshot time and the next snapshot time, providing a simple statistical prescription for satellite merging that avoids artificial synchronization with snapshot output times.</description>
+  <satelliteMergingTimescales name="satelliteMergingTimescalesRandom" docformat="rst">
+   <description>
+   Returns a satellite merging timescale chosen randomly between the current snapshot time and the next snapshot time, providing a simple statistical prescription for satellite merging that avoids artificial synchronization with snapshot output times.
+   </description>
   </satelliteMergingTimescales>
   !!]
 
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesRandom
-     !!{
+     !!{RST
      A class implementing satellite merging timescales that are chosen to occur randomly between snapshots.
      !!}
      private
@@ -39,8 +41,8 @@
   end type satelliteMergingTimescalesRandom
 
   interface satelliteMergingTimescalesRandom
-     !!{
-     Constructors for the \refClass{satelliteMergingTimescalesRandom} satellite merging timescale class.
+     !!{RST
+     Constructors for the :galacticus-class:`satelliteMergingTimescalesRandom` satellite merging timescale class.
      !!}
      module procedure randomConstructorParameters
   end interface satelliteMergingTimescalesRandom
@@ -48,9 +50,8 @@
 contains
 
   function randomConstructorParameters(parameters) result(self)
-    !!{
-    A constructor for the \mono{random} satellite merging timescale class which builds the object from a
-    parameter set.
+    !!{RST
+    A constructor for the ``random`` satellite merging timescale class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +66,7 @@ contains
   end function randomConstructorParameters
 
   double precision function randomTimeUntilMerging(self,node,orbit)
-    !!{
+    !!{RST
     Return a randomly chosen timescale for merging satellites.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode

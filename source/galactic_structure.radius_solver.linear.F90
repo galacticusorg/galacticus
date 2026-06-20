@@ -17,31 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a ``linear'' solver for galactic structure (no self-gravity of baryons, and size simply scales in
-  proportion to specific angular momentum).
+  !!{RST
+  Implementation of a "linear" solver for galactic structure (no self-gravity of baryons, and size simply scales in proportion to specific angular momentum).
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !![
-  <galacticStructureSolver name="galacticStructureSolverLinear">
+  <galacticStructureSolver name="galacticStructureSolverLinear" docformat="rst">
    <description>
-    A galactic structure solver class that determines the sizes of galactic components by assuming that radius scales linearly
-    with specific angular momentum such that
-    \begin{equation}
-     r = r_\mathrm{vir} j/j_\mathrm{vir}
-    \end{equation}
-    where $j$ is the specific angular momentum of the \gls{component} (at whatever point in the profile is to be solved for),
-    $r$ is radius, $r_\mathrm{vir}$ is the virial radius of the \gls{node} and $j_\mathrm{vir}= r_\mathrm{vir} v_\mathrm{vir}$
-    with $v_\mathrm{vir}$ being the virial velocity of the \gls{node}.
+   A galactic structure solver class that determines the sizes of galactic components by assuming that radius scales linearly with specific angular momentum such that
+
+   .. math::
+
+      r = r_\mathrm{vir} j/j_\mathrm{vir}
+
+   where :math:`j` is the specific angular momentum of the :term:`component` (at whatever point in the profile is to be solved for), :math:`r` is radius, :math:`r_\mathrm{vir}` is the virial radius of the :term:`node` and :math:`j_\mathrm{vir}= r_\mathrm{vir} v_\mathrm{vir}` with :math:`v_\mathrm{vir}` being the virial velocity of the :term:`node`.
    </description>
   </galacticStructureSolver>
   !!]
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverLinear
-     !!{
-     Implementation of a ``linear'' solver for galactic structure (no self-gravity of baryons, and size simply scales in
-     proportion to specific angular momentum).
+     !!{RST
+     Implementation of a "linear" solver for galactic structure (no self-gravity of baryons, and size simply scales in proportion to specific angular momentum).
      !!}
      private
      class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
@@ -53,8 +50,8 @@
   end type galacticStructureSolverLinear
 
   interface galacticStructureSolverLinear
-     !!{
-     Constructors for the \refClass{galacticStructureSolverLinear} galactic structure solver class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticStructureSolverLinear` galactic structure solver class.
      !!}
      module procedure linearConstructorParameters
      module procedure linearConstructorInternal
@@ -63,9 +60,8 @@
 contains
 
   function linearConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticStructureSolverLinear} galactic structure solver class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticStructureSolverLinear` galactic structure solver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,8 +81,8 @@ contains
   end function linearConstructorParameters
 
   function linearConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticStructureSolverLinear} galactic structure solver class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticStructureSolverLinear` galactic structure solver class.
     !!}
     implicit none
     type   (galacticStructureSolverLinear)                        :: self
@@ -99,7 +95,7 @@ contains
   end function linearConstructorInternal
 
   subroutine linearAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : nodePromotionEvent  , openMPThreadBindingAtLevel, postEvolveEvent, preDerivativeEvent, &
@@ -117,8 +113,8 @@ contains
   end subroutine linearAutoHook
 
   subroutine linearDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticStructureSolverLinear} galactic structure solver class.
+    !!{RST
+    Destructor for the :galacticus-class:`galacticStructureSolverLinear` galactic structure solver class.
     !!}
     use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none
@@ -135,7 +131,7 @@ contains
   end subroutine linearDestructor
 
   subroutine linearSolveHook(self,node)
-    !!{
+    !!{RST
     Hookable wrapper around the solver.
     !!}
     use :: Error, only : Error_Report
@@ -153,7 +149,7 @@ contains
   end subroutine linearSolveHook
 
   subroutine linearSolvePreDeriativeHook(self,node,propertyType)
-    !!{
+    !!{RST
     Hookable wrapper around the solver.
     !!}
     use :: Error, only : Error_Report
@@ -173,9 +169,8 @@ contains
   end subroutine linearSolvePreDeriativeHook
 
   subroutine linearSolve(self,node,plausibilityOnly)
-    !!{
-    Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in
-    proportion to specific angular momentum.
+    !!{RST
+    Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in proportion to specific angular momentum.
     !!}
     use :: Calculations_Resets                       , only : Calculations_Reset
     use :: Galactic_Structure_Radius_Solver_Utilities, only : radiusSolverPlausibilities  , radiusSolverTasks, radiusSolver
@@ -202,7 +197,7 @@ contains
   contains
 
     subroutine radiusSolve(node,component,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
-      !!{
+      !!{RST
       Solve for the equilibrium radius of the given component.
       !!}
       use :: Galactic_Structure_Radius_Solver_Utilities, only : solverGet                   , solverSet
@@ -230,7 +225,7 @@ contains
   end subroutine linearSolve
 
   subroutine linearRevert(self,node)
-    !!{
+    !!{RST
     Revert radii for the linear galactic structure solve. Not necessary for this algorithm.
     !!}
     implicit none

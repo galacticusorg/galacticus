@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which computes the inertia tensor eigenvalues and eigenvectors, along with axis ratios.
 !!}
 
@@ -25,12 +25,14 @@ Implements an N-body data operator which computes the inertia tensor eigenvalues
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   
   !![
-  <nbodyOperator name="nbodyOperatorInertiaTensor">
-   <description>An N-body data operator which computes the inertia tensor eigenvalues, eigenvectors, and resulting axis ratios of an N-body halo, characterizing its three-dimensional shape. Parameters control whether only self-bound particles are used, the maximum radius for inclusion, and the number of bootstrap resamples.</description>
+  <nbodyOperator name="nbodyOperatorInertiaTensor" docformat="rst">
+   <description>
+   An N-body data operator which computes the inertia tensor eigenvalues, eigenvectors, and resulting axis ratios of an N-body halo, characterizing its three-dimensional shape. Parameters control whether only self-bound particles are used, the maximum radius for inclusion, and the number of bootstrap resamples.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorInertiaTensor
-     !!{
+     !!{RST
      An N-body data operator which computes the inertia tensor eigenvalues and eigenvectors, along with axis ratios.
      !!}
      private
@@ -44,8 +46,8 @@ Implements an N-body data operator which computes the inertia tensor eigenvalues
   end type nbodyOperatorInertiaTensor
 
   interface nbodyOperatorInertiaTensor
-     !!{
-     Constructors for the \refClass{nbodyOperatorInertiaTensor} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorInertiaTensor` N-body operator class.
      !!}
      module procedure inertiaTensorConstructorParameters
      module procedure inertiaTensorConstructorInternal
@@ -54,8 +56,8 @@ Implements an N-body data operator which computes the inertia tensor eigenvalues
 contains
 
   function inertiaTensorConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorInertiaTensor} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorInertiaTensor` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter  , inputParameters
     implicit none
@@ -67,21 +69,27 @@ contains
     double precision                                            :: radiusMaximum
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>selfBoundParticlesOnly</name>
       <source>parameters</source>
-      <description>If true, the maximum velocity is computed only for self-bound particles</description>
+      <description>
+      If true, the maximum velocity is computed only for self-bound particles
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bootstrapSampleCount</name>
       <source>parameters</source>
       <defaultValue>30_c_size_t</defaultValue>
-      <description>The number of bootstrap resamples of the particles that should be used.</description>
+      <description>
+      The number of bootstrap resamples of the particles that should be used.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusMaximum</name>
       <source>parameters</source>
-      <description>The maximum radius (relative to the position of the most-bound particle) to include when computing the inertia tensor.</description>
+      <description>
+      The maximum radius (relative to the position of the most-bound particle) to include when computing the inertia tensor.
+      </description>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
@@ -94,8 +102,8 @@ contains
   end function inertiaTensorConstructorParameters
 
   function inertiaTensorConstructorInternal(radiusMaximum,selfBoundParticlesOnly,bootstrapSampleCount,randomNumberGenerator_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorInertiaTensor} N-body operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyOperatorInertiaTensor` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorInertiaTensor)                        :: self
@@ -111,8 +119,8 @@ contains
   end function inertiaTensorConstructorInternal
 
   subroutine inertiaTensorDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorInertiaTensor} N-body operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nbodyOperatorInertiaTensor` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorInertiaTensor), intent(inout) :: self
@@ -124,7 +132,7 @@ contains
   end subroutine inertiaTensorDestructor
   
   subroutine inertiaTensorOperate(self,simulations)
-    !!{
+    !!{RST
     Determine the inertia tensor of the particle distribution, along with its eigenvectors, eigenvalues, and axis ratios.
     !!}
     use    :: Display        , only : displayCounter    , displayCounterClear   , displayIndent, displayMessage, &

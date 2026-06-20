@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements comparisons of values.
 !!}
 
 module Numerical_Comparison
-  !!{
+  !!{RST
   Implements comparisons of values.
   !!}
   implicit none
@@ -48,9 +48,8 @@ module Numerical_Comparison
 contains
 
   elemental logical function Values_Differ_Real(value1,value2,absTol,relTol)
-    !!{
-    Returns true if \mono{value1} and \mono{value2} differ by more than \mono{absTol} in absolute terms, or \mono{relTol} in
-    relative terms.
+    !!{RST
+    Returns true if ``value1`` and ``value2`` differ by more than ``absTol`` in absolute terms, or ``relTol`` in relative terms.
     !!}
     implicit none
     real, intent(in   )           :: value1, value2
@@ -64,9 +63,8 @@ contains
   end function Values_Differ_Real
 
   elemental logical function Values_Differ_Double(value1,value2,absTol,relTol)
-    !!{
-    Returns true if \mono{value1} and \mono{value2} differ by more than \mono{absTol} in absolute terms, or \mono{relTol} in
-    relative terms.
+    !!{RST
+    Returns true if ``value1`` and ``value2`` differ by more than ``absTol`` in absolute terms, or ``relTol`` in relative terms.
     !!}
     implicit none
     double precision, intent(in   )           :: value1, value2
@@ -80,9 +78,8 @@ contains
   end function Values_Differ_Double
 
   elemental logical function Values_Differ_Double_Complex(value1,value2,absTol,relTol)
-    !!{
-    Returns true if \mono{value1} and \mono{value2} differ by more than \mono{absTol} in absolute terms, or \mono{relTol} in
-    relative terms.
+    !!{RST
+    Returns true if ``value1`` and ``value2`` differ by more than ``absTol`` in absolute terms, or ``relTol`` in relative terms.
     !!}
     implicit none
     double complex, intent(in   )           :: value1, value2
@@ -102,9 +99,8 @@ contains
   end function Values_Differ_Double_Complex
 
   elemental logical function Values_Agree_Real(value1,value2,absTol,relTol)
-    !!{
-    Returns true if \mono{value1} and \mono{value2} agree to within \mono{absTol} in absolute terms, or \mono{relTol} in
-    relative terms.
+    !!{RST
+    Returns true if ``value1`` and ``value2`` agree to within ``absTol`` in absolute terms, or ``relTol`` in relative terms.
     !!}
     implicit none
     real   , intent(in   )           :: value1         , value2
@@ -131,9 +127,8 @@ contains
   end function Values_Agree_Real
 
   elemental logical function Values_Agree_Double(value1,value2,absTol,relTol)
-    !!{
-    Returns true if \mono{value1} and \mono{value2} agree to within \mono{absTol} in absolute terms, or \mono{relTol} in
-    relative terms.
+    !!{RST
+    Returns true if ``value1`` and ``value2`` agree to within ``absTol`` in absolute terms, or ``relTol`` in relative terms.
     !!}
     implicit none
     double precision, intent(in   )           :: value1         , value2
@@ -160,9 +155,8 @@ contains
   end function Values_Agree_Double
 
   elemental logical function Values_Agree_Double_Complex(value1,value2,absTol,relTol)
-    !!{
-    Returns true if \mono{value1} and \mono{value2} agree to within \mono{absTol} in absolute terms, or \mono{relTol} in
-    relative terms.
+    !!{RST
+    Returns true if ``value1`` and ``value2`` agree to within ``absTol`` in absolute terms, or ``relTol`` in relative terms.
     !!}
     implicit none
     double complex, intent(in   )           :: value1         , value2
@@ -193,9 +187,8 @@ contains
   end function Values_Agree_Double_Complex
 
   logical function Values_Less_Than_Double(value1,value2,absTol,relTol)
-    !!{
-    Returns true if \mono{value1} is significantly less than \mono{value2}, with tolerance
-    \mono{absTol} in absolute terms, or \mono{relTol} in relative terms.
+    !!{RST
+    Returns true if ``value1`` is significantly less than ``value2``, with tolerance ``absTol`` in absolute terms, or ``relTol`` in relative terms.
     !!}
     implicit none
     double precision, intent(in   )           :: value1         , value2

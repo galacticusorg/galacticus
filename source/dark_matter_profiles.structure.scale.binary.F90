@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of dark matter halo profile scale radii which switches between two methods based on a filter.
   !!}
 
   use :: Galactic_Filters, only : galacticFilter, galacticFilterClass
 
   !![
-  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusBinary">
-   <description>A dark matter halo profile scale radii class which switches between two methods based on a filter.</description>
+  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusBinary" docformat="rst">
+   <description>
+   A dark matter halo profile scale radii class which switches between two methods based on a filter.
+   </description>
   </darkMatterProfileScaleRadius>
   !!]
   type, extends(darkMatterProfileScaleRadiusClass) :: darkMatterProfileScaleRadiusBinary
-     !!{
+     !!{RST
      A dark matter halo profile scale radii class which switches between two methods based on a filter.
      !!}
      private
@@ -41,8 +43,8 @@
   end type darkMatterProfileScaleRadiusBinary
 
   interface darkMatterProfileScaleRadiusBinary
-     !!{
-     Constructors for the \refClass{darkMatterProfileScaleRadiusBinary} dark matter halo profile scale radius class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileScaleRadiusBinary` dark matter halo profile scale radius class.
      !!}
      module procedure binaryConstructorParameters
      module procedure binaryConstructorInternal
@@ -51,8 +53,8 @@
 contains
 
   function binaryConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{binary} dark matter halo profile concentration class.
+    !!{RST
+    Default constructor for the ``binary`` dark matter halo profile concentration class.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -80,8 +82,8 @@ contains
   end function binaryConstructorParameters
 
   function binaryConstructorInternal(darkMatterProfileScaleRadiusAccept_,darkMatterProfileScaleRadiusReject_,galacticFilter_) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileScaleRadiusBinary} dark matter halo profile scale radius class.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileScaleRadiusBinary` dark matter halo profile scale radius class.
     !!}
     implicit none
     type (darkMatterProfileScaleRadiusBinary)                        :: self
@@ -95,8 +97,8 @@ contains
   end function binaryConstructorInternal
 
   subroutine binaryDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileScaleRadiusBinary} dark matter halo profile scale radius class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileScaleRadiusBinary` dark matter halo profile scale radius class.
     !!}
     implicit none
     type(darkMatterProfileScaleRadiusBinary), intent(inout) :: self
@@ -110,8 +112,8 @@ contains
   end subroutine binaryDestructor
 
   double precision function binaryRadius(self,node)
-    !!{
-    Return the scale radius of the dark matter halo profile of \mono{node}.
+    !!{RST
+    Return the scale radius of the dark matter halo profile of ``node``.
     !!}
     implicit none
     class (darkMatterProfileScaleRadiusBinary), intent(inout), target :: self

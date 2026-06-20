@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that triggers destruction of satellites based on their bound mass.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorSatelliteDestructionMassThreshold">
-   <description>A node operator class that destroys satellites when their bound dark matter mass falls below any of three thresholds: \mono{massDestructionAbsolute} (an absolute mass in $\mathrm{M}_\odot$, default 0), \mono{massDestructionMassInfallFraction} (a fraction of the infall mass, default 0.01), or \mono{massDestructionMassTreeFraction} (a fraction of the merger tree root mass, default 0). When \mono{mergeOnDestruction} is true, the satellite is merged with its central rather than destroyed outright.</description>
+  <nodeOperator name="nodeOperatorSatelliteDestructionMassThreshold" docformat="rst">
+   <description>
+   A node operator class that destroys satellites when their bound dark matter mass falls below any of three thresholds: ``massDestructionAbsolute`` (an absolute mass in :math:`\mathrm{M}_\odot`, default 0), ``massDestructionMassInfallFraction`` (a fraction of the infall mass, default 0.01), or ``massDestructionMassTreeFraction`` (a fraction of the merger tree root mass, default 0). When ``mergeOnDestruction`` is true, the satellite is merged with its central rather than destroyed outright.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteDestructionMassThreshold
-     !!{
+     !!{RST
      A node operator class that triggers destruction of satellites based on their mass.
      !!}
      private
@@ -36,7 +38,7 @@
      logical          :: mergeOnDestruction
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute the mass at which the satellite will be destroyed." method="massDestroy" />
      </methods>
      !!]
@@ -45,8 +47,8 @@
   end type nodeOperatorSatelliteDestructionMassThreshold
   
   interface nodeOperatorSatelliteDestructionMassThreshold
-     !!{
-     Constructors for the \refClass{nodeOperatorSatelliteDestructionMassThreshold} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteDestructionMassThreshold` node operator class.
      !!}
      module procedure satelliteDestructionMassThresholdConstructorParameters
      module procedure satelliteDestructionMassThresholdConstructorInternal
@@ -59,8 +61,8 @@
 contains
 
   function satelliteDestructionMassThresholdConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorSatelliteDestructionMassThreshold} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteDestructionMassThreshold` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,28 +73,36 @@ contains
     logical                                                                        :: mergeOnDestruction
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massDestructionAbsolute</name>
       <defaultValue>0.00d0</defaultValue>
-      <description>The absolute mass below which satellites are destroyed.</description>
+      <description>
+      The absolute mass below which satellites are destroyed.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massDestructionMassInfallFraction</name>
       <defaultValue>0.01d0</defaultValue>
-      <description>The fraction of the infall mass below which satellites are destroyed.</description>
+      <description>
+      The fraction of the infall mass below which satellites are destroyed.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massDestructionMassTreeFraction</name>
       <defaultValue>0.00d0</defaultValue>
-      <description>The fraction of the tree mass below which satellites are destroyed.</description>
+      <description>
+      The fraction of the tree mass below which satellites are destroyed.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mergeOnDestruction</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, destruction actually triggers the satellite to be merged with its central galaxy instead of being destroyed.</description>
+      <description>
+      If true, destruction actually triggers the satellite to be merged with its central galaxy instead of being destroyed.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -104,8 +114,8 @@ contains
   end function satelliteDestructionMassThresholdConstructorParameters
 
   function satelliteDestructionMassThresholdConstructorInternal(massDestructionAbsolute,massDestructionMassInfallFraction,massDestructionMassTreeFraction,mergeOnDestruction) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorSatelliteDestructionMassThreshold} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteDestructionMassThreshold` node operator class.
     !!}
     implicit none
     type            (nodeOperatorSatelliteDestructionMassThreshold)                :: self
@@ -120,7 +130,7 @@ contains
   end function satelliteDestructionMassThresholdConstructorInternal
 
   subroutine satelliteDestructionMassThresholdDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Trigger destruction of a satellite halo based on its bound mass.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
@@ -152,7 +162,7 @@ contains
   end subroutine satelliteDestructionMassThresholdDifferentialEvolution
   
   subroutine destructionTrigger(node,timeEnd)
-    !!{
+    !!{RST
     Trigger destruction of the satellite by setting the time until destruction to zero.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic, treeNode
@@ -188,7 +198,7 @@ contains
   end subroutine destructionTrigger
 
   double precision function satelliteDestructionMassThresholdMassDestroy(self,node)
-    !!{
+    !!{RST
     Compute the destruction mass for a node.
     !!}
     use :: Galacticus_Nodes, only : treeNode, nodeComponentBasic

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which interfaces with low-level aspects of the GSL library.
 !!}
 
@@ -28,7 +28,7 @@ Contains a module which interfaces with low-level aspects of the GSL library.
 !; gsl
 
 module Interface_GSL
-  !!{
+  !!{RST
   Interfaces with low-level aspects of the GSL library.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_funptr, c_ptr     , c_double, c_int, &
@@ -40,9 +40,8 @@ module Interface_GSL
        &    gslErrorDecode
 
   abstract interface
-     !!{
-     Interface for \mono{gslFunction} type. We ignore the \mono{parameters} argument here as
-     it is not used by \glc.
+     !!{RST
+     Interface for ``gslFunction`` type. We ignore the ``parameters`` argument here as it is not used by Galacticus.
      !!}
      double precision function gslFunctionTemplate(x)
        import c_ptr
@@ -51,8 +50,8 @@ module Interface_GSL
   end interface
 
   abstract interface
-     !!{
-     Interface for \mono{gslFunctionFdF} type.
+     !!{RST
+     Interface for ``gslFunctionFdF`` type.
      !!}
      subroutine gslFunctionFdFTemplate(x,parameters,f,df)
        import c_ptr
@@ -63,8 +62,8 @@ module Interface_GSL
   end interface
 
   abstract interface
-     !!{
-     Interface for \mono{ gsl\_error\_handler\_t} type.
+     !!{RST
+     Interface for ``gsl_error_handler_t`` type.
      !!}
      subroutine gslErrorHandlerTemplate(reason,file,line,errorNumber)
        import c_char, c_int
@@ -74,12 +73,12 @@ module Interface_GSL
   end interface
 
   interface
-     !!{
+     !!{RST
      Interfaces to C functions.
      !!}
      function gslFunctionConstructor(f) bind(c,name="gslFunctionConstructor")
-       !!{
-       Interface to a C function which establishes a \mono{gslFunction} type.
+       !!{RST
+       Interface to a C function which establishes a ``gslFunction`` type.
        !!}
        import c_ptr, c_funptr
        type(c_ptr   )        :: gslFunctionConstructor
@@ -87,8 +86,8 @@ module Interface_GSL
      end function gslFunctionConstructor
 
      function gslFunctionFdFConstructor(f,df,fdf) bind(c,name="gslFunctionFdFConstructor")
-       !!{
-       Interface to a C function which establishes a \mono{gslFunctionFdF} type.
+       !!{RST
+       Interface to a C function which establishes a ``gslFunctionFdF`` type.
        !!}
        import c_ptr, c_funptr
        type(c_ptr   )        :: gslFunctionFdFConstructor
@@ -97,8 +96,8 @@ module Interface_GSL
      end function gslFunctionFdFConstructor
 
      subroutine gslFunctionDestructor(f) bind(c,name="gslFunctionDestructor")
-       !!{
-       Interface to a C function which destroys a \mono{gslFunction} type.
+       !!{RST
+       Interface to a C function which destroys a ``gslFunction`` type.
        !!}
        import c_funptr
        type(c_funptr), value :: f
@@ -111,7 +110,7 @@ module Interface_GSL
      end function gsl_set_error_handler
      
      function gslFileOpenC(fileName,access) bind(c,name='gslFileOpenC')
-       !!{
+       !!{RST
        Template for a C function that opens a file for GSL state output.
        !!}
        import c_ptr, c_char
@@ -120,7 +119,7 @@ module Interface_GSL
      end function gslFileOpenC
      
      function gslFileCloseC(stream) bind(c,name='gslFileCloseC')
-       !!{
+       !!{RST
        Template for a C function that opens a file for GSL state output.
        !!}
        import c_ptr, c_int
@@ -129,7 +128,7 @@ module Interface_GSL
      end function gslFileCloseC
  
      subroutine gslErrorDecoder(gsl_errno,gsl_str,gsl_strlen) bind(c,name='gslErrorDecoder')
-       !!{
+       !!{RST
        Template for a C function that returns a string describing a GSL error.
        !!}
        import c_int, c_char, c_size_t
@@ -140,7 +139,7 @@ module Interface_GSL
   end interface
 
   interface gslSetErrorHandler
-     !!{
+     !!{RST
      Generic interface to GSL error handler set functions.
      !!}
      module procedure gslSetErrorHandlerFunction
@@ -148,14 +147,14 @@ module Interface_GSL
   end interface gslSetErrorHandler
   
   type, public, bind(c) :: gsl_sf_result
-     !!{
+     !!{RST
      Type for GSL special function results.
      !!}
      real(c_double) :: val, err
   end type gsl_sf_result
 
   type :: gslFunctionWrapper
-     !!{
+     !!{RST
      Wrapper class for managing GSL functions.
      !!}
      type(c_ptr) :: f=c_null_ptr
@@ -191,7 +190,7 @@ module Interface_GSL
 contains
 
   function gslFileOpen(fileName,access) result(stream)
-    !!{
+    !!{RST
     Open a file for output of GSL state.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_null_char
@@ -204,7 +203,7 @@ contains
   end function gslFileOpen
 
   subroutine gslFileClose(stream)
-    !!{
+    !!{RST
     Close a file used for output of GSL state.
     !!}
     implicit none
@@ -216,7 +215,7 @@ contains
   end subroutine gslFileClose
   
   function gslSetErrorHandlerFunction(newHandler)
-    !!{
+    !!{RST
     Set the GSL error handler to the provided function.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_funloc
@@ -229,7 +228,7 @@ contains
   end function gslSetErrorHandlerFunction
 
   function gslSetErrorHandlerPointer(handler)
-    !!{
+    !!{RST
     Set the GSL error handler to the provided pointer.
     !!}
     implicit none
@@ -241,8 +240,8 @@ contains
   end function gslSetErrorHandlerPointer
 
   function gslFunction(f)
-    !!{
-    Return a \mono{c\_ptr} object for the given function \mono{f}.
+    !!{RST
+    Return a ``c_ptr`` object for the given function ``f``.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_funloc
     implicit none
@@ -254,8 +253,8 @@ contains
   end function gslFunction
 
   function gslFunctionFdF(f,df,fdf)
-    !!{
-    Return a \mono{c\_ptr} object for the given function \mono{f}.
+    !!{RST
+    Return a ``c_ptr`` object for the given function ``f``.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_funloc
     implicit none
@@ -268,8 +267,8 @@ contains
   end function gslFunctionFdF
 
   subroutine gslFunctionDestroy(f)
-    !!{
-    Destroy a \mono{c\_ptr} to a \mono{gslFunction} object.
+    !!{RST
+    Destroy a ``c_ptr`` to a ``gslFunction`` object.
     !!}
     implicit none
     type(c_ptr), intent(in   ) :: f
@@ -279,7 +278,7 @@ contains
   end subroutine gslFunctionDestroy
 
   function gslErrorDecode(errorNumber) result(description)
-    !!{
+    !!{RST
     Decode a GSL error number.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_f_pointer
@@ -298,8 +297,8 @@ contains
   end function gslErrorDecode
 
   subroutine gslFunctionWrapperDestructor(self)
-    !!{
-    Destroy a \mono{gslFunction} object.
+    !!{RST
+    Destroy a ``gslFunction`` object.
     !!}
     implicit none
     type(gslFunctionWrapper), intent(inout) :: self

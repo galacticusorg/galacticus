@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that initializes halo angular momenta using the model of \cite[][see also
-  \protect\citealt{benson_random-walk_2020}]{vitvitska_origin_2002}.
+  !!{RST
+  Implements a node operator class that initializes halo angular momenta using the model of :cite:t:`vitvitska_origin_2002`.
   !!}
   
   use :: Dark_Matter_Halo_Scales           , only : darkMatterHaloScaleClass
@@ -30,49 +29,37 @@
   use :: Merger_Trees_Build_Mass_Resolution, only : mergerTreeMassResolutionClass
 
   !![
-  <nodeOperator name="nodeOperatorHaloAngularMomentumVitvitska2002">
+  <nodeOperator name="nodeOperatorHaloAngularMomentumVitvitska2002" docformat="rst">
    <description>
-    A node operator class that initializes halo angular momenta using the model of \cite[][see also
-    \protect\citealt{benson_random-walk_2020}]{vitvitska_origin_2002}.
+   A node operator class that initializes halo angular momenta using the model of :cite:t:`vitvitska_origin_2002`.
 
-    In addition to the mean angular momentum vector of unresolved accretion accounted for by \cite{benson_random-walk_2020}, an
-    optional stochastic contribution to the angular momentum from unresolved accretion is allowed for. This represents the fact
-    that the angular momentum vector of a halo will diffuse away from zero in a random walk even if the mean angular momentum
-    contributed by unresolved accretion is zero. The three components of the angular momentum vector of unresolved accretion are
-    treated as independent Wiener processes with time-dependent variance. Specifically, each component of the angular momentum
-    vector obeys:
-    \begin{equation}
-    J_\mathrm{i}(t_2) = J_\mathrm{i}(t_1) + \left[ \sigma^2 \left\{ J_\mathrm{v}^2(t_2) - J_\mathrm{v}^2(t_1) \right\} f_\mathrm{u} \right]^{1/2} N(0,1)
-    \end{equation}
-    where $J_\mathrm{v}(t) = M_\mathrm{v}(t) V_\mathrm{v}(t) R_\mathrm{v}(t)$ is the characteristic virial angular momentum,
-    $M_\mathrm{v}(t)$, $V_\mathrm{v}(t)$, and $R_\mathrm{v}(t)$ are the virial mass, velocity, and radius respectively,
-    $M_\mathrm{u}$ is the unresolved mass between times $t_1$ and $t_2$ respectively\footnote{Note that this assumes that the
-    characteristic angular momentum scales in proportion to mass. In detail this is not correct, as there is also some dependence
-    on the change in redshift across the timestep due to the dependence of virial densities on redshift. In practice, we ignore
-    this dependence and absorb such effects into the parameter $\sigma$.}, $\sigma^2$ represents the variance in angular momentum
-    per unit increase in $J_\mathrm{v}^2$, and $N(0,1)$ is a random variable distributed as a standard normal. The parameter
-    $\sigma=$\mono{[angularMomentumVarianceSpecific]}.
+   In addition to the mean angular momentum vector of unresolved accretion accounted for by :cite:t:`benson_random-walk_2020`, an optional stochastic contribution to the angular momentum from unresolved accretion is allowed for. This represents the fact that the angular momentum vector of a halo will diffuse away from zero in a random walk even if the mean angular momentum contributed by unresolved accretion is zero. The three components of the angular momentum vector of unresolved accretion are treated as independent Wiener processes with time-dependent variance. Specifically, each component of the angular momentum vector obeys:
 
-    The factor $f_\mathrm{u}$ can take on one of two forms. If \mono{[useOriginalSubresolutionMethod]}=\mono{false} (which should be preferred) then:
-    \begin{equation}
-    f_\mathrm{u} = \frac{M_\mathrm{u}}{M(t_2)},
-    \end{equation}
-    in which case the variance is proportional to the mass in unresolved accretion (i.e. the ``time'' variable in the Wiener
-    process is just mass). If \mono{[useOriginalSubresolutionMethod]}=\mono{true} then the
-    original form,
-    \begin{equation}
-    f_\mathrm{u} = \left\{ \frac{M(t_1)+M_\mathrm{r}}{M(t_1)} \right\}^2 = \left\{ \frac{M(t_2)-M_\mathrm{u}}{M(t_1)} \right\}^2
-    \end{equation}
-    is used. In this, flawed, approach the variance arising from unresolved mass is, incorrectly, not proportional to the
-    unresolved mass accretion (and also has the incorrect scaling with mass). This approach should not be used for new
-    calculations, and is retained only for backward compatibility.
+   .. math::
+
+      J_\mathrm{i}(t_2) = J_\mathrm{i}(t_1) + \left[ \sigma^2 \left\{ J_\mathrm{v}^2(t_2) - J_\mathrm{v}^2(t_1) \right\} f_\mathrm{u} \right]^{1/2} N(0,1)
+
+   where :math:`J_\mathrm{v}(t) = M_\mathrm{v}(t) V_\mathrm{v}(t) R_\mathrm{v}(t)` is the characteristic virial angular momentum, :math:`M_\mathrm{v}(t)`, :math:`V_\mathrm{v}(t)`, and :math:`R_\mathrm{v}(t)` are the virial mass, velocity, and radius respectively, :math:`M_\mathrm{u}` is the unresolved mass between times :math:`t_1` and :math:`t_2` respectively\footnoteNote that this assumes that the characteristic angular momentum scales in proportion to mass. In detail this is not correct, as there is also some dependence on the change in redshift across the timestep due to the dependence of virial densities on redshift. In practice, we ignore this dependence and absorb such effects into the parameter :math:`\sigma`., :math:`\sigma^2` represents the variance in angular momentum per unit increase in :math:`J_\mathrm{v}^2`, and :math:`N(0,1)` is a random variable distributed as a standard normal. The parameter :math:`\sigma=`\ ``[angularMomentumVarianceSpecific]``.
+
+   The factor :math:`f_\mathrm{u}` can take on one of two forms. If ``[useOriginalSubresolutionMethod]``\ =\ ``false`` (which should be preferred) then:
+
+   .. math::
+
+      f_\mathrm{u} = \frac{M_\mathrm{u}}{M(t_2)},
+
+   in which case the variance is proportional to the mass in unresolved accretion (i.e. the "time" variable in the Wiener process is just mass). If ``[useOriginalSubresolutionMethod]``\ =\ ``true`` then the original form,
+
+   .. math::
+
+      f_\mathrm{u} = \left\{ \frac{M(t_1)+M_\mathrm{r}}{M(t_1)} \right\}^2 = \left\{ \frac{M(t_2)-M_\mathrm{u}}{M(t_1)} \right\}^2
+
+   is used. In this, flawed, approach the variance arising from unresolved mass is, incorrectly, not proportional to the unresolved mass accretion (and also has the incorrect scaling with mass). This approach should not be used for new calculations, and is retained only for backward compatibility.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorHaloAngularMomentumVitvitska2002
-     !!{
-     A node operator class that initializes halo angular momenta using the model of \cite[][see also
-     \protect\citealt{benson_random-walk_2020}]{vitvitska_origin_2002}.     
+     !!{RST
+     A node operator class that initializes halo angular momenta using the model of :cite:t:`vitvitska_origin_2002`.
      !!}
      private
      class           (haloSpinDistributionClass        ), pointer :: haloSpinDistribution_          => null()
@@ -89,8 +76,8 @@
   end type nodeOperatorHaloAngularMomentumVitvitska2002
   
   interface nodeOperatorHaloAngularMomentumVitvitska2002
-     !!{
-     Constructors for the \refClass{nodeOperatorHaloAngularMomentumVitvitska2002} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorHaloAngularMomentumVitvitska2002` node operator class.
      !!}
      module procedure haloAngularMomentumVitvitska2002ConstructorParameters
      module procedure haloAngularMomentumVitvitska2002ConstructorInternal
@@ -99,8 +86,8 @@
 contains
   
   function haloAngularMomentumVitvitska2002ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorHaloAngularMomentumVitvitska2002} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorHaloAngularMomentumVitvitska2002` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -116,21 +103,27 @@ contains
     logical                                                                       :: useOriginalSubresolutionMethod
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentMass</name>
       <defaultValue>2.0d0</defaultValue>
       <source>parameters</source>
-      <description>The exponent of mass ratio appearing in the orbital angular momentum term in the Vitvitska model.</description>
+      <description>
+      The exponent of mass ratio appearing in the orbital angular momentum term in the Vitvitska model.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>angularMomentumVarianceSpecific</name>
-      <description>The variance in the difference in the angular momentum of a halo per unit angular momentum scale growth.</description>
+      <description>
+      The variance in the difference in the angular momentum of a halo per unit angular momentum scale growth.
+      </description>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>useOriginalSubresolutionMethod</name>
-      <description>If true, the original (flawed) method for accounting for variance in the angular momentum of subresolution accretion will be used. Otherwise, the new method is used.</description>
+      <description>
+      If true, the original (flawed) method for accounting for variance in the angular momentum of subresolution accretion will be used. Otherwise, the new method is used.
+      </description>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
     </inputParameter>
@@ -155,8 +148,8 @@ contains
   end function haloAngularMomentumVitvitska2002ConstructorParameters
 
   function haloAngularMomentumVitvitska2002ConstructorInternal(exponentMass,angularMomentumVarianceSpecific,useOriginalSubresolutionMethod,darkMatterProfileScaleRadius_,haloSpinDistribution_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorHaloAngularMomentumVitvitska2002} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorHaloAngularMomentumVitvitska2002` node operator class.
     !!}
     use :: Error           , only : Component_List      , Error_Report
     use :: Galacticus_Nodes, only : defaultSpinComponent
@@ -196,8 +189,8 @@ contains
   end function haloAngularMomentumVitvitska2002ConstructorInternal
 
   subroutine haloAngularMomentumVitvitska2002Destructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorHaloAngularMomentumVitvitska2002} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorHaloAngularMomentumVitvitska2002` node operator class.
     !!}
     implicit none
     type(nodeOperatorHaloAngularMomentumVitvitska2002), intent(inout) :: self
@@ -214,8 +207,8 @@ contains
   end subroutine haloAngularMomentumVitvitska2002Destructor
 
   subroutine haloAngularMomentumVitvitska2002NodeTreeInitialize(self,node)
-    !!{
-    Initialize the spin of \mono{node}.
+    !!{RST
+    Initialize the spin of ``node``.
     !!}
     use :: Dark_Matter_Halo_Spins  , only : Dark_Matter_Halo_Angular_Momentum_Scale
     use :: Galacticus_Nodes        , only : nodeComponentSpin                      , nodeComponentBasic                 , nodeComponentDarkMatterProfile, nodeComponentSatellite
@@ -376,10 +369,8 @@ contains
   end subroutine haloAngularMomentumVitvitska2002NodeTreeInitialize
 
   function angularMomentumOrbital(node)
-    !!{
-    Returns the orbital angular momentum vector associated with a satellite by drawing a
-    random position towards the host at virial radius distance and a random velocity vector
-    consistent with the orbital parameters of the satellite.
+    !!{RST
+    Returns the orbital angular momentum vector associated with a satellite by drawing a random position towards the host at virial radius distance and a random velocity vector consistent with the orbital parameters of the satellite.
     !!}
     use :: Coordinates     , only : assignment(=)     , coordinateCartesian
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, treeNode

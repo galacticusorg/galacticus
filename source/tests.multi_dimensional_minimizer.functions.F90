@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module of functions for root finding unit tests.
 !!}
 
 module Test_Multidimensional_Minimizer_Functions
-  !!{
+  !!{RST
   Contains functions for root finding unit tests.
   !!}
   implicit none
@@ -35,7 +35,7 @@ module Test_Multidimensional_Minimizer_Functions
 contains
 
   double precision function minimizerFunction_(x)
-    !!{
+    !!{RST
     Evaluate the value of a multidimensional function for minimization.
     !!}
     implicit none
@@ -48,7 +48,7 @@ contains
   end function minimizerFunction_
 
   function minimizeFunctionDerivative_(x) result(gradient)
-    !!{
+    !!{RST
     Evaluate the gradient of a multidimensional function for minimization.
     !!}
     implicit none
@@ -61,7 +61,7 @@ contains
   end function minimizeFunctionDerivative_
 
   subroutine minimizeFunctionBoth_(x,functionValue,gradient)
-    !!{
+    !!{RST
     Evaluate the value and gradient of a multidimensional function for minimization.
     !!}
     implicit none

@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class for calculations of black hole binary initial separations.
 !!}
 
 module Black_Hole_Binary_Initial_Separation
-  !!{
+  !!{RST
   Implements a class for black hole binary initial separations.
   !!}
   use :: Galacticus_Nodes, only : treeNode
@@ -30,17 +30,17 @@ module Black_Hole_Binary_Initial_Separation
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>blackHoleBinaryInitialSeparation</name>
    <descriptiveName>Black Hole Binaries Initial Separation</descriptiveName>
-   <description>Class providing models of the initial physical separation (in Mpc) between two black holes
-    immediately after the galaxies hosting them merge. When the two host galaxies coalesce the black holes
-    begin to sink toward the merger remnant center by dynamical friction. The initial separation sets the
-    starting point for the subsequent binary evolution and eventually determines the rate of energy
-    emission by gravitational waves and the time until coalescence.</description>
+   <description>
+   Class providing models of the initial physical separation (in Mpc) between two black holes immediately after the galaxies hosting them merge. When the two host galaxies coalesce the black holes begin to sink toward the merger remnant center by dynamical friction. The initial separation sets the starting point for the subsequent binary evolution and eventually determines the rate of energy emission by gravitational waves and the time until coalescence.
+   </description>
    <default>spheroidRadiusFraction</default>
    <method name="separationInitial" >
-    <description>Computes the initial separation of a newly formed black hole binary black holes.</description>
+    <description>
+    Computes the initial separation of a newly formed black hole binary black holes.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

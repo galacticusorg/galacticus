@@ -17,28 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a stellar initial mass function class for the \cite{kroupa_variation_2001} \gls{imf}.
+  !!{RST
+  Implements a stellar initial mass function class for the :cite:t:`kroupa_variation_2001` :term:`IMF`.
   !!}
 
   !![
-  <initialMassFunction name="initialMassFunctionKroupa2001">
+  <initialMassFunction name="initialMassFunctionKroupa2001" docformat="rst">
    <description>
-    A stellar initial mass function class for the \cite{kroupa_variation_2001} \gls{imf}.
-    \begin{equation}
-     \phi(M) \propto \left\{ \begin{array}{ll}
-     M^{-0.3} &amp; \hbox{ for } 0.01\mathrm{M}_\odot &lt; M &lt; 0.08\mathrm{M}_\odot \\
-     M^{-1.8} &amp; \hbox{ for } 0.08\mathrm{M}_\odot &lt; M &lt; 0.5\mathrm{M}_\odot \\
-     M^{-2.7} &amp; \hbox{ for } 0.5\mathrm{M}_\odot &lt; M &lt; 1\mathrm{M}_\odot \\
-     M^{-2.3} &amp; \hbox{ for } 1\mathrm{M}_\odot &lt; M &lt; 125\mathrm{M}_\odot \\
-    0 &amp; \hbox {otherwise.} \end{array} \right.
-    \end{equation}
+   A stellar initial mass function class for the :cite:t:`kroupa_variation_2001` :term:`IMF`.
+
+   .. math::
+
+       \phi(M) \propto \left\{ \begin{array}{ll}
+       M^{-0.3} &amp; \hbox{ for } 0.01\mathrm{M}_\odot &lt; M &lt; 0.08\mathrm{M}_\odot \\
+       M^{-1.8} &amp; \hbox{ for } 0.08\mathrm{M}_\odot &lt; M &lt; 0.5\mathrm{M}_\odot \\
+       M^{-2.7} &amp; \hbox{ for } 0.5\mathrm{M}_\odot &lt; M &lt; 1\mathrm{M}_\odot \\
+       M^{-2.3} &amp; \hbox{ for } 1\mathrm{M}_\odot &lt; M &lt; 125\mathrm{M}_\odot \\
+      0 &amp; \hbox {otherwise.} \end{array} \right.
    </description>
   </initialMassFunction>
   !!]
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionKroupa2001
-     !!{
-     A stellar initial mass function class for the \cite{kroupa_variation_2001} \gls{imf}.
+     !!{RST
+     A stellar initial mass function class for the :cite:t:`kroupa_variation_2001` :term:`IMF`.
      !!}
      private
    contains
@@ -46,8 +47,8 @@
   end type initialMassFunctionKroupa2001
 
   interface initialMassFunctionKroupa2001
-     !!{
-     Constructors for the \refClass{initialMassFunctionKroupa2001} initial mass function class.
+     !!{RST
+     Constructors for the :galacticus-class:`initialMassFunctionKroupa2001` initial mass function class.
      !!}
      module procedure kroupa2001ConstructorParameters
      module procedure kroupa2001ConstructorInternal
@@ -56,8 +57,8 @@
 contains
 
   function kroupa2001ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{initialMassFunctionKroupa2001} initial mass function class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`initialMassFunctionKroupa2001` initial mass function class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,8 +73,8 @@ contains
   end function kroupa2001ConstructorParameters
 
   function kroupa2001ConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{initialMassFunctionKroupa2001} initial mass function.
+    !!{RST
+    Internal constructor for the :galacticus-class:`initialMassFunctionKroupa2001` initial mass function.
     !!}
     implicit none
     type(initialMassFunctionKroupa2001):: self
@@ -86,8 +87,8 @@ contains
   end function kroupa2001ConstructorInternal
 
   function kroupa2001Label(self)
-    !!{
-    Return a label for this \gls{imf}.
+    !!{RST
+    Return a label for this :term:`IMF`.
     !!}
     implicit none
     class(initialMassFunctionKroupa2001), intent(inout) :: self

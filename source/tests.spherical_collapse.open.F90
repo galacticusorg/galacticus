@@ -17,14 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program which tests spherical collapse calculations for an open Universe.
 !!}
 
 program Tests_Spherical_Collapse_Open
-  !!{
-  Tests spherical collapse calculations for an open Universe. Compares results to the fitting formula of
-  \cite{bryan_statistical_1998}.
+  !!{RST
+  Tests spherical collapse calculations for an open Universe. Compares results to the fitting formula of :cite:t:`bryan_statistical_1998`.
   !!}
   use :: Cosmology_Functions     , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters    , only : cosmologyParametersSimple

@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a supernovae type Ia class with no supernovae.
   !!}
 
   !![
-  <supernovaeTypeIa name="supernovaeTypeIaZero">
+  <supernovaeTypeIa name="supernovaeTypeIaZero" docformat="rst">
    <description>
-    A supernovae type Ia class which produces zero supernovae.
+   A supernovae type Ia class which produces zero supernovae.
    </description>
   </supernovaeTypeIa>
   !!]
   type, extends(supernovaeTypeIaClass) :: supernovaeTypeIaZero
-     !!{
+     !!{RST
      A supernovae type Ia class that produces zero supernovae.
      !!}
      private
@@ -40,8 +40,8 @@
   end type supernovaeTypeIaZero
 
   interface supernovaeTypeIaZero
-     !!{
-     Constructors for the \refClass{supernovaeTypeIaZero} supernovae type Ia class.
+     !!{RST
+     Constructors for the :galacticus-class:`supernovaeTypeIaZero` supernovae type Ia class.
      !!}
      module procedure zeroConstructorParameters
   end interface supernovaeTypeIaZero
@@ -49,8 +49,8 @@
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{supernovaeTypeIaZero} supernovae type Ia class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`supernovaeTypeIaZero` supernovae type Ia class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,7 +66,7 @@ contains
   end function zeroConstructorParameters
 
   subroutine zeroMassInitialRange(self,initialMassFunction_,age,metallicity,massInitialMinimum,massInitialMaximum)
-    !!{
+    !!{RST
     Return the range of initial stellar masses contributing to the Type Ia population.
     !!}
     implicit none
@@ -83,7 +83,7 @@ contains
   end subroutine zeroMassInitialRange
   
   double precision function zeroNumber(self,initialMassFunction_,initialMass,age,metallicity) result(number)
-    !!{
+    !!{RST
     Compute the cumulative number of Type Ia supernovae which is always zero.
     !!}
     implicit none
@@ -98,7 +98,7 @@ contains
   end function zeroNumber
 
   double precision function zeroYield(self,initialMassFunction_,initialMass,age,metallicity,atomIndex) result(yield)
-    !!{
+    !!{RST
     Compute the cumulative yield from Type Ia supernovae which is always zero.
     !!}
     implicit none

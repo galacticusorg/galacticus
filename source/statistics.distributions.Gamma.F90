@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a 1D gamma distribution function.
   !!}
 
   !![
-  <distributionFunction1D name="distributionFunction1DGamma">
-   <description>A 1D gamma distribution function class, implementing the gamma distribution $p(x) \propto x^{k-1} \mathrm{e}^{-\lambda x}$ with shape parameter $k$ and rate parameter $\lambda$, optionally truncated to a finite interval $[x_\mathrm{min}, x_\mathrm{max}]$.</description>
+  <distributionFunction1D name="distributionFunction1DGamma" docformat="rst">
+   <description>
+   A 1D gamma distribution function class, implementing the gamma distribution :math:`p(x) \propto x^{k-1} \mathrm{e}^{-\lambda x}` with shape parameter :math:`k` and rate parameter :math:`\lambda`, optionally truncated to a finite interval :math:`[x_\mathrm{min}, x_\mathrm{max}]`.
+   </description>
   </distributionFunction1D>
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DGamma
-     !!{
+     !!{RST
      Implementation of a 1D gamma distribution function.
      !!}
      private
@@ -42,8 +44,8 @@
   end type distributionFunction1DGamma
 
   interface distributionFunction1DGamma
-     !!{
-     Constructors for the \refClass{distributionFunction1DGamma} 1D distribution function class.
+     !!{RST
+     Constructors for the :galacticus-class:`distributionFunction1DGamma` 1D distribution function class.
      !!}
      module procedure gammaConstructorParameters
      module procedure gammaConstructorInternal
@@ -52,9 +54,8 @@
 contains
 
   function gammaConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DGamma} 1D distribution function class which builds
-    the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DGamma` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,24 +66,32 @@ contains
          &                                                          limitLower            , limitUpper
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>shape</name>
-      <description>The shape parameter $k > 0$ of the gamma distribution, controlling the skewness and peakedness; for $k=1$ it reduces to an exponential distribution, and for large $k$ it approaches a Gaussian.</description>
+      <description>
+      The shape parameter :math:`k &gt; 0` of the gamma distribution, controlling the skewness and peakedness; for :math:`k=1` it reduces to an exponential distribution, and for large :math:`k` it approaches a Gaussian.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rate</name>
-      <description>The rate parameter $\lambda > 0$ of the gamma distribution (the inverse of the scale parameter $\theta = 1/\lambda$), which determines the horizontal scale; larger values give a more concentrated distribution near zero.</description>
+      <description>
+      The rate parameter :math:`\lambda &gt; 0` of the gamma distribution (the inverse of the scale parameter :math:`\theta = 1/\lambda`), which determines the horizontal scale; larger values give a more concentrated distribution near zero.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>limitLower</name>
-      <description>The lower truncation limit of the gamma distribution; when set, the distribution is renormalized to integrate to unity over $[\mathrm{limitLower}, \mathrm{limitUpper}]$ rather than $[0, \infty)$.</description>
+      <description>
+      The lower truncation limit of the gamma distribution; when set, the distribution is renormalized to integrate to unity over :math:`[\mathrm{limitLower}, \mathrm{limitUpper}]` rather than :math:`[0, \infty)`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>limitUpper</name>
-      <description>The upper truncation limit of the gamma distribution; when set, the distribution is renormalized to integrate to unity over $[\mathrm{limitLower}, \mathrm{limitUpper}]$ rather than $[0, \infty)$.</description>
+      <description>
+      The upper truncation limit of the gamma distribution; when set, the distribution is renormalized to integrate to unity over :math:`[\mathrm{limitLower}, \mathrm{limitUpper}]` rather than :math:`[0, \infty)`.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -96,8 +105,8 @@ contains
   end function gammaConstructorParameters
 
   function gammaConstructorInternal(shape,rate,randomNumberGenerator_,limitLower,limitUpper) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DGamma} 1D distribution function class.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DGamma` 1D distribution function class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -135,7 +144,7 @@ contains
   end function gammaConstructorInternal
 
   double precision function gammaDensity(self,x)
-    !!{
+    !!{RST
     Return the density of a Gamma distribution.
     !!}
     use :: Gamma_Functions, only : Gamma_Function
@@ -165,7 +174,7 @@ contains
   end function gammaDensity
 
   double precision function gammaCumulative(self,x)
-    !!{
+    !!{RST
     Return the cumulative probability of a Gamma distribution.
     !!}
     use :: Gamma_Functions, only : Gamma_Function_Incomplete_Complementary
@@ -203,7 +212,7 @@ contains
   end function gammaCumulative
 
   double precision function gammaInverse(self,p)
-    !!{
+    !!{RST
     Return the inverse of a Gamma distribution.
     !!}
     use :: Error          , only : Error_Report

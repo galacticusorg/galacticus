@@ -17,29 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of the \cite{white_galaxy_1991} time available for cooling class.
+  !!{RST
+  Implementation of the :cite:t:`white_galaxy_1991` time available for cooling class.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <coolingTimeAvailable name="coolingTimeAvailableWhiteFrenk1991">
+  <coolingTimeAvailable name="coolingTimeAvailableWhiteFrenk1991" docformat="rst">
    <description>
-    A time available for cooling class which implements the algorithm of \cite{white_galaxy_1991}. The time available for
-    cooling is equal to
-    \begin{equation}
-     t_\mathrm{available} = \exp\left[ f \ln t_\mathrm{Universe} + (1-f)\ln t_\mathrm{dynamical} \right],
-    \end{equation}
-    where $f=$\mono{[ageFactor]} is an interpolating factor, $t_\mathrm{Universe}$ is the age of the Universe
-    and $t_\mathrm{dynamical}$ is the dynamical time in the halo. The original \cite{white_galaxy_1991} algorithm corresponds
-    to $f=1$.
+   A time available for cooling class which implements the algorithm of :cite:t:`white_galaxy_1991`. The time available for cooling is equal to
+
+   .. math::
+
+      t_\mathrm{available} = \exp\left[ f \ln t_\mathrm{Universe} + (1-f)\ln t_\mathrm{dynamical} \right],
+
+   where :math:`f=`\ ``[ageFactor]`` is an interpolating factor, :math:`t_\mathrm{Universe}` is the age of the Universe and :math:`t_\mathrm{dynamical}` is the dynamical time in the halo. The original :cite:t:`white_galaxy_1991` algorithm corresponds to :math:`f=1`.
    </description>
   </coolingTimeAvailable>
   !!]
   type, extends(coolingTimeAvailableClass) :: coolingTimeAvailableWhiteFrenk1991
-     !!{
-     Implementation of a time available for cooling class which implements the algorithm of \cite{white_galaxy_1991}.
+     !!{RST
+     Implementation of a time available for cooling class which implements the algorithm of :cite:t:`white_galaxy_1991`.
      !!}
      private
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
@@ -51,8 +50,8 @@
   end type coolingTimeAvailableWhiteFrenk1991
 
   interface coolingTimeAvailableWhiteFrenk1991
-     !!{
-     Constructors for the \cite{white_galaxy_1991} time available for cooling class.
+     !!{RST
+     Constructors for the :cite:t:`white_galaxy_1991` time available for cooling class.
      !!}
      module procedure whiteFrenk1991ConstructorParameters
      module procedure whiteFrenk1991ConstructorInternal
@@ -61,8 +60,8 @@
 contains
 
   function whiteFrenk1991ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \cite{white_galaxy_1991} time available for cooling class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :cite:t:`white_galaxy_1991` time available for cooling class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,11 +71,13 @@ contains
     double precision                                                    :: ageFactor
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
      <name>ageFactor</name>
      <source>parameters</source>
      <defaultValue>0.0d0</defaultValue>
-     <description>Interpolates (geometrically) between the age of the Universe and the halo dynamical time for the time available for cooling in the \cite{white_galaxy_1991} method.</description>
+     <description>
+     Interpolates (geometrically) between the age of the Universe and the halo dynamical time for the time available for cooling in the :cite:t:`white_galaxy_1991` method.
+     </description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
@@ -89,8 +90,8 @@ contains
   end function whiteFrenk1991ConstructorParameters
 
   function whiteFrenk1991ConstructorInternal(ageFactor,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \cite{white_galaxy_1991} cooling rate class.
+    !!{RST
+    Internal constructor for the :cite:t:`white_galaxy_1991` cooling rate class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -110,8 +111,8 @@ contains
   end function whiteFrenk1991ConstructorInternal
 
   subroutine whiteFrenk1991Destructor(self)
-    !!{
-    Destructor for the \cite{white_galaxy_1991} cooling rate class.
+    !!{RST
+    Destructor for the :cite:t:`white_galaxy_1991` cooling rate class.
     !!}
     implicit none
     type(coolingTimeAvailableWhiteFrenk1991), intent(inout) :: self
@@ -123,8 +124,8 @@ contains
   end subroutine whiteFrenk1991Destructor
 
   double precision function whiteFrenk1991TimeAvailable(self,node)
-    !!{
-    Returns the time available for cooling (in units of Gyr) in the hot atmosphere for the \cite{white_galaxy_1991} model.
+    !!{RST
+    Returns the time available for cooling (in units of Gyr) in the hot atmosphere for the :cite:t:`white_galaxy_1991` model.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -156,9 +157,8 @@ contains
   end function whiteFrenk1991TimeAvailable
 
   double precision function whiteFrenk1991TimeAvailableIncreaseRate(self,node)
-    !!{
-    Compute the rate of increase of the time available for cooling using the \cite{white_galaxy_1991} method. We return a rate
-    of 1, even though technically it can depend on halo properties.
+    !!{RST
+    Compute the rate of increase of the time available for cooling using the :cite:t:`white_galaxy_1991` method. We return a rate of 1, even though technically it can depend on halo properties.
     !!}
     implicit none
     class(coolingTimeAvailableWhiteFrenk1991), intent(inout) :: self

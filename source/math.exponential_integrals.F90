@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements exponential integrals.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module which implements exponential integrals.
 !; gsl
 
 module Exponential_Integrals
-  !!{
+  !!{RST
   Implements exponential integrals.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_double
@@ -40,7 +40,7 @@ module Exponential_Integrals
 
   interface
      function gsl_sf_Si(x) bind(c,name='gsl_sf_Si')
-       !!{
+       !!{RST
        Template for the GSL Sine integral function.
        !!}
        import c_double
@@ -48,7 +48,7 @@ module Exponential_Integrals
        real(c_double), value :: x
      end function gsl_sf_Si
      function gsl_sf_Ci(x) bind(c,name='gsl_sf_Ci')
-       !!{
+       !!{RST
        Template for the GSL Cosine integral function.
        !!}
        import c_double
@@ -60,8 +60,8 @@ module Exponential_Integrals
 contains
 
   double precision function Sine_Integral(x)
-    !!{
-    Evaluate the $\hbox{Si}(x)\equiv\int_0^x \d t \sin(t)/t$ sine integral.
+    !!{RST
+    Evaluate the :math:`\hbox{Si}(x)\equiv\int_0^x \d t \sin(t)/t` sine integral.
     !!}
     implicit none
     double precision, intent(in   ) :: x
@@ -71,8 +71,8 @@ contains
   end function Sine_Integral
 
   double precision function Cosine_Integral(x)
-    !!{
-    Evaluate the $\hbox{Ci}(x)\equiv\int_0^x \d t \cos(t)/t$ cosine integral.
+    !!{RST
+    Evaluate the :math:`\hbox{Ci}(x)\equiv\int_0^x \d t \cos(t)/t` cosine integral.
     !!}
     implicit none
     double precision, intent(in   ) :: x
@@ -82,8 +82,8 @@ contains
   end function Cosine_Integral
 
   double complex function Exponential_Integral_Double_Complex(z)
-    !!{
-    Exponential integral, $E_\mathrm{i}(z)$, for complex argument \mono{z}.
+    !!{RST
+    Exponential integral, :math:`E_\mathrm{i}(z)`, for complex argument ``z``.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -95,8 +95,8 @@ contains
   end function Exponential_Integral_Double_Complex
 
   double precision function Exponential_Integral_Double(x)
-    !!{
-    Exponential integral for real argument \mono{x}.
+    !!{RST
+    Exponential integral for real argument ``x``.
     !!}
     implicit none
     double precision, intent(in   ) :: x

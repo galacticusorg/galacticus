@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements top-level functions for node components.
 !!}
 
 module Node_Components
-  !!{
+  !!{RST
   Implements top-level functions for node components.
   !!}
   private
@@ -33,7 +33,7 @@ module Node_Components
   !$omp threadprivate(initializationThreadCount)
 
   type, public :: nodeComponentsWrapper
-     !!{
+     !!{RST
      Wrapper class for managing the node components.
      !!}
    contains
@@ -43,7 +43,7 @@ module Node_Components
 contains
 
   subroutine nodeComponentsWrapperDestructor(self)
-    !!{
+    !!{RST
     Destructor for the node components wrapper class that handles finalization of the node class hierarchy.
     !!}
     implicit none
@@ -54,7 +54,7 @@ contains
   end subroutine nodeComponentsWrapperDestructor
   
   subroutine Node_Components_Initialize(parameters)
-    !!{
+    !!{RST
     Perform initialization tasks for node components.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -73,7 +73,7 @@ contains
   end subroutine Node_Components_Initialize
 
   subroutine Node_Components_Thread_Initialize(parameters)
-    !!{
+    !!{RST
     Perform per-thread initialization tasks for node components.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -102,7 +102,7 @@ contains
   end subroutine Node_Components_Thread_Initialize
 
   subroutine Node_Components_Uninitialize()
-    !!{
+    !!{RST
     Perform uninitialization tasks for node components.
     !!}
     implicit none
@@ -112,7 +112,7 @@ contains
   end subroutine Node_Components_Uninitialize
 
   subroutine Node_Components_Thread_Uninitialize()
-    !!{
+    !!{RST
     Perform per-thread uninitialization tasks for node components.
     !!}
     use :: Events_Hooks    , only : calculationResetEvent

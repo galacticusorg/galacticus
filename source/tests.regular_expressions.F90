@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program which tests regular expression functionality.
 !!}
 
 program Tests_Regular_Expressions
-  !!{
+  !!{RST
   Tests regular expression functionality.
   !!}
   use :: Display            , only : displayVerbositySet, verbosityLevelStandard

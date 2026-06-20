@@ -17,23 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of radial dependence of halo bias using the fitting function of \citep{tinker_mass--light_2005}.
+  !!{RST
+  Implementation of radial dependence of halo bias using the fitting function of :cite:p:`tinker_mass--light_2005`.
   !!}
 
   use :: Correlation_Functions_Two_Point, only : correlationFunctionTwoPointClass
 
   !![
-  <darkMatterHaloBias name="darkMatterHaloBiasTinker2005">
+  <darkMatterHaloBias name="darkMatterHaloBiasTinker2005" docformat="rst">
    <description>
-   A dark matter halo bias class which applies the radial dependence fitting function of \citep{tinker_mass--light_2005} to
-   another bias class.
+   A dark matter halo bias class which applies the radial dependence fitting function of :cite:p:`tinker_mass--light_2005` to another bias class.
    </description>
   </darkMatterHaloBias>
   !!]
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasTinker2005
-     !!{
-     Implementation of radial dependence of halo bias using the fitting function of \citep{tinker_mass--light_2005}.
+     !!{RST
+     Implementation of radial dependence of halo bias using the fitting function of :cite:p:`tinker_mass--light_2005`.
      !!}
      private
      class(darkMatterHaloBiasClass         ), pointer :: darkMatterHaloBias_                   => null()
@@ -44,8 +43,8 @@
   end type darkMatterHaloBiasTinker2005
 
   interface darkMatterHaloBiasTinker2005
-     !!{
-     Constructors for the \refClass{darkMatterHaloBiasTinker2005} dark matter halo bias class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterHaloBiasTinker2005` dark matter halo bias class.
      !!}
      module procedure tinker2005ConstructorParameters
      module procedure tinker2005ConstructorInternal
@@ -54,8 +53,8 @@
 contains
 
   function tinker2005ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterHaloBiasTinker2005} dark matter halo bias class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterHaloBiasTinker2005` dark matter halo bias class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,8 +76,8 @@ contains
   end function tinker2005ConstructorParameters
 
   function tinker2005ConstructorInternal(darkMatterHaloBias_,correlationFunctionTwoPointNonLinear_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterHaloBiasTinker2005} dark matter halo bias class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterHaloBiasTinker2005` dark matter halo bias class.
     !!}
     implicit none
     type (darkMatterHaloBiasTinker2005    )                        :: self
@@ -92,8 +91,8 @@ contains
   end function tinker2005ConstructorInternal
 
   subroutine tinker2005Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterHaloBiasTinker2005} dark matter halo bias class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterHaloBiasTinker2005` dark matter halo bias class.
     !!}
     implicit none
     type(darkMatterHaloBiasTinker2005), intent(inout) :: self
@@ -106,7 +105,7 @@ contains
   end subroutine tinker2005Destructor
 
   double precision function tinker2005BiasByMass(self,mass,time,radius)
-    !!{
+    !!{RST
     Returns the bias of a dark matter halo given the mass and time.
     !!}
     implicit none

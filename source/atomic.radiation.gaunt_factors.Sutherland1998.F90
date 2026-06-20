@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of Gaunt factors using the \cite{sutherland_accurate_1998} fitting function.
+  !!{RST
+  An implementation of Gaunt factors using the :cite:t:`sutherland_accurate_1998` fitting function.
   !!}
 
   use :: Atomic_Ionization_Potentials, only : atomicIonizationPotentialClass
 
   !![
-  <gauntFactor name="gauntFactorSutherland1998">
-   <description>Gaunt factors are computed using the fitting function of \cite{sutherland_accurate_1998}.</description>
+  <gauntFactor name="gauntFactorSutherland1998" docformat="rst">
+   <description>
+   Gaunt factors are computed using the fitting function of :cite:t:`sutherland_accurate_1998`.
+   </description>
   </gauntFactor>
   !!]
   type, extends(gauntFactorClass) :: gauntFactorSutherland1998
-     !!{
-     A gaunt factor class implementing the fitting function of \cite{sutherland_accurate_1998}.
+     !!{RST
+     A gaunt factor class implementing the fitting function of :cite:t:`sutherland_accurate_1998`.
      !!}
      private
      class(atomicIonizationPotentialClass), pointer :: atomicIonizationPotential_ => null()
@@ -40,8 +42,8 @@
   end type gauntFactorSutherland1998
 
   interface gauntFactorSutherland1998
-     !!{
-     Constructors for the \refClass{gauntFactorSutherland1998} gaunt factor class.
+     !!{RST
+     Constructors for the :galacticus-class:`gauntFactorSutherland1998` gaunt factor class.
      !!}
      module procedure sutherland1998ConstructorParameters
      module procedure sutherland1998ConstructorInternal
@@ -118,8 +120,8 @@
 contains
 
   function sutherland1998ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{gauntFactorSutherland1998} gaunt factor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`gauntFactorSutherland1998` gaunt factor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -139,8 +141,8 @@ contains
   end function sutherland1998ConstructorParameters
 
   function sutherland1998ConstructorInternal(atomicIonizationPotential_) result(self)
-    !!{
-    Internal constructor for the \refClass{gauntFactorSutherland1998} gaunt factor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`gauntFactorSutherland1998` gaunt factor class.
     !!}
     implicit none
     type (gauntFactorSutherland1998     )                        :: self
@@ -153,8 +155,8 @@ contains
   end function sutherland1998ConstructorInternal
 
   subroutine sutherland1998Destructor(self)
-    !!{
-    Destructor for the \refClass{gauntFactorSutherland1998} gaunt factor class.
+    !!{RST
+    Destructor for the :galacticus-class:`gauntFactorSutherland1998` gaunt factor class.
     !!}
     implicit none
     type(gauntFactorSutherland1998), intent(inout) :: self
@@ -166,9 +168,8 @@ contains
   end subroutine sutherland1998Destructor
 
   double precision function sutherland1998Total(self,atomicNumber,electronNumber,temperature)
-    !!{
-    Compute thermally averaged Gaunt factors for thermal electron distributions using the tabulations and fits of
-    \cite{sutherland_accurate_1998}.
+    !!{RST
+    Compute thermally averaged Gaunt factors for thermal electron distributions using the tabulations and fits of :cite:t:`sutherland_accurate_1998`.
     !!}
     use            :: Arrays_Search               , only : searchArray
     use            :: Error                       , only : Error_Report

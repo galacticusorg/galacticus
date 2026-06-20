@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that implements accretion onto black holes.
   !!}
 
@@ -25,12 +25,14 @@
   use :: Accretion_Disks           , only : accretionDisksClass
 
   !![
-  <nodeOperator name="nodeOperatorBlackHolesAccretion">
-   <description>Evolves supermassive black hole masses by computing gas accretion rates (including Bondi and feedback-regulated modes) and integrating them over each timestep, driving AGN feedback that regulates star formation in massive galaxies.</description>
+  <nodeOperator name="nodeOperatorBlackHolesAccretion" docformat="rst">
+   <description>
+   Evolves supermassive black hole masses by computing gas accretion rates (including Bondi and feedback-regulated modes) and integrating them over each timestep, driving AGN feedback that regulates star formation in massive galaxies.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorBlackHolesAccretion
-     !!{
+     !!{RST
      A node operator class that implements accretion onto black holes.
      !!}
      private
@@ -42,8 +44,8 @@
   end type nodeOperatorBlackHolesAccretion
   
   interface nodeOperatorBlackHolesAccretion
-     !!{
-     Constructors for the \refClass{nodeOperatorBlackHolesAccretion} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorBlackHolesAccretion` node operator class.
      !!}
      module procedure blackHolesAccretionConstructorParameters
      module procedure blackHolesAccretionConstructorInternal
@@ -52,8 +54,8 @@
 contains
 
   function blackHolesAccretionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorBlackHolesAccretion} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorBlackHolesAccretion` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,8 +78,8 @@ contains
   end function blackHolesAccretionConstructorParameters
 
   function blackHolesAccretionConstructorInternal(blackHoleAccretionRate_,accretionDisks_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorBlackHolesAccretion} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorBlackHolesAccretion` node operator class.
     !!}
     implicit none
     type (nodeOperatorBlackHolesAccretion)                        :: self
@@ -91,8 +93,8 @@ contains
   end function blackHolesAccretionConstructorInternal
 
   subroutine blackHolesAccretionDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorBlackHolesAccretion} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorBlackHolesAccretion` node operator class.
     !!}
     implicit none
     type(nodeOperatorBlackHolesAccretion), intent(inout) :: self
@@ -105,7 +107,7 @@ contains
   end subroutine blackHolesAccretionDestructor
 
   subroutine blackHolesAccretionDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Account for accretion onto black holes.
     !!}
     use :: Galacticus_Nodes            , only : nodeComponentBlackHole, nodeComponentSpheroid, nodeComponentHotHalo, nodeComponentNSC

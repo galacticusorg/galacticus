@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a very simple hot halo node component.
 !!}
 
 module Node_Component_Hot_Halo_Very_Simple
-  !!{
+  !!{RST
   Implements a very simple hot halo node component.
   !!}
   implicit none
@@ -89,7 +89,7 @@ contains
   <nodeComponentInitializationTask function="Node_Component_Hot_Halo_Very_Simple_Initialize"/>
   !!]
   subroutine Node_Component_Hot_Halo_Very_Simple_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the very simple hot halo component module.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -106,7 +106,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Very_Simple_Initialize
 
   subroutine Node_Component_Hot_Halo_Very_Simple_Outflowing_Mass_Rate(self,rate,interrupt,interruptProcedure)
-    !!{
+    !!{RST
     Accept outflowing gas from a galaxy and deposit it into very simple hot halo.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo
@@ -123,7 +123,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Very_Simple_Outflowing_Mass_Rate
 
   subroutine Node_Component_Hot_Halo_Very_Simple_Outflowing_Abundances_Rate(self,rate,interrupt,interruptProcedure)
-    !!{
+    !!{RST
     Accept outflowing gas abundances from a galaxy and deposit them into very simple hot halo.
     !!}
     use :: Abundances_Structure, only : abundances
@@ -144,8 +144,8 @@ contains
   <scaleSetTask function="Node_Component_Hot_Halo_Very_Simple_Scale_Set"/>
   !!]
   subroutine Node_Component_Hot_Halo_Very_Simple_Scale_Set(node)
-    !!{
-    Set scales for properties of \mono{node}.
+    !!{RST
+    Set scales for properties of ``node``.
     !!}
     use :: Abundances_Structure, only : unitAbundances
     use :: Galacticus_Nodes    , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloVerySimple, treeNode, &

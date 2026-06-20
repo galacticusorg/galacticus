@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of mass distribution for the \cite{patej_simple_2015} model of the circumgalactic medium.
+  !!{RST
+  Implementation of mass distribution for the :cite:t:`patej_simple_2015` model of the circumgalactic medium.
   !!}
 
   !![
-  <massDistribution name="massDistributionPatejLoeb2015">
-   <description>A mass distribution for the \cite{patej_simple_2015} model of the circumgalactic medium.</description>
+  <massDistribution name="massDistributionPatejLoeb2015" docformat="rst">
+   <description>
+   A mass distribution for the :cite:t:`patej_simple_2015` model of the circumgalactic medium.
+   </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionPatejLoeb2015
-     !!{
-     The \cite{patej_simple_2015} model of the circumgalactic medium.
+     !!{RST
+     The :cite:t:`patej_simple_2015` model of the circumgalactic medium.
      !!}
      class           (massDistributionClass), pointer :: massDistribution_     => null()
      logical                                          :: truncateAtOuterRadius
@@ -37,7 +39,7 @@
           &                                              mass
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="radiusDarkMatter"      description="Return the corresponding radius in the dark matter profile."     />
        <method method="coordinatesDarkMatter" description="Return the corresponding coordinates in the dark matter profile."/>
        </methods>
@@ -54,8 +56,8 @@
   end type massDistributionPatejLoeb2015
 
   interface massDistributionPatejLoeb2015
-     !!{
-     Constructors for the \refClass{massDistributionPatejLoeb2015} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionPatejLoeb2015` mass distribution class.
      !!}
      module procedure patejLoeb2015ConstructorParameters
      module procedure patejLoeb2015ConstructorInternal
@@ -64,9 +66,8 @@
 contains
 
   function patejLoeb2015ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionPatejLoeb2015} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionPatejLoeb2015` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -82,46 +83,60 @@ contains
     type            (varying_string               )                :: massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma</name>
       <defaultValue>1.15d0</defaultValue>
-      <description>The parameter $\Gamma$ in the \cite{patej_simple_2015} mass distribution.</description>
+      <description>
+      The parameter :math:`\Gamma` in the :cite:t:`patej_simple_2015` mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityNormalization</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The density normalization of the \cite{patej_simple_2015} mass distribution.</description>
+      <description>
+      The density normalization of the :cite:t:`patej_simple_2015` mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The mass of the \cite{patej_simple_2015} mass distribution.</description>
+      <description>
+      The mass of the :cite:t:`patej_simple_2015` mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusOuter</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The outer radius of the \cite{patej_simple_2015} mass distribution.</description>
+      <description>
+      The outer radius of the :cite:t:`patej_simple_2015` mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>truncateAtOuterRadius</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true then the \cite{patej_simple_2015} mass distribution is truncated beyond the outer radius.</description>
+      <description>
+      If true then the :cite:t:`patej_simple_2015` mass distribution is truncated beyond the outer radius.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution"  name="massDistribution_"  source="parameters"/>
@@ -139,8 +154,8 @@ contains
   end function patejLoeb2015ConstructorParameters
 
   function patejLoeb2015ConstructorInternal(gamma,massDistribution_,densityNormalization,mass,radiusOuter,radiusShock,truncateAtOuterRadius,componentType,massType) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionPatejLoeb2015} mass distribution class.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionPatejLoeb2015` mass distribution class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -184,8 +199,8 @@ contains
   end function patejLoeb2015ConstructorInternal
 
   subroutine patejLoeb2015Destructor(self)
-    !!{
-    Destructor for the \refClass{massDistributionPatejLoeb2015} mass distribution class.
+    !!{RST
+    Destructor for the :galacticus-class:`massDistributionPatejLoeb2015` mass distribution class.
     !!}
     type(massDistributionPatejLoeb2015), intent(inout) :: self
     implicit none
@@ -197,8 +212,8 @@ contains
   end subroutine patejLoeb2015Destructor
   
   double precision function patejLoeb2015RadiusDarkMatter(self,radius) result(radiusDarkMatter)
-    !!{
-    Return the corresponding radius in the dark matter distribution the specified \mono{radius} in a \cite{patej_simple_2015} mass distribution.
+    !!{RST
+    Return the corresponding radius in the dark matter distribution the specified ``radius`` in a :cite:t:`patej_simple_2015` mass distribution.
     !!}
     implicit none
     class           (massDistributionPatejLoeb2015), intent(inout) :: self
@@ -214,8 +229,8 @@ contains
   end function patejLoeb2015RadiusDarkMatter
 
   function patejLoeb2015CoordinatesDarkMatter(self,coordinates) result(coordinatesDarkMatter)
-    !!{
-    Return the corresponding coordinates in the dark matter distribution the specified \mono{radius} in a \cite{patej_simple_2015} mass distribution.
+    !!{RST
+    Return the corresponding coordinates in the dark matter distribution the specified ``radius`` in a :cite:t:`patej_simple_2015` mass distribution.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
@@ -232,8 +247,8 @@ contains
   end function patejLoeb2015CoordinatesDarkMatter
 
   double precision function patejLoeb2015Density(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in a \cite{patej_simple_2015} mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a :cite:t:`patej_simple_2015` mass distribution.
     !!}
     implicit none
     class(massDistributionPatejLoeb2015), intent(inout) :: self
@@ -253,8 +268,8 @@ contains
   end function patejLoeb2015Density
 
   double precision function patejLoeb2015DensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
-    !!{
-    Return the density at the specified \mono{coordinates} in a \cite{patej_simple_2015} mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a :cite:t:`patej_simple_2015` mass distribution.
     !!}
     implicit none
     class  (massDistributionPatejLoeb2015), intent(inout), target   :: self
@@ -278,8 +293,8 @@ contains
   end function patejLoeb2015DensityGradientRadial
 
   double precision function patejLoeb2015MassEnclosedBySphere(self,radius) result(massEnclosedBySphere)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for a \cite{patej_simple_2015} mass distribution.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for a :cite:t:`patej_simple_2015` mass distribution.
     !!}
     implicit none
     class           (massDistributionPatejLoeb2015), intent(inout), target :: self
@@ -295,7 +310,7 @@ contains
   end function patejLoeb2015MassEnclosedBySphere
 
   logical function patejLoeb2015PotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return that the potential has an analytic form.
     !!}
     implicit none
@@ -306,26 +321,27 @@ contains
   end function patejLoeb2015PotentialIsAnalytic
 
   double precision function patejLoeb2015Potential(self,coordinates,status) result(potential)
-    !!{
-    Return the potential at the specified \mono{coordinates} in a \cite{patej_simple_2015} mass distribution. The
-    potential is given by
-    \begin{equation}
-      \phi(r) = - \int^\infty_r \mathrm{d}r \frac{\mathrm{G}M(r)}{r^2}.
-    \end{equation}    
-    Given that $M(r) = f M^\prime(r^\prime)$ where $M^\prime(r^\prime)$ is the mass profile of the dark matter distribution,
-    $r^\prime = r_\mathrm{s} (r/r_\mathrm{s})^\Gamma$ (and, therefore, $r = r_\mathrm{s} (r^\prime/r_\mathrm{s})^{1/\Gamma}$), and
-    $f$ is the normalization factor, we can write this as:
-    \begin{eqnarray}
-          \phi(r) &=& - \int^\infty_{r^\prime(r)} \mathrm{d}r^\prime  f \frac{\mathrm{d}r}{\mathrm{d}r^\prime} (r^\prime/r_\mathrm{s})^{-2/\Gamma} \frac{\mathrm{G}M^\prime(r^\prime)}{r_\mathrm{s}^2} \nonumber \\
-          &=&   - \int^\infty_{r^\prime(r)} \mathrm{d}r^\prime  \frac{f}{\Gamma} (r^\prime/r_\mathrm{s})^{-1/\Gamma-1} \frac{\mathrm{G}M^\prime(r^\prime)}{r_\mathrm{s}^2}
-    \end{eqnarray}
+    !!{RST
+    Return the potential at the specified ``coordinates`` in a :cite:t:`patej_simple_2015` mass distribution. The potential is given by
+
+    .. math::
+
+       \phi(r) = - \int^\infty_r \mathrm{d}r \frac{\mathrm{G}M(r)}{r^2}.
+
+    Given that :math:`M(r) = f M^\prime(r^\prime)` where :math:`M^\prime(r^\prime)` is the mass profile of the dark matter distribution, :math:`r^\prime = r_\mathrm{s} (r/r_\mathrm{s})^\Gamma` (and, therefore, :math:`r = r_\mathrm{s} (r^\prime/r_\mathrm{s})^{1/\Gamma}`), and :math:`f` is the normalization factor, we can write this as:
+
+    .. math::
+
+       \phi(r) &=& - \int^\infty_{r^\prime(r)} \mathrm{d}r^\prime  f \frac{\mathrm{d}r}{\mathrm{d}r^\prime} (r^\prime/r_\mathrm{s})^{-2/\Gamma} \frac{\mathrm{G}M^\prime(r^\prime)}{r_\mathrm{s}^2} \nonumber \\
+       &=&   - \int^\infty_{r^\prime(r)} \mathrm{d}r^\prime  \frac{f}{\Gamma} (r^\prime/r_\mathrm{s})^{-1/\Gamma-1} \frac{\mathrm{G}M^\prime(r^\prime)}{r_\mathrm{s}^2}
+
     which we can then integrate by parts to get:
-    \begin{equation}
-      \phi(r) = + f \left(\frac{r^\prime}{r_\mathrm{s}}\right)^{-1/\Gamma} \frac{\mathrm{G}M^\prime(r^\prime)}{r_\mathrm{s}} - 4 \pi f \frac{\mathrm{G} r_\mathrm{s}^{1/\Gamma} \mathcal{R}(r^\prime,\infty,2-1/\Gamma)}{r_\mathrm{s}},
-    \end{equation}
-    where $\mathcal{R}(a,b,m)$ is the $m^\mathrm{th}$ radial density moment between $r^\prime=a$ and $r^\prime=b$ of the dark
-    matter distribution, and we have assumed that $(r^\prime/r_\mathrm{s})^{-1/\Gamma} M^\prime(r^\prime) \rightarrow 0$ as
-    $r^\prime \rightarrow \infty$.    
+
+    .. math::
+
+       \phi(r) = + f \left(\frac{r^\prime}{r_\mathrm{s}}\right)^{-1/\Gamma} \frac{\mathrm{G}M^\prime(r^\prime)}{r_\mathrm{s}} - 4 \pi f \frac{\mathrm{G} r_\mathrm{s}^{1/\Gamma} \mathcal{R}(r^\prime,\infty,2-1/\Gamma)}{r_\mathrm{s}},
+
+    where :math:`\mathcal{R}(a,b,m)` is the :math:`m^\mathrm{th}` radial density moment between :math:`r^\prime=a` and :math:`r^\prime=b` of the dark matter distribution, and we have assumed that :math:`(r^\prime/r_\mathrm{s})^{-1/\Gamma} M^\prime(r^\prime) \rightarrow 0` as :math:`r^\prime \rightarrow \infty`.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
@@ -398,20 +414,26 @@ contains
   end function patejLoeb2015Potential
 
   double precision function patejLoeb2015DensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite) result(densityRadialMoment)
-    !!{
-    Computes radial moments of the density in a \cite{patej_simple_2015} mass distribution. For this profile we have:
-    \begin{equation}
-    \rho_\mathrm{g}(r) = f \Gamma (r/s)^{3 \Gamma - 3} \rho_\mathrm{DM}(s[r/s]^\Gamma).
-    \end{equation}
-    Defining $R=s[r/s]^\Gamma$, such that $r/s = (R/s)^{1/\Gamma}$, and $\mathrm{d}r = \Gamma^{-1} (R/s)^{1/\Gamma-1} \mathrm{d}R$, then
-    \begin{equation}
-    \int r^m \rho_\mathrm{g}(r) \mathrm{d}r = f s^{(m-2)(\Gamma-1)/\Gamma} \int R^{(2\Gamma-2+m)/\Gamma} \rho_\mathrm{DM}(R) \mathrm{d}R,
-    \end{equation}
+    !!{RST
+    Computes radial moments of the density in a :cite:t:`patej_simple_2015` mass distribution. For this profile we have:
+
+    .. math::
+
+       \rho_\mathrm{g}(r) = f \Gamma (r/s)^{3 \Gamma - 3} \rho_\mathrm{DM}(s[r/s]^\Gamma).
+
+    Defining :math:`R=s[r/s]^\Gamma`, such that :math:`r/s = (R/s)^{1/\Gamma}`, and :math:`\mathrm{d}r = \Gamma^{-1} (R/s)^{1/\Gamma-1} \mathrm{d}R`, then
+
+    .. math::
+
+       \int r^m \rho_\mathrm{g}(r) \mathrm{d}r = f s^{(m-2)(\Gamma-1)/\Gamma} \int R^{(2\Gamma-2+m)/\Gamma} \rho_\mathrm{DM}(R) \mathrm{d}R,
+
     or
-    \begin{equation}
-    \mathcal{R}_\mathrm{g}(r;m) = f s^{(m-2)(\Gamma-1)/\Gamma} \mathcal{R}_\mathrm{DM}(R;(2\Gamma-2+m)/\Gamma),
-    \end{equation}
-    where $\mathcal{R}(r;m)$ is the $m^\mathrm{th}$ radial moment of the density profile.
+
+    .. math::
+
+       \mathcal{R}_\mathrm{g}(r;m) = f s^{(m-2)(\Gamma-1)/\Gamma} \mathcal{R}_\mathrm{DM}(R;(2\Gamma-2+m)/\Gamma),
+
+    where :math:`\mathcal{R}(r;m)` is the :math:`m^\mathrm{th}` radial moment of the density profile.
     !!}
     implicit none
     class           (massDistributionPatejLoeb2015), intent(inout)           :: self

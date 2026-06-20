@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test decaying dark matter calculations.
 !!}
 
 program Test_Decaying_Dark_Matter
-  !!{
+  !!{RST
   Tests of decaying dark matter calculations.
   !!}
   use :: Display             , only : displayVerbositySet               , verbosityLevelStandard

@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a satellite tidal field class which assumes zero tidal field.
   !!}
 
   !![
-  <satelliteTidalField name="satelliteTidalFieldNull">
+  <satelliteTidalField name="satelliteTidalFieldNull" docformat="rst">
    <description>
-    A satellite tidal field class which assumes a zero tidal field always.
+   A satellite tidal field class which assumes a zero tidal field always.
    </description>
   </satelliteTidalField>
   !!]
   type, extends(satelliteTidalFieldClass) :: satelliteTidalFieldNull
-     !!{
+     !!{RST
      Implementation of a satellite tidal friction class which assumes no tidal field.
      !!}
      private
@@ -40,7 +40,7 @@
   end type satelliteTidalFieldNull
 
   interface satelliteTidalFieldNull
-     !!{
+     !!{RST
      Constructors for the null satellite tidal field class.
      !!}
      module procedure nullConstructorParameters
@@ -49,8 +49,8 @@
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{satelliteTidalFieldNull} satellite tidal field class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`satelliteTidalFieldNull` satellite tidal field class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +65,7 @@ contains
   end function nullConstructorParameters
 
   function nullTidalTensor(self,node,nodeHost,atPericenter,includeCentrifugalAcceleration) result(tensorTidal)
-    !!{
+    !!{RST
     Return the radial part of the tidal tensor for satellite halos assumed to be zero.
     !!}
     use :: Tensors, only : tensorNullR2D3Sym
@@ -82,7 +82,7 @@ contains
   end function nullTidalTensor
 
   double precision function nullTidalTensorRadial(self,node,nodeHost,atPericenter,includeCentrifugalAcceleration) result(tensorTidalRadial)
-    !!{
+    !!{RST
     Return the radial part of the tidal tensor for satellite halos assumed to be zero.
     !!}
     implicit none
@@ -97,7 +97,7 @@ contains
   end function nullTidalTensorRadial
 
   double precision function nullTidalTensorDominant(self,node,nodeHost,atPericenter,includeCentrifugalAcceleration) result(tensorTidalDominant)
-    !!{
+    !!{RST
     Return the dominant eigenvalue of the tidal tensor for satellite halos assumed to be zero.
     !!}
     implicit none

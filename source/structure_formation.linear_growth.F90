@@ -17,21 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements linear growth of cosmological structure.
 !!}
 
 module Linear_Growth
-  !!{
+  !!{RST
   Provides a class that implements linear growth of cosmological structure.
   !!}
   private
 
   ! Enumeration for normalization options.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>normalize</name>
-   <description>Specifies normalization options for linear growth factor.</description>
+   <description>
+   Specifies normalization options for linear growth factor.
+   </description>
    <entry label="matterDominated" />
    <entry label="presentDay"      />
   </enumeration>
@@ -39,9 +41,11 @@ module Linear_Growth
 
   ! Enumeration for components.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>component</name>
-   <description>Specifies components for linear growth factor.</description>
+   <description>
+   Specifies components for linear growth factor.
+   </description>
    <entry label="darkMatter" />
    <entry label="baryons"    />
    <entry label="radiation"  />
@@ -49,16 +53,17 @@ module Linear_Growth
   !!]
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>linearGrowth</name>
    <descriptiveName>Linear Growth of Cosmological Structure</descriptiveName>
-   <description>Class providing the linear growth factor $D(t)$ and its derivatives, which describe how matter density
-    perturbations grow in the linear regime. The growth factor is used to normalize the power spectrum and to relate the
-    amplitude of perturbations at different epochs. Implementations may treat different matter components (dark matter, baryons,
-    radiation) and different approximations to the growth equation.</description>
+   <description>
+   Class providing the linear growth factor :math:`D(t)` and its derivatives, which describe how matter density perturbations grow in the linear regime. The growth factor is used to normalize the power spectrum and to relate the amplitude of perturbations at different epochs. Implementations may treat different matter components (dark matter, baryons, radiation) and different approximations to the growth equation.
+   </description>
    <default>collisionlessMatter</default>
    <method name="value" >
-    <description>Return the linear growth factor at the given time and mass.</description>
+    <description>
+    Return the linear growth factor at the given time and mass.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision                          , intent(in   ), optional :: time      , expansionFactor</argument>
@@ -68,7 +73,9 @@ module Linear_Growth
     <argument>double precision                          , intent(in   ), optional :: wavenumber                 </argument>
    </method>
    <method name="logarithmicDerivativeExpansionFactor" >
-    <description>Return the logarithmic derivative of linear growth factor with respect to expansion factor.</description>
+    <description>
+    Return the logarithmic derivative of linear growth factor with respect to expansion factor.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision                          , intent(in   ), optional :: time      , expansionFactor</argument>
@@ -77,7 +84,9 @@ module Linear_Growth
     <argument>double precision                          , intent(in   ), optional :: wavenumber                 </argument>
    </method>
    <method name="logarithmicDerivativeWavenumber" >
-    <description>Return the logarithmic derivative of linear growth factor with respect to wavenumber.</description>
+    <description>
+    Return the logarithmic derivative of linear growth factor with respect to wavenumber.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision                          , intent(in   ), optional :: time      , expansionFactor</argument>
@@ -86,7 +95,9 @@ module Linear_Growth
     <argument>double precision                          , intent(in   ), optional :: wavenumber                 </argument>
    </method>
    <method name="isWavenumberDependent" >
-    <description>Return true if the growth function is wavenumber-dependent.</description>
+    <description>
+    Return true if the growth function is wavenumber-dependent.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <argument>type(enumerationComponentType), intent(in   ), optional :: component</argument>

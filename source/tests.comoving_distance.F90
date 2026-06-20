@@ -18,10 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_Comoving_Distance
-  !!{
-  Tests comoving distance calculations for various universes. Distances calculated using Python
-  \href{http://www.astro.ucla.edu/~wright/CC.python}{implementation} of Ned Wright's cosmology
-  calculator.
+  !!{RST
+  Tests comoving distance calculations for various universes. Distances calculated using Python `implementation <http://www.astro.ucla.edu/~wright/CC.python>`_ of Ned Wright's cosmology calculator.
   !!}
   use :: Cosmology_Functions             , only : cosmologyFunctions       , cosmologyFunctionsClass, cosmologyFunctionsMatterLambda
   use :: Cosmology_Functions_Options     , only : distanceTypeComoving

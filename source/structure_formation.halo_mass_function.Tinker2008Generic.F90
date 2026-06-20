@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a \cite{tinker_towardhalo_2008} dark matter halo mass function class with user-specified parameters.
+  !!{RST
+  Implements a :cite:t:`tinker_towardhalo_2008` dark matter halo mass function class with user-specified parameters.
   !!}
 
   !![
-  <haloMassFunction name="haloMassFunctionTinker2008Generic">
-   <description>The dark matter halo mass function is computed using the empirical fitting function of \cite{tinker_towardhalo_2008}, calibrated against N-body simulations over a wide range of halo masses and redshifts. The normalization $A$ and shape parameters $a$, $b$, $c$ of the fit can each be specified directly via input parameters.</description>
+  <haloMassFunction name="haloMassFunctionTinker2008Generic" docformat="rst">
+   <description>
+   The dark matter halo mass function is computed using the empirical fitting function of :cite:t:`tinker_towardhalo_2008`, calibrated against N-body simulations over a wide range of halo masses and redshifts. The normalization :math:`A` and shape parameters :math:`a`, :math:`b`, :math:`c` of the fit can each be specified directly via input parameters.
+   </description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionTinker2008Form) :: haloMassFunctionTinker2008Generic
-     !!{
-     A halo mass function class using the fitting function of \cite{tinker_towardhalo_2008} with user-specified parameters.
+     !!{RST
+     A halo mass function class using the fitting function of :cite:t:`tinker_towardhalo_2008` with user-specified parameters.
      !!}
      private
      double precision :: normalization_, a_, &
@@ -42,8 +44,8 @@
   end type haloMassFunctionTinker2008Generic
 
   interface haloMassFunctionTinker2008Generic
-     !!{
-     Constructors for the \refClass{haloMassFunctionTinker2008Generic} halo mass function class.
+     !!{RST
+     Constructors for the :galacticus-class:`haloMassFunctionTinker2008Generic` halo mass function class.
      !!}
      module procedure tinker2008GenericConstructorParameters
      module procedure tinker2008GenericConstructorInternal
@@ -52,8 +54,8 @@
 contains
 
   function tinker2008GenericConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{haloMassFunctionTinker2008Generic} halo mass function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`haloMassFunctionTinker2008Generic` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -67,32 +69,48 @@ contains
          &                                                                b                        , c
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>normalization</name>
       <defaultValue>0.150d0</defaultValue>
-      <defaultSource>\citep{trac_scorch_2015}</defaultSource>
-      <description>The normalization parameter, $A$, for the \cite{tinker_towardhalo_2008} halo mass function.</description>
+      <defaultSource>
+      :cite:p:`trac_scorch_2015`
+      </defaultSource>
+      <description>
+      The normalization parameter, :math:`A`, for the :cite:t:`tinker_towardhalo_2008` halo mass function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>a</name>
       <defaultValue>1.36d0</defaultValue>
-      <defaultSource>\citep{trac_scorch_2015}</defaultSource>
-      <description>The parameter $a$ for the \cite{tinker_towardhalo_2008} halo mass function.</description>
+      <defaultSource>
+      :cite:p:`trac_scorch_2015`
+      </defaultSource>
+      <description>
+      The parameter :math:`a` for the :cite:t:`tinker_towardhalo_2008` halo mass function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>b</name>
       <defaultValue>2.54d0</defaultValue>
-      <defaultSource>\citep{trac_scorch_2015}</defaultSource>
-      <description>The parameter $b$ for the \cite{tinker_towardhalo_2008} halo mass function.</description>
+      <defaultSource>
+      :cite:p:`trac_scorch_2015`
+      </defaultSource>
+      <description>
+      The parameter :math:`b` for the :cite:t:`tinker_towardhalo_2008` halo mass function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>c</name>
       <defaultValue>1.14d0</defaultValue>
-      <defaultSource>\citep{trac_scorch_2015}</defaultSource>
-      <description>The parameter $c$ for the \cite{tinker_towardhalo_2008} halo mass function.</description>
+      <defaultSource>
+      :cite:p:`trac_scorch_2015`
+      </defaultSource>
+      <description>
+      The parameter :math:`c` for the :cite:t:`tinker_towardhalo_2008` halo mass function.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
@@ -121,8 +139,8 @@ contains
   end function tinker2008GenericConstructorParameters
 
   function tinker2008GenericConstructorInternal(normalization,a,b,c,cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{haloMassFunctionTinker2008Generic} halo mass function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`haloMassFunctionTinker2008Generic` halo mass function class.
     !!}
     implicit none
     type            (haloMassFunctionTinker2008Generic)                             :: self
@@ -146,8 +164,8 @@ contains
   end function tinker2008GenericConstructorInternal
 
   subroutine tinker2008GenericDestructor(self)
-    !!{
-    Destructor for the \refClass{haloMassFunctionTinker2008Generic} halo mass function class.
+    !!{RST
+    Destructor for the :galacticus-class:`haloMassFunctionTinker2008Generic` halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionTinker2008Generic), intent(inout) :: self
@@ -162,8 +180,8 @@ contains
   end subroutine tinker2008GenericDestructor
 
   double precision function tinker2008GenericNormalization(self,time,mass)
-    !!{
-    Return the normalization for the \mono{tinker2008Generic} halo mass function class.
+    !!{RST
+    Return the normalization for the ``tinker2008Generic`` halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionTinker2008Generic), intent(inout) :: self
@@ -175,8 +193,8 @@ contains
   end function tinker2008GenericNormalization
 
   double precision function tinker2008GenericA(self,time,mass)
-    !!{
-    Return the $a$ parameter for the \mono{tinker2008Generic} halo mass function class.
+    !!{RST
+    Return the :math:`a` parameter for the ``tinker2008Generic`` halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionTinker2008Generic), intent(inout) :: self
@@ -188,8 +206,8 @@ contains
   end function tinker2008GenericA
 
   double precision function tinker2008GenericB(self,time,mass)
-    !!{
-    Return the $b$ parameter for the \mono{tinker2008Generic} halo mass function class.
+    !!{RST
+    Return the :math:`b` parameter for the ``tinker2008Generic`` halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionTinker2008Generic), intent(inout) :: self
@@ -201,8 +219,8 @@ contains
   end function tinker2008GenericB
 
   double precision function tinker2008GenericC(self,time,mass)
-    !!{
-    Return the $c$ parameter for the \mono{tinker2008Generic} halo mass function class.
+    !!{RST
+    Return the :math:`c` parameter for the ``tinker2008Generic`` halo mass function class.
     !!}
     implicit none
     class           (haloMassFunctionTinker2008Generic), intent(inout) :: self

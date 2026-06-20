@@ -17,30 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements active masses for star formation.
 !!}
 
 module Star_Formation_Active_Masses
-  !!{
+  !!{RST
   Provides a class that implements calculations of active masses for star formation.
   !!}
   use :: Galacticus_Nodes, only : nodeComponent
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>starFormationActiveMass</name>
    <descriptiveName>Active Masses for Star Formation</descriptiveName>
-   <description>Class providing models of the actively star-forming gas mass in a galactic component —
-    the mass (in $\mathrm{M}_\odot$) of gas that is eligible to form stars, which may differ from the total
-    ISM mass depending on the star formation model. For example, only molecular gas or gas above a
-    threshold density may be considered active. This active mass is passed to the star formation
-    rate law to determine the overall rate of star formation in the disk or spheroid, and is the
-    key coupling between the gas reservoir and the stellar mass growth rate.</description>
+   <description>
+   Class providing models of the actively star-forming gas mass in a galactic component — the mass (in :math:`\mathrm{M}_\odot`) of gas that is eligible to form stars, which may differ from the total ISM mass depending on the star formation model. For example, only molecular gas or gas above a threshold density may be considered active. This active mass is passed to the star formation rate law to determine the overall rate of star formation in the disk or spheroid, and is the key coupling between the gas reservoir and the stellar mass growth rate.
+   </description>
    <default>totalISM</default>
    <method name="massActive" >
-    <description>Returns the mass (in $\mathrm{M}_\odot$) of gas which is actively star forming in the provided \mono{component}.</description>
+    <description>
+    Returns the mass (in :math:`\mathrm{M}_\odot`) of gas which is actively star forming in the provided ``component``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>class(nodeComponent), intent(inout) :: component</argument>

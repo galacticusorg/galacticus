@@ -17,15 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements an extension to the very simple hot halo node component by including an outflowed reservoir
-with delayed reincorporation.
+!!{RST
+Contains a module which implements an extension to the very simple hot halo node component by including an outflowed reservoir with delayed reincorporation.
 !!}
 
 module Node_Component_Hot_Halo_VS_Delayed
-  !!{
-  Implements an extension to the very simple hot halo node component by including an outflowed reservoir
-  with delayed reincorporation.
+  !!{RST
+  Implements an extension to the very simple hot halo node component by including an outflowed reservoir with delayed reincorporation.
   !!}
   implicit none
   private
@@ -72,7 +70,7 @@ contains
   <nodeComponentInitializationTask function="Node_Component_Hot_Halo_VS_Delayed_Initialize"/>
   !!]
   subroutine Node_Component_Hot_Halo_VS_Delayed_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the very simple hot halo component module.
     !!}
     use :: Galacticus_Nodes, only : defaultHotHaloComponent, nodeComponentHotHaloVerySimpleDelayed
@@ -91,10 +89,12 @@ contains
        subParameters=parameters%subParameters('componentHotHalo')
        ! Read parameters controlling the physical implementation.
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>scaleRelativeMass</name>
          <defaultValue>1.0d-2</defaultValue>
-         <description>The mass scale, relative to the total mass of the node, below which calculations in the delayed very simple hot halo component are allowed to become inaccurate.</description>
+         <description>
+         The mass scale, relative to the total mass of the node, below which calculations in the delayed very simple hot halo component are allowed to become inaccurate.
+         </description>
          <source>subParameters</source>
        </inputParameter>
        !!]
@@ -104,7 +104,7 @@ contains
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Initialize
 
   subroutine Node_Component_Hot_Halo_VS_Delayed_Outflowing_Mass_Rate(self,rate,interrupt,interruptProcedure)
-    !!{
+    !!{RST
     Accept outflowing gas from a galaxy and deposit it into very simple hot halo.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo
@@ -121,7 +121,7 @@ contains
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Outflowing_Mass_Rate
 
   subroutine Node_Component_Hot_Halo_VS_Delayed_Outflowing_Abundances_Rate(self,rate,interrupt,interruptProcedure)
-    !!{
+    !!{RST
     Accept outflowing gas abundances from a galaxy and deposit them into very simple hot halo.
     !!}
     use :: Abundances_Structure, only : abundances
@@ -142,8 +142,8 @@ contains
   <scaleSetTask function="Node_Component_Hot_Halo_VS_Delayed_Scale_Set"/>
   !!]
   subroutine Node_Component_Hot_Halo_VS_Delayed_Scale_Set(node)
-    !!{
-    Set scales for properties of \mono{node}.
+    !!{RST
+    Set scales for properties of ``node``.
     !!}
     use :: Abundances_Structure, only : unitAbundances
     use :: Galacticus_Nodes    , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloVerySimpleDelayed, treeNode, &

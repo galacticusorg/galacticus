@@ -17,29 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class of merger tree mass resolutions.
 !!}
 
 module Merger_Trees_Build_Mass_Resolution
-  !!{
+  !!{RST
   Provides a class of merger tree mass resolutions.
   !!}
   use :: Galacticus_Nodes, only : mergerTree
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>mergerTreeMassResolution</name>
    <descriptiveName>Merger Tree Building Mass Resolutions</descriptiveName>
-   <description>Class providing the minimum progenitor halo mass (mass resolution) to resolve when building
-    a merger tree. Branches below this mass are not followed individually; instead their accreted mass is
-    treated as smooth, unresolved accretion onto the main progenitor. The mass resolution controls the
-    trade-off between completeness of the merger history and computational cost, and can be set as a fixed
-    value, a fraction of the root halo mass, or adaptively based on tree size.</description>
+   <description>
+   Class providing the minimum progenitor halo mass (mass resolution) to resolve when building a merger tree. Branches below this mass are not followed individually; instead their accreted mass is treated as smooth, unresolved accretion onto the main progenitor. The mass resolution controls the trade-off between completeness of the merger history and computational cost, and can be set as a fixed value, a fraction of the root halo mass, or adaptively based on tree size.
+   </description>
    <default>fixed</default>
    <method name="resolution" >
-    <description>Gives the mass resolution to use for the given tree.</description>
+    <description>
+    Gives the mass resolution to use for the given tree.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(mergerTree), intent(in   ) :: tree</argument>

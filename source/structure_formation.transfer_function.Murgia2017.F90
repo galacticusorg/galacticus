@@ -17,22 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a transfer function class based on the non-cold dark matter fitting function of
-  \cite{murgia_non-cold_2017}.
+  !!{RST
+  Implements a transfer function class based on the non-cold dark matter fitting function of :cite:t:`murgia_non-cold_2017`.
   !!}
 
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
   !![
-  <transferFunction name="transferFunctionMurgia2017">
-   <description>Provides a matter transfer function for non-cold dark matter models using the flexible fitting function of \cite{murgia_non-cold_2017}, which parametrizes the small-scale power suppression relative to cold dark matter. The cut-off scale length $\alpha$ and shape parameters $\beta$ and $\gamma$ control the form of the suppression, with the redshift of evaluation set by \mono{[redshift]}.</description>
+  <transferFunction name="transferFunctionMurgia2017" docformat="rst">
+   <description>
+   Provides a matter transfer function for non-cold dark matter models using the flexible fitting function of :cite:t:`murgia_non-cold_2017`, which parametrizes the small-scale power suppression relative to cold dark matter. The cut-off scale length :math:`\alpha` and shape parameters :math:`\beta` and :math:`\gamma` control the form of the suppression, with the redshift of evaluation set by ``[redshift]``.
+   </description>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionMurgia2017
-     !!{
-     A transfer function class based on the non-cold dark matter fitting function of \cite{murgia_non-cold_2017}.
+     !!{RST
+     A transfer function class based on the non-cold dark matter fitting function of :cite:t:`murgia_non-cold_2017`.
      !!}
      private
      double precision                                    :: alpha                         , beta, &
@@ -50,8 +51,8 @@
   end type transferFunctionMurgia2017
 
   interface transferFunctionMurgia2017
-     !!{
-     Constructors for the \refClass{transferFunctionMurgia2017} transfer function class.
+     !!{RST
+     Constructors for the :galacticus-class:`transferFunctionMurgia2017` transfer function class.
      !!}
      module procedure murgia2017ConstructorParameters
      module procedure murgia2017ConstructorInternal
@@ -60,8 +61,8 @@
 contains
 
 function murgia2017ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{transferFunctionMurgia2017} transfer function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`transferFunctionMurgia2017` transfer function class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
@@ -79,32 +80,40 @@ function murgia2017ConstructorParameters(parameters) result(self)
     if (.not.parameters%isPresent('transferFunction')) call Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
     ! Read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alpha</name>
       <source>parameters</source>
       <defaultValue>0.0075d0</defaultValue>
-      <description>The parameter $\alpha$, which sets the cut-off scale length, appearing in the warm dark matter transfer function \citep{murgia_non-cold_2017}.</description>
+      <description>
+      The parameter :math:`\alpha`, which sets the cut-off scale length, appearing in the warm dark matter transfer function :cite:p:`murgia_non-cold_2017`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <source>parameters</source>
       <defaultValue>1.5d0</defaultValue>
-      <description>The parameter $\beta$, which controls the shape of the cut-off, appearing in the warm dark matter transfer function \citep{murgia_non-cold_2017}.</description>
+      <description>
+      The parameter :math:`\beta`, which controls the shape of the cut-off, appearing in the warm dark matter transfer function :cite:p:`murgia_non-cold_2017`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma</name>
       <source>parameters</source>
       <defaultValue>-10.0d0</defaultValue>
-      <description>The parameter $\gamma$, which controls the shape of the cut-off, appearing in the warm dark matter transfer function \citep{murgia_non-cold_2017}.</description>
+      <description>
+      The parameter :math:`\gamma`, which controls the shape of the cut-off, appearing in the warm dark matter transfer function :cite:p:`murgia_non-cold_2017`.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
       <source>parameters</source>
       <defaultValue>cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%equalityEpochMatterRadiation(requestTypeExpansionFactor))</defaultValue>
-      <description>The redshift of the epoch at which the transfer function is defined.</description>
+      <description>
+      The redshift of the epoch at which the transfer function is defined.
+      </description>
     </inputParameter>
     !!]
     self=transferFunctionMurgia2017(transferFunctionCDM,alpha,beta,gamma,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_)
@@ -118,8 +127,8 @@ function murgia2017ConstructorParameters(parameters) result(self)
   end function murgia2017ConstructorParameters
 
   function murgia2017ConstructorInternal(transferFunctionCDM,alpha,beta,gamma,time,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{transferFunctionMurgia2017} transfer function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`transferFunctionMurgia2017` transfer function class.
     !!}
     implicit none
     type            (transferFunctionMurgia2017)                        :: self
@@ -137,8 +146,8 @@ function murgia2017ConstructorParameters(parameters) result(self)
   end function murgia2017ConstructorInternal
 
   subroutine murgia2017Destructor(self)
-    !!{
-    Destructor for the \refClass{transferFunctionMurgia2017} transfer function class.
+    !!{RST
+    Destructor for the :galacticus-class:`transferFunctionMurgia2017` transfer function class.
     !!}
     implicit none
     type(transferFunctionMurgia2017), intent(inout) :: self
@@ -152,7 +161,7 @@ function murgia2017ConstructorParameters(parameters) result(self)
   end subroutine murgia2017Destructor
 
   double precision function murgia2017Value(self,wavenumber)
-    !!{
+    !!{RST
     Return the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -173,7 +182,7 @@ function murgia2017ConstructorParameters(parameters) result(self)
   end function murgia2017Value
 
   double precision function murgia2017LogarithmicDerivative(self,wavenumber)
-    !!{
+    !!{RST
     Return the logarithmic derivative of the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -203,9 +212,8 @@ function murgia2017ConstructorParameters(parameters) result(self)
   end function murgia2017LogarithmicDerivative
 
   double precision function murgia2017HalfModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    to a \gls{cdm} transfer function.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function.
     !!}
     use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
@@ -244,9 +252,8 @@ function murgia2017ConstructorParameters(parameters) result(self)
   end function murgia2017HalfModeMass
 
   double precision function murgia2017QuarterModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
-    to a \gls{cdm} transfer function.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative to a :term:`CDM` transfer function.
     !!}
     use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
@@ -285,7 +292,7 @@ function murgia2017ConstructorParameters(parameters) result(self)
   end function murgia2017QuarterModeMass
 
   double precision function murgia2017EpochTime(self)
-    !!{
+    !!{RST
     Return the cosmic time at the epoch at which this transfer function is defined.
     !!}
     implicit none

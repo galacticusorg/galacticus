@@ -17,21 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree operator which prunes all but a specified branch.
   !!}
 
   use :: Kind_Numbers, only : kind_int8
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorPruneBranchComplement">
+  <mergerTreeOperator name="mergerTreeOperatorPruneBranchComplement" docformat="rst">
    <description>
-    A merger tree operator class which prunes all branches of a merger tree except the single branch rooted at the node identified by \mono{[branchNodeID]}, isolating one lineage for detailed analysis. This enables focused study of a specific halo's merger history by removing all unrelated branches from the tree structure.
+   A merger tree operator class which prunes all branches of a merger tree except the single branch rooted at the node identified by ``[branchNodeID]``, isolating one lineage for detailed analysis. This enables focused study of a specific halo's merger history by removing all unrelated branches from the tree structure.
    </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneBranchComplement
-     !!{
+     !!{RST
      A merger tree operator class which prunes all but a specified branch.
      !!}
      private
@@ -41,7 +41,7 @@
   end type mergerTreeOperatorPruneBranchComplement
 
   interface mergerTreeOperatorPruneBranchComplement
-     !!{
+     !!{RST
      Constructors for the prune-non-essential merger tree operator class.
      !!}
      module procedure pruneBranchComplementConstructorParameters
@@ -51,7 +51,7 @@
 contains
 
   function pruneBranchComplementConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the prune-non-essential merger tree operator class which takes a parameter set as input.
     !!}
     implicit none
@@ -60,11 +60,13 @@ contains
     integer(kind_int8                              )                :: branchNodeID
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>branchNodeID</name>
       <source>parameters</source>
       <variable>branchNodeID</variable>
-      <description>ID of the node at the bash of the branch to avoid pruning.</description>
+      <description>
+      ID of the node at the bash of the branch to avoid pruning.
+      </description>
     </inputParameter>
     !!]
     self=mergerTreeOperatorPruneBranchComplement(branchNodeID)
@@ -75,7 +77,7 @@ contains
   end function pruneBranchComplementConstructorParameters
 
   function pruneBranchComplementConstructorInternal(branchNodeID) result(self)
-    !!{
+    !!{RST
     Internal constructor for the prune-non-essential merger tree operator class.
     !!}
     implicit none
@@ -89,7 +91,7 @@ contains
   end function pruneBranchComplementConstructorInternal
 
   subroutine pruneBranchComplementOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Perform a prune-branch-complement operation on a merger tree.
     !!}
     use :: Galacticus_Nodes              , only : mergerTree                    , treeNode, nodeCOmponentBasic

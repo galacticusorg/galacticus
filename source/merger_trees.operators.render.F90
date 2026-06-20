@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree operator which dumps tree data to a file suitable for 3D rendering.
 !!}
 
@@ -25,26 +25,35 @@ Implements a merger tree operator which dumps tree data to a file suitable for 3
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorRender">
+  <mergerTreeOperator name="mergerTreeOperatorRender" docformat="rst">
    <description>
-    A merger tree operator which outputs data on the structure of a merger tree and its halos useful for rendering the tree as
-    a 3-D structure to a file named \mono{render\_$\langle$treeIndex$\rangle$\_$\langle$outputIndex$\rangle$.hdf5} where $\langle$\mono{treeIndex}$\rangle$ is the index of the tree and $\langle$\mono{outputIndex}$\rangle$ is an incremental
-    counter that tracks the number of outputs for this tree. The output is a simple HDF5 file containing the following
-    datasets:
-    \begin{description}
-     \item [\mono{nodeIndex}] Index of the node;
-     \item [\mono{parentIndex}] Index of the parent node;
-     \item [\mono{childIndex}] Index of the child node;
-     \item [\mono{time}] Time of the node;
-     \item [\mono{expansionFactor}] Corresponding expansion factor;
-     \item [\mono{radiusVirial}] Virial radius of the node;
-     \item [\mono{position}] $(x,y,z)$ position of the node.
-    \end{description}
+   A merger tree operator which outputs data on the structure of a merger tree and its halos useful for rendering the tree as a 3-D structure to a file named ``render_&lt;treeIndex&gt;_&lt;outputIndex&gt;.hdf5`` where :math:`\langle`\ ``treeIndex``\ :math:`\rangle` is the index of the tree and :math:`\langle`\ ``outputIndex``\ :math:`\rangle` is an incremental counter that tracks the number of outputs for this tree. The output is a simple HDF5 file containing the following datasets:
+
+   ``nodeIndex``
+      Index of the node;
+
+   ``parentIndex``
+      Index of the parent node;
+
+   ``childIndex``
+      Index of the child node;
+
+   ``time``
+      Time of the node;
+
+   ``expansionFactor``
+      Corresponding expansion factor;
+
+   ``radiusVirial``
+      Virial radius of the node;
+
+   ``position``
+      :math:`(x,y,z)` position of the node.
    </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorRender
-     !!{
+     !!{RST
      A merger tree operator which dumps tree data to a file suitable for 3D rendering.
      !!}
      private
@@ -58,8 +67,8 @@ Implements a merger tree operator which dumps tree data to a file suitable for 3
   end type mergerTreeOperatorRender
 
   interface mergerTreeOperatorRender
-     !!{
-     Constructors for the \refClass{mergerTreeOperatorRender} merger tree operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeOperatorRender` merger tree operator class.
      !!}
      module procedure renderConstructorParameters
      module procedure renderConstructorInternal
@@ -68,8 +77,8 @@ Implements a merger tree operator which dumps tree data to a file suitable for 3
 contains
 
   function renderConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeOperatorRender} merger tree operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeOperatorRender` merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -92,8 +101,8 @@ contains
   end function renderConstructorParameters
 
   function renderConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeOperatorRender} merger tree operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeOperatorRender` merger tree operator class.
     !!}
     implicit none
     type (mergerTreeOperatorRender)                        :: self
@@ -109,8 +118,8 @@ contains
   end function renderConstructorInternal
 
   subroutine renderDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeOperatorRender} merger tree operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeOperatorRender` merger tree operator class.
     !!}
     implicit none
     type(mergerTreeOperatorRender), intent(inout) :: self
@@ -123,8 +132,8 @@ contains
   end subroutine renderDestructor
   
   subroutine renderOperatePreEvolution(self,tree)
-    !!{
-    Output the structure of \mono{tree}.
+    !!{RST
+    Output the structure of ``tree``.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic      , nodeComponentPosition, &
          &                                          treeNode

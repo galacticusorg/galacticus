@@ -19,7 +19,7 @@
 
   !+    Contributions to this file made by: Andrew Benson, Xiaolong Du.
 
-  !!{
+  !!{RST
   Implements a node operator class that applies tidal mass loss to orbiting satellite halos.
   !!}
 
@@ -28,12 +28,14 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <nodeOperator name="nodeOperatorSatelliteTidalHeating">
-   <description>A node operator class that heats the dark matter distribution of orbiting satellite halos through tidal forces, integrating the cumulative tidal tensor along the orbit using a \refClass{satelliteTidalHeatingRateClass}. \mono{efficiencyDecay} scales the rate at which the tidal tensor integral decays between pericentric passages; \mono{applyPreInfall} enables tidal heating before the satellite formally enters the host virial radius.</description>
+  <nodeOperator name="nodeOperatorSatelliteTidalHeating" docformat="rst">
+   <description>
+   A node operator class that heats the dark matter distribution of orbiting satellite halos through tidal forces, integrating the cumulative tidal tensor along the orbit using a :galacticus-class:`satelliteTidalHeatingRateClass`. ``efficiencyDecay`` scales the rate at which the tidal tensor integral decays between pericentric passages; ``applyPreInfall`` enables tidal heating before the satellite formally enters the host virial radius.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteTidalHeating
-     !!{
+     !!{RST
      A node operator class that applies tidal mass loss to orbiting satellite halos.
      !!}
      private
@@ -48,8 +50,8 @@
   end type nodeOperatorSatelliteTidalHeating
   
   interface nodeOperatorSatelliteTidalHeating
-     !!{
-     Constructors for the \refClass{nodeOperatorSatelliteTidalHeating} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteTidalHeating` node operator class.
      !!}
      module procedure satelliteTidalHeatingRateConstructorParameters
      module procedure satelliteTidalHeatingRateConstructorInternal
@@ -58,8 +60,8 @@
 contains
 
   function satelliteTidalHeatingRateConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorSatelliteTidalHeating} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteTidalHeating` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Error           , only : Error_Report
@@ -73,16 +75,20 @@ contains
     logical                                                            :: applyPreInfall
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>efficiencyDecay</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>Efficiency of the decay of the tidal tensor integral.</description>
+      <description>
+      Efficiency of the decay of the tidal tensor integral.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>applyPreInfall</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, tidal heating is applied pre-infall.</description>
+      <description>
+      If true, tidal heating is applied pre-infall.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="satelliteTidalHeatingRate" name="satelliteTidalHeatingRate_" source="parameters"/>
@@ -100,8 +106,8 @@ contains
   end function satelliteTidalHeatingRateConstructorParameters
 
   function satelliteTidalHeatingRateConstructorInternal(efficiencyDecay,applyPreInfall,satelliteTidalHeatingRate_,satelliteTidalField_,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorSatelliteTidalHeating} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteTidalHeating` node operator class.
     !!}
     implicit none
     type            (nodeOperatorSatelliteTidalHeating)                        :: self
@@ -118,8 +124,8 @@ contains
   end function satelliteTidalHeatingRateConstructorInternal
 
   subroutine satelliteTidalHeatingRateDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorSatelliteTidalHeating} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteTidalHeating` node operator class.
     !!}
     implicit none
     type(nodeOperatorSatelliteTidalHeating), intent(inout) :: self
@@ -133,7 +139,7 @@ contains
   end subroutine satelliteTidalHeatingRateDestructor
   
   subroutine satelliteTidalHeatingRateDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Perform mass loss from a satellite due to tidal stripping.
     !!}
     use :: Coordinates                     , only : coordinateCartesian   , assignment(=)

@@ -17,100 +17,125 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides photon packets for radiative transfer calculations.
 !!}
 
 module Radiative_Transfer_Photon_Packet
-  !!{
+  !!{RST
   Provides a class that implements photon packets for radiative transfer calculations.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>radiativeTransferPhotonPacket</name>
    <descriptiveName>Radiative Transfer Photon Packets</descriptiveName>
-   <description>Class providing photon packets for Monte Carlo radiative transfer calculations---discrete bundles
-    of photon energy that are launched from sources and propagated through the computational domain,
-    interacting with matter via absorption and scattering. Each packet carries a wavelength (in \AA),
-    a wavelength range, a luminosity (in $L_\odot$), a 3-D position, a direction of propagation, and
-    a weight tracking how much of the original energy remains. The packet's trajectory through the
-    grid determines the local radiation field and drives the ionization and heating of the matter.</description>
+   <description>
+   Class providing photon packets for Monte Carlo radiative transfer calculations---discrete bundles of photon energy that are launched from sources and propagated through the computational domain, interacting with matter via absorption and scattering. Each packet carries a wavelength (in \AA), a wavelength range, a luminosity (in :math:`L_\odot`), a 3-D position, a direction of propagation, and a weight tracking how much of the original energy remains. The packet's trajectory through the grid determines the local radiation field and drives the ionization and heating of the matter.
+   </description>
    <default>simple</default>
    <method name="wavelengthSet" >
-    <description>Set the wavelength (in \AA) of the photon packet.</description>
+    <description>
+    Set the wavelength (in \AA) of the photon packet.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavelength</argument>
    </method>
    <method name="wavelength" >
-    <description>Get the wavelength (in \AA) of the photon packet.</description>
+    <description>
+    Get the wavelength (in \AA) of the photon packet.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="wavelengthMinimumSet" >
-    <description>Set the minimum wavelength (in \AA) of the photon packet.</description>
+    <description>
+    Set the minimum wavelength (in \AA) of the photon packet.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavelength</argument>
    </method>
    <method name="wavelengthMinimum" >
-    <description>Get the minimum wavelength (in \AA) of the photon packet.</description>
+    <description>
+    Get the minimum wavelength (in \AA) of the photon packet.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="wavelengthMaximumSet" >
-    <description>Set the maximum wavelength (in \AA) of the photon packet.</description>
+    <description>
+    Set the maximum wavelength (in \AA) of the photon packet.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: wavelength</argument>
    </method>
    <method name="wavelengthMaximum" >
-    <description>Get the maximum wavelength (in \AA) of the photon packet.</description>
+    <description>
+    Get the maximum wavelength (in \AA) of the photon packet.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="luminositySet" >
-    <description>Set the luminosity (in $L_\odot$) of the photon packet.</description>
+    <description>
+    Set the luminosity (in :math:`L_\odot`) of the photon packet.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: luminosity</argument>
    </method>
    <method name="luminosity" >
-    <description>Get the luminosity (in $L_\odot$) of the photon packet.</description>
+    <description>
+    Get the luminosity (in :math:`L_\odot`) of the photon packet.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="positionSet" >
-    <description>Set the position of the photon packet.</description>
+    <description>
+    Set the position of the photon packet.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), dimension(3) :: position</argument>
    </method>
    <method name="position" >
-    <description>Get the position of the photon packet.</description>
+    <description>
+    Get the position of the photon packet.
+    </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
    </method>
    <method name="directionSet" >
-    <description>Set the direction of the photon packet.</description>
+    <description>
+    Set the direction of the photon packet.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), dimension(3) :: direction</argument>
    </method>
    <method name="direction" >
-    <description>Get the direction of the photon packet.</description>
+    <description>
+    Get the direction of the photon packet.
+    </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
    </method>
    <method name="sourceType" >
-    <description>Get a integer type describing the source of the photon packet.</description>
+    <description>
+    Get a integer type describing the source of the photon packet.
+    </description>
     <type>integer</type>
     <pass>yes</pass>
    </method>
    <method name="sourceTypeSet" >
-    <description>Set an integer type describing the source of the photon packet.</description>
+    <description>
+    Set an integer type describing the source of the photon packet.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>integer, intent(in   ) :: sourceType</argument>

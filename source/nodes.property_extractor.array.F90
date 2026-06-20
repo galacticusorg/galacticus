@@ -21,22 +21,24 @@
   use :: Units_MetaData, only : unitType
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorArray" abstract="yes">
-   <description>Abstract base class for extractors that return a fixed-length 2D array of floating-point values per node, defining the interface (including column descriptions, element counts, names, and units) for multi-valued scalar array outputs used in output analysis.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorArray" abstract="yes" docformat="rst">
+   <description>
+   Abstract base class for extractors that return a fixed-length 2D array of floating-point values per node, defining the interface (including column descriptions, element counts, names, and units) for multi-valued scalar array outputs used in output analysis.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorArray
-     !!{
+     !!{RST
      A array property extractor.
      !!}
      private
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="columnDescriptions" description="Return a description of the columns."                          />
        <method method="size"               description="Return the number of elements in the array."                   />
        <method method="elementCount"       description="Return the number of properties in the array."                 />
-       <method method="extract"            description="Extract the properties from the given \mono{node}."            />
+       <method method="extract"            description="Extract the properties from the given ``node``."            />
        <method method="names"              description="Return the name of the properties extracted."                  />
        <method method="descriptions"       description="Return a description of the properties extracted."             />
        <method method="unitsInSI"          description="Return the units of the properties extracted in the SI system."/>
@@ -57,7 +59,7 @@
 
   abstract interface
      function arrayExtract(self,node,time,instance)
-       !!{
+       !!{RST
        Interface for array property extraction.
        !!}
        import nodePropertyExtractorArray, treeNode, multiCounter
@@ -71,7 +73,7 @@
 
   abstract interface
      subroutine arrayNames(self,names,time)
-       !!{
+       !!{RST
        Interface for array names.
        !!}
        import varying_string, nodePropertyExtractorArray
@@ -83,7 +85,7 @@
 
   abstract interface
      subroutine arrayDescriptions(self,descriptions,time)
-       !!{
+       !!{RST
        Interface for array descriptions.
        !!}
        import varying_string, nodePropertyExtractorArray
@@ -95,7 +97,7 @@
 
   abstract interface
      subroutine arrayColumns(self,descriptions,values,valuesDescription,valuesUnits,time)
-       !!{
+       !!{RST
        Interface for array column descriptions.
        !!}
        import varying_string, nodePropertyExtractorArray, unitType
@@ -110,7 +112,7 @@
 
   abstract interface
      function arrayUnitsInSI(self,time)
-       !!{
+       !!{RST
        Interface for array property units.
        !!}
        import nodePropertyExtractorArray
@@ -122,7 +124,7 @@
 
   abstract interface
      integer function arrayElementCount(self,time)
-       !!{
+       !!{RST
        Interface for array element count.
        !!}
        import nodePropertyExtractorArray
@@ -133,7 +135,7 @@
 
   abstract interface
      function arraySize(self,time)
-       !!{
+       !!{RST
        Interface for array element count.
        !!}
        import nodePropertyExtractorArray, c_size_t
@@ -146,9 +148,8 @@
 contains
 
   function arrayUnits(self,time) result(units)
-    !!{
-    Default implementation: wraps the deferred \mono{nodePropertyExtractorArray}{unitsInSI} array into an array of
-    \mono{unitType}.
+    !!{RST
+    Default implementation: wraps the deferred ``nodePropertyExtractorArray``\ unitsInSI array into an array of ``unitType``.
     !!}
     implicit none
     type            (unitType                  ), dimension(:), allocatable :: units
@@ -166,7 +167,7 @@ contains
   end function arrayUnits
 
   subroutine arrayMetaData(self,node,indexProperty,metaDataRank0,metaDataRank1)
-    !!{
+    !!{RST
     Interface for array property meta-data.
     !!}
     implicit none

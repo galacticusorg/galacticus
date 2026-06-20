@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class implementing satellite orbital parameters at virial radius crossing.
 !!}
 
 module Virial_Orbits
-  !!{
+  !!{RST
   Provides a class implementing satellite orbital parameters at virial radius crossing.
   !!}
   use :: Galacticus_Nodes       , only : treeNode
@@ -31,15 +31,17 @@ module Virial_Orbits
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>virialOrbit</name>
    <descriptiveName>Virial Orbits</descriptiveName>
    <description>
-    Class providing orbital parameters of satellite halos at the time when they first enter the virial radius of their host.
+   Class providing orbital parameters of satellite halos at the time when they first enter the virial radius of their host.
    </description>
    <default>benson2005</default>
    <method name="orbit" >
-    <description>Returns a Kepler orbit object describing the orbital parameters (energy, angular momentum, radial and tangential velocities) of a satellite halo at the time it first crosses the virial radius of its host halo.</description>
+    <description>
+    Returns a Kepler orbit object describing the orbital parameters (energy, angular momentum, radial and tangential velocities) of a satellite halo at the time it first crosses the virial radius of its host halo.
+    </description>
     <type>type(keplerOrbit)</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -47,14 +49,18 @@ module Virial_Orbits
     <argument>logical       , intent(in   ) :: acceptUnboundOrbits</argument>
    </method>
    <method name="velocityDistributionFunction" >
-    <description>Returns the distribution function of orbital velocity $\mathrm{d}^2p/\mathrm{d}v_r/\mathrm{d}v_\theta(v_r,v_\theta)$.</description>
+    <description>
+    Returns the distribution function of orbital velocity :math:`\mathrm{d}^2p/\mathrm{d}v_r/\mathrm{d}v_\theta(v_r,v_\theta)`.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout) :: node          , host</argument>
     <argument>double precision          , intent(in   ) :: velocityRadial, velocityTangential</argument>
    </method>
    <method name="isAngularlyResolved" >
-    <description>Returns true if this orbit class provides resolution of the orbital angular coordinates ($\theta$,$\phi$) when setting orbits, false otherwise.</description>
+    <description>
+    Returns true if this orbit class provides resolution of the orbital angular coordinates (:math:`\theta`,\ :math:`\phi`) when setting orbits, false otherwise.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <code>
@@ -63,42 +69,56 @@ module Virial_Orbits
    </code>
    </method>
    <method name="densityContrastDefinition" >
-    <description>Returns a \mono{virialDensityContrast} object describing the virial density contrast used to define this orbit class.</description>
+    <description>
+    Returns a ``virialDensityContrast`` object describing the virial density contrast used to define this orbit class.
+    </description>
     <type>class(virialDensityContrastClass)</type>
     <pass>yes</pass>
    </method>
    <method name="velocityTangentialMagnitudeMean" >
-    <description>Returns the mean of the magnitude of tangential velocity averaged over all orbits.</description>
+    <description>
+    Returns the mean of the magnitude of tangential velocity averaged over all orbits.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node, host</argument>
    </method>
    <method name="velocityTangentialVectorMean" >
-    <description>Returns the mean vector of the vector tangential velocity averaged over all orbits.</description>
+    <description>
+    Returns the mean vector of the vector tangential velocity averaged over all orbits.
+    </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node, host</argument>
    </method>
    <method name="angularMomentumMagnitudeMean" >
-    <description>Returns the mean of the magnitude of the angular momentum averaged over all orbits.</description>
+    <description>
+    Returns the mean of the magnitude of the angular momentum averaged over all orbits.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node, host</argument>
    </method>
    <method name="angularMomentumVectorMean" >
-    <description>Returns the mean vector of the angular momentum averaged over all orbits.</description>
+    <description>
+    Returns the mean vector of the angular momentum averaged over all orbits.
+    </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node, host</argument>
    </method>
    <method name="velocityTotalRootMeanSquared" >
-    <description>Returns the square root of the mean of the squared total velocity averaged over all orbits.</description>
+    <description>
+    Returns the square root of the mean of the squared total velocity averaged over all orbits.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node, host</argument>
    </method>
    <method name="energyMean" >
-    <description>Returns the square root of the mean of the energy averaged over all orbits.</description>
+    <description>
+    Returns the square root of the mean of the energy averaged over all orbits.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node, host</argument>

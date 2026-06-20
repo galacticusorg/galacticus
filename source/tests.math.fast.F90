@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test mathematical special functions.
 !!}
 
 program Test_Math_Fast
-  !!{
+  !!{RST
   Tests of mathematical fast functions.
   !!}
   use :: Display            , only : displayVerbositySet, verbosityLevelStandard

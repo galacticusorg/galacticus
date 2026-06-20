@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements an output analysis class for the \cite{bernardi_massive_2013} stellar mass function.
+!!{RST
+Implements an output analysis class for the :cite:t:`bernardi_massive_2013` stellar mass function.
 !!}
 
 
   !![
-  <outputAnalysis name="outputAnalysisMassFunctionStellarBernardi2013SDSS">
-   <description>Computes the galaxy stellar mass function for comparison with the \cite{bernardi_massive_2013} SDSS measurements, with stellar mass random/systematic error polynomial coefficients, gravitational lensing source size corrections, and binomial covariance matrix parameters for halo mass range.</description>
+  <outputAnalysis name="outputAnalysisMassFunctionStellarBernardi2013SDSS" docformat="rst">
+   <description>
+   Computes the galaxy stellar mass function for comparison with the :cite:t:`bernardi_massive_2013` SDSS measurements, with stellar mass random/systematic error polynomial coefficients, gravitational lensing source size corrections, and binomial covariance matrix parameters for halo mass range.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMassFunctionStellar) :: outputAnalysisMassFunctionStellarBernardi2013SDSS
-     !!{
-     A \cite{bernardi_massive_2013} stellar mass function output analysis class.
+     !!{RST
+     A :cite:t:`bernardi_massive_2013` stellar mass function output analysis class.
      !!}
      private
      class           (gravitationalLensingClass), pointer                   :: gravitationalLensing_            => null()
@@ -41,8 +43,8 @@ Implements an output analysis class for the \cite{bernardi_massive_2013} stellar
   end type outputAnalysisMassFunctionStellarBernardi2013SDSS
 
   interface outputAnalysisMassFunctionStellarBernardi2013SDSS
-     !!{
-     Constructors for the \refClass{outputAnalysisMassFunctionStellarBernardi2013SDSS} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisMassFunctionStellarBernardi2013SDSS` output analysis class.
      !!}
      module procedure massFunctionStellarBernardi2013SDSSConstructorParameters
      module procedure massFunctionStellarBernardi2013SDSSConstructorInternal
@@ -51,8 +53,8 @@ Implements an output analysis class for the \cite{bernardi_massive_2013} stellar
 contains
 
   function massFunctionStellarBernardi2013SDSSConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMassFunctionStellarBernardi2013SDSS} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellarBernardi2013SDSS` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -79,61 +81,77 @@ contains
        allocate(systematicErrorPolynomialCoefficient(1                                                   ))
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for \cite{bernardi_massive_2013} SDSS stellar masses.</description>
+      <description>
+      The minimum random error for :cite:t:`bernardi_massive_2013` SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for \cite{bernardi_massive_2013} SDSS stellar masses.</description>
+      <description>
+      The minimum random error for :cite:t:`bernardi_massive_2013` SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.07d0]</defaultValue>
-      <description>The coefficients of the random error polynomial for \cite{bernardi_massive_2013} SDSS stellar masses.</description>
+      <description>
+      The coefficients of the random error polynomial for :cite:t:`bernardi_massive_2013` SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for \cite{bernardi_massive_2013} SDSS stellar masses.</description>
+      <description>
+      The coefficients of the systematic error polynomial for :cite:t:`bernardi_massive_2013` SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sizeSourceLensing</name>
       <source>parameters</source>
       <variable>sizeSourceLensing</variable>
       <defaultValue>2.0d-3</defaultValue>
-      <description>The characteristic source size for gravitational lensing calculations.</description>
+      <description>
+      The characteristic source size for gravitational lensing calculations.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <variable>covarianceBinomialBinsPerDecade</variable>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing \cite{bernardi_massive_2013} SDSS stellar mass function covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing :cite:t:`bernardi_massive_2013` SDSS stellar mass function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMinimum</variable>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing \cite{bernardi_massive_2013} SDSS stellar mass function covariance matrices for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing :cite:t:`bernardi_massive_2013` SDSS stellar mass function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMaximum</variable>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing \cite{bernardi_massive_2013} SDSS stellar mass function covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing :cite:t:`bernardi_massive_2013` SDSS stellar mass function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
@@ -151,8 +169,8 @@ contains
   end function massFunctionStellarBernardi2013SDSSConstructorParameters
 
   function massFunctionStellarBernardi2013SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMassFunctionStellarBernardi2013SDSS} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellarBernardi2013SDSS` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -300,8 +318,8 @@ contains
   end function massFunctionStellarBernardi2013SDSSConstructorInternal
 
   subroutine massFunctionStellarBernardi2013SDSSDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisMassFunctionStellarBernardi2013SDSS} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisMassFunctionStellarBernardi2013SDSS` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMassFunctionStellarBernardi2013SDSS), intent(inout) :: self

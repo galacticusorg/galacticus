@@ -17,34 +17,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a simple ram pressure stripping for spherically-symmetric systems.
   !!}
 
   use :: Hot_Halo_Ram_Pressure_Forces, only : hotHaloRamPressureForceClass
 
   !![
-  <ramPressureStripping name="ramPressureStrippingSimpleSpherical">
+  <ramPressureStripping name="ramPressureStrippingSimpleSpherical" docformat="rst">
     <description>
-      A simple model of ram pressure stripping in spherically-symmetric systems (e.g. spheroids). The mass loss rate is given by:
-      \begin{equation}
-      \dot{M}_\mathrm{gas} = -\hbox{max}(\alpha,R_\mathrm{maximum}) M_\mathrm{gas}/\tau_\mathrm{spheroid},
-      \end{equation}
-      where $R_\mathrm{maximum}=$\mono{[ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMax]}
-      \begin{equation}
-      \alpha = \beta \mathcal{F}_\mathrm{hot,host}/F_\mathrm{gravity},
-      \end{equation}
-      and,
-      \begin{equation}
-      F_\mathrm{gravity} = {4\over 3} \rho_\mathrm{gas}(r_{1/2}) {\mathrm{G} M_\mathrm{total}(r_{1/2})\over r_{1/2}}
-      \end{equation}
-      is the gravitational restoring force in the spheroid at the half-mass radius, $r_\mathrm{1/2}$ \citep{takeda_ram_1984},
-      $\beta=$\mono{[beta]} scales the rate of mass loss, and $R_\mathrm{maximum}=$\mono{[rateFractionalMaximum]} controls the maximum allowed rate of mass loss.
+    A simple model of ram pressure stripping in spherically-symmetric systems (e.g. spheroids). The mass loss rate is given by:
+
+    .. math::
+
+       \dot{M}_\mathrm{gas} = -\hbox{max}(\alpha,R_\mathrm{maximum}) M_\mathrm{gas}/\tau_\mathrm{spheroid},
+
+    where :math:`R_\mathrm{maximum}=`\ ``[ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMax]``
+
+    .. math::
+
+       \alpha = \beta \mathcal{F}_\mathrm{hot,host}/F_\mathrm{gravity},
+
+    and,
+
+    .. math::
+
+       F_\mathrm{gravity} = {4\over 3} \rho_\mathrm{gas}(r_{1/2}) {\mathrm{G} M_\mathrm{total}(r_{1/2})\over r_{1/2}}
+
+    is the gravitational restoring force in the spheroid at the half-mass radius, :math:`r_\mathrm{1/2}` :cite:p:`takeda_ram_1984`, :math:`\beta=`\ ``[beta]`` scales the rate of mass loss, and :math:`R_\mathrm{maximum}=`\ ``[rateFractionalMaximum]`` controls the maximum allowed rate of mass loss.
     </description>
   </ramPressureStripping>
   !!]
   type, extends(ramPressureStrippingClass) :: ramPressureStrippingSimpleSpherical
-     !!{
+     !!{RST
      Implementation of a simple model of ram pressure stripping in spherically-symmetric systems.
      !!}
      private
@@ -56,8 +61,8 @@
   end type ramPressureStrippingSimpleSpherical
 
   interface ramPressureStrippingSimpleSpherical
-     !!{
-     Constructors for the \refClass{ramPressureStrippingSimpleSpherical} model of ram pressure stripping of spheroids class.
+     !!{RST
+     Constructors for the :galacticus-class:`ramPressureStrippingSimpleSpherical` model of ram pressure stripping of spheroids class.
      !!}
      module procedure simpleSphericalConstructorParameters
      module procedure simpleSphericalConstructorInternal
@@ -66,8 +71,8 @@
 contains
 
   function simpleSphericalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{ramPressureStrippingSimpleSpherical} model of ram pressure stripping of spheroids class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`ramPressureStrippingSimpleSpherical` model of ram pressure stripping of spheroids class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,16 +82,20 @@ contains
     double precision                                                     :: rateFractionalMaximum   , beta
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rateFractionalMaximum</name>
       <defaultValue>10.0d0</defaultValue>
-      <description>The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from spherically-symmetric due to ram pressure stripping.</description>
+      <description>
+      The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from spherically-symmetric due to ram pressure stripping.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The scaling factor which multiplies the ram pressure mass loss rate.</description>
+      <description>
+      The scaling factor which multiplies the ram pressure mass loss rate.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
@@ -100,8 +109,8 @@ contains
   end function simpleSphericalConstructorParameters
 
   function simpleSphericalConstructorInternal(rateFractionalMaximum,beta,hotHaloRamPressureForce_) result(self)
-    !!{
-    Internal constructor for the \refClass{ramPressureStrippingSimpleSpherical} model of ram pressure stripping of spheroids class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`ramPressureStrippingSimpleSpherical` model of ram pressure stripping of spheroids class.
     !!}
     implicit none
     type            (ramPressureStrippingSimpleSpherical)                        :: self
@@ -115,8 +124,8 @@ contains
   end function simpleSphericalConstructorInternal
 
   subroutine simpleSphericalDestructor(self)
-    !!{
-    Destructor for the \refClass{ramPressureStrippingSimpleSpherical} model of ram pressure stripping of spheroids class.
+    !!{RST
+    Destructor for the :galacticus-class:`ramPressureStrippingSimpleSpherical` model of ram pressure stripping of spheroids class.
     !!}
     implicit none
     type(ramPressureStrippingSimpleSpherical), intent(inout) :: self
@@ -128,21 +137,26 @@ contains
   end subroutine simpleSphericalDestructor
 
   double precision function simpleSphericalRateMassLoss(self,component)
-    !!{
-    Computes the mass loss rate from spherically-symmetric systems due to ram pressure stripping assuming a simple model. Specifically, the mass loss
-    rate is
-    \begin{equation}
-    \dot{M}_\mathrm{gas} = -\alpha M_\mathrm{gas}/\tau,
-    \end{equation}
+    !!{RST
+    Computes the mass loss rate from spherically-symmetric systems due to ram pressure stripping assuming a simple model. Specifically, the mass loss rate is
+
+    .. math::
+
+       \dot{M}_\mathrm{gas} = -\alpha M_\mathrm{gas}/\tau,
+
     where
-    \begin{equation}
-    \alpha = \beta F_\mathrm{ram}/F_\mathrm{gravity},
-    \end{equation}
-    $F_\mathrm{ram}$ is the ram pressure force from the hot halo (see \refPhysics{hotHaloRamPressureForce}), and
-    \begin{equation}
-    F_\mathrm{gravity} = {4\over 3} \rho_\mathrm{gas}(r_{1/2}) {\mathrm{G} M_\mathrm{total}(r_{1/2})\over r_{1/2}}
-    \end{equation}
-    is the gravitational restoring force at the half-mass radius, $r_\mathrm{1/2}$ \citep{takeda_ram_1984}.
+
+    .. math::
+
+       \alpha = \beta F_\mathrm{ram}/F_\mathrm{gravity},
+
+    :math:`F_\mathrm{ram}` is the ram pressure force from the hot halo (see :galacticus-class:`hotHaloRamPressureForce`), and
+
+    .. math::
+
+       F_\mathrm{gravity} = {4\over 3} \rho_\mathrm{gas}(r_{1/2}) {\mathrm{G} M_\mathrm{total}(r_{1/2})\over r_{1/2}}
+
+    is the gravitational restoring force at the half-mass radius, :math:`r_\mathrm{1/2}` :cite:p:`takeda_ram_1984`.
     !!}
     use :: Coordinates                     , only : coordinateSpherical  , assignment(=)
     use :: Display                         , only : displayGreen         , displayBlue                   , displayMagenta, displayReset

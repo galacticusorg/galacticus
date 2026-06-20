@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program which tests the implementation of the \cite{gnedin_response_2004} dark matter profile.
+!!{RST
+Contains a program which tests the implementation of the :cite:t:`gnedin_response_2004` dark matter profile.
 !!}
 
 program Test_Dark_Matter_Profiles_Gnedin2004
-  !!{
-  Tests the implementation of the \cite{gnedin_response_2004} dark matter profile.
+  !!{RST
+  Tests the implementation of the :cite:t:`gnedin_response_2004` dark matter profile.
   !!}
   use :: Calculations_Resets       , only : Calculations_Reset
   use :: Cosmology_Parameters      , only : cosmologyParametersSimple

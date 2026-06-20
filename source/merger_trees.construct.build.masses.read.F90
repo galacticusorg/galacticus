@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a merger tree masses class which reads masses from a file.
   !!}
 
   !![
-  <mergerTreeBuildMasses name="mergerTreeBuildMassesRead" abstract="yes">
-   <description>A merger tree masses class which samples masses from a distribution.</description>
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesRead" abstract="yes" docformat="rst">
+   <description>
+   A merger tree masses class which samples masses from a distribution.
+   </description>
    <runTimeFileDependencies paths="fileName"/>
   </mergerTreeBuildMasses>
   !!]
   type, abstract, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesRead
-     !!{
+     !!{RST
      Implementation of a merger tree masses class which reads masses from a file.
      !!}
      private
@@ -36,7 +38,7 @@
      double precision                 :: massIntervalFractional
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Read the halo masses, and, optionally, weights, from file." method="read"/>
      </methods>
      !!]
@@ -55,7 +57,7 @@
 contains
 
   subroutine readConstruct(self,time,mass,massMinimum,massMaximum,weight)
-    !!{
+    !!{RST
     Construct a set of merger tree masses by reading from a file.
     !!}
     use :: Sorting, only : sort

@@ -17,34 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a star formation histories class which records star formation in logarithmically-sized time
-  bins of fixed age and split by metallicity.
+  !!{RST
+  Implements a star formation histories class which records star formation in logarithmically-sized time bins of fixed age and split by metallicity.
   !!}
 
   use :: Geometry_Lightcones, only : geometryLightcone
   use :: Cosmology_Functions, only : cosmologyFunctions
   
   !![
-  <starFormationHistory name="starFormationHistoryFixedAges" recursive="yes">
+  <starFormationHistory name="starFormationHistoryFixedAges" recursive="yes" docformat="rst">
    <description>
-     A star formation histories class which records star formation in logarithmically-sized time bins of fixed age and split by
-     metallicity. The minimum age is specified via the \mono{[ageMinimum]} parameter (the maximum age is always
-     the age of the universe), with the number of ages specified via \mono{[countAges]}. (One additional bin, at
-     age zero, is always added.) This class is intended for use with lightcone output where the lightcone crossing times for each
-     node can be computed in advance. One star formation history is computed for each lightcone crossing.
-     
-     The time associated with each bin is the maximum time for which star formation will be accumulated to the bin, with the
-     minimum time corresponding to the value associated with the previous bin (or $t=0$ for the first bin).
-     
-     The metallicity bins are arranged logarithmically in metallicity with \mono{[countMetallicities]} bins
-     between \mono{[metallicityMinimum]} and \mono{[metallicityMaximum]} (specified in Solar
-     units). Note that the metallicity associated with each bin is the maximum metallicity for that bin, with the minimum
-     metallicity corresponding to the value associated with the previous bin (or zero metallicity for the first bin). Note that a
-     final bin, extending to infinite metallicity, is always added automatically. If \mono{[countMetallicities]}$=0$ is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin
-     encompassing all metallicities from zero to infinity is used). Alternatively, specific metallicity bin boundaries can be set
-     via the \mono{[metallicityBoundaries]} parameter---a final boundary corresponding to infinity is always
-     added automatically.
+   A star formation histories class which records star formation in logarithmically-sized time bins of fixed age and split by metallicity. The minimum age is specified via the ``[ageMinimum]`` parameter (the maximum age is always the age of the universe), with the number of ages specified via ``[countAges]``. (One additional bin, at age zero, is always added.) This class is intended for use with lightcone output where the lightcone crossing times for each node can be computed in advance. One star formation history is computed for each lightcone crossing.
+
+   The time associated with each bin is the maximum time for which star formation will be accumulated to the bin, with the minimum time corresponding to the value associated with the previous bin (or :math:`t=0` for the first bin).
+
+   The metallicity bins are arranged logarithmically in metallicity with ``[countMetallicities]`` bins between ``[metallicityMinimum]`` and ``[metallicityMaximum]`` (specified in Solar units). Note that the metallicity associated with each bin is the maximum metallicity for that bin, with the minimum metallicity corresponding to the value associated with the previous bin (or zero metallicity for the first bin). Note that a final bin, extending to infinite metallicity, is always added automatically. If ``[countMetallicities]``\ :math:`=0` is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin encompassing all metallicities from zero to infinity is used). Alternatively, specific metallicity bin boundaries can be set via the ``[metallicityBoundaries]`` parameter---a final boundary corresponding to infinity is always added automatically.
    </description>
    <deepCopy>
      <ignore variables="recursiveSelf"/>
@@ -55,7 +42,7 @@
   </starFormationHistory>
   !!]
   type, extends(starFormationHistoryClass) :: starFormationHistoryFixedAges
-     !!{
+     !!{RST
      A star formation histories class which records star formation split by metallicity.
      !!}
      private
@@ -91,8 +78,8 @@
   end type starFormationHistoryFixedAges
 
   interface starFormationHistoryFixedAges
-     !!{
-     Constructors for the \refClass{starFormationHistoryFixedAges} star formation history class.
+     !!{RST
+     Constructors for the :galacticus-class:`starFormationHistoryFixedAges` star formation history class.
      !!}
      module procedure fixedAgesConstructorParameters
      module procedure fixedAgesConstructorInternal
@@ -104,8 +91,8 @@
 contains
 
   recursive function fixedAgesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{starFormationHistoryFixedAges} star formation history class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`starFormationHistoryFixedAges` star formation history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -121,22 +108,28 @@ contains
     !![
     <objectBuilder class="geometryLightcone"  name="geometryLightcone_"  source="parameters"/>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>ageMinimum</name>
       <defaultValue>0.01d0</defaultValue>
-      <description>The minimum age to use in tabulations of star formation histories [Gyr].</description>
+      <description>
+      The minimum age to use in tabulations of star formation histories [Gyr].
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countAges</name>
       <defaultValue>10_c_size_t</defaultValue>
-      <description>The maximum number of ages to track in any star formation history.</description>
+      <description>
+      The maximum number of ages to track in any star formation history.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massScaleAbsolute</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The absolute tolerance scale (for the mass in each bin of star formation history) to use during ODE solution.</description>
+      <description>
+      The absolute tolerance scale (for the mass in each bin of star formation history) to use during ODE solution.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -144,9 +137,11 @@ contains
        countMetallicities=parameters%count('metallicityBoundaries')
        allocate(metallicityBoundaries(countMetallicities+1))
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>metallicityBoundaries</name>
-         <description>The metallicities corresponding to boundaries between metallicity bins to use when tabulating star formation histories.</description>
+         <description>
+         The metallicities corresponding to boundaries between metallicity bins to use when tabulating star formation histories.
+         </description>
          <source>parameters</source>
          <variable>metallicityBoundaries(1:size(metallicityBoundaries)-1)</variable>
          <type>real</type>
@@ -156,22 +151,28 @@ contains
        metallicityBoundaries(size(metallicityBoundaries))=metallicityInfinite
     else
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>countMetallicities</name>
          <defaultValue>10_c_size_t</defaultValue>
-         <description>The number of bins in metallicity to use when tabulating star formation histories.</description>
+         <description>
+         The number of bins in metallicity to use when tabulating star formation histories.
+         </description>
          <source>parameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>metallicityMinimum</name>
          <defaultValue>1.0d-4</defaultValue>
-         <description>The upper limit to the metallicity in the lowest metallicity bin when tabulating star formation histories [Solar units].</description>
+         <description>
+         The upper limit to the metallicity in the lowest metallicity bin when tabulating star formation histories [Solar units].
+         </description>
          <source>parameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>metallicityMaximum</name>
          <defaultValue>1.0d+1</defaultValue>
-         <description>The upper limit to the metallicity in the highest metallicity bin when tabulating star formation histories [Solar units].</description>
+         <description>
+         The upper limit to the metallicity in the highest metallicity bin when tabulating star formation histories [Solar units].
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -192,8 +193,8 @@ contains
   end function fixedAgesConstructorParameters
 
   recursive function fixedAgesConstructorInternal(cosmologyFunctions_,geometryLightcone_,ageMinimum,countAges,massScaleAbsolute,metallicityBoundaries,countMetallicities,metallicityMinimum,metallicityMaximum) result(self)
-    !!{
-    Internal constructor for the \refClass{starFormationHistoryFixedAges} star formation history class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`starFormationHistoryFixedAges` star formation history class.
     !!}
     use :: Error                     , only : Error_Report
     use :: Galactic_Structure_Options, only : componentTypeMax, componentTypeMin
@@ -264,8 +265,8 @@ contains
   end function fixedAgesConstructorInternal
 
   subroutine fixedAgesDestructor(self)
-    !!{
-    Destructor for the \refClass{starFormationHistoryFixedAges} star formation history class.
+    !!{RST
+    Destructor for the :galacticus-class:`starFormationHistoryFixedAges` star formation history class.
     !!}
     implicit none
     type(starFormationHistoryFixedAges), intent(inout) :: self
@@ -278,7 +279,7 @@ contains
   end subroutine fixedAgesDestructor
 
   subroutine fixedAgesCreate(self,node,historyStarFormation,timeBegin,timeEnd)
-    !!{
+    !!{RST
     Create the history required for storing star formation history.
     !!}
     use :: Display             , only : displayMessage    , displayIndent      , displayUnindent
@@ -402,8 +403,8 @@ contains
   end subroutine fixedAgesCreate
 
   subroutine fixedAgesRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
-    !!{
-    Set the rate the star formation history for \mono{node}.
+    !!{RST
+    Set the rate the star formation history for ``node``.
     !!}
     use :: Abundances_Structure, only : abundances        , metallicityTypeLinearByMassSolar
     use :: Arrays_Search       , only : searchArray
@@ -476,7 +477,7 @@ contains
   end subroutine fixedAgesRate
 
   subroutine fixedAgesUpdate(self,node,indexOutput,historyStarFormation)
-    !!{
+    !!{RST
     Update the star formation history after outputting.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -532,7 +533,7 @@ contains
   end subroutine fixedAgesUpdate
 
   subroutine fixedAgesMove(self,node1,node2,starFormationHistory1,starFormationHistory2)
-    !!{
+    !!{RST
     Move one history into another.
     !!}
     use :: Galacticus_Nodes    , only : nodeComponentBasic
@@ -626,7 +627,7 @@ contains
   end subroutine fixedAgesMove
   
   subroutine fixedAgesScales(self,historyStarFormation,node,massStellar,massGas,abundancesStellar)
-    !!{
+    !!{RST
     Set the scalings for error control on the absolute values of star formation histories.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -668,7 +669,7 @@ contains
   end subroutine fixedAgesScales
   
   function fixedAgesMetallicityBoundaries(self)
-    !!{
+    !!{RST
     Return the boundaries of the metallicities used in this tabulation.
     !!}
     implicit none
@@ -687,7 +688,7 @@ contains
   end function fixedAgesMetallicityBoundaries
 
   function fixedAgesTimes(self,node,indexOutput,starFormationHistory,allowTruncation,timeStart) result(times)
-    !!{
+    !!{RST
     Return the times used in this tabulation.
     !!}
     use :: Galacticus_Nodes    , only : nodeComponentBasic
@@ -761,7 +762,7 @@ contains
   end function fixedAgesTimes
 
   double precision function fixedAgesTimeNext(self,node,starFormationHistory) result(timeNext)
-    !!{
+    !!{RST
     Return the next tabulation time boundary across all histories.
     !!}
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
@@ -797,7 +798,7 @@ contains
   end function fixedAgesTimeNext
 
   function fixedAgesMasses(self,node,starFormationHistory,allowTruncation) result(masses)
-    !!{
+    !!{RST
     Return the times used in this tabulation.
     !!}
     use :: Galacticus_Nodes    , only : nodeComponentBasic
@@ -865,7 +866,7 @@ contains
   end function fixedAgesMasses
 
   function fixedAgesAgeDistribution(self) result(ageDistribution)
-    !!{
+    !!{RST
     Indicate that star formation history ages are fixed globally.
     !!}
     implicit none
@@ -877,7 +878,7 @@ contains
   end function fixedAgesAgeDistribution
 
   subroutine fixedAgesDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
-    !!{
+    !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
     use :: Input_Parameters  , only : inputParameters
@@ -915,7 +916,7 @@ contains
   end subroutine fixedAgesDescriptor
 
   subroutine fixedAgesDeepCopyReset(self)
-    !!{
+    !!{RST
     Perform a deep copy reset of the object.
     !!}
     implicit none
@@ -928,7 +929,7 @@ contains
   end subroutine fixedAgesDeepCopyReset
   
   subroutine fixedAgesDeepCopyFinalize(self)
-    !!{
+    !!{RST
     Finalize a deep reset of the object.
     !!}
     implicit none
@@ -940,7 +941,7 @@ contains
   end subroutine fixedAgesDeepCopyFinalize
   
   subroutine fixedAgesDeepCopy(self,destination)
-    !!{
+    !!{RST
     Perform a deep copy of the object.
     !!}
     use :: Error, only : Error_Report
@@ -1020,7 +1021,7 @@ contains
   end subroutine fixedAgesDeepCopy
 
   subroutine fixedAgesDeepCopyAssign(self,destination)
-    !!{
+    !!{RST
     Perform pointer assignment during a deep copy of the object.
     !!}
     implicit none
@@ -1035,7 +1036,7 @@ contains
   end subroutine fixedAgesDeepCopyAssign
 
   subroutine fixedAgesFindParent(self)
-    !!{
+    !!{RST
     Find the deep-copied parent of a recursive child.
     !!}
     use :: Error, only : Error_Report

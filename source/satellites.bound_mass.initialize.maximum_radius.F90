@@ -17,26 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a satellite bound mass initializor class that sets the initial bound mass by integrating the density profile
-  up to a maximum radius.
+  !!{RST
+  Implementation of a satellite bound mass initializor class that sets the initial bound mass by integrating the density profile up to a maximum radius.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <satelliteMassBoundInitializor name="satelliteMassBoundInitializorMaximumRadius">
+  <satelliteMassBoundInitializor name="satelliteMassBoundInitializorMaximumRadius" docformat="rst">
    <description>
-    A satellite bound mass initializor class that sets the initial bound mass of the satellite halo by integrating its density
-    profile up to a maximum radius, $r_\mathrm{max} = $\mono{[radiusMaximumOverRadiusVirial]} $\times r_\mathrm{virial}$. The
-    density profile is assumed to be zero beyond this maximum radius.
+   A satellite bound mass initializor class that sets the initial bound mass of the satellite halo by integrating its density profile up to a maximum radius, :math:`r_\mathrm{max} =`\ ``[radiusMaximumOverRadiusVirial]`` :math:`\times r_\mathrm{virial}`. The density profile is assumed to be zero beyond this maximum radius.
    </description>
   </satelliteMassBoundInitializor>
   !!]
   type, extends(satelliteMassBoundInitializorClass) :: satelliteMassBoundInitializorMaximumRadius
-     !!{
-     Implementation of a satellite bound mass initializor class that sets the initial bound mass by integrating the density
-     profile up to a maximum radius.
+     !!{RST
+     Implementation of a satellite bound mass initializor class that sets the initial bound mass by integrating the density profile up to a maximum radius.
      !!}
      private
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_          => null()
@@ -47,8 +43,8 @@
   end type satelliteMassBoundInitializorMaximumRadius
 
   interface satelliteMassBoundInitializorMaximumRadius
-     !!{
-     Constructors for the \refClass{satelliteMassBoundInitializorMaximumRadius} satellite bound mass initializor class.
+     !!{RST
+     Constructors for the :galacticus-class:`satelliteMassBoundInitializorMaximumRadius` satellite bound mass initializor class.
      !!}
      module procedure maximumRadiusConstructorParameters
      module procedure maximumRadiusConstructorInternal
@@ -57,9 +53,8 @@
 contains
 
   function maximumRadiusConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{satelliteMassBoundInitializorMaximumRadius} satellite bound mass initializor class which builds
-    the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`satelliteMassBoundInitializorMaximumRadius` satellite bound mass initializor class which builds the object from a parameter set.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -70,10 +65,12 @@ contains
     double precision                                                            :: radiusMaximumOverRadiusVirial
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusMaximumOverRadiusVirial</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The maximum radius of the satellite halo in units of its virial radius. This value will be used to compute the initial bound mass of the satellite halo by integrating the density profile up to this maximum radius, assuming that the density profile is zero beyond this radius.</description>
+      <description>
+      The maximum radius of the satellite halo in units of its virial radius. This value will be used to compute the initial bound mass of the satellite halo by integrating the density profile up to this maximum radius, assuming that the density profile is zero beyond this radius.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
@@ -88,8 +85,8 @@ contains
   end function maximumRadiusConstructorParameters
 
   function maximumRadiusConstructorInternal(radiusMaximumOverRadiusVirial,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{satelliteMassBoundInitializorMaximumRadius} satellite bound mass initializor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`satelliteMassBoundInitializorMaximumRadius` satellite bound mass initializor class.
     !!}
     implicit none
     type            (satelliteMassBoundInitializorMaximumRadius)                        :: self
@@ -103,8 +100,8 @@ contains
   end function maximumRadiusConstructorInternal
 
   subroutine maximumRadiusDestructor(self)
-    !!{
-    Destructor for the \refClass{satelliteMassBoundInitializorMaximumRadius} satellite bound mass initializor class.
+    !!{RST
+    Destructor for the :galacticus-class:`satelliteMassBoundInitializorMaximumRadius` satellite bound mass initializor class.
     !!}
     implicit none
     type(satelliteMassBoundInitializorMaximumRadius), intent(inout) :: self
@@ -116,7 +113,7 @@ contains
   end subroutine maximumRadiusDestructor
 
   double precision function maximumRadiusMassBound(self,node) result(massBound)
-    !!{
+    !!{RST
     Returns the initial bound mass of a satellite halo by integrating the density profile up to a maximum radius.
     !!}
     use :: Mass_Distributions, only : massDistributionClass

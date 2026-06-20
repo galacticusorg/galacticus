@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a stellar mass function output analysis class.
 !!}
 
 
   !![
-  <outputAnalysis name="outputAnalysisLuminosityFunctionSobral2013HiZELS">
-   <description>Computes the H$\alpha$ luminosity function at one of four redshift intervals for comparison with the HiZELS \cite{sobral_large_2013} survey measurements, with H$\alpha$ luminosity random/systematic error polynomial coefficients, gravitational lensing source size, and binomial covariance parameters.</description>
+  <outputAnalysis name="outputAnalysisLuminosityFunctionSobral2013HiZELS" docformat="rst">
+   <description>
+   Computes the H\ :math:`\alpha` luminosity function at one of four redshift intervals for comparison with the HiZELS :cite:t:`sobral_large_2013` survey measurements, with H\ :math:`\alpha` luminosity random/systematic error polynomial coefficients, gravitational lensing source size, and binomial covariance parameters.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisLuminosityFunctionHalpha) :: outputAnalysisLuminosityFunctionSobral2013HiZELS
-     !!{
-     An SDSS H$\alpha$ luminosity function output analysis class for the \cite{sobral_large_2013} analysis.
+     !!{RST
+     An SDSS H\ :math:`\alpha` luminosity function output analysis class for the :cite:t:`sobral_large_2013` analysis.
      !!}
      private
      class           (gravitationalLensingClass), pointer                     :: gravitationalLensing_            => null()
@@ -42,8 +44,8 @@ Implements a stellar mass function output analysis class.
   end type outputAnalysisLuminosityFunctionSobral2013HiZELS
 
   interface outputAnalysisLuminosityFunctionSobral2013HiZELS
-     !!{
-     Constructors for the \refClass{outputAnalysisLuminosityFunctionSobral2013HiZELS} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisLuminosityFunctionSobral2013HiZELS` output analysis class.
      !!}
      module procedure luminosityFunctionSobral2013HiZELSConstructorParameters
      module procedure luminosityFunctionSobral2013HiZELSConstructorInternal
@@ -52,8 +54,8 @@ Implements a stellar mass function output analysis class.
 contains
 
   function luminosityFunctionSobral2013HiZELSConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisLuminosityFunctionSobral2013HiZELS} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisLuminosityFunctionSobral2013HiZELS` output analysis class which takes a parameter set as input.
     !!}
     use :: Gravitational_Lensing         , only : gravitationalLensing           , gravitationalLensingClass
     use :: Input_Parameters              , only : inputParameter                 , inputParameters
@@ -86,73 +88,93 @@ contains
        allocate(systematicErrorPolynomialCoefficient(1                                                       ))
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftInterval</name>
       <source>parameters</source>
       <variable>redshiftInterval</variable>
-      <description>The redshift interval (1, 2, 3, or 4) to use.</description>
+      <description>
+      The redshift interval (1, 2, 3, or 4) to use.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.1d0</defaultValue>
-      <description>The minimum random error for SDSS H$\alpha$ luminosities.</description>
+      <description>
+      The minimum random error for SDSS H\ :math:`\alpha` luminosities.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.1d0</defaultValue>
-      <description>The minimum random error for SDSS H$\alpha$ luminosities.</description>
+      <description>
+      The minimum random error for SDSS H\ :math:`\alpha` luminosities.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.1d0]</defaultValue>
-      <description>The coefficients of the random error polynomial for SDSS H$\alpha$ luminosities.</description>
+      <description>
+      The coefficients of the random error polynomial for SDSS H\ :math:`\alpha` luminosities.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for SDSS H$\alpha$ luminosities.</description>
+      <description>
+      The coefficients of the systematic error polynomial for SDSS H\ :math:`\alpha` luminosities.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sizeSourceLensing</name>
       <source>parameters</source>
       <variable>sizeSourceLensing</variable>
       <defaultValue>2.0d-3</defaultValue>
-      <description>The characteristic source size for gravitational lensing calculations.</description>
+      <description>
+      The characteristic source size for gravitational lensing calculations.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <variable>covarianceBinomialBinsPerDecade</variable>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing SDSS H$\alpha$ luminosity function covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing SDSS H\ :math:`\alpha` luminosity function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMinimum</variable>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing SDSS H$\alpha$ luminosity function covariance matrices for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing SDSS H\ :math:`\alpha` luminosity function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <variable>covarianceBinomialMassHaloMaximum</variable>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing SDSS H$\alpha$ luminosity function covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing SDSS H\ :math:`\alpha` luminosity function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>depthOpticalISMCoefficient</name>
       <defaultValue>1.0d0</defaultValue>
       <source>parameters</source>
-      <description>Multiplicative coefficient for optical depth in the ISM.</description>
+      <description>
+      Multiplicative coefficient for optical depth in the ISM.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"            name="cosmologyFunctions_"            source="parameters"/>
     <objectBuilder class="outputTimes"                   name="outputTimes_"                   source="parameters"/>
@@ -176,8 +198,8 @@ contains
   end function luminosityFunctionSobral2013HiZELSConstructorParameters
 
   function luminosityFunctionSobral2013HiZELSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisLuminosityFunctionSobral2013HiZELS} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisLuminosityFunctionSobral2013HiZELS` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                        , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -360,8 +382,8 @@ contains
   end function luminosityFunctionSobral2013HiZELSConstructorInternal
 
   subroutine luminosityFunctionSobral2013HiZELSDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisLuminosityFunctionSobral2013HiZELS} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisLuminosityFunctionSobral2013HiZELS` output analysis class.
     !!}
     implicit none
     type(outputAnalysisLuminosityFunctionSobral2013HiZELS), intent(inout) :: self

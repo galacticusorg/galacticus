@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo profile concentrations using the \cite{gao_redshift_2008} algorithm.
+  !!{RST
+  An implementation of dark matter halo profile concentrations using the :cite:t:`gao_redshift_2008` algorithm.
   !!}
 
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass
@@ -27,18 +27,20 @@
   use :: Virial_Density_Contrast , only : virialDensityContrastFixed
 
   !![
-  <darkMatterProfileConcentration name="darkMatterProfileConcentrationGao2008">
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationGao2008" docformat="rst">
    <description>
-    A dark matter profile concentration class in which the concentration is computed using a fitting function from
-    \cite{gao_redshift_2008}:
-    \begin{equation}
-    \log_{10} c = A \log_{10} M_\mathrm{halo} + B.
-    \end{equation}
-    The parameters are a function of expansion factor, $a$. We use the following fits to the \cite{gao_redshift_2008} results:
-    \begin{eqnarray}
-    A &amp;=&amp; -0.140 \exp\left[-\left(\left\{\log_{10}a+0.05\right\}/0.35\right)^2\right], \\
-    B &amp;=&amp;  2.646 \exp\left[-\left(\log_{10}a/0.50\right)^2\right].
-    \end{eqnarray}
+   A dark matter profile concentration class in which the concentration is computed using a fitting function from :cite:t:`gao_redshift_2008`:
+
+   .. math::
+
+      \log_{10} c = A \log_{10} M_\mathrm{halo} + B.
+
+   The parameters are a function of expansion factor, :math:`a`. We use the following fits to the :cite:t:`gao_redshift_2008` results:
+
+   .. math::
+
+      A &amp; = -0.140 \exp\left[-\left(\left\{\log_{10}a+0.05\right\}/0.35\right)^2\right], \\
+      B &amp; = 2.646 \exp\left[-\left(\log_{10}a/0.50\right)^2\right].
    </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
@@ -49,8 +51,8 @@
   </darkMatterProfileConcentration>
   !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationGao2008
-     !!{
-     A dark matter halo profile concentration class implementing the algorithm of \cite{gao_redshift_2008}.
+     !!{RST
+     A dark matter halo profile concentration class implementing the algorithm of :cite:t:`gao_redshift_2008`.
      !!}
      private
      class           (cosmologyParametersClass  ), pointer :: cosmologyParameters_             => null()
@@ -67,8 +69,8 @@
   end type darkMatterProfileConcentrationGao2008
 
   interface darkMatterProfileConcentrationGao2008
-     !!{
-     Constructors for the \refClass{darkMatterProfileConcentrationGao2008} dark matter halo profile concentration class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationGao2008` dark matter halo profile concentration class.
      !!}
      module procedure gao2008ConstructorParameters
      module procedure gao2008ConstructorInternal
@@ -77,9 +79,8 @@
 contains
 
   function gao2008ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileConcentrationGao2008} dark matter halo profile concentration class which takes a parameter
-    list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationGao2008` dark matter halo profile concentration class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -92,11 +93,13 @@ contains
     !![
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scatter</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The scatter (in dex) to assume in the halo concentration distribution at fixed mass.</description>
+      <description>
+      The scatter (in dex) to assume in the halo concentration distribution at fixed mass.
+      </description>
     </inputParameter>
     !!]
     self=darkMatterProfileConcentrationGao2008(scatter,cosmologyParameters_,cosmologyFunctions_)
@@ -109,8 +112,8 @@ contains
   end function gao2008ConstructorParameters
 
   function gao2008ConstructorInternal(scatter,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileConcentrationGao2008} dark matter halo profile concentration class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterProfileConcentrationGao2008` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
@@ -162,8 +165,8 @@ contains
   end function gao2008ConstructorInternal
 
   subroutine gao2008Destructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileConcentrationGao2008} dark matter halo profile concentration class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationGao2008` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationGao2008), intent(inout) :: self
@@ -178,9 +181,8 @@ contains
   end subroutine gao2008Destructor
 
   double precision function gao2008Concentration(self,node) result(concentration)
-    !!{
-    Return the concentration of the dark matter halo profile of \mono{node} using the
-    \cite{gao_redshift_2008} algorithm.
+    !!{RST
+    Return the concentration of the dark matter halo profile of ``node`` using the :cite:t:`gao_redshift_2008` algorithm.
     !!}
     implicit none
     class(darkMatterProfileConcentrationGao2008), intent(inout), target :: self
@@ -199,9 +201,8 @@ contains
   end function gao2008Concentration
 
   double precision function gao2008ConcentrationMean(self,node) result(concentration)
-    !!{
-    Return the mean concentration of the dark matter halo profile of \mono{node} using the
-    \cite{gao_redshift_2008} algorithm.
+    !!{RST
+    Return the mean concentration of the dark matter halo profile of ``node`` using the :cite:t:`gao_redshift_2008` algorithm.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
@@ -224,9 +225,8 @@ contains
   end function gao2008ConcentrationMean
 
   function gao2008DensityContrastDefinition(self)
-    !!{
-    Return a virial density contrast object defining that used in the definition of concentration in the
-    \cite{gao_redshift_2008} algorithm.
+    !!{RST
+    Return a virial density contrast object defining that used in the definition of concentration in the :cite:t:`gao_redshift_2008` algorithm.
     !!}
     implicit none
     class(virialDensityContrastClass           ), pointer       :: gao2008DensityContrastDefinition
@@ -237,9 +237,8 @@ contains
   end function gao2008DensityContrastDefinition
 
   function gao2008DarkMatterProfileDefinition(self)
-    !!{
-    Return a dark matter density profile object defining that used in the definition of concentration in the
-    \cite{gao_redshift_2008} algorithm.
+    !!{RST
+    Return a dark matter density profile object defining that used in the definition of concentration in the :cite:t:`gao_redshift_2008` algorithm.
     !!}
     implicit none
     class(darkMatterProfileDMOClass            ), pointer       :: gao2008DarkMatterProfileDefinition

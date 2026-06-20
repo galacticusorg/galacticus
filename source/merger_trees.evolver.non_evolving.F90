@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a non-evolving class for evolving merger trees.
   !!}
 
@@ -25,12 +25,14 @@
   use :: Merger_Tree_Initialization, only : mergerTreeInitializorClass
   
   !![
-  <mergerTreeEvolver name="mergerTreeEvolverNonEvolving">
-   <description>A merger tree evolver which initializes the tree without performing any time evolution of galaxy properties, useful for computing purely structural or initial-condition quantities from merger trees. Optionally prunes the tree to the target evolution time after initialization, controlled by the \mono{[pruneTree]} parameter.</description>
+  <mergerTreeEvolver name="mergerTreeEvolverNonEvolving" docformat="rst">
+   <description>
+   A merger tree evolver which initializes the tree without performing any time evolution of galaxy properties, useful for computing purely structural or initial-condition quantities from merger trees. Optionally prunes the tree to the target evolution time after initialization, controlled by the ``[pruneTree]`` parameter.
+   </description>
   </mergerTreeEvolver>
   !!]
   type, extends(mergerTreeEvolverClass) :: mergerTreeEvolverNonEvolving
-     !!{
+     !!{RST
      Implementation of a non-evolving  merger tree evolver.
      !!}
      private
@@ -43,8 +45,8 @@
   end type mergerTreeEvolverNonEvolving
 
   interface mergerTreeEvolverNonEvolving
-     !!{
-     Constructors for the \refClass{mergerTreeEvolverNonEvolving} merger tree evolver.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeEvolverNonEvolving` merger tree evolver.
      !!}
      module procedure nonEvolvingConstructorParameters
      module procedure nonEvolvingConstructorInternal
@@ -53,8 +55,8 @@
 contains
 
   function nonEvolvingConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolverNonEvolving} merger tree evolver class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeEvolverNonEvolving` merger tree evolver class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,11 +67,13 @@ contains
     class  (mergerTreeInitializorClass  ), pointer       :: mergerTreeInitializor_
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>pruneTree</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, prune the tree to the evolve-to-time after each evolution.</description>
+      <description>
+      If true, prune the tree to the evolve-to-time after each evolution.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"     name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="mergerTreeInitializor"  name="mergerTreeInitializor_" source="parameters"/>
@@ -84,8 +88,8 @@ contains
   end function nonEvolvingConstructorParameters
 
   function nonEvolvingConstructorInternal(pruneTree,cosmologyFunctions_,mergerTreeInitializor_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeEvolverNonEvolving} merger tree evolver class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeEvolverNonEvolving` merger tree evolver class.
     !!}
     implicit none
     type   (mergerTreeEvolverNonEvolving)                        :: self
@@ -100,8 +104,8 @@ contains
   end function nonEvolvingConstructorInternal
 
   subroutine nonEvolvingDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeEvolverNonEvolving} merger tree evolver class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeEvolverNonEvolving` merger tree evolver class.
     !!}
     implicit none
     type(mergerTreeEvolverNonEvolving), intent(inout) :: self
@@ -114,7 +118,7 @@ contains
   end subroutine nonEvolvingDestructor
 
   subroutine nonEvolvingEvolve(self,tree,timeEnd,treeDidEvolve,suspendTree,deadlockReporting,systemClockMaximum,initializationLock,status)
-    !!{
+    !!{RST
     Evolves all properties of a merger tree to the specified time.
     !!}
     use    :: Error                , only : errorStatusSuccess

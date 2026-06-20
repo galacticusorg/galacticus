@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a transfer function class based on the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
+!!{RST
+Implements a transfer function class based on the thermal :term:`WDM` modifier of :cite:t:`bode_halo_2001`.
 !!}
 
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass
@@ -26,9 +26,11 @@ Implements a transfer function class based on the thermal \gls{wdm} modifier of 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>scaleCutOffModel</name>
-   <description>The model to use for the cut-off scale in the \cite{bode_halo_2001} transfer function.</description>
+   <description>
+   The model to use for the cut-off scale in the :cite:t:`bode_halo_2001` transfer function.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <entry label="bode2001"              />
@@ -40,20 +42,21 @@ Implements a transfer function class based on the thermal \gls{wdm} modifier of 
   !!]
 
   !![
-  <transferFunction name="transferFunctionBode2001">
+  <transferFunction name="transferFunctionBode2001" docformat="rst">
    <description>
-    A transfer function class which applies the thermal \gls{wdm} modifier of \cite{bode_halo_2001} to the provided \gls{cdm}
-    transfer function.  The modifier is given by:
-    \begin{equation}
-    T(k) \rightarrow T(k) (1+[\epsilon k R_\mathrm{c}^0]^{2\nu})^{-\eta/\nu},
-    \end{equation}
-    where $\epsilon=$\mono{[epsilon]}, $\eta=$\mono{[eta]}, $\nu=$\mono{[nu]}. The cut-off scale is computed from the dark matter particle (which must be of the \mono{darkMatterParticleWDMThermal} class) properties.
+   A transfer function class which applies the thermal :term:`WDM` modifier of :cite:t:`bode_halo_2001` to the provided :term:`CDM` transfer function.  The modifier is given by:
+
+   .. math::
+
+      T(k) \rightarrow T(k) (1+[\epsilon k R_\mathrm{c}^0]^{2\nu})^{-\eta/\nu},
+
+   where :math:`\epsilon=`\ ``[epsilon]``, :math:`\eta=`\ ``[eta]``, :math:`\nu=`\ ``[nu]``. The cut-off scale is computed from the dark matter particle (which must be of the ``darkMatterParticleWDMThermal`` class) properties.
    </description>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionBode2001
-     !!{
-     A transfer function class which modifies another transfer function using the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
+     !!{RST
+     A transfer function class which modifies another transfer function using the thermal :term:`WDM` modifier of :cite:t:`bode_halo_2001`.
      !!}
      private
      type            (enumerationScaleCutOffModelType)          :: scaleCutOffModel
@@ -65,7 +68,7 @@ Implements a transfer function class based on the thermal \gls{wdm} modifier of 
      class           (darkMatterParticleClass        ), pointer :: darkMatterParticle_  => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
       <method description="Compute the wavenumber at which the transfer function is suppressed by the given factor relative to the large-scale value." method="wavenumberAtSuppression"/>
      </methods>
      !!]
@@ -80,8 +83,8 @@ Implements a transfer function class based on the thermal \gls{wdm} modifier of 
   end type transferFunctionBode2001
 
   interface transferFunctionBode2001
-     !!{
-     Constructors for the \refClass{transferFunctionBode2001} transfer function class.
+     !!{RST
+     Constructors for the :galacticus-class:`transferFunctionBode2001` transfer function class.
      !!}
      module procedure bode2001ConstructorParameters
      module procedure bode2001ConstructorInternal
@@ -90,8 +93,8 @@ Implements a transfer function class based on the thermal \gls{wdm} modifier of 
 contains
 
   function bode2001ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{transferFunctionBode2001} transfer function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`transferFunctionBode2001` transfer function class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
@@ -112,42 +115,58 @@ contains
     if (.not.parameters%isPresent('transferFunction')) call Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
     ! Read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scaleCutOffModel</name>
       <source>parameters</source>
       <defaultValue>var_str('barkana2001')</defaultValue>
-      <description>The model to use to compute the cut-off scale, either ``\mono{bode2001}'' to use the fitting function given by equation~A9 of \cite{bode_halo_2001}, ``\mono{barkana2001}'' to use the fitting function given by equation~(4) of \cite{barkana_constraints_2001}, ``\mono{viel05}'' to use the fitting function given by equation~(7) of \cite{viel_constraining_2005}, or ``\mono{vogel23spinHalf}'' or ``\mono{vogel23spinThreeHalves}'' to use the fitting function given by equation~(9) of \cite{vogel_entering_2023} for spin-1/2 or spin-3/2 particles respectively.</description>
+      <description>
+      The model to use to compute the cut-off scale, either "``bode2001``" to use the fitting function given by equation A9 of :cite:t:`bode_halo_2001`, "``barkana2001``" to use the fitting function given by equation (4) of :cite:t:`barkana_constraints_2001`, "``viel05``" to use the fitting function given by equation (7) of :cite:t:`viel_constraining_2005`, or "``vogel23spinHalf``" or "``vogel23spinThreeHalves``" to use the fitting function given by equation (9) of :cite:t:`vogel_entering_2023` for spin-1/2 or spin-3/2 particles respectively.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>epsilon</name>
       <source>parameters</source>
       <defaultValue>0.359d0</defaultValue>
-      <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-      <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+      <defaultSource>
+      :cite:p:`barkana_constraints_2001`
+      </defaultSource>
+      <description>
+      The parameter :math:`\epsilon` appearing in the warm dark matter transfer function :cite:p:`barkana_constraints_2001`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>eta</name>
       <source>parameters</source>
       <defaultValue>3.81d0</defaultValue>
-      <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-      <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+      <defaultSource>
+      :cite:p:`barkana_constraints_2001`
+      </defaultSource>
+      <description>
+      The parameter :math:`\epsilon` appearing in the warm dark matter transfer function :cite:p:`barkana_constraints_2001`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nu</name>
       <source>parameters</source>
       <defaultValue>1.1d0</defaultValue>
-      <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
-      <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
+      <defaultSource>
+      :cite:p:`barkana_constraints_2001`
+      </defaultSource>
+      <description>
+      The parameter :math:`\epsilon` appearing in the warm dark matter transfer function :cite:p:`barkana_constraints_2001`.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
       <source>parameters</source>
       <defaultValue>cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%equalityEpochMatterRadiation(requestTypeExpansionFactor))</defaultValue>
-      <description>The redshift of the epoch at which the transfer function is defined.</description>
+      <description>
+      The redshift of the epoch at which the transfer function is defined.
+      </description>
     </inputParameter>
     !!]
     self=transferFunctionBode2001(transferFunctionCDM,enumerationScaleCutOffModelEncode(char(scaleCutOffModel),includesPrefix=.false.),epsilon,eta,nu,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_)
@@ -162,8 +181,8 @@ contains
   end function bode2001ConstructorParameters
 
   function bode2001ConstructorInternal(transferFunctionCDM,scaleCutOffModel,epsilon,eta,nu,time,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{transferFunctionBode2001} transfer function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`transferFunctionBode2001` transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleWDMThermal
@@ -281,8 +300,8 @@ contains
   end function bode2001ConstructorInternal
 
   subroutine bode2001Destructor(self)
-    !!{
-    Destructor for the \refClass{transferFunctionBode2001} transfer function class.
+    !!{RST
+    Destructor for the :galacticus-class:`transferFunctionBode2001` transfer function class.
     !!}
     implicit none
     type(transferFunctionBode2001), intent(inout) :: self
@@ -297,7 +316,7 @@ contains
   end subroutine bode2001Destructor
 
   double precision function bode2001Value(self,wavenumber)
-    !!{
+    !!{RST
     Return the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -324,7 +343,7 @@ contains
   end function bode2001Value
 
   double precision function bode2001LogarithmicDerivative(self,wavenumber)
-    !!{
+    !!{RST
     Return the logarithmic derivative of the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -357,7 +376,7 @@ contains
   end function bode2001LogarithmicDerivative
 
   double precision function bode2001WavenumberAtSupression(self,factorSuppression)
-    !!{
+    !!{RST
     Compute the wavenumber at which the transfer function is suppressed by the given factor relative to the large-scale value.
     !!}
     implicit none
@@ -374,9 +393,8 @@ contains
   end function bode2001WavenumberAtSupression
   
   double precision function bode2001HalfModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    to a \gls{cdm} transfer function.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function.
     !!}
     use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
@@ -402,9 +420,8 @@ contains
   end function bode2001HalfModeMass
 
   double precision function bode2001QuarterModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    to a \gls{cdm} transfer function.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function.
     !!}
     use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
@@ -430,9 +447,8 @@ contains
   end function bode2001QuarterModeMass
 
   double precision function bode2001FractionModeMass(self,fraction,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is reduced by \mono{fraction} relative
-    to a \gls{cdm} transfer function.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is reduced by ``fraction`` relative to a :term:`CDM` transfer function.
     !!}
     use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
@@ -459,7 +475,7 @@ contains
   end function bode2001FractionModeMass
 
   double precision function bode2001EpochTime(self)
-    !!{
+    !!{RST
     Return the cosmic time at the epoch at which this transfer function is defined.
     !!}
     implicit none

@@ -17,21 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides various enumerations for the galactic structure functions.
 !!}
 
 module Galactic_Structure_Options
-  !!{
+  !!{RST
   Provides various internal option codes for the galactic structure functions.
   !!}
   implicit none
   public
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>massType</name>
-   <description>Used to specify the mass type(s) to be queried in galactic structure functions.</description>
+   <description>
+   Used to specify the mass type(s) to be queried in galactic structure functions.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <entry label="all"       description="All mass types"                       />
    <entry label="dark"      description="Dark matter mass"                     />
@@ -45,9 +47,11 @@ module Galactic_Structure_Options
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>componentType</name>
-   <description>Used to specify the component(s) to be queried in galactic structure functions.</description>
+   <description>
+   Used to specify the component(s) to be queried in galactic structure functions.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
    <validator>yes</validator>
@@ -66,9 +70,11 @@ module Galactic_Structure_Options
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>coordinateSystem</name>
-   <description>Used to specify the coordinate system of the input coordinates in galactic structure functions.</description>
+   <description>
+   Used to specify the coordinate system of the input coordinates in galactic structure functions.
+   </description>
    <entry label="spherical"   />
    <entry label="cylindrical" />
    <entry label="cartesian"   />
@@ -76,18 +82,22 @@ module Galactic_Structure_Options
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>weightBy</name>
-   <description>Used to specify by which quantity to weight the results in galactic structure functions.</description>
+   <description>
+   Used to specify by which quantity to weight the results in galactic structure functions.
+   </description>
    <entry label="mass"       />
    <entry label="luminosity" />
   </enumeration>
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>structureErrorCode</name>
-   <description>Error codes for galactic structure functions.</description>
+   <description>
+   Error codes for galactic structure functions.
+   </description>
    <entry label="success"     description="Successful completion"/>
    <entry label="infinite"    description="Result is ±∞"         />
    <entry label="integration" description="Integration failed"   />

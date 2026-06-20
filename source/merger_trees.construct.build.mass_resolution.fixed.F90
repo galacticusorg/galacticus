@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of a merger tree builder mass resolution which assumes a fixed resolution.
   !!}
 
   !![
-  <mergerTreeMassResolution name="mergerTreeMassResolutionFixed">
+  <mergerTreeMassResolution name="mergerTreeMassResolutionFixed" docformat="rst">
    <description>
-    A merger tree mass resolution class which assumes a fixed, uniform mass resolution applied to all merger trees during tree construction. The minimum resolved halo mass is set by the \mono{[massResolution]} parameter, expressed in Solar masses, below which branches are not built.
+   A merger tree mass resolution class which assumes a fixed, uniform mass resolution applied to all merger trees during tree construction. The minimum resolved halo mass is set by the ``[massResolution]`` parameter, expressed in Solar masses, below which branches are not built.
    </description>
   </mergerTreeMassResolution>
   !!]
   type, extends(mergerTreeMassResolutionClass) :: mergerTreeMassResolutionFixed
-     !!{
+     !!{RST
      A merger tree mass resolution class which assumes a fixed mass resolution.
      !!}
      private
@@ -39,8 +39,8 @@
   end type mergerTreeMassResolutionFixed
 
   interface mergerTreeMassResolutionFixed
-     !!{
-     Constructors for the \refClass{mergerTreeMassResolutionFixed} merger tree building mass resolution class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeMassResolutionFixed` merger tree building mass resolution class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -49,9 +49,8 @@
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeMassResolutionFixed} merger tree building mass resolution class which reads parameters from a
-    provided parameter list.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeMassResolutionFixed` merger tree building mass resolution class which reads parameters from a provided parameter list.
     !!}
     implicit none
     type            (mergerTreeMassResolutionFixed)                :: self
@@ -59,11 +58,13 @@ contains
     double precision                                               :: massResolution
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massResolution</name>
       <source>parameters</source>
       <defaultValue>5.0d9</defaultValue>
-      <description>The mass resolution to use when building merger trees.</description>
+      <description>
+      The mass resolution to use when building merger trees.
+      </description>
     </inputParameter>
     !!]
     self=mergerTreeMassResolutionFixed(massResolution)
@@ -74,8 +75,8 @@ contains
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(massResolution) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeMassResolutionFixed} merger tree building mass resolution class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeMassResolutionFixed` merger tree building mass resolution class.
     !!}
     implicit none
     type            (mergerTreeMassResolutionFixed)                :: self
@@ -88,7 +89,7 @@ contains
   end function fixedConstructorInternal
 
   double precision function fixedResolution(self,tree)
-    !!{
+    !!{RST
     Returns a fixed mass resolution to use when building merger trees.
     !!}
     implicit none

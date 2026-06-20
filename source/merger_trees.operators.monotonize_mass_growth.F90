@@ -17,22 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a merger tree operator which makes mass growth along
-  branch monotonically increasing.
+  !!{RST
+  Implements a merger tree operator which makes mass growth along branch monotonically increasing.
   !!}
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorMonotonizeMassGrowth">
+  <mergerTreeOperator name="mergerTreeOperatorMonotonizeMassGrowth" docformat="rst">
    <description>
-    A merger tree operator class which enforces monotonic growth a halo mass along each branch of each merger tree. It does
-    this by searching the tree for nodes which are less massive than the sum of the masses of their immediate progenitors, and
-    increasing the mass of such nodes to equal the sum of the masses of their immediate progenitors.
+   A merger tree operator class which enforces monotonic growth a halo mass along each branch of each merger tree. It does this by searching the tree for nodes which are less massive than the sum of the masses of their immediate progenitors, and increasing the mass of such nodes to equal the sum of the masses of their immediate progenitors.
    </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorMonotonizeMassGrowth
-     !!{
+     !!{RST
      A merger tree operator class makes mass growth along branch monotonically increasing.
      !!}
      private
@@ -41,7 +38,7 @@
   end type mergerTreeOperatorMonotonizeMassGrowth
 
   interface mergerTreeOperatorMonotonizeMassGrowth
-     !!{
+     !!{RST
      Constructors for the mass growth monotonizing merger tree operator class.
      !!}
      module procedure monotonizeMassGrowthConstructorParameters
@@ -50,9 +47,8 @@
 contains
 
   function monotonizeMassGrowthConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the mass growth monotonizing merger tree operator class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the mass growth monotonizing merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,7 +63,7 @@ contains
   end function monotonizeMassGrowthConstructorParameters
 
   subroutine monotonizeMassGrowthOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Perform a mass growth monotonizing operation on a merger tree.
     !!}
     use :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode

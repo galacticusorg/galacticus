@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements reading of parameters from an XML data file.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module which implements reading of parameters from an XML data file.
 !: $(BUILDPATH)/git2.o
 
 module Input_Parameters
-  !!{
+  !!{RST
   Implements reading of parameters from an XML file.
   !!}
   use, intrinsic :: ISO_C_Binding     , only : c_char         , c_int
@@ -67,7 +67,7 @@ module Input_Parameters
   !!]
 
   type :: genericObjectList
-     !!{
+     !!{RST
      A list-type for unlimited polymorphic pointers.
      !!}
      private
@@ -75,8 +75,8 @@ module Input_Parameters
   end type genericObjectList
 
   type :: inputParameter
-     !!{
-     A class to handle input parameters for \glc.
+     !!{RST
+     A class to handle input parameters for Galacticus.
      !!}
      private
      type   (node             ), pointer                     :: content         => null()
@@ -89,7 +89,7 @@ module Input_Parameters
           &                                                     activeEvaluated =  .false.
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return true if this is a valid parameter node." method="isParameter" />
        <method description="Return true the object corresponding to this parameter has been created." method="objectCreated" />
        <method description="Return a pointer to the object corresponding to this parameter." method="objectGet" />
@@ -122,7 +122,7 @@ module Input_Parameters
   !!]
     
   type :: documentWrapper
-     !!{
+     !!{RST
      Wrapper class for managing XML documents.
      !!}
      private
@@ -147,18 +147,18 @@ module Input_Parameters
      type   (resourceManager  )                  :: lockManager
    contains
      !![
-     <methods>
-       <method description="Build a tree of \mono{inputParameter} objects from the structure of an XML parameter file." method="buildTree" />
-       <method description="Resolve references in the tree of \mono{inputParameter} objects." method="resolveReferences" />
-       <method description="Evaluate conditionals in the tree of \mono{inputParameter} objects." method="evaluateConditionals" />
+     <methods docformat="rst">
+       <method description="Build a tree of ``inputParameter`` objects from the structure of an XML parameter file." method="buildTree" />
+       <method description="Resolve references in the tree of ``inputParameter`` objects." method="resolveReferences" />
+       <method description="Evaluate conditionals in the tree of ``inputParameter`` objects." method="evaluateConditionals" />
        <method description="Return the HDF5 group to which this parameters content will be written." method="parametersGroup" />
        <method description="Open an output group for parameters in the given HDF5 object." method="parametersGroupOpen" />
        <method description="Check that a given parameter name is a valid name, aborting if not." method="validateName" />
        <method description="Check that parameters are valid and, optionally, check if they match expected names in the provided list." method="checkParameters" />
        <method description="Return the XML node containing the named parameter." method="node" />
        <method description="Return true if the named parameter is present in the set." method="isPresent" />
-       <method description="Return a count of the number copies of the named parameter. If the parameter is not present, this function aborts, unless \mono{zeroIfNotPresent} is set to \mono{true}, in which case a result of 0 is returned." method="copiesCount" />
-       <method description="Return a count of the number of values in the named parameter. If the parameter is not present, this function aborts, unless \mono{zeroIfNotPresent} is set to \mono{true}, in which case a result of 0 is returned." method="count" />
+       <method description="Return a count of the number copies of the named parameter. If the parameter is not present, this function aborts, unless ``zeroIfNotPresent`` is set to ``true``, in which case a result of 0 is returned." method="copiesCount" />
+       <method description="Return a count of the number of values in the named parameter. If the parameter is not present, this function aborts, unless ``zeroIfNotPresent`` is set to ``true``, in which case a result of 0 is returned." method="count" />
        <method description="Return the set of subparameters of the named parameter." method="subParameters" />
        <method description="Return the parent parameters given the path to a parameter" method="findParent"/>
        <method description="Return the value of a parameter specified by name or XML node. A default value can be specified only if the parameter is specified by name. Supported types include rank-0 and rank-1 logicals, integers, long integers, doubles, characters, and varying strings." method="value" />
@@ -201,8 +201,8 @@ module Input_Parameters
   end type inputParameters
 
   interface inputParameters
-     !!{
-     Constructors for the \mono{inputParameters} class.
+     !!{RST
+     Constructors for the ``inputParameters`` class.
      !!}
      module procedure inputParametersConstructorVarStr
      module procedure inputParametersConstructorFileChar
@@ -213,14 +213,14 @@ module Input_Parameters
 
   ! Define a type to hold lists of parameters (and values) prior to output.
   type :: inputParameterList
-     !!{
+     !!{RST
      A class to hold lists of parameters (and values) prior to output.
      !!}
      integer                                            :: count
      type   (varying_string), allocatable, dimension(:) :: name , value
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Serialize a list of input parameters to an XML document." method="serializeToXML"/>
        <method description="Add a parameter and value to the list."                   method="add"           />
      </methods>
@@ -231,16 +231,18 @@ module Input_Parameters
   end type inputParameterList
 
   interface inputParameterList
-     !!{
-     Constructors for \mono{inputParameterList} objects.
+     !!{RST
+     Constructors for ``inputParameterList`` objects.
      !!}
      module procedure inputParameterListConstructor
   end interface inputParameterList
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>inputParameterErrorStatus</name>
-   <description>Error status codes used by the input parameters module.</description>
+   <description>
+   Error status codes used by the input parameters module.
+   </description>
    <entry label="success"        />
    <entry label="notPresent"     />
    <entry label="parse"          />
@@ -250,9 +252,11 @@ module Input_Parameters
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>inputParameterType</name>
-   <description>Types for input parameters.</description>
+   <description>
+   Types for input parameters.
+   </description>
    <entry label="double" />
    <entry label="integer"/>
    <entry label="text"   />
@@ -289,7 +293,7 @@ module Input_Parameters
 #ifdef GIT2AVAIL
   interface
      function gitDescendantOf(repoPath,commitHash,ancestorHash) bind(c,name='gitDescendantOf')
-       !!{
+       !!{RST
        Template for a C function that returns whether a commit is an ancestor of another commit.
        !!}
        import c_char, c_int
@@ -303,11 +307,8 @@ module Input_Parameters
 contains
 
   subroutine Input_Parameters_Build_Stack_Push(node,className,recursionAware,location)
-    !!{
-    Push a parameter node onto the object-build stack, after first checking that the same node is not
-    already being built for the same class. If it is---and no recursion-aware class lies between that
-    earlier build and this one---a genuine, unbounded recursive build has been detected and we abort
-    with an informative error. See issue \#397.
+    !!{RST
+    Push a parameter node onto the object-build stack, after first checking that the same node is not already being built for the same class. If it is---and no recursion-aware class lies between that earlier build and this one---a genuine, unbounded recursive build has been detected and we abort with an informative error. See issue #397.
     !!}
     use :: Error             , only : Error_Report
     use :: ISO_Varying_String, only : varying_string, assignment(=), operator(//), operator(==), char
@@ -368,8 +369,8 @@ contains
   end subroutine Input_Parameters_Build_Stack_Push
 
   subroutine Input_Parameters_Build_Stack_Pop()
-    !!{
-    Pop the most recently pushed parameter node from the object-build stack. See issue \#397.
+    !!{RST
+    Pop the most recently pushed parameter node from the object-build stack. See issue #397.
     !!}
     implicit none
 
@@ -381,8 +382,8 @@ contains
   end subroutine Input_Parameters_Build_Stack_Pop
 
   function inputParametersConstructorNull() result(self)
-    !!{
-    Constructor for the \mono{inputParameters} class creating a null instance.
+    !!{RST
+    Constructor for the ``inputParameters`` class creating a null instance.
     !!}
     use :: FoX_dom, only : createDocument, getDocumentElement, getImplementation, setLiveNodeLists
     implicit none
@@ -402,8 +403,10 @@ contains
     call setLiveNodeLists(self%document%document,.false.)
     !$omp end critical (FoX_DOM_Access)
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     document_ => self%document
     self%documentManager=resourceManager(document_)
@@ -414,8 +417,10 @@ contains
     self%warnedDefaults =  integerDictionary (             )
     self%lock           =  ompLock           (             )
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     lock_ => self%lock
     self%lockManager    =  resourceManager   (     lock_   )
@@ -427,9 +432,8 @@ contains
   end function inputParametersConstructorNull
 
   function inputParametersConstructorVarStr(xmlString,allowedParameterNames,outputParametersGroup,noOutput,changeFiles,threadSafe) result(self)
-    !!{
-    Constructor for the \mono{inputParameters} class from an XML file
-    specified as a variable length string.
+    !!{RST
+    Constructor for the ``inputParameters`` class from an XML file specified as a variable length string.
     !!}
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name
     use :: FoX_DOM           , only : node                             , parseString
@@ -475,9 +479,8 @@ contains
   end function inputParametersConstructorVarStr
 
   function inputParametersConstructorFileChar(fileName,allowedParameterNames,outputParametersGroup,noOutput,changeFiles,threadSafe) result(self)
-    !!{
-    Constructor for the \mono{inputParameters} class from an XML file
-    specified as a character variable.
+    !!{RST
+    Constructor for the ``inputParameters`` class from an XML file specified as a character variable.
     !!}
     use :: Display           , only : displayGreen                     , displayReset
     use :: File_Utilities    , only : File_Exists
@@ -704,8 +707,8 @@ contains
   end function inputParametersConstructorFileChar
 
   function inputParametersConstructorCopy(parameters) result(self)
-    !!{
-    Constructor for the \mono{inputParameters} class from an existing parameters object.
+    !!{RST
+    Constructor for the ``inputParameters`` class from an existing parameters object.
     !!}
     implicit none
     type (inputParameters)                :: self
@@ -726,8 +729,10 @@ contains
        allocate  (self%lock)
        self%lock=ompLock()
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        lock_ => self%lock
        self%lockManager    =  resourceManager   (     lock_   )
@@ -739,8 +744,8 @@ contains
   end function inputParametersConstructorCopy
 
   function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild,fileName,documentManager,document,threadSafe) result(self)
-    !!{
-    Constructor for the \mono{inputParameters} class from a FoX node.
+    !!{RST
+    Constructor for the ``inputParameters`` class from a FoX node.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_null_char
     use            :: Display           , only : displayGreen                     , displayMessage  , displayMagenta  , displayReset  , &
@@ -803,8 +808,10 @@ contains
     self%warnedDefaults =  integerDictionary(              )
     self%lock           =  ompLock          (              )
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_       => self%lock
     self%lockManager    =  resourceManager (dummyPointer_ )
@@ -822,8 +829,10 @@ contains
        call setLiveNodeLists(self%document%document,.false.)
        !$omp end critical (FoX_DOM_Access)
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        dummyPointer_ => self%document
        self%documentManager=resourceManager(dummyPointer_,threadSafe=threadSafe)
@@ -854,8 +863,10 @@ contains
        self%outputParametersTemporary=.false.
        !$ call hdf5Access%unset()
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        dummyPointer_ => self%outputParameters
        self%outputParametersManager=resourceManager(dummyPointer_)
@@ -886,8 +897,10 @@ contains
        self%outputParametersTemporary=.true.
        !$ call hdf5Access%unset()
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        dummyPointer_ => self%outputParameters
        self%outputParametersManager         =resourceManager(dummyPointer_)
@@ -987,7 +1000,7 @@ contains
   end function inputParametersConstructorNode
 
   recursive subroutine inputParametersBuildTree(self,parentParameter,parametersNode)
-    !!{
+    !!{RST
     Build a tree representation of the input parameter file.
     !!}
     use :: FoX_DOM, only : ELEMENT_NODE          , getNodeType, node
@@ -1025,7 +1038,7 @@ contains
   end subroutine inputParametersBuildTree
 
   subroutine inputParametersResolveReferences(self)
-    !!{
+    !!{RST
     Resolve references in a parameter tree.
     !!}
     use :: FoX_dom           , only : DOMException , ELEMENT_NODE  , getAttributeNode, getNodeName, &
@@ -1090,7 +1103,7 @@ contains
   end subroutine inputParametersResolveReferences
 
   subroutine inputParametersEvaluateConditionals(self)
-    !!{
+    !!{RST
     Evaluate conditionals in a parameter tree.
     !!}
     use :: FoX_dom           , only : DOMException      , ELEMENT_NODE      , getAttributeNode, inException, &
@@ -1232,7 +1245,7 @@ contains
   end subroutine inputParametersEvaluateConditionals
 
   function inputParametersWalkTree(currentNode) result(nextNode)
-    !!{
+    !!{RST
     Perform a depth-first walk of a parameter tree.
     !!}
     implicit none
@@ -1260,8 +1273,8 @@ contains
   end function inputParametersWalkTree
 
   subroutine inputParametersDestroy(self)
-    !!{
-    Destructor for the \mono{inputParameters} class.
+    !!{RST
+    Destructor for the ``inputParameters`` class.
     !!}
     use :: FoX_DOM, only : destroy
     implicit none    
@@ -1275,8 +1288,8 @@ contains
   end subroutine inputParametersDestroy
 
   subroutine documentWrapperDestructor(self)
-    !!{
-    Destroy a \mono{documentWrapper} object.
+    !!{RST
+    Destroy a ``documentWrapper`` object.
     !!}
     use :: FoX_DOM, only : destroy
     implicit none
@@ -1291,8 +1304,8 @@ contains
   end subroutine documentWrapperDestructor
 
   subroutine inputParametersAssignment(self,from)
-    !!{
-    Assignment operator for \mono{inputParameters} class.
+    !!{RST
+    Assignment operator for ``inputParameters`` class.
     !!}
     implicit none
     class(inputParameters), intent(  out) :: self
@@ -1323,8 +1336,8 @@ contains
   end subroutine inputParametersAssignment
   
   recursive subroutine inputParameterDestroy(self)
-    !!{
-    Destructor for the \mono{inputParameter} class.
+    !!{RST
+    Destructor for the ``inputParameter`` class.
     !!}
     class(inputParameter), intent(inout) :: self
     type (inputParameter), pointer       :: child, childNext
@@ -1344,7 +1357,7 @@ contains
   end subroutine inputParameterDestroy
 
   logical function inputParameterIsParameter(self)
-    !!{
+    !!{RST
     Return true if this is a valid parameter.
     !!}
     use :: FoX_dom, only : ELEMENT_NODE   , getNodeType, hasAttribute
@@ -1367,7 +1380,7 @@ contains
   end function inputParameterIsParameter
 
   logical function inputParameterObjectCreated(self)
-    !!{
+    !!{RST
     Return true if the specified instance of the object associated with this parameter has been created.
     !!}
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_Get_Level, OMP_In_Parallel
@@ -1393,7 +1406,7 @@ contains
   end function inputParameterObjectCreated
 
   function inputParameterObjectGet(self)
-    !!{
+    !!{RST
     Return a pointer to the object associated with this parameter.
     !!}
     use    :: Error  , only : Error_Report
@@ -1425,7 +1438,7 @@ contains
   end function inputParameterObjectGet
 
   subroutine inputParameterObjectSet(self,object)
-    !!{
+    !!{RST
     Set a pointer to the object associated with this parameter.
     !!}
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_Get_Level, OMP_Get_Max_Threads, OMP_In_Parallel
@@ -1468,7 +1481,7 @@ contains
   end subroutine inputParameterObjectSet
 
   recursive subroutine inputParameterReset(self,children,evaluations)
-    !!{
+    !!{RST
     Reset objects associated with this parameter and any sub-parameters.
     !!}
     use :: iso_varying_string, only : char
@@ -1529,7 +1542,7 @@ contains
   end subroutine inputParameterReset
 
   subroutine inputParameterSetDouble(self,value)
-    !!{
+    !!{RST
     Set the value of a parameter.
     !!}
     use :: FoX_DOM, only : setAttribute
@@ -1546,7 +1559,7 @@ contains
   end subroutine inputParameterSetDouble
 
   subroutine inputParameterSetVarStr(self,value)
-    !!{
+    !!{RST
     Set the value of a parameter.
     !!}
     use :: FoX_DOM           , only : setAttribute
@@ -1562,7 +1575,7 @@ contains
   end subroutine inputParameterSetVarStr
 
   function inputParameterGet(self)
-    !!{
+    !!{RST
     Get the value of a parameter.
     !!}
     use :: FoX_dom           , only : DOMException , getAttributeNode, getNodeName   , hasAttribute, &
@@ -1781,7 +1794,7 @@ contains
   end subroutine inputParametersCheckParameters
 
   function inputParametersParametersGroup(self) result(parametersGroup)
-    !!{
+    !!{RST
     Return the HDF5 group to which this parameters content will be written.
     !!}
     implicit none
@@ -1793,7 +1806,7 @@ contains
   end function inputParametersParametersGroup
 
   subroutine inputParametersParametersGroupOpen(self,outputGroup)
-    !!{
+    !!{RST
     Open an output group for parameters in the given HDF5 object.
     !!}
     use :: HDF5_Access       , only : hdf5Access
@@ -1814,8 +1827,10 @@ contains
        !$ call hdf5Access%set()
        self%outputParameters=outputGroup%openGroup('Parameters',attributesCompactMaxiumum=0)
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        dummyPointer_                => self%outputParameters
        self%outputParametersManager =  resourceManager(dummyPointer_)
@@ -1832,7 +1847,7 @@ contains
   end subroutine inputParametersParametersGroupOpen
 
   subroutine inputParametersValidateName(self,parameterName)
-    !!{
+    !!{RST
     Validate a parameter name.
     !!}
     use :: Error, only : Error_Report
@@ -1846,7 +1861,7 @@ contains
   end subroutine inputParametersValidateName
 
   function inputParametersNode(self,parameterName,requireValue,copyInstance,writeOutput)
-    !!{
+    !!{RST
     Return the node containing the parameter.
     !!}
     use :: FoX_DOM           , only : ELEMENT_NODE   , getNodeName   , getNodeType     , hasAttribute, &
@@ -1924,7 +1939,7 @@ contains
   end function inputParametersNode
 
   logical function inputParametersIsPresent(self,parameterName,requireValue,searchInParents)
-    !!{
+    !!{RST
     Return true if the specified parameter is present.
     !!}
     use :: FoX_dom, only : ELEMENT_NODE   , getNodeName, getNodeType, hasAttribute, &
@@ -1979,7 +1994,7 @@ contains
   end function inputParametersIsPresent
 
   integer function inputParametersCopiesCount(self,parameterName,requireValue,zeroIfNotPresent)
-    !!{
+    !!{RST
     Return true if the specified parameter is present.
     !!}
     use :: FoX_dom           , only : ELEMENT_NODE   , getNodeName , getNodeType , hasAttribute    , &
@@ -2039,7 +2054,7 @@ contains
   end function inputParametersCopiesCount
 
   integer function inputParametersCount(self,parameterName,zeroIfNotPresent)
-    !!{
+    !!{RST
     Return a count of the number of values in a parameter.
     !!}
     use :: Error             , only : Error_Report
@@ -2069,7 +2084,7 @@ contains
   end function inputParametersCount
 
   subroutine inputParametersFindParent(self,parameterPath,parent,parameterName)
-    !!{
+    !!{RST
     Return the parent containing the specified parameter path.
     !!}
     use :: Error          , only : Error_Report
@@ -2144,7 +2159,7 @@ contains
   end subroutine inputParametersFindParent
 
   function inputParametersSubParameters(self,parameterName,requireValue,requirePresent,copyInstance)
-    !!{
+    !!{RST
     Return sub-parameters of the specified parameter.
     !!}
     use :: FoX_dom           , only : node
@@ -2204,8 +2219,10 @@ contains
           allocate(inputParametersSubParameters%outputParameters)
           inputParametersSubParameters%outputParameters=self%outputParameters%openGroup(char(groupName))
           !![
-	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	    <description>ICE when passing a derived type component to a class(*) function argument.</description>
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	    <description>
+	    ICE when passing a derived type component to a class(*) function argument.
+	    </description>
           !!]
           dummyPointer_ => inputParametersSubParameters%outputParameters
           inputParametersSubParameters%outputParametersManager=resourceManager(dummyPointer_)
@@ -2219,7 +2236,7 @@ contains
   end function inputParametersSubParameters
 
   function inputParametersPath(self)
-    !!{
+    !!{RST
     Return the path to the given parameters.
     !!}
     use :: FoX_dom           , only : getNodeName
@@ -2239,7 +2256,7 @@ contains
   end function inputParametersPath
 
   recursive subroutine inputParametersValueName{Type¦label}(self,parameterName,parameterValue,defaultValue,errorStatus,writeOutput,copyInstance,evaluate)
-    !!{
+    !!{RST
     Return the value of the parameter specified by name.
     !!}
     use :: Error             , only : Error_Report, Warn
@@ -2294,7 +2311,7 @@ contains
   end subroutine inputParametersValueName{Type¦label}
 
   recursive subroutine inputParametersValueNode{Type¦label}(self,parameterNode,parameterValue,errorStatus,writeOutput,evaluate)
-    !!{
+    !!{RST
     Return the value of the specified parameter.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_int64_t                        , c_size_t
@@ -2562,8 +2579,8 @@ contains
   end subroutine inputParametersValueNode{Type¦label}
 
   function inputParameterListConstructor() result(self)
-    !!{
-    Construct an \mono{inputParameterList} object.
+    !!{RST
+    Construct an ``inputParameterList`` object.
     !!}
     implicit none
     type(inputParameterList) :: self
@@ -2573,8 +2590,8 @@ contains
   end function inputParameterListConstructor
 
   subroutine inputParameterListDestructor(self)
-    !!{
-    Destroy an \mono{inputParameterList} object.
+    !!{RST
+    Destroy an ``inputParameterList`` object.
     !!}
     implicit none
     type(inputParameterList), intent(inout) :: self
@@ -2585,7 +2602,7 @@ contains
   end subroutine inputParameterListDestructor
 
   subroutine inputParameterListAdd(self,name,value)
-    !!{
+    !!{RST
     Add a parameter to a list of input parameters to an XML document.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
@@ -2616,7 +2633,7 @@ contains
   end subroutine inputParameterListAdd
 
   subroutine inputParameterListSerializeToXML(self,parameterDoc)
-    !!{
+    !!{RST
     Serialize a list of input parameters to an XML document.
     !!}
     use :: FoX_wXML          , only : xml_AddAttribute, xml_EndElement, xml_NewElement, xmlf_t
@@ -2636,7 +2653,7 @@ contains
   end subroutine inputParameterListSerializeToXML
 
   recursive function inputParametersSerializeToString(self,hashed)
-    !!{
+    !!{RST
     Serialize input parameters to a string.
     !!}
     use :: FoX_dom             , only : getNodeName  , node
@@ -2690,7 +2707,7 @@ contains
   end function inputParametersSerializeToString
 
   subroutine inputParametersSerializeToXML(self,parameterFile)
-    !!{
+    !!{RST
     Serialize input parameters to an XML file.
     !!}
     use :: FoX_DOM           , only : serialize
@@ -2706,7 +2723,7 @@ contains
   end subroutine inputParametersSerializeToXML
 
   subroutine inputParametersAddParameter(self,parameterName,parameterValue,writeOutput)
-    !!{
+    !!{RST
     Add a parameter to the set.
     !!}
     use :: FoX_DOM    , only : ELEMENT_NODE, appendChild, createElementNS, getNamespaceURI, &
@@ -2790,7 +2807,7 @@ contains
   end subroutine inputParametersAddParameter
 
   subroutine inputParametersReset(self)
-    !!{
+    !!{RST
     Reset all objects in a parameter set.
     !!}
     implicit none
@@ -2801,7 +2818,7 @@ contains
   end subroutine inputParametersReset
 
   subroutine inputParametersLockReinitialize(self)
-    !!{
+    !!{RST
     Reinitialize the OpenMP lock.
     !!}
     implicit none
@@ -2813,8 +2830,10 @@ contains
        allocate(self%lock)
        self%lock=ompLock()
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        lock_ => self%lock
        self%lockManager    =  resourceManager   (     lock_   )

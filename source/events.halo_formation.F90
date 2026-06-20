@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which performs tasks associated with ``halo formation'' events.
+!!{RST
+Contains a module which performs tasks associated with "halo formation" events.
 !!}
 
 module Events_Halo_Formation
-  !!{
-  Performs tasks associated with ``halo formation'' events.
+  !!{RST
+  Performs tasks associated with "halo formation" events.
   !!}
   implicit none
   private
@@ -32,8 +32,8 @@ module Events_Halo_Formation
 contains
 
   subroutine Event_Halo_Formation(node)
-    !!{
-    Perform tasks associated with a ``halo formation'' event in \mono{node}.
+    !!{RST
+    Perform tasks associated with a "halo formation" event in ``node``.
     !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none

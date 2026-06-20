@@ -22,9 +22,8 @@
   !     Implementation planning was assisted by Copilot, which then made the initial implementation. All code checked, physics
   !     assumptions verified, documented, and cited by Andrew Benson.
   
-  !!{
-  An intrinsic three-component thin-disk AGN SED implementation with strict
-  energy-closure scaling, based on the model of \cite{done_intrinsic_2012}.
+  !!{RST
+  An intrinsic three-component thin-disk AGN SED implementation with strict energy-closure scaling, based on the model of :cite:t:`done_intrinsic_2012`.
   !!}
 
   use :: Black_Hole_Accretion_Rates, only : blackHoleAccretionRateClass
@@ -33,43 +32,34 @@
   use :: Kind_Numbers              , only : kind_int8
 
   !![
-  <accretionDiskSpectra name="accretionDiskSpectraThinDisk">
+  <accretionDiskSpectra name="accretionDiskSpectraThinDisk" docformat="rst">
    <description>
-    Accretion disk spectra computed intrinsically for a three-component thin-disk AGN SED based
-    on the model of \cite{done_intrinsic_2012} and comprising (1) a multitemperature blackbody
-    disk following the \cite{shakura_black_1973} temperature profile, (2) a soft Comptonized warm corona,
-    and (3) a hard Comptonized hot corona extending to hard X-rays.  Strict energy closure is
-    enforced: fractions \mono{[fractionHot]} and \mono{[fractionWarm]} of the bolometric
-    luminosity are allocated to the hot and warm coronae respectively, with the remainder $(1 -
-    f_\mathrm{hot} - f_\mathrm{warm})$ going to the disk.
+   Accretion disk spectra computed intrinsically for a three-component thin-disk AGN SED based on the model of :cite:t:`done_intrinsic_2012` and comprising (1) a multitemperature blackbody disk following the :cite:t:`shakura_black_1973` temperature profile, (2) a soft Comptonized warm corona, and (3) a hard Comptonized hot corona extending to hard X-rays.  Strict energy closure is enforced: fractions ``[fractionHot]`` and ``[fractionWarm]`` of the bolometric luminosity are allocated to the hot and warm coronae respectively, with the remainder :math:`(1 - f_\mathrm{hot} - f_\mathrm{warm})` going to the disk.
 
-    The disk temperature normalization is derived self-consistently from energy conservation so
-    that the SED integrates exactly to the bolometric luminosity. Specifically, the disk
-    temperature profile follows that for a \cite{shakura_black_1973} disk (their equation~2.6):
-    \begin{equation}
-    T^4(x) = T_0^4 x^{-3} (1-x^{-1/2}),
-    \end{equation}
-    where $x=R/R_\mathrm{ISCO}$. Integrating the thermal emission over the disk from the ISCO to
-    infinity and setting this equal to the disk luminosity gives
-    \begin{equation}
-    2 \times 2 \pi R_\mathrm{ISCO}^2 \sigma T_0^4 \int_1^\infty \mathrm{d}x x^{-2} (1-x^{-1/2}) = L_\mathrm{disk},
-    \end{equation}
-    where $\sigma$ is the Stefan-Boltzmann constant, and the first factor of 2 on the left
-    arises from that fact that the disk has upper and lower surfaces. This results in
-    \begin{equation}
-    T_0^4 = \frac{3 L_\mathrm{disk}}{4 \pi \sigma R_\mathrm{ISCO}^2}.
-    \end{equation}
-    
-    The warm and hot corona spectra are power laws with exponential cutoffs, normalized by the
-    upper incomplete gamma function to achieve the same strict closure. This functional form is
-    commonly used to model hot coronae \citep[e.g.][]{fabian_properties_2015}, and is used here
-    as a phenomenological model for the warm bump also. The model uses only the thin-disk
-    luminosity, and returns zero outside the thin-disk regime.
+   The disk temperature normalization is derived self-consistently from energy conservation so that the SED integrates exactly to the bolometric luminosity. Specifically, the disk temperature profile follows that for a :cite:t:`shakura_black_1973` disk (their equation 2.6):
+
+   .. math::
+
+      T^4(x) = T_0^4 x^{-3} (1-x^{-1/2}),
+
+   where :math:`x=R/R_\mathrm{ISCO}`. Integrating the thermal emission over the disk from the ISCO to infinity and setting this equal to the disk luminosity gives
+
+   .. math::
+
+      2 \times 2 \pi R_\mathrm{ISCO}^2 \sigma T_0^4 \int_1^\infty \mathrm{d}x x^{-2} (1-x^{-1/2}) = L_\mathrm{disk},
+
+   where :math:`\sigma` is the Stefan-Boltzmann constant, and the first factor of 2 on the left arises from that fact that the disk has upper and lower surfaces. This results in
+
+   .. math::
+
+      T_0^4 = \frac{3 L_\mathrm{disk}}{4 \pi \sigma R_\mathrm{ISCO}^2}.
+
+   The warm and hot corona spectra are power laws with exponential cutoffs, normalized by the upper incomplete gamma function to achieve the same strict closure. This functional form is commonly used to model hot coronae :cite:p:`fabian_properties_2015`, and is used here as a phenomenological model for the warm bump also. The model uses only the thin-disk luminosity, and returns zero outside the thin-disk regime.
    </description>
   </accretionDiskSpectra>
   !!]
   type, extends(accretionDiskSpectraClass) :: accretionDiskSpectraThinDisk
-     !!{
+     !!{RST
      Three-component thin-disk AGN SED with strict energy-closure scaling.
      !!}
      private
@@ -93,7 +83,7 @@
      double precision                             , allocatable, dimension(:  ) :: lastSED
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="calculationReset" description="Reset the cached SED."                                          />
        <method method="computeSED"       description="Compute the SED for given BH properties and populate the cache."/>
      </methods>
@@ -108,8 +98,8 @@
   end type accretionDiskSpectraThinDisk
 
   interface accretionDiskSpectraThinDisk
-     !!{
-     Constructors for the \refClass{accretionDiskSpectraThinDisk} accretion disk spectra class.
+     !!{RST
+     Constructors for the :galacticus-class:`accretionDiskSpectraThinDisk` accretion disk spectra class.
      !!}
      module procedure thinDiskConstructorParameters
      module procedure thinDiskConstructorInternal
@@ -118,9 +108,8 @@
 contains
 
   function thinDiskConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{accretionDiskSpectraThinDisk} accretion disk spectra
-    class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`accretionDiskSpectraThinDisk` accretion disk spectra class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -134,73 +123,109 @@ contains
          &                                                           energyMinimumHot       , energyMinimumWarm    , &
          &                                                           massBlackHoleFiducial  , spinBlackHoleFiducial
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionHot</name>
       <source>parameters</source>
       <defaultValue>0.02d0</defaultValue>
-      <defaultSource>chosen to produce a plausible AGN SED---in reality will depend on viewing angle, geometry, and energy partition</defaultSource>
-      <description>The fraction of the bolometric luminosity allocated to the hot Comptonized corona.</description>
+      <defaultSource>
+      chosen to produce a plausible AGN SED---in reality will depend on viewing angle, geometry, and energy partition
+      </defaultSource>
+      <description>
+      The fraction of the bolometric luminosity allocated to the hot Comptonized corona.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionWarm</name>
       <source>parameters</source>
       <defaultValue>0.05d0</defaultValue>
-      <defaultSource>chosen to produce a plausible AGN SED---in reality will depend on viewing angle, geometry, and energy partition</defaultSource>
-      <description>The fraction of the bolometric luminosity allocated to the warm Comptonized corona.</description>
+      <defaultSource>
+      chosen to produce a plausible AGN SED---in reality will depend on viewing angle, geometry, and energy partition
+      </defaultSource>
+      <description>
+      The fraction of the bolometric luminosity allocated to the warm Comptonized corona.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>temperatureHot</name>
       <source>parameters</source>
       <defaultValue>200.0d0</defaultValue>
-      <defaultSource>\citep[][typical of the fits in their Table~1]{fabian_properties_2015}</defaultSource>
-      <description>The exponential cutoff energy (in keV) of the hot corona power-law spectrum.</description>
+      <defaultSource>
+      :cite:p:`fabian_properties_2015`
+      </defaultSource>
+      <description>
+      The exponential cutoff energy (in keV) of the hot corona power-law spectrum.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>temperatureWarm</name>
       <source>parameters</source>
       <defaultValue>0.2d0</defaultValue>
-      <defaultSource>\citep[][their fits show a range of around 0.2--0.3~keV]{done_intrinsic_2012}</defaultSource>
-      <description>The exponential cutoff energy (in keV) of the warm corona power-law spectrum.</description>
+      <defaultSource>
+      :cite:p:`done_intrinsic_2012`
+      </defaultSource>
+      <description>
+      The exponential cutoff energy (in keV) of the warm corona power-law spectrum.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>spectralIndexHot</name>
       <source>parameters</source>
       <defaultValue>1.9d0</defaultValue>
-      <defaultSource>\citep[][typical value from their Table~2]{tortosa_nustar_2018}</defaultSource>
-      <description>The photon spectral index $\Gamma$ of the hot corona power-law spectrum, so that $S_\nu \propto \nu^{-\Gamma}$.</description>
+      <defaultSource>
+      :cite:p:`tortosa_nustar_2018`
+      </defaultSource>
+      <description>
+      The photon spectral index :math:`\Gamma` of the hot corona power-law spectrum, so that :math:`S_\nu \propto \nu^{-\Gamma}`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>spectralIndexWarm</name>
       <source>parameters</source>
       <defaultValue>2.6d0</defaultValue>
-      <defaultSource>\citep[][\S4.3.2; reported a range of 2.6--2.7]{petrucci_testing_2018}</defaultSource>
-      <description>The photon spectral index $\Gamma$ of the warm corona power-law spectrum.</description>
+      <defaultSource>
+      :cite:p:`petrucci_testing_2018`
+      </defaultSource>
+      <description>
+      The photon spectral index :math:`\Gamma` of the warm corona power-law spectrum.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>energyMinimumHot</name>
       <source>parameters</source>
       <defaultValue>0.1d0</defaultValue>
-      <defaultSource>chosen to restrict the hot component to the X-ray regime where it is typically measured</defaultSource>
-      <description>The minimum seed-photon energy (in keV) below which the hot corona spectrum is set to zero.</description>
+      <defaultSource>
+      chosen to restrict the hot component to the X-ray regime where it is typically measured
+      </defaultSource>
+      <description>
+      The minimum seed-photon energy (in keV) below which the hot corona spectrum is set to zero.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>energyMinimumWarm</name>
       <source>parameters</source>
       <defaultValue>1.0d-2</defaultValue>
-      <defaultSource>typical of the UV/EUV disk photons which seed the warm Comptonization, e.g. \cite{done_intrinsic_2012}</defaultSource>
-      <description>The minimum seed-photon energy (in keV) below which the warm corona spectrum is set to zero.</description>
+      <defaultSource>
+      typical of the UV/EUV disk photons which seed the warm Comptonization, e.g. :cite:t:`done_intrinsic_2012`
+      </defaultSource>
+      <description>
+      The minimum seed-photon energy (in keV) below which the warm corona spectrum is set to zero.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massBlackHoleFiducial</name>
       <source>parameters</source>
       <defaultValue>1.0d8</defaultValue>
-      <description>The fiducial black hole mass (in $\mathrm{M}_\odot$) used when \mono{spectrumMassRate} is called without a specific node (i.e.\ when only the accretion rate and radiative efficiency are available).</description>
+      <description>
+      The fiducial black hole mass (in :math:`\mathrm{M}_\odot`) used when ``spectrumMassRate`` is called without a specific node (i.e.\ when only the accretion rate and radiative efficiency are available).
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>spinBlackHoleFiducial</name>
       <source>parameters</source>
       <defaultValue>0.5d0</defaultValue>
-      <description>The fiducial dimensionless black hole spin used when \mono{spectrumMassRate} is called without a specific node.</description>
+      <description>
+      The fiducial dimensionless black hole spin used when ``spectrumMassRate`` is called without a specific node.
+      </description>
     </inputParameter>
     <objectBuilder class="blackHoleAccretionRate" name="blackHoleAccretionRate_" source="parameters"/>
     <objectBuilder class="accretionDisks"         name="accretionDisks_"         source="parameters"/>
@@ -215,9 +240,8 @@ contains
   end function thinDiskConstructorParameters
 
   function thinDiskConstructorInternal(fractionHot,fractionWarm,temperatureHot,temperatureWarm,spectralIndexHot,spectralIndexWarm,energyMinimumHot,energyMinimumWarm,massBlackHoleFiducial,spinBlackHoleFiducial,blackHoleAccretionRate_,accretionDisks_) result(self)
-    !!{
-    Internal constructor for the \refClass{accretionDiskSpectraThinDisk} accretion disk
-    spectra class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`accretionDiskSpectraThinDisk` accretion disk spectra class.
     !!}
     use :: Gamma_Functions             , only : Gamma_Function_Incomplete_Unnormalized
     use :: Numerical_Constants_Physical, only : plancksConstant                       , speedLight
@@ -292,9 +316,8 @@ contains
   end function thinDiskConstructorInternal
 
   subroutine thinDiskDestructor(self)
-    !!{
-    Destructor for the \refClass{accretionDiskSpectraThinDisk} accretion disk spectra
-    class.
+    !!{RST
+    Destructor for the :galacticus-class:`accretionDiskSpectraThinDisk` accretion disk spectra class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
@@ -310,9 +333,8 @@ contains
   end subroutine thinDiskDestructor
 
   subroutine thinDiskAutoHook(self)
-    !!{
-    Attach to the calculation reset event so that the SED cache is cleared when a new
-    node is processed.
+    !!{RST
+    Attach to the calculation reset event so that the SED cache is cleared when a new node is processed.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
@@ -323,7 +345,7 @@ contains
   end subroutine thinDiskAutoHook
 
   subroutine thinDiskCalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the cached SED (triggered by the calculation-reset event).
     !!}
     use :: Kind_Numbers    , only : kind_int8
@@ -341,9 +363,8 @@ contains
   end subroutine thinDiskCalculationReset
 
   double precision function thinDiskSpectrumNode(self,node,wavelength) result(spectrum)
-    !!{
-    Return the accretion disk SED (in $L_\odot\,\mathrm{Hz}^{-1}$) at \mono{wavelength}
-    (in \AA) for the black hole in \mono{node}, or zero if outside the thin-disk regime.
+    !!{RST
+    Return the accretion disk SED (in :math:`L_\odot\,\mathrm{Hz}^{-1}`) at ``wavelength`` (in \AA) for the black hole in ``node``, or zero if outside the thin-disk regime.
     !!}
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Accretion_Disks                 , only : accretionDiskTypeThin
@@ -404,11 +425,8 @@ contains
   end function thinDiskSpectrumNode
 
   double precision function thinDiskSpectrumMassRate(self,accretionRate,efficiencyRadiative,wavelength) result(spectrum)
-    !!{
-    Return the accretion disk SED (in $L_\odot\,\mathrm{Hz}^{-1}$) at \mono{wavelength}
-    (in \AA) for the given \mono{accretionRate} ($\mathrm{M}_\odot\,\mathrm{Gyr}^{-1}$)
-    and \mono{efficiencyRadiative}, using the fiducial black hole mass and spin.
-    Returns zero if outside the thin-disk regime.
+    !!{RST
+    Return the accretion disk SED (in :math:`L_\odot\,\mathrm{Hz}^{-1}`) at ``wavelength`` (in \AA) for the given ``accretionRate`` (:math:`\mathrm{M}_\odot\,\mathrm{Gyr}^{-1}`) and ``efficiencyRadiative``, using the fiducial black hole mass and spin. Returns zero if outside the thin-disk regime.
     !!}
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Black_Hole_Fundamentals         , only : Black_Hole_ISCO_Radius
@@ -453,7 +471,7 @@ contains
   end function thinDiskSpectrumMassRate
 
   subroutine thinDiskWavelengths(self,wavelengthsCount,wavelengths)
-    !!{
+    !!{RST
     Return the wavelength grid at which the thin-disk SED is tabulated.
     !!}
     implicit none
@@ -468,22 +486,13 @@ contains
   end subroutine thinDiskWavelengths
 
   subroutine thinDiskComputeSED(self,luminosityBolometric,radiusISCO,sedOut)
-    !!{
-    Compute the three-component thin-disk SED (in $L_\odot\,\mathrm{Hz}^{-1}$) and
-    store the result. If \mono{sedOut} is present the result is written there;
-    otherwise it is stored in \mono{self\%lastSED}.
+    !!{RST
+    Compute the three-component thin-disk SED (in :math:`L_\odot\,\mathrm{Hz}^{-1}`) and store the result. If ``sedOut`` is present the result is written there; otherwise it is stored in ``self%lastSED``.
 
     Strict energy closure is enforced for all three components:
-    \begin{itemize}
-      \item Disk: multitemperature blackbody with $T_0$ derived from the
-            relation $L_\mathrm{disk} = 4\pi\sigma r_\mathrm{isco}^2 T_0^4 / 3$,
-            where $L_\mathrm{disk} = (1 - f_\mathrm{hot} - f_\mathrm{warm})\,L_\mathrm{bol}$.
-            The spectral integral is performed numerically over disk radii
-            with the logarithmic change of variable $t = \ln(r/r_\mathrm{isco})$.
-      \item Warm/hot corona: power law $\propto\nu^{-\Gamma}\mathrm{e}^{-h\nu/E_c}$
-            normalized so the integral equals $f_\mathrm{warm/hot}\,L_\mathrm{bol}$,
-            using the upper incomplete gamma function computed at construction time.
-    \end{itemize}
+
+    * Disk: multitemperature blackbody with :math:`T_0` derived from the relation :math:`L_\mathrm{disk} = 4\pi\sigma r_\mathrm{isco}^2 T_0^4 / 3`, where :math:`L_\mathrm{disk} = (1 - f_\mathrm{hot} - f_\mathrm{warm})\,L_\mathrm{bol}`. The spectral integral is performed numerically over disk radii with the logarithmic change of variable :math:`t = \ln(r/r_\mathrm{isco})`.
+    * Warm/hot corona: power law :math:`\propto\nu^{-\Gamma}\mathrm{e}^{-h\nu/E_c}` normalized so the integral equals :math:`f_\mathrm{warm/hot}\,L_\mathrm{bol}`, using the upper incomplete gamma function computed at construction time.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar         , gigaYear             , luminositySolar
     use :: Numerical_Constants_Math        , only : Pi
@@ -606,11 +615,8 @@ contains
   contains
 
     double precision function diskIntegrand(t)
-      !!{
-      Integrand for the disk radial quadrature with $t = \ln(r/r_\mathrm{isco})$.
-      The Shakura--Sunyaev temperature profile is
-      $T(x) = T_\mathrm{max}\,x^{-3/4}\,(1 - x^{-1/2})^{1/4}$ where $x = e^t$ (Shakura \& Sunyaev; 1983; A\&A; 24; 337; eq. 3.5).
-      The factor $x^2 = e^{2t}$ arises from the change of variables $\mathrm{d}r = r\,\mathrm{d}t$.
+      !!{RST
+      Integrand for the disk radial quadrature with :math:`t = \ln(r/r_\mathrm{isco})`. The Shakura--Sunyaev temperature profile is :math:`T(x) = T_\mathrm{max}\,x^{-3/4}\,(1 - x^{-1/2})^{1/4}` where :math:`x = e^t` (Shakura & Sunyaev; 1983; A&A; 24; 337; eq. 3.5). The factor :math:`x^2 = e^{2t}` arises from the change of variables :math:`\mathrm{d}r = r\,\mathrm{d}t`.
       !!}
       implicit none
       double precision, intent(in   ) :: t

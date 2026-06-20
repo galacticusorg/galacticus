@@ -17,35 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of dark matter halo virial density contrasts based on a friends-of-friends linking length.
   !!}
 
   !![
-  <virialDensityContrast name="virialDensityContrastFriendsOfFriends">
+  <virialDensityContrast name="virialDensityContrastFriendsOfFriends" docformat="rst">
    <description>
-    Dark matter halo virial density contrasts based on the friends-of-friends algorithm linking length. The virial density
-    contrast is computed consistent with a given friends-of-friends algorithm linking length. According to
-    \cite{lacey_merger_1994}, the friends-of-friends algorithm selects objects bounded by an isodensity contour of density
-    contrast
-    \begin{equation}
-    \Delta_\mathrm{iso} = {3 \over 2 \pi b^3},
-    \end{equation}
-    where $b=$\mono{[virialDensityContrastFoFLinkingLength]} is the dimensionless linking length of the
-    algorithm (i.e. the linking length in units of the mean interparticle spacing). The virial density contrast is then given
-    by:
-    \begin{equation}
-    \Delta_\mathrm{vir} = {\bar{\rho}_\mathrm{vir} \over \rho(r_\mathrm{vir})} \Delta_\mathrm{iso},
-    \end{equation}
-    where $\bar{\rho}_\mathrm{vir}$ is the mean density inside the virial radius and $\rho(r_\mathrm{vir})$ is the density at
-    the virial radius. The ratio $\bar{\rho}_\mathrm{vir} / \rho(r_\mathrm{vir})$ is specified via the parameter \mono{[virialDensityContrastFoFDensityRatio]}. Its default value of $4.688$ is appropriate for an \gls{nfw} halo of
-    concentration $c=6.88$ which is the concentration found by \cite{prada_halo_2011} for halos with $\sigma=1.686$ which is
-    the approximate critical overdensity for collapse).
+   Dark matter halo virial density contrasts based on the friends-of-friends algorithm linking length. The virial density contrast is computed consistent with a given friends-of-friends algorithm linking length. According to :cite:t:`lacey_merger_1994`, the friends-of-friends algorithm selects objects bounded by an isodensity contour of density contrast
+
+   .. math::
+
+      \Delta_\mathrm{iso} = {3 \over 2 \pi b^3},
+
+   where :math:`b=`\ ``[virialDensityContrastFoFLinkingLength]`` is the dimensionless linking length of the algorithm (i.e. the linking length in units of the mean interparticle spacing). The virial density contrast is then given by:
+
+   .. math::
+
+      \Delta_\mathrm{vir} = {\bar{\rho}_\mathrm{vir} \over \rho(r_\mathrm{vir})} \Delta_\mathrm{iso},
+
+   where :math:`\bar{\rho}_\mathrm{vir}` is the mean density inside the virial radius and :math:`\rho(r_\mathrm{vir})` is the density at the virial radius. The ratio :math:`\bar{\rho}_\mathrm{vir} / \rho(r_\mathrm{vir})` is specified via the parameter ``[virialDensityContrastFoFDensityRatio]``. Its default value of :math:`4.688` is appropriate for an :term:`NFW` halo of concentration :math:`c=6.88` which is the concentration found by :cite:t:`prada_halo_2011` for halos with :math:`\sigma=1.686` which is the approximate critical overdensity for collapse).
    </description>
   </virialDensityContrast>
   !!]
   type, extends(virialDensityContrastClass) :: virialDensityContrastFriendsOfFriends
-     !!{
+     !!{RST
      A dark matter halo virial density contrast class based on the friends-of-friends algorithm linking length.
      !!}
      private
@@ -56,8 +52,8 @@
   end type virialDensityContrastFriendsOfFriends
 
   interface virialDensityContrastFriendsOfFriends
-     !!{
-     Constructors for the \refClass{virialDensityContrastFriendsOfFriends} dark matter halo virial density contrast class.
+     !!{RST
+     Constructors for the :galacticus-class:`virialDensityContrastFriendsOfFriends` dark matter halo virial density contrast class.
      !!}
      module procedure friendsOfFriendsConstructorParameters
      module procedure friendsOfFriendsConstructorInternal
@@ -66,8 +62,8 @@
 contains
 
   function friendsOfFriendsConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{friendsOfFriends} dark matter halo virial density contrast class.
+    !!{RST
+    Default constructor for the ``friendsOfFriends`` dark matter halo virial density contrast class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,18 +72,24 @@ contains
     double precision                                                       :: linkingLength, densityRatio
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
      <name>linkingLength</name>
      <source>parameters</source>
      <defaultValue>0.2d0</defaultValue>
-     <description>The friends-of-friends linking length algorithm to use in computing virial density contrast.</description>
+     <description>
+     The friends-of-friends linking length algorithm to use in computing virial density contrast.
+     </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
      <name>densityRatio</name>
      <source>parameters</source>
      <defaultValue>4.688d0</defaultValue>
-     <defaultSource>Value appropriate for an \gls{nfw} profile with concentration $c=6.88$ which is the concentration found by \cite{prada_halo_2011} for halos with $\sigma=1.686$ which is the approximate critical overdensity for collapse.</defaultSource>
-     <description>The ratio of mean virial density to density at the virial radius to assume when setting virial density contrasts in the friends-of-friends model.</description>
+     <defaultSource>
+     Value appropriate for an :term:`NFW` profile with concentration :math:`c=6.88` which is the concentration found by :cite:t:`prada_halo_2011` for halos with :math:`\sigma=1.686` which is the approximate critical overdensity for collapse.
+     </defaultSource>
+     <description>
+     The ratio of mean virial density to density at the virial radius to assume when setting virial density contrasts in the friends-of-friends model.
+     </description>
     </inputParameter>
     !!]
     self=virialDensityContrastFriendsOfFriends(linkingLength,densityRatio)
@@ -98,8 +100,8 @@ contains
   end function friendsOfFriendsConstructorParameters
 
   function friendsOfFriendsConstructorInternal(linkingLength,densityRatio) result(self)
-    !!{
-    Internal constructor for the \refClass{virialDensityContrastFriendsOfFriends} dark matter halo virial density contrast class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`virialDensityContrastFriendsOfFriends` dark matter halo virial density contrast class.
     !!}
     implicit none
     type            (virialDensityContrastFriendsOfFriends), target        :: self
@@ -112,7 +114,7 @@ contains
   end function friendsOfFriendsConstructorInternal
 
   double precision function friendsOfFriendsDensityContrast(self,mass,time,expansionFactor,collapsing)
-    !!{
+    !!{RST
     Return the virial density contrast at the given epoch, based on the friends-of-friends algorithm linking length.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -130,7 +132,7 @@ contains
   end function friendsOfFriendsDensityContrast
 
   double precision function friendsOfFriendsDensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
-    !!{
+    !!{RST
     Return the virial density contrast at the given epoch, based on the friends-of-friends algorithm linking length.
     !!}
     implicit none

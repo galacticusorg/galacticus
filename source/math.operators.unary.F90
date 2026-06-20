@@ -17,40 +17,44 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements a class of parameter mapping functions.
 !!}
 
 module Math_Operators_Unary
-  !!{
+  !!{RST
   Implements a class of unary operators.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>operatorUnary</name>
    <descriptiveName>Unary Operators</descriptiveName>
-   <description>Class providing unary operators---invertible scalar mappings $f: \mathbb{R} \to \mathbb{R}$
-    that transform a value and can be reversed. Common examples include the identity, logarithm,
-    and various monotonic reparametrizations. These operators are used in parameter estimation and
-    output analysis to transform model parameters or property values before comparison with
-    observations (e.g.\ converting between linear and logarithmic scales).</description>
+   <description>
+   Class providing unary operators---invertible scalar mappings :math:`f: \mathbb{R} \to \mathbb{R}` that transform a value and can be reversed. Common examples include the identity, logarithm, and various monotonic reparametrizations. These operators are used in parameter estimation and output analysis to transform model parameters or property values before comparison with observations (e.g.\ converting between linear and logarithmic scales).
+   </description>
    <default>identity</default>
    <method name="operate" >
-     <description>Apply the unary operator to the scalar input \mono{x}, returning the transformed value $f(x)$.</description>
+     <description>
+     Apply the unary operator to the scalar input ``x``, returning the transformed value :math:`f(x)`.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>
    </method>
    <method name="unoperate" >
-     <description>Reverse the unary operation by applying the inverse mapping $f^{-1}$ to the scalar input \mono{f}, returning the original value $x$ such that operate$(x) = f$.</description>
+     <description>
+     Reverse the unary operation by applying the inverse mapping :math:`f^{-1}` to the scalar input ``f``, returning the original value :math:`x` such that operate\ :math:`(x) = f`.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: f</argument>
    </method>
    <method name="jacobian" >
-     <description>Compute the Jacobian of the operation.</description>
+     <description>
+     Compute the Jacobian of the operation.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
      <argument>double precision, intent(in   ) :: x</argument>

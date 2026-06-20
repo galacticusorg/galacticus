@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module of utilities needed by the \mono{percolation} virial density contrast class.
+!!{RST
+Contains a module of utilities needed by the ``percolation`` virial density contrast class.
 !!}
 
 module Virial_Density_Contrast_Percolation_Utilities
-  !!{
-  Provides utilities needed by the \mono{percolation} virial density contrast class.
+  !!{RST
+  Provides utilities needed by the ``percolation`` virial density contrast class.
   !!}
   use :: Cosmology_Functions               , only : cosmologyFunctions            , cosmologyFunctionsClass
   use :: Cosmology_Parameters              , only : cosmologyParameters           , cosmologyParametersClass
@@ -55,7 +55,7 @@ module Virial_Density_Contrast_Percolation_Utilities
   !$omp threadprivate(state,stateCount)
 
   type :: percolationObjects
-     !!{
+     !!{RST
      Type used to store pointers to objects
      !!}
      class(darkMatterProfileDMOClass          ), pointer :: darkMatterProfileDMO_           => null()
@@ -79,7 +79,7 @@ contains
   </functionGlobal>
   !!]
   function Virial_Density_Contrast_Percolation_Objects_Constructor(parameters) result(self)
-    !!{
+    !!{RST
     Construct an instance of the container type for percolation virial density contrast objects from a parameter structure.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -103,7 +103,7 @@ contains
   end function Virial_Density_Contrast_Percolation_Objects_Constructor
 
   subroutine percolationObjectsDestructor(self)
-    !!{
+    !!{RST
     Destruct an instance of the container type for percolation virial density contrast objects.
     !!}
     implicit none
@@ -128,7 +128,7 @@ contains
   </functionGlobal>
   !!]
   subroutine percolationObjectsDeepCopyReset(self)
-    !!{
+    !!{RST
     Perform a deep copy of percolation virial density contrast objects.
     !!}
     use :: Error, only : Error_Report
@@ -157,7 +157,7 @@ contains
   </functionGlobal>
   !!]
   subroutine percolationObjectsDeepCopyFinalize(self)
-    !!{
+    !!{RST
     Finalize a deep copy of percolation virial density contrast objects.
     !!}
     use :: Error, only : Error_Report
@@ -186,7 +186,7 @@ contains
   </functionGlobal>
   !!]
   subroutine percolationObjectsDeepCopy(self,destination)
-    !!{
+    !!{RST
     Perform a deep copy of percolation virial density contrast objects.
     !!}
     use :: Error, only : Error_Report
@@ -319,8 +319,8 @@ contains
   </functionGlobal>
   !!]
   double precision function Virial_Density_Contrast_Percolation_Solver(mass,time,linkingLength,densityContrastCurrent,percolationObjects_,virialDensityContrast_)
-    !!{
-    Return the virial density contrast at the given epoch, based on the percolation algorithm of \cite{more_overdensity_2011}.
+    !!{RST
+    Return the virial density contrast at the given epoch, based on the percolation algorithm of :cite:t:`more_overdensity_2011`.
     !!}
     use :: Calculations_Resets     , only : Calculations_Reset
     use :: Error                   , only : Error_Report
@@ -448,7 +448,7 @@ contains
   end function Virial_Density_Contrast_Percolation_Solver
 
   double precision function haloRadiusRootFunction(haloRadiusTrial)
-    !!{
+    !!{RST
     Root function used to find the radius of a halo giving the correct bounding density.
     !!}
     use :: Calculations_Resets     , only : Calculations_Reset

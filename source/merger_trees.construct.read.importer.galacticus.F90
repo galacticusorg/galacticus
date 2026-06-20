@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of the merger tree importer class for \glc\ format merger tree files.
+  !!{RST
+  An implementation of the merger tree importer class for Galacticus format merger tree files.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
@@ -30,9 +30,11 @@
 
   ! Enumeration of particle epoch types.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>galacticusParticleEpochType</name>
-   <description>Enumeration of the time coordinate types used to record particle epochs in Galacticus-format merger tree HDF5 files: \mono{time} (cosmic time in Gyr), \mono{expansionFactor} ($a$), or \mono{redshift} ($z$).</description>
+   <description>
+   Enumeration of the time coordinate types used to record particle epochs in Galacticus-format merger tree HDF5 files: ``time`` (cosmic time in Gyr), ``expansionFactor`` (:math:`a`), or ``redshift`` (:math:`z`).
+   </description>
    <entry label="time"           />
    <entry label="expansionFactor"/>
    <entry label="redshift"       />
@@ -40,27 +42,22 @@
   !!]
 
   type, public, extends(nodeData) :: nodeDataGalacticus
-     !!{
-     Extension of the \mono{nodeData} class for \glc\ format merger trees. Stores particle indices and counts for nodes.
+     !!{RST
+     Extension of the ``nodeData`` class for Galacticus format merger trees. Stores particle indices and counts for nodes.
      !!}
      integer(c_size_t) :: particleIndexCount, particleIndexStart
   end type nodeDataGalacticus
 
   !![
-  <mergerTreeImporter name="mergerTreeImporterGalacticus">
+  <mergerTreeImporter name="mergerTreeImporterGalacticus" docformat="rst">
     <description>
-    A merger tree importer class which imports trees from an HDF5 file. HDF5 file should follow the general purpose format
-    described \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here}. To generate HDF5 files
-    in this format from merger tree data produced by a variety of tree builders (e.g.\ \mono{Rockstar}/\mono{ConsistentTrees}),
-    the \mono{astrosylva} tool (\href{https://github.com/galacticusorg/astrosylva}{GitHub};
-    \href{https://pypi.org/project/astrosylva/}{PyPI};
-    \href{https://astrosylva.readthedocs.io/en/latest/}{documentation}) can be used.
+    A merger tree importer class which imports trees from an HDF5 file. HDF5 file should follow the general purpose format described `here &lt;https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format&gt;`_. To generate HDF5 files in this format from merger tree data produced by a variety of tree builders (e.g.\ ``Rockstar``/``ConsistentTrees``), the ``astrosylva`` tool (`GitHub &lt;https://github.com/galacticusorg/astrosylva&gt;`_; `PyPI &lt;https://pypi.org/project/astrosylva/&gt;`_; `documentation &lt;https://astrosylva.readthedocs.io/en/latest/&gt;`_) can be used.
     </description>
   </mergerTreeImporter>
   !!]
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterGalacticus
-     !!{
-     A merger tree importer class for \glc\ format merger tree files.
+     !!{RST
+     A merger tree importer class for Galacticus format merger tree files.
      !!}
      private
      class           (cosmologyFunctionsClass                   ), pointer                   :: cosmologyFunctions_       => null()
@@ -119,8 +116,8 @@
   end type mergerTreeImporterGalacticus
 
   interface mergerTreeImporterGalacticus
-     !!{
-     Constructors for the \glc\ format merger tree importer class.
+     !!{RST
+     Constructors for the Galacticus format merger tree importer class.
      !!}
      module procedure galacticusConstructorParameters
      module procedure galacticusConstructorInternal
@@ -129,8 +126,8 @@
 contains
 
   function galacticusConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \glc\ format merger tree importer which takes a parameter set as input.
+    !!{RST
+    Constructor for the Galacticus format merger tree importer which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -144,22 +141,28 @@ contains
          &                                                   validateData
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fatalMismatches</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether mismatches in cosmological parameter values between \glc\ and the merger tree file should be considered fatal.</description>
+      <description>
+      Specifies whether mismatches in cosmological parameter values between Galacticus and the merger tree file should be considered fatal.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>reweightTrees</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether merger tree weights should be recomputed from the halo mass function.</description>
+      <description>
+      Specifies whether merger tree weights should be recomputed from the halo mass function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>validateData</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true perform some validation of imported data to identify possible problems.</description>
+      <description>
+      If true perform some validation of imported data to identify possible problems.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -179,8 +182,8 @@ contains
   end function galacticusConstructorParameters
 
   function galacticusConstructorInternal(fatalMismatches,reweightTrees,validateData,cosmologyFunctions_,haloMassFunction_,cosmologyParameters_,cosmologicalMassVariance_) result(self)
-    !!{
-    Internal constructor for the \glc\ format merger tree importer.
+    !!{RST
+    Internal constructor for the Galacticus format merger tree importer.
     !!}
     implicit none
     type   (mergerTreeImporterGalacticus )                        :: self
@@ -205,8 +208,8 @@ contains
   end function galacticusConstructorInternal
 
   subroutine galacticusDestructor(self)
-    !!{
-    Destructor for the \glc\ format merger tree importer class.
+    !!{RST
+    Destructor for the Galacticus format merger tree importer class.
     !!}
     implicit none
     type(mergerTreeImporterGalacticus), intent(inout) :: self
@@ -221,8 +224,8 @@ contains
   end subroutine galacticusDestructor
 
   subroutine galacticusOpen(self,fileName)
-    !!{
-    Validate a \glc\ format merger tree file.
+    !!{RST
+    Validate a Galacticus format merger tree file.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     use :: Display             , only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset
@@ -439,7 +442,7 @@ contains
   end subroutine galacticusOpen
 
   logical function galacticusCanReadSubsets(self)
-    !!{
+    !!{RST
     Return true since this format does permit reading of arbitrary subsets of halos from a forest.
     !!}
     implicit none
@@ -451,7 +454,7 @@ contains
   end function galacticusCanReadSubsets
 
   integer function galacticusTreesHaveSubhalos(self)
-    !!{
+    !!{RST
     Return a Boolean integer specifying whether or not the trees have subhalos.
     !!}
     use :: HDF5_Access                , only : hdf5Access
@@ -474,7 +477,7 @@ contains
   end function galacticusTreesHaveSubhalos
 
   logical function galacticusMassesIncludeSubhalos(self)
-    !!{
+    !!{RST
     Return a Boolean specifying whether or not the halo masses include the contribution from subhalos.
     !!}
     use :: Error      , only : Error_Report
@@ -499,7 +502,7 @@ contains
   end function galacticusMassesIncludeSubhalos
 
   logical function galacticusAngularMomentaIncludeSubhalos(self)
-    !!{
+    !!{RST
     Return a Boolean specifying whether or not the halo momenta include the contribution from subhalos.
     !!}
     use :: Error      , only : Error_Report
@@ -528,7 +531,7 @@ contains
   end function galacticusAngularMomentaIncludeSubhalos
 
   integer function galacticusTreesAreSelfContained(self)
-    !!{
+    !!{RST
     Return a Boolean integer specifying whether or not the trees are self-contained.
     !!}
     use :: HDF5_Access                , only : hdf5Access
@@ -551,7 +554,7 @@ contains
   end function galacticusTreesAreSelfContained
 
   integer function galacticusVelocitiesIncludeHubbleFlow(self)
-    !!{
+    !!{RST
     Return a Boolean integer specifying whether or not velocities include the Hubble flow.
     !!}
     use :: HDF5_Access                , only : hdf5Access
@@ -574,7 +577,7 @@ contains
   end function galacticusVelocitiesIncludeHubbleFlow
 
   integer function galacticusPositionsArePeriodic(self)
-    !!{
+    !!{RST
     Return a Boolean integer specifying whether or not positions are periodic.
     !!}
     use :: HDF5_Access                , only : hdf5Access
@@ -597,7 +600,7 @@ contains
   end function galacticusPositionsArePeriodic
 
   double precision function galacticusCubeLength(self,time,status)
-    !!{
+    !!{RST
     Return the length of the simulation cube.
     !!}
     use :: Error                           , only : Error_Report
@@ -642,7 +645,7 @@ contains
   end function galacticusCubeLength
 
   function galacticusTreeCount(self)
-    !!{
+    !!{RST
     Return a count of the number of trees available.
     !!}
     implicit none
@@ -655,8 +658,8 @@ contains
   end function galacticusTreeCount
 
   integer(kind=kind_int8) function galacticusTreeIndex(self,i)
-    !!{
-    Return the index of the $i^\mathrm{th}$ tree.
+    !!{RST
+    Return the index of the :math:`i^\mathrm{th}` tree.
     !!}
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
@@ -668,8 +671,8 @@ contains
   end function galacticusTreeIndex
 
   function galacticusNodeCount(self,i)
-    !!{
-    Return a count of the number of nodes in the $i^\mathrm{th}$ tree.
+    !!{RST
+    Return a count of the number of nodes in the :math:`i^\mathrm{th}` tree.
     !!}
     implicit none
     integer(c_size_t                    )                :: galacticusNodeCount
@@ -682,7 +685,7 @@ contains
   end function galacticusNodeCount
 
   subroutine galacticusForestIndicesRead(self)
-    !!{
+    !!{RST
     Read the tree indices.
     !!}
     use :: Error                           , only : Error_Report
@@ -795,7 +798,7 @@ contains
   end subroutine galacticusForestIndicesRead
 
   double precision function galacticusTreeWeight(self,i)
-    !!{
+    !!{RST
     Return the weight to assign to trees.
     !!}
     use :: Error                           , only : Error_Report
@@ -829,7 +832,7 @@ contains
   end function galacticusTreeWeight
 
   logical function galacticusPositionsAvailable(self,positions,velocities)
-    !!{
+    !!{RST
     Return true if positions and/or velocities are available.
     !!}
     use :: HDF5_Access, only : hdf5Access
@@ -846,7 +849,7 @@ contains
   end function galacticusPositionsAvailable
 
   logical function galacticusScaleRadiiAvailable(self)
-    !!{
+    !!{RST
     Return true if scale radii are available.
     !!}
     use :: HDF5_Access, only : hdf5Access
@@ -863,7 +866,7 @@ contains
   end function galacticusScaleRadiiAvailable
 
   logical function galacticusParticleCountAvailable(self)
-    !!{
+    !!{RST
     Return true if particle counts are available.
     !!}
     use :: HDF5_Access, only : hdf5Access
@@ -877,7 +880,7 @@ contains
   end function galacticusParticleCountAvailable
 
   logical function galacticusVelocityMaximumAvailable(self)
-    !!{
+    !!{RST
     Return true if halo rotation curve velocity maxima are available.
     !!}
     use :: HDF5_Access, only : hdf5Access
@@ -891,7 +894,7 @@ contains
   end function galacticusVelocityMaximumAvailable
 
   logical function galacticusVelocityDispersionAvailable(self)
-    !!{
+    !!{RST
     Return true if halo velocity dispersions are available.
     !!}
     use :: HDF5_Access, only : hdf5Access
@@ -905,7 +908,7 @@ contains
   end function galacticusVelocityDispersionAvailable
 
   logical function galacticusAngularMomentaAvailable(self)
-    !!{
+    !!{RST
     Return true if angular momenta are available.
     !!}
     implicit none
@@ -916,7 +919,7 @@ contains
   end function galacticusAngularMomentaAvailable
 
   logical function galacticusAngularMomenta3DAvailable(self)
-    !!{
+    !!{RST
     Return true if angular momenta vectors are available.
     !!}
     implicit none
@@ -927,7 +930,7 @@ contains
   end function galacticusAngularMomenta3DAvailable
 
   logical function galacticusSpinAvailable(self)
-    !!{
+    !!{RST
     Return true if spins are available.
     !!}
     implicit none
@@ -938,7 +941,7 @@ contains
   end function galacticusSpinAvailable
 
   logical function galacticusSpin3DAvailable(self)
-    !!{
+    !!{RST
     Return true if spins vectors are available.
     !!}
     implicit none
@@ -949,7 +952,7 @@ contains
   end function galacticusSpin3DAvailable
 
   subroutine galacticusSubhaloTrace(self,node,time,position,velocity)
-    !!{
+    !!{RST
     Returns a trace of subhalo position/velocity.
     !!}
     use :: Error                           , only : Error_Report
@@ -994,7 +997,7 @@ contains
   end subroutine galacticusSubhaloTrace
 
   function galacticusSubhaloTraceCount(self,node)
-    !!{
+    !!{RST
     Returns the length of a subhalo trace.
     !!}
     use :: Error, only : Error_Report
@@ -1015,8 +1018,8 @@ contains
   end function galacticusSubhaloTraceCount
 
   subroutine galacticusImport(self,i,nodes,nodeSubset,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,structureOnly,requireNamedReals,requireNamedIntegers)
-    !!{
-    Import the $i^\mathrm{th}$ merger tree.
+    !!{RST
+    Import the :math:`i^\mathrm{th}` merger tree.
     !!}
     use :: Error                           , only : Error_Report       , Warn
     use :: HDF5                            , only : hsize_t

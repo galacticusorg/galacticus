@@ -17,25 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a calculation of cold mode infall rates assuming infall on a dynamical timescale.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <coldModeInfallRate name="coldModeInfallRateDynamicalTime">
+  <coldModeInfallRate name="coldModeInfallRateDynamicalTime" docformat="rst">
    <description>
-    A cold mode infall rate class in which the infall rate from the cold mode is given by
-    \begin{equation}
-    \dot{M}_\mathrm{infall, cold mode} = f_\mathrm{infall, cold mode}{M_\mathrm{cold mode} \over \tau_\mathrm{dyn}},
-    \end{equation}
-    where $f_\mathrm{infall, cold mode}=$\mono{[dynamicalRateFraction]}.
+   A cold mode infall rate class in which the infall rate from the cold mode is given by
+
+   .. math::
+
+      \dot{M}_\mathrm{infall, cold mode} = f_\mathrm{infall, cold mode}{M_\mathrm{cold mode} \over \tau_\mathrm{dyn}},
+
+   where :math:`f_\mathrm{infall, cold mode}=`\ ``[dynamicalRateFraction]``.
    </description>
   </coldModeInfallRate>
   !!]
   type, extends(coldModeInfallRateClass) :: coldModeInfallRateDynamicalTime
-     !!{
+     !!{RST
      Implementation of a calculation of cold mode infall rates assuming infall on a dynamical timescale.
      !!}
      private
@@ -47,7 +49,7 @@
   end type coldModeInfallRateDynamicalTime
 
   interface coldModeInfallRateDynamicalTime
-     !!{
+     !!{RST
      Constructors for the dynamicalTime cooling time class.
      !!}
      module procedure dynamicalTimeConstructorParameters
@@ -57,7 +59,7 @@
 contains
 
   function dynamicalTimeConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the dynamical time cooling time class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -68,11 +70,13 @@ contains
     double precision                                                 :: dynamicalRateFraction
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dynamicalRateFraction</name>
       <defaultValue>2.0d0</defaultValue>
       <source>parameters</source>
-      <description>The fraction of the inverse dynamical time to use as the rate for infall of the cold mode component.</description>
+      <description>
+      The fraction of the inverse dynamical time to use as the rate for infall of the cold mode component.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
@@ -85,7 +89,7 @@ contains
   end function dynamicalTimeConstructorParameters
 
   function dynamicalTimeConstructorInternal(dynamicalRateFraction,darkMatterHaloScale_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the dynamical time cooling time class.
     !!}
     use :: Error           , only : Error_Report
@@ -108,7 +112,7 @@ contains
   end function dynamicalTimeConstructorInternal
 
   subroutine dynamicalTimeDestructor(self)
-    !!{
+    !!{RST
     Destructor for the dynamical time cold mode infall rate class.
     !!}
     implicit none
@@ -121,7 +125,7 @@ contains
   end subroutine dynamicalTimeDestructor
 
   double precision function dynamicalTimeInfallRate(self,node)
-    !!{
+    !!{RST
     Computes the cold mode infall rate as a fraction of the halo dynamical time.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode

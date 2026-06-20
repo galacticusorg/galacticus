@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class for computing properties of stellar populations.
 !!}
 
 module Stellar_Population_Properties
-  !!{
+  !!{RST
   Implements a class for computing properties of stellar populations.
   !!}
   use :: Abundances_Structure, only : abundances
@@ -32,16 +32,17 @@ module Stellar_Population_Properties
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>stellarPopulationProperties</name>
    <descriptiveName>Stellar Population Properties</descriptiveName>
    <description>
-    Class providing stellar population properties---essentially the rates of change of stellar and gas mass and abundances given
-    a star formation rate and fuel abundances (and perhaps a historical record of star formation in the component).
+   Class providing stellar population properties---essentially the rates of change of stellar and gas mass and abundances given a star formation rate and fuel abundances (and perhaps a historical record of star formation in the component).
    </description>
    <default>instantaneous</default>
    <method name="rates" >
-    <description>Returns the rates of change of stellar population properties (stellar mass, fuel mass, elemental abundances, luminosities, and energy input) for a given star formation rate and fuel abundances, using either instantaneous recycling or a full stellar population model.</description>
+    <description>
+    Returns the rates of change of stellar population properties (stellar mass, fuel mass, elemental abundances, luminosities, and energy input) for a given star formation rate and fuel abundances, using either instantaneous recycling or a full stellar population model.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision                     , intent(in   ) :: rateStarFormation                                                   </argument>
@@ -55,7 +56,9 @@ module Stellar_Population_Properties
     <argument>logical                              , intent(in   ) :: computeRateLuminosityStellar                                        </argument>
    </method>
    <method name="scales">
-    <description>Return scaling factors of stellar population properties for an \gls{ode} solver.</description>
+    <description>
+    Return scaling factors of stellar population properties for an :term:`ODE` solver.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision            , intent(in   ) :: massStellar      </argument>
@@ -63,12 +66,16 @@ module Stellar_Population_Properties
     <argument>type            (history   ), intent(inout) :: history_         </argument>
    </method>
    <method name="historyCount">
-    <description>Return the number of stellar population property histories which must be stored.</description>
+    <description>
+    Return the number of stellar population property histories which must be stored.
+    </description>
     <type>integer</type>
     <pass>yes</pass>
    </method>
    <method name="historyCreate">
-    <description>Create histories needed to store stellar population properties.</description>
+    <description>
+    Create histories needed to store stellar population properties.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node    </argument>

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a merger tree masses class which uses a fixed mass for trees.
   !!}
   use :: Cosmology_Parameters    , only : cosmologyParametersClass
@@ -26,12 +26,14 @@
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
-  <mergerTreeBuildMasses name="mergerTreeBuildMassesFixedMass">
-   <description>A merger tree masses class which assigns fixed, user-specified halo masses to merger trees for galaxy formation modeling. Multiple mass values and tree counts can be provided, with \mono{[masses]}, \mono{[treeCount]}, and, optionally, \mono{[radii]} controlling the halo mass, number of trees per mass, and the reference radius within which masses are defined.</description>
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesFixedMass" docformat="rst">
+   <description>
+   A merger tree masses class which assigns fixed, user-specified halo masses to merger trees for galaxy formation modeling. Multiple mass values and tree counts can be provided, with ``[masses]``, ``[treeCount]``, and, optionally, ``[radii]`` controlling the halo mass, number of trees per mass, and the reference radius within which masses are defined.
+   </description>
   </mergerTreeBuildMasses>
   !!]
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesFixedMass
-     !!{
+     !!{RST
      Implementation of a merger tree masses class which samples masses from a distribution.
      !!}
      private
@@ -55,9 +57,8 @@
 contains
 
   function fixedMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBuildMassesFixedMass} merger tree masses class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeBuildMassesFixedMass` merger tree masses class which takes a parameter set as input.
     !!}
     use :: Error            , only : Error_Report
     use :: Input_Parameters , only : inputParameter, inputParameters
@@ -115,28 +116,36 @@ contains
     allocate(treeCount (fixedHalosCount))
     allocate(radiusTree(fixedHalosCount))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massTree</name>
       <defaultValue>spread(1.0d12,1,fixedHalosCount)</defaultValue>
-      <description>Specifies the masses of halos to use when building halos.</description>
+      <description>
+      Specifies the masses of halos to use when building halos.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>treeCount</name>
       <defaultValue>spread(1,1,fixedHalosCount)</defaultValue>
-      <description>Specifies the number of halos to use when building halos.</description>
+      <description>
+      Specifies the number of halos to use when building halos.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusTree</name>
       <defaultValue>spread(-1.0d0,1,fixedHalosCount)</defaultValue>
-      <description>Specifies the radii within which halo masses are specified when building halos.</description>
+      <description>
+      Specifies the radii within which halo masses are specified when building halos.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massIntervalFractional</name>
       <defaultValue>0.1d0</defaultValue>
-      <description>The fractional mass interval occupied by the trees. Where the intervals of trees of different mass would overlap this interval will be truncated.</description>
+      <description>
+      The fractional mass interval occupied by the trees. Where the intervals of trees of different mass would overlap this interval will be truncated.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
@@ -156,8 +165,8 @@ contains
   end function fixedMassConstructorParameters
 
   function fixedMassConstructorInternal(massTree,radiusTree,treeCount,massIntervalFractional,cosmologyParameters_,darkMatterHaloScale_,nodeOperator_,randomNumberGenerator_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBuildMassesFixedMass} merger tree masses class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeBuildMassesFixedMass` merger tree masses class.
     !!}
     implicit none
     type            (mergerTreeBuildMassesFixedMass)                              :: self
@@ -176,8 +185,8 @@ contains
   end function fixedMassConstructorInternal
 
   subroutine fixedMassDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBuildMassesFixedMass} merger tree masses class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeBuildMassesFixedMass` merger tree masses class.
     !!}
     implicit none
     type(mergerTreeBuildMassesFixedMass), intent(inout) :: self
@@ -192,7 +201,7 @@ contains
   end subroutine fixedMassDestructor
 
   subroutine fixedMassConstruct(self,time,mass,massMinimum,massMaximum,weight)
-    !!{
+    !!{RST
     Construct a set of merger tree masses by sampling from a distribution.
     !!}
     use :: Calculations_Resets, only : Calculations_Reset
@@ -280,7 +289,7 @@ contains
   contains
 
     double precision function massEnclosed(massTree)
-      !!{
+      !!{RST
       Root finding function used to set the halo mass given the halo radius.
       !!}
       use :: Galactic_Structure_Options, only : massTypeDark

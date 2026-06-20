@@ -17,23 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a dark matter halo mass function class which handles the transition through the environment
-mass scale.
+!!{RST
+Implements a dark matter halo mass function class which handles the transition through the environment mass scale.
 !!}
 
 
   !![
-  <haloMassFunction name="haloMassFunctionEnvironmental">
+  <haloMassFunction name="haloMassFunctionEnvironmental" docformat="rst">
    <description>
-    The halo mass function is computed by handling the transition though the environment mass scale.
+   The halo mass function is computed by handling the transition though the environment mass scale.
    </description>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionEnvironmentAveraged) :: haloMassFunctionEnvironmental
-     !!{
-     A halo mass function class which implements a dark matter halo mass function class which handles the transition through
-     the environment mass scale.
+     !!{RST
+     A halo mass function class which implements a dark matter halo mass function class which handles the transition through the environment mass scale.
      !!}
      private
    contains
@@ -41,8 +39,8 @@ mass scale.
   end type haloMassFunctionEnvironmental
 
   interface haloMassFunctionEnvironmental
-     !!{
-     Constructors for the \refClass{haloMassFunctionEnvironmental} halo mass function class.
+     !!{RST
+     Constructors for the :galacticus-class:`haloMassFunctionEnvironmental` halo mass function class.
      !!}
      module procedure environmentalConstructorParameters
      module procedure environmentalConstructorInternal
@@ -51,9 +49,8 @@ mass scale.
 contains
 
   function environmentalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{haloMassFunctionEnvironmental} halo mass function class which takes a parameter set as
-    input.
+    !!{RST
+    Constructor for the :galacticus-class:`haloMassFunctionEnvironmental` halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,8 +78,8 @@ contains
   end function environmentalConstructorParameters
 
   function environmentalConstructorInternal(haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_) result(self)
-    !!{
-    Internal constructor for the \refClass{haloMassFunctionEnvironmental} halo mass function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`haloMassFunctionEnvironmental` halo mass function class.
     !!}
     implicit none
     type (haloMassFunctionEnvironmental)                        :: self
@@ -98,7 +95,7 @@ contains
   end function environmentalConstructorInternal
 
   double precision function environmentalDifferential(self,time,mass,node)
-    !!{
+    !!{RST
     Return the differential halo mass function at the given time and mass.
     !!}
     implicit none

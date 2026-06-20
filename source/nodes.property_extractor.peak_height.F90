@@ -21,12 +21,14 @@
   use :: Linear_Growth             , only : linearGrowthClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorPeakHeight">
-   <description>Extracts the peak height $\nu = \delta_c / \sigma(M)$ of a dark matter halo, the ratio of the linear collapse threshold to the mass-variance, which parametrizes halo formation probability and is used in excursion-set and bias analyses.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorPeakHeight" docformat="rst">
+   <description>
+   Extracts the peak height :math:`\nu = \delta_c / \sigma(M)` of a dark matter halo, the ratio of the linear collapse threshold to the mass-variance, which parametrizes halo formation probability and is used in excursion-set and bias analyses.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorPeakHeight
-     !!{
+     !!{RST
      A property extractor which extracts peakHeight properties.
      !!}
      private
@@ -44,8 +46,8 @@
   end type nodePropertyExtractorPeakHeight
 
   interface nodePropertyExtractorPeakHeight
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorPeakHeight} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorPeakHeight` property extractor class.
      !!}
      module procedure peakHeightConstructorParameters
      module procedure peakHeightConstructorInternal
@@ -54,8 +56,8 @@
 contains
 
   function peakHeightConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorPeakHeight} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorPeakHeight` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,8 +83,8 @@ contains
   end function peakHeightConstructorParameters
 
   function peakHeightConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorPeakHeight} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorPeakHeight` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorPeakHeight)                        :: self
@@ -97,8 +99,8 @@ contains
   end function peakHeightConstructorInternal
 
   subroutine peakHeightDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorPeakHeight} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorPeakHeight` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorPeakHeight), intent(inout) :: self
@@ -112,8 +114,8 @@ contains
   end subroutine peakHeightDestructor
 
   integer function peakHeightElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{peakHeight} property extractors.
+    !!{RST
+    Return the number of elements in the ``peakHeight`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorPeakHeight), intent(inout) :: self
@@ -125,7 +127,7 @@ contains
   end function peakHeightElementCount
 
   function peakHeightExtract(self,node,time,instance)
-    !!{
+    !!{RST
     Implement a peakHeight output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -157,8 +159,8 @@ contains
   end function peakHeightExtract
 
   subroutine peakHeightNames(self,time,names)
-    !!{
-    Return the names of the \mono{peakHeight} properties.
+    !!{RST
+    Return the names of the ``peakHeight`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorPeakHeight), intent(inout)                             :: self
@@ -175,8 +177,8 @@ contains
   end subroutine peakHeightNames
 
   subroutine peakHeightDescriptions(self,time,descriptions)
-    !!{
-    Return the descriptions of the \mono{peakHeight} properties.
+    !!{RST
+    Return the descriptions of the ``peakHeight`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorPeakHeight), intent(inout)                             :: self
@@ -193,8 +195,8 @@ contains
   end subroutine peakHeightDescriptions
 
   function peakHeightUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{peakHeight} properties in the SI system.
+    !!{RST
+    Return the units of the ``peakHeight`` properties in the SI system.
     !!}
     implicit none
     double precision                                 , dimension(:) , allocatable :: peakHeightUnitsInSI
@@ -208,7 +210,7 @@ contains
   end function peakHeightUnitsInSI
 
   function peakHeightUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the peakHeight properties.
     !!}
     use :: Units_MetaData, only : unitType

@@ -17,15 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program which tests the \cite{navarro_structure_1996} halo concentration algorithm in a dark energy Universe.
-Comparisons are made to the \mono{charden} code written by Julio Navarro.
+!!{RST
+Contains a program which tests the :cite:t:`navarro_structure_1996` halo concentration algorithm in a dark energy Universe. Comparisons are made to the ``charden`` code written by Julio Navarro.
 !!}
 
 program Test_NFW96_Concentration_Dark_Energy
-  !!{
-  Tests the \cite{navarro_structure_1996} halo concentration algorithm in a dark energy Universe. Comparisons are made to the
-  \mono{charden} code written by Julio Navarro.
+  !!{RST
+  Tests the :cite:t:`navarro_structure_1996` halo concentration algorithm in a dark energy Universe. Comparisons are made to the ``charden`` code written by Julio Navarro.
   !!}
   use :: Cosmological_Density_Field          , only : criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt, cosmologicalMassVarianceFilteredPower
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda

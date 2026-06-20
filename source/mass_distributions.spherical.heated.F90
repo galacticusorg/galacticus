@@ -17,36 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a heated spherical mass distribution.
   !!}
 
   use :: Root_Finder, only : rootFinder
 
   !![
-  <massDistribution name="massDistributionSphericalHeated">
+  <massDistribution name="massDistributionSphericalHeated" docformat="rst">
    <description>
-     A mass distribution class in which the distribution starts out with a density profile defined by another \mono{massDistribution}. This profile is then modified by heating, under the assumption that the
-     energy of a shell of mass before and after heating are related by
-     \begin{equation}
-     -{ \mathrm{G} M^\prime(r^\prime) \over r^\prime } = -{ \mathrm{G} M(r) \over r } + 2 \epsilon(r),
-     \end{equation}    
-     where $M(r)$ is the mass enclosed within a radius $r$, and $\epsilon(r)$ represents the specific heating in the shell
-     initially at radius $r$. Primes indicate values after heating, while unprimed variables indicate quantities prior to
-     heating. With the assumption of no shell crossing, $M^\prime(r^\prime)=M(r)$ and this equation can be solved for $r$ given
-     $r^\prime$ and $\epsilon(r)$.
-     
-     Not all methods have analytic solutions for this profile. If \mono{[nonAnalyticSolver]}$=$\mono{fallThrough} then attempts to call these methods in heated profiles will simply return the result from the
-     unheated profile, otherwise a numerical calculation is performed.
-    </description>
+   A mass distribution class in which the distribution starts out with a density profile defined by another ``massDistribution``. This profile is then modified by heating, under the assumption that the energy of a shell of mass before and after heating are related by
+
+   .. math::
+
+      -{ \mathrm{G} M^\prime(r^\prime) \over r^\prime } = -{ \mathrm{G} M(r) \over r } + 2 \epsilon(r),
+
+   where :math:`M(r)` is the mass enclosed within a radius :math:`r`, and :math:`\epsilon(r)` represents the specific heating in the shell initially at radius :math:`r`. Primes indicate values after heating, while unprimed variables indicate quantities prior to heating. With the assumption of no shell crossing, :math:`M^\prime(r^\prime)=M(r)` and this equation can be solved for :math:`r` given :math:`r^\prime` and :math:`\epsilon(r)`.
+
+   Not all methods have analytic solutions for this profile. If ``[nonAnalyticSolver]``\ :math:`=`\ ``fallThrough`` then attempts to call these methods in heated profiles will simply return the result from the unheated profile, otherwise a numerical calculation is performed.
+   </description>
   </massDistribution>
   !!]
   type, extends(massDistributionSphericalDecorator) :: massDistributionSphericalHeated
-     !!{
+     !!{RST
      Implementation of a heated spherical mass distribution.
      !!}
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Initialize the object."                                                                                          method="initialize"            />
        <method description="Return the initial radius corresponding to the given final radius in a heated dark matter halo density profile." method="radiusInitial"         />
        <method description="Return true if the no shell crossing assumption is valid locally."                                               method="noShellCrossingIsValid"/>
@@ -59,7 +56,7 @@
      type            (rootFinder                  )          :: finder
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="radiusInitial"          description="Compute the initial radius corresponding to a given final radius in a heated mass distribution."/>
        <method method="noShellCrossingIsValid" description="Return true if the no-shell crossing assumption is locally valid."                              />
        <method method="reinitialize"           description="Re-point the decorated and heating sub-objects (e.g. when re-used from a pool) and clear stale memoized state."/>
@@ -78,8 +75,8 @@
   end type massDistributionSphericalHeated
 
   interface massDistributionSphericalHeated
-     !!{
-     Constructors for the \refClass{massDistributionSphericalHeated} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionSphericalHeated` mass distribution class.
      !!}
      module procedure sphericalHeatedConstructorParameters
      module procedure sphericalHeatedConstructorInternal
@@ -93,9 +90,8 @@
 contains
 
   function sphericalHeatedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalHeated} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionSphericalHeated` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -111,53 +107,69 @@ contains
     double precision                                      :: fractionRadiusFinalSmall              , toleranceRelativePotential
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>
+      Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring heating is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerateVelocityMaximumFailure</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, tolerate failures to find the radius of the peak in the rotation curve.</description>
+      <description>
+      If true, tolerate failures to find the radius of the peak in the rotation curve.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerateEnclosedMassIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, tolerate failures to find the mass enclosed as a function of radius.</description>
+      <description>
+      If ``true``, tolerate failures to find the mass enclosed as a function of radius.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleratePotentialIntegrationFailure</name>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
-      <description>If \mono{true}, tolerate failures to compute the potential.</description>
+      <description>
+      If ``true``, tolerate failures to compute the potential.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fractionRadiusFinalSmall</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The initial radius is limited to be no smaller than this fraction of the final radius. This can help avoid problems in profiles that are extremely close to being disrupted.</description>
+      <description>
+      The initial radius is limited to be no smaller than this fraction of the final radius. This can help avoid problems in profiles that are extremely close to being disrupted.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativePotential</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The maximum allowed relative tolerance to use in numerical solutions for the gravitational potential in dark-matter-only density profiles before aborting.</description>
+      <description>
+      The maximum allowed relative tolerance to use in numerical solutions for the gravitational potential in dark-matter-only density profiles before aborting.
+      </description>
     </inputParameter>
     <objectBuilder class="massDistribution"        name="massDistribution_"        source="parameters"/>
     <objectBuilder class="massDistributionHeating" name="massDistributionHeating_" source="parameters"/>
@@ -177,8 +189,8 @@ contains
   end function sphericalHeatedConstructorParameters
   
   function sphericalHeatedConstructorInternal(nonAnalyticSolver,tolerateVelocityMaximumFailure,tolerateEnclosedMassIntegrationFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativePotential,massDistribution_,massDistributionHeating_,componentType,massType) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalHeated} mass distribution class.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionSphericalHeated` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalHeated  )                          :: self
@@ -208,8 +220,8 @@ contains
   end function sphericalHeatedConstructorInternal
 
   subroutine sphericalHeatedDestructor(self)
-    !!{
-    Destructor for the \refClass{massDistributionSphericalHeated} mass distribution class.
+    !!{RST
+    Destructor for the :galacticus-class:`massDistributionSphericalHeated` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalHeated), intent(inout) :: self
@@ -222,13 +234,8 @@ contains
   end subroutine sphericalHeatedDestructor
 
   subroutine sphericalHeatedReinitialize(self,massDistribution_,massDistributionHeating_)
-    !!{
-    Re-point the decorated distribution and heating sub-objects of a heated spherical mass
-    distribution to those for a new \gls{node}, and clear all stale memoized state. This is
-    used when the object is re-used from a pool: it releases the currently-held sub-objects
-    (returning, e.g., a pooled decorated distribution to its own pool), takes counted
-    references to the new sub-objects, and resets the per-halo cached state so that the
-    re-used object never serves results computed for the previous halo.
+    !!{RST
+    Re-point the decorated distribution and heating sub-objects of a heated spherical mass distribution to those for a new :term:`node`, and clear all stale memoized state. This is used when the object is re-used from a pool: it releases the currently-held sub-objects (returning, e.g., a pooled decorated distribution to its own pool), takes counted references to the new sub-objects, and resets the per-halo cached state so that the re-used object never serves results computed for the previous halo.
     !!}
     implicit none
     class(massDistributionSphericalHeated), intent(inout)         :: self
@@ -262,7 +269,7 @@ contains
   end subroutine sphericalHeatedReinitialize
 
   logical function sphericalHeatedUseUndecorated(self) result(useUndecorated)
-    !!{
+    !!{RST
     Determines whether to use the undecorated solution.
     !!}
     implicit none
@@ -273,8 +280,8 @@ contains
   end function sphericalHeatedUseUndecorated
   
   double precision function sphericalHeatedDensity(self,coordinates) result(density)
-    !!{
-    Return the density at the specified \mono{coordinates} in a scaled spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a scaled spherical mass distribution.
     !!}
     use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
     use :: Numerical_Constants_Math        , only : Pi
@@ -346,8 +353,8 @@ contains
   end function sphericalHeatedDensity
 
   double precision function sphericalHeatedMassEnclosedBySphere(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for a heated mass distributions.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for a heated mass distributions.
     !!}
     implicit none
     class           (massDistributionSphericalHeated), intent(inout), target :: self
@@ -358,9 +365,8 @@ contains
   end function sphericalHeatedMassEnclosedBySphere
   
   double precision function sphericalHeatedRadiusInitial(self,radiusFinal) result(radiusInitial)
-    !!{
-    Find the initial radius corresponding to the given \mono{radiusFinal} in
-    the heated mass distribution.
+    !!{RST
+    Find the initial radius corresponding to the given ``radiusFinal`` in the heated mass distribution.
     !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
@@ -429,7 +435,7 @@ contains
   end function sphericalHeatedRadiusInitial
   
   double precision function radiusInitialRoot(radiusInitial)
-    !!{
+    !!{RST
     Root function used in finding initial radii in heated mass distributions.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -460,7 +466,7 @@ contains
   end function radiusInitialRoot
 
   logical function sphericalHeatedNoShellCrossingIsValid(self,radiusInitial,radiusFinal) result(isValid)
-    !!{
+    !!{RST
     Determines if the no shell crossing assumption is valid.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
@@ -494,7 +500,7 @@ contains
   end function sphericalHeatedNoShellCrossingIsValid
 
   double precision function sphericalHeatedRadiusEnclosingMass(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mass or mass fraction for heated spherical mass distributions.
     !!}
     use :: Galactic_Structure_Options      , only : radiusLarge
@@ -522,21 +528,25 @@ contains
   end function sphericalHeatedRadiusEnclosingMass
 
   double precision function heatedPotentialSolverIntegrand(self,radius) result(integrand)
-    !!{
-    Integrand for generic dark matter profile Jeans equation. Here we do the integration with respect to the
-    initial radius $r_i$.
-    \begin{eqnarray}
-     \phi(r) &=& -\int_r^{r^{\mathrm{max}}} \frac{\mathrm{G} M(r)}{r^2} \mathrm{d} r \nonumber \\
-             &=& -\int_{r_i}^{r_{i}^{\mathrm{max}}}\frac{\mathrm{G} M(r_i)}{r_i^2}\left(\frac{r_i}{r}\right)^2 \frac{\mathrm{d}r}{\mathrm{d}r_\mathrm{i}}  \mathrm{d} r_i.
-    \end{eqnarray}
-    Here $r$ can be written as a function of $r_i$
-    \begin{equation}
-     r=\frac{1}{1/r_i-2\epsilon(r_i)/(\mathrm{G}M(r_i))},
-    \end{equation}
+    !!{RST
+    Integrand for generic dark matter profile Jeans equation. Here we do the integration with respect to the initial radius :math:`r_i`.
+
+    .. math::
+
+       \phi(r) &=& -\int_r^{r^{\mathrm{max}}} \frac{\mathrm{G} M(r)}{r^2} \mathrm{d} r \nonumber \\
+       &=& -\int_{r_i}^{r_{i}^{\mathrm{max}}}\frac{\mathrm{G} M(r_i)}{r_i^2}\left(\frac{r_i}{r}\right)^2 \frac{\mathrm{d}r}{\mathrm{d}r_\mathrm{i}}  \mathrm{d} r_i.
+
+    Here :math:`r` can be written as a function of :math:`r_i`
+
+    .. math::
+
+       r=\frac{1}{1/r_i-2\epsilon(r_i)/(\mathrm{G}M(r_i))},
+
     such that
-     \begin{equation}
-     \frac{\mathrm{d}r}{\mathrm{d}r_i} = \left(\frac{r}{r_\mathrm{i}}\right)^2 + \frac{2 r^2}{\mathrm{G} M(r_\mathrm{i})} \left( \epsilon^\prime(r_\mathrm{i}) - \frac{4 \pi r_\mathrm{i}^2 \rho_\mathrm{i}(r_\mathrm{i}) \epsilon(r_\mathrm{i})}{M(r_\mathrm{i})} \right).
-    \end{equation}
+
+    .. math::
+
+       \frac{\mathrm{d}r}{\mathrm{d}r_i} = \left(\frac{r}{r_\mathrm{i}}\right)^2 + \frac{2 r^2}{\mathrm{G} M(r_\mathrm{i})} \left( \epsilon^\prime(r_\mathrm{i}) - \frac{4 \pi r_\mathrm{i}^2 \rho_\mathrm{i}(r_\mathrm{i}) \epsilon(r_\mathrm{i})}{M(r_\mathrm{i})} \right).
     !!}
     use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -587,9 +597,8 @@ contains
   end function heatedPotentialSolverIntegrand
 
   double precision function heatedPotentialSolverRadius(self,radius)
-    !!{
-    Return the radius variable used in computing the potential that corresponds to a given physical radius.
-    Here we do the integration with respect to the initial radius, so return the initial radius.
+    !!{RST
+    Return the radius variable used in computing the potential that corresponds to a given physical radius. Here we do the integration with respect to the initial radius, so return the initial radius.
     !!}
     implicit none
     class           (massDistributionSphericalHeated), intent(inout) :: self

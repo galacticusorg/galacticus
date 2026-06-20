@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a satellite merging timescale class which uses preset values for the timescale.
   !!}
 
   !![
-  <satelliteMergingTimescales name="satelliteMergingTimescalesPreset">
+  <satelliteMergingTimescales name="satelliteMergingTimescalesPreset" docformat="rst">
    <description>
-    A satellite merging timescale class assumes that merging times have been preset for every node (or, at least, every node
-    which becomes a satellite). It therefore simply returns the preset merging time.
+   A satellite merging timescale class assumes that merging times have been preset for every node (or, at least, every node which becomes a satellite). It therefore simply returns the preset merging time.
    </description>
   </satelliteMergingTimescales>
   !!]
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesPreset
-     !!{
+     !!{RST
      A class implementing preset satellite merging timescales.
      !!}
      private
@@ -39,8 +38,8 @@
   end type satelliteMergingTimescalesPreset
 
   interface satelliteMergingTimescalesPreset
-     !!{
-     Constructors for the \refClass{satelliteMergingTimescalesPreset} satellite merging timescale class.
+     !!{RST
+     Constructors for the :galacticus-class:`satelliteMergingTimescalesPreset` satellite merging timescale class.
      !!}
      module procedure presetConstructorParameters
   end interface satelliteMergingTimescalesPreset
@@ -48,9 +47,8 @@
 contains
 
   function presetConstructorParameters(parameters) result(self)
-    !!{
-    A constructor for the \mono{preset} satellite merging timescale class which builds the object from a
-    parameter set.
+    !!{RST
+    A constructor for the ``preset`` satellite merging timescale class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +63,7 @@ contains
   end function presetConstructorParameters
 
   double precision function presetTimeUntilMerging(self,node,orbit)
-    !!{
+    !!{RST
     Return the timescale for merging satellites using the preset value.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic, treeNode

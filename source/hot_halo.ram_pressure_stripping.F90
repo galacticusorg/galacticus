@@ -17,29 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements a class for calculations of ram pressure stripping of hot halos.
 !!}
 
 module Hot_Halo_Ram_Pressure_Stripping
-  !!{
+  !!{RST
   Implements a class for calculations of ram pressure stripping of hot halos.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>hotHaloRamPressureStripping</name>
    <descriptiveName>Hot Halo Ram Pressure Stripping</descriptiveName>
-   <description>Class providing models of the stripping radius (in Mpc) to which the hot gas atmosphere of a
-    satellite galaxy is removed by ram pressure from the host halo. The stripping radius is set by the
-    balance between the ram pressure force and the restoring gravitational force of the satellite; gas outside
-    this radius is assumed to be stripped and added to the host hot gas reservoir. This process progressively
-    depletes the satellite's hot gas supply, suppressing its cooling and star formation (``strangulation'').</description>
+   <description>
+   Class providing models of the stripping radius (in Mpc) to which the hot gas atmosphere of a satellite galaxy is removed by ram pressure from the host halo. The stripping radius is set by the balance between the ram pressure force and the restoring gravitational force of the satellite; gas outside this radius is assumed to be stripped and added to the host hot gas reservoir. This process progressively depletes the satellite's hot gas supply, suppressing its cooling and star formation ("strangulation").
+   </description>
    <default>font2008</default>
    <method name="radiusStripped" >
-    <description>Return the radius to which \mono{node} is stripped due to ram pressure from its host halo (in units of Mpc).</description>
+    <description>
+    Return the radius to which ``node`` is stripped due to ram pressure from its host halo (in units of Mpc).
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

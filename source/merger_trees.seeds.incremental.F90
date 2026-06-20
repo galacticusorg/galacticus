@@ -17,25 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree random number seed in which the seed increases incrementally with tree index.
 !!}
 
   !![
-  <mergerTreeSeeds name="mergerTreeSeedsIncremental">
+  <mergerTreeSeeds name="mergerTreeSeedsIncremental" docformat="rst">
     <description>
-      A merger tree random number seed in which the seed increases incrementally with tree index. Specifically, the seed will be
-      set to the tree index offset by whatever seed was originally specified for the \refClass{randomNumberGeneratorClass} object
-      in the parameter file. Note that this means that, if tree indices are consecutive, then changing the seed of the
-      \refClass{randomNumberGeneratorClass} object in the parameter file by incrementing by a small number (e.g. 1, or any number
-      less than the total number of trees simulated) will result in significant overlap in seed values for trees between the two
-      models. To avoid this, either increment the random seed by a number larger than the total number of trees run, or consider
-      using the \refClass{mergerTreeSeedsRandom} merger tree seed class to generate seeds instead.
+    A merger tree random number seed in which the seed increases incrementally with tree index. Specifically, the seed will be set to the tree index offset by whatever seed was originally specified for the :galacticus-class:`randomNumberGeneratorClass` object in the parameter file. Note that this means that, if tree indices are consecutive, then changing the seed of the :galacticus-class:`randomNumberGeneratorClass` object in the parameter file by incrementing by a small number (e.g. 1, or any number less than the total number of trees simulated) will result in significant overlap in seed values for trees between the two models. To avoid this, either increment the random seed by a number larger than the total number of trees run, or consider using the :galacticus-class:`mergerTreeSeedsRandom` merger tree seed class to generate seeds instead.
     </description>
   </mergerTreeSeeds>
   !!]
   type, extends(mergerTreeSeedsClass) :: mergerTreeSeedsIncremental
-     !!{
+     !!{RST
      A merger tree random number seed in which the seed increases incrementally with tree index.
      !!}
      private
@@ -44,8 +38,8 @@ Implements a merger tree random number seed in which the seed increases incremen
   end type mergerTreeSeedsIncremental
 
   interface mergerTreeSeedsIncremental
-     !!{
-     Constructors for the \refClass{mergerTreeSeedsIncremental} merger tree seed class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeSeedsIncremental` merger tree seed class.
      !!}
      module procedure incrementalConstructorParameters
   end interface mergerTreeSeedsIncremental
@@ -53,8 +47,8 @@ Implements a merger tree random number seed in which the seed increases incremen
 contains
 
   function incrementalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeSeedsIncremental} merger tree seed class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeSeedsIncremental` merger tree seed class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -69,8 +63,8 @@ contains
   end function incrementalConstructorParameters
 
   subroutine incrementalSet(self,tree)
-    !!{
-    Set the random number seed in the given \mono{tree}.
+    !!{RST
+    Set the random number seed in the given ``tree``.
     !!}
     implicit none
     class(mergerTreeSeedsIncremental), intent(inout) :: self

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a cooling energy radiated property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorCoolingEnergyRadiated">
-   <description>Extracts the total energy radiated by the hot halo gas through radiative cooling processes, tracking the cumulative energy loss from the \refClass{nodeComponentHotHalo} component. This quantity drives the supply of cold gas onto the galactic disk and ultimately powers star formation.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorCoolingEnergyRadiated" docformat="rst">
+   <description>
+   Extracts the total energy radiated by the hot halo gas through radiative cooling processes, tracking the cumulative energy loss from the :galacticus-class:`nodeComponentHotHalo` component. This quantity drives the supply of cold gas onto the galactic disk and ultimately powers star formation.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorCoolingEnergyRadiated
-     !!{
+     !!{RST
      A cooling energy radiated property extractor class.
      !!}
      private
@@ -41,8 +43,8 @@ Implements a cooling energy radiated property extractor class.
   end type nodePropertyExtractorCoolingEnergyRadiated
 
   interface nodePropertyExtractorCoolingEnergyRadiated
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorCoolingEnergyRadiated} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorCoolingEnergyRadiated` property extractor class.
      !!}
      module procedure coolingEnergyRadiatedConstructorParameters
      module procedure coolingEnergyRadiatedConstructorInternal
@@ -51,8 +53,8 @@ Implements a cooling energy radiated property extractor class.
 contains
 
   function coolingEnergyRadiatedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorCoolingEnergyRadiated} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorCoolingEnergyRadiated` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -67,8 +69,8 @@ contains
   end function coolingEnergyRadiatedConstructorParameters
 
   function coolingEnergyRadiatedConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorCoolingEnergyRadiated} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorCoolingEnergyRadiated` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorCoolingEnergyRadiated) :: self
@@ -80,7 +82,7 @@ contains
   end function coolingEnergyRadiatedConstructorInternal
 
   double precision function coolingEnergyRadiatedExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a cooling energy radiated property extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo
@@ -97,7 +99,7 @@ contains
   end function coolingEnergyRadiatedExtract
 
   function coolingEnergyRadiatedName(self)
-    !!{
+    !!{RST
     Return the name of the cooling energy radiated property.
     !!}
     implicit none
@@ -110,7 +112,7 @@ contains
   end function coolingEnergyRadiatedName
 
   function coolingEnergyRadiatedDescription(self)
-    !!{
+    !!{RST
     Return a description of the cooling energy radiated property.
     !!}
     implicit none
@@ -123,7 +125,7 @@ contains
   end function coolingEnergyRadiatedDescription
 
   double precision function coolingEnergyRadiatedUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the cooling energy radiated property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear
@@ -137,7 +139,7 @@ contains
   end function coolingEnergyRadiatedUnitsInSI
 
   function coolingEnergyRadiatedUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the coolingEnergyRadiated property.
     !!}
     use :: Units_MetaData, only : unitType

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which computes virial crossing orbit statistics in bins of separation.
 !!}
   
@@ -28,12 +28,14 @@ Implements an N-body data operator which computes virial crossing orbit statisti
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
-  <nbodyOperator name="nbodyOperatorVirialCrossingOrbitStatistics">
-   <description>An N-body data operator which computes statistics of particle pairs on virial-crossing orbits, binning pairs as a function of radial velocity (in virial units) and pairwise separation (in virial radii). This is used to characterize the infall kinematics around dark matter halos. Parameters control the velocity and separation ranges, redshift, Hubble flow correction, velocity outlier cut, sampling rate, and bootstrap resample count.</description>
+  <nbodyOperator name="nbodyOperatorVirialCrossingOrbitStatistics" docformat="rst">
+   <description>
+   An N-body data operator which computes statistics of particle pairs on virial-crossing orbits, binning pairs as a function of radial velocity (in virial units) and pairwise separation (in virial radii). This is used to characterize the infall kinematics around dark matter halos. Parameters control the velocity and separation ranges, redshift, Hubble flow correction, velocity outlier cut, sampling rate, and bootstrap resample count.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorVirialCrossingOrbitStatistics
-     !!{
+     !!{RST
      An N-body data operator which computes virial crossing orbit statistics in bins of separation.
      !!}
      private
@@ -54,8 +56,8 @@ Implements an N-body data operator which computes virial crossing orbit statisti
   end type nbodyOperatorVirialCrossingOrbitStatistics
 
   interface nbodyOperatorVirialCrossingOrbitStatistics
-     !!{
-     Constructors for the \refClass{nbodyOperatorVirialCrossingOrbitStatistics} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorVirialCrossingOrbitStatistics` N-body operator class.
      !!}
      module procedure virialCrossingOrbitStatisticsConstructorParameters
      module procedure virialCrossingOrbitStatisticsConstructorInternal
@@ -64,8 +66,8 @@ Implements an N-body data operator which computes virial crossing orbit statisti
 contains
 
   function virialCrossingOrbitStatisticsConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorVirialCrossingOrbitStatistics} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorVirialCrossingOrbitStatistics` N-body operator class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctionsClass
     use :: Input_Parameters   , only : inputParameter
@@ -85,71 +87,95 @@ contains
          &                                                                         addHubbleFlow
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>crossCount</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, compute cross-simulation virial crossing orbit statistics between the first and all simulations. Otherwise, compute virial crossing orbit statistics within each simulation.</description>
+      <description>
+      If true, compute cross-simulation virial crossing orbit statistics between the first and all simulations. Otherwise, compute virial crossing orbit statistics within each simulation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>addHubbleFlow</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, add the Hubble flow contribution $H(z)\,\mathbf{r}$ to each particle velocity before computing virial crossing orbit statistics, converting peculiar velocities to total line-of-sight velocities.</description>
+      <description>
+      If true, add the Hubble flow contribution :math:`H(z)\,\mathbf{r}` to each particle velocity before computing virial crossing orbit statistics, converting peculiar velocities to total line-of-sight velocities.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The redshift at which to evaluate the Hubble flow when adding the Hubble flow correction to particle velocities.</description>
+      <description>
+      The redshift at which to evaluate the Hubble flow when adding the Hubble flow correction to particle velocities.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bootstrapSampleCount</name>
       <source>parameters</source>
       <defaultValue>30_c_size_t</defaultValue>
-      <description>The number of bootstrap resamples of the particles that should be used.</description>
+      <description>
+      The number of bootstrap resamples of the particles that should be used.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bootstrapSampleRate</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The fraction of particles to sample randomly at each bootstrap iteration, between 0 and 1; values less than 1 reduce computational cost at the expense of statistical precision.</description>
+      <description>
+      The fraction of particles to sample randomly at each bootstrap iteration, between 0 and 1; values less than 1 reduce computational cost at the expense of statistical precision.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityMinimum</name>
       <source>parameters</source>
-      <description>The minimum velocity to consider for virial crossing orbit statistics.</description>
+      <description>
+      The minimum velocity to consider for virial crossing orbit statistics.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityMaximum</name>
       <source>parameters</source>
-      <description>The maximum velocity to consider for virial crossing orbit statistics.</description>
+      <description>
+      The maximum velocity to consider for virial crossing orbit statistics.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityCount</name>
       <source>parameters</source>
-      <description>The number of bins in separation for virial crossing orbit statistics.</description>
+      <description>
+      The number of bins in separation for virial crossing orbit statistics.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>separationMinimum</name>
       <source>parameters</source>
-      <description>The minimum separation (in units of virial radii) to consider for virial crossing orbit statistics.</description>
+      <description>
+      The minimum separation (in units of virial radii) to consider for virial crossing orbit statistics.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>separationMaximum</name>
       <source>parameters</source>
-      <description>The maximum separation (in units of virial radii) to consider for virial crossing orbit statistics.</description>
+      <description>
+      The maximum separation (in units of virial radii) to consider for virial crossing orbit statistics.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeUnbootstrapped</name>
       <source>parameters</source>
-      <description>If true, include results for the unbootstrapped (i.e. original) sample.</description>
+      <description>
+      If true, include results for the unbootstrapped (i.e. original) sample.
+      </description>
       <defaultValue>.true.</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityCut</name>
       <source>parameters</source>
-      <description>Pairs with (radial or tangential) velocities in excess of this value (in virial units) are cut from the sample.</description>
+      <description>
+      Pairs with (radial or tangential) velocities in excess of this value (in virial units) are cut from the sample.
+      </description>
       <defaultValue>huge(0.0d0)</defaultValue>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -176,8 +202,8 @@ contains
   end function virialCrossingOrbitStatisticsConstructorParameters
 
   function virialCrossingOrbitStatisticsConstructorInternal(velocityMinimum,velocityMaximum,velocityCount,separationMinimum,separationMaximum,time,crossCount,addHubbleFlow,velocityCut,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_,darkMatterHaloScale_,cosmologyFunctions_,parameters) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorVirialCrossingOrbitStatistics} N-body operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyOperatorVirialCrossingOrbitStatistics` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorVirialCrossingOrbitStatistics)                        :: self
@@ -202,8 +228,8 @@ contains
   end function virialCrossingOrbitStatisticsConstructorInternal
 
   subroutine virialCrossingOrbitStatisticsDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorVirialCrossingOrbitStatistics} N-body operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nbodyOperatorVirialCrossingOrbitStatistics` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorVirialCrossingOrbitStatistics), intent(inout) :: self
@@ -216,7 +242,7 @@ contains
   end subroutine virialCrossingOrbitStatisticsDestructor
 
   subroutine virialCrossingOrbitStatisticsOperate(self,simulations)
-    !!{
+    !!{RST
     Compute virial crossing orbit statistics in bins of separation.
     !!}
     use    :: Arrays_Search      , only : searchArray

@@ -17,30 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements geometries of galaxy surveys.
 !!}
 
 module Geometry_Surveys
-  !!{
+  !!{RST
   Implements geometries of galaxy surveys.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_double_complex
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>surveyGeometry</name>
    <descriptiveName>Survey Geometry</descriptiveName>
-   <description>Class providing galaxy survey geometries---the selection function of an observed galaxy
-    sample, including the survey solid angle, the minimum and maximum detection distances as a function
-    of galaxy mass, luminosity, or star formation rate, and the 3-D window functions needed for
-    clustering analyses. These quantities are used in the on-the-fly output analysis classes to compute
-    galaxy stellar mass functions, luminosity functions, and two-point correlation functions by
-    applying the appropriate $V_\mathrm{max}$ weighting and survey volume corrections.</description>
+   <description>
+   Class providing galaxy survey geometries---the selection function of an observed galaxy sample, including the survey solid angle, the minimum and maximum detection distances as a function of galaxy mass, luminosity, or star formation rate, and the 3-D window functions needed for clustering analyses. These quantities are used in the on-the-fly output analysis classes to compute galaxy stellar mass functions, luminosity functions, and two-point correlation functions by applying the appropriate :math:`V_\mathrm{max}` weighting and survey volume corrections.
+   </description>
    <default>liWhite2009SDSS</default>
    <method name="fieldCount" >
-    <description>Returns the number of distinct fields included in the survey.</description>
+    <description>
+    Returns the number of distinct fields included in the survey.
+    </description>
     <type>integer</type>
     <pass>yes</pass>
     <code>
@@ -49,7 +48,9 @@ module Geometry_Surveys
     </code>
    </method>
    <method name="distanceMinimum" >
-    <description>Returns the minimum distance (in Mpc) at which a galaxy of the specified \mono{mass} (in $\mathrm{M}_\odot$) would be included in the survey.</description>
+    <description>
+    Returns the minimum distance (in Mpc) at which a galaxy of the specified ``mass`` (in :math:`\mathrm{M}_\odot`) would be included in the survey.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate</argument>
@@ -60,20 +61,26 @@ module Geometry_Surveys
     </code>
    </method>
    <method name="distanceMaximum" >
-    <description>Returns the maximum distance (in Mpc) at which a galaxy of the specified \mono{mass} (in $\mathrm{M}_\odot$) could be detected.</description>
+    <description>
+    Returns the maximum distance (in Mpc) at which a galaxy of the specified ``mass`` (in :math:`\mathrm{M}_\odot`) could be detected.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), optional :: mass , magnitudeAbsolute, luminosity, starFormationRate</argument>
     <argument>integer         , intent(in   ), optional :: field                                                  </argument>
    </method>
    <method name="solidAngle" >
-    <description>Return the solid angle (in steradians) of the survey.</description>
+    <description>
+    Return the solid angle (in steradians) of the survey.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer, intent(in   ), optional :: field</argument>
    </method>
    <method name="volumeMaximum" >
-    <description>Returns the maximum volume (in Mpc$^3$) at which a galaxy of the specified \mono{mass} (in $\mathrm{M}_\odot$) could be detected.</description>
+    <description>
+    Returns the maximum volume (in Mpc\ :math:`^3`) at which a galaxy of the specified ``mass`` (in :math:`\mathrm{M}_\odot`) could be detected.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: mass</argument>
@@ -81,17 +88,23 @@ module Geometry_Surveys
     <code>surveyGeometryVolumeMaximum=self%solidAngle(field)*self%distanceMaximum(mass,field=field)**3/3.0d0</code>
    </method>
    <method name="windowFunctionAvailable" >
-    <description>Returns true if survey 3-D window functions are available.</description>
+    <description>
+    Returns true if survey 3-D window functions are available.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
    </method>
    <method name="angularPowerAvailable" >
-    <description>Returns true if angular power spectrum of survey window function is available.</description>
+    <description>
+    Returns true if angular power spectrum of survey window function is available.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
    </method>
    <method name="windowFunctions" >
-    <description>Returns the window functions on a grid of the specified size (\mono{gridCount} cells in each dimension) for galaxies of the specified \mono{mass1} and \mono{mass2} (in $\mathrm{M}_\odot$). The \mono{boxLength} should be set to an appropriate value to fully enclose (with sufficient buffering to allow for Fourier transformation) the two window functions.</description>
+    <description>
+    Returns the window functions on a grid of the specified size (``gridCount`` cells in each dimension) for galaxies of the specified ``mass1`` and ``mass2`` (in :math:`\mathrm{M}_\odot`). The ``boxLength`` should be set to an appropriate value to fully enclose (with sufficient buffering to allow for Fourier transformation) the two window functions.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision                  , intent(in   )                                           :: mass1          , mass2</argument>
@@ -100,13 +113,17 @@ module Geometry_Surveys
     <argument>complex         (c_double_complex), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1, windowFunction2</argument>
    </method>
    <method name="angularPower" >
-    <description>Return $C^{ij}_\ell$, where $(2\ell+1) C^{ij}_\ell = \sum_{m=-\ell}^{+\ell} \Psi^i_{\ell m} \Psi^{j*}_{\ell m}$, and $\Psi^i_{\ell m}$ are the cofficients of the spherical harmonic expansion of the $i^\mathrm{th}$ field.</description>
+    <description>
+    Return :math:`C^{ij}_\ell`, where :math:`(2\ell+1) C^{ij}_\ell = \sum_{m=-\ell}^{+\ell} \Psi^i_{\ell m} \Psi^{j*}_{\ell m}`, and :math:`\Psi^i_{\ell m}` are the coefficients of the spherical harmonic expansion of the :math:`i^\mathrm{th}` field.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer, intent(in   ) :: i,j,l</argument>
    </method>
    <method name="angularPowerMaximumDegree" >
-    <description>Return the maximum degree, $\ell_\mathrm{max}$, for which the angular power is available.</description>
+    <description>
+    Return the maximum degree, :math:`\ell_\mathrm{max}`, for which the angular power is available.
+    </description>
     <type>integer</type>
     <pass>yes</pass>
     <code>
@@ -115,7 +132,9 @@ module Geometry_Surveys
     </code>
    </method>
    <method name="pointIncluded" >
-    <description>Return true if the given Cartesian point lies within the survey bounds for the given mass limit.</description>
+    <description>
+    Return true if the given Cartesian point lies within the survey bounds for the given mass limit.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), dimension(3) :: point</argument>

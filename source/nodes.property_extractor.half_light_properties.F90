@@ -17,22 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a half-light radii property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRadiiHalfLightProperties">
+  <nodePropertyExtractor name="nodePropertyExtractorRadiiHalfLightProperties" docformat="rst">
    <description>
-    A node property extractor which extracts half-light radii and the masses enclosed within them. The half-light radius in
-    each specified luminosity band is extracted as \mono{[halfLightRadius\{luminosityID\}]} (in Mpc), where
-    \mono{\{luminosityID\}} is the usual luminosity identifier suffix, and the total (dark + baryonic) mass
-    within that radius is extracted as \mono{[halfLightMass\{luminosityID\}]} (in $\mathrm{M}_\odot$).
+   A node property extractor which extracts half-light radii and the masses enclosed within them. The half-light radius in each specified luminosity band is extracted as ``[halfLightRadius{luminosityID}]`` (in Mpc), where ``{luminosityID}`` is the usual luminosity identifier suffix, and the total (dark + baryonic) mass within that radius is extracted as ``[halfLightMass{luminosityID}]`` (in :math:`\mathrm{M}_\odot`).
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorRadiiHalfLightProperties
-     !!{
+     !!{RST
      A half-light radii property extractor class.
      !!}
      private
@@ -46,8 +43,8 @@ Implements a half-light radii property extractor class.
   end type nodePropertyExtractorRadiiHalfLightProperties
 
   interface nodePropertyExtractorRadiiHalfLightProperties
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiiHalfLightProperties} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiiHalfLightProperties` property extractor class.
      !!}
      module procedure radiiHalfLightPropertiesConstructorParameters
   end interface nodePropertyExtractorRadiiHalfLightProperties
@@ -55,8 +52,8 @@ Implements a half-light radii property extractor class.
 contains
 
   function radiiHalfLightPropertiesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiiHalfLightProperties} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiiHalfLightProperties` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,8 +68,8 @@ contains
   end function radiiHalfLightPropertiesConstructorParameters
 
   integer function radiiHalfLightPropertiesElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{radiiHalfLightProperties} property extractor class.
+    !!{RST
+    Return the number of elements in the ``radiiHalfLightProperties`` property extractor class.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
@@ -85,8 +82,8 @@ contains
   end function radiiHalfLightPropertiesElementCount
 
   function radiiHalfLightPropertiesExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{radiiHalfLightProperties} property extractor.
+    !!{RST
+    Implement a ``radiiHalfLightProperties`` property extractor.
     !!}
     use :: Galactic_Structure_Options    , only : componentTypeAll       , massTypeAll, massTypeStellar, weightByLuminosity
     use :: Mass_Distributions            , only : massDistributionClass
@@ -124,8 +121,8 @@ contains
   end function radiiHalfLightPropertiesExtract
 
   subroutine radiiHalfLightPropertiesNames(self,time,names)
-    !!{
-    Return the names of the \mono{radiiHalfLightProperties} properties.
+    !!{RST
+    Return the names of the ``radiiHalfLightProperties`` properties.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
@@ -148,8 +145,8 @@ contains
   end subroutine radiiHalfLightPropertiesNames
 
   subroutine radiiHalfLightPropertiesDescriptions(self,time,descriptions)
-    !!{
-    Return descriptions of the \mono{radiiHalfLightProperties} property extractor class.
+    !!{RST
+    Return descriptions of the ``radiiHalfLightProperties`` property extractor class.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
@@ -168,7 +165,7 @@ contains
   end subroutine radiiHalfLightPropertiesDescriptions
 
   function radiiHalfLightPropertiesUnitsInSI(self,time)
-    !!{
+    !!{RST
     Return the units of the last isolated redshift property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
@@ -188,7 +185,7 @@ contains
   end function radiiHalfLightPropertiesUnitsInSI
 
   function radiiHalfLightPropertiesUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the radiiHalfLightProperties properties.
     !!}
     use :: Units_MetaData                  , only : unitType

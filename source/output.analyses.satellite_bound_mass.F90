@@ -19,7 +19,7 @@
 
   !+    Contributions to this file made by: Xiaolong Du
   
-  !!{
+  !!{RST
   Implements an output analysis class that computes satellite bound mass fraction.
   !!}
 
@@ -27,12 +27,14 @@
   !$ use :: Locks                  , only : ompLock
 
   !![
-  <outputAnalysis name="outputAnalysisSatelliteBoundMass">
-    <description>Computes the satellite subhalo bound mass fraction as a function of time since infall, tracking tidal stripping evolution and comparing model predictions against a target dataset read from \mono{fileName}, with a relative model uncertainty parameter.</description>
+  <outputAnalysis name="outputAnalysisSatelliteBoundMass" docformat="rst">
+    <description>
+    Computes the satellite subhalo bound mass fraction as a function of time since infall, tracking tidal stripping evolution and comparing model predictions against a target dataset read from ``fileName``, with a relative model uncertainty parameter.
+    </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisSatelliteBoundMass
-     !!{
+     !!{RST
      An output analysis class that computes satellite bound mass fraction as a function of time.
      !!}
      private
@@ -53,8 +55,8 @@
   end type outputAnalysisSatelliteBoundMass
 
   interface outputAnalysisSatelliteBoundMass
-     !!{
-     Constructors for the \refClass{outputAnalysisSatelliteBoundMass} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisSatelliteBoundMass` output analysis class.
      !!}
      module procedure satelliteBoundMassConstructorParameters
      module procedure satelliteBoundMassConstructorInternal
@@ -63,8 +65,8 @@
 contains
 
   function satelliteBoundMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSatelliteBoundMass} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisSatelliteBoundMass` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Output_Times    , only : outputTimesClass
@@ -76,15 +78,19 @@ contains
     double precision                                                  :: relativeModelUncertainty
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
-      <description>The name of the file from which to read the target dataset.</description>
+      <description>
+      The name of the file from which to read the target dataset.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>relativeModelUncertainty</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>Relative model uncertainty.</description>
+      <description>
+      Relative model uncertainty.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
@@ -98,8 +104,8 @@ contains
   end function satelliteBoundMassConstructorParameters
   
   function satelliteBoundMassConstructorInternal(fileName,relativeModelUncertainty,outputTimes_) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSatelliteBoundMass} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisSatelliteBoundMass` output analysis class for internal use.
     !!}
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object
@@ -150,8 +156,8 @@ contains
   end function satelliteBoundMassConstructorInternal
 
   subroutine satelliteBoundMassDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisSatelliteBoundMass} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisSatelliteBoundMass` output analysis class.
     !!}
     implicit none
     type(outputAnalysisSatelliteBoundMass), intent(inout) :: self
@@ -163,7 +169,7 @@ contains
   end subroutine satelliteBoundMassDestructor
 
   subroutine satelliteBoundMassAnalyze(self,node,iOutput)
-    !!{
+    !!{RST
     Analyze the maximum velocity tidal track.
     !!}
     use :: Galacticus_Nodes        , only : nodeComponentSatellite
@@ -202,7 +208,7 @@ contains
   end subroutine satelliteBoundMassAnalyze
 
   subroutine satelliteBoundMassReduce(self,reduced)
-    !!{
+    !!{RST
     Reduce over the maximum velocity tidal track output analysis.
     !!}
     use :: Error, only : Error_Report
@@ -223,7 +229,7 @@ contains
   end subroutine satelliteBoundMassReduce
 
   subroutine satelliteBoundMassFinalize(self,groupName)
-    !!{
+    !!{RST
     Output results of the maximum velocity tidal track output analysis.
     !!}
 #ifdef USEMPI
@@ -277,7 +283,7 @@ contains
   end subroutine satelliteBoundMassFinalize
   
   double precision function satelliteBoundMassLogLikelihood(self)
-    !!{
+    !!{RST
     Return the log-likelihood of a maximum velocity tidal track output analysis.
     !!}
     implicit none

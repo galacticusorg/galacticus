@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a timescale for star formation which scales with the circular velocity of the host halo.
   !!}
 
@@ -27,12 +27,14 @@
   use :: Math_Exponentiation     , only : fastExponentiator
 
   !![
-  <starFormationTimescale name="starFormationTimescaleVelocityMaxScaling">
-   <description>A star formation timescale class that scales the gas consumption timescale as a power law in the host halo maximum circular velocity and redshift. The normalization is set by \mono{[timescale]}, and the power-law exponents with respect to velocity and $(1+z)$ are set by \mono{[exponentVelocity]} and \mono{[exponentRedshift]} respectively.</description>
+  <starFormationTimescale name="starFormationTimescaleVelocityMaxScaling" docformat="rst">
+   <description>
+   A star formation timescale class that scales the gas consumption timescale as a power law in the host halo maximum circular velocity and redshift. The normalization is set by ``[timescale]``, and the power-law exponents with respect to velocity and :math:`(1+z)` are set by ``[exponentVelocity]`` and ``[exponentRedshift]`` respectively.
+   </description>
   </starFormationTimescale>
   !!]
   type, extends(starFormationTimescaleClass) :: starFormationTimescaleVelocityMaxScaling
-     !!{
+     !!{RST
      Implementation of a velocityMaxScaling timescale for star formation.
      !!}
      private
@@ -48,7 +50,7 @@
      type            (fastExponentiator        )          :: velocityExponentiator                  , expansionFactorExponentiator
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset memoized calculations." method="calculationReset" />
      </methods>
      !!]
@@ -59,8 +61,8 @@
   end type starFormationTimescaleVelocityMaxScaling
 
   interface starFormationTimescaleVelocityMaxScaling
-     !!{
-     Constructors for the \refClass{starFormationTimescaleVelocityMaxScaling} timescale for star formation class.
+     !!{RST
+     Constructors for the :galacticus-class:`starFormationTimescaleVelocityMaxScaling` timescale for star formation class.
      !!}
      module procedure velocityMaxScalingConstructorParameters
      module procedure velocityMaxScalingConstructorInternal
@@ -71,9 +73,8 @@
 contains
 
   function velocityMaxScalingConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{starFormationTimescaleVelocityMaxScaling} timescale for star formation class which takes a parameter
-    set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`starFormationTimescaleVelocityMaxScaling` timescale for star formation class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,22 +87,28 @@ contains
 
     ! Get parameters of for the timescale calculation.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescale</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The timescale for star formation in the velocity maximum scaling timescale model.</description>
+      <description>
+      The timescale for star formation in the velocity maximum scaling timescale model.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentVelocity</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The exponent of virial velocity in the timescale for star formation in the velocity maximum scaling timescale model.</description>
+      <description>
+      The exponent of virial velocity in the timescale for star formation in the velocity maximum scaling timescale model.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentRedshift</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The exponent of redshift in the timescale for star formation in the velocity maximum scaling timescale model.</description>
+      <description>
+      The exponent of redshift in the timescale for star formation in the velocity maximum scaling timescale model.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
@@ -117,8 +124,8 @@ contains
   end function velocityMaxScalingConstructorParameters
 
   function velocityMaxScalingConstructorInternal(timescale,exponentVelocity,exponentRedshift,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{starFormationTimescaleVelocityMaxScaling} timescale for star formation class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`starFormationTimescaleVelocityMaxScaling` timescale for star formation class.
     !!}
     implicit none
     type            (starFormationTimescaleVelocityMaxScaling)                        :: self
@@ -147,7 +154,7 @@ contains
   end function velocityMaxScalingConstructorInternal
 
   subroutine velocityMaxScalingAutoHook(self)
-    !!{
+    !!{RST
     Attach to the calculation reset event.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
@@ -159,8 +166,8 @@ contains
   end subroutine velocityMaxScalingAutoHook
 
   subroutine velocityMaxScalingDestructor(self)
-    !!{
-    Destructor for the \refClass{starFormationTimescaleVelocityMaxScaling} timescale for star formation class.
+    !!{RST
+    Destructor for the :galacticus-class:`starFormationTimescaleVelocityMaxScaling` timescale for star formation class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
@@ -175,7 +182,7 @@ contains
   end subroutine velocityMaxScalingDestructor
 
   subroutine velocityMaxScalingCalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the velocity maximum scaling star formation timescale calculation.
     !!}
     use :: Galacticus_Nodes, only : treeNode
@@ -192,8 +199,8 @@ contains
   end subroutine velocityMaxScalingCalculationReset
 
   double precision function velocityMaxScalingTimescale(self,component)
-    !!{
-    Returns the timescale (in Gyr) for star formation in the \mono{component} in the velocity maximum scaling timescale model.
+    !!{RST
+    Returns the timescale (in Gyr) for star formation in the ``component`` in the velocity maximum scaling timescale model.
     !!}
     use :: Galacticus_Nodes  , only : nodeComponentBasic
     use :: Mass_Distributions, only : massDistributionClass

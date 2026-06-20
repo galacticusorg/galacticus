@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module for storing and reporting memory usage by the code.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module for storing and reporting memory usage by the code.
   !: $(BUILDPATH)/utility.memory_reporting.mallinfo2.o
 
 module Memory_Reporting
-  !!{
+  !!{RST
   Provide reporting functions for memory usage.
   !!}
   use            :: Error        , only : Error_Report
@@ -81,7 +81,7 @@ module Memory_Reporting
 contains
 
   subroutine reportMemoryUsage()
-    !!{
+    !!{RST
     Writes a report on the current memory usage.
     !!}
     use :: Display           , only : displayMessage, displayRed  , displayYellow, displayGreen, &
@@ -162,7 +162,7 @@ contains
   end subroutine reportMemoryUsage
 
   subroutine getSuffix(memoryUsage,divisor,suffix)
-    !!{
+    !!{RST
     Compute an appropriate suffix (and divisor) for a given memory usage.
     !!}
     implicit none
@@ -212,8 +212,8 @@ contains
   end subroutine getSuffix
 
   subroutine codeUsageGet()
-    !!{
-    Determines the size of the ``text'' (i.e. code) size.
+    !!{RST
+    Determines the size of the "text" (i.e. code) size.
     !!}
     use :: Display      , only : displayMessage, displayGreen , displayReset
 #ifdef USEMPI
@@ -286,7 +286,7 @@ contains
   <outputFileClose function="outputMemoryUsageMaximum"/>
   !!]
   subroutine outputMemoryUsageMaximum()
-    !!{
+    !!{RST
     Output maximum memory usage information to the main output file.
     !!}
     use :: IO_HDF5    , only : hdf5Object

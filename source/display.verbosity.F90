@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which handles setting of verbosity.
 !!}
 
 module Display_Verbosity
-  !!{
+  !!{RST
   Handle setting of verbosity.
   !!}
   implicit none
@@ -32,7 +32,7 @@ module Display_Verbosity
 contains
 
   subroutine displayVerbositySetFromParameters(parameters)
-    !!{
+    !!{RST
     Read the parameter that controls the verbosity level, and set that level.
     !!}
     use :: Display           , only : displayVerbositySet, enumerationVerbosityLevelEncode
@@ -44,10 +44,12 @@ contains
 
     ! Get the verbosity level parameter.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>verbosityLevel</name>
       <defaultValue>var_str('standard')</defaultValue>
-      <description>The level of verbosity for \glc\ (higher values give more verbosity).</description>
+      <description>
+      The level of verbosity for Galacticus (higher values give more verbosity).
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]

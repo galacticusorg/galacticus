@@ -17,35 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a transfer function class based on the non-cold dark matter fitting function of \cite{murgia_non-cold_2017},
-  restricted to $\gamma=-5$ and with properties specified via the half-mode mass, $M_{1/2}$ and the slope of the transfer function
-  at the corresponding half-mode wavenumber, $\mathrm{d}\log T / \mathrm{d} \log k$.
+  !!{RST
+  Implements a transfer function class based on the non-cold dark matter fitting function of :cite:t:`murgia_non-cold_2017`, restricted to :math:`\gamma=-5` and with properties specified via the half-mode mass, :math:`M_{1/2}` and the slope of the transfer function at the corresponding half-mode wavenumber, :math:`\mathrm{d}\log T / \mathrm{d} \log k`.
   !!}
 
   !![
-  <transferFunction name="transferFunctionHalfModeSlope">
+  <transferFunction name="transferFunctionHalfModeSlope" docformat="rst">
     <description>
-      A transfer function class based on the non-cold dark matter fitting function of \cite{murgia_non-cold_2017}, restricted to
-      $\gamma=-5$ and with properties specified via the half-mode mass, $M_{1/2}$ and the slope of the transfer function at the
-      corresponding half-mode wavenumber, $\mathrm{d}\log T / \mathrm{d} \log k$. Specifically,
-      \begin{equation}
-        k_{1/2} = \left(\frac{3 M_{1/2}}{4 \pi \bar{\rho}}\right)^{1/3},
-      \end{equation}
-      where $\bar{\rho}$ is the mean density of the universe. In terms of the \cite{murgia_non-cold_2017} parameters we have:
-      \begin{equation}
-        \beta = \frac{1}{\gamma} \frac{2^{-1/\gamma}}{2^{-1/\gamma}-1} \frac{\mathrm{d}\log T}{\mathrm{d} \log k},
-      \end{equation}
-      and
-      \begin{equation}
-        \alpha = \frac{(2^{-1/\gamma}-1)^{1/\beta}}{k_\mathrm{1/2}}.
-      \end{equation}
+    A transfer function class based on the non-cold dark matter fitting function of :cite:t:`murgia_non-cold_2017`, restricted to :math:`\gamma=-5` and with properties specified via the half-mode mass, :math:`M_{1/2}` and the slope of the transfer function at the corresponding half-mode wavenumber, :math:`\mathrm{d}\log T / \mathrm{d} \log k`. Specifically,
+
+    .. math::
+
+       k_{1/2} = \left(\frac{3 M_{1/2}}{4 \pi \bar{\rho}}\right)^{1/3},
+
+    where :math:`\bar{\rho}` is the mean density of the universe. In terms of the :cite:t:`murgia_non-cold_2017` parameters we have:
+
+    .. math::
+
+       \beta = \frac{1}{\gamma} \frac{2^{-1/\gamma}}{2^{-1/\gamma}-1} \frac{\mathrm{d}\log T}{\mathrm{d} \log k},
+
+    and
+
+    .. math::
+
+       \alpha = \frac{(2^{-1/\gamma}-1)^{1/\beta}}{k_\mathrm{1/2}}.
     </description>
   </transferFunction>
   !!]
   type, extends(transferFunctionMurgia2017) :: transferFunctionHalfModeSlope
-     !!{
-     A transfer function class based on the non-cold dark matter fitting function of \cite{murgia_non-cold_2017}.
+     !!{RST
+     A transfer function class based on the non-cold dark matter fitting function of :cite:t:`murgia_non-cold_2017`.
      !!}
      private
      double precision :: massHalfMode, slopeHalfMode
@@ -53,8 +54,8 @@
   end type transferFunctionHalfModeSlope
 
   interface transferFunctionHalfModeSlope
-     !!{
-     Constructors for the \refClass{transferFunctionHalfModeSlope} transfer function class.
+     !!{RST
+     Constructors for the :galacticus-class:`transferFunctionHalfModeSlope` transfer function class.
      !!}
      module procedure halfModeSlopeConstructorParameters
      module procedure halfModeSlopeConstructorInternal
@@ -63,8 +64,8 @@
 contains
   
   function halfModeSlopeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{transferFunctionHalfModeSlope} transfer function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`transferFunctionHalfModeSlope` transfer function class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
@@ -82,24 +83,30 @@ contains
     if (.not.parameters%isPresent('transferFunction')) call Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
     ! Read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massHalfMode</name>
       <source>parameters</source>
-      <description>The half-mode mass of the transfer function.</description>
+      <description>
+      The half-mode mass of the transfer function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>slopeHalfMode</name>
       <source>parameters</source>
-      <description>The logarithmic slope of the transfer function at the half-mode mass.</description>
+      <description>
+      The logarithmic slope of the transfer function at the half-mode mass.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
       <source>parameters</source>
       <defaultValue>cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%equalityEpochMatterRadiation(requestTypeExpansionFactor))</defaultValue>
-      <description>The redshift of the epoch at which the transfer function is defined.</description>
+      <description>
+      The redshift of the epoch at which the transfer function is defined.
+      </description>
     </inputParameter>
     !!]
     self=transferFunctionhalfModeSlope(transferFunctionCDM,massHalfMode,slopeHalfMode,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_)
@@ -113,8 +120,8 @@ contains
   end function halfModeSlopeConstructorParameters
 
   function halfModeSlopeConstructorInternal(transferFunctionCDM,massHalfMode,slopeHalfMode,time,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{transferFunctionHalfModeSlope} transfer function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`transferFunctionHalfModeSlope` transfer function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

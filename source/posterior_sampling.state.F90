@@ -17,35 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class that maintains during posterior sampling.
 !!}
 
 module Posterior_Sampling_State
-  !!{
+  !!{RST
   Implements a class that maintains during posterior sampling.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>posteriorSampleState</name>
    <descriptiveName>Posterior Sampling State</descriptiveName>
-   <description>Class providing the state vector during Bayesian posterior sampling simulations---the current
-    position of a Markov chain in parameter space, together with its chain index, step count, and parameter
-    count. Implementations store and retrieve the parameter vector (via \mono{get}/\mono{set}), advance
-    the step counter, and optionally maintain a history of chain positions for convergence diagnostics.
-    The state is updated at each MCMC step and queried by the likelihood function to evaluate the
-    model at the proposed parameter values.</description>
+   <description>
+   Class providing the state vector during Bayesian posterior sampling simulations---the current position of a Markov chain in parameter space, together with its chain index, step count, and parameter count. Implementations store and retrieve the parameter vector (via ``get``/``set``), advance the step counter, and optionally maintain a history of chain positions for convergence diagnostics. The state is updated at each MCMC step and queried by the likelihood function to evaluate the model at the proposed parameter values.
+   </description>
    <default>simple</default>
    <method name="parameterCountSet" >
-    <description>Set the number of active parameters that this state vector will track, allocating internal storage for the parameter vector of the given dimension.</description>
+    <description>
+    Set the number of active parameters that this state vector will track, allocating internal storage for the parameter vector of the given dimension.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>integer, intent(in   ) :: parameterCount</argument>
    </method>
    <method name="chainIndex" >
-    <description>Return the integer index (0-based) of the Markov chain that owns this state object, used to identify chains in multi-chain posterior sampling algorithms.</description>
+    <description>
+    Return the integer index (0-based) of the Markov chain that owns this state object, used to identify chains in multi-chain posterior sampling algorithms.
+    </description>
     <type>integer</type>
     <pass>yes</pass>
     <code>
@@ -53,7 +54,9 @@ module Posterior_Sampling_State
     </code>
    </method>
    <method name="chainIndexSet" >
-    <description>Assign the integer chain index to this state object, identifying which Markov chain it belongs to in a multi-chain ensemble sampler.</description>
+    <description>
+    Assign the integer chain index to this state object, identifying which Markov chain it belongs to in a multi-chain ensemble sampler.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>integer, intent(in   ) :: chainIndex</argument>
@@ -62,7 +65,9 @@ module Posterior_Sampling_State
     </code>
    </method>
    <method name="count" >
-    <description>Returns the total number of sampling steps that have been taken since the state was last reset, used for logging and convergence diagnostics.</description>
+    <description>
+    Returns the total number of sampling steps that have been taken since the state was last reset, used for logging and convergence diagnostics.
+    </description>
     <type>integer</type>
     <pass>yes</pass>
     <code>
@@ -70,7 +75,9 @@ module Posterior_Sampling_State
     </code>
    </method>
    <method name="dimension" >
-    <description>Returns the number of active parameters (dimension of the state vector) for this sampling state, equal to the value previously set by \mono{parameterCountSet}.</description>
+    <description>
+    Returns the number of active parameters (dimension of the state vector) for this sampling state, equal to the value previously set by ``parameterCountSet``.
+    </description>
     <type>integer</type>
     <pass>yes</pass>
     <code>
@@ -78,7 +85,9 @@ module Posterior_Sampling_State
     </code>
    </method>
    <method name="reset" >
-    <description>Reset the state object to its initial condition by zeroing the step counter and clearing any accumulated history, in preparation for a new sampling run.</description>
+    <description>
+    Reset the state object to its initial condition by zeroing the step counter and clearing any accumulated history, in preparation for a new sampling run.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <code>
@@ -86,12 +95,16 @@ module Posterior_Sampling_State
     </code>
    </method>
    <method name="get" >
-    <description>Return the current parameter vector representing the position of this chain in the model parameter space at the most recently accepted sampling step.</description>
+    <description>
+    Return the current parameter vector representing the position of this chain in the model parameter space at the most recently accepted sampling step.
+    </description>
     <type>double precision, dimension(self%parameterCount)</type>
     <pass>yes</pass>
    </method>
    <method name="update" >
-    <description>Advance the state to the new parameter vector \mono{stateNew}, optionally logging it to the chain history; \mono{isConverged} and \mono{outlierMask} are used to track whether post-convergence steps should be recorded.</description>
+    <description>
+    Advance the state to the new parameter vector ``stateNew``, optionally logging it to the chain history; ``isConverged`` and ``outlierMask`` are used to track whether post-convergence steps should be recorded.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), dimension(:)           :: stateNew</argument>
@@ -100,22 +113,30 @@ module Posterior_Sampling_State
     <argument>logical         , intent(in   ), dimension(:), optional :: outlierMask</argument>
    </method>
    <method name="mean" >
-    <description>Return the mean parameter vector computed over all stored steps in the chain history, providing a point estimate of the posterior mode or mean.</description>
+    <description>
+    Return the mean parameter vector computed over all stored steps in the chain history, providing a point estimate of the posterior mode or mean.
+    </description>
     <type>double precision, dimension(self%parameterCount)</type>
     <pass>yes</pass>
    </method>
    <method name="variance" >
-    <description>Return the per-parameter variance computed over all stored steps in the chain history, providing a measure of posterior width for each model parameter.</description>
+    <description>
+    Return the per-parameter variance computed over all stored steps in the chain history, providing a measure of posterior width for each model parameter.
+    </description>
     <type>double precision, dimension(self%parameterCount)</type>
     <pass>yes</pass>
    </method>
    <method name="acceptanceRate" >
-    <description>Return the fraction of proposed moves that were accepted over the recent history of this chain, used to monitor and adaptively tune proposal distributions.</description>
+    <description>
+    Return the fraction of proposed moves that were accepted over the recent history of this chain, used to monitor and adaptively tune proposal distributions.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="restore" >
-    <description>Replay a previously recorded state vector into the state history one step at a time, used when resuming a sampling run from a saved log file; \mono{first} signals the start of the restoration sequence.</description>
+    <description>
+    Replay a previously recorded state vector into the state history one step at a time, used when resuming a sampling run from a saved log file; ``first`` signals the start of the restoration sequence.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ), dimension(:) :: stateVector</argument>

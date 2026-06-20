@@ -17,22 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of heated dark matter halo profiles based on the energy ordering of shells.
   !!}
 
   use :: Mass_Distributions, only : enumerationNonAnalyticSolversType
 
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOHeatedMonotonic">
+  <darkMatterProfileDMO name="darkMatterProfileDMOHeatedMonotonic" docformat="rst">
    <description>
-     A dark matter profile DMO class in which builds \refClass{massDistributionSphericalHeatedMonotonic} objects to account for
-     heating of some other dark matter profile.
+   A dark matter profile DMO class in which builds :galacticus-class:`massDistributionSphericalHeatedMonotonic` objects to account for heating of some other dark matter profile.
    </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOHeatedMonotonic
-     !!{
+     !!{RST
      A dark matter halo profile class implementing heated dark matter halos.
      !!}
      private
@@ -47,8 +46,8 @@
   end type darkMatterProfileDMOHeatedMonotonic
 
   interface darkMatterProfileDMOHeatedMonotonic
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMOHeatedMonotonic} dark matter halo profile class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileDMOHeatedMonotonic` dark matter halo profile class.
      !!}
      module procedure heatedMonotonicConstructorParameters
      module procedure heatedMonotonicConstructorInternal
@@ -57,8 +56,8 @@
 contains
 
   function heatedMonotonicConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{heatedMonotonic} dark matter halo profile class.
+    !!{RST
+    Default constructor for the ``heatedMonotonic`` dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
     use :: Input_Parameters  , only : inputParameter, inputParameters
@@ -72,23 +71,29 @@ contains
     double precision                                                     :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>
+      Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring heating is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersion</name>
       <defaultValue>1.0d-6</defaultValue>
       <source>parameters</source>
-      <description>The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+      <description>
+      The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersionMaximum</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+      <description>
+      The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
@@ -105,8 +110,8 @@ contains
   end function heatedMonotonicConstructorParameters
 
   function heatedMonotonicConstructorInternal(nonAnalyticSolver,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOHeatedMonotonic} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOHeatedMonotonic` dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
     use :: Error             , only : Error_Report
@@ -127,8 +132,8 @@ contains
   end function heatedMonotonicConstructorInternal
 
   subroutine heatedMonotonicDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMOHeatedMonotonic} dark matter halo profile class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileDMOHeatedMonotonic` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOHeatedMonotonic), intent(inout) :: self
@@ -142,8 +147,8 @@ contains
   end subroutine heatedMonotonicDestructor
 
   function heatedMonotonicGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo                   , massTypeDark                       , weightByMass
     use :: Mass_Distributions        , only : massDistributionSphericalHeatedMonotonic, kinematicsDistributionCollisionless, massDistributionSpherical, massDistributionHeatingClass

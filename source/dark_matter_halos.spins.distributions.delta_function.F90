@@ -17,24 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of the dark matter halo spin distribution which assumes a
-  $\delta$-function distribution.
+  !!{RST
+  An implementation of the dark matter halo spin distribution which assumes a :math:`\delta`-function distribution.
   !!}
 
   !![
-  <haloSpinDistribution name="haloSpinDistributionDeltaFunction">
+  <haloSpinDistribution name="haloSpinDistributionDeltaFunction" docformat="rst">
    <description>
-    A halo spin distribution class in which the spin is drawn from a $\delta$-function distribution, $P(\lambda) =
-    \delta(\lambda-\lambda_0)$, where $\lambda_0=$\mono{[spin]}, i.e. a fixed value of spin equal to
-    $\lambda_0$ is returned.
+   A halo spin distribution class in which the spin is drawn from a :math:`\delta`-function distribution, :math:`P(\lambda) = \delta(\lambda-\lambda_0)`, where :math:`\lambda_0=`\ ``[spin]``, i.e. a fixed value of spin equal to :math:`\lambda_0` is returned.
    </description>
   </haloSpinDistribution>
   !!]
   type, extends(haloSpinDistributionClass) :: haloSpinDistributionDeltaFunction
-     !!{
-     A dark matter halo spin distribution concentration class which assumes a
-     $\delta$-function distribution.
+     !!{RST
+     A dark matter halo spin distribution concentration class which assumes a :math:`\delta`-function distribution.
      !!}
      private
      double precision :: spin
@@ -44,9 +40,8 @@
   end type haloSpinDistributionDeltaFunction
 
   interface haloSpinDistributionDeltaFunction
-     !!{
-     Constructors for the \refClass{haloSpinDistributionDeltaFunction} dark matter halo spin
-     distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`haloSpinDistributionDeltaFunction` dark matter halo spin distribution class.
      !!}
      module procedure deltaFunctionConstructorParameters
      module procedure deltaFunctionConstructorInternal
@@ -55,9 +50,8 @@
 contains
 
   function deltaFunctionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{haloSpinDistributionDeltaFunction} dark matter halo spin
-    distribution class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`haloSpinDistributionDeltaFunction` dark matter halo spin distribution class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,12 +60,16 @@ contains
     double precision                                                   :: spin
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>spin</name>
       <source>parameters</source>
       <defaultValue>0.03687d0</defaultValue>
-      <defaultSource>\citep{bett_spin_2007}</defaultSource>
-      <description>The fixed value of spin in a $\delta$-function spin distribution.</description>
+      <defaultSource>
+      :cite:p:`bett_spin_2007`
+      </defaultSource>
+      <description>
+      The fixed value of spin in a :math:`\delta`-function spin distribution.
+      </description>
     </inputParameter>
     !!]
     self=haloSpinDistributionDeltaFunction(spin)
@@ -82,9 +80,8 @@ contains
   end function deltaFunctionConstructorParameters
 
   function deltaFunctionConstructorInternal(spin) result(self)
-    !!{
-    Internal constructor for the \refClass{haloSpinDistributionDeltaFunction} dark matter halo spin
-    distribution class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`haloSpinDistributionDeltaFunction` dark matter halo spin distribution class.
     !!}
     implicit none
     type            (haloSpinDistributionDeltaFunction)                :: self
@@ -97,8 +94,8 @@ contains
   end function deltaFunctionConstructorInternal
 
   double precision function deltaFunctionSample(self,node)
-    !!{
-    Sample from a $\delta$-function spin parameter distribution for the given \mono{node}.
+    !!{RST
+    Sample from a :math:`\delta`-function spin parameter distribution for the given ``node``.
     !!}
     implicit none
     class(haloSpinDistributionDeltaFunction), intent(inout) :: self
@@ -110,8 +107,8 @@ contains
   end function deltaFunctionSample
 
   double precision function deltaFunctionDistribution(self,node)
-    !!{
-    Return the spin parameter distribution for the given \mono{node}.
+    !!{RST
+    Return the spin parameter distribution for the given ``node``.
     !!}
     use :: Error, only : Error_Report
     implicit none

@@ -19,12 +19,12 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-!!{
+!!{RST
 Contains a submodule which provides implementations of functions for rank-2, dimension-3, symmetric tensors.
 !!}
 
 submodule (Tensors) Tensor_R2_D3_Sym
-  !!{
+  !!{RST
   Provides implementations of functions for rank-2, dimension-3, symmetric tensors.
   !!}
   implicit none
@@ -32,8 +32,8 @@ submodule (Tensors) Tensor_R2_D3_Sym
 contains
 
   module procedure tensorRank2Dimension3SymmetricNull
-    !!{
-    Constructor for \mono{tensorRank2Dimension3Symmetric} objects which sets all components to zero.
+    !!{RST
+    Constructor for ``tensorRank2Dimension3Symmetric`` objects which sets all components to zero.
     !!}
 
     self%x00=0.0d0
@@ -46,8 +46,8 @@ contains
   end procedure tensorRank2Dimension3SymmetricNull
   
   function tensorRank2Dimension3SymmetricInternal(x00,x01,x02,x11,x12,x22) result(self)
-    !!{
-    Constructor for \mono{tensorRank2Dimension3Symmetric} objects.
+    !!{RST
+    Constructor for ``tensorRank2Dimension3Symmetric`` objects.
     !!}
     implicit none
     type            (tensorRank2Dimension3Symmetric)                :: self
@@ -62,8 +62,8 @@ contains
   end function tensorRank2Dimension3SymmetricInternal
   
   module procedure Tensor_R2_D3_Sym_Destroy
-    !!{
-    Destroy a \mono{tensorRank2Dimension3Symmetric} symmetric object.
+    !!{RST
+    Destroy a ``tensorRank2Dimension3Symmetric`` symmetric object.
     !!}
     implicit none
     !$GLC attributes unused :: self
@@ -72,8 +72,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Destroy
 
   module procedure Tensor_R2_D3_Sym_Builder
-    !!{
-    Build a \mono{tensorRank2Dimension3Symmetric} object from the given XML \mono{tensorDefinition}.
+    !!{RST
+    Build a ``tensorRank2Dimension3Symmetric`` object from the given XML ``tensorDefinition``.
     !!}
     use :: FoX_DOM, only : node                        , extractDataContent
     use :: Error  , only : Error_Report
@@ -125,8 +125,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Builder
 
   module procedure Tensor_R2_D3_Sym_Dump
-    !!{
-    Dump properties of a \mono{tensorRank2Dimension3Symmetric} symmetric object.
+    !!{RST
+    Dump properties of a ``tensorRank2Dimension3Symmetric`` symmetric object.
     !!}
     use :: Display           , only : displayMessage
     use :: ISO_Varying_String, only : assignment(=) , varying_string
@@ -156,8 +156,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Dump
 
   module procedure Tensor_R2_D3_Sym_Dump_Raw
-    !!{
-    Dump a \mono{tensorRank2Dimension3Symmetric} object to binary.
+    !!{RST
+    Dump a ``tensorRank2Dimension3Symmetric`` object to binary.
     !!}
     implicit none
 
@@ -172,8 +172,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Dump_Raw
 
   module procedure Tensor_R2_D3_Sym_Read_Raw
-    !!{
-    Read a \mono{tensorRank2Dimension3Symmetric} object from binary.
+    !!{RST
+    Read a ``tensorRank2Dimension3Symmetric`` object from binary.
     !!}
     implicit none
 
@@ -188,8 +188,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Read_Raw
 
   module procedure Tensor_R2_D3_Sym_Reset
-    !!{
-    Reset a \mono{tensorRank2Dimension3Symmetric} object.
+    !!{RST
+    Reset a ``tensorRank2Dimension3Symmetric`` object.
     !!}
     implicit none
 
@@ -204,8 +204,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Reset
 
   module procedure Tensor_R2_D3_Sym_Set_To_Unity
-    !!{
-    Set a \mono{tensorRank2Dimension3Symmetric} object to unity.
+    !!{RST
+    Set a ``tensorRank2Dimension3Symmetric`` object to unity.
     !!}
     implicit none
 
@@ -220,8 +220,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Set_To_Unity
 
   module procedure Tensor_R2_D3_Sym_Set_To_Identity
-    !!{
-    Set a \mono{tensorRank2Dimension3Symmetric} object to the identity matrix.
+    !!{RST
+    Set a ``tensorRank2Dimension3Symmetric`` object to the identity matrix.
     !!}
     implicit none
 
@@ -236,8 +236,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Set_To_Identity
 
   module procedure Tensor_R2_D3_Sym_Is_Zero
-    !!{
-    Test whether a \mono{tensorRank2Dimension3Symmetric} object is zero.
+    !!{RST
+    Test whether a ``tensorRank2Dimension3Symmetric`` object is zero.
     !!}
     implicit none
 
@@ -260,8 +260,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Is_Zero
 
   module procedure Tensor_R2_D3_Sym_Element
-    !!{
-    Return the enumeration element of a \mono{tensorRank2Dimension3Symmetric} object.
+    !!{RST
+    Return the enumeration element of a ``tensorRank2Dimension3Symmetric`` object.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -310,8 +310,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Element
 
   module procedure Tensor_R2_D3_Sym_Add
-    !!{
-    Add two \mono{tensorRank2Dimension3Symmetric} objects.
+    !!{RST
+    Add two ``tensorRank2Dimension3Symmetric`` objects.
     !!}
     implicit none
 
@@ -333,8 +333,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Add
 
   module procedure Tensor_R2_D3_Sym_Increment
-    !!{
-    Increment a \mono{tensorRank2Dimension3Symmetric} object.
+    !!{RST
+    Increment a ``tensorRank2Dimension3Symmetric`` object.
     !!}
     implicit none
 
@@ -348,8 +348,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Increment
 
   module procedure Tensor_R2_D3_Sym_Subtract
-    !!{
-    Subtract two \mono{tensorRank2Dimension3Symmetric} objects.
+    !!{RST
+    Subtract two ``tensorRank2Dimension3Symmetric`` objects.
     !!}
     implicit none
 
@@ -372,8 +372,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Subtract
 
   module procedure Tensor_R2_D3_Sym_Scalar_Multiply
-    !!{
-    Multiply a \mono{tensorRank2Dimension3Symmetric} object by a scalar.
+    !!{RST
+    Multiply a ``tensorRank2Dimension3Symmetric`` object by a scalar.
     !!}
     implicit none
 
@@ -387,8 +387,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Scalar_Multiply
 
   module procedure Tensor_R2_D3_Sym_Scalar_Multiply_Switched
-    !!{
-    Multiply a scalar by a \mono{tensorRank2Dimension3Symmetric} object.
+    !!{RST
+    Multiply a scalar by a ``tensorRank2Dimension3Symmetric`` object.
     !!}
     implicit none
 
@@ -397,8 +397,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Scalar_Multiply_Switched
 
   module procedure Tensor_R2_D3_Sym_Max
-    !!{
-    Return an element-by-element \mono{max()} on two \mono{tensorRank2Dimension3Symmetric} objects.
+    !!{RST
+    Return an element-by-element ``max()`` on two ``tensorRank2Dimension3Symmetric`` objects.
     !!}
     implicit none
 
@@ -412,8 +412,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Max
 
   module procedure Tensor_R2_D3_Sym_Scalar_Divide
-    !!{
-    Multiply a \mono{tensorRank2Dimension3Symmetric} object by a scalar.
+    !!{RST
+    Multiply a ``tensorRank2Dimension3Symmetric`` object by a scalar.
     !!}
     implicit none
 
@@ -427,9 +427,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Scalar_Divide
   
   module procedure Tensor_R2_D3_Sym_Vector_Project
-    !!{
-     Find the magnitude of the projection of a \mono{tensorRank2Dimension3Symmetric}/vector dot product onto
-    the same vector, $\mathbf{x} \cdot \mathbf{A} \cdot \mathbf{x}$.
+    !!{RST
+    Find the magnitude of the projection of a ``tensorRank2Dimension3Symmetric``/vector dot product onto the same vector, :math:`\mathbf{x} \cdot \mathbf{A} \cdot \mathbf{x}`.
     !!}
 
     Tensor_R2_D3_Sym_Vector_Project=           &
@@ -443,8 +442,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Vector_Project
 
   module procedure Tensor_R2_D3_Sym_Double_Contract
-    !!{
-    Find the double contraction of two \mono{tensorRank2Dimension3Symmetric} objects, $\mathbf{A}:\mathbf{B}$.
+    !!{RST
+    Find the double contraction of two ``tensorRank2Dimension3Symmetric`` objects, :math:`\mathbf{A}:\mathbf{B}`.
     !!}
     implicit none
 
@@ -459,8 +458,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Double_Contract
 
  module procedure Tensor_R2_D3_Sym_Contract
-    !!{
-    Return the contraction (trace) of a \mono{tensorRank2Dimension3Symmetric}.
+    !!{RST
+    Return the contraction (trace) of a ``tensorRank2Dimension3Symmetric``.
     !!}
     implicit none
 
@@ -469,7 +468,7 @@ contains
   end procedure Tensor_R2_D3_Sym_Contract
 
   module procedure Tensor_R2_D3_Sym_Property_Count
-    !!{
+    !!{RST
     Return the number of properties required to track a rank 2, 3 dimensional, symmetric tensor. This is equal to 6.
     !!}
     implicit none
@@ -480,8 +479,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Property_Count
 
   module procedure Tensor_R2_D3_Sym_Deserialize
-    !!{
-    Pack an array into a \mono{tensorRank2Dimension3Symmetric} symmetric structure.
+    !!{RST
+    Pack an array into a ``tensorRank2Dimension3Symmetric`` symmetric structure.
     !!}
     implicit none
 
@@ -495,8 +494,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Deserialize
 
   module procedure Tensor_R2_D3_Sym_Serialize
-    !!{
-    Pack a \mono{tensorRank2Dimension3Symmetric} into an array.
+    !!{RST
+    Pack a ``tensorRank2Dimension3Symmetric`` into an array.
     !!}
     implicit none
 
@@ -511,8 +510,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Serialize
 
   module procedure Tensor_R2_D3_Sym_From_Matrix
-    !!{
-    Construct a \mono{tensorRank2Dimension3Symmetric} object from a matrix.
+    !!{RST
+    Construct a ``tensorRank2Dimension3Symmetric`` object from a matrix.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -536,8 +535,8 @@ contains
   end procedure Tensor_R2_D3_Sym_From_Matrix
 
   module procedure Tensor_R2_D3_Sym_To_Matrix
-    !!{
-    Construct a matrix from a \mono{tensorRank2Dimension3Symmetric}.
+    !!{RST
+    Construct a matrix from a ``tensorRank2Dimension3Symmetric``.
     !!}
     implicit none
 
@@ -554,8 +553,8 @@ contains
   end procedure Tensor_R2_D3_Sym_To_Matrix
 
   module procedure Tensor_R2_D3_Sym_Assign_To
-    !!{
-    Assign a matrix to a \mono{tensorRank2Dimension3Symmetric} object.
+    !!{RST
+    Assign a matrix to a ``tensorRank2Dimension3Symmetric`` object.
     !!}
     implicit none
 
@@ -564,8 +563,8 @@ contains
   end procedure Tensor_R2_D3_Sym_Assign_To
 
   module procedure Tensor_R2_D3_Sym_Assign_From
-    !!{
-    Assign a \mono{tensorRank2Dimension3Symmetric} to a matrix.
+    !!{RST
+    Assign a ``tensorRank2Dimension3Symmetric`` to a matrix.
     !!}
     implicit none
 
@@ -582,7 +581,7 @@ contains
   end procedure Tensor_R2_D3_Sym_Assign_From
 
   module procedure Tensor_R2_D3_Sym_Matrix_Equality
-    !!{
+    !!{RST
     Return true if the supplied tensor and matrix are equal.
     !!}
     implicit none
@@ -609,7 +608,7 @@ contains
   end procedure Tensor_R2_D3_Sym_Matrix_Equality
 
   module procedure Tensor_R2_D3_Sym_Non_Static_Size_Of
-    !!{
+    !!{RST
     Return the size of any non-static components of the object.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

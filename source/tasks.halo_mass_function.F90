@@ -35,7 +35,7 @@
   use :: Virial_Density_Contrast                  , only : virialDensityContrastClass
 
   type :: virialDensityContrastList
-     !!{
+     !!{RST
      Type used to store a list of virial density contrasts.
      !!}
      type (varying_string            )          :: label
@@ -43,13 +43,15 @@
   end type virialDensityContrastList
   
   !![
-  <task name="taskHaloMassFunction">
-    <description>A task which computes and outputs the differential halo mass function $\mathrm{d}n/\mathrm{d}\log M$ and related quantities---including halo bias, concentration, scale radius, dark matter profile, virial density contrasts, and unevolved subhalo mass function---over a grid of halo masses and output times.</description>
+  <task name="taskHaloMassFunction" docformat="rst">
+    <description>
+    A task which computes and outputs the differential halo mass function :math:`\mathrm{d}n/\mathrm{d}\log M` and related quantities---including halo bias, concentration, scale radius, dark matter profile, virial density contrasts, and unevolved subhalo mass function---over a grid of halo masses and output times.
+    </description>
     <descriptorSpecial>descriptorSpecial</descriptorSpecial>
   </task>
   !!]
   type, extends(taskClass) :: taskHaloMassFunction
-     !!{
+     !!{RST
      Implementation of a task which computes and outputs the halo mass function and related quantities.
      !!}
      private
@@ -83,7 +85,7 @@
      type            (inputParameters                        ), pointer                   :: parameters                          => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="descriptorSpecial" description="Handle adding special parameters to the descriptor."/>
      </methods>
      !!]
@@ -93,8 +95,8 @@
   end type taskHaloMassFunction
 
   interface taskHaloMassFunction
-     !!{
-     Constructors for the \refClass{taskHaloMassFunction} task.
+     !!{RST
+     Constructors for the :galacticus-class:`taskHaloMassFunction` task.
      !!}
      module procedure haloMassFunctionConstructorParameters
      module procedure haloMassFunctionConstructorInternal
@@ -103,8 +105,8 @@
 contains
 
   function haloMassFunctionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskHaloMassFunction} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskHaloMassFunction` task class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize, treeNode
     use :: Input_Parameters, only : inputParameter              , inputParameters
@@ -157,52 +159,68 @@ contains
     end if
     self%nodeComponentsInitialized=.true.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>haloMassMinimum</name>
       <defaultValue>1.0d10</defaultValue>
-      <description>The minimum mass at which to tabulate halo mass functions.</description>
+      <description>
+      The minimum mass at which to tabulate halo mass functions.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>haloMassMaximum</name>
       <defaultValue>1.0d15</defaultValue>
-      <description>The maximum mass at which to tabulate halo mass functions.</description>
+      <description>
+      The maximum mass at which to tabulate halo mass functions.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>pointsPerDecade</name>
       <defaultValue>10.0d0</defaultValue>
-      <description>The number of points per decade of halo mass at which to tabulate halo mass functions.</description>
+      <description>
+      The number of points per decade of halo mass at which to tabulate halo mass functions.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputGroup</name>
       <defaultValue>var_str('.')</defaultValue>
-      <description>The HDF5 output group within which to write mass function data.</description>
+      <description>
+      The HDF5 output group within which to write mass function data.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeUnevolvedSubhaloMassFunction</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true then also compute and output the unevolved subhalo mass function.</description>
+      <description>
+      If true then also compute and output the unevolved subhalo mass function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeMassAccretionRate</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true then also compute and output the mass accretion rate of the halos.</description>
+      <description>
+      If true then also compute and output the mass accretion rate of the halos.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massesRelativeToHalfModeMass</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true then masses are interpreted (and output) relative to the half-mode mass. (If the half-mode mass is undefined an error will occur.) If false, masses are absolute.</description>
+      <description>
+      If true then masses are interpreted (and output) relative to the half-mode mass. (If the half-mode mass is undefined an error will occur.) If false, masses are absolute.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>errorsAreFatal</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true then errors in evaluating the halo mass function are considered to be fatal.</description>
+      <description>
+      If true then errors in evaluating the halo mass function are considered to be fatal.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder    class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"                                          />
@@ -240,9 +258,11 @@ contains
        allocate(virialDensityContrasts(parametersMassDefinitions%copiesCount('virialDensityContrast')))
        allocate(labels                (parametersMassDefinitions%copiesCount('virialDensityContrast')))
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>labels</name>
-         <description>Labels for virial density contrast mass definitions.</description>
+         <description>
+         Labels for virial density contrast mass definitions.
+         </description>
          <source>parametersMassDefinitions</source>
        </inputParameter>
        !!]
@@ -258,9 +278,11 @@ contains
     allocate(fractionModeMasses(parameters%count('fractionModeMasses',zeroIfNotPresent=.true.)))
     if (size(fractionModeMasses) > 0) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>fractionModeMasses</name>
-         <description>List of suppression fractions at which to compute the fractional mode mass.</description>
+         <description>
+         List of suppression fractions at which to compute the fractional mode mass.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -374,8 +396,8 @@ contains
        &                                       transferFunctionReference          , &
        &                                       transferFunctionRelative             &
        &                                      ) result(self)
-    !!{
-    Constructor for the \refClass{taskHaloMassFunction} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskHaloMassFunction` task class which takes a parameter set as input.
     !!}
     implicit none
     type            (taskHaloMassFunction                   )                                        :: self
@@ -422,8 +444,8 @@ contains
   end function haloMassFunctionConstructorInternal
 
   subroutine haloMassFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{taskHaloMassFunction} task class.
+    !!{RST
+    Destructor for the :galacticus-class:`taskHaloMassFunction` task class.
     !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
@@ -471,7 +493,7 @@ contains
   end subroutine haloMassFunctionDestructor
 
   subroutine haloMassFunctionPerform(self,status)
-    !!{
+    !!{RST
     Compute and output the halo mass function.
     !!}
     use            :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
@@ -1011,7 +1033,7 @@ contains
   contains
 
     double precision function subhaloMassFunctionIntegrand(logMass)
-      !!{
+      !!{RST
       Integrand function used to find the cumulative subhalo mass function.
       !!}
       implicit none
@@ -1030,7 +1052,7 @@ contains
   end subroutine haloMassFunctionPerform
 
   subroutine haloMassFunctionDescriptorSpecial(self,descriptor)
-    !!{
+    !!{RST
     Add special parameters to the descriptor.
     !!}
     use :: Input_Parameters  , only : inputParameters

@@ -17,32 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of a cored-NFW mass distribution to approximate the effects of SIDM based on the model of \cite{jiang_semi-analytic_2023}.
+  !!{RST
+  An implementation of a cored-NFW mass distribution to approximate the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023`.
   !!}
 
   !![
-  <massDistribution name="massDistributionSphericalSIDMCoreNFW">
+  <massDistribution name="massDistributionSphericalSIDMCoreNFW" docformat="rst">
    <description>
-     A mass distribution class implementing a cored-NFW dark matter halo profile to approximate the effects of SIDM based
-     on the model of \cite{jiang_semi-analytic_2023}. The profile is defined by the enclosed mass, with \citep{jiang_semi-analytic_2023}:
-     \begin{equation}
-       M(r) = M_\mathrm{NFW}(r) \mathrm{tanh}\left(\frac{r}{r_\mathrm{c}}\right),
-     \end{equation}
-     where $r_\mathrm{c} = \alpha r_1$ is a characteristic core size related to the interaction radius $r_1$ by a constant factor
-     $\alpha = $\mono{[factorRadiusCore]}.
+   A mass distribution class implementing a cored-NFW dark matter halo profile to approximate the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023`. The profile is defined by the enclosed mass, with :cite:p:`jiang_semi-analytic_2023`:
+
+   .. math::
+
+      M(r) = M_\mathrm{NFW}(r) \mathrm{tanh}\left(\frac{r}{r_\mathrm{c}}\right),
+
+   where :math:`r_\mathrm{c} = \alpha r_1` is a characteristic core size related to the interaction radius :math:`r_1` by a constant factor :math:`\alpha =`\ ``[factorRadiusCore]``.
    </description>
   </massDistribution>
   !!]
   type, extends(massDistributionSphericalSIDM) :: massDistributionSphericalSIDMCoreNFW
-     !!{
-     Implementation of a cored-NFW mass distribution to approximate the effects of SIDM based on the model of \cite{jiang_semi-analytic_2023}.
+     !!{RST
+     Implementation of a cored-NFW mass distribution to approximate the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023`.
      !!}
      private
      double precision :: factorRadiusCore
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="radiusCore" description="Computes the core radius of halo."/>
      </methods>
      !!]
@@ -54,8 +54,8 @@
   end type massDistributionSphericalSIDMCoreNFW
 
   interface massDistributionSphericalSIDMCoreNFW
-     !!{
-     Constructors for the \refClass{massDistributionSphericalSIDMCoreNFW} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionSphericalSIDMCoreNFW` mass distribution class.
      !!}
      module procedure sphericalSIDMCoreNFWConstructorParameters
      module procedure sphericalSIDMCoreNFWConstructorInternal
@@ -64,8 +64,8 @@
 contains
 
   function sphericalSIDMCoreNFWConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalSIDMCoreNFW} mass distribution class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionSphericalSIDMCoreNFW` mass distribution class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -80,39 +80,53 @@ contains
          &                                                                   nonAnalyticSolver
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeAge</name>
       <source>parameters</source>
-      <description>The age of the halo (in Gyr) since its formation, used to compute how long SIDM self-interactions have been active in determining the size of the dark matter core.</description>
+      <description>
+      The age of the halo (in Gyr) since its formation, used to compute how long SIDM self-interactions have been active in determining the size of the dark matter core.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>velocityRelativeMean</name>
       <source>parameters</source>
-      <description>Mean relative velocity to calculate self interaction cross section.</description>
+      <description>
+      Mean relative velocity to calculate self interaction cross section.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorRadiusCore</name>
       <defaultValue>0.45d0</defaultValue>
-      <defaultSource>\cite{jiang_semi-analytic_2023}</defaultSource>
+      <defaultSource>
+      :cite:t:`jiang_semi-analytic_2023`
+      </defaultSource>
       <source>parameters</source>
-      <description>The factor $\alpha$ appearing in the definition of the core radius, $r_\mathrm{c}=\alpha r_1$ where $r_1$ is the radius at which an SIDM particle has had, on average, 1 interaction.</description>
+      <description>
+      The factor :math:`\alpha` appearing in the definition of the core radius, :math:`r_\mathrm{c}=\alpha r_1` where :math:`r_1` is the radius at which an SIDM particle has had, on average, 1 interaction.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>
+      Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring heating is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution"   name="massDistribution_"   source="parameters"/>
@@ -133,8 +147,8 @@ contains
   end function sphericalSIDMCoreNFWConstructorParameters
 
   function sphericalSIDMCoreNFWConstructorInternal(factorRadiusCore,timeAge,velocityRelativeMean,nonAnalyticSolver,massDistribution_,darkMatterParticle_,componentType,massType) result(self)
-    !!{
-    Internal constructor for the \refClass{massDistributionSphericalSIDMCoreNFW} mass distribution class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`massDistributionSphericalSIDMCoreNFW` mass distribution class.
     !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     implicit none
@@ -163,8 +177,8 @@ contains
   end function sphericalSIDMCoreNFWConstructorInternal
 
   subroutine sphericalSIDMCoreNFWDestructor(self)
-    !!{
-    Destructor for the abstract \refClass{massDistributionSphericalSIDMCoreNFW} mass distribution class.
+    !!{RST
+    Destructor for the abstract :galacticus-class:`massDistributionSphericalSIDMCoreNFW` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalSIDMCoreNFW), intent(inout) :: self
@@ -177,8 +191,8 @@ contains
   end subroutine sphericalSIDMCoreNFWDestructor
 
   double precision function sphericalSIDMCoreNFWRadiusCore(self) result(radiusCore)
-    !!{
-    Returns the core radius (in Mpc) of the ``coreNFW'' approximation to the self-interacting dark matter profile.
+    !!{RST
+    Returns the core radius (in Mpc) of the "coreNFW" approximation to the self-interacting dark matter profile.
     !!}
     implicit none
     class(massDistributionSphericalSIDMCoreNFW), intent(inout) :: self
@@ -189,9 +203,8 @@ contains
   end function sphericalSIDMCoreNFWRadiusCore
 
   double precision function sphericalSIDMCoreNFWDensity(self,coordinates) result(density)
-    !!{
-    Compute the density at the specified \mono{coordinates} for the \mono{sidmCoreNFW}
-    mass distribution.
+    !!{RST
+    Compute the density at the specified ``coordinates`` for the ``sidmCoreNFW`` mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalSIDMCoreNFW), intent(inout) :: self
@@ -237,8 +250,8 @@ contains
   end function sphericalSIDMCoreNFWDensity
 
   double precision function sphericalSIDMCoreNFWDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
-    !!{
-    Return the density at the specified \mono{coordinates} in a truncated spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a truncated spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalSIDMCoreNFW), intent(inout), target   :: self
@@ -317,9 +330,8 @@ contains
   end function sphericalSIDMCoreNFWDensityGradientRadial
   
   double precision function sphericalSIDMCoreNFWMassEnclosedBySphere(self,radius) result(mass)
-    !!{   
-    Computes the mass enclosed within a sphere of given \mono{radius} for the \mono{sidmCoreNFW}
-    mass distribution.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for the ``sidmCoreNFW`` mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalSIDMCoreNFW), intent(inout), target :: self

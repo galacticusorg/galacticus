@@ -17,34 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements calculations of bar instability in galactic disks.
 !!}
 
 module Galactic_Dynamics_Bar_Instabilities
-  !!{
+  !!{RST
   Provides a class that implements calculations of bar instability in galactic disks.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>galacticDynamicsBarInstability</name>
    <descriptiveName>Bar instabilities in galactic disks</descriptiveName>
-   <description>Class providing models of bar instabilities in galactic disks---the timescale on which
-    the stellar disk becomes bar-unstable and channels material into a central pseudo-bulge via the
-    bar. When the disk mass is sufficiently large relative to the stabilizing dark matter halo, the
-    disk is susceptible to the bar-mode instability \citep[e.g.][]{efstathiou_stability_1982}. The
-    returned timescale, external torque, and angular momentum fractions govern the secular mass and
-    angular momentum transfer from disk to bulge component.</description>
+   <description>
+   Class providing models of bar instabilities in galactic disks---the timescale on which the stellar disk becomes bar-unstable and channels material into a central pseudo-bulge via the bar. When the disk mass is sufficiently large relative to the stabilizing dark matter halo, the disk is susceptible to the bar-mode instability :cite:p:`efstathiou_stability_1982`. The returned timescale, external torque, and angular momentum fractions govern the secular mass and angular momentum transfer from disk to bulge component.
+   </description>
    <default>efstathiou1982</default>
    <method name="timescale" >
     <description>
-     Returns a timescale on which the bar instability depletes material from a disk into a pseudo-bulge. A negative value
-     indicates no instability. Also returns the net torque due to any external force causing this instability, and the fraction of
-     the angular momentum of the material depleted into the pseudo-bulge which is retained by the disk and the spheroid.
-     </description>
+    Returns a timescale on which the bar instability depletes material from a disk into a pseudo-bulge. A negative value indicates no instability. Also returns the net torque due to any external force causing this instability, and the fraction of the angular momentum of the material depleted into the pseudo-bulge which is retained by the disk and the spheroid.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout) :: node</argument>

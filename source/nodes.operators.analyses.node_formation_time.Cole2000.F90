@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that computes the formation time for each node using the definition of \cite{cole_hierarchical_2000}.
+  !!{RST
+  Implements a node operator class that computes the formation time for each node using the definition of :cite:t:`cole_hierarchical_2000`.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorNodeFormationTimeCole2000">
-   <description>A node operator class that records the halo formation time using the definition of \cite{cole_hierarchical_2000}, in which a halo is considered newly formed when its mass has grown by a factor \mono{massFactorReformation} since the previous formation event. \mono{reformationOnPromotionOnly} restricts reformation events to node promotions only (rather than the precise time the mass threshold is crossed during ODE integration).</description>
+  <nodeOperator name="nodeOperatorNodeFormationTimeCole2000" docformat="rst">
+   <description>
+   A node operator class that records the halo formation time using the definition of :cite:t:`cole_hierarchical_2000`, in which a halo is considered newly formed when its mass has grown by a factor ``massFactorReformation`` since the previous formation event. ``reformationOnPromotionOnly`` restricts reformation events to node promotions only (rather than the precise time the mass threshold is crossed during ODE integration).
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorNodeFormationTimeCole2000
-     !!{
-     A node operator class that computes the formation time for each node using the definition of \cite{cole_hierarchical_2000}.
+     !!{RST
+     A node operator class that computes the formation time for each node using the definition of :cite:t:`cole_hierarchical_2000`.
      !!}
      private
      integer          :: nodeFormationTimeID
@@ -36,7 +38,7 @@
      double precision :: massFactorReformation
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="reform" description="Implements a halo reformation event."/>
      </methods>
      !!]
@@ -47,8 +49,8 @@
   end type nodeOperatorNodeFormationTimeCole2000
   
   interface nodeOperatorNodeFormationTimeCole2000
-     !!{
-     Constructors for the \refClass{nodeOperatorNodeFormationTimeCole2000} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorNodeFormationTimeCole2000` node operator class.
      !!}
      module procedure nodeFormationTimeCole2000ConstructorParameters
      module procedure nodeFormationTimeCole2000ConstructorInternal
@@ -61,8 +63,8 @@
 contains
 
   function nodeFormationTimeCole2000ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorNodeFormationTimeCole2000} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorNodeFormationTimeCole2000` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,18 +74,19 @@ contains
     double precision                                                       :: massFactorReformation
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massFactorReformation</name>
       <defaultValue>2.0d0</defaultValue>
-      <description>The factor by which halo mass must have increased to trigger a new formation event.</description>
+      <description>
+      The factor by which halo mass must have increased to trigger a new formation event.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>reformationOnPromotionOnly</name>
       <defaultValue>.false.</defaultValue>
       <description>
-	Specifies whether halo reformation should occur only at node promotion events, or at the precise time that the halo mass
-	has increased sufficiently in mass.
+      Specifies whether halo reformation should occur only at node promotion events, or at the precise time that the halo mass has increased sufficiently in mass.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -96,8 +99,8 @@ contains
   end function nodeFormationTimeCole2000ConstructorParameters
 
   function nodeFormationTimeCole2000ConstructorInternal(massFactorReformation,reformationOnPromotionOnly) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorNodeFormationTimeCole2000} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorNodeFormationTimeCole2000` node operator class.
     !!}
     implicit none
     type            (nodeOperatorNodeFormationTimeCole2000)               :: self
@@ -114,7 +117,7 @@ contains
   end function nodeFormationTimeCole2000ConstructorInternal
 
   subroutine nodeFormationTimeCole2000NodeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize node formation times.
     !!}
     implicit none
@@ -127,7 +130,7 @@ contains
   end subroutine nodeFormationTimeCole2000NodeInitialize
  
   subroutine nodeFormationTimeCole2000NodePromote(self,node)
-    !!{
+    !!{RST
     Check for a reformation event during a halo promotion.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -144,7 +147,7 @@ contains
   end subroutine nodeFormationTimeCole2000NodePromote
 
   subroutine nodeFormationTimeCole2000DifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Check for a reformation event in a halo.
     !!}
     use :: Galacticus_Nodes, only : propertyInactive, nodeComponentBasic
@@ -172,7 +175,7 @@ contains
   end subroutine nodeFormationTimeCole2000DifferentialEvolution
 
   subroutine reformOnInterrupt(node,timeEnd)
-    !!{
+    !!{RST
     Wrapper function to perform node reformation during interrupt of differential evolution.
     !!}
     type            (treeNode), intent(inout), target   :: node
@@ -184,9 +187,8 @@ contains
   end subroutine reformOnInterrupt
 
   subroutine nodeFormationTimeCole2000Reform(self,node)
-    !!{
-    Creates a halo formation time component for \mono{node}. This function is also used to ``reform'' the halo, since it
-    simply resets the formation time and mass to the current values.
+    !!{RST
+    Creates a halo formation time component for ``node``. This function is also used to "reform" the halo, since it simply resets the formation time and mass to the current values.
     !!}
     use :: Events_Halo_Formation, only : Event_Halo_Formation
     use :: Galacticus_Nodes     , only : nodeComponentBasic

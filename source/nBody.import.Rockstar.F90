@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data importer for Rockstar files.
 !!}
 
@@ -25,9 +25,11 @@ Implements an N-body data importer for Rockstar files.
 
   ! Enumeration of Rockstar columns.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>rockstarColumn</name>
-   <description>Enumeration of all column labels found in Rockstar halo finder output files, covering halo IDs, positions, velocities, masses, angular momenta, concentrations, and merger tree properties.</description>
+   <description>
+   Enumeration of all column labels found in Rockstar halo finder output files, covering halo IDs, positions, velocities, masses, angular momenta, concentrations, and merger tree properties.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
    <validator>yes</validator>
@@ -98,9 +100,11 @@ Implements an N-body data importer for Rockstar files.
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>columnType</name>
-   <description>Enumeration of the data types (integer or real) that can appear in Rockstar output file columns, used internally to select the correct parsing routine for each column.</description>
+   <description>
+   Enumeration of the data types (integer or real) that can appear in Rockstar output file columns, used internally to select the correct parsing routine for each column.
+   </description>
    <visibility>private</visibility>
    <entry label="integer"/>
    <entry label="real"   />
@@ -108,13 +112,15 @@ Implements an N-body data importer for Rockstar files.
   !!]
   
   !![
-  <nbodyImporter name="nbodyImporterRockstar">
-   <description>An importer for dark matter halo catalog data in Rockstar halo finder output format, reading halo positions, velocities, masses, and other properties from ASCII text files. The input file is set by \mono{[fileName]}, with a simulation label by \mono{[label]}, and additional columns to import specified by \mono{[readColumns]}.</description>
+  <nbodyImporter name="nbodyImporterRockstar" docformat="rst">
+   <description>
+   An importer for dark matter halo catalog data in Rockstar halo finder output format, reading halo positions, velocities, masses, and other properties from ASCII text files. The input file is set by ``[fileName]``, with a simulation label by ``[label]``, and additional columns to import specified by ``[readColumns]``.
+   </description>
    <runTimeFileDependencies paths="fileName"/>
   </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterRockstar
-     !!{
+     !!{RST
      An importer for Rockstar files.
      !!}
      private
@@ -132,8 +138,8 @@ Implements an N-body data importer for Rockstar files.
   end type nbodyImporterRockstar
 
   interface nbodyImporterRockstar
-     !!{
-     Constructors for the \refClass{nbodyImporterRockstar} N-body importer class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyImporterRockstar` N-body importer class.
      !!}
      module procedure rockstarConstructorParameters
      module procedure rockstarConstructorInternal
@@ -142,8 +148,8 @@ Implements an N-body data importer for Rockstar files.
 contains
 
   function rockstarConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyImporterRockstar} N-body importer class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyImporterRockstar` N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -156,15 +162,19 @@ contains
     integer                                                             :: i
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <source>parameters</source>
-      <description>The name of the file to read.</description>
+      <description>
+      The name of the file to read.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <source>parameters</source>
-      <description>A label for the simulation</description>
+      <description>
+      A label for the simulation
+      </description>
       <defaultValue>var_str('primary')</defaultValue>
     </inputParameter>
     !!]
@@ -172,10 +182,12 @@ contains
        allocate(readColumns (parameters%count('readColumns')))
        allocate(readColumns_(parameters%count('readColumns')))
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>readColumns</name>
          <source>parameters</source>
-         <description>A list of additional Rockstar column names (beyond the default set) to read and store as named properties on each halo.</description>
+         <description>
+         A list of additional Rockstar column names (beyond the default set) to read and store as named properties on each halo.
+         </description>
        </inputParameter>
        !!]
        do i=1,size(readColumns)
@@ -197,8 +209,8 @@ contains
   end function rockstarConstructorParameters
 
   function rockstarConstructorInternal(fileName,label,cosmologyParameters_,readColumns) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyImporterRockstar} N-body importer class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyImporterRockstar` N-body importer class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -307,8 +319,8 @@ contains
   end function rockstarConstructorInternal
 
   subroutine rockstarDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyImporterRockstar} N-body importer class.
+    !!{RST
+    Destructor for the :galacticus-class:`nbodyImporterRockstar` N-body importer class.
     !!}
     implicit none
     type(nbodyImporterRockstar), intent(inout) :: self
@@ -320,7 +332,7 @@ contains
   end subroutine rockstarDestructor
 
   subroutine rockstarImport(self,simulations)
-    !!{
+    !!{RST
     Import data from a Rockstar file.
     !!}
     use :: Cosmology_Parameters        , only : hubbleUnitsLittleH
@@ -733,7 +745,7 @@ contains
   end subroutine rockstarImport
 
   logical function rockstarIsHDF5(self)
-    !!{
+    !!{RST
     Return whether or not the imported data is from an HDF5 file.
     !!}
     implicit none

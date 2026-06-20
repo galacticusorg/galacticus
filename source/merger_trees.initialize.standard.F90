@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements the standard class for initializing merger trees.
   !!}
 
   use :: Nodes_Operators, only : nodeOperatorClass
   
   !![
-  <mergerTreeInitializor name="mergerTreeInitializorStandard">
-   <description>The standard merger tree initializer.</description>
+  <mergerTreeInitializor name="mergerTreeInitializorStandard" docformat="rst">
+   <description>
+   The standard merger tree initializer.
+   </description>
   </mergerTreeInitializor>
   !!]
   type, extends(mergerTreeInitializorClass) :: mergerTreeInitializorStandard
-     !!{
+     !!{RST
      Implementation of the standard merger tree initializer.
      !!}
      private
@@ -40,8 +42,8 @@
   end type mergerTreeInitializorStandard
 
   interface mergerTreeInitializorStandard
-     !!{
-     Constructors for the \refClass{mergerTreeInitializorStandard} merger tree initializer.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeInitializorStandard` merger tree initializer.
      !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
@@ -50,8 +52,8 @@
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeInitializorStandard} merger tree initializer class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeInitializorStandard` merger tree initializer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,8 +74,8 @@ contains
   end function standardConstructorParameters
 
    function standardConstructorInternal(nodeOperator_) result(self)
-     !!{
-     Internal constructor for the \refClass{mergerTreeInitializorStandard} merger tree initializer class.
+     !!{RST
+     Internal constructor for the :galacticus-class:`mergerTreeInitializorStandard` merger tree initializer class.
      !!}
      implicit none
      type (mergerTreeInitializorStandard)                        :: self
@@ -86,8 +88,8 @@ contains
    end function standardConstructorInternal
 
   subroutine standardDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeInitializorStandard} merger tree initializer class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeInitializorStandard` merger tree initializer class.
     !!}
     implicit none
     type(mergerTreeInitializorStandard), intent(inout) :: self
@@ -99,7 +101,7 @@ contains
   end subroutine standardDestructor
 
   subroutine standardInitialize(self,tree,timeEnd)
-    !!{
+    !!{RST
     Walk through all nodes of a tree and call any routines that requested to perform initialization tasks.
     !!}
     use :: Galacticus_Nodes   , only : nodeComponentBasic, treeNode

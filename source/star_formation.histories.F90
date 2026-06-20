@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class for computation and output of star formation histories for galaxies.
 !!}
 
 module Star_Formation_Histories
-  !!{
+  !!{RST
   Implements a class for computation and output of star formation histories for galaxies.
   !!}
   use            :: Abundances_Structure      , only : abundances
@@ -37,9 +37,11 @@ module Star_Formation_Histories
 
   ! Enumeration of possible star formation history age bin structures.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>starFormationHistoryAges</name>
-   <description>Used to specify distribution of age bins in star formation histories.</description>
+   <description>
+   Used to specify distribution of age bins in star formation histories.
+   </description>
    <visibility>public</visibility>
    <entry label="arbitrary"      description="Ages are arbitrary and may vary between galaxies/components/outputs."/>
    <entry label="fixedPerOutput" description="Ages are fixed per output."                                          />
@@ -48,20 +50,17 @@ module Star_Formation_Histories
   !!]
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>starFormationHistory</name>
    <descriptiveName>Star Formation Histories</descriptiveName>
    <description>
-    Class providing models for recording and outputting the star formation history of galaxy components
-   ---the star formation rate as a function of lookback time, binned by stellar age and metallicity.
-    Implementations define how ages are discretized (fixed globally, fixed per output, or arbitrarily
-    varying between galaxies), and provide methods to create, accumulate, and retrieve the history
-    array. These histories are used to compute spectral energy distributions by convolving with stellar
-    population templates, and for writing the time-resolved star formation record to output files.
+   Class providing models for recording and outputting the star formation history of galaxy components ---the star formation rate as a function of lookback time, binned by stellar age and metallicity. Implementations define how ages are discretized (fixed globally, fixed per output, or arbitrarily varying between galaxies), and provide methods to create, accumulate, and retrieve the history array. These histories are used to compute spectral energy distributions by convolving with stellar population templates, and for writing the time-resolved star formation record to output files.
    </description>
    <default>null</default>
    <method name="create" >
-    <description>Create and initialize the star formation history object for the given node, allocating the age and metallicity bins spanning from the specified start time to the optional end time.</description>
+    <description>
+    Create and initialize the star formation history object for the given node, allocating the age and metallicity bins spanning from the specified start time to the optional end time.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout), target   :: node</argument>
@@ -70,7 +69,9 @@ module Star_Formation_Histories
     <argument>double precision          , intent(in   ), optional :: timeEnd</argument>
    </method>
    <method name="scales" >
-    <description>Set ODE solver absolute scales for a star formation history object.</description>
+    <description>
+    Set ODE solver absolute scales for a star formation history object.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type            (history   ), intent(inout) :: historyStarFormation</argument>
@@ -79,7 +80,9 @@ module Star_Formation_Histories
     <argument>type            (abundances), intent(in   ) :: abundancesStellar</argument>
    </method>
    <method name="rate" >
-    <description>Record the instantaneous rate of star formation in the history object for the given node, accumulating the stellar mass formed at the current time step into the appropriate age and metallicity bins.</description>
+    <description>
+    Record the instantaneous rate of star formation in the history object for the given node, accumulating the stellar mass formed at the current time step into the appropriate age and metallicity bins.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type            (treeNode  ), intent(inout) :: node</argument>
@@ -88,12 +91,16 @@ module Star_Formation_Histories
     <argument>double precision            , intent(in   ) :: rateStarFormation</argument>
    </method>
    <method name="metallicityBoundaries" >
-    <description>Return a (zero-indexed) array of metallicity boundaries for this history.</description>
+    <description>
+    Return a (zero-indexed) array of metallicity boundaries for this history.
+    </description>
     <type>double precision, allocatable, dimension(:)</type>
     <pass>yes</pass>
    </method>
    <method name="times" >
-    <description>Return an array of times for this history \emph{if} the tabulation in time is static per output.</description>
+    <description>
+    Return an array of times for this history *if* the tabulation in time is static per output.
+    </description>
     <type>double precision, allocatable, dimension(:)</type>
     <pass>yes</pass>
     <modules>Error</modules>
@@ -118,7 +125,9 @@ module Star_Formation_Histories
     </code>
    </method>
    <method name="timeNext">
-     <description>Return the next time at which the star formation history bin structure changes for the given node, indicating when the history must be updated or extended to cover the next time interval.</description>
+     <description>
+     Return the next time at which the star formation history bin structure changes for the given node, indicating when the history must be updated or extended to cover the next time interval.
+     </description>
      <type>double precision</type>
      <pass>yes</pass>
      <modules>Galacticus_Nodes Arrays_Search</modules>
@@ -133,7 +142,9 @@ module Star_Formation_Histories
      </code>
    </method>
    <method name="masses" >
-    <description>Return a 2D array (indexed by age bin and metallicity bin) of stellar masses formed for the given node's star formation history, representing the cumulative stellar mass in each age-metallicity cell.</description>
+    <description>
+    Return a 2D array (indexed by age bin and metallicity bin) of stellar masses formed for the given node's star formation history, representing the cumulative stellar mass in each age-metallicity cell.
+    </description>
     <type>double precision, allocatable, dimension(:,:)</type>
     <pass>yes</pass>
     <argument>type   (treeNode), intent(inout)           :: node                </argument>
@@ -146,7 +157,9 @@ module Star_Formation_Histories
     </code>
    </method>
    <method name="ageDistribution" >
-    <description>Return an enumeration member indicating what may be assumed about the distribution of ages in the star formation histories.</description>
+    <description>
+    Return an enumeration member indicating what may be assumed about the distribution of ages in the star formation histories.
+    </description>
     <type>type(enumerationStarFormationHistoryAgesType)</type>
     <pass>yes</pass>
     <code>
@@ -155,7 +168,9 @@ module Star_Formation_Histories
     </code>
    </method>
    <method name="update">
-     <description>Update the star formation history after an output time is reached.</description>
+     <description>
+     Update the star formation history after an output time is reached.
+     </description>
      <type>void</type>
      <pass>yes</pass>
      <argument>type   (treeNode), intent(inout), target :: node                </argument>
@@ -166,7 +181,9 @@ module Star_Formation_Histories
      </code>
    </method>
    <method name="rangeIsSufficient">
-     <description>Return true if the star formation history spans a sufficient range of times.</description>
+     <description>
+     Return true if the star formation history spans a sufficient range of times.
+     </description>
      <type>logical</type>
      <pass>yes</pass>
      <argument>type(history), intent(in   ) :: starFormationHistory, rangeHistory</argument>
@@ -176,7 +193,9 @@ module Star_Formation_Histories
      </code>
    </method>
    <method name="extend">
-     <description>Extend a star formation history to span a sufficient range of times.</description>
+     <description>
+     Extend a star formation history to span a sufficient range of times.
+     </description>
      <type>void</type>
      <pass>yes</pass>
      <modules>Error</modules>
@@ -188,7 +207,9 @@ module Star_Formation_Histories
      </code>
    </method>
    <method name="move">
-     <description>Move (transfer and reset) the star formation history from one node into another, incrementing the destination history with the source data and then resetting the source to zero, as needed during galaxy mergers.</description>
+     <description>
+     Move (transfer and reset) the star formation history from one node into another, incrementing the destination history with the source data and then resetting the source to zero, as needed during galaxy mergers.
+     </description>
      <type>void</type>
      <pass>yes</pass>
      <modules>Error</modules>

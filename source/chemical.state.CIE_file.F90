@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a chemical state class which reads and interpolates a collisional ionization equilibrium chemical state from a file.
   !!}
 
@@ -25,122 +25,115 @@
   use :: Table_Labels           , only : enumerationExtrapolationTypeType
 
   !![
-  <chemicalState name="chemicalStateCIEFile">
+  <chemicalState name="chemicalStateCIEFile" docformat="rst">
    <description>
-    A chemical state class providing chemical state via interpolation of tabulated values read from file. The HDF5 file
-    containing the table should have the following form:
-    \begin{verbatim}
-    HDF5 "chemicalState.hdf5" {
-    GROUP "/" {
-       ATTRIBUTE "fileFormat" {
-          DATATYPE  H5T_STRING {
-             STRSIZE 1;
-             STRPAD H5T_STR_NULLTERM;
-             CSET H5T_CSET_ASCII;
-             CTYPE H5T_C_S1;
-          }
-          DATASPACE  SCALAR
-          DATA {
-          (0): "1"
-          }
-       }
-       DATASET "electronDensity" {
-          DATATYPE  H5T_IEEE_F64LE
-          DATASPACE  SIMPLE { ( 7, 8 ) / ( 7, 8 ) }
-       }
-       DATASET "hiDensity" {
-          DATATYPE  H5T_IEEE_F64LE
-          DATASPACE  SIMPLE { ( 7, 8 ) / ( 7, 8 ) }
-       }
-       DATASET "hiiDensity" {
-          DATATYPE  H5T_IEEE_F64LE
-          DATASPACE  SIMPLE { ( 7, 8 ) / ( 7, 8 ) }
-       }
-       DATASET "metallicity" {
-          DATATYPE  H5T_IEEE_F64LE
-          DATASPACE  SIMPLE { ( 8 ) / ( 8 ) }
-          ATTRIBUTE "extrapolateHigh" {
-             DATATYPE  H5T_STRING {
-                STRSIZE 3;
-                STRPAD H5T_STR_NULLTERM;
-                CSET H5T_CSET_ASCII;
-                CTYPE H5T_C_S1;
-             }
-             DATASPACE  SCALAR
-             DATA {
-             (0): "fix"
-             }
-          }
-          ATTRIBUTE "extrapolateLow" {
-             DATATYPE  H5T_STRING {
-                STRSIZE 3;
-                STRPAD H5T_STR_NULLTERM;
-                CSET H5T_CSET_ASCII;
-                CTYPE H5T_C_S1;
-             }
-             DATASPACE  SCALAR
-             DATA {
-             (0): "fix"
-             }
-          }
-       }
-       DATASET "temperature" {
-          DATATYPE  H5T_IEEE_F64LE
-          DATASPACE  SIMPLE { ( 7 ) / ( 7 ) }
-          ATTRIBUTE "extrapolateHigh" {
-             DATATYPE  H5T_STRING {
-                STRSIZE 3;
-                STRPAD H5T_STR_NULLTERM;
-                CSET H5T_CSET_ASCII;
-                CTYPE H5T_C_S1;
-             }
-             DATASPACE  SCALAR
-             DATA {
-             (0): "fix"
-             }
-          }
-          ATTRIBUTE "extrapolateLow" {
-             DATATYPE  H5T_STRING {
-                STRSIZE 3;
-                STRPAD H5T_STR_NULLTERM;
-                CSET H5T_CSET_ASCII;
-                CTYPE H5T_C_S1;
-             }
-             DATASPACE  SCALAR
-             DATA {
-             (0): "fix"
-             }
-          }
-       }
-    }
-    }
-    \end{verbatim}
-    The \mono{temperature} dataset should specify temperature (in Kelvin), while the \mono{metallicity} dataset should give the logarithmic metallicity relative to Solar (a value of -999 or less is taken to imply
-    zero metallicity). The \mono{electronDensity} dataset should specify the number density of electrons
-    relative to hydrogen at each temperature/metallicity pair. Optionally \mono{hiDensity} and
-    \mono{hiiDensity} datasets may be added giving the number densities of H{\normalfont \scshape i} and H{\normalfont
-    \scshape ii} relative to hydrogen respectively The \mono{extrapolateLow} and \mono{extrapolateHigh} attributes of the \mono{temperature} and \mono{metallicity} datasets
-    specify how the cooling rate should be extrapolated in the low and high vale limits. Allowed options for these attributes
-    are:
-    \begin{description}
-     \item[\mono{zero}] The electron density is set to zero beyond the relevant limit.
-     \item[\mono{fixed}] The electron density is held fixed at the value at the relevant limit.
-     \item[\mono{power law}] The electron density is extrapolated assuming a
-     power-law dependence beyond the relevant limit. This option is only allowed if the
-     electron density is everywhere positive.
-    \end{description}
-    If the electron density is everywhere positive the interpolation will be done in the
-    logarithmic of temperature, metallicity\footnote{The exception is if the first electron
-    density is tabulated for zero metallicity. In that case, a linear interpolation in
-    metallicity is always used between zero and the first non-zero tabulated metallicity.}
-    and electron density. Otherwise, interpolation is linear in these quantities. The
-    electron density is scaled assuming a linear dependence on hydrogen density.
+   A chemical state class providing chemical state via interpolation of tabulated values read from file. The HDF5 file containing the table should have the following form:
+
+   .. code-block:: none
+
+      HDF5 "chemicalState.hdf5" {
+      GROUP "/" {
+         ATTRIBUTE "fileFormat" {
+            DATATYPE  H5T_STRING {
+               STRSIZE 1;
+               STRPAD H5T_STR_NULLTERM;
+               CSET H5T_CSET_ASCII;
+               CTYPE H5T_C_S1;
+            }
+            DATASPACE  SCALAR
+            DATA {
+            (0): "1"
+            }
+         }
+         DATASET "electronDensity" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 7, 8 ) / ( 7, 8 ) }
+         }
+         DATASET "hiDensity" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 7, 8 ) / ( 7, 8 ) }
+         }
+         DATASET "hiiDensity" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 7, 8 ) / ( 7, 8 ) }
+         }
+         DATASET "metallicity" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 8 ) / ( 8 ) }
+            ATTRIBUTE "extrapolateHigh" {
+               DATATYPE  H5T_STRING {
+                  STRSIZE 3;
+                  STRPAD H5T_STR_NULLTERM;
+                  CSET H5T_CSET_ASCII;
+                  CTYPE H5T_C_S1;
+               }
+               DATASPACE  SCALAR
+               DATA {
+               (0): "fix"
+               }
+            }
+            ATTRIBUTE "extrapolateLow" {
+               DATATYPE  H5T_STRING {
+                  STRSIZE 3;
+                  STRPAD H5T_STR_NULLTERM;
+                  CSET H5T_CSET_ASCII;
+                  CTYPE H5T_C_S1;
+               }
+               DATASPACE  SCALAR
+               DATA {
+               (0): "fix"
+               }
+            }
+         }
+         DATASET "temperature" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 7 ) / ( 7 ) }
+            ATTRIBUTE "extrapolateHigh" {
+               DATATYPE  H5T_STRING {
+                  STRSIZE 3;
+                  STRPAD H5T_STR_NULLTERM;
+                  CSET H5T_CSET_ASCII;
+                  CTYPE H5T_C_S1;
+               }
+               DATASPACE  SCALAR
+               DATA {
+               (0): "fix"
+               }
+            }
+            ATTRIBUTE "extrapolateLow" {
+               DATATYPE  H5T_STRING {
+                  STRSIZE 3;
+                  STRPAD H5T_STR_NULLTERM;
+                  CSET H5T_CSET_ASCII;
+                  CTYPE H5T_C_S1;
+               }
+               DATASPACE  SCALAR
+               DATA {
+               (0): "fix"
+               }
+            }
+         }
+      }
+      }
+
+   The ``temperature`` dataset should specify temperature (in Kelvin), while the ``metallicity`` dataset should give the logarithmic metallicity relative to Solar (a value of -999 or less is taken to imply zero metallicity). The ``electronDensity`` dataset should specify the number density of electrons relative to hydrogen at each temperature/metallicity pair. Optionally ``hiDensity`` and ``hiiDensity`` datasets may be added giving the number densities of H i and H ii relative to hydrogen respectively The ``extrapolateLow`` and ``extrapolateHigh`` attributes of the ``temperature`` and ``metallicity`` datasets specify how the cooling rate should be extrapolated in the low and high vale limits. Allowed options for these attributes are:
+
+   ``zero``
+      The electron density is set to zero beyond the relevant limit.
+
+   ``fixed``
+      The electron density is held fixed at the value at the relevant limit.
+
+   ``power law``
+      The electron density is extrapolated assuming a power-law dependence beyond the relevant limit. This option is only allowed if the electron density is everywhere positive.
+
+   If the electron density is everywhere positive the interpolation will be done in the logarithmic of temperature, metallicity\footnoteThe exception is if the first electron density is tabulated for zero metallicity. In that case, a linear interpolation in metallicity is always used between zero and the first non-zero tabulated metallicity. and electron density. Otherwise, interpolation is linear in these quantities. The electron density is scaled assuming a linear dependence on hydrogen density.
    </description>
    <runTimeFileDependencies paths="fileName"/>
   </chemicalState>
   !!]
   type, extends(chemicalStateClass) :: chemicalStateCIEFile
-     !!{
+     !!{RST
      A chemical state class which interpolates state given in a file assuming collisional ionization equilibrium.
      !!}
      private
@@ -168,7 +161,7 @@
           &                                                                             electronChemicalIndex
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Read the named chemical state file."                         method="readFile"            />
        <method description="Compute interpolating factors in a CIE chemical state file." method="interpolatingFactors"/>
        <method description="Interpolate in the given density table."                     method="interpolate"         />
@@ -184,8 +177,8 @@
   end type chemicalStateCIEFile
 
   interface chemicalStateCIEFile
-     !!{
-     Constructors for the \refClass{chemicalStateCIEFile} chemical state class.
+     !!{RST
+     Constructors for the :galacticus-class:`chemicalStateCIEFile` chemical state class.
      !!}
      module procedure cieFileConstructorParameters
      module procedure cieFileConstructorInternal
@@ -197,8 +190,8 @@
 contains
 
   function cieFileConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{chemicalStateCIEFile} chemical state class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`chemicalStateCIEFile` chemical state class which takes a parameter set as input.
     !!}
     implicit none
     type(chemicalStateCIEFile)                :: self
@@ -206,10 +199,12 @@ contains
     type(varying_string      )                :: fileName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <source>parameters</source>
-      <description>The name of the file containing a tabulation of the collisional ionization equilibrium chemical state.</description>
+      <description>
+      The name of the file containing a tabulation of the collisional ionization equilibrium chemical state.
+      </description>
     </inputParameter>
     !!]
     ! Construct the instance.
@@ -221,8 +216,8 @@ contains
   end function cieFileConstructorParameters
 
   function cieFileConstructorInternal(fileName) result(self)
-    !!{
-    Internal constructor for the \refClass{chemicalStateCIEFile} chemical state class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`chemicalStateCIEFile` chemical state class.
     !!}
     use :: Chemical_Abundances_Structure, only : unitChemicalAbundances
     implicit none
@@ -246,7 +241,7 @@ contains
   end function cieFileConstructorInternal
 
   double precision function cieFileElectronDensity(self,numberDensityHydrogen,temperature,gasAbundances,radiation)
-    !!{
+    !!{RST
     Return the electron density by interpolating in tabulated CIE data read from a file.
     !!}
     use            :: Abundances_Structure, only : Abundances_Get_Metallicity, abundances                  , metallicityTypeLinearByMassSolar
@@ -323,9 +318,8 @@ contains
   end function cieFileElectronDensity
 
   double precision function cieFileElectronDensityTemperatureLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,radiation)
-    !!{
-    Return the logarithmic slope of the electron density with respect to temperature by interpolating in tabulated CIE data
-    read from a file.
+    !!{RST
+    Return the logarithmic slope of the electron density with respect to temperature by interpolating in tabulated CIE data read from a file.
     !!}
     use            :: Abundances_Structure, only : Abundances_Get_Metallicity, abundances                  , metallicityTypeLinearByMassSolar
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
@@ -422,7 +416,7 @@ contains
   end function cieFileElectronDensityTemperatureLogSlope
 
   double precision function cieFileElectronDensityDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,radiation)
-    !!{
+    !!{RST
     Return the logarithmic slope of the electron density with respect to density assuming atomic CIE.
     !!}
     use :: Abundances_Structure, only : abundances
@@ -440,9 +434,8 @@ contains
   end function cieFileElectronDensityDensityLogSlope
 
   subroutine cieFileChemicalDensities(self,chemicalDensities,numberDensityHydrogen,temperature,gasAbundances,radiation)
-    !!{
-    Return the densities of chemical species at the given temperature and hydrogen density for the specified set of abundances
-    and radiation field. Units of the returned electron density are cm$^-3$.
+    !!{RST
+    Return the densities of chemical species at the given temperature and hydrogen density for the specified set of abundances and radiation field. Units of the returned electron density are cm\ :math:`^-3`.
     !!}
     use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances                  , metallicityTypeLinearByMassSolar
     use            :: Chemical_Abundances_Structure, only : chemicalAbundances
@@ -542,7 +535,7 @@ contains
   end subroutine cieFileChemicalDensities
 
   subroutine cieFileInterpolatingFactors(self,temperature,metallicity,iTemperature,hTemperature,iMetallicity,hMetallicity)
-    !!{
+    !!{RST
     Determine the interpolating parameters.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -599,7 +592,7 @@ contains
   end subroutine cieFileInterpolatingFactors
 
   double precision function cieFileInterpolate(self,iTemperature,hTemperature,iMetallicity,hMetallicity,density)
-    !!{
+    !!{RST
     Perform the interpolation.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -620,7 +613,7 @@ contains
   end function cieFileInterpolate
 
   subroutine cieFileReadFile(self,fileName)
-    !!{
+    !!{RST
     Read in data from an chemical state file.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index

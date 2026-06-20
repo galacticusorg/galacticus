@@ -54,7 +54,7 @@ module iso_varying_string
      character(LEN=1), dimension(:), allocatable :: chars
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="destroy"      description="Destroys the object by deallocating internal storage."/>
        <method method="loadFromFile" description="Loads a varying string with the contents of a file."  />
        <method method="stateStore"   description="Store the state of a varying string to file."         />
@@ -503,8 +503,10 @@ contains
 ! string
 
     !![
-    <workaround type="gfortran" >
-      <description>Construct \mono{string\_a\_vs} explicitly - using a constructor call as an argument to a function currently causes memory leaks.</description>
+    <workaround type="gfortran"  docformat="rst">
+      <description>
+      Construct ``string_a_vs`` explicitly - using a constructor call as an argument to a function currently causes memory leaks.
+      </description>
     !!]
     string_a_vs   = var_str(string_a)
     concat_string = op_concat_VS_VS(string_a_vs, string_b)
@@ -530,8 +532,10 @@ contains
 ! string
 
     !![
-    <workaround type="gfortran" >
-      <description>Construct \mono{string\_a\_vs} explicitly - using a constructor call as an argument to a function currently causes memory leaks.</description>
+    <workaround type="gfortran"  docformat="rst">
+      <description>
+      Construct ``string_a_vs`` explicitly - using a constructor call as an argument to a function currently causes memory leaks.
+      </description>
     !!]
     string_b_vs   = var_str(string_b)
     concat_string = op_concat_VS_VS(string_a, string_b_vs)
@@ -548,7 +552,7 @@ contains
 !****
 
   impure elemental function op_eq_VS_VS (string_a, string_b) result (op_eq)
-    !!{
+    !!{RST
     Test equality of two varying string objects.
     !!}
     implicit none
@@ -2699,7 +2703,7 @@ contains
   end subroutine split_CH
   
   impure elemental subroutine destructor_VS (string)
-    !!{
+    !!{RST
     Destroy a varying string object by deallocating it. Can be necessary to avoid memory leaks in some instances.
     !!}
     type(varying_string), intent(inout) :: string
@@ -2709,7 +2713,7 @@ contains
   end subroutine destructor_VS
 
   subroutine destroy_VS (string)
-    !!{
+    !!{RST
     Destroy a varying string object by deallocating it. Can be necessary to avoid memory leaks in some instances.
     !!}
     class(varying_string), intent(inout) :: string
@@ -2719,8 +2723,8 @@ contains
   end subroutine destroy_VS
 
   subroutine load_from_file_VS(string,fileName)
-    !!{
-    Load a varying string object with the contents of a file (specified by \mono{fileName}).
+    !!{RST
+    Load a varying string object with the contents of a file (specified by ``fileName``).
     !!}
     class(varying_string), intent(inout) :: string
     character(len=*),      intent(in   ) :: fileName
@@ -2744,8 +2748,8 @@ contains
   end subroutine load_from_file_VS
 
   subroutine vsStateStore(self,stateFile)
-    !!{
-    Store the state of a \mono{varying\_string} object to file.
+    !!{RST
+    Store the state of a ``varying_string`` object to file.
     !!}
     use, intrinsic :: ISO_C_Binding
     implicit none
@@ -2761,8 +2765,8 @@ contains
   end subroutine vsStateStore
 
   subroutine vsStateRestore(self,stateFile)
-    !!{
-    Restore the state of a \mono{varying\_string} object from file.
+    !!{RST
+    Restore the state of a ``varying_string`` object from file.
     !!}
     use, intrinsic :: ISO_C_Binding
     implicit none

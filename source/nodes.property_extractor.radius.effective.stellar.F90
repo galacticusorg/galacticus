@@ -17,19 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a stellar mass effective radius node property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRadiusEffectiveStellar">
-   <description>Extracts the stellar mass-weighted effective (half-mass) radius of a galaxy, combining disk and spheroid contributions to compute the projected radius enclosing half the total stellar mass, for comparison to observed size--mass relations.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorRadiusEffectiveStellar" docformat="rst">
+   <description>
+   Extracts the stellar mass-weighted effective (half-mass) radius of a galaxy, combining disk and spheroid contributions to compute the projected radius enclosing half the total stellar mass, for comparison to observed size--mass relations.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusEffectiveStellar
-     !!{
-     A stellar mass effective radius node property extractor class. That is, the projected radius (assuming a face-on galaxy)
-     containing half the stellar mass is found.     
+     !!{RST
+     A stellar mass effective radius node property extractor class. That is, the projected radius (assuming a face-on galaxy) containing half the stellar mass is found.
      !!}
      private
    contains
@@ -41,8 +42,8 @@ Implements a stellar mass effective radius node property extractor class.
   end type nodePropertyExtractorRadiusEffectiveStellar
 
   interface nodePropertyExtractorRadiusEffectiveStellar
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusEffectiveStellar} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiusEffectiveStellar` property extractor class.
      !!}
      module procedure radiusEffectiveStellarConstructorParameters
   end interface nodePropertyExtractorRadiusEffectiveStellar
@@ -50,8 +51,8 @@ Implements a stellar mass effective radius node property extractor class.
 contains
 
   function radiusEffectiveStellarConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusEffectiveStellar} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiusEffectiveStellar` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -66,7 +67,7 @@ contains
   end function radiusEffectiveStellarConstructorParameters
 
   double precision function radiusEffectiveStellarExtract(self,node,instance)
-    !!{
+    !!{RST
     Extract the stellar mass effective radius.
     !!}
     use :: Galactic_Structure_Options, only : massTypeStellar
@@ -87,7 +88,7 @@ contains
   end function radiusEffectiveStellarExtract
 
   function radiusEffectiveStellarName(self)
-    !!{
+    !!{RST
     Return the name of the radiusEffectiveStellar property.
     !!}
     implicit none
@@ -100,7 +101,7 @@ contains
   end function radiusEffectiveStellarName
 
   function radiusEffectiveStellarDescription(self)
-    !!{
+    !!{RST
     Return a description of the radiusEffectiveStellar property.
     !!}
     implicit none
@@ -113,7 +114,7 @@ contains
   end function radiusEffectiveStellarDescription
 
   double precision function radiusEffectiveStellarUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the radiusEffectiveStellar property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
@@ -126,7 +127,7 @@ contains
   end function radiusEffectiveStellarUnitsInSI
 
   function radiusEffectiveStellarUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the radiusEffectiveStellar property.
     !!}
     use :: Units_MetaData, only : unitType

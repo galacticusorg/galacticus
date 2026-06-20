@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_IO_HDF5
-  !!{
+  !!{RST
   Tests the HDF5 I/O module.
   !!}
   use :: Display           , only : displayVerbositySet, verbosityLevelStandard

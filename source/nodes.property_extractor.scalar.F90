@@ -21,19 +21,21 @@
   use :: Units_MetaData, only : unitType
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorScalar" abstract="yes">
-   <description>Abstract base class for all extractors that return a single floating-point scalar value per node (e.g., mass, radius, temperature), defining the common interface implemented by the large majority of node property extractors.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorScalar" abstract="yes" docformat="rst">
+   <description>
+   Abstract base class for all extractors that return a single floating-point scalar value per node (e.g., mass, radius, temperature), defining the common interface implemented by the large majority of node property extractors.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorScalar
-     !!{
+     !!{RST
      A scalar output analysis class.
      !!}
      private
    contains
      !![
-     <methods>
-       <method method="extract"     description="Extract the property from the given \mono{node}."              />
+     <methods docformat="rst">
+       <method method="extract"     description="Extract the property from the given ``node``."              />
        <method method="name"        description="Return the name of the property extracted."                    />
        <method method="description" description="Return a description of the property extracted."               />
        <method method="unitsInSI"   description="Return the units of the property extracted in the SI system."  />
@@ -51,7 +53,7 @@
 
   abstract interface
      double precision function scalarExtract(self,node,instance)
-       !!{
+       !!{RST
        Interface for scalar property extraction.
        !!}
        import nodePropertyExtractorScalar, treeNode, multiCounter
@@ -63,7 +65,7 @@
 
   abstract interface
      function scalarName(self)
-       !!{
+       !!{RST
        Interface for scalar property name.
        !!}
        import varying_string, nodePropertyExtractorScalar
@@ -74,7 +76,7 @@
 
   abstract interface
      double precision function scalarUnitsInSI(self)
-       !!{
+       !!{RST
        Interface for scalar property units.
        !!}
        import nodePropertyExtractorScalar
@@ -85,10 +87,8 @@
 contains
 
   function scalarUnits(self) result(units)
-    !!{
-    Default implementation: wraps the deferred \mono{nodePropertyExtractorScalar} \mono{unitsInSI} result into a
-    \mono{unitType}. Subclasses may override this method to populate \mono{description}, \mono{quantity},
-    and \mono{isComoving}.
+    !!{RST
+    Default implementation: wraps the deferred ``nodePropertyExtractorScalar`` ``unitsInSI`` result into a ``unitType``. Subclasses may override this method to populate ``description``, ``quantity``, and ``isComoving``.
     !!}
     implicit none
     type (unitType                   )                :: units
@@ -99,7 +99,7 @@ contains
   end function scalarUnits
 
   subroutine scalarMetaData(self,node,metaDataRank0,metaDataRank1)
-    !!{
+    !!{RST
     Interface for scalar property meta-data.
     !!}
     implicit none

@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of an Miyamoto-Nagai model \citep{miyamoto_three-dimensional_1975} mass distribution class.
+  !!{RST
+  Implementation of an Miyamoto-Nagai model :cite:p:`miyamoto_three-dimensional_1975` mass distribution class.
   !!}
 
   use :: Tables, only : table1DLogarithmicLinear
 
   !![
-  <massDistribution name="massDistributionMiyamotoNagai">
-   <description>An Miyamoto-Nagai model \citep{miyamoto_three-dimensional_1975} mass distribution class.</description>
+  <massDistribution name="massDistributionMiyamotoNagai" docformat="rst">
+   <description>
+   An Miyamoto-Nagai model :cite:p:`miyamoto_three-dimensional_1975` mass distribution class.
+   </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionCylindrical) :: massDistributionMiyamotoNagai
-     !!{
-     The Miyamoto-Nagai model \citep{miyamoto_three-dimensional_1975} mass distribution.
+     !!{RST
+     The Miyamoto-Nagai model :cite:p:`miyamoto_three-dimensional_1975` mass distribution.
      !!}
      private
      double precision                           :: a                        , b                      , &
@@ -40,7 +42,7 @@
      type            (table1DLogarithmicLinear) :: surfaceDensityTable      , massEnclosedTable
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Initialize the surface density tabulation." method="surfaceDensityTabulate"/>
        <method description="Initialize the enclosed mass tabulation."   method="massEnclosedTabulate"  />
      </methods>
@@ -60,8 +62,8 @@
   end type massDistributionMiyamotoNagai
 
   interface massDistributionMiyamotoNagai
-     !!{
-     Constructors for the \refClass{massDistributionMiyamotoNagai} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionMiyamotoNagai` mass distribution class.
      !!}
      module procedure miyamotoNagaiConstructorParameters
      module procedure miyamotoNagaiConstructorInternal
@@ -70,9 +72,8 @@
 contains
 
   function miyamotoNagaiConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionMiyamotoNagai} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionMiyamotoNagai` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -86,40 +87,52 @@ contains
     type            (varying_string               )                :: massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>a</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The $a$ parameter of the MiyamotoNagai profile.</description>
+      <description>
+      The :math:`a` parameter of the MiyamotoNagai profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>b</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The $b$ parameter of the MiyamotoNagai profile.</description>
+      <description>
+      The :math:`b` parameter of the MiyamotoNagai profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass of the MiyamotoNagai profile.</description>
+      <description>
+      The mass of the MiyamotoNagai profile.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dimensionless</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true the MiyamotoNagai profile is considered to be dimensionless.</description>
+      <description>
+      If true the MiyamotoNagai profile is considered to be dimensionless.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <conditionalCall>
@@ -135,8 +148,8 @@ contains
   end function miyamotoNagaiConstructorParameters
 
   function miyamotoNagaiConstructorInternal(a,b,mass,dimensionless,componentType,massType) result(self)
-    !!{
-    Internal constructor for ``miyamotoNagai'' mass distribution class.
+    !!{RST
+    Internal constructor for "miyamotoNagai" mass distribution class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Numerical_Comparison    , only : Values_Differ
@@ -191,8 +204,8 @@ contains
   end function miyamotoNagaiConstructorInternal
 
   double precision function miyamotoNagaiDensity(self,coordinates)
-    !!{
-    Return the density at the specified \mono{coordinates} in an \citep{miyamoto_three-dimensional_1975} disk mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in an :cite:p:`miyamoto_three-dimensional_1975` disk mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateCylindrical
     implicit none
@@ -247,8 +260,8 @@ contains
   end function miyamotoNagaiDensity
 
   double precision function miyamotoNagaiDensitySphericalAverage(self,radius)
-    !!{
-    Return the spherically-averaged density at the specified \mono{radius} in an \citep{miyamoto_three-dimensional_1975} disk mass distribution.
+    !!{RST
+    Return the spherically-averaged density at the specified ``radius`` in an :cite:p:`miyamoto_three-dimensional_1975` disk mass distribution.
     !!}
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
@@ -260,8 +273,8 @@ contains
   end function miyamotoNagaiDensitySphericalAverage
 
   double precision function miyamotoNagaiMassEnclosedBySphere(self,radius)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for \citep{miyamoto_three-dimensional_1975} disk mass distributions.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for :cite:p:`miyamoto_three-dimensional_1975` disk mass distributions.
     !!}
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout), target :: self
@@ -275,7 +288,7 @@ contains
   end function miyamotoNagaiMassEnclosedBySphere
 
   double precision function miyamotoNagaiRadiusHalfMass(self)
-    !!{
+    !!{RST
     Return the half-mass radius in a Miyamoto-Nagai mass distribution.
     !!}
     implicit none
@@ -289,7 +302,7 @@ contains
   end function miyamotoNagaiRadiusHalfMass
 
   subroutine miyamotoNagaiMassEnclosedTabulate(self)
-    !!{
+    !!{RST
     Construct a tabulation of the mass enclosed by a sphere in a Miyamoto-Nagai mass distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -352,7 +365,7 @@ contains
   contains
 
     double precision function integrandR(r)
-      !!{
+      !!{RST
       Integrand function used for finding the mass enclosed by a sphere in Miyamoto-Nagai disks.
       !!}
       implicit none
@@ -373,7 +386,7 @@ contains
     end function integrandR
 
     double precision function integrandZ(z)
-      !!{
+      !!{RST
       Integrand function used for finding the mass enclosed by a sphere in Miyamoto-Nagai disks.
       !!}
       use :: Coordinates, only : assignment(=), coordinateCylindrical
@@ -389,7 +402,7 @@ contains
   end subroutine miyamotoNagaiMassEnclosedTabulate
 
   subroutine miyamotoNagaiSurfaceDensityTabulate(self)
-    !!{
+    !!{RST
     Construct a tabulation of the surface density profile in a Miyamoto-Nagai mass distribution.
     !!}
     use :: Numerical_Integration, only : integrator
@@ -428,7 +441,7 @@ contains
   contains
 
     double precision function integrandSurfaceDensity(height)
-      !!{
+      !!{RST
       Integrand function used for finding the surface density of Miyamoto-Nagai disks.
       !!}
       use :: Coordinates, only : assignment(=), coordinateCylindrical
@@ -444,8 +457,8 @@ contains
   end subroutine miyamotoNagaiSurfaceDensityTabulate
 
   double precision function miyamotoNagaiSurfaceDensity(self,coordinates)
-    !!{
-    Return the surface density at the specified \mono{coordinates} in a Miyamoto-Nagai mass distribution.
+    !!{RST
+    Return the surface density at the specified ``coordinates`` in a Miyamoto-Nagai mass distribution.
     !!}
     use :: Coordinates, only : assignment(=), coordinateCylindrical
     implicit none
@@ -462,7 +475,7 @@ contains
   end function miyamotoNagaiSurfaceDensity
 
   double precision function miyamotoNagaiSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
-    !!{
+    !!{RST
     Compute radial moments of the Miyamoto-Nagai mass distribution surface density profile.
     !!}
     use :: Error , only : Error_Report
@@ -527,7 +540,7 @@ contains
   contains
 
     double precision function momentWeight(radius)
-      !!{
+      !!{RST
       The weight function used in computing radial moments of the Miyamoto-Nagai mass distribution surface density.
       !!}
       implicit none
@@ -540,7 +553,7 @@ contains
   end function miyamotoNagaiSurfaceDensityRadialMoment
 
   double precision function miyamotoNagaiRotationCurve(self,radius)
-    !!{
+    !!{RST
     Return the mid-plane rotation curve for a Miyamoto-Nagai mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -572,8 +585,8 @@ contains
   end function miyamotoNagaiRotationCurve
 
   double precision function miyamotoNagaiRotationCurveGradient(self,radius)
-    !!{
-    Return the mid-plane rotation curve gradient for an \citep{miyamoto_three-dimensional_1975} disk.
+    !!{RST
+    Return the mid-plane rotation curve gradient for an :cite:p:`miyamoto_three-dimensional_1975` disk.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
@@ -614,7 +627,7 @@ contains
   end function miyamotoNagaiRotationCurveGradient
 
   logical function miyamotoNagaiPotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return that the potential has an analytic form.
     !!}
     implicit none
@@ -625,8 +638,8 @@ contains
   end function miyamotoNagaiPotentialIsAnalytic
 
   double precision function miyamotoNagaiPotential(self,coordinates,status)
-    !!{
-    Return the gravitational potential for an \citep{miyamoto_three-dimensional_1975} disk.
+    !!{RST
+    Return the gravitational potential for an :cite:p:`miyamoto_three-dimensional_1975` disk.
     !!}
     use :: Coordinates                     , only : assignment(=)                 , coordinateCylindrical
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess

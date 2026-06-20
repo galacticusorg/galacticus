@@ -17,25 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a kinematic distribution class for finite-resolution NFW mass distributions.
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
 
   !![
-  <kinematicsDistribution name="kinematicsDistributionFiniteResolutionNFW">
-   <description>A kinematic distribution class for finite-resolution NFW mass distributions.</description>
+  <kinematicsDistribution name="kinematicsDistributionFiniteResolutionNFW" docformat="rst">
+   <description>
+   A kinematic distribution class for finite-resolution NFW mass distributions.
+   </description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionFiniteResolutionNFW
-     !!{
+     !!{RST
      A kinematics distribution for finite-resolution NFW distributions.
      !!}
      double precision :: velocityDispersion1DRadiusPrevious, velocityDispersion1DPrevious
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="velocityDispersion1DTabulate"   description="Tabulate the enclosed mass as a function of radius and core radius."                          />
        <method method="storeVelocityDispersionTable"   description="Store the tabulated velocity dispersion to file."                                             />
        <method method="restoreVelocityDispersionTable" description="Attempt to restore the tabulated velocity dispersion from file, returning true if successful."/>
@@ -49,8 +51,8 @@
   end type kinematicsDistributionFiniteResolutionNFW
 
   interface kinematicsDistributionFiniteResolutionNFW
-     !!{
-     Constructors for the \refClass{kinematicsDistributionFiniteResolutionNFW} kinematic distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`kinematicsDistributionFiniteResolutionNFW` kinematic distribution class.
      !!}
      module procedure finiteResolutionNFWConstructorParameters
      module procedure finiteResolutionNFWConstructorInternal
@@ -78,9 +80,8 @@
 contains
 
   function finiteResolutionNFWConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionFiniteResolutionNFW} kinematic distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`kinematicsDistributionFiniteResolutionNFW` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -95,8 +96,8 @@ contains
   end function finiteResolutionNFWConstructorParameters
 
   function finiteResolutionNFWConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionFiniteResolutionNFW} kinematic distribution class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`kinematicsDistributionFiniteResolutionNFW` kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionFiniteResolutionNFW) :: self
@@ -107,7 +108,7 @@ contains
   end function finiteResolutionNFWConstructorInternal
   
   logical function finiteResolutionNFWIsCollisional(self)
-    !!{
+    !!{RST
     Return true indicating that the finiteResolutionNFW kinematic distribution represents collisional particles.
     !!}
     implicit none
@@ -118,8 +119,8 @@ contains
   end function finiteResolutionNFWIsCollisional
 
   double precision function finiteResolutionNFWVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
-    !!{
-    Return the 1D velocity dispersion at the specified \mono{coordinates} in an finite-resolution NFW kinematic distribution.
+    !!{RST
+    Return the 1D velocity dispersion at the specified ``coordinates`` in an finite-resolution NFW kinematic distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
@@ -176,7 +177,7 @@ contains
   end function finiteResolutionNFWVelocityDispersion1D
   
   subroutine finiteResolutionNFWVelocityDispersionRadialTabulate(self,massDistributionEmbedding,radius,radiusCore)
-    !!{
+    !!{RST
     Tabulates the mass enclosed within a given radius for finite resolution NFW density profiles.
     !!}
     use :: Numerical_Ranges     , only : Make_Range, rangeTypeLogarithmic
@@ -291,7 +292,7 @@ contains
   end subroutine finiteResolutionNFWVelocityDispersionRadialTabulate
   
   double precision function jeansEquationIntegrand(radius)
-    !!{
+    !!{RST
     Integrand for dark matter profile Jeans equation.
     !!}
     implicit none
@@ -308,7 +309,7 @@ contains
   end function jeansEquationIntegrand
 
   subroutine finiteResolutionNFWStoreVelocityDispersionTable(self)
-    !!{
+    !!{RST
     Store the tabulated velocity dispersion data to file.
     !!}
     use :: File_Utilities    , only : File_Lock     , File_Unlock        , lockDescriptor, Directory_Make, &
@@ -345,7 +346,7 @@ contains
   end subroutine finiteResolutionNFWStoreVelocityDispersionTable
 
   subroutine finiteResolutionNFWRestoreVelocityDispersionTable(self)
-    !!{
+    !!{RST
     Restore the tabulated velocity dispersion data from file.
     !!}
     use :: File_Utilities    , only : File_Exists   , File_Lock          , File_Unlock, lockDescriptor

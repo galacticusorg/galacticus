@@ -17,32 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements barriers for the excursion set problem.
 !!}
 
 module Excursion_Sets_Barriers
-  !!{
+  !!{RST
   Provides a class that implements barriers for the excursion set problem.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>excursionSetBarrier</name>
    <descriptiveName>Excursion Set Barrier</descriptiveName>
    <description>
-    Class providing the collapse barrier $B(\sigma^2, t)$ in the extended Press-Schechter excursion
-    set formalism---the threshold overdensity that a random walk in the density field must first cross
-    for a region of variance $\sigma^2$ to collapse by cosmic time $t$. The barrier height and its
-    gradient with respect to variance control the halo mass function and merger rate: a constant
-    barrier (spherical collapse) gives the Press-Schechter result, while a moving or stochastic barrier
-    (ellipsoidal collapse) produces mass functions in better agreement with N-body simulations.
+   Class providing the collapse barrier :math:`B(\sigma^2, t)` in the extended Press-Schechter excursion set formalism---the threshold overdensity that a random walk in the density field must first cross for a region of variance :math:`\sigma^2` to collapse by cosmic time :math:`t`. The barrier height and its gradient with respect to variance control the halo mass function and merger rate: a constant barrier (spherical collapse) gives the Press-Schechter result, while a moving or stochastic barrier (ellipsoidal collapse) produces mass functions in better agreement with N-body simulations.
    </description>
    <default>criticalOverdensity</default>
    <method name="barrier" >
-    <description>Return the barrier height at the given variance and time. The \mono{rateCompute} should be set to \mono{true} if the barrier is being used in a calculation of barrier crossing rates, and to \mono{false} otherwise.</description>
+    <description>
+    Return the barrier height at the given variance and time. The ``rateCompute`` should be set to ``true`` if the barrier is being used in a calculation of barrier crossing rates, and to ``false`` otherwise.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   ) :: variance   , time</argument>
@@ -50,7 +47,9 @@ module Excursion_Sets_Barriers
     <argument>logical                   , intent(in   ) :: rateCompute</argument>
    </method>
    <method name="barrierGradient" >
-    <description>Return the gradient of the barrier with respect to variance at the given variance and time. The \mono{rateCompute} should be set to \mono{true} if the barrier is being used in a calculation of barrier crossing rates, and to \mono{false} otherwise.</description>
+    <description>
+    Return the gradient of the barrier with respect to variance at the given variance and time. The ``rateCompute`` should be set to ``true`` if the barrier is being used in a calculation of barrier crossing rates, and to ``false`` otherwise.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision          , intent(in   ) :: variance   , time</argument>
@@ -62,9 +61,11 @@ module Excursion_Sets_Barriers
 
   ! Enumeration for whether a remapping of the barrier should apply to cases where the excursion set is used for rate calculation, non-rate calculations, or both.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>excursionSetRemap</name>
-   <description>Specifies whether a remapping of the barrier should apply to cases where the excursion set is used for rate calculation, non-rate calculations, or both.</description>
+   <description>
+   Specifies whether a remapping of the barrier should apply to cases where the excursion set is used for rate calculation, non-rate calculations, or both.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
    <validator>yes</validator>

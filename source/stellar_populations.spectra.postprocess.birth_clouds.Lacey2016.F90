@@ -17,20 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of a spectrum postprocessor that keeps only populations which remain in their birth clouds according to the
-  model of \cite{lacey_unified_2016}.
+  !!{RST
+  An implementation of a spectrum postprocessor that keeps only populations which remain in their birth clouds according to the model of :cite:t:`lacey_unified_2016`.
   !!}
 
   !![
-  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorBirthCloudsLacey2016">
-   <description>Retains only only populations which remain in their birth clouds according to the model of \cite{lacey_unified_2016}.</description>
+  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorBirthCloudsLacey2016" docformat="rst">
+   <description>
+   Retains only only populations which remain in their birth clouds according to the model of :cite:t:`lacey_unified_2016`.
+   </description>
   </stellarPopulationSpectraPostprocessor>
   !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorBirthCloudsLacey2016
-     !!{
-     An implementation of a spectrum postprocessor that keeps only populations which remain in their birth clouds according to the
-     model of \cite{lacey_unified_2016}.
+     !!{RST
+     An implementation of a spectrum postprocessor that keeps only populations which remain in their birth clouds according to the model of :cite:t:`lacey_unified_2016`.
      !!}
      private
      double precision :: timescale
@@ -40,7 +40,7 @@
   end type stellarPopulationSpectraPostprocessorBirthCloudsLacey2016
 
   interface stellarPopulationSpectraPostprocessorBirthCloudsLacey2016
-     !!{
+     !!{RST
      Constructors for the birthCloudsLacey2016 spectrum postprocessor class.
      !!}
      module procedure birthCloudsLacey2016ConstructorParameters
@@ -50,8 +50,8 @@
 contains
 
   function birthCloudsLacey2016ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarPopulationSpectraPostprocessorBirthCloudsLacey2016} stellar population spectra postprocessor class which accepts a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`stellarPopulationSpectraPostprocessorBirthCloudsLacey2016` stellar population spectra postprocessor class which accepts a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -60,10 +60,12 @@ contains
     double precision                                                                           :: timescale
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timescale</name>
       <defaultValue>1.0d-3</defaultValue>
-      <description>The timescale for ``escape'' of stellar populations from their birth clouds.</description>
+      <description>
+      The timescale for "escape" of stellar populations from their birth clouds.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -75,8 +77,8 @@ contains
   end function birthCloudsLacey2016ConstructorParameters
 
   function birthCloudsLacey2016ConstructorInternal(timescale) result(self)
-    !!{
-    Internal constructor for the \refClass{stellarPopulationSpectraPostprocessorBirthCloudsLacey2016} stellar population spectra postprocessor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`stellarPopulationSpectraPostprocessorBirthCloudsLacey2016` stellar population spectra postprocessor class.
     !!}
     implicit none
     type            (stellarPopulationSpectraPostprocessorBirthCloudsLacey2016)                :: self
@@ -89,7 +91,7 @@ contains
   end function birthCloudsLacey2016ConstructorInternal
 
   double precision function birthCloudsLacey2016Multiplier(self,wavelength,age,redshift)
-    !!{
+    !!{RST
     Perform an birthCloudsLacey2016 postprocessing on a spectrum.
     !!}
     implicit none
@@ -110,7 +112,7 @@ contains
   end function birthCloudsLacey2016Multiplier
 
   logical function birthCloudsLacey2016IsRedshiftDependent(self) result(isRedshiftDependent)
-    !!{
+    !!{RST
     Return false indicating that the postprocessor is redshift independent.
     !!}
     implicit none

@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides state store/restore functionality for merger trees.
 !!}
 
 module Merger_Tree_State_Store
-  !!{
+  !!{RST
   Provides state store/restore functionality for merger trees.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -37,7 +37,7 @@ contains
   <stateStoreTask function="mergerTreeStateStore"/>
   !!]
   subroutine mergerTreeStateStore(stateFile,gslStateFile,stateOperatorID)
-    !!{
+    !!{RST
     Write the stored snapshot of the random number state to file.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t, c_ptr
@@ -55,7 +55,7 @@ contains
   <stateRetrieveTask function="mergerTreeStateRestore"/>
   !!]
   subroutine mergerTreeStateRestore(stateFile,gslStateFile,stateOperatorID)
-    !!{
+    !!{RST
     Write the stored snapshot of the random number state to file.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t, c_ptr

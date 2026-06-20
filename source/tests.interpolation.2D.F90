@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test 2D interpolation routines.
 !!}
 
 program Test_Interpolation_2D
-  !!{
+  !!{RST
   Tests that 2D interpolation routines work.
   !!}
   use :: Display                             , only : displayVerbositySet     , verbosityLevelStandard

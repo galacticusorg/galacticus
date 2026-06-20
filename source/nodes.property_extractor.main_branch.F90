@@ -17,34 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node property extractor which reports if a node is on the main branch of its merger
-  tree.
+  !!{RST
+  Implements a node property extractor which reports if a node is on the main branch of its merger tree.
   !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMainBranchStatus">
+  <nodePropertyExtractor name="nodePropertyExtractorMainBranchStatus" docformat="rst">
    <description>
-    A node property extractor class which extracts the status of each node with respect to the main branch of its merger
-    tree. The status will be extracted as \mono{nodeIsOnMainBranch}, with a value of 1 indicating that the
-    node is a primary progenitor of the final halo (i.e. is on the main branch of the tree) and a value of 0 indicating that it
-    is not.
+   A node property extractor class which extracts the status of each node with respect to the main branch of its merger tree. The status will be extracted as ``nodeIsOnMainBranch``, with a value of 1 indicating that the node is a primary progenitor of the final halo (i.e. is on the main branch of the tree) and a value of 0 indicating that it is not.
 
-    If \mono{[includeSubhalos]} is set to true then subhalos of the main branch halo are also assigned a value of
-    1 (with subhalos of non-main branch halos assigned a value of 0). Otherwise, all subhalos are assigned a value of 0.
+   If ``[includeSubhalos]`` is set to true then subhalos of the main branch halo are also assigned a value of 1 (with subhalos of non-main branch halos assigned a value of 0). Otherwise, all subhalos are assigned a value of 0.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorMainBranchStatus
-     !!{
-     A node property extractor class which extracts the status of each node with respect to the main branch of its merger
-     tree. The status will be extracted as \mono{nodeIsOnMainBranch}, with a value of 1 indicating that the
-     node is a primary progenitor of the final halo (i.e. is on the main branch of the tree) and a value of 0 indicating that it
-     is not.
+     !!{RST
+     A node property extractor class which extracts the status of each node with respect to the main branch of its merger tree. The status will be extracted as ``nodeIsOnMainBranch``, with a value of 1 indicating that the node is a primary progenitor of the final halo (i.e. is on the main branch of the tree) and a value of 0 indicating that it is not.
 
-     If \mono{[includeSubhalos]} is set to true then subhalos of the main branch halo are also assigned a value of
-     1 (with subhalos of non-main branch halos assigned a value of 0). Otherwise, all subhalos are assigned a value of 0.
-      !!}
+     If ``[includeSubhalos]`` is set to true then subhalos of the main branch halo are also assigned a value of 1 (with subhalos of non-main branch halos assigned a value of 0). Otherwise, all subhalos are assigned a value of 0.
+     !!}
      private
      logical :: includeSubhalos
    contains
@@ -54,8 +45,8 @@
   end type nodePropertyExtractorMainBranchStatus
 
   interface nodePropertyExtractorMainBranchStatus
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMainBranchStatus} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorMainBranchStatus` property extractor class.
      !!}
      module procedure mainBranchStatusConstructorParameters
      module procedure mainBranchStatusConstructorInternal
@@ -64,8 +55,8 @@
 contains
 
   function mainBranchStatusConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMainBranchStatus} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorMainBranchStatus` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -74,11 +65,10 @@ contains
     logical                                                       :: includeSubhalos
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeSubhalos</name>
       <description>
-	If set to true then subhalos of the main branch halo are also assigned a value of 1 (with subhalos of non-main branch
-	halos assigned a value of 0). Otherwise, all subhalos are assigned a value of 0.
+      If set to true then subhalos of the main branch halo are also assigned a value of 1 (with subhalos of non-main branch halos assigned a value of 0). Otherwise, all subhalos are assigned a value of 0.
       </description>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
@@ -92,8 +82,8 @@ contains
   end function mainBranchStatusConstructorParameters
 
   function mainBranchStatusConstructorInternal(includeSubhalos) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorMainBranchStatus} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorMainBranchStatus` property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorMainBranchStatus)                :: self
@@ -106,8 +96,8 @@ contains
   end function mainBranchStatusConstructorInternal
 
   function mainBranchStatusExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{mainBranchStatus} node property extractor.
+    !!{RST
+    Implement a ``mainBranchStatus`` node property extractor.
     !!}
     implicit none
     integer         (kind_int8                            )                          :: mainBranchStatusExtract
@@ -140,7 +130,7 @@ contains
   end function mainBranchStatusExtract
 
   function mainBranchStatusName(self)
-    !!{
+    !!{RST
     Return the name of the mainBranchStatus property.
     !!}
     implicit none
@@ -153,7 +143,7 @@ contains
   end function mainBranchStatusName
 
   function mainBranchStatusDescription(self)
-    !!{
+    !!{RST
     Return a description of the mainBranchStatus property.
     !!}
     implicit none

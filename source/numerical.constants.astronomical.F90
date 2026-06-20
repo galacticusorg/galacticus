@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module of useful astronomical constants.
 !!}
 
 module Numerical_Constants_Astronomical
-  !!{
+  !!{RST
   Contains various useful astronomical constants.
   !!}
   use :: Numerical_Constants_Atomic  , only : atomicMassHelium     , atomicMassHydrogen, atomicMassLithium7

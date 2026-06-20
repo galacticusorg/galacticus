@@ -17,21 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree outputter class that outputs the full state of merger trees for later postprocessing.
   !!}
 
   !![
-  <mergerTreeOutputter name="mergerTreeOutputterFullState">
+  <mergerTreeOutputter name="mergerTreeOutputterFullState" docformat="rst">
    <description>
-    A merger tree outputter class that outputs the full state of merger trees to allow later postprocessing. Complete tree data in
-    output in raw binary format to the file specified as \mono{[fileName]}. This can be later re-read and
-    post-processed using the \refClass{taskPostprocessForests} task class.
+   A merger tree outputter class that outputs the full state of merger trees to allow later postprocessing. Complete tree data in output in raw binary format to the file specified as ``[fileName]``. This can be later re-read and post-processed using the :galacticus-class:`taskPostprocessForests` task class.
    </description>
   </mergerTreeOutputter>
   !!]
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterFullState
-     !!{
+     !!{RST
      Implementation of a merger tree outputter class that outputs the full state of merger trees to allow later postprocessing.
      !!}
      private
@@ -43,8 +41,8 @@
   end type mergerTreeOutputterFullState
 
   interface mergerTreeOutputterFullState
-     !!{
-     Constructors for the \refClass{mergerTreeOutputterFullState} merger tree outputter.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeOutputterFullState` merger tree outputter.
      !!}
      module procedure fullStateConstructorParameters
      module procedure fullStateConstructorInternal
@@ -53,8 +51,8 @@
 contains
   
   function fullStateConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeOutputterFullState} merger tree outputter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeOutputterFullState` merger tree outputter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,9 +61,11 @@ contains
     type(varying_string              )                :: fileName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
-      <description>The name of the file to which state should be stored.</description>
+      <description>
+      The name of the file to which state should be stored.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -77,8 +77,8 @@ contains
   end function fullStateConstructorParameters
 
   function fullStateConstructorInternal(fileName) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeOutputterFullState} merger tree outputter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeOutputterFullState` merger tree outputter class.
     !!}
     implicit none
     type(mergerTreeOutputterFullState)                :: self
@@ -91,8 +91,8 @@ contains
   end function fullStateConstructorInternal
   
   subroutine fullStateOutputTree(self,tree,indexOutput,time,outputType)
-    !!{
-    Write properties of nodes in \mono{tree} to the \glc\ output file.
+    !!{RST
+    Write properties of nodes in ``tree`` to the Galacticus output file.
     !!}
     use :: File_Utilities          , only : File_Lock           , File_Unlock, lockDescriptor
     use :: Merger_Tree_Construction, only : mergerTreeStateStore
@@ -112,7 +112,7 @@ contains
   end subroutine fullStateOutputTree
 
   subroutine fullStateOutputNode(self,node,indexOutput,outputType)
-    !!{
+    !!{RST
     Perform no output.
     !!}
     use :: Error, only : Error_Report
@@ -128,7 +128,7 @@ contains
   end subroutine fullStateOutputNode
 
   subroutine fullStateFinalize(self)
-    !!{
+    !!{RST
     Finalize full state output---nothing to do here.
     !!}
     implicit none

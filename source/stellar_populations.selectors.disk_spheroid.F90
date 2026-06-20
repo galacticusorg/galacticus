@@ -17,21 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a stellar population selector class which returns a different population for disks and spheroids.
   !!}
 
   !![
-  <stellarPopulationSelector name="stellarPopulationSelectorDiskSpheroid">
+  <stellarPopulationSelector name="stellarPopulationSelectorDiskSpheroid" docformat="rst">
    <description>
-    A stellar population selector class which selects a different population for disks and spheroids, irrespective of other
-    physical conditions. The populations to use are specified by the \mono{[stellarPopulationDisk]} and
-    \mono{[stellarPopulationSpheroid]} parameters.
+   A stellar population selector class which selects a different population for disks and spheroids, irrespective of other physical conditions. The populations to use are specified by the ``[stellarPopulationDisk]`` and ``[stellarPopulationSpheroid]`` parameters.
    </description>
   </stellarPopulationSelector>
   !!]
   type, extends(stellarPopulationSelectorClass) :: stellarPopulationSelectorDiskSpheroid
-     !!{
+     !!{RST
      A stellar population selector class which returns a different population for disks and spheroids.
      !!}
      private
@@ -43,8 +41,8 @@
   end type stellarPopulationSelectorDiskSpheroid
 
   interface stellarPopulationSelectorDiskSpheroid
-     !!{
-     Constructors for the \refClass{stellarPopulationSelectorDiskSpheroid} stellar population selector class.
+     !!{RST
+     Constructors for the :galacticus-class:`stellarPopulationSelectorDiskSpheroid` stellar population selector class.
      !!}
      module procedure diskSpheroidConstructorParameters
      module procedure diskSpheroidConstructorInternal
@@ -53,8 +51,8 @@
 contains
 
   function diskSpheroidConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarPopulationSelectorDiskSpheroid} stellar population selector class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`stellarPopulationSelectorDiskSpheroid` stellar population selector class which takes a parameter list as input.
     !!}
     use :: Input_Parameters   , only : inputParameter   , inputParameters
     use :: Stellar_Populations, only : stellarPopulation, stellarPopulationClass
@@ -77,8 +75,8 @@ contains
   end function diskSpheroidConstructorParameters
 
   function diskSpheroidConstructorInternal(stellarPopulationDisk_,stellarPopulationSpheroid_) result(self)
-    !!{
-    Internal constructor for the \refClass{stellarPopulationSelectorDiskSpheroid} stellar population selector class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`stellarPopulationSelectorDiskSpheroid` stellar population selector class.
     !!}
     implicit none
     type (stellarPopulationSelectorDiskSpheroid)                        :: self
@@ -91,8 +89,8 @@ contains
   end function diskSpheroidConstructorInternal
 
   subroutine diskSpheroidDestructor(self)
-    !!{
-    Destructor for the \refClass{stellarPopulationSelectorDiskSpheroid} stellar population selector class.
+    !!{RST
+    Destructor for the :galacticus-class:`stellarPopulationSelectorDiskSpheroid` stellar population selector class.
     !!}
     implicit none
     type(stellarPopulationSelectorDiskSpheroid), intent(inout) :: self
@@ -105,7 +103,7 @@ contains
   end subroutine diskSpheroidDestructor
 
   function diskSpheroidSelect(self,rateStarFormation,abundances_,component)
-    !!{
+    !!{RST
     Return a diskSpheroid stellar population.
     !!}
     use :: Error           , only : Error_Report
@@ -130,7 +128,7 @@ contains
   end function diskSpheroidSelect
 
   logical function diskSpheroidIsStarFormationRateDependent(self)
-    !!{
+    !!{RST
     Return false indicating that stellar population selection is not dependent on star formation rate.
     !!}
     implicit none

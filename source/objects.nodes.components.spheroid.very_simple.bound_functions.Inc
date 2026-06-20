@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains custom functions for the very simple spheroid component.
 !!}
 
 double precision function Node_Component_Spheroid_Very_Simple_Half_Mass_Radius(self)
-  !!{
+  !!{RST
   Return the half-mass radius of the very simple spheroid.
   !!}
   implicit none
@@ -33,7 +33,7 @@ double precision function Node_Component_Spheroid_Very_Simple_Half_Mass_Radius(s
 end function Node_Component_Spheroid_Very_Simple_Half_Mass_Radius
 
 double precision function Node_Component_Spheroid_Very_Simple_Mass_Baryonic(self) result(massBaryonic)
-  !!{
+  !!{RST
   Return the baryonic mass for the very simple spheroid component.
   !!}
   implicit none

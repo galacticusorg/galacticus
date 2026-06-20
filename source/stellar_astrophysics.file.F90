@@ -17,53 +17,47 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a stellar astrophysics class in which the stellar properties are read from file and interpolated.
   !!}
 
   use :: Numerical_Interpolation_2D_Irregular, only : interpolator2DIrregular
 
   !![
-  <stellarAstrophysics name="stellarAstrophysicsFile">
+  <stellarAstrophysics name="stellarAstrophysicsFile" docformat="rst">
    <description>
-    A stellar astrophysics class which reads properties of individual stars of different initial mass and metallicity from an
-    XML file and interpolates in them. The stars can be irregularly spaced in the plane of initial mass and metallicity. The
-    XML file should have the following structure:
-    \begin{verbatim}
-     &lt;stars&gt;
-      &lt;star&gt;
-        &lt;initialMass&gt;0.6&lt;/initialMass&gt;
-        &lt;lifetime&gt;28.19&lt;/lifetime&gt;
-        &lt;metallicity&gt;0.0000&lt;/metallicity&gt;
-        &lt;ejectedMass&gt;7.65&lt;/ejectedMass&gt;
-        &lt;metalYieldMass&gt;0.44435954&lt;/metalYieldMass&gt;
-        &lt;elementYieldMassFe&gt;2.2017e-13&lt;/elementYieldMassFe&gt;
-        &lt;source&gt;Table 2 of Tumlinson, Shull &amp; Venkatesan (2003, ApJ, 584, 608)&lt;/source&gt;
-        &lt;url&gt;http://adsabs.harvard.edu/abs/2003ApJ...584..608T&lt;/url&gt;
-      &lt;/star&gt;
-      &lt;star&gt;
+   A stellar astrophysics class which reads properties of individual stars of different initial mass and metallicity from an XML file and interpolates in them. The stars can be irregularly spaced in the plane of initial mass and metallicity. The XML file should have the following structure:
+
+   .. code-block:: none
+
+       &lt;stars&gt;
+        &lt;star&gt;
+          &lt;initialMass&gt;0.6&lt;/initialMass&gt;
+          &lt;lifetime&gt;28.19&lt;/lifetime&gt;
+          &lt;metallicity&gt;0.0000&lt;/metallicity&gt;
+          &lt;ejectedMass&gt;7.65&lt;/ejectedMass&gt;
+          &lt;metalYieldMass&gt;0.44435954&lt;/metalYieldMass&gt;
+          &lt;elementYieldMassFe&gt;2.2017e-13&lt;/elementYieldMassFe&gt;
+          &lt;source&gt;Table 2 of Tumlinson, Shull &amp; Venkatesan (2003, ApJ, 584, 608)&lt;/source&gt;
+          &lt;url&gt;http://adsabs.harvard.edu/abs/2003ApJ...584..608T&lt;/url&gt;
+        &lt;/star&gt;
+        &lt;star&gt;
+          .
+          .
+          .
+        &lt;/star&gt;
         .
         .
         .
-      &lt;/star&gt;
-      .
-      .
-      .
-     &lt;/stars&gt;
-    \end{verbatim}
-    Each \mono{star} element must contain the \mono{initialMass} (given in $\mathrm{M}_\odot$) and
-    \mono{metallicity} tags. Other tags are optional. \mono{lifetime} gives the lifetime of
-    such a star (in Gyr), \mono{ejectedMass} gives the total mass (in $\mathrm{M}_\odot$) ejected by such a star during
-    its lifetime, \mono{metalYieldMass} gives the total mass of metals yielded by the star during its lifetime
-    while \mono{elementYieldMassX} gives the mass of element \mono{X} yielded by the star
-    during its lifetime. The \mono{source} and \mono{url} tags are not used, but are strongly
-    recommended to provide a reference to the origin of the stellar data.
+       &lt;/stars&gt;
+
+   Each ``star`` element must contain the ``initialMass`` (given in :math:`\mathrm{M}_\odot`) and ``metallicity`` tags. Other tags are optional. ``lifetime`` gives the lifetime of such a star (in Gyr), ``ejectedMass`` gives the total mass (in :math:`\mathrm{M}_\odot`) ejected by such a star during its lifetime, ``metalYieldMass`` gives the total mass of metals yielded by the star during its lifetime while ``elementYieldMassX`` gives the mass of element ``X`` yielded by the star during its lifetime. The ``source`` and ``url`` tags are not used, but are strongly recommended to provide a reference to the origin of the stellar data.
    </description>
    <runTimeFileDependencies paths="fileName"/>
   </stellarAstrophysics>
   !!]
   type, extends(stellarAstrophysicsClass) :: stellarAstrophysicsFile
-     !!{
+     !!{RST
      A stellar astrophysics class in which the stellar properties are read from file and interpolated.
      !!}
      private
@@ -87,7 +81,7 @@
           &                                                                    readDone
   contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Read stellar astrophysics data from file." method="read" />
      </methods>
      !!]
@@ -99,8 +93,8 @@
   end type stellarAstrophysicsFile
 
   interface stellarAstrophysicsFile
-     !!{
-     Constructors for the \refClass{stellarAstrophysicsFile} stellar astrophysics class.
+     !!{RST
+     Constructors for the :galacticus-class:`stellarAstrophysicsFile` stellar astrophysics class.
      !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
@@ -112,8 +106,8 @@
 contains
 
   function fileConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarAstrophysicsFile} stellar astrophysics class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`stellarAstrophysicsFile` stellar astrophysics class which takes a parameter list as input.
     !!}
     use :: Input_Paths     , only : inputPath     , pathTypeDataStatic
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -123,10 +117,12 @@ contains
     type(varying_string         )                :: fileName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <defaultValue>inputPath(pathTypeDataStatic)//'stellarAstrophysics/stellarPropertiesCompilationStandard.xml'</defaultValue>
-      <description>The name of the XML file from which to read stellar properties (ejected masses, yields, etc.).</description>
+      <description>
+      The name of the XML file from which to read stellar properties (ejected masses, yields, etc.).
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -138,8 +134,8 @@ contains
   end function fileConstructorParameters
 
   function fileConstructorInternal(fileName) result(self)
-    !!{
-    Internal constructor for the \refClass{stellarAstrophysicsFile} stellar astrophysics class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`stellarAstrophysicsFile` stellar astrophysics class.
     !!}
     use :: Atomic_Data      , only : Atomic_Data_Atoms_Count
     implicit none
@@ -161,7 +157,7 @@ contains
   end function fileConstructorInternal
 
   subroutine fileRead(self)
-    !!{
+    !!{RST
     Read stellar astrophysics data. This is not done during object construction since it can be slow---we only perform the read if the data is actually needed.
     !!}
     use :: Atomic_Data   , only : Atomic_Short_Label
@@ -334,8 +330,8 @@ contains
   end subroutine fileRead
 
   double precision function fileMassInitial(self,lifetime,metallicity)
-    !!{
-    Return the initial mass of a star of given \mono{lifetime} and \mono{metallicity}.
+    !!{RST
+    Return the initial mass of a star of given ``lifetime`` and ``metallicity``.
     !!}
     use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular
     implicit none
@@ -357,8 +353,8 @@ contains
   end function fileMassInitial
 
   double precision function fileLifetime(self,massInitial,metallicity)
-    !!{
-    Return the lifetime of a star (in Gyr) given an \mono{massInitial} and \mono{metallicity}.
+    !!{RST
+    Return the lifetime of a star (in Gyr) given an ``massInitial`` and ``metallicity``.
     !!}
     use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular
     implicit none
@@ -379,8 +375,8 @@ contains
   end function fileLifetime
 
   double precision function fileMassEjected(self,massInitial,metallicity)
-    !!{
-    Return the mass ejected during the lifetime of a star of given \mono{massInitial} and \mono{metallicity}.
+    !!{RST
+    Return the mass ejected during the lifetime of a star of given ``massInitial`` and ``metallicity``.
     !!}
     use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular
     implicit none
@@ -404,8 +400,8 @@ contains
   end function fileMassEjected
 
   double precision function fileMassYield(self,massInitial,metallicity,atomIndex)
-    !!{
-    Return the mass of metals yielded by a star of given \mono{massInitial} and \mono{metallicity}.
+    !!{RST
+    Return the mass of metals yielded by a star of given ``massInitial`` and ``metallicity``.
     !!}
     use :: Numerical_Interpolation_2D_Irregular, only : Interpolate_2D_Irregular
     implicit none

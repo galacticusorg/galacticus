@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a node property extractor class for halo environment.
 !!}
 
   use :: Cosmological_Density_Field, only : haloEnvironment, haloEnvironmentClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorHaloEnvironment">
-   <description>Extracts environmental metrics for dark matter halos, specifically the linear and non-linear local overdensity, characterizing the large-scale structure environment that influences halo formation rates, assembly bias, and galaxy evolution within the cosmological density field.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorHaloEnvironment" docformat="rst">
+   <description>
+   Extracts environmental metrics for dark matter halos, specifically the linear and non-linear local overdensity, characterizing the large-scale structure environment that influences halo formation rates, assembly bias, and galaxy evolution within the cosmological density field.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorHaloEnvironment
-     !!{
+     !!{RST
      A property extractor class for halo environment.
      !!}
      private
@@ -45,8 +47,8 @@ Implements a node property extractor class for halo environment.
   end type nodePropertyExtractorHaloEnvironment
 
   interface nodePropertyExtractorHaloEnvironment
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorHaloEnvironment} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorHaloEnvironment` property extractor class.
      !!}
      module procedure haloEnvironmentConstructorParameters
      module procedure haloEnvironmentConstructorInternal
@@ -55,8 +57,8 @@ Implements a node property extractor class for halo environment.
 contains
 
   function haloEnvironmentConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorHaloEnvironment} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorHaloEnvironment` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,8 +78,8 @@ contains
   end function haloEnvironmentConstructorParameters
 
   function haloEnvironmentConstructorInternal(haloEnvironment_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorHaloEnvironment} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorHaloEnvironment` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorHaloEnvironment)                        :: self
@@ -90,8 +92,8 @@ contains
   end function haloEnvironmentConstructorInternal
 
   subroutine haloEnvironmentDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorHaloEnvironment} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorHaloEnvironment` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorHaloEnvironment), intent(inout) :: self
@@ -103,8 +105,8 @@ contains
   end subroutine haloEnvironmentDestructor
 
   integer function haloEnvironmentElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{haloEnvironment} property extractor.
+    !!{RST
+    Return the number of elements in the ``haloEnvironment`` property extractor.
     !!}
     implicit none
     class           (nodePropertyExtractorHaloEnvironment), intent(inout) :: self
@@ -116,7 +118,7 @@ contains
   end function haloEnvironmentElementCount
 
   function haloEnvironmentExtract(self,node,time,instance)
-    !!{
+    !!{RST
     Implement extraction of halo environment properties.
     !!}
     implicit none
@@ -136,8 +138,8 @@ contains
   end function haloEnvironmentExtract
 
   subroutine haloEnvironmentNames(self,time,names)
-    !!{
-    Return the name of the \mono{haloEnvironment} property.
+    !!{RST
+    Return the name of the ``haloEnvironment`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorHaloEnvironment), intent(inout)                             :: self
@@ -152,8 +154,8 @@ contains
   end subroutine haloEnvironmentNames
 
   subroutine haloEnvironmentDescriptions(self,time,descriptions)
-    !!{
-    Return a description of the \mono{haloEnvironment} property.
+    !!{RST
+    Return a description of the ``haloEnvironment`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorHaloEnvironment), intent(inout)                             :: self
@@ -168,8 +170,8 @@ contains
   end subroutine haloEnvironmentDescriptions
 
   function haloEnvironmentUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{haloEnvironment} property in the SI system.
+    !!{RST
+    Return the units of the ``haloEnvironment`` property in the SI system.
     !!}
     implicit none
     double precision                                      , allocatable  , dimension(:) :: haloEnvironmentUnitsInSI
@@ -183,7 +185,7 @@ contains
   end function haloEnvironmentUnitsInSI
 
   function haloEnvironmentUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the haloEnvironment properties.
     !!}
     use :: Units_MetaData, only : unitType

@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides various atomic data.
 !!}
 
 module Atomic_Data
-  !!{
+  !!{RST
   Provides various atomic data.
   !!}
   implicit none
@@ -30,7 +30,7 @@ module Atomic_Data
   public :: Atom_Lookup, Abundance_Pattern_Lookup, Atomic_Number, Atomic_Mass, Atomic_Abundance, Atomic_Data_Atoms_Count, Atomic_Short_Label
 
   type atomicData
-     !!{
+     !!{RST
      Data type for storing atomic data.
      !!}
      integer                                             :: atomicNumber
@@ -65,7 +65,7 @@ module Atomic_Data
 contains
 
   character(len=3) function Atomic_Short_Label(atomIndex,atomicNumber,name)
-    !!{
+    !!{RST
     Return the short label for an atom.
     !!}
     implicit none
@@ -88,7 +88,7 @@ contains
   end function Atomic_Short_Label
 
   integer function Atomic_Number(atomIndex,shortLabel,name)
-    !!{
+    !!{RST
     Returns the atomic number of an element specified by name or short label.
     !!}
     implicit none
@@ -113,7 +113,7 @@ contains
   end function Atomic_Number
 
   double precision function Atomic_Mass(atomIndex,atomicNumber,shortLabel,name)
-    !!{
+    !!{RST
     Returns the atomic mass of an element specified by atomic number, name or short label.
     !!}
     implicit none
@@ -138,7 +138,7 @@ contains
   end function Atomic_Mass
 
   double precision function Atomic_Abundance(abundanceIndex,abundanceName,atomIndex,atomicNumber,shortLabel,name,normalization)
-    !!{
+    !!{RST
     Returns the abundance by mass of a given atom in a given abundance pattern.
     !!}
     implicit none
@@ -175,7 +175,7 @@ contains
   end function Atomic_Abundance
 
   integer function Atomic_Data_Atoms_Count()
-    !!{
+    !!{RST
     Return the number of atomic species known in this module.
     !!}
     implicit none
@@ -189,7 +189,7 @@ contains
   end function Atomic_Data_Atoms_Count
 
   subroutine Atomic_Data_Initialize
-    !!{
+    !!{RST
     Ensure that the module is initialized by reading in data.
     !!}
     use :: FoX_dom           , only : destroy              , getElementsByTagname             , node                        , extractDataContent
@@ -316,8 +316,8 @@ contains
   end subroutine Atomic_Data_Initialize
 
   integer function Atom_Lookup(atomicNumber,shortLabel,name)
-    !!{
-    Returns the position in the \mono{atoms()} array of an element specified by atomic number, name or short label.
+    !!{RST
+    Returns the position in the ``atoms()`` array of an element specified by atomic number, name or short label.
     !!}
     use :: Error          , only : Error_Report
     use :: String_Handling, only : String_Lower_Case
@@ -368,8 +368,8 @@ contains
   end function Atom_Lookup
 
   integer function Abundance_Pattern_Lookup(abundanceIndex,abundanceName)
-    !!{
-    Returns the position in the \mono{atoms()} array of an element specified by atomic number, name or short label.
+    !!{RST
+    Returns the position in the ``atoms()`` array of an element specified by atomic number, name or short label.
     !!}
     use :: Error          , only : Error_Report
     use :: String_Handling, only : String_Lower_Case

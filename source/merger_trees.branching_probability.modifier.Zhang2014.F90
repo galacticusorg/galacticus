@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a merger tree branching probability rate modifier which uses the model of \cite{zhang_dark-matter_2014} to account
-  for environmental-dependence.
+  !!{RST
+  Implements a merger tree branching probability rate modifier which uses the model of :cite:t:`zhang_dark-matter_2014` to account for environmental-dependence.
   !!}
 
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
@@ -27,34 +26,29 @@
   use :: Kind_Numbers              , only : kind_int8
   
   !![
-  <mergerTreeBranchingProbabilityModifier name="mergerTreeBranchingProbabilityModifierZhang2014">
+  <mergerTreeBranchingProbabilityModifier name="mergerTreeBranchingProbabilityModifierZhang2014" docformat="rst">
    <description>
-     Provides a merger tree branching probability rate modifier which uses the model of \cite{zhang_dark-matter_2014} to account
-     for envionmental-dependence of the merger rate. Specifically, the modifier is:
-     \begin{equation}
-     1 + \kappa \beta \alpha - \sqrt{2\pi} \kappa \nu (1-\alpha)^{3/2} + \pi \kappa \left(\nu^2\frac{\delta_\mathrm{d}}{\delta_\mathrm{c}}-1\right) (1-\alpha)^{3/2} \exp\left[\frac{\nu^2}{2}\right] \hbox{erfc}\left[\frac{\nu}{\sqrt{2}}\right]
-     \end{equation}
-     where $\kappa$ characterizes the non-Markovian behavior in the excursion set random walks, and whose value depends on the
-     shape of the window function \citep[e.g., $\kappa \approx 0.44$ for a top-hat function in real space, and $\kappa \approx
-     0.35$ for a Gaussian function][]{zhang_dark-matter_2014}, $\alpha = S_\mathrm{d}/S_\mathrm{p}$ with $S_\mathrm{d}$ being the
-     variance on the scale of the descendant (i.e., parent) halo, and $S_\mathrm{p}$ being the variance on the scale of the
-     progenitor (i.e., child) halo,
-     \begin{equation}
-     \beta = -2 + \frac{(1-\alpha)^{3/2}}{2\alpha}\ln\left(\frac{1+\sqrt{1-\alpha}}{1-\sqrt{1-\alpha}}\right)+\frac{1}{\alpha}+2\alpha,
-     \end{equation}     
-     $\nu = \delta_\mathrm{c}/\sqrt{S_\mathrm{d}}$, $\delta_\mathrm{e}$ is the overdensity on the scale of the environment
-     (evaluated at $z=0$), and $\delta_\mathrm{c}$ is the critical overdensity at the time of the descendant halo.
+   Provides a merger tree branching probability rate modifier which uses the model of :cite:t:`zhang_dark-matter_2014` to account for environmental-dependence of the merger rate. Specifically, the modifier is:
 
-     Note that this implementation uses the solutions for the limit of large environment scale ($S_\mathrm{e} \rightarrow 0$;
-     equation~30 of \citealt{zhang_dark-matter_2014}). A warning is emitted if $S_\mathrm{e}$ is sufficiently large to break this
-     assumption.
+   .. math::
+
+      1 + \kappa \beta \alpha - \sqrt{2\pi} \kappa \nu (1-\alpha)^{3/2} + \pi \kappa \left(\nu^2\frac{\delta_\mathrm{d}}{\delta_\mathrm{c}}-1\right) (1-\alpha)^{3/2} \exp\left[\frac{\nu^2}{2}\right] \hbox{erfc}\left[\frac{\nu}{\sqrt{2}}\right]
+
+   where :math:`\kappa` characterizes the non-Markovian behavior in the excursion set random walks, and whose value depends on the shape of the window function :cite:p:`zhang_dark-matter_2014`, :math:`\alpha = S_\mathrm{d}/S_\mathrm{p}` with :math:`S_\mathrm{d}` being the variance on the scale of the descendant (i.e., parent) halo, and :math:`S_\mathrm{p}` being the variance on the scale of the progenitor (i.e., child) halo,
+
+   .. math::
+
+      \beta = -2 + \frac{(1-\alpha)^{3/2}}{2\alpha}\ln\left(\frac{1+\sqrt{1-\alpha}}{1-\sqrt{1-\alpha}}\right)+\frac{1}{\alpha}+2\alpha,
+
+   :math:`\nu = \delta_\mathrm{c}/\sqrt{S_\mathrm{d}}`, :math:`\delta_\mathrm{e}` is the overdensity on the scale of the environment (evaluated at :math:`z=0`), and :math:`\delta_\mathrm{c}` is the critical overdensity at the time of the descendant halo.
+
+   Note that this implementation uses the solutions for the limit of large environment scale (:math:`S_\mathrm{e} \rightarrow 0`; equation 30 of :cite:author:`zhang_dark-matter_2014` :cite:year:`zhang_dark-matter_2014`). A warning is emitted if :math:`S_\mathrm{e}` is sufficiently large to break this assumption.
    </description>
   </mergerTreeBranchingProbabilityModifier>
   !!]
   type, extends(mergerTreeBranchingProbabilityModifierClass) :: mergerTreeBranchingProbabilityModifierZhang2014
-     !!{
-     A merger tree branching probability rate modifier which uses the model of \cite{zhang_dark-matter_2014} to account
-     for environmental-dependence.
+     !!{RST
+     A merger tree branching probability rate modifier which uses the model of :cite:t:`zhang_dark-matter_2014` to account for environmental-dependence.
      !!}
      private
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
@@ -70,8 +64,8 @@
   end type mergerTreeBranchingProbabilityModifierZhang2014
 
   interface mergerTreeBranchingProbabilityModifierZhang2014
-     !!{
-     Constructors for the \refClass{mergerTreeBranchingProbabilityModifierZhang2014} merger tree branching probability rate class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeBranchingProbabilityModifierZhang2014` merger tree branching probability rate class.
      !!}
      module procedure zhang2014ConstructorParameters
      module procedure zhang2014ConstructorInternal
@@ -80,9 +74,8 @@
 contains
 
   function zhang2014ConstructorParameters(parameters) result(self)
-    !!{
-    A constructor for the \mono{zhang2014} merger tree branching probability rate class which builds the
-    object from a parameter set.
+    !!{RST
+    A constructor for the ``zhang2014`` merger tree branching probability rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -95,11 +88,15 @@ contains
     double precision                                                                 :: kappa
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>kappa</name>
       <defaultValue>0.44d0</defaultValue>
-      <defaultSource>\citep{zhang_dark-matter_2014}</defaultSource>
-      <description>The parameter characterizing non-Markovian behavior in excursion set random walks \citep[][equation~8]{zhang_dark-matter_2014}.</description>
+      <defaultSource>
+      :cite:p:`zhang_dark-matter_2014`
+      </defaultSource>
+      <description>
+      The parameter characterizing non-Markovian behavior in excursion set random walks :cite:p:`zhang_dark-matter_2014`.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -119,8 +116,8 @@ contains
   end function zhang2014ConstructorParameters
 
   function zhang2014ConstructorInternal(kappa,cosmologyFunctions_,cosmologicalMassVariance_,criticalOverdensity_,haloEnvironment_) result(self)
-    !!{
-    Default constructor for the \mono{zhang2014} merger tree branching probability rate class.
+    !!{RST
+    Default constructor for the ``zhang2014`` merger tree branching probability rate class.
     !!}
     use :: Error, only : Warn
     implicit none
@@ -154,8 +151,8 @@ contains
   end function zhang2014ConstructorInternal
 
   subroutine zhang2014Destructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeBranchingProbabilityModifierZhang2014} class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeBranchingProbabilityModifierZhang2014` class.
     !!}
     implicit none
     type(mergerTreeBranchingProbabilityModifierZhang2014), intent(inout) :: self
@@ -170,9 +167,8 @@ contains
   end subroutine zhang2014Destructor
 
   double precision function zhang2014RateModifier(self,nodeParent,massParent,sigmaParent,sigmaChild,timeParent) result(modifier)
-    !!{
-    Returns a modifier for merger tree branching rates using the model of \cite{zhang_dark-matter_2014} to account for
-    environmental-dependence.
+    !!{RST
+    Returns a modifier for merger tree branching rates using the model of :cite:t:`zhang_dark-matter_2014` to account for environmental-dependence.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Galacticus_Nodes        , only : nodeComponentBasic

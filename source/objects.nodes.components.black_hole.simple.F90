@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements the simple black hole node component.
 !!}
 
 module Node_Component_Black_Hole_Simple
-  !!{
+  !!{RST
   Implements the simple black hole node component.
   !!}
   use :: Black_Hole_Binary_Mergers , only : blackHoleBinaryMergerClass
@@ -68,7 +68,7 @@ contains
   <nodeComponentThreadInitializationTask function="Node_Component_Black_Hole_Simple_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Black_Hole_Simple_Thread_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the tree node random spin module.
     !!}
     use :: Events_Hooks    , only : satelliteMergerEvent     , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionAfter
@@ -95,7 +95,7 @@ contains
   <nodeComponentThreadUninitializationTask function="Node_Component_Black_Hole_Simple_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Black_Hole_Simple_Thread_Uninitialize()
-    !!{
+    !!{RST
     Uninitializes the tree node random spin module.
     !!}
     use :: Events_Hooks    , only : satelliteMergerEvent
@@ -115,8 +115,8 @@ contains
   <scaleSetTask function="Node_Component_Black_Hole_Simple_Scale_Set"/>
   !!]
   subroutine Node_Component_Black_Hole_Simple_Scale_Set(node)
-    !!{
-    Set scales for properties of \mono{node}.
+    !!{RST
+    Set scales for properties of ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole   , nodeComponentBlackHoleSimple, nodeComponentSpheroid, treeNode, &
          &                          defaultBlackHoleComponent
@@ -150,8 +150,8 @@ contains
   end subroutine Node_Component_Black_Hole_Simple_Scale_Set
 
   subroutine satelliteMerger(self,node)
-    !!{
-    Merge (instantaneously) any simple black hole associated with \mono{node} before it merges with its host halo.
+    !!{RST
+    Merge (instantaneously) any simple black hole associated with ``node`` before it merges with its host halo.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
@@ -185,7 +185,7 @@ contains
   <stateStoreTask function="Node_Component_Black_Hole_Simple_State_Store"/>
   !!]
   subroutine Node_Component_Black_Hole_Simple_State_Store(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Store object state,
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo
@@ -206,7 +206,7 @@ contains
   <stateRetrieveTask function="Node_Component_Black_Hole_Simple_State_Restore"/>
   !!]
   subroutine Node_Component_Black_Hole_Simple_State_Restore(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Retrieve object state.
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo

@@ -17,22 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a ratio output analysis property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRatio">
-   <description>A property extractor that returns the ratio of two scalar node properties---the
-    value extracted by \mono{nodePropertyExtractorNumerator} divided by that extracted by
-    \mono{nodePropertyExtractorDenominator}. The output dataset \mono{name} and \mono{description}
-    are specified directly as parameters, allowing arbitrary dimensionless ratios (e.g.\ disk-to-total
-    stellar mass, gas fraction, size ratio) to be computed on-the-fly at output time without defining
-    a dedicated extractor class for each combination.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorRatio" docformat="rst">
+   <description>
+   A property extractor that returns the ratio of two scalar node properties---the value extracted by ``nodePropertyExtractorNumerator`` divided by that extracted by ``nodePropertyExtractorDenominator``. The output dataset ``name`` and ``description`` are specified directly as parameters, allowing arbitrary dimensionless ratios (e.g.\ disk-to-total stellar mass, gas fraction, size ratio) to be computed on-the-fly at output time without defining a dedicated extractor class for each combination.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRatio
-     !!{
+     !!{RST
      A ratio extractor output analysis class. This extractor extracts two other properties and takes their ratio.
      !!}
      private
@@ -50,8 +47,8 @@ Implements a ratio output analysis property extractor class.
   end type nodePropertyExtractorRatio
 
   interface nodePropertyExtractorRatio
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRatio} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorRatio` property extractor class.
      !!}
      module procedure ratioConstructorParameters
      module procedure ratioConstructorInternal
@@ -60,8 +57,8 @@ Implements a ratio output analysis property extractor class.
 contains
 
   function ratioConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRatio} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorRatio` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -71,15 +68,19 @@ contains
     type (varying_string            )                :: name              , description
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>name</name>
       <source>parameters</source>
-      <description>The name of this property.</description>
+      <description>
+      The name of this property.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>description</name>
       <source>parameters</source>
-      <description>A description of this property.</description>
+      <description>
+      A description of this property.
+      </description>
     </inputParameter>
     <objectBuilder class="nodePropertyExtractor" name="propertyNumerator_"   parameterName="nodePropertyExtractorNumerator"   source="parameters"/>
     <objectBuilder class="nodePropertyExtractor" name="propertyDenominator_" parameterName="nodePropertyExtractorDenominator" source="parameters"/>
@@ -94,8 +95,8 @@ contains
   end function ratioConstructorParameters
 
   function ratioConstructorInternal(name,description,propertyNumerator_,propertyDenominator_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRatio} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRatio` property extractor class.
     !!}
     use :: Error          , only : Error_Report
     use :: String_Handling, only : String_C_to_Fortran
@@ -130,8 +131,8 @@ contains
   end function ratioConstructorInternal
 
   subroutine ratioDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorRatio} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorRatio` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRatio), intent(inout) :: self
@@ -144,7 +145,7 @@ contains
   end subroutine ratioDestructor
 
   double precision function ratioExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a ratio output analysis.
     !!}
     use :: Error, only : Error_Report
@@ -178,7 +179,7 @@ contains
   end function ratioExtract
 
   function ratioName(self)
-    !!{
+    !!{RST
     Return the name of this property.
     !!}
     implicit none
@@ -190,7 +191,7 @@ contains
   end function ratioName
 
   function ratioDescription(self)
-    !!{
+    !!{RST
     Return the description of this property.
     !!}
     implicit none
@@ -202,7 +203,7 @@ contains
   end function ratioDescription
 
   double precision function ratioUnitsInSI(self)
-    !!{
+    !!{RST
     Return the description of this property.
     !!}
     implicit none
@@ -213,7 +214,7 @@ contains
   end function ratioUnitsInSI
 
   function ratioUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the ratio property.
     !!}
     use :: Units_MetaData, only : unitType

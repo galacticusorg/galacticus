@@ -17,32 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-An implementation of the hot halo mass distribution class which uses the model of \cite{ricotti_feedback_2000}.
+!!{RST
+An implementation of the hot halo mass distribution class which uses the model of :cite:t:`ricotti_feedback_2000`.
 !!}
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <hotHaloMassDistribution name="hotHaloMassDistributionRicotti2000">
+  <hotHaloMassDistribution name="hotHaloMassDistributionRicotti2000" docformat="rst">
    <description>
-    A hot halo mass distribution class which adopts a spherically symmetric $\beta$-profile density profile for the hot halo
-    with parameters selected using the fitting function of \cite{ricotti_feedback_2000} who found these by solving for
-    hydrostatic equilibrium in an \gls{nfw} density profile. Specifically, $\beta = 0.9 b$ where
-    \begin{equation}
-     b = {2 c \over 9 \Gamma} \left[ \log(1+c) - {c\over 1+c}\right]^{-1},
-    \end{equation}
-    $c$ is the concentration parameter of the dark matter halo, and $\Gamma$ is the ratio of virial and gas temperatures, which
-    is assumed to be unity. The core radius is $r_\mathrm{core} = 0.22 r_\mathrm{s}$ where $r_\mathrm{s}$ is the scale radius
-    of the dark matter profile. The profile is normalized such that the current mass in the hot gas profile is contained within
-    the outer radius of the hot halo, $r_\mathrm{hot, outer}$.
+   A hot halo mass distribution class which adopts a spherically symmetric :math:`\beta`-profile density profile for the hot halo with parameters selected using the fitting function of :cite:t:`ricotti_feedback_2000` who found these by solving for hydrostatic equilibrium in an :term:`NFW` density profile. Specifically, :math:`\beta = 0.9 b` where
+
+   .. math::
+
+      b = {2 c \over 9 \Gamma} \left[ \log(1+c) - {c\over 1+c}\right]^{-1},
+
+   :math:`c` is the concentration parameter of the dark matter halo, and :math:`\Gamma` is the ratio of virial and gas temperatures, which is assumed to be unity. The core radius is :math:`r_\mathrm{core} = 0.22 r_\mathrm{s}` where :math:`r_\mathrm{s}` is the scale radius of the dark matter profile. The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, :math:`r_\mathrm{hot, outer}`.
    </description>
   </hotHaloMassDistribution>
   !!]
   type, extends(hotHaloMassDistributionBetaProfile) :: hotHaloMassDistributionRicotti2000
-     !!{
-     An implementation of the hot halo mass distribution class which uses the model of \cite{ricotti_feedback_2000}.
+     !!{RST
+     An implementation of the hot halo mass distribution class which uses the model of :cite:t:`ricotti_feedback_2000`.
      !!}
      private
      class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
@@ -53,8 +50,8 @@ An implementation of the hot halo mass distribution class which uses the model o
   end type hotHaloMassDistributionRicotti2000
 
   interface hotHaloMassDistributionRicotti2000
-     !!{
-     Constructors for the \refClass{hotHaloMassDistributionRicotti2000} hot halo mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`hotHaloMassDistributionRicotti2000` hot halo mass distribution class.
      !!}
      module procedure ricotti2000ConstructorParameters
      module procedure ricotti2000ConstructorInternal
@@ -63,8 +60,8 @@ An implementation of the hot halo mass distribution class which uses the model o
 contains
 
   function ricotti2000ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{ricotti2000} hot halo mass distribution class.
+    !!{RST
+    Default constructor for the ``ricotti2000`` hot halo mass distribution class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,8 +84,8 @@ contains
   end function ricotti2000ConstructorParameters
 
   function ricotti2000ConstructorInternal(darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{hotHaloMassDistributionRicotti2000} hot halo mass distribution class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`hotHaloMassDistributionRicotti2000` hot halo mass distribution class.
     !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Error           , only : Component_List                   , Error_Report
@@ -148,8 +145,8 @@ contains
   end function ricotti2000ConstructorInternal
 
   subroutine ricotti2000Destructor(self)
-    !!{
-    Destructor for the \refClass{hotHaloMassDistributionRicotti2000} hot halo mass distribution class.
+    !!{RST
+    Destructor for the :galacticus-class:`hotHaloMassDistributionRicotti2000` hot halo mass distribution class.
     !!}
     implicit none
     type(hotHaloMassDistributionRicotti2000), intent(inout) :: self
@@ -162,8 +159,8 @@ contains
   end subroutine ricotti2000Destructor
 
   function ricotti2000Get(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the \mono{ricotti2000} hot halo mass distribution for the given \mono{node}.
+    !!{RST
+    Return the ``ricotti2000`` hot halo mass distribution for the given ``node``.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentHotHalo, nodeComponentDarkMatterProfile
     use :: Galactic_Structure_Options, only : componentTypeHotHalo, massTypeGaseous               , weightByMass

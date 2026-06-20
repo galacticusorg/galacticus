@@ -17,26 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of \cite{kitayama_semianalytic_1996} dark matter halo virial density contrasts.
+  !!{RST
+  An implementation of :cite:t:`kitayama_semianalytic_1996` dark matter halo virial density contrasts.
   !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <virialDensityContrast name="virialDensityContrastKitayamaSuto1996">
+  <virialDensityContrast name="virialDensityContrastKitayamaSuto1996" docformat="rst">
    <description>
-    A virial density contrast class using the fitting formula of \cite{kitayama_semianalytic_1996}, and so is valid only in
-    flat cosmological models (an error will be reported in non-flat models). Specifically,
-    \begin{equation}
-     \Delta_\mathrm{virial}(t) = 18 \pi^2 [1+0.4093 \left\{{1\over \Omega_\mathrm{matter}(t)}-1\right\}(t)^{0.9052}].
-    \end{equation}
+   A virial density contrast class using the fitting formula of :cite:t:`kitayama_semianalytic_1996`, and so is valid only in flat cosmological models (an error will be reported in non-flat models). Specifically,
+
+   .. math::
+
+      \Delta_\mathrm{virial}(t) = 18 \pi^2 [1+0.4093 \left\{{1\over \Omega_\mathrm{matter}(t)}-1\right\}(t)^{0.9052}].
    </description>
   </virialDensityContrast>
   !!]
   type, extends(virialDensityContrastClass) :: virialDensityContrastKitayamaSuto1996
-     !!{
-     A dark matter halo virial density contrast class using the fitting functions of \cite{kitayama_semianalytic_1996}.
+     !!{RST
+     A dark matter halo virial density contrast class using the fitting functions of :cite:t:`kitayama_semianalytic_1996`.
      !!}
      private
      class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
@@ -47,8 +47,8 @@
   end type virialDensityContrastKitayamaSuto1996
 
   interface virialDensityContrastKitayamaSuto1996
-     !!{
-     Constructors for the \refClass{virialDensityContrastKitayamaSuto1996} dark matter halo virial density contrast class.
+     !!{RST
+     Constructors for the :galacticus-class:`virialDensityContrastKitayamaSuto1996` dark matter halo virial density contrast class.
      !!}
      module procedure kitayamaSuto1996ConstructorParameters
      module procedure kitayamaSuto1996ConstructorInternal
@@ -57,8 +57,8 @@
 contains
 
   function kitayamaSuto1996ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{virialDensityContrastKitayamaSuto1996} dark matter halo virial density contrast class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`virialDensityContrastKitayamaSuto1996` dark matter halo virial density contrast class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -78,8 +78,8 @@ contains
   end function kitayamaSuto1996ConstructorParameters
 
   function kitayamaSuto1996ConstructorInternal(cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{virialDensityContrastKitayamaSuto1996} dark matter halo virial density contrast class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`virialDensityContrastKitayamaSuto1996` dark matter halo virial density contrast class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -93,8 +93,8 @@ contains
   end function kitayamaSuto1996ConstructorInternal
 
   subroutine kitayamaSuto1996Destructor(self)
-    !!{
-    Destructor for the \refClass{virialDensityContrastKitayamaSuto1996} dark matter halo virial density contrast class.
+    !!{RST
+    Destructor for the :galacticus-class:`virialDensityContrastKitayamaSuto1996` dark matter halo virial density contrast class.
     !!}
     implicit none
     type(virialDensityContrastKitayamaSuto1996), intent(inout) :: self
@@ -106,8 +106,8 @@ contains
   end subroutine kitayamaSuto1996Destructor
 
   double precision function kitayamaSuto1996DensityContrast(self,mass,time,expansionFactor,collapsing)
-    !!{
-    Return the virial density contrast at the given epoch, assuming the fitting function of \cite{kitayama_semianalytic_1996}.
+    !!{RST
+    Return the virial density contrast at the given epoch, assuming the fitting function of :cite:t:`kitayama_semianalytic_1996`.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -124,8 +124,8 @@ contains
   end function kitayamaSuto1996DensityContrast
 
   double precision function kitayamaSuto1996DensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
-    !!{
-    Return the virial density contrast at the given epoch, assuming the fitting function of \cite{kitayama_semianalytic_1996}.
+    !!{RST
+    Return the virial density contrast at the given epoch, assuming the fitting function of :cite:t:`kitayama_semianalytic_1996`.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

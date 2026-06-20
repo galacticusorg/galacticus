@@ -17,37 +17,35 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Contains a merger tree evolution timestep class which limits the step to the next satellite merger.
   !!}
 
   use :: Nodes_Operators, only : nodeOperatorClass
 
   !![
-  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSatellite">
-   <description>  
-    A merger tree evolution timestepping class which enforces the following for satellite \glspl{node}. If the satellite's merge
-    target has been advanced to at least a time of $t_\mathrm{required} = t_\mathrm{satellite} + \Delta t_\mathrm{merge} - \delta
-    t_\mathrm{merge,maximum}$ then
-    \begin{equation}
-     \Delta t \le \Delta t_\mathrm{merge},
-    \end{equation}
-    where $t_\mathrm{satellite}$ is the current time for the satellite \gls{node}, $\Delta t_\mathrm{merge}$ is the time until the
-    satellite is due to merge and $\delta t_\mathrm{merge,maximum}$ is the maximum allowed time difference between merging
-    galaxies. This ensures that the satellite is not evolved past the time at which it is due to merge. If this criterion is the
-    limiting criteria for $\Delta t$ then the merging of the satellite will be triggered at the end of the timestep.
-  
-    If the merge target has not been advanced to at least $t_\mathrm{required}$ then instead
-    \begin{equation}
-     \Delta t \le \hbox{max}(\Delta t_\mathrm{merge}-\delta t_\mathrm{merge,maximum}/2,0),
-    \end{equation}
-    is asserted to ensure that the satellite does not reach the time of merging until its merge target is sufficiently close (within
-    $\delta t_\mathrm{merge,maximum}$) of the time of merging.
+  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSatellite" docformat="rst">
+   <description>
+   A merger tree evolution timestepping class which enforces the following for satellite :term:`node`. If the satellite's merge target has been advanced to at least a time of :math:`t_\mathrm{required} = t_\mathrm{satellite} + \Delta t_\mathrm{merge} - \delta t_\mathrm{merge,maximum}` then
+
+   .. math::
+
+      \Delta t \le \Delta t_\mathrm{merge},
+
+   where :math:`t_\mathrm{satellite}` is the current time for the satellite :term:`node`, :math:`\Delta t_\mathrm{merge}` is the time until the satellite is due to merge and :math:`\delta t_\mathrm{merge,maximum}` is the maximum allowed time difference between merging galaxies. This ensures that the satellite is not evolved past the time at which it is due to merge. If this criterion is the limiting criteria for :math:`\Delta t` then the merging of the satellite will be triggered at the end of the timestep.
+
+   If the merge target has not been advanced to at least :math:`t_\mathrm{required}` then instead
+
+   .. math::
+
+      \Delta t \le \hbox{max}(\Delta t_\mathrm{merge}-\delta t_\mathrm{merge,maximum}/2,0),
+
+   is asserted to ensure that the satellite does not reach the time of merging until its merge target is sufficiently close (within :math:`\delta t_\mathrm{merge,maximum}`) of the time of merging.
    </description>
   </mergerTreeEvolveTimestep>
   !!]
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepSatellite
-     !!{
+     !!{RST
      Implementation of a merger tree evolution timestep class which limits the step to the next satellite merger.
      !!}
      private
@@ -60,8 +58,8 @@
   end type mergerTreeEvolveTimestepSatellite
 
   interface mergerTreeEvolveTimestepSatellite
-     !!{
-     Constructors for the \refClass{mergerTreeEvolveTimestepSatellite} merger tree evolution timestep class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeEvolveTimestepSatellite` merger tree evolution timestep class.
      !!}
      module procedure satelliteConstructorParameters
      module procedure satelliteConstructorInternal
@@ -70,8 +68,8 @@
 contains
 
   function satelliteConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveTimestepSatellite} merger tree evolution timestep class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepSatellite` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,16 +79,20 @@ contains
     double precision                                                   :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeOffsetMaximumAbsolute</name>
       <defaultValue>0.010d0</defaultValue>
-      <description>The maximum absolute time difference (in Gyr) allowed between merging pairs of galaxies.</description>
+      <description>
+      The maximum absolute time difference (in Gyr) allowed between merging pairs of galaxies.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeOffsetMaximumRelative</name>
       <defaultValue>0.001d0</defaultValue>
-      <description>The maximum time difference (relative to the cosmic time at the merger epoch) allowed between merging pairs of galaxies.</description>
+      <description>
+      The maximum time difference (relative to the cosmic time at the merger epoch) allowed between merging pairs of galaxies.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="nodeOperator" name="nodeOperator_" source="parameters"/>
@@ -104,8 +106,8 @@ contains
   end function satelliteConstructorParameters
 
   function satelliteConstructorInternal(timeOffsetMaximumAbsolute,timeOffsetMaximumRelative,nodeOperator_) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveTimestepSatellite} merger tree evolution timestep class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepSatellite` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
@@ -121,8 +123,8 @@ contains
   end function satelliteConstructorInternal
 
   subroutine satelliteDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeEvolveTimestepSatellite} merger tree evolution timestep class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeEvolveTimestepSatellite` merger tree evolution timestep class.
     !!}
     implicit none
     type(mergerTreeEvolveTimestepSatellite), intent(inout) :: self
@@ -134,8 +136,8 @@ contains
   end subroutine satelliteDestructor
 
   double precision function satelliteTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
-    !!{
-    Determine a suitable timestep for \mono{node} such that it does not exceed the time of the next satellite merger.
+    !!{RST
+    Determine a suitable timestep for ``node`` such that it does not exceed the time of the next satellite merger.
     !!}
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use :: Galacticus_Nodes      , only : nodeComponentBasic   , nodeComponentSatellite, treeNode
@@ -206,7 +208,7 @@ contains
   end function satelliteTimeEvolveTo
 
   subroutine satelliteMergerProcess(self,tree,node,deadlockStatus)
-    !!{
+    !!{RST
     Process a satellite node which has undergone a merger with its host node.
     !!}
     use :: Display                            , only : displayMessage               , displayVerbosity, verbosityLevelInfo

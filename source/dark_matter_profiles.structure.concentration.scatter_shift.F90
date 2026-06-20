@@ -17,21 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of dark matter halo profile concentrations that shifts the mean concentration--mass relation up/down by a specified number of $\sigma$.
+  !!{RST
+  An implementation of dark matter halo profile concentrations that shifts the mean concentration--mass relation up/down by a specified number of :math:`\sigma`.
   !!}
 
   !![
-  <darkMatterProfileConcentration name="darkMatterProfileConcentrationScatterShift">
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationScatterShift" docformat="rst">
    <description>
-    A dark matter profile concentration class in which the concentration is computed by shifting the results of another
-    concentration class up/down by a specified number of $\sigma$.
+   A dark matter profile concentration class in which the concentration is computed by shifting the results of another concentration class up/down by a specified number of :math:`\sigma`.
    </description>
   </darkMatterProfileConcentration>
   !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationScatterShift
-     !!{
-     A dark matter halo profile concentration class implementing the algorithm of \cite{gao_redshift_2008}.
+     !!{RST
+     A dark matter halo profile concentration class implementing the algorithm of :cite:t:`gao_redshift_2008`.
      !!}
      private
      class           (darkMatterProfileConcentrationClass), pointer :: darkMatterProfileConcentration_ => null()
@@ -44,8 +43,8 @@
   end type darkMatterProfileConcentrationScatterShift
 
   interface darkMatterProfileConcentrationScatterShift
-     !!{
-     Constructors for the \refClass{darkMatterProfileConcentrationScatterShift} dark matter halo profile concentration class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileConcentrationScatterShift` dark matter halo profile concentration class.
      !!}
      module procedure scatterShiftConstructorParameters
      module procedure scatterShiftConstructorInternal
@@ -54,9 +53,8 @@
 contains
 
   function scatterShiftConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileConcentrationScatterShift} dark matter halo profile concentration class which takes a parameter
-    list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationScatterShift` dark matter halo profile concentration class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -67,15 +65,19 @@ contains
 
     !![
     <objectBuilder class="darkMatterProfileConcentration" name="darkMatterProfileConcentration_" source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scatter</name>
       <source>parameters</source>
-      <description>The scatter (in dex) to assume in the halo concentration distribution at fixed mass.</description>
+      <description>
+      The scatter (in dex) to assume in the halo concentration distribution at fixed mass.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sigmaShift</name>
       <source>parameters</source>
-      <description>The number of standard deviations $\sigma$ by which to shift the halo concentration from its mean value, allowing selection of halos with systematically higher or lower concentrations than average at fixed mass.</description>
+      <description>
+      The number of standard deviations :math:`\sigma` by which to shift the halo concentration from its mean value, allowing selection of halos with systematically higher or lower concentrations than average at fixed mass.
+      </description>
     </inputParameter>
     !!]
     self=darkMatterProfileConcentrationScatterShift(scatter,sigmaShift,darkMatterProfileConcentration_)
@@ -87,8 +89,8 @@ contains
   end function scatterShiftConstructorParameters
 
   function scatterShiftConstructorInternal(scatter,sigmaShift,darkMatterProfileConcentration_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileConcentrationScatterShift} dark matter halo profile concentration class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterProfileConcentrationScatterShift` dark matter halo profile concentration class.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
@@ -104,8 +106,8 @@ contains
   end function scatterShiftConstructorInternal
 
   subroutine scatterShiftDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileConcentrationScatterShift} dark matter halo profile concentration class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileConcentrationScatterShift` dark matter halo profile concentration class.
     !!}
     implicit none
     type(darkMatterProfileConcentrationScatterShift), intent(inout) :: self
@@ -117,9 +119,8 @@ contains
   end subroutine scatterShiftDestructor
 
   double precision function scatterShiftConcentration(self,node) result(concentration)
-    !!{
-    Return the concentration of the dark matter halo profile of \mono{node} by shifting relative to another
-    concentration calculation.
+    !!{RST
+    Return the concentration of the dark matter halo profile of ``node`` by shifting relative to another concentration calculation.
     !!}
     implicit none
     class(darkMatterProfileConcentrationScatterShift), intent(inout), target :: self
@@ -135,9 +136,8 @@ contains
   end function scatterShiftConcentration
 
   function scatterShiftDensityContrastDefinition(self)
-    !!{
-    Return a virial density contrast object defining that used in the definition of concentration in the
-    reference class.
+    !!{RST
+    Return a virial density contrast object defining that used in the definition of concentration in the reference class.
     !!}
     implicit none
     class(virialDensityContrastClass                ), pointer       :: scatterShiftDensityContrastDefinition
@@ -148,9 +148,8 @@ contains
   end function scatterShiftDensityContrastDefinition
 
   function scatterShiftDarkMatterProfileDefinition(self)
-    !!{
-    Return a dark matter density profile object defining that used in the definition of concentration in the
-    reference class.
+    !!{RST
+    Return a dark matter density profile object defining that used in the definition of concentration in the reference class.
     !!}
     implicit none
     class(darkMatterProfileDMOClass                 ), pointer       :: scatterShiftDarkMatterProfileDefinition

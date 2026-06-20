@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a variety of numerical integrators.
 !!}
 
 module Numerical_Integration2
-  !!{
+  !!{RST
   Implements a variety of numerical integrators.
   !!}
   private
@@ -60,13 +60,13 @@ module Numerical_Integration2
 
   ! Generic integrator.
   type :: integrator2
-     !!{
+     !!{RST
      Generic numerical integrator class.
      !!}
      double precision :: toleranceAbsolute, toleranceRelative
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set tolerances to use in this integrator." method="toleranceSet" />
      </methods>
      !!]
@@ -75,14 +75,14 @@ module Numerical_Integration2
 
   ! Generic one-dimensional integrator.
   type, abstract, extends(integrator2) :: integrator1D
-     !!{
+     !!{RST
      Generic one-dimensional numerical integrator class.
      !!}
      private
      procedure       (integrand1D), pointer, nopass :: integrand
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the integrand function to be integrated." method="integrandSet" />
        <method description="Evaluate the integral." method="evaluate" />
      </methods>
@@ -105,14 +105,14 @@ module Numerical_Integration2
 
   ! Composite trapezoidal 1D integrator.
   type, extends(integrator1D) :: integratorCompositeTrapezoidal1D
-     !!{
+     !!{RST
      One-dimensional numerical integrator class using a composite trapezoidal rule.
      !!}
      private
      integer :: iterationsMaximum
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the maximum number of iterations allowed in the integrator." method="initialize" />
      </methods>
      !!]
@@ -122,7 +122,7 @@ module Numerical_Integration2
 
   ! Adaptive-composite trapezoidal 1D integrator.
   type, extends(integratorCompositeTrapezoidal1D) :: integratorAdaptiveCompositeTrapezoidal1D
-     !!{
+     !!{RST
      One-dimensional numerical integrator class using an adaptive composite trapezoidal rule.
      !!}
      private
@@ -132,7 +132,7 @@ module Numerical_Integration2
 
   ! Composite Gauss-Kronrod 1D integrator.
   type, extends(integrator1D) :: integratorCompositeGaussKronrod1D
-     !!{
+     !!{RST
      One-dimensional numerical integrator class using a composite Gauss-Kronrod rule.
      !!}
      private
@@ -140,7 +140,7 @@ module Numerical_Integration2
      double precision, allocatable, dimension(:) :: xKronrod         , wGauss, wKronrod
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Initialize the integrator." method="initialize" />
        <method description="Evaluate the integral over an interval and also return the error on the integral." method="evaluateInterval" />
      </methods>
@@ -152,14 +152,14 @@ module Numerical_Integration2
 
   ! Generic one-dimensional vectorized integrator.
   type, abstract, extends(integrator2) :: integratorVectorized1D
-     !!{
+     !!{RST
      Generic one-dimensional vectorized numerical integrator class.
      !!}
      private
      procedure       (integrandVectorized1D), pointer, nopass :: integrand
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the integrand function to be integrated." method="integrandSet" />
      </methods>
      !!]
@@ -182,7 +182,7 @@ module Numerical_Integration2
 
   ! Vectorized composite trapezoidal 1D integrator.
   type, extends(integratorVectorized1D) :: integratorVectorizedCompositeTrapezoidal1D
-     !!{
+     !!{RST
      One-dimensional numerical integrator class using a vectorized composite trapezoidal rule.
      !!}
      private
@@ -190,7 +190,7 @@ module Numerical_Integration2
      double precision, allocatable, dimension(:) :: d
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the maximum number of iterations allowed in the integrator." method="initialize" />
        <method description="Evaluate the integral." method="evaluate" />
      </methods>
@@ -201,7 +201,7 @@ module Numerical_Integration2
 
   ! Vectorized composite Gauss-Kronrod 1D integrator.
   type, extends(integratorVectorized1D) :: integratorVectorizedCompositeGaussKronrod1D
-     !!{
+     !!{RST
      One-dimensional numerical integrator class using a vectorized composite Gauss-Kronrod rule.
      !!}
      private
@@ -209,7 +209,7 @@ module Numerical_Integration2
      double precision, allocatable, dimension(:) :: xKronrod         , wGauss, wKronrod
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the maximum number of iterations allowed, and the order of the integrator." method="initialize" />
        <method description="Evaluate the integral." method="evaluate" />
        <method description="Evaluate the integral over an interval and also return the error on the integral." method="evaluateInterval" />
@@ -222,13 +222,13 @@ module Numerical_Integration2
 
   ! Generic multi-integrand integrator.
   type :: integratorMulti
-     !!{
+     !!{RST
      Generic numerical integrator class.
      !!}
      double precision, allocatable, dimension(:) :: toleranceAbsolute, toleranceRelative
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set tolerances to use in this integrator." method="tolerancesSet" />
      </methods>
      !!]
@@ -238,7 +238,7 @@ module Numerical_Integration2
 
   ! Generic one-dimensional multi-integrand integrator.
   type, abstract, extends(integratorMulti) :: integratorMulti1D
-     !!{
+     !!{RST
      Generic one-dimensional multi-integrand numerical integrator class.
      !!}
      private
@@ -246,7 +246,7 @@ module Numerical_Integration2
      procedure(integrandMulti1D), pointer, nopass :: integrand
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the integrand function to be integrated." method="integrandSet" />
        <method description="Evaluate the integral." method="evaluate" />
      </methods>
@@ -274,7 +274,7 @@ module Numerical_Integration2
 
   ! Generic one-dimensional multi-integrand vectorized integrator.
   type, abstract, extends(integratorMulti) :: integratorMultiVectorized1D
-     !!{
+     !!{RST
      Generic one-dimensional multi-integrand vectorized numerical integrator class.
      !!}
      private
@@ -282,7 +282,7 @@ module Numerical_Integration2
      procedure(integrandMultiVectorized1D), pointer, nopass :: integrand
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the integrand function to be integrated." method="integrandSet" />
      </methods>
      !!]
@@ -309,7 +309,7 @@ module Numerical_Integration2
 
   ! Vectorized composite multi-integrand Gauss-Kronrod 1D integrator.
   type, extends(integratorMultiVectorized1D) :: integratorMultiVectorizedCompositeGaussKronrod1D
-     !!{
+     !!{RST
      One-dimensional multi-integrand numerical integrator class using a vectorized composite Gauss-Kronrod rule.
      !!}
      private
@@ -317,7 +317,7 @@ module Numerical_Integration2
      double precision, allocatable, dimension(:) :: xKronrod         , wGauss, wKronrod
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the maximum number of intervals allowed, and the order of the integrator." method="initialize" />
        <method description="Evaluate the integrals." method="evaluate" />
        <method description="Evaluate the integrals over an interval and also return errors on the integrals." method="evaluateInterval" />
@@ -330,14 +330,14 @@ module Numerical_Integration2
 
   ! Vectorized composite multi-integrand trapezoidal 1D integrator.
   type, extends(integratorMultiVectorized1D) :: integratorMultiVectorizedCompositeTrapezoidal1D
-     !!{
+     !!{RST
      One-dimensional multi-integrand numerical integrator class using a vectorized composite trapezoidal rule.
      !!}
      private
      integer :: intervalsMaximum
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the maximum number of intervals allowed." method="initialize" />
        <method description="Evaluate the integrals." method="evaluate" />
      </methods>
@@ -350,7 +350,7 @@ contains
 
   ! Generic functions.
   subroutine toleranceSetGeneric(self,toleranceAbsolute,toleranceRelative)
-    !!{
+    !!{RST
     Initialize the tolerances for numerical integrators.
     !!}
     use :: Error, only : Error_Report
@@ -378,7 +378,7 @@ contains
 
   ! Generic one-dimensional integrator.
   subroutine integrandSet1D(self,integrand)
-    !!{
+    !!{RST
     Initialize the integrand for one-dimensional numerical integrators.
     !!}
     implicit none
@@ -391,7 +391,7 @@ contains
 
   ! Composite trapezoidal 1D integrator.
   subroutine compositeTrapezoidalInitialize1D(self,iterationsMaximum)
-    !!{
+    !!{RST
     Initialize a one-dimensional, composite trapezoidal numerical integrator.
     !!}
     use :: Error, only : Error_Report
@@ -409,7 +409,7 @@ contains
   end subroutine compositeTrapezoidalInitialize1D
 
   double precision function compositeTrapezoidalEvaluate1D(self,a,b)
-    !!{
+    !!{RST
     Evaluate a one-dimension integral using a numerical composite trapezoidal rule.
     !!}
     use :: Error    , only : Error_Report
@@ -458,9 +458,8 @@ contains
   ! Composite Gauss-Kronrod 1D integrator.
 
   subroutine compositeGaussKronrod1DInitialize(self,iterationsMaximum,order)
-    !!{
-    Initialize a one-dimensional, composite Gauss-Kronrod numerical integrator. Evaluation points and weights are taken from
-    those used in the \gls{gsl}.
+    !!{RST
+    Initialize a one-dimensional, composite Gauss-Kronrod numerical integrator. Evaluation points and weights are taken from those used in the :term:`GSL`.
     !!}
     use :: Error , only : Error_Report
     implicit none
@@ -599,7 +598,7 @@ contains
   end subroutine compositeGaussKronrod1DInitialize
 
   double precision function compositeGaussKronrod1DEvaluate(self,a,b)
-    !!{
+    !!{RST
     Evaluate a one-dimension integral using a numerical composite Gauss-Kronrod rule.
     !!}
     use :: Error, only : Error_Report
@@ -732,9 +731,8 @@ contains
 
 
   subroutine compositeGaussKronrod1DEvaluateInterval(self,a,b,integralKronrod,error)
-    !!{
-    Evaluate the integral over an interval using the Gauss-Kronrod method (also estimates the error). Specific implementation
-    is based on that in the \gls{gsl}.
+    !!{RST
+    Evaluate the integral over an interval using the Gauss-Kronrod method (also estimates the error). Specific implementation is based on that in the :term:`GSL`.
     !!}
     implicit none
     class           (integratorCompositeGaussKronrod1D), intent(inout)                    :: self
@@ -809,9 +807,8 @@ contains
   ! Vectorized composite Gauss-Kronrod 1D integrator.
 
   subroutine vectorizedCompositeGaussKronrod1DInitialize(self,iterationsMaximum,order)
-    !!{
-    Initialize a one-dimensional, vectorized composite Gauss-Kronrod numerical integrator. Evaluation points and weights are
-    taken from those used in the \gls{gsl}.
+    !!{RST
+    Initialize a one-dimensional, vectorized composite Gauss-Kronrod numerical integrator. Evaluation points and weights are taken from those used in the :term:`GSL`.
     !!}
     use :: Error , only : Error_Report
     implicit none
@@ -950,7 +947,7 @@ contains
   end subroutine vectorizedCompositeGaussKronrod1DInitialize
 
   double precision function vectorizedCompositeGaussKronrod1DEvaluate(self,a,b)
-    !!{
+    !!{RST
     Evaluate a one-dimension integral using a numerical composite Gauss-Kronrod rule.
     !!}
     use :: Error, only : Error_Report
@@ -1076,9 +1073,8 @@ contains
   end function vectorizedCompositeGaussKronrod1DEvaluate
 
   subroutine vectorizedCompositeGaussKronrod1DEvaluateInterval(self,a,b,integralKronrod,error)
-    !!{
-    Evaluate the integral over an interval using the Gauss-Kronrod method (also estimates the error). Specific implementation
-    is based on that in the \gls{gsl}.
+    !!{RST
+    Evaluate the integral over an interval using the Gauss-Kronrod method (also estimates the error). Specific implementation is based on that in the :term:`GSL`.
     !!}
     implicit none
     class           (integratorVectorizedCompositeGaussKronrod1D), intent(inout)                                     :: self
@@ -1170,7 +1166,7 @@ contains
   ! Adaptive composite trapezoidal integrator.
 
   double precision function adaptiveCompositeTrapezoidalEvaluate1D(self,a,b)
-    !!{
+    !!{RST
     Evaluate a one-dimension integral using a numerical composite trapezoidal rule.
     !!}
     use :: Error, only : Error_Report
@@ -1291,7 +1287,7 @@ contains
 
   ! Generic one-dimensional vectorized integrator.
   subroutine integrandVectorizedSet1D(self,integrand)
-    !!{
+    !!{RST
     Initialize the integrand for one-dimensional numerical integrators.
     !!}
     implicit none
@@ -1304,7 +1300,7 @@ contains
 
   ! Vectorized composite trapezoidal 1D integrator.
   subroutine vectorizedCompositeTrapezoidalInitialize1D(self,iterationsMaximum)
-    !!{
+    !!{RST
     Initialize a one-dimensional, vectorized composite trapezoidal numerical integrator.
     !!}
     use :: Error , only : Error_Report
@@ -1335,7 +1331,7 @@ contains
   end subroutine vectorizedCompositeTrapezoidalInitialize1D
 
   double precision function vectorizedCompositeTrapezoidalEvaluate1D(self,a,b)
-    !!{
+    !!{RST
     Evaluate a one-dimension integral using a numerical vectorized composite trapezoidal rule.
     !!}
     use :: Error    , only : Error_Report
@@ -1379,8 +1375,8 @@ contains
   ! Generic functions.
 
   subroutine integratorMultiDestructor(self)
-    !!{
-    Destructor for the \mono{integratorMulti} class.
+    !!{RST
+    Destructor for the ``integratorMulti`` class.
     !!}
     implicit none
     type(integratorMulti), intent(inout) :: self
@@ -1391,7 +1387,7 @@ contains
   end subroutine integratorMultiDestructor
 
   subroutine tolerancesSetGeneric(self,toleranceAbsolute,toleranceRelative)
-    !!{
+    !!{RST
     Initialize the tolerances for multi-integrand numerical integrators.
     !!}
     use :: Error , only : Error_Report
@@ -1436,7 +1432,7 @@ contains
   ! Generic one-dimensional, multi-integrand integrator.
 
   subroutine integrandMulti1DSet(self,integrandCount,integrand)
-    !!{
+    !!{RST
     Initialize the integrand for one-dimensional numerical integrators.
     !!}
     implicit none
@@ -1452,7 +1448,7 @@ contains
   ! Generic one-dimensional, multi-integrand vectorized integrator.
 
   subroutine integrandMultiVectorizedSet1D(self,integrandCount,integrand)
-    !!{
+    !!{RST
     Initialize the integrand for one-dimensional numerical integrators.
     !!}
     implicit none
@@ -1468,9 +1464,8 @@ contains
   ! Vectorized composite Gauss-Kronrod 1D integrator.
 
   subroutine multiVectorizedCompositeGaussKronrod1DInitialize(self,intervalsMaximum,order)
-    !!{
-    Initialize a one-dimensional, multi-integrand, vectorized composite Gauss-Kronrod numerical integrator. Evaluation points
-    and weights are taken from those used in the \gls{gsl}.
+    !!{RST
+    Initialize a one-dimensional, multi-integrand, vectorized composite Gauss-Kronrod numerical integrator. Evaluation points and weights are taken from those used in the :term:`GSL`.
     !!}
     use :: Error , only : Error_Report
     implicit none
@@ -1609,7 +1604,7 @@ contains
   end subroutine multiVectorizedCompositeGaussKronrod1DInitialize
 
   function multiVectorizedCompositeGaussKronrod1DEvaluate(self,a,b,status) result(integral)
-    !!{
+    !!{RST
     Evaluate a one-dimension integral using a numerical composite Gauss-Kronrod rule.
     !!}
     use            :: Error, only : Error_Report, errorStatusFail, errorStatusSuccess
@@ -1827,9 +1822,8 @@ contains
   end function multiVectorizedCompositeGaussKronrod1DEvaluate
 
   subroutine multiVectorizedCompositeGaussKronrod1DEvaluateInterval(self,a,b,integralKronrod,error,mustEvaluate)
-    !!{
-    Evaluate the integral over an interval using the Gauss-Kronrod method (also estimates the error). Specific implementation
-    is based on that in the \gls{gsl}.
+    !!{RST
+    Evaluate the integral over an interval using the Gauss-Kronrod method (also estimates the error). Specific implementation is based on that in the :term:`GSL`.
     !!}
     implicit none
     class           (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout)                                                         :: self
@@ -1921,7 +1915,7 @@ contains
   ! Vectorized composite trapezoidal 1D integrator.
 
   subroutine multiVectorizedCompositeTrapezoidal1DInitialize(self,intervalsMaximum)
-    !!{
+    !!{RST
     Initialize a one-dimensional, multi-integrand, vectorized composite trapezoidal numerical integrator.
     !!}
     use :: Error, only : Error_Report
@@ -1939,7 +1933,7 @@ contains
   end subroutine multiVectorizedCompositeTrapezoidal1DInitialize
 
   function multiVectorizedCompositeTrapezoidal1DEvaluate(self,a,b,status) result(integral)
-    !!{
+    !!{RST
     Evaluate a one-dimension integral using a numerical composite trapezoidal rule.
     !!}
     use            :: Display           , only : displayIndent          , displayMessage        , displayUnindent   , displayVerbosity, &

@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements a very simple disk component.
 !!}
 
 module Node_Component_Disk_Very_Simple
-  !!{
+  !!{RST
   Implements a very simple disk component.
   !!}
   use :: Galacticus_Nodes                , only : treeNode
@@ -115,7 +115,7 @@ contains
   <nodeComponentInitializationTask function="Node_Component_Disk_Very_Simple_Initialize"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the tree node very simple disk component module.
     !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent, nodeComponentDiskVerySimple
@@ -130,10 +130,12 @@ contains
        subParameters=parameters%subParameters('componentDisk')
        ! Read parameters controlling the physical implementation.
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>scaleAbsoluteMass</name>
          <defaultValue>100.0d0</defaultValue>
-         <description>The absolute mass scale below which calculations in the very simple disk component are allowed to become inaccurate.</description>
+         <description>
+         The absolute mass scale below which calculations in the very simple disk component are allowed to become inaccurate.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -145,7 +147,7 @@ contains
   <nodeComponentThreadInitializationTask function="Node_Component_Disk_Very_Simple_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Thread_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the tree node very simple disk profile module.
     !!}
     use :: Events_Hooks    , only : dependencyDirectionAfter, dependencyRegEx, openMPThreadBindingAtLevel, postEvolveEvent, &
@@ -175,7 +177,7 @@ contains
   <nodeComponentThreadUninitializationTask function="Node_Component_Disk_Very_Simple_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Thread_Uninitialize()
-    !!{
+    !!{RST
     Uninitializes the tree node very simple disk profile module.
     !!}
     use :: Events_Hooks    , only : postEvolveEvent     , satelliteMergerEvent
@@ -197,7 +199,7 @@ contains
   <preEvolveTask function="Node_Component_Disk_Very_Simple_Pre_Evolve"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Pre_Evolve(node)
-    !!{
+    !!{RST
     Ensure the disk has been initialized.
     !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent, nodeComponentDisk, nodeComponentDiskVerySimple, treeNode
@@ -219,7 +221,7 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Pre_Evolve
 
   subroutine postEvolve(self,node)
-    !!{
+    !!{RST
     Catch rounding errors in the very simple disk gas evolution.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, nodeComponentDiskVerySimple, treeNode
@@ -250,7 +252,7 @@ contains
   <postStepTask function="Node_Component_Disk_Very_Simple_Post_Step"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Post_Step(node,status)
-    !!{
+    !!{RST
     Catch rounding errors in the very simple disk gas evolution.
     !!}
     use :: Abundances_Structure          , only : abs                 , zeroAbundances
@@ -330,7 +332,7 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Post_Step
 
   subroutine Node_Component_Disk_Very_Simple_Create(node)
-    !!{
+    !!{RST
     Create properties in a very simple disk component.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, treeNode
@@ -364,8 +366,8 @@ contains
   <scaleSetTask function="Node_Component_Disk_Very_Simple_Scale_Set"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_Scale_Set(node)
-    !!{
-    Set scales for properties of \mono{node}.
+    !!{RST
+    Set scales for properties of ``node``.
     !!}
     use :: Abundances_Structure          , only : abs                 , abundances       , max                        , unitAbundances         , &
           &                                       zeroAbundances
@@ -414,8 +416,8 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Scale_Set
 
   subroutine satelliteMerger(self,node)
-    !!{
-    Transfer any very simple disk associated with \mono{node} to its host halo.
+    !!{RST
+    Transfer any very simple disk associated with ``node`` to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
@@ -547,7 +549,7 @@ contains
   <stateStoreTask function="Node_Component_Disk_Very_Simple_State_Store"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_State_Store(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Store object state,
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo
@@ -568,7 +570,7 @@ contains
   <stateRetrieveTask function="Node_Component_Disk_Very_Simple_State_Restore"/>
   !!]
   subroutine Node_Component_Disk_Very_Simple_State_Restore(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Retrieve object state.
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo

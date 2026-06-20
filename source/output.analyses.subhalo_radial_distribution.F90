@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an output analysis class that computes subhalo radial distributions.
   !!}
   
@@ -25,8 +25,10 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <outputAnalysis name="outputAnalysisSubhaloRadialDistribution">
-   <description>Computes the radial distribution of subhalos as a function of fractional host-halo radius at a given redshift, with configurable mass threshold (absolute or as virial mass ratio), fractional radius bins, and negative binomial scatter in likelihood calculations.</description>
+  <outputAnalysis name="outputAnalysisSubhaloRadialDistribution" docformat="rst">
+   <description>
+   Computes the radial distribution of subhalos as a function of fractional host-halo radius at a given redshift, with configurable mass threshold (absolute or as virial mass ratio), fractional radius bins, and negative binomial scatter in likelihood calculations.
+   </description>
    <deepCopy>
     <functionClass variables="volumeFunctionsSubHalos, volumeFunctionsHostHalos"/>
    </deepCopy>
@@ -37,7 +39,7 @@
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisSubhaloRadialDistribution
-     !!{
+     !!{RST
      An output analysis class for subhalo mass functions.
      !!}
      private
@@ -59,7 +61,7 @@
      logical                                                                       :: finalized                                  , thresholdIsRatio
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Finalize analysis." method="finalizeAnalysis" />
      </methods>
      !!]
@@ -72,8 +74,8 @@
   end type outputAnalysisSubhaloRadialDistribution
 
   interface outputAnalysisSubhaloRadialDistribution
-     !!{
-     Constructors for the \refClass{outputAnalysisSubhaloRadialDistribution} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisSubhaloRadialDistribution` output analysis class.
      !!}
      module procedure subhaloRadialDistributionConstructorParameters
      module procedure subhaloRadialDistributionConstructorFile
@@ -83,8 +85,8 @@
 contains
 
   function subhaloRadialDistributionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSubhaloRadialDistribution} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisSubhaloRadialDistribution` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters       , only : inputParameter            , inputParameters
     use :: Output_Times           , only : outputTimesClass
@@ -106,59 +108,77 @@ contains
 
     if (parameters%isPresent('fileName')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>fileName</name>
          <source>parameters</source>
-         <description>The name of the file from which to read the target dataset.</description>
+         <description>
+         The name of the file from which to read the target dataset.
+         </description>
        </inputParameter>
        !!]
     else
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>radiusFractionMinimum</name>
          <source>parameters</source>
          <defaultValue>1.0d-4</defaultValue>
-         <description>The minimum fractional radius to consider.</description>
+         <description>
+         The minimum fractional radius to consider.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>radiusFractionMaximum</name>
          <source>parameters</source>
          <defaultValue>1.0d0</defaultValue>
-         <description>The maximum fractional radius to consider.</description>
+         <description>
+         The maximum fractional radius to consider.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>countRadiiFractional</name>
          <source>parameters</source>
          <defaultValue>10_c_size_t</defaultValue>
-         <description>The number of bins in mass ratio to use.</description>
+         <description>
+         The number of bins in mass ratio to use.
+         </description>
        </inputParameter>
-      <inputParameter>
+      <inputParameter docformat="rst">
          <name>massThreshold</name>
          <source>parameters</source>
          <defaultValue>0.0d0</defaultValue>
-         <description>The minimum satellite bound mass (or mass ratio---see the \mono{[thresholdIsRatio]} parameter) to include in the radial distribution function.</description>
+         <description>
+         The minimum satellite bound mass (or mass ratio---see the ``[thresholdIsRatio]`` parameter) to include in the radial distribution function.
+         </description>
        </inputParameter>
-      <inputParameter>
+      <inputParameter docformat="rst">
          <name>thresholdIsRatio</name>
          <source>parameters</source>
          <defaultValue>.true.</defaultValue>
-         <description>If true, the \mono{[massThreshold]} parameter is interpreted as a ratio with the virial mass of the host halo.</description>
+         <description>
+         If true, the ``[massThreshold]`` parameter is interpreted as a ratio with the virial mass of the host halo.
+         </description>
        </inputParameter>
        !!]
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The redshift at which to compute the subhalo radial distribution.</description>
+      <description>
+      The redshift at which to compute the subhalo radial distribution.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>negativeBinomialScatterFractional</name>
       <source>parameters</source>
       <defaultValue>0.18d0</defaultValue>
-      <defaultSource>\citep{boylan-kolchin_theres_2010}</defaultSource>
-      <description>The fractional scatter (relative to the Poisson scatter) in the negative binomial distribution used in likelihood calculations.</description>
+      <defaultSource>
+      :cite:p:`boylan-kolchin_theres_2010`
+      </defaultSource>
+      <description>
+      The fractional scatter (relative to the Poisson scatter) in the negative binomial distribution used in likelihood calculations.
+      </description>
     </inputParameter>
     <objectBuilder class="outputTimes"           name="outputTimes_"                     source="parameters"                                                />
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />
@@ -190,8 +210,8 @@ contains
   end function subhaloRadialDistributionConstructorParameters
   
   function subhaloRadialDistributionConstructorFile(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,fileName,negativeBinomialScatterFractional,redshift) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSubhaloRadialDistribution} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisSubhaloRadialDistribution` output analysis class for internal use.
     !!}
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object
@@ -255,8 +275,8 @@ contains
   end function subhaloRadialDistributionConstructorFile
 
   function subhaloRadialDistributionConstructorInternal(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,time,radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massThreshold,thresholdIsRatio,negativeBinomialScatterFractional,radialDistributionTarget,radialDistributionCovarianceTarget,labelTarget) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSubhaloRadialDistribution} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisSubhaloRadialDistribution` output analysis class for internal use.
     !!}
     use :: Galactic_Filters                        , only : filterList                                  , galacticFilterAll                  , galacticFilterHaloIsolated, galacticFilterHaloNotIsolated     , &
           &                                                 galacticFilterHighPass
@@ -508,8 +528,8 @@ contains
   end function subhaloRadialDistributionConstructorInternal
 
   subroutine subhaloRadialDistributionDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisSubhaloRadialDistribution} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisSubhaloRadialDistribution` output analysis class.
     !!}
     implicit none
     type(outputAnalysisSubhaloRadialDistribution), intent(inout) :: self
@@ -528,8 +548,8 @@ contains
   end subroutine subhaloRadialDistributionDestructor
 
   subroutine subhaloRadialDistributionAnalyze(self,node,iOutput)
-    !!{
-    Implement a \mono{subhaloRadialDistribution} output analysis.
+    !!{RST
+    Implement a ``subhaloRadialDistribution`` output analysis.
     !!}
     implicit none
     class  (outputAnalysisSubhaloRadialDistribution), intent(inout) :: self
@@ -543,8 +563,8 @@ contains
   end subroutine subhaloRadialDistributionAnalyze
 
   subroutine subhaloRadialDistributionReduce(self,reduced)
-    !!{
-    Implement a \mono{subhaloRadialDistribution} output analysis reduction.
+    !!{RST
+    Implement a ``subhaloRadialDistribution`` output analysis reduction.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -562,8 +582,8 @@ contains
   end subroutine subhaloRadialDistributionReduce
 
   subroutine subhaloRadialDistributionFinalizeAnalysis(self)
-    !!{
-    Finalize analysis of a \mono{subhaloRadialDistribution} output analysis.
+    !!{RST
+    Finalize analysis of a ``subhaloRadialDistribution`` output analysis.
     !!}
     implicit none
     class           (outputAnalysisSubhaloRadialDistribution), intent(inout)               :: self
@@ -589,8 +609,8 @@ contains
   end subroutine subhaloRadialDistributionFinalizeAnalysis
 
   subroutine subhaloRadialDistributionFinalize(self,groupName)
-    !!{
-    Implement a \mono{subhaloRadialDistribution} output analysis finalization.
+    !!{RST
+    Implement a ``subhaloRadialDistribution`` output analysis finalization.
     !!}
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
@@ -640,12 +660,8 @@ contains
   end subroutine subhaloRadialDistributionFinalize
 
   double precision function subhaloRadialDistributionLogLikelihood(self)
-    !!{
-    Return the log-likelihood of a \mono{subhaloRadialDistribution} output analysis. The likelihood function
-    assumes that the model prediction for the number of subhalos in any given mass bin follows a negative binomial
-    distribution as was found for dark matter subhalos \citep[][see also
-    \protect\citealt{lu_connection_2016}]{boylan-kolchin_theres_2010}. This has been confirmed by examining the results of many
-    tree realizations, although it in principle could be model-dependent.
+    !!{RST
+    Return the log-likelihood of a ``subhaloRadialDistribution`` output analysis. The likelihood function assumes that the model prediction for the number of subhalos in any given mass bin follows a negative binomial distribution as was found for dark matter subhalos :cite:p:`boylan-kolchin_theres_2010`. This has been confirmed by examining the results of many tree realizations, although it in principle could be model-dependent.
     !!}
     use :: Numerical_Constants_Math         , only : Pi
     use :: Models_Likelihoods_Constants     , only : logImpossible

@@ -17,22 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling convergence class which resume converges.
   !!}
 
   use :: ISO_Varying_String, only : varying_string
 
   !![
-  <posteriorSampleStateInitialize name="posteriorSampleStateInitializeResume">
+  <posteriorSampleStateInitialize name="posteriorSampleStateInitializeResume" docformat="rst">
    <description>
-    This class resumes from a previous simulation by setting the chain states to the states at the end of that simulation. The
-    \mono{[logFileRoot]} parameter is used to specify the log-file root name used in the previous simulation.
-  </description>
+   This class resumes from a previous simulation by setting the chain states to the states at the end of that simulation. The ``[logFileRoot]`` parameter is used to specify the log-file root name used in the previous simulation.
+   </description>
   </posteriorSampleStateInitialize>
   !!]
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeResume
-     !!{
+     !!{RST
      Implementation of a posterior sampling state initialization class which sets initial state to that at the end of a previous simulation.
      !!}
      private
@@ -43,8 +42,8 @@
   end type posteriorSampleStateInitializeResume
 
   interface posteriorSampleStateInitializeResume
-     !!{
-     Constructors for the \refClass{posteriorSampleStateInitializeResume} posterior sampling state initialization class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSampleStateInitializeResume` posterior sampling state initialization class.
      !!}
      module procedure resumeConstructorParameters
      module procedure resumeConstructorInternal
@@ -53,8 +52,8 @@
 contains
 
   function resumeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStateInitializeResume} posterior sampling state initialization class.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleStateInitializeResume` posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,14 +63,18 @@ contains
     logical                                                      :: restoreState
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>logFileRoot</name>
-      <description>The root file name (without chain-index suffix) of the binary state files written by a previous run, from which chain positions and optionally full simulation state are restored to resume sampling.</description>
+      <description>
+      The root file name (without chain-index suffix) of the binary state files written by a previous run, from which chain positions and optionally full simulation state are restored to resume sampling.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>restoreState</name>
-      <description>If true, restore the full internal simulation state (step counter, acceptance counts, covariance estimates) from the state files in addition to restoring the chain parameter vectors.</description>
+      <description>
+      If true, restore the full internal simulation state (step counter, acceptance counts, covariance estimates) from the state files in addition to restoring the chain parameter vectors.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -83,8 +86,8 @@ contains
   end function resumeConstructorParameters
 
   function resumeConstructorInternal(logFileRoot,restoreState) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStateInitializeResume} posterior sampling state initialization class.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleStateInitializeResume` posterior sampling state initialization class.
     !!}
     implicit none
     type   (posteriorSampleStateInitializeResume)                :: self
@@ -98,7 +101,7 @@ contains
   end function resumeConstructorInternal
 
   subroutine resumeInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
-    !!{
+    !!{RST
     Initialize simulation state by drawing at random from the parameter priors.
     !!}
     use :: Display                     , only : displayMessage

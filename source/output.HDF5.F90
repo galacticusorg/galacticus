@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which manages HDF5 output from \glc.
+!!{RST
+Contains a module which manages HDF5 output from Galacticus.
 !!}
 
 module Output_HDF5
-  !!{
-  Manages HDF5 output from \glc.
+  !!{RST
+  Manages HDF5 output from Galacticus.
   !!}
   use :: HDF5   , only : HSIZE_T
   use :: IO_HDF5, only : hdf5Object

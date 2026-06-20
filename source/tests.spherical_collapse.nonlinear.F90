@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program which tests nonlinear collapse solution in an Einstein-de Sitter cosmology.
 !!}
 
 program Tests_Spherical_Collapse_NonLinear
-  !!{
+  !!{RST
   Tests nonlinear collapse solution in an Einstein-de Sitter cosmology.
   !!}
   use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda

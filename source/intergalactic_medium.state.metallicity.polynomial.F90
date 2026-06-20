@@ -19,20 +19,20 @@
 
 !+    Contributions to this file made by: Niusha Ahvazi
   
-  !!{
-  An intergalactic medium state decorator class which provides a fixed metallicity for the \gls{igm}.
+  !!{RST
+  An intergalactic medium state decorator class which provides a fixed metallicity for the :term:`IGM`.
   !!}
 
   !![
-  <intergalacticMediumState name="intergalacticMediumStateMetallicityPolynomial">
+  <intergalacticMediumState name="intergalacticMediumStateMetallicityPolynomial" docformat="rst">
    <description>
-    An intergalactic medium state decorator class that overrides the metallicity of an underlying \gls{igm} state with a redshift-dependent polynomial, $Z(z)/Z_\odot = 10^{\sum_i c_i [\log_{10}(1+z)]^i}$, where the polynomial coefficients $c_i$ are provided via \mono{[coefficients]}. All other state properties are passed through unchanged.
+   An intergalactic medium state decorator class that overrides the metallicity of an underlying :term:`IGM` state with a redshift-dependent polynomial, :math:`Z(z)/Z_\odot = 10^{\sum_i c_i [\log_{10}(1+z)]^i}`, where the polynomial coefficients :math:`c_i` are provided via ``[coefficients]``. All other state properties are passed through unchanged.
    </description>
   </intergalacticMediumState>
   !!]
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateMetallicityPolynomial
-     !!{
-     An \gls{igm} state class which provides a fixed metallicity for the \gls{igm}, given by \mono{[metallicity]}.
+     !!{RST
+     An :term:`IGM` state class which provides a fixed metallicity for the :term:`IGM`, given by ``[metallicity]``.
      !!}
      private
      class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_ => null()
@@ -48,8 +48,8 @@
   end type intergalacticMediumStateMetallicityPolynomial
 
   interface intergalacticMediumStateMetallicityPolynomial
-     !!{
-     Constructors for the \refClass{intergalacticMediumStateMetallicityPolynomial} \gls{igm} state class.
+     !!{RST
+     Constructors for the :galacticus-class:`intergalacticMediumStateMetallicityPolynomial` :term:`IGM` state class.
      !!}
      module procedure metallicityPolynomialIGMConstructorParameters
      module procedure metallicityPolynomialIGMConstructorInternal
@@ -58,8 +58,8 @@
 contains
 
   function metallicityPolynomialIGMConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{intergalacticMediumStateMetallicityPolynomial} \gls{igm} state class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`intergalacticMediumStateMetallicityPolynomial` :term:`IGM` state class which takes a parameter set as input.
     !!}
     use :: Input_Parameters                , only : inputParameter  , inputParameters
     implicit none
@@ -72,10 +72,12 @@ contains
     ! Check and read parameters.
     allocate(coefficients(parameters%count('coefficients')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>coefficients</name>
       <source>parameters</source>
-      <description>The polynomial coefficients, $c_i$, in the function $Z(z)/Z_\odot = 10^{\sum_{i=0}^N c_i [\log_{10}(1+z)]^i}$.</description>
+      <description>
+      The polynomial coefficients, :math:`c_i`, in the function :math:`Z(z)/Z_\odot = 10^{\sum_{i=0}^N c_i [\log_{10}(1+z)]^i}`.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <objectBuilder class="intergalacticMediumState" name="intergalacticMediumState_" source="parameters"/>
@@ -91,8 +93,8 @@ contains
   end function metallicityPolynomialIGMConstructorParameters
 
   function metallicityPolynomialIGMConstructorInternal(coefficients,cosmologyFunctions_,intergalacticMediumState_) result(self)
-    !!{
-    Constructor for the \refClass{intergalacticMediumStateMetallicityPolynomial} \gls{igm} state class.
+    !!{RST
+    Constructor for the :galacticus-class:`intergalacticMediumStateMetallicityPolynomial` :term:`IGM` state class.
     !!}
     implicit none
     type            (intergalacticMediumStateMetallicityPolynomial)                        :: self
@@ -107,8 +109,8 @@ contains
   end function metallicityPolynomialIGMConstructorInternal
 
   subroutine metallicityPolynomialDestructor(self)
-    !!{
-    Destructor for the metallicityPolynomial \gls{igm} state class.
+    !!{RST
+    Destructor for the metallicityPolynomial :term:`IGM` state class.
     !!}
     implicit none
     type(intergalacticMediumStateMetallicityPolynomial), intent(inout) :: self
@@ -121,8 +123,8 @@ contains
   end subroutine metallicityPolynomialDestructor
 
   double precision function metallicityPolynomialElectronFraction(self,time)
-    !!{
-    Return the electron fraction of the \gls{igm}.
+    !!{RST
+    Return the electron fraction of the :term:`IGM`.
     !!}
     implicit none
     class           (intergalacticMediumStateMetallicityPolynomial), intent(inout) :: self
@@ -133,8 +135,8 @@ contains
   end function metallicityPolynomialElectronFraction
 
   double precision function metallicityPolynomialNeutralHydrogenFraction(self,time)
-    !!{
-    Return the neutral hydrogen fraction of the \gls{igm}.
+    !!{RST
+    Return the neutral hydrogen fraction of the :term:`IGM`.
     !!}
     implicit none
     class           (intergalacticMediumStateMetallicityPolynomial), intent(inout) :: self
@@ -145,8 +147,8 @@ contains
   end function metallicityPolynomialNeutralHydrogenFraction
 
   double precision function metallicityPolynomialNeutralHeliumFraction(self,time)
-    !!{
-    Return the neutral helium fraction of the \gls{igm}.
+    !!{RST
+    Return the neutral helium fraction of the :term:`IGM`.
     !!}
     implicit none
     class           (intergalacticMediumStateMetallicityPolynomial), intent(inout) :: self
@@ -157,8 +159,8 @@ contains
   end function metallicityPolynomialNeutralHeliumFraction
 
   double precision function metallicityPolynomialSinglyIonizedHeliumFraction(self,time)
-    !!{
-    Return the singly-ionized helium fraction of the \gls{igm}.
+    !!{RST
+    Return the singly-ionized helium fraction of the :term:`IGM`.
     !!}
     implicit none
     class           (intergalacticMediumStateMetallicityPolynomial), intent(inout) :: self
@@ -169,8 +171,8 @@ contains
   end function metallicityPolynomialSinglyIonizedHeliumFraction
 
   double precision function metallicityPolynomialTemperature(self,time)
-    !!{
-    Return the temperature of the \gls{igm}.
+    !!{RST
+    Return the temperature of the :term:`IGM`.
     !!}
     implicit none
     class           (intergalacticMediumStateMetallicityPolynomial), intent(inout) :: self
@@ -181,8 +183,8 @@ contains
   end function metallicityPolynomialTemperature
 
   double precision function metallicityPolynomialMetallicity(self,time)
-    !!{
-    Return the metallicity of the \gls{igm}.
+    !!{RST
+    Return the metallicity of the :term:`IGM`.
     !!}
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none

@@ -17,27 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that tracks the maximum bound mass achieved by a node.
   !!}
   
   !![
-  <nodeOperator name="nodeOperatorMassBoundMaximum">
+  <nodeOperator name="nodeOperatorMassBoundMaximum" docformat="rst">
     <description>
-      A node operator class that tracks the maximum bound mass achieved by a node. Intended to be paired with the
-      \refClass{nodePropertyExtractorMassBoundMaximum} property extractor class to extract these masses for output.
+    A node operator class that tracks the maximum bound mass achieved by a node. Intended to be paired with the :galacticus-class:`nodePropertyExtractorMassBoundMaximum` property extractor class to extract these masses for output.
     </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorMassBoundMaximum
-     !!{
+     !!{RST
      A node operator class that tracks the maximum host halo mass which a node has occupied.
      !!}
      private
      integer :: massBoundMaximumID
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="update" description="Update the maximum bound mass of this node."/>
      </methods>
      !!]
@@ -49,8 +48,8 @@
   end type nodeOperatorMassBoundMaximum
   
   interface nodeOperatorMassBoundMaximum
-     !!{
-     Constructors for the \refClass{nodeOperatorMassBoundMaximum} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorMassBoundMaximum` node operator class.
      !!}
      module procedure massBoundMaximumConstructorParameters
      module procedure massBoundMaximumConstructorInternal
@@ -59,8 +58,8 @@
 contains
 
   function massBoundMaximumConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorMassBoundMaximum} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorMassBoundMaximum` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -75,8 +74,8 @@ contains
   end function massBoundMaximumConstructorParameters
 
   function massBoundMaximumConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorMassBoundMaximum} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorMassBoundMaximum` node operator class.
     !!}
     implicit none
     type(nodeOperatorMassBoundMaximum) :: self
@@ -88,7 +87,7 @@ contains
   end function massBoundMaximumConstructorInternal
 
   subroutine massBoundMaximumUpdate(self,node)
-    !!{
+    !!{RST
     Update the maximum bound mass of this node.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
@@ -114,7 +113,7 @@ contains
   end subroutine massBoundMaximumUpdate
 
   subroutine massBoundMaximumNodeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize the maximum bound mass of this node.
     !!}
     implicit none
@@ -126,7 +125,7 @@ contains
   end subroutine massBoundMaximumNodeInitialize
 
   subroutine massBoundMaximumDifferentialEvolutionPre(self,node)
-    !!{
+    !!{RST
     Update the maximum bound mass of this node.
     !!}
     implicit none
@@ -138,7 +137,7 @@ contains
   end subroutine massBoundMaximumDifferentialEvolutionPre
 
   subroutine massBoundMaximumDifferentialEvolutionPost(self,node)
-    !!{
+    !!{RST
     Update the maximum bound mass of this node.
     !!}
     implicit none
@@ -150,7 +149,7 @@ contains
   end subroutine massBoundMaximumDifferentialEvolutionPost
 
   subroutine massBoundMaximumNodesMerge(self,node)
-    !!{
+    !!{RST
     Update the maximum bound mass of this node.
     !!}
     implicit none

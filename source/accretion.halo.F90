@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements a class implementing accretion of gas from the \gls{igm} onto halos.
+!!{RST
+Contains a module which implements a class implementing accretion of gas from the :term:`IGM` onto halos.
 !!}
 
 module Accretion_Halos
-  !!{
-  Implements a class implementing accretion of gas from the \gls{igm} onto halos.
+  !!{RST
+  Implements a class implementing accretion of gas from the :term:`IGM` onto halos.
   !!}
   use :: Abundances_Structure         , only : abundances
   use :: Chemical_Abundances_Structure, only : chemicalAbundances
@@ -32,9 +32,11 @@ module Accretion_Halos
 
   ! Enumeration of accretion types.
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>accretionMode</name>
-   <description>Enumeration of accretion modes for the \mono{accretionHalo} class.</description>
+   <description>
+   Enumeration of accretion modes for the ``accretionHalo`` class.
+   </description>
    <visibility>public</visibility>
    <entry label="total"/>
    <entry label="hot"  />
@@ -43,86 +45,106 @@ module Accretion_Halos
   !!]
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>accretionHalo</name>
    <descriptiveName>Accretion Onto Halos</descriptiveName>
    <description>
-    Class providing rates of accretion of gas from the \gls{igm} onto halos. This is expected to depend on (at least) the rate
-    at which that halo mass is growing, the depth of its potential well and the thermodynamical properties of the accreting
-    gas.
+   Class providing rates of accretion of gas from the :term:`IGM` onto halos. This is expected to depend on (at least) the rate at which that halo mass is growing, the depth of its potential well and the thermodynamical properties of the accreting gas.
    </description>
    <default>simple</default>
    <method name="branchHasBaryons" >
-    <description>Returns \mono{true} if this tree branch may accrete baryons, and \mono{false} otherwise.</description>
+    <description>
+    Returns ``true`` if this tree branch may accrete baryons, and ``false`` otherwise.
+    </description>
     <type>logical</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout), target :: node</argument>
    </method>
    <method name="accretionRate" >
-    <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) of accretion of mass from the \gls{igm} onto \mono{node} in the given \mono{accretionMode}.</description>
+    <description>
+    Returns the rate (in units of :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) of accretion of mass from the :term:`IGM` onto ``node`` in the given ``accretionMode``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="accretedMass" >
-    <description>Returns the mass (in units of $\mathrm{M}_\odot$) of accreted from the \gls{igm} onto \mono{node} in the given \mono{accretionMode}. Used to initialize nodes.</description>
+    <description>
+    Returns the mass (in units of :math:`\mathrm{M}_\odot`) of accreted from the :term:`IGM` onto ``node`` in the given ``accretionMode``. Used to initialize nodes.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="failedAccretionRate" >
-    <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) of failed accretion of mass from the \gls{igm} onto \mono{node} in the given \mono{accretionMode}.</description>
+    <description>
+    Returns the rate (in units of :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) of failed accretion of mass from the :term:`IGM` onto ``node`` in the given ``accretionMode``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="failedAccretedMass" >
-    <description>Returns the mass (in units of $\mathrm{M}_\odot$) that failed to accrete from the \gls{igm} onto \mono{node} in the given \mono{accretionMode}. Used to initialize nodes.</description>
+    <description>
+    Returns the mass (in units of :math:`\mathrm{M}_\odot`) that failed to accrete from the :term:`IGM` onto ``node`` in the given ``accretionMode``. Used to initialize nodes.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="accretionRateMetals" >
-    <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) of accretion of metals from the \gls{igm} onto \mono{node} in the given \mono{accretionMode}.</description>
+    <description>
+    Returns the rate (in units of :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) of accretion of metals from the :term:`IGM` onto ``node`` in the given ``accretionMode``.
+    </description>
     <type>type(abundances)</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="accretedMassMetals" >
-    <description>Returns the mass of metals (in units of $\mathrm{M}_\odot$) of accreted from the \gls{igm} onto \mono{node} in the given \mono{accretionMode}. Used to initialize nodes.</description>
+    <description>
+    Returns the mass of metals (in units of :math:`\mathrm{M}_\odot`) of accreted from the :term:`IGM` onto ``node`` in the given ``accretionMode``. Used to initialize nodes.
+    </description>
     <type>type(abundances)</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="failedAccretionRateMetals" >
-    <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) of failed accretion of metals from the \gls{igm} onto \mono{node} in the given \mono{accretionMode}.</description>
+    <description>
+    Returns the rate (in units of :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) of failed accretion of metals from the :term:`IGM` onto ``node`` in the given ``accretionMode``.
+    </description>
     <type>type(abundances)</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="failedAccretedMassMetals" >
-    <description>Returns the mass of metals (in units of $\mathrm{M}_\odot$) that failed to accrete from the \gls{igm} onto \mono{node} in the given \mono{accretionMode}. Used to initialize nodes.</description>
+    <description>
+    Returns the mass of metals (in units of :math:`\mathrm{M}_\odot`) that failed to accrete from the :term:`IGM` onto ``node`` in the given ``accretionMode``. Used to initialize nodes.
+    </description>
     <type>type(abundances)</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="accretionRateChemicals" >
-    <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) of accretion of chemicals from the \gls{igm} onto \mono{node} in the given \mono{accretionMode}.</description>
+    <description>
+    Returns the rate (in units of :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) of accretion of chemicals from the :term:`IGM` onto ``node`` in the given ``accretionMode``.
+    </description>
     <type>type(chemicalAbundances)</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>
     <argument>type(enumerationAccretionModeType), intent(in   ) :: accretionMode</argument>
    </method>
    <method name="accretedMassChemicals" >
-    <description>Returns the mass of chemicals (in units of $\mathrm{M}_\odot$) of accreted from the \gls{igm} onto \mono{node} in the given \mono{accretionMode}. Used to initialize nodes.</description>
+    <description>
+    Returns the mass of chemicals (in units of :math:`\mathrm{M}_\odot`) of accreted from the :term:`IGM` onto ``node`` in the given ``accretionMode``. Used to initialize nodes.
+    </description>
     <type>type(chemicalAbundances)</type>
     <pass>yes</pass>
     <argument>type(treeNode                    ), intent(inout) :: node</argument>

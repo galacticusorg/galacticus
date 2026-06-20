@@ -17,27 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a 1D Cauchy distribution function.
   !!}
 
   !![
-  <distributionFunction1D name="distributionFunction1DCauchy">
+  <distributionFunction1D name="distributionFunction1DCauchy" docformat="rst">
    <description>
-    A Cauchy distribution:
-    \begin{equation}
-     P(x) \propto \left[1+{x-x_0\over\gamma}\right]^{-1}.
-    \end{equation}
-    Specified using:
-    \begin{description}
-    \item[\mono{[median]}] The median, $x_0$;
-    \item[\mono{[scale]}] The scale, $\gamma$;
-    \end{description}
+   A Cauchy distribution:
+
+   .. math::
+
+      P(x) \propto \left[1+{x-x_0\over\gamma}\right]^{-1}.
+
+   Specified using:
+
+   ``[median]``
+      The median, :math:`x_0`;
+
+   ``[scale]``
+      The scale, :math:`\gamma`;
    </description>
   </distributionFunction1D>
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DCauchy
-     !!{
+     !!{RST
      Implementation of a 1D Cauchy distribution function.
      !!}
      private
@@ -49,8 +53,8 @@
   end type distributionFunction1DCauchy
 
   interface distributionFunction1DCauchy
-     !!{
-     Constructors for the \refClass{distributionFunction1DCauchy} 1D distribution function class.
+     !!{RST
+     Constructors for the :galacticus-class:`distributionFunction1DCauchy` 1D distribution function class.
      !!}
      module procedure cauchyConstructorParameters
      module procedure cauchyConstructorInternal
@@ -60,9 +64,8 @@
 contains
 
   function cauchyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DCauchy} 1D distribution function class which builds
-    the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DCauchy` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,14 +75,18 @@ contains
     double precision                                              :: median                , scale
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>median</name>
-      <description>The location parameter (median) $x_0$ of the Cauchy distribution, which determines the peak position of the distribution. Unlike the mean, the median is well-defined for the Cauchy distribution.</description>
+      <description>
+      The location parameter (median) :math:`x_0` of the Cauchy distribution, which determines the peak position of the distribution. Unlike the mean, the median is well-defined for the Cauchy distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scale</name>
-      <description>The scale parameter $\gamma > 0$ of the Cauchy distribution, which controls the width (half-width at half-maximum) of the distribution; larger values give a broader, heavier-tailed distribution.</description>
+      <description>
+      The scale parameter :math:`\gamma &gt; 0` of the Cauchy distribution, which controls the width (half-width at half-maximum) of the distribution; larger values give a broader, heavier-tailed distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -93,8 +100,8 @@ contains
   end function cauchyConstructorParameters
 
   function cauchyConstructorInternal(median,scale,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DCauchy} 1D distribution function class.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DCauchy` 1D distribution function class.
     !!}
     type            (distributionFunction1DCauchy)                                  :: self
     double precision                              , intent(in   )                   :: median                , scale
@@ -107,8 +114,8 @@ contains
   end function cauchyConstructorInternal
 
   function cauchyConstructorProbability(median,limit,probability,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DCauchy} 1D distribution function class.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DCauchy` 1D distribution function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     type            (distributionFunction1DCauchy)                :: self
@@ -121,7 +128,7 @@ contains
   end function cauchyConstructorProbability
 
   double precision function cauchyDensity(self,x)
-    !!{
+    !!{RST
     Return the density of a Cauchy distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -134,7 +141,7 @@ contains
   end function cauchyDensity
 
   double precision function cauchyCumulative(self,x)
-    !!{
+    !!{RST
     Return the cumulative probability of a Cauchy distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -147,7 +154,7 @@ contains
   end function cauchyCumulative
 
   double precision function cauchyInverse(self,p)
-    !!{
+    !!{RST
     Return the inverse of a Cauchy distribution.
     !!}
     use :: Error                   , only : Error_Report

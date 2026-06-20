@@ -17,32 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements calculations of satellite merging times using the \cite{lacey_merger_1993} method with a parameterization of
-  orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}.
+  !!{RST
+  Implements calculations of satellite merging times using the :cite:t:`lacey_merger_1993` method with a parameterization of orbital parameters designed to fit the results of :cite:t:`tormen_rise_1997` as described by :cite:t:`cole_hierarchical_2000`.
   !!}
 
   !![
-  <satelliteMergingTimescales name="satelliteMergingTimescalesLaceyCole1993Tormen">
+  <satelliteMergingTimescales name="satelliteMergingTimescalesLaceyCole1993Tormen" docformat="rst">
    <description>
-    A satellite merging timescale class which computes merging timescales using the dynamical friction calculation of
-    \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of
-    \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}. Timescales are multiplied by the value of the
-    \mono{mergingTimescaleMultiplier} input parameter. Specifically, the merging time is taken to be:
-    \begin{equation}
-     \tau_\mathrm{merge} = {f_\tau \Phi \tau_\mathrm{dynamical} \over 2 B(1)} { M_\mathrm{host}/M_\mathrm{satellite} \over \ln
-     (M_\mathrm{host}/M_\mathrm{satellite})}
-    \end{equation}
-    where $f_\tau=$\mono{mergingTimescaleMultiplier}, $\tau_\mathrm{dynamical}$ is the dynamical time of the
-    host halo and $B(x)=\hbox{erf}(x)-2 x \exp(x)/\sqrt{\Pi}$. The orbital factor $\Phi \equiv \epsilon^{0.78}
-    (R_\mathrm{c}/R_\mathrm{virial})^2$ is drawn at random from a log-normal distribution with median $-0.14$ and dispersion
-    $0.26$ as found by \cite{cole_hierarchical_2000}.
+   A satellite merging timescale class which computes merging timescales using the dynamical friction calculation of :cite:t:`lacey_merger_1993` with a parameterization of orbital parameters designed to fit the results of :cite:t:`tormen_rise_1997` as described by :cite:t:`cole_hierarchical_2000`. Timescales are multiplied by the value of the ``mergingTimescaleMultiplier`` input parameter. Specifically, the merging time is taken to be:
+
+   .. math::
+
+      \tau_\mathrm{merge} = {f_\tau \Phi \tau_\mathrm{dynamical} \over 2 B(1)} { M_\mathrm{host}/M_\mathrm{satellite} \over \ln
+      (M_\mathrm{host}/M_\mathrm{satellite})}
+
+   where :math:`f_\tau=`\ ``mergingTimescaleMultiplier``, :math:`\tau_\mathrm{dynamical}` is the dynamical time of the host halo and :math:`B(x)=\hbox{erf}(x)-2 x \exp(x)/\sqrt{\Pi}`. The orbital factor :math:`\Phi \equiv \epsilon^{0.78} (R_\mathrm{c}/R_\mathrm{virial})^2` is drawn at random from a log-normal distribution with median :math:`-0.14` and dispersion :math:`0.26` as found by :cite:t:`cole_hierarchical_2000`.
    </description>
   </satelliteMergingTimescales>
   !!]
   type, extends(satelliteMergingTimescalesLaceyCole1993) :: satelliteMergingTimescalesLaceyCole1993Tormen
-     !!{
-     A class implementing the \cite{cole_hierarchical_2000} method for satellite merging timescales.
+     !!{RST
+     A class implementing the :cite:t:`cole_hierarchical_2000` method for satellite merging timescales.
      !!}
      private
    contains
@@ -50,8 +45,8 @@
   end type satelliteMergingTimescalesLaceyCole1993Tormen
 
   interface satelliteMergingTimescalesLaceyCole1993Tormen
-     !!{
-     Constructors for the \cite{cole_hierarchical_2000} merging timescale class.
+     !!{RST
+     Constructors for the :cite:t:`cole_hierarchical_2000` merging timescale class.
      !!}
      module procedure laceyCole1993TormenConstructorParameters
      module procedure laceyCole1993TormenConstructorInternal
@@ -60,8 +55,8 @@
 contains
 
   function laceyCole1993TormenConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \cite{cole_hierarchical_2000} merging timescale class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :cite:t:`cole_hierarchical_2000` merging timescale class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -76,8 +71,8 @@ contains
   end function laceyCole1993TormenConstructorParameters
 
   function laceyCole1993TormenConstructorInternal(timescaleMultiplier,darkMatterHaloScale_) result(self)
-    !!{
-    Constructor for the \cite{cole_hierarchical_2000} merging timescale class.
+    !!{RST
+    Constructor for the :cite:t:`cole_hierarchical_2000` merging timescale class.
     !!}
     implicit none
     type            (satelliteMergingTimescalesLaceyCole1993Tormen)                        :: self
@@ -89,9 +84,8 @@ contains
   end function laceyCole1993TormenConstructorInternal
 
   double precision function laceyCole1993TormenTimeUntilMerging(self,node,orbit)
-    !!{
-    Return the timescale for merging satellites using the \cite{lacey_merger_1993} method with a parameterization of orbital
-    parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}.
+    !!{RST
+    Return the timescale for merging satellites using the :cite:t:`lacey_merger_1993` method with a parameterization of orbital parameters designed to fit the results of :cite:t:`tormen_rise_1997` as described by :cite:t:`cole_hierarchical_2000`.
     !!}
     implicit none
     class           (satelliteMergingTimescalesLaceyCole1993Tormen), intent(inout) :: self

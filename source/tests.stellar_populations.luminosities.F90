@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test stellar population luminosities.
 !!}
 
 program Test_Stellar_Populations_Luminosities
-  !!{
+  !!{RST
   Tests of stellar population luminosities.
   !!}
   use :: Abundances_Structure                      , only : abs                                           , abundances                               , max

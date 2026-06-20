@@ -19,12 +19,12 @@
 
 !+    Contributions to this file made by:  Alex Merson.
 
-!!{
+!!{RST
 Contains a module which holds data for the stellar luminosities class.
 !!}
 
 module Stellar_Luminosities_Data
-  !!{
+  !!{RST
   Holds data for the stellar luminosities class.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t

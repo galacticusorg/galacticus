@@ -18,9 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_Linear_Growth_Open
-  !!{
-  Tests linear growth calculations for an open Universe. Growth rates are compared to calculations taken from:
-  http://www.icosmos.co.uk/index.html
+  !!{RST
+  Tests linear growth calculations for an open Universe. Growth rates are compared to calculations taken from: http://www.icosmos.co.uk/index.html
   !!}
   use :: Cosmology_Parameters, only : cosmologyParametersSimple
   use :: Cosmology_Functions , only : cosmologyFunctionsMatterLambda

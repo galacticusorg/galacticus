@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data importer which merges data from other importers.
 !!}
   
   !![
-  <nbodyImporter name="nbodyImporterMerge">
-   <description>An N-body data importer which combines particle and halo data from multiple delegate importer objects into a single unified dataset, enabling analysis of combined simulation volumes or multi-component datasets. A simulation label is provided via \mono{[label]}, and any number of child importer objects can be specified in the linked list.</description>
+  <nbodyImporter name="nbodyImporterMerge" docformat="rst">
+   <description>
+   An N-body data importer which combines particle and halo data from multiple delegate importer objects into a single unified dataset, enabling analysis of combined simulation volumes or multi-component datasets. A simulation label is provided via ``[label]``, and any number of child importer objects can be specified in the linked list.
+   </description>
    <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_" objectType="nbodyImporterClass"/>
   </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterMerge
-     !!{
+     !!{RST
      An importer which merges data from other importers.
      !!}
      private
@@ -41,8 +43,8 @@ Implements an N-body data importer which merges data from other importers.
   end type nbodyImporterMerge
 
   interface nbodyImporterMerge
-     !!{
-     Constructors for the \refClass{nbodyImporterMerge} N-body importer class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyImporterMerge` N-body importer class.
      !!}
      module procedure mergeConstructorParameters
      module procedure mergeConstructorInternal
@@ -51,8 +53,8 @@ Implements an N-body data importer which merges data from other importers.
 contains
 
   function mergeConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyImporterMerge} N-body importer class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyImporterMerge` N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -62,11 +64,13 @@ contains
     integer                                    :: i
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <source>parameters</source>
       <variable>self%label</variable>
-      <description>A label for the simulation</description>
+      <description>
+      A label for the simulation
+      </description>
       <defaultValue>var_str('*')</defaultValue>
     </inputParameter>
     !!]
@@ -91,8 +95,8 @@ contains
   end function mergeConstructorParameters
 
   function mergeConstructorInternal(label,importers) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyImporterMerge} N-body importer class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyImporterMerge` N-body importer class.
     !!}
     implicit none
     type(nbodyImporterMerge)                         :: self
@@ -115,8 +119,8 @@ contains
   end function mergeConstructorInternal
 
   subroutine mergeDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyImporterMerge} N-body importer class.
+    !!{RST
+    Destructor for the :galacticus-class:`nbodyImporterMerge` N-body importer class.
     !!}
     implicit none
     type(nbodyImporterMerge), intent(inout) :: self
@@ -137,7 +141,7 @@ contains
   end subroutine mergeDestructor
 
   subroutine mergeImport(self,simulations)
-    !!{
+    !!{RST
     Merge data from multiple importers.
     !!}
     use :: Display        , only : displayIndent           , displayUnindent               , verbosityLevelStandard  , displayMessage
@@ -376,7 +380,7 @@ contains
   end subroutine mergeImport
 
   logical function mergeIsHDF5(self)
-    !!{
+    !!{RST
     Return whether or not the imported data is from an HDF5 file.
     !!}
     implicit none

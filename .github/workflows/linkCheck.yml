@@ -35,7 +35,7 @@ jobs:
       - name: Install tools
         run: |
            python -m pip install --upgrade pip
-           pip install PyPDF2 requests lxml
+           pip install requests lxml
       - name: Check for broken links
         if: ${{ env.adstoken != '' }}
         id: check_links

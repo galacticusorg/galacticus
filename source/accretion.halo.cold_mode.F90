@@ -19,43 +19,41 @@
 
   !+ Contributions to this file made by: Sachi Weerasooriya
 
-  !!{
-  An implementation of accretion from the \gls{igm} onto halos using simple truncation to
-  mimic the effects of reionization and accounting for cold mode accretion.
+  !!{RST
+  An implementation of accretion from the :term:`IGM` onto halos using simple truncation to mimic the effects of reionization and accounting for cold mode accretion.
   !!}
 
   use :: Cooling_Functions, only : coolingFunction, coolingFunctionClass
   use :: Kind_Numbers     , only : kind_int8
 
   !![
-  <accretionHalo name="accretionHaloColdMode">
+  <accretionHalo name="accretionHaloColdMode" docformat="rst">
    <description>
-    Accretion onto halos using simple truncation to mimic the effects of reionization and accounting for cold mode
-    accretion. This class extends the \mono{simple} class by dividing the accretion into hot and cold mode
-    components. The cold mode fraction follows the approximation introduced by \cite{benson_cold_2010}, namely:
-    \begin{equation}
-    f_\mathrm{cold}=(1+r^{1/\delta})^{-1},
-    \end{equation}
-    where $\delta=$\mono{[accretionColdModeShockStabilityTransitionWidth]}, $r =
-    \epsilon_\mathrm{crit}/\epsilon$, and
-    \begin{equation}
-    \epsilon = r_\mathrm{s} \Lambda / \rho_\mathrm{s} v_\mathrm{s}^3,
-    \end{equation}
-    where $r_\mathrm{s}$ is the accretion shock radius, $\Lambda$ is the post-shock cooling function, $\rho_\mathrm{s}$ is the
-    pre-shock density, $v_\mathrm{s}$ is the pre-shock velocity, and $\epsilon_\mathrm{crit}=$\mono{[accretionColdModeShockStabilityThreshold]}. The pre-shock radius is set equal to the halo virial radius, the pre-shock
-    velocity is set equal to the halo virial velocity, while the pre-shock density is given by
-    \begin{equation}
-    \rho_\mathrm{s} = {\gamma - 1 \over \gamma + 1} { 3 \over 4 \pi } { \Omega_\mathrm{b} \over \Omega_\mathrm{m} } {M \over
-    r_\mathrm{s}^3} \left[ 1 + {(\alpha + 3) (10 + 9 \pi) \over 4} \right]^{-1},
-    \end{equation}
-    where $M$ is the total halo mass, $\gamma(=5/3)$ is the adiabatic index of the gas, and $\alpha$ is the exponent of the
-    initial power-law density perturbation ($\alpha=0$ is assumed). The post-shock density and temperature are found assuming
-    the strong-shock limit.
+   Accretion onto halos using simple truncation to mimic the effects of reionization and accounting for cold mode accretion. This class extends the ``simple`` class by dividing the accretion into hot and cold mode components. The cold mode fraction follows the approximation introduced by :cite:t:`benson_cold_2010`, namely:
+
+   .. math::
+
+      f_\mathrm{cold}=(1+r^{1/\delta})^{-1},
+
+   where :math:`\delta=`\ ``[accretionColdModeShockStabilityTransitionWidth]``, :math:`r = \epsilon_\mathrm{crit}/\epsilon`, and
+
+   .. math::
+
+      \epsilon = r_\mathrm{s} \Lambda / \rho_\mathrm{s} v_\mathrm{s}^3,
+
+   where :math:`r_\mathrm{s}` is the accretion shock radius, :math:`\Lambda` is the post-shock cooling function, :math:`\rho_\mathrm{s}` is the pre-shock density, :math:`v_\mathrm{s}` is the pre-shock velocity, and :math:`\epsilon_\mathrm{crit}=`\ ``[accretionColdModeShockStabilityThreshold]``. The pre-shock radius is set equal to the halo virial radius, the pre-shock velocity is set equal to the halo virial velocity, while the pre-shock density is given by
+
+   .. math::
+
+      \rho_\mathrm{s} = {\gamma - 1 \over \gamma + 1} { 3 \over 4 \pi } { \Omega_\mathrm{b} \over \Omega_\mathrm{m} } {M \over
+      r_\mathrm{s}^3} \left[ 1 + {(\alpha + 3) (10 + 9 \pi) \over 4} \right]^{-1},
+
+   where :math:`M` is the total halo mass, :math:`\gamma(=5/3)` is the adiabatic index of the gas, and :math:`\alpha` is the exponent of the initial power-law density perturbation (:math:`\alpha=0` is assumed). The post-shock density and temperature are found assuming the strong-shock limit.
    </description>
   </accretionHalo>
   !!]
   type, extends(accretionHaloSimple) :: accretionHaloColdMode
-     !!{
+     !!{RST
      A halo accretion class using simple truncation to mimic the effects of reionization and accounting for cold mode accretion.
      !!}
      private
@@ -66,11 +64,11 @@
      logical                                         :: coldFractionComputed
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Initialize after construction."                                                           method="initialize"      />
        <method description="Reset memoized calculations."                                                             method="calculationReset"/>
-       <method description="Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter)." method="chemicalMasses"  />
-       <method description="Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter)." method="coldModeFraction"/>
+       <method description="Returns the total accretion rate from the :term:`IGM` onto a halo (including dark matter)." method="chemicalMasses"  />
+       <method description="Returns the total accretion rate from the :term:`IGM` onto a halo (including dark matter)." method="coldModeFraction"/>
      </methods>
      !!]
      final     ::                              coldModeDestructor
@@ -92,8 +90,8 @@
   end type accretionHaloColdMode
 
   interface accretionHaloColdMode
-     !!{
-     Constructors for the \refClass{accretionHaloColdMode} halo accretion class.
+     !!{RST
+     Constructors for the :galacticus-class:`accretionHaloColdMode` halo accretion class.
      !!}
      module procedure coldModeConstructorParameters
      module procedure coldModeConstructorInternal
@@ -102,8 +100,8 @@
 contains
 
   function coldModeConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{coldMode} halo accretion class.
+    !!{RST
+    Default constructor for the ``coldMode`` halo accretion class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -112,19 +110,27 @@ contains
 
     self%accretionHaloSimple=accretionHaloSimple(parameters)
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>thresholdStabilityShock</name>
-      <defaultSource>\citep{birnboim_virial_2003}</defaultSource>
+      <defaultSource>
+      :cite:p:`birnboim_virial_2003`
+      </defaultSource>
       <defaultValue>0.0126d0</defaultValue>
-      <description>The threshold value, $\epsilon_\mathrm{s,crit}$, for shock stability in the model of \cite{birnboim_virial_2003}.</description>
+      <description>
+      The threshold value, :math:`\epsilon_\mathrm{s,crit}`, for shock stability in the model of :cite:t:`birnboim_virial_2003`.
+      </description>
       <source>parameters</source>
       <variable>self%thresholdStabilityShock</variable>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>widthTransitionStabilityShock</name>
-      <defaultSource>\citep{benson_cold_2010}</defaultSource>
+      <defaultSource>
+      :cite:p:`benson_cold_2010`
+      </defaultSource>
       <defaultValue>0.01d0</defaultValue>
-      <description>The width of the transition from stability to instability for cold mode accretion \citep{benson_cold_2010}.</description>
+      <description>
+      The width of the transition from stability to instability for cold mode accretion :cite:p:`benson_cold_2010`.
+      </description>
       <source>parameters</source>
       <variable>self%widthTransitionStabilityShock</variable>
     </inputParameter>
@@ -136,8 +142,8 @@ contains
   end function coldModeConstructorParameters
 
   function coldModeConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,thresholdStabilityShock,widthTransitionStabilityShock,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,coolingFunction_) result(self)
-    !!{
-    Internal constructor for the \refClass{accretionHaloColdMode} halo accretion class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`accretionHaloColdMode` halo accretion class.
     !!}
     implicit none
     type            (accretionHaloColdMode        )                        :: self
@@ -161,7 +167,7 @@ contains
   end function coldModeConstructorInternal
 
   subroutine coldModeInitialize(self)
-    !!{
+    !!{RST
     Initialize the object after construction.
     !!}
     implicit none
@@ -173,7 +179,7 @@ contains
   end subroutine coldModeInitialize
 
   subroutine coldModeAutoHook(self)
-    !!{
+    !!{RST
     Attach to the calculation reset event.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
@@ -185,8 +191,8 @@ contains
   end subroutine coldModeAutoHook
 
   subroutine coldModeDestructor(self)
-    !!{
-    Destructor for the \refClass{accretionHaloColdMode} halo accretion class.
+    !!{RST
+    Destructor for the :galacticus-class:`accretionHaloColdMode` halo accretion class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
@@ -200,7 +206,7 @@ contains
   end subroutine coldModeDestructor
 
   subroutine coldModeCalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the accretion rate calculation.
     !!}
     use :: Kind_Numbers, only : kind_int8
@@ -216,8 +222,8 @@ contains
   end subroutine coldModeCalculationReset
 
   double precision function coldModeAccretionRate(self,node,accretionMode)
-    !!{
-    Computes the baryonic accretion rate onto \mono{node}.
+    !!{RST
+    Computes the baryonic accretion rate onto ``node``.
     !!}
     implicit none
     class(accretionHaloColdMode       ), intent(inout) :: self
@@ -230,8 +236,8 @@ contains
   end function coldModeAccretionRate
   
   double precision function coldModeAccretedMass(self,node,accretionMode)
-    !!{
-    Computes the mass of baryons accreted into \mono{node}.
+    !!{RST
+    Computes the mass of baryons accreted into ``node``.
     !!}
     implicit none
     class(accretionHaloColdMode       ), intent(inout) :: self
@@ -244,8 +250,8 @@ contains
   end function coldModeAccretedMass
 
   double precision function coldModeFailedAccretionRate(self,node,accretionMode)
-    !!{
-    Computes the baryonic accretion rate onto \mono{node}.
+    !!{RST
+    Computes the baryonic accretion rate onto ``node``.
     !!}
     implicit none
     class(accretionHaloColdMode       ), intent(inout) :: self
@@ -258,8 +264,8 @@ contains
   end function coldModeFailedAccretionRate
   
   double precision function coldModeFailedAccretedMass(self,node,accretionMode)
-    !!{
-    Computes the mass of baryons accreted into \mono{node}.
+    !!{RST
+    Computes the mass of baryons accreted into ``node``.
     !!}
     implicit none
     class(accretionHaloColdMode       ), intent(inout) :: self
@@ -272,8 +278,8 @@ contains
   end function coldModeFailedAccretedMass
 
   function coldModeAccretionRateMetals(self,node,accretionMode)
-    !!{
-    Computes the rate of mass of abundance accretion (in $\mathrm{M}_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Computes the rate of mass of abundance accretion (in :math:`\mathrm{M}_\odot/`\ Gyr) onto ``node`` from the intergalactic medium.
     !!}
     implicit none
     type (abundances                  )                :: coldModeAccretionRateMetals
@@ -287,8 +293,8 @@ contains
   end function coldModeAccretionRateMetals
 
   function coldModeAccretedMassMetals(self,node,accretionMode)
-    !!{
-    Computes the mass of abundances accreted (in $\mathrm{M}_\odot$) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Computes the mass of abundances accreted (in :math:`\mathrm{M}_\odot`) onto ``node`` from the intergalactic medium.
     !!}
     implicit none
     type (abundances                  )                :: coldModeAccretedMassMetals
@@ -302,8 +308,8 @@ contains
   end function coldModeAccretedMassMetals
 
   function coldModeFailedAccretionRateMetals(self,node,accretionMode)
-    !!{
-    Computes the rate of failed mass of abundance accretion (in $\mathrm{M}_\odot/$Gyr) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Computes the rate of failed mass of abundance accretion (in :math:`\mathrm{M}_\odot/`\ Gyr) onto ``node`` from the intergalactic medium.
     !!}
     implicit none
     type (abundances                  )                :: coldModeFailedAccretionRateMetals
@@ -317,8 +323,8 @@ contains
   end function coldModeFailedAccretionRateMetals
 
   function coldModeFailedAccretedMassMetals(self,node,accretionMode)
-    !!{
-    Computes the mass of abundances that failed to accrete (in $\mathrm{M}_\odot$) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Computes the mass of abundances that failed to accrete (in :math:`\mathrm{M}_\odot`) onto ``node`` from the intergalactic medium.
     !!}
     implicit none
     type (abundances                  )                :: coldModeFailedAccretedMassMetals
@@ -332,10 +338,8 @@ contains
   end function coldModeFailedAccretedMassMetals
   
   function coldModeAccretionRateChemicals(self,node,accretionMode)
-    !!{
-    Computes the rate of mass of chemicals accretion (in $\mathrm{M}_\odot/$Gyr) onto \mono{node} from the intergalactic medium. Assumes a
-    primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
-    temperature.
+    !!{RST
+    Computes the rate of mass of chemicals accretion (in :math:`\mathrm{M}_\odot/`\ Gyr) onto ``node`` from the intergalactic medium. Assumes a primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial temperature.
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
@@ -357,8 +361,8 @@ contains
   end function coldModeAccretionRateChemicals
 
   function coldModeAccretedMassChemicals(self,node,accretionMode)
-    !!{
-    Computes the mass of chemicals accreted (in $\mathrm{M}_\odot$) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Computes the mass of chemicals accreted (in :math:`\mathrm{M}_\odot`) onto ``node`` from the intergalactic medium.
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
@@ -380,8 +384,8 @@ contains
   end function coldModeAccretedMassChemicals
 
   function coldModeChemicalMasses(self,node,massAccreted,accretionMode)
-    !!{
-    Compute the masses of chemicals accreted (in $\mathrm{M}_\odot$) onto \mono{node} from the intergalactic medium.
+    !!{RST
+    Compute the masses of chemicals accreted (in :math:`\mathrm{M}_\odot`) onto ``node`` from the intergalactic medium.
     !!}
     use :: Abundances_Structure             , only : zeroAbundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances
@@ -440,7 +444,7 @@ contains
   end function coldModeChemicalMasses
 
   double precision function coldModeColdModeFraction(self,node,accretionMode)
-    !!{
+    !!{RST
     Computes the fraction of accretion occurring in the specified mode.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances

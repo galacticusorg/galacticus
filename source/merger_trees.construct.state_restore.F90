@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree constructor class which constructs a merger tree by restoring state from file.
   !!}
 
@@ -27,41 +27,37 @@
   public :: mergerTreeStateStore, mergerTreeStateFromFile
 
   !![
-  <mergerTreeConstructor name="mergerTreeConstructorStateRestored">
+  <mergerTreeConstructor name="mergerTreeConstructorStateRestored" docformat="rst">
    <description>
-    A merger tree constructor class which will restore a merger tree whose complete internal state was written to file. It is
-    intended primarily for debugging purposes to allow a tree to begin processing just prior to the point of failure. To use
-    this method, the following procedure should be followed:
-    \begin{enumerate}
-     \item Identify a point in the evolution of the tree suitably close to, but before, the point of failure;
-     \item Insert appropriate code into \glc\ to have it call the function to store the state of the file and then stop, e.g.:
-     \begin{verbatim}
-      use :: Merger_Tree_Construction, only : mergerTreeStateStore
-      .
-      .
-      .
-      if (&lt;conditions are met&gt;) then
-         call mergerTreeStateStore(tree,'storedTree.dat')
-         stop 'tree internal state was stored'
-      end if
-     \end{verbatim}
-     \item Run the model ensuring that \mono{[stateFileRoot]} is set to a suitable file root name to allow the
-     internal state of \glc\ to be stored;
-     \item Remove the code inserted above and recompile;
-     \item Run \glc\ with an input parameter file identical to the one used previously except with \mono{[mergerTreeConstruct]}$=$\mono{stateRestore}, \mono{[stateFileRoot]} removed,
-     \mono{[stateRetrieveFileRoot]} set to the value previously used for \mono{[stateFileRoot]} and \mono{[fileName]}$=$\mono{storedTree.dat}.
-    \end{enumerate}
-    This should restore the tree and the internal state of \glc\ precisely from the point where they were saved and produce the
-    same subsequent evolution.
-    
-    Note that currently this method does not support storing and restoring of trees which contain components that have more
-    than one instance.
+   A merger tree constructor class which will restore a merger tree whose complete internal state was written to file. It is intended primarily for debugging purposes to allow a tree to begin processing just prior to the point of failure. To use this method, the following procedure should be followed:
+
+   #. Identify a point in the evolution of the tree suitably close to, but before, the point of failure;
+   #. Insert appropriate code into Galacticus to have it call the function to store the state of the file and then stop, e.g.:
+
+     .. code-block:: none
+
+          use :: Merger_Tree_Construction, only : mergerTreeStateStore
+          .
+          .
+          .
+          if (&lt;conditions are met&gt;) then
+             call mergerTreeStateStore(tree,'storedTree.dat')
+             stop 'tree internal state was stored'
+          end if
+
+   #. Run the model ensuring that ``[stateFileRoot]`` is set to a suitable file root name to allow the internal state of Galacticus to be stored;
+   #. Remove the code inserted above and recompile;
+   #. Run Galacticus with an input parameter file identical to the one used previously except with ``[mergerTreeConstruct]``\ :math:`=`\ ``stateRestore``, ``[stateFileRoot]`` removed, ``[stateRetrieveFileRoot]`` set to the value previously used for ``[stateFileRoot]`` and ``[fileName]``\ :math:`=`\ ``storedTree.dat``.
+
+   This should restore the tree and the internal state of Galacticus precisely from the point where they were saved and produce the same subsequent evolution.
+
+   Note that currently this method does not support storing and restoring of trees which contain components that have more than one instance.
    </description>
    <runTimeFileDependencies paths="fileName"/>
   </mergerTreeConstructor>
   !!]
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorStateRestored
-     !!{
+     !!{RST
      A class implementing merger tree construction via restoring state from file.
      !!}
      private
@@ -74,8 +70,8 @@
   end type mergerTreeConstructorStateRestored
 
   interface mergerTreeConstructorStateRestored
-     !!{
-     Constructors for the \refClass{mergerTreeConstructorStateRestored} merger tree constructor class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeConstructorStateRestored` merger tree constructor class.
      !!}
      module procedure stateRestoredConstructorParameters
      module procedure stateRestoredConstructorInternal
@@ -89,8 +85,8 @@
 contains
 
   function stateRestoredConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeConstructorStateRestored} merger tree constructor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeConstructorStateRestored` merger tree constructor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -101,9 +97,11 @@ contains
     type (varying_string                    )                :: fileName
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
-      <description>The name of the file containing the stored merger tree.</description>
+      <description>
+      The name of the file containing the stored merger tree.
+      </description>
       <defaultValue>var_str('storedTree.dat')</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -120,8 +118,8 @@ contains
   end function stateRestoredConstructorParameters
 
   function stateRestoredConstructorInternal(fileName,randomNumberGenerator_,mergerTreeSeeds_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeConstructorStateRestored} merger tree constructor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeConstructorStateRestored` merger tree constructor class.
     !!}
     implicit none
     type (mergerTreeConstructorStateRestored)                        :: self
@@ -136,8 +134,8 @@ contains
   end function stateRestoredConstructorInternal
 
   subroutine stateRestoredDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeConstructorStateRestored} merger tree constructor class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeConstructorStateRestored` merger tree constructor class.
     !!}
     implicit none
     type(mergerTreeConstructorStateRestored), intent(inout) :: self
@@ -150,7 +148,7 @@ contains
   end subroutine stateRestoredDestructor
 
   function stateRestoredConstruct(self,treeNumber,finished) result(tree)
-    !!{
+    !!{RST
     Restores the state of a merger tree from file.
     !!}
     use            :: Functions_Global, only : State_Retrieve_
@@ -190,7 +188,7 @@ contains
   </functionGlobal>
   !!]
   subroutine mergerTreeStateStore(tree,storeFile,indexOutput,snapshot,append)
-    !!{
+    !!{RST
     Store the complete internal state of a merger tree to file.
     !!}
     use            :: Functions_Global   , only : State_Store_
@@ -316,7 +314,7 @@ contains
   contains
 
     integer function nodeArrayPosition(node,nodeIndices)
-      !!{
+      !!{RST
       Returns the position of a node in the output list given its index.
       !!}
       use :: Error             , only : Error_Report
@@ -349,7 +347,7 @@ contains
   end subroutine mergerTreeStateStore
 
   subroutine mergerTreeStateFromFileUnit(tree,fileUnit,randomNumberGenerator_,mergerTreeSeeds_,status)
-    !!{
+    !!{RST
     Read the state of a merger tree from file given the file unit.
     !!}
     use, intrinsic :: ISO_Fortran_Env , only : IOStat_End
@@ -495,8 +493,8 @@ contains
   contains
 
     function nodePointer(nodeArrayIndex,nodes)
-      !!{
-      Return a pointer to a node, given its position in the array of nodes. Return a null pointer if the array index is $-1$.
+      !!{RST
+      Return a pointer to a node, given its position in the array of nodes. Return a null pointer if the array index is :math:`-1`.
       !!}
       use :: Galacticus_Nodes, only : treeNode, treeNodeList
       type   (treeNode    ), pointer                     :: nodePointer
@@ -514,7 +512,7 @@ contains
   end subroutine mergerTreeStateFromFileUnit
 
   subroutine mergerTreeStateFromFileName(tree,fileName,randomNumberGenerator_,mergerTreeSeeds_,status,deleteAfterRead)
-    !!{
+    !!{RST
     Read the state of a merger tree from file given a file name.
     !!}
     use :: Error           , only : Error_Report

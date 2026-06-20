@@ -17,24 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a supernovae type Ia class based on \cite{nagashima_metal_2005}.
+  !!{RST
+  Implements a supernovae type Ia class based on :cite:t:`nagashima_metal_2005`.
   !!}
 
   use :: Stellar_Astrophysics , only : stellarAstrophysicsClass
   use :: Numerical_Integration, only : integrator
   
   !![
-  <supernovaeTypeIa name="supernovaeTypeIaNagashima2005">
+  <supernovaeTypeIa name="supernovaeTypeIaNagashima2005" docformat="rst">
    <description>
-    A supernovae type Ia class which uses the prescriptions from \cite{nagashima_metal_2005} to compute the numbers and yields
-    of Type Ia supernovae.
+   A supernovae type Ia class which uses the prescriptions from :cite:t:`nagashima_metal_2005` to compute the numbers and yields of Type Ia supernovae.
    </description>
   </supernovaeTypeIa>
   !!]
   type, extends(supernovaeTypeIaFixedYield) :: supernovaeTypeIaNagashima2005
-     !!{
-     A supernovae type Ia class based on \cite{nagashima_metal_2005}.
+     !!{RST
+     A supernovae type Ia class based on :cite:t:`nagashima_metal_2005`.
      !!}
      private
      class(stellarAstrophysicsClass), pointer     :: stellarAstrophysics_ => null()
@@ -46,8 +45,8 @@
   end type supernovaeTypeIaNagashima2005
 
   interface supernovaeTypeIaNagashima2005
-     !!{
-     Constructors for the \refClass{supernovaeTypeIaNagashima2005} supernovae type Ia class.
+     !!{RST
+     Constructors for the :galacticus-class:`supernovaeTypeIaNagashima2005` supernovae type Ia class.
      !!}
      module procedure nagashima2005ConstructorParameters
      module procedure nagashima2005ConstructorInternal
@@ -66,8 +65,8 @@
 contains
 
   function nagashima2005ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{supernovaeTypeIaNagashima2005} supernovae type Ia class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`supernovaeTypeIaNagashima2005` supernovae type Ia class which takes a parameter list as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,8 +86,8 @@ contains
   end function nagashima2005ConstructorParameters
 
   function nagashima2005ConstructorInternal(stellarAstrophysics_) result(self)
-    !!{
-    Internal constructor for the \refClass{supernovaeTypeIaNagashima2005} supernovae type Ia class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`supernovaeTypeIaNagashima2005` supernovae type Ia class.
     !!}
     implicit none
     type (supernovaeTypeIaNagashima2005)                        :: self
@@ -104,8 +103,8 @@ contains
   end function nagashima2005ConstructorInternal
 
   subroutine nagashima2005Destructor(self)
-    !!{
-    Destructor for the \refClass{supernovaeTypeIaNagashima2005} supernovae type Ia class.
+    !!{RST
+    Destructor for the :galacticus-class:`supernovaeTypeIaNagashima2005` supernovae type Ia class.
     !!}
     implicit none
     type(supernovaeTypeIaNagashima2005), intent(inout) :: self
@@ -117,7 +116,7 @@ contains
   end subroutine nagashima2005Destructor
 
   subroutine nagashima2005MassInitialRange(self,initialMassFunction_,age,metallicity,massInitialMinimum,massInitialMaximum)
-    !!{
+    !!{RST
     Return the range of initial stellar masses contributing to the Type Ia population.
     !!}
     implicit none
@@ -135,11 +134,8 @@ contains
   end subroutine nagashima2005MassInitialRange
   
   double precision function nagashima2005Number(self,initialMassFunction_,initialMass,age,metallicity)
-    !!{
-    Compute the cumulative number of Type Ia supernovae originating per unit interval of secondary star mass with given
-    \mono{initialMass} and \mono{metallicity} after a time \mono{age}. The
-    calculation is based on that of \cite{nagashima_metal_2005}. This function is expected to be integrated over the initial mass
-    function of secondary stars.
+    !!{RST
+    Compute the cumulative number of Type Ia supernovae originating per unit interval of secondary star mass with given ``initialMass`` and ``metallicity`` after a time ``age``. The calculation is based on that of :cite:t:`nagashima_metal_2005`. This function is expected to be integrated over the initial mass function of secondary stars.
     !!}
     implicit none
     class           (supernovaeTypeIaNagashima2005), intent(inout), target :: self
@@ -170,7 +166,7 @@ contains
   end function nagashima2005Number
   
   double precision function nagashima2005NumberIntegrand(massFractionSecondary) result(integrand)
-    !!{
+    !!{RST
     Integrand used in computing the number of Type Ia supernovae.
     !!}
     implicit none
@@ -208,8 +204,8 @@ contains
   contains
 
     double precision function massFractionDistribution(massFractionSecondary)
-      !!{
-      The distribution function for secondary mass fractions in binary star systems from \cite{nagashima_metal_2005}.
+      !!{RST
+      The distribution function for secondary mass fractions in binary star systems from :cite:t:`nagashima_metal_2005`.
       !!}
       implicit none
       double precision, intent(in   ) :: massFractionSecondary

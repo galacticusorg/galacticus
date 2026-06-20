@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling state class which computes correlation lengths.
   !!}
 
   !![
-  <posteriorSampleState name="posteriorSampleStateCorrelation">
+  <posteriorSampleState name="posteriorSampleStateCorrelation" docformat="rst">
    <description>
-    An extension of the \mono{history} state, this class also computes and stores the correlation length in each
-    parameter (which is taken to be the median correlation length over all non-outlier chains).
+   An extension of the ``history`` state, this class also computes and stores the correlation length in each parameter (which is taken to be the median correlation length over all non-outlier chains).
    </description>
   </posteriorSampleState>
   !!]
   type, extends(posteriorSampleStateHistory) :: posteriorSampleStateCorrelation
-     !!{
+     !!{RST
      Implementation of a correlation posterior sampling state class.
      !!}
      private
@@ -40,7 +39,7 @@
      integer         , allocatable, dimension(:  ) :: correlationLengths
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the current correlation length in the chains." method="correlationLength" />
        <method description="Compute correlation lengths in the chains." method="correlationLengthCompute" />
        <method description="Return the number of post-convergence correlation lengths that have accrued." method="postConvergenceCorrelationCount" />
@@ -56,8 +55,8 @@
   end type posteriorSampleStateCorrelation
 
   interface posteriorSampleStateCorrelation
-     !!{
-     Constructors for the \refClass{posteriorSampleStateCorrelation} posterior sampling state class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSampleStateCorrelation` posterior sampling state class.
      !!}
      module procedure correlationConstructorParameters
      module procedure correlationConstructorInternal
@@ -66,9 +65,8 @@
 contains
 
   function correlationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStateCorrelation} posterior sampling state class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleStateCorrelation` posterior sampling state class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,9 +75,11 @@ contains
     integer                                                 :: acceptedStateCount
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>acceptedStateCount</name>
-      <description>The number of states to use in acceptance rate statistics.</description>
+      <description>
+      The number of states to use in acceptance rate statistics.
+      </description>
       <defaultValue>100</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -92,9 +92,8 @@ contains
   end function correlationConstructorParameters
 
   function correlationConstructorInternal(acceptedStateCount) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStateCorrelation} posterior sampling state class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleStateCorrelation` posterior sampling state class which builds the object from a parameter set.
     !!}
     use :: MPI_Utilities, only : mpiSelf
     implicit none
@@ -115,7 +114,7 @@ contains
   end function correlationConstructorInternal
 
   subroutine correlationParameterCountSet(self,parameterCount)
-    !!{
+    !!{RST
     Set the number of parameters in this state.
     !!}
     implicit none
@@ -135,7 +134,7 @@ contains
   end subroutine correlationParameterCountSet
 
   subroutine correlationUpdate(self,stateNew,logState,isConverged,outlierMask)
-    !!{
+    !!{RST
     Update the current state.
     !!}
     implicit none
@@ -183,7 +182,7 @@ contains
   end subroutine correlationUpdate
 
   subroutine correlationReset(self)
-    !!{
+    !!{RST
     Reset the state object.
     !!}
     implicit none
@@ -197,7 +196,7 @@ contains
   end subroutine correlationReset
 
   integer function correlationPostConvergenceCorrelationCount(self)
-    !!{
+    !!{RST
     Return the number of post-convergence correlation lengths that have accrued.
     !!}
     implicit none
@@ -208,7 +207,7 @@ contains
   end function correlationPostConvergenceCorrelationCount
 
   integer function correlationCorrelationLength(self)
-    !!{
+    !!{RST
     Return the correlation length.
     !!}
     implicit none
@@ -220,7 +219,7 @@ contains
   end function correlationCorrelationLength
 
   subroutine correlationCorrelationLengthCompute(self,outlierMask)
-    !!{
+    !!{RST
     Compute correlation lengths.
     !!}
     use :: Display           , only : displayIndent, displayMessage, displayUnindent
@@ -264,7 +263,7 @@ contains
   end subroutine correlationCorrelationLengthCompute
 
   subroutine correlationRestore(self,stateVector,first)
-    !!{
+    !!{RST
     Restore the state object from file.
     !!}
     implicit none

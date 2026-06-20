@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a stellar mass output analysis property extractor class.
 !!}
 
@@ -25,18 +25,14 @@ Implements a stellar mass output analysis property extractor class.
   use :: Output_Times      , only : outputTimesClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellar">
-   <description>A property extractor that returns the total stellar luminosity of a node in a
-    specified broadband filter, in units of the AB zero-point. The \mono{filterName} and
-    \mono{filterType} parameters select the photometric band and whether to use rest-frame or
-    observer-frame luminosities. The optional \mono{redshiftBand} shifts the band to a fixed
-    redshift (for K-corrections), and \mono{postprocessChain} applies a named spectral
-    postprocessing chain (e.g.\ \gls{igm} attenuation) before the photometric integration.
-    Luminosity indices are pre-computed per output time for efficiency.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellar" docformat="rst">
+   <description>
+   A property extractor that returns the total stellar luminosity of a node in a specified broadband filter, in units of the AB zero-point. The ``filterName`` and ``filterType`` parameters select the photometric band and whether to use rest-frame or observer-frame luminosities. The optional ``redshiftBand`` shifts the band to a fixed redshift (for K-corrections), and ``postprocessChain`` applies a named spectral postprocessing chain (e.g.\ :term:`IGM` attenuation) before the photometric integration. Luminosity indices are pre-computed per output time for efficiency.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorLuminosityStellar
-     !!{
+     !!{RST
      A stellar luminosity output analysis property extractor class.
      !!}
      private
@@ -57,8 +53,8 @@ Implements a stellar mass output analysis property extractor class.
   end type nodePropertyExtractorLuminosityStellar
 
   interface nodePropertyExtractorLuminosityStellar
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorLuminosityStellar} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorLuminosityStellar` property extractor class.
      !!}
      module procedure luminosityStellarConstructorParameters
      module procedure luminosityStellarConstructorInternal
@@ -67,8 +63,8 @@ Implements a stellar mass output analysis property extractor class.
 contains
 
   function luminosityStellarConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorLuminosityStellar} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorLuminosityStellar` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -83,32 +79,40 @@ contains
     redshiftBandIsPresent    =parameters%isPresent('redshiftBand'    )
     postprocessChainIsPresent=parameters%isPresent('postprocessChain')
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>filterName</name>
       <source>parameters</source>
-      <description>The filter to select.</description>
+      <description>
+      The filter to select.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>filterType</name>
       <source>parameters</source>
-      <description>The filter type (rest or observed) to select.</description>
+      <description>
+      The filter type (rest or observed) to select.
+      </description>
     </inputParameter>
     !!]
     if (redshiftBandIsPresent) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>redshiftBand</name>
          <source>parameters</source>
-         <description>The redshift of the band (if not the output redshift).</description>
+         <description>
+         The redshift of the band (if not the output redshift).
+         </description>
        </inputParameter>
        !!]
     end if
     if (postprocessChainIsPresent) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>postprocessChain</name>
          <source>parameters</source>
-         <description>The postprocessing chain to use.</description>
+         <description>
+         The postprocessing chain to use.
+         </description>
        </inputParameter>
        !!]
     end if
@@ -136,8 +140,8 @@ contains
   end function luminosityStellarConstructorParameters
 
   function luminosityStellarConstructorInternal(filterName,filterType,outputTimes_,redshiftBand,postprocessChain,outputMask) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorLuminosityStellar} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorLuminosityStellar` property extractor class.
     !!}
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
@@ -177,8 +181,8 @@ contains
   end function luminosityStellarConstructorInternal
 
   subroutine luminosityStellarDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorLuminosityStellar} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorLuminosityStellar` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
@@ -190,7 +194,7 @@ contains
   end subroutine luminosityStellarDestructor
 
   double precision function luminosityStellarExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a stellar luminosity output analysis property extractor.
     !!}
     use            :: Galactic_Structure_Options, only : massTypeStellar      , weightByLuminosity
@@ -218,7 +222,7 @@ contains
 
 
   function luminosityStellarQuantity(self)
-    !!{
+    !!{RST
     Return the class of the stellar luminosity property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
@@ -232,7 +236,7 @@ contains
   end function luminosityStellarQuantity
 
   function luminosityStellarName(self)
-    !!{
+    !!{RST
     Return the name of the luminosityStellar property.
     !!}
     implicit none
@@ -244,7 +248,7 @@ contains
   end function luminosityStellarName
 
   function luminosityStellarDescription(self)
-    !!{
+    !!{RST
     Return a description of the luminosityStellar property.
     !!}
     implicit none
@@ -256,7 +260,7 @@ contains
   end function luminosityStellarDescription
 
   double precision function luminosityStellarUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the luminosityStellar property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : luminosityZeroPointAB
@@ -269,7 +273,7 @@ contains
   end function luminosityStellarUnitsInSI
 
   function luminosityStellarUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the luminosityStellar property.
     !!}
     use :: Units_MetaData, only : unitType

@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an analysis weight operator class which weights by a property value.
 !!}
   use :: Node_Property_Extractors          , only : nodePropertyExtractorClass
   use :: Output_Analysis_Property_Operators, only : outputAnalysisPropertyOperatorClass
 
   !![
-  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorProperty">
-   <description>Weights each node's contribution to an output analysis by the value of a specified node property, enabling property-weighted statistics such as mass-weighted quantities or luminosity-weighted distributions.</description>
+  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorProperty" docformat="rst">
+   <description>
+   Weights each node's contribution to an output analysis by the value of a specified node property, enabling property-weighted statistics such as mass-weighted quantities or luminosity-weighted distributions.
+   </description>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorProperty
-     !!{
+     !!{RST
      An weight operator class which weights by a property value.
      !!}
      private
@@ -41,8 +43,8 @@ Implements an analysis weight operator class which weights by a property value.
   end type outputAnalysisWeightOperatorProperty
 
   interface outputAnalysisWeightOperatorProperty
-     !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorProperty} output analysis weight operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisWeightOperatorProperty` output analysis weight operator class.
      !!}
      module procedure propertyConstructorParameters
      module procedure propertyConstructorInternal
@@ -51,8 +53,8 @@ Implements an analysis weight operator class which weights by a property value.
 contains
 
   function propertyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisWeightOperatorProperty} output analysis weight operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisWeightOperatorProperty` output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,8 +79,8 @@ contains
   end function propertyConstructorParameters
 
   function propertyConstructorInternal(extractor_,operator_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisWeightOperatorProperty} output analysis weight operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisWeightOperatorProperty` output analysis weight operator class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
@@ -100,8 +102,8 @@ contains
   end function propertyConstructorInternal
 
   subroutine propertyDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisWeightOperatorProperty} output analysis weight operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisWeightOperatorProperty` output analysis weight operator class.
     !!}
     implicit none
     type(outputAnalysisWeightOperatorProperty), intent(inout) :: self
@@ -114,7 +116,7 @@ contains
   end subroutine propertyDestructor
 
   double precision function propertyOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
-    !!{
+    !!{RST
     Implement an property output analysis weight operator.
     !!}
     use, intrinsic :: ISO_C_Binding           , only : c_size_t

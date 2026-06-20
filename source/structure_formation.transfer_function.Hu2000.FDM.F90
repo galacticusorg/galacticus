@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a transfer function class based on the fuzzy dark matter modifier of \cite{hu_fuzzy_2000}.
+  !!{RST
+  Implements a transfer function class based on the fuzzy dark matter modifier of :cite:t:`hu_fuzzy_2000`.
   !!}
 
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass
@@ -26,14 +26,15 @@
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !![
-  <transferFunction name="transferFunctionHu2000FDM">
-   <description>Provides a matter transfer function for fuzzy dark matter (ultra-light axions), applying the quantum pressure suppression modifier of \cite{hu_fuzzy_2000} to an underlying cold dark matter transfer function. The suppression creates a characteristic small-scale cutoff determined by the axion mass, with the redshift of evaluation specified by \mono{[redshift]}.</description>
+  <transferFunction name="transferFunctionHu2000FDM" docformat="rst">
+   <description>
+   Provides a matter transfer function for fuzzy dark matter (ultra-light axions), applying the quantum pressure suppression modifier of :cite:t:`hu_fuzzy_2000` to an underlying cold dark matter transfer function. The suppression creates a characteristic small-scale cutoff determined by the axion mass, with the redshift of evaluation specified by ``[redshift]``.
+   </description>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionHu2000FDM
-     !!{
-     A transfer function class which modifies another transfer function using the fuzzy dark matter modifier of
-     \cite{hu_fuzzy_2000}.
+     !!{RST
+     A transfer function class which modifies another transfer function using the fuzzy dark matter modifier of :cite:t:`hu_fuzzy_2000`.
      !!}
      private
      double precision                                    :: jeansWavenumberEq             , m22     , &
@@ -51,8 +52,8 @@
   end type transferFunctionHu2000FDM
 
   interface transferFunctionHu2000FDM
-     !!{
-     Constructors for the \refClass{transferFunctionHu2000FDM} transfer function class.
+     !!{RST
+     Constructors for the :galacticus-class:`transferFunctionHu2000FDM` transfer function class.
      !!}
      module procedure hu2000FDMConstructorParameters
      module procedure hu2000FDMConstructorInternal
@@ -61,8 +62,8 @@
 contains
 
   function hu2000FDMConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{transferFunctionHu2000FDM} transfer function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`transferFunctionHu2000FDM` transfer function class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
@@ -85,11 +86,13 @@ contains
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
       <source>parameters</source>
       <defaultValue>cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%equalityEpochMatterRadiation(requestTypeExpansionFactor))</defaultValue>
-      <description>The redshift of the epoch at which the transfer function is defined.</description>
+      <description>
+      The redshift of the epoch at which the transfer function is defined.
+      </description>
     </inputParameter>
     !!]
     self=transferFunctionHu2000FDM(transferFunctionCDM,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_)
@@ -104,8 +107,8 @@ contains
   end function hu2000FDMConstructorParameters
   
   function hu2000FDMConstructorInternal(transferFunctionCDM,time,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_) result(self)
-    !!{
-    Internal constructor for the \refClass{transferFunctionHu2000FDM} transfer function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`transferFunctionHu2000FDM` transfer function class.
     !!}
     use :: Cosmology_Parameters        , only : hubbleUnitsLittleH
     use :: Error                       , only : Error_Report
@@ -140,8 +143,8 @@ contains
   end function hu2000FDMConstructorInternal
 
   subroutine hu2000FDMDestructor(self)
-    !!{
-    Destructor for the \refClass{transferFunctionHu2000FDM} transfer function class.
+    !!{RST
+    Destructor for the :galacticus-class:`transferFunctionHu2000FDM` transfer function class.
     !!}
     implicit none
     type(transferFunctionHu2000FDM), intent(inout) :: self
@@ -156,7 +159,7 @@ contains
   end subroutine hu2000FDMDestructor
 
   double precision function hu2000FDMValue(self,wavenumber)
-    !!{
+    !!{RST
     Return the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -183,7 +186,7 @@ contains
   end function hu2000FDMValue
 
   double precision function hu2000FDMLogarithmicDerivative(self,wavenumber)
-    !!{
+    !!{RST
     Return the logarithmic derivative of the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -211,9 +214,8 @@ contains
   end function hu2000FDMLogarithmicDerivative
 
   double precision function hu2000FDMHalfModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    to a \gls{cdm} transfer function.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function.
     !!}
     use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
@@ -242,9 +244,8 @@ contains
   end function hu2000FDMHalfModeMass
 
   double precision function hu2000FDMQuarterModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
-    to a \gls{cdm} transfer function.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative to a :term:`CDM` transfer function.
     !!}
     use :: Error                   , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
@@ -273,7 +274,7 @@ contains
   end function hu2000FDMQuarterModeMass
 
   double precision function hu2000FDMEpochTime(self)
-    !!{
+    !!{RST
     Return the cosmic time at the epoch at which this transfer function is defined.
     !!}
     implicit none

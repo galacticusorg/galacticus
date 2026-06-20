@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <task name="taskReport">
-   <description>A task which reports on version and build information.</description>
+  <task name="taskReport" docformat="rst">
+   <description>
+   A task which reports on version and build information.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskReport
-     !!{
+     !!{RST
      Implementation of a task which reports on version and build information.
      !!}
      private
@@ -33,8 +35,8 @@
   end type taskReport
 
   interface taskReport
-     !!{
-     Constructors for the \refClass{taskReport} task.
+     !!{RST
+     Constructors for the :galacticus-class:`taskReport` task.
      !!}
      module procedure reportParameters
   end interface taskReport
@@ -42,8 +44,8 @@
 contains
 
   function reportParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskReport} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskReport` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -56,7 +58,7 @@ contains
   end function reportParameters
 
   subroutine reportPerform(self,status)
-    !!{
+    !!{RST
     Builds the tabulation.
     !!}
     use :: Display          , only : displayIndent      , displayMessage, displayUnindent
@@ -77,7 +79,7 @@ contains
   end subroutine reportPerform
 
   logical function reportRequiresOutputFile(self)
-    !!{
+    !!{RST
     Specifies that this task does not requires the main output file.
     !!}
     implicit none

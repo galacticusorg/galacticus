@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a weight operator class in which the weight is multiplied by an integral over a normal distribution.
 !!}
 
@@ -25,12 +25,14 @@ Implements a weight operator class in which the weight is multiplied by an integ
   use :: Output_Analysis_Property_Operators, only : outputAnalysisPropertyOperatorClass
 
   !![
-  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorNormal">
-   <description>An output analysis weight operator that multiplies galaxy weights by the integral of a normal distribution (with specified \mono{rootVariance}) over the range [\mono{rangeLower}, \mono{rangeUpper}], for incorporating Gaussian selection uncertainties in statistical comparisons.</description>
+  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorNormal" docformat="rst">
+   <description>
+   An output analysis weight operator that multiplies galaxy weights by the integral of a normal distribution (with specified ``rootVariance``) over the range [``rangeLower``, ``rangeUpper``], for incorporating Gaussian selection uncertainties in statistical comparisons.
+   </description>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorNormal
-     !!{
+     !!{RST
      A high-pass filter weight operator class.
      !!}
      private
@@ -40,7 +42,7 @@ Implements a weight operator class in which the weight is multiplied by an integ
           &                                                             rootVariance_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the root-variance to use in the weight operator." method="rootVariance" />
      </methods>
      !!]
@@ -50,8 +52,8 @@ Implements a weight operator class in which the weight is multiplied by an integ
   end type outputAnalysisWeightOperatorNormal
 
   interface outputAnalysisWeightOperatorNormal
-     !!{
-     Constructors for the \refClass{outputAnalysisWeightOperatorNormal} output analysis weight operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisWeightOperatorNormal` output analysis weight operator class.
      !!}
      module procedure normalConstructorParameters
      module procedure normalConstructorInternal
@@ -60,8 +62,8 @@ Implements a weight operator class in which the weight is multiplied by an integ
 contains
 
   function normalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisWeightOperatorNormal} output analysis weight operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisWeightOperatorNormal` output analysis weight operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,21 +76,27 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rangeLower</name>
       <source>parameters</source>
-      <description>Lower integration limit for the normal distribution weight operator.</description>
+      <description>
+      Lower integration limit for the normal distribution weight operator.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rangeUpper</name>
       <source>parameters</source>
-      <description>Upper integration limit for the normal distribution weight operator.</description>
+      <description>
+      Upper integration limit for the normal distribution weight operator.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>rootVariance</name>
       <variable>rootVariance_</variable>
       <source>parameters</source>
-      <description>Root variance for the normal distribution weight operator.</description>
+      <description>
+      Root variance for the normal distribution weight operator.
+      </description>
     </inputParameter>
     <objectBuilder class="nodePropertyExtractor"          name="nodePropertyExtractor_"          source="parameters"/>
     <objectBuilder class="outputAnalysisPropertyOperator" name="outputAnalysisPropertyOperator_" source="parameters"/>
@@ -103,8 +111,8 @@ contains
   end function normalConstructorParameters
 
   function normalConstructorInternal(rangeLower,rangeUpper,rootVariance_,nodePropertyExtractor_,outputAnalysisPropertyOperator_) result (self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisWeightOperatorNormal} output analysis weight operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisWeightOperatorNormal` output analysis weight operator class.
     !!}
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
@@ -128,8 +136,8 @@ contains
   end function normalConstructorInternal
 
   subroutine normalDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisWeightOperatorNormal} output analysis weight operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisWeightOperatorNormal` output analysis weight operator class.
     !!}
     type(outputAnalysisWeightOperatorNormal), intent(inout) :: self
 
@@ -141,8 +149,8 @@ contains
   end subroutine normalDestructor
 
   double precision function normalRootVariance(self,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
-    !!{
-    Return the root variance for use in the \mono{normal} output analysis weight operator class.
+    !!{RST
+    Return the root variance for use in the ``normal`` output analysis weight operator class.
     !!}
     implicit none
     class           (outputAnalysisWeightOperatorNormal           ), intent(inout) :: self
@@ -158,7 +166,7 @@ contains
   end function normalRootVariance
 
   double precision function normalOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
-    !!{
+    !!{RST
     Implement an normal output analysis weight operator.
     !!}
     use            :: Error_Functions         , only : Error_Function

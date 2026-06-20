@@ -17,30 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements processing of mergers between nodes.
 !!}
 
 module Merger_Trees_Merge_Node
-  !!{
+  !!{RST
   Provides a class that implements processing of mergers between nodes.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>mergerTreeNodeMerger</name>
    <descriptiveName>Merger Tree Node Merger Processing</descriptiveName>
-   <description>Class providing models for processing merger tree nodes at the moment of merger---when
-    a satellite halo's evolution time reaches that of its parent and the two are combined. The merger
-    processor transfers mass, metals, angular momentum, and other properties between the merging
-    components according to the chosen prescription, and decides how to restructure the tree (e.g.
-    single-level vs.\ multi-level hierarchy). Different implementations correspond to different
-    assumptions about satellite orbital decay and the timing of merger events.</description>
+   <description>
+   Class providing models for processing merger tree nodes at the moment of merger---when a satellite halo's evolution time reaches that of its parent and the two are combined. The merger processor transfers mass, metals, angular momentum, and other properties between the merging components according to the chosen prescription, and decides how to restructure the tree (e.g. single-level vs.\ multi-level hierarchy). Different implementations correspond to different assumptions about satellite orbital decay and the timing of merger events.
+   </description>
    <default>singleLevelHierarchy</default>
    <method name="process" >
-    <description>Process the merger between \mono{node} and its parent node, then destroy it.</description>
+    <description>
+    Process the merger between ``node`` and its parent node, then destroy it.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout), target :: node</argument>

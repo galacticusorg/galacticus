@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   A dark matter halo profile heating class which takes another heating source and enforces monotonic heating energy perturbation.
   !!}
 
   !![
-  <darkMatterProfileHeating name="darkMatterProfileHeatingMonotonicWeak">
+  <darkMatterProfileHeating name="darkMatterProfileHeatingMonotonicWeak" docformat="rst">
     <description>
-      A dark matter profile heating model builds \refClass{massDistributionHeatingMonotonicWeak} objects to enforce monotonic heating
-      energy perturbations. This classes enforces a weaker condition (compared to \refClass{darkMatterProfileHeatingMonotonic}).
+    A dark matter profile heating model builds :galacticus-class:`massDistributionHeatingMonotonicWeak` objects to enforce monotonic heating energy perturbations. This classes enforces a weaker condition (compared to :galacticus-class:`darkMatterProfileHeatingMonotonic`).
     </description>
   </darkMatterProfileHeating>
   !!]
   type, extends(darkMatterProfileHeatingClass) :: darkMatterProfileHeatingMonotonicWeak
-     !!{
+     !!{RST
      A dark matter profile heating class which takes another heating source and enforces monotonic heating energy perturbation.
      !!}
      private
@@ -42,8 +41,8 @@
   end type darkMatterProfileHeatingMonotonicWeak
 
   interface darkMatterProfileHeatingMonotonicWeak
-     !!{
-     Constructors for the \refClass{darkMatterProfileHeatingMonotonicWeak} dark matter profile heating class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileHeatingMonotonicWeak` dark matter profile heating class.
      !!}
      module procedure monotonicWeakConstructorParameters
      module procedure monotonicWeakConstructorInternal
@@ -52,8 +51,8 @@
 contains
 
   function monotonicWeakConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileHeatingMonotonicWeak} dark matter profile heating class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileHeatingMonotonicWeak` dark matter profile heating class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -62,11 +61,13 @@ contains
     class           (darkMatterProfileHeatingClass        ), pointer       :: darkMatterProfileHeating_
     double precision                                                       :: toleranceShellCrossing
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceShellCrossing</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The tolerance adopted in determining if the no-shell-crossing assumption is valid.</description>
+      <description>
+      The tolerance adopted in determining if the no-shell-crossing assumption is valid.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterProfileHeating" name="darkMatterProfileHeating_" source="parameters"/>
     !!]
@@ -79,8 +80,8 @@ contains
   end function monotonicWeakConstructorParameters
 
   function monotonicWeakConstructorInternal(toleranceShellCrossing, darkMatterProfileHeating_) result(self)
-    !!{
-    Internal constructor for the ``monotonicWeak'' dark matter profile heating class.
+    !!{RST
+    Internal constructor for the "monotonicWeak" dark matter profile heating class.
     !!}
     implicit none
     type            (darkMatterProfileHeatingMonotonicWeak)                        :: self
@@ -94,8 +95,8 @@ contains
   end function monotonicWeakConstructorInternal
 
   subroutine monotonicWeakDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileHeatingMonotonicWeak} dark matter profile heating class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileHeatingMonotonicWeak` dark matter profile heating class.
     !!}
     implicit none
     type(darkMatterProfileHeatingMonotonicWeak), intent(inout) :: self
@@ -107,8 +108,8 @@ contains
   end subroutine monotonicWeakDestructor
 
   function monotonicWeakGet(self,node) result(massDistributionHeating_)
-    !!{
-    Return the dark matter mass distribution heating for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution heating for the given ``node``.
     !!}
     use :: Mass_Distributions, only : massDistributionHeatingMonotonicWeak
     implicit none

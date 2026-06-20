@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an log10 output analysis property operator class.
 !!}
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorLog10">
-   <description>Applies a $\log_{10}$ transformation to a property value, converting from linear to logarithmic scale as part of an output analysis property operator pipeline.</description>
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorLog10" docformat="rst">
+   <description>
+   Applies a :math:`\log_{10}` transformation to a property value, converting from linear to logarithmic scale as part of an output analysis property operator pipeline.
+   </description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorLog10
-     !!{
+     !!{RST
      An log10 output property operator class.
      !!}
      private
@@ -36,8 +38,8 @@ Implements an log10 output analysis property operator class.
   end type outputAnalysisPropertyOperatorLog10
 
   interface outputAnalysisPropertyOperatorLog10
-     !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorLog10} output analysis property operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorLog10` output analysis property operator class.
      !!}
      module procedure log10ConstructorParameters
   end interface outputAnalysisPropertyOperatorLog10
@@ -45,8 +47,8 @@ Implements an log10 output analysis property operator class.
 contains
 
   function log10ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisPropertyOperatorLog10} output analysis property operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorLog10` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function log10ConstructorParameters
 
   double precision function log10Operate(self,propertyValue,node,propertyType,outputIndex)
-    !!{
+    !!{RST
     Implement an log10 output analysis property operator.
     !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t

@@ -17,32 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling simulation class which implements an annealed differential evolution algorithm.
   !!}
 
   !![
-  <posteriorSampleSimulation name="posteriorSampleSimulationAnnealedDffrntlEvltn">
+  <posteriorSampleSimulation name="posteriorSampleSimulationAnnealedDffrntlEvltn" docformat="rst">
    <description>
-    This class extends the \mono{differentialEvolution} class to include an annealing schedule---the simulation begins at
-    high temperature, waits for convergence, lowers the temperature and repeats until convergence at $T=1$ is reached. In addition to
-    the options for the \mono{differentialEvolution} algorithm, the details of the algorithm are controlled by the
-    following sub-parameters:
-    \begin{description}
-    \item[\mono{[temperatureMaximum]}] The maximum temperature to use when tempering.
-    \item[\mono{[temperatureLevels]}] The number of temperature levels to use.
-    \end{description}
-    
-    The temperature at level $i$ is given by:
-    \begin{equation}
-    \log T_i = {i-1 \over N-1} \log T_\mathrm{max},
-    \end{equation}
-    where $T_\mathrm{max}=$\mono{[temperatureMaximum]} and $N=$\mono{[temperatureLevels]}.
+   This class extends the ``differentialEvolution`` class to include an annealing schedule---the simulation begins at high temperature, waits for convergence, lowers the temperature and repeats until convergence at :math:`T=1` is reached. In addition to the options for the ``differentialEvolution`` algorithm, the details of the algorithm are controlled by the following sub-parameters:
+
+   ``[temperatureMaximum]``
+      The maximum temperature to use when tempering.
+
+   ``[temperatureLevels]``
+      The number of temperature levels to use.
+
+   The temperature at level :math:`i` is given by:
+
+   .. math::
+
+      \log T_i = {i-1 \over N-1} \log T_\mathrm{max},
+
+   where :math:`T_\mathrm{max}=`\ ``[temperatureMaximum]`` and :math:`N=`\ ``[temperatureLevels]``.
    </description>
   </posteriorSampleSimulation>
   !!]
   type, extends(posteriorSampleSimulationDifferentialEvolution) :: posteriorSampleSimulationAnnealedDffrntlEvltn
-     !!{
+     !!{RST
      Implementation of a posterior sampling simulation class which implements an annealed differential evolution algorithm.
      !!}
      private
@@ -51,7 +52,7 @@
      double precision, allocatable, dimension(:) :: temperatures
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Initialize the object." method="initialize" />
      </methods>
      !!]
@@ -62,8 +63,8 @@
   end type posteriorSampleSimulationAnnealedDffrntlEvltn
 
   interface posteriorSampleSimulationAnnealedDffrntlEvltn
-     !!{
-     Constructors for the \refClass{posteriorSampleSimulationAnnealedDffrntlEvltn} posterior sampling simulation class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSampleSimulationAnnealedDffrntlEvltn` posterior sampling simulation class.
      !!}
      module procedure annealedDifferentialEvolutionConstructorParameters
      module procedure annealedDifferentialEvolutionConstructorInternal
@@ -72,9 +73,8 @@
 contains
 
   function annealedDifferentialEvolutionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleSimulationAnnealedDffrntlEvltn} posterior sampling simulation class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleSimulationAnnealedDffrntlEvltn` posterior sampling simulation class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,15 +85,19 @@ contains
 
     self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(parameters)
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>temperatureLevelCount</name>
       <defaultValue>10</defaultValue>
-      <description>The number temperature levels to use.</description>
+      <description>
+      The number temperature levels to use.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>temperatureMaximum</name>
-      <description>The maximum temperature to reach.</description>
+      <description>
+      The maximum temperature to reach.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -105,8 +109,8 @@ contains
   end function annealedDifferentialEvolutionConstructorParameters
 
   function annealedDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,slowStepCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,temperatureLevelCount,temperatureMaximum) result(self)
-    !!{
-    Internal constructor for the ``annealedDifferentialEvolution'' simulation class.
+    !!{RST
+    Internal constructor for the "annealedDifferentialEvolution" simulation class.
     !!}
     implicit none
     type            (posteriorSampleSimulationAnnealedDffrntlEvltn)                                      :: self
@@ -134,7 +138,7 @@ contains
   end function annealedDifferentialEvolutionConstructorInternal
 
   subroutine annealedDifferentialEvolutionInitialize(self,temperatureLevelCount,temperatureMaximum)
-    !!{
+    !!{RST
     Finished initialization of annealed differential evolution simulation objects during construction.
     !!}
     implicit none
@@ -163,7 +167,7 @@ contains
   end subroutine annealedDifferentialEvolutionInitialize
 
   subroutine annealedDifferentialEvolutionUpdate(self,stateVector)
-    !!{
+    !!{RST
     Update the differential evolution simulator state.
     !!}
     use :: Display           , only : displayMessage
@@ -206,7 +210,7 @@ contains
   end subroutine annealedDifferentialEvolutionUpdate
 
   double precision function annealedDifferentialEvolutionTemperature(self)
-    !!{
+    !!{RST
     Return the temperature.
     !!}
     implicit none
@@ -217,7 +221,7 @@ contains
   end function annealedDifferentialEvolutionTemperature
 
   logical function annealedDifferentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed)
-    !!{
+    !!{RST
     Return whether or not to accept a proposal.
     !!}
     implicit none

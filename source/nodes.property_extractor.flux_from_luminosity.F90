@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a class which extracts fluxes from luminosities.
 !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorFluxFromLuminosity">
-   <description>Converts intrinsic luminosities to observed fluxes by dividing by $4\pi d_\mathrm{L}^2$, where $d_\mathrm{L}$ is the luminosity distance at the output redshift. Enables direct comparison of model predictions to flux-limited observational surveys at $z>0$.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorFluxFromLuminosity" docformat="rst">
+   <description>
+   Converts intrinsic luminosities to observed fluxes by dividing by :math:`4\pi d_\mathrm{L}^2`, where :math:`d_\mathrm{L}` is the luminosity distance at the output redshift. Enables direct comparison of model predictions to flux-limited observational surveys at :math:`z&gt;0`.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorFluxFromLuminosity
-     !!{
+     !!{RST
      A flux-from-luminosity property extractor class.
      !!}
      private
@@ -47,8 +49,8 @@ Implements a class which extracts fluxes from luminosities.
   end type nodePropertyExtractorFluxFromLuminosity
 
   interface nodePropertyExtractorFluxFromLuminosity
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorFluxFromLuminosity} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorFluxFromLuminosity` property extractor class.
      !!}
      module procedure fluxFromLuminosityConstructorParameters
      module procedure fluxFromLuminosityConstructorInternal
@@ -57,8 +59,8 @@ Implements a class which extracts fluxes from luminosities.
 contains
 
   function fluxFromLuminosityConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorFluxFromLuminosity} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorFluxFromLuminosity` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,8 +95,8 @@ contains
   end function fluxFromLuminosityConstructorInternal
   
   subroutine fluxFromLuminosityDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorFluxFromLuminosity} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorFluxFromLuminosity` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorFluxFromLuminosity), intent(inout) :: self
@@ -107,8 +109,8 @@ contains
   end subroutine fluxFromLuminosityDestructor
 
   integer function fluxFromLuminosityElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{fluxFromLuminosity} property extractors.
+    !!{RST
+    Return the number of elements in the ``fluxFromLuminosity`` property extractors.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -126,7 +128,7 @@ contains
   end function fluxFromLuminosityElementCount
 
   function fluxFromLuminosityExtract(self,node,time,instance) result(fluxes)
-    !!{
+    !!{RST
     Extract fluxes from luminosities.
     !!}
     use :: Numerical_Constants_Units       , only : ergs
@@ -168,7 +170,7 @@ contains
   end function fluxFromLuminosityExtract
 
   function fluxFromLuminosityQuantity(self)
-    !!{
+    !!{RST
     Return the class of the flux property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityUnknown
@@ -182,7 +184,7 @@ contains
   end function fluxFromLuminosityQuantity
 
   subroutine fluxFromLuminosityNames(self,time,names)
-    !!{
+    !!{RST
     Return the name of the fluxFromLuminosity property.
     !!}
     use :: Error, only : Error_Report
@@ -210,7 +212,7 @@ contains
   end subroutine fluxFromLuminosityNames
 
   subroutine fluxFromLuminosityDescriptions(self,time,descriptions)
-    !!{
+    !!{RST
     Return a description of the fluxFromLuminosity property.
     !!}
     use :: Error, only : Error_Report
@@ -234,7 +236,7 @@ contains
   end subroutine fluxFromLuminosityDescriptions
 
   function fluxFromLuminosityUnitsInSI(self,time) result(unitsInSI)
-    !!{
+    !!{RST
     Return the units of the fluxFromLuminosity property in the SI system.
     !!}
     use :: Numerical_Constants_Prefixes, only : centi
@@ -250,7 +252,7 @@ contains
   end function fluxFromLuminosityUnitsInSI
 
   function fluxFromLuminosityUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the fluxFromLuminosity properties.
     !!}
     use :: Units_MetaData, only : unitType

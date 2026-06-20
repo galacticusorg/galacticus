@@ -17,26 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a kinematic distribution class for the \cite{shi_outer_2016} model of halo accretion flows.
+  !!{RST
+  Implementation of a kinematic distribution class for the :cite:t:`shi_outer_2016` model of halo accretion flows.
   !!}
 
   !![
-  <kinematicsDistribution name="kinematicsDistributionShi2016">
-   <description>A kinematic distribution class for the \cite{shi_outer_2016} model of halo accretion flows.</description>
+  <kinematicsDistribution name="kinematicsDistributionShi2016" docformat="rst">
+   <description>
+   A kinematic distribution class for the :cite:t:`shi_outer_2016` model of halo accretion flows.
+   </description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionCollisionless) :: kinematicsDistributionShi2016
-     !!{
-     A kinematics distribution for the \cite{shi_outer_2016} model of halo accretion flows.
+     !!{RST
+     A kinematics distribution for the :cite:t:`shi_outer_2016` model of halo accretion flows.
      !!}
    contains
      procedure :: velocityRadial => shi2016KinematicsVelocityRadial
   end type kinematicsDistributionShi2016
 
   interface kinematicsDistributionShi2016
-     !!{
-     Constructors for the \refClass{kinematicsDistributionShi2016} kinematic distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`kinematicsDistributionShi2016` kinematic distribution class.
      !!}
      module procedure shi2016KinematicsConstructorParameters
   end interface kinematicsDistributionShi2016
@@ -44,9 +46,8 @@
 contains
 
   function shi2016KinematicsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionShi2016} kinematic distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`kinematicsDistributionShi2016` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,8 +62,8 @@ contains
   end function shi2016KinematicsConstructorParameters
   
   double precision function shi2016KinematicsVelocityRadial(self,coordinates,massDistributionEmbedding) result(velocityRadial)
-    !!{
-    Return the radial velocity at the specified \mono{coordinates} in the \cite{shi_outer_2016} model for the accretion flow around a halo.
+    !!{RST
+    Return the radial velocity at the specified ``coordinates`` in the :cite:t:`shi_outer_2016` model for the accretion flow around a halo.
     !!}
     use :: Error, only : Error_Report
     implicit none

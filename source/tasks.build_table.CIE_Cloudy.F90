@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <task name="taskBuildTableCIECloudy">
-   <description>A task which builds collisional ionization equilibrium tables using Cloudy.</description>
+  <task name="taskBuildTableCIECloudy" docformat="rst">
+   <description>
+   A task which builds collisional ionization equilibrium tables using Cloudy.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildTableCIECloudy
-     !!{
+     !!{RST
      Implementation of a task which builds collisional ionization equilibrium tables using Cloudy.
      !!}
      private
@@ -36,8 +38,8 @@
   end type taskBuildTableCIECloudy
 
   interface taskBuildTableCIECloudy
-     !!{
-     Constructors for the \refClass{taskBuildTableCIECloudy} task.
+     !!{RST
+     Constructors for the :galacticus-class:`taskBuildTableCIECloudy` task.
      !!}
      module procedure buildTableCIECloudyParameters
      module procedure buildTableCIECloudyInternal
@@ -46,8 +48,8 @@
 contains
 
   function buildTableCIECloudyParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskBuildTableCIECloudy} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskBuildTableCIECloudy` task class which takes a parameter set as input.
     !!}
     use :: Input_Paths     , only : inputPath      , pathTypeDataDynamic
     use :: Input_Parameters, only : inputParameters
@@ -59,27 +61,35 @@ contains
     logical                                                  :: includeContinuum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileNameCoolingFunction</name>
-      <description>The file name to which the cooling function table should be stored.</description>
+      <description>
+      The file name to which the cooling function table should be stored.
+      </description>
       <defaultValue>inputPath(pathTypeDataDynamic)//'cooling/cooling_function_Atomic_CIE_Cloudy.hdf5'</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileNameChemicalState</name>
-      <description>The file name to which the chemical state table should be stored.</description>
+      <description>
+      The file name to which the chemical state table should be stored.
+      </description>
       <defaultValue>inputPath(pathTypeDataDynamic)//'chemicalState/chemical_state_Atomic_CIE_Cloudy.hdf5'</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>metallicityLogarithmicMaximum</name>
-      <description>The maximum metallicity to tabulated, expressed as log-10 relative to Solar.</description>
+      <description>
+      The maximum metallicity to tabulated, expressed as log-10 relative to Solar.
+      </description>
       <defaultValue>1.5d0</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeContinuum</name>
-      <description>If true include the cumulative fraction of total power emitted in the continuum.</description>
+      <description>
+      If true include the cumulative fraction of total power emitted in the continuum.
+      </description>
       <defaultValue>.true.</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -92,8 +102,8 @@ contains
   end function buildTableCIECloudyParameters
 
   function buildTableCIECloudyInternal(fileNameCoolingFunction,fileNameChemicalState,metallicityLogarithmicMaximum,includeContinuum) result(self)
-    !!{
-    Internal constructor for the \refClass{taskBuildTableCIECloudy} task class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`taskBuildTableCIECloudy` task class.
     !!}
     implicit none
     type            (taskBuildTableCIECloudy)                :: self
@@ -108,7 +118,7 @@ contains
   end function buildTableCIECloudyInternal
 
   subroutine buildTableCIECloudyPerform(self,status)
-    !!{
+    !!{RST
     Builds the tabulation.
     !!}
     use :: Display              , only : displayIndent                , displayMessage, displayUnindent
@@ -132,7 +142,7 @@ contains
   end subroutine buildTableCIECloudyPerform
 
   logical function buildTableCIECloudyRequiresOutputFile(self)
-    !!{
+    !!{RST
     Specifies that this task does not requires the main output file.
     !!}
     implicit none

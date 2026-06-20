@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements computation of formatted dates and times.
 !!}
 
 module Dates_and_Times
-  !!{
+  !!{RST
   Implements computation of formatted dates and times.
   !!}
   implicit none
@@ -40,7 +40,7 @@ module Dates_and_Times
 contains
 
   function Formatted_Date_and_Time()
-    !!{
+    !!{RST
     Return a formatted date and time.
     !!}
     use :: ISO_Varying_String, only : assignment(=), varying_string, operator(//), extract, &

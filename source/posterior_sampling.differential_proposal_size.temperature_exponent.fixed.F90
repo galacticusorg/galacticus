@@ -17,20 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a posterior sampling differential evolution proposal size temperature exponent class in which the exponent
-  is fixed.
+  !!{RST
+  Implementation of a posterior sampling differential evolution proposal size temperature exponent class in which the exponent is fixed.
   !!}
 
   !![
-  <posteriorSampleDffrntlEvltnPrpslSzTmpExp name="posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed">
+  <posteriorSampleDffrntlEvltnPrpslSzTmpExp name="posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed" docformat="rst">
    <description>
-    This class uses a fixed $\alpha=$\mono{[alpha]}.
+   This class uses a fixed :math:`\alpha=`\ ``[alpha]``.
    </description>
   </posteriorSampleDffrntlEvltnPrpslSzTmpExp>
   !!]
   type, extends(posteriorSampleDffrntlEvltnPrpslSzTmpExpClass) :: posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed
-     !!{
+     !!{RST
      Implementation of a posterior sampling differential evolution proposal size class in which the exponent is fixed.
      !!}
      private
@@ -40,8 +39,8 @@
   end type posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed
 
   interface posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed
-     !!{
-     Constructors for the \refClass{posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed} posterior sampling differential evolution random jump class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed` posterior sampling differential evolution random jump class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -50,9 +49,8 @@
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed} posterior sampling differential evolution random jump class which builds
-    the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed` posterior sampling differential evolution random jump class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -61,9 +59,11 @@ contains
     double precision                                                                :: exponentValue
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>exponentValue</name>
-      <description>The fixed value of the temperature-scaling exponent $\alpha$ by which the proposal size $\gamma$ is scaled as $\gamma \propto T^{\alpha}$ in tempered differential evolution runs.</description>
+      <description>
+      The fixed value of the temperature-scaling exponent :math:`\alpha` by which the proposal size :math:`\gamma` is scaled as :math:`\gamma \propto T^{\alpha}` in tempered differential evolution runs.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -75,9 +75,8 @@ contains
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(exponentValue) result(self)
-    !!{
-    Internal constructor for the \refClass{posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed} posterior sampling differential evolution proposal size
-    temperature exponent class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed` posterior sampling differential evolution proposal size temperature exponent class.
     !!}
     implicit none
     type            (posteriorSampleDffrntlEvltnPrpslSzTmpExpFixed)                :: self
@@ -90,7 +89,7 @@ contains
   end function fixedConstructorInternal
 
   double precision function fixedExponent(self,temperedStates,temperatures,simulationState,simulationConvergence)
-    !!{
+    !!{RST
     Return the fixed differential evolution proposal size temperature exponent.
     !!}
     implicit none

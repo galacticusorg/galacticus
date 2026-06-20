@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test calculations of projected dark matter profiles.
 !!}
 
 program Test_Dark_Matter_Profiles_Projected
-  !!{
+  !!{RST
   Test calculations of projected dark matter profiles.
   !!}
   use, intrinsic :: ISO_C_Binding             , only : c_size_t

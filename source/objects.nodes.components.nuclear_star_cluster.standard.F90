@@ -19,13 +19,13 @@
 
   !+    Contributions to this file made by: Matías Liempi
 
-!!{
-Contains a module which implements the standard \glc{nsc} node component.
+!!{RST
+Contains a module which implements the standard Galacticusnsc node component.
 !!}
 
 module Node_Component_NSC_Standard
-  !!{
-  Implements the standard \glc{nsc} node component.
+  !!{RST
+  Implements the standard Galacticusnsc node component.
   !!}
   use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
   use :: Histories                       , only : history
@@ -193,7 +193,7 @@ contains
   <nodeComponentInitializationTask function="Node_Component_NSC_Standard_Initialize"/>
   !!]
   subroutine Node_Component_NSC_Standard_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the tree node standard nuclear star cluster methods module.
     !!}
     use :: Abundances_Structure            , only : Abundances_Property_Count
@@ -217,28 +217,36 @@ contains
        subParameters=parameters%subParameters('componentNSC')
        ! Read parameters controlling the physical implementation.
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
           <name>radiusNormalization</name>
           <defaultValue>3.3d-6</defaultValue>
-          <description>The initial value appearing in the radius-mass relation</description>
+          <description>
+          The initial value appearing in the radius-mass relation
+          </description>
           <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>toleranceAbsoluteMass</name>
          <defaultValue>1.0d-6</defaultValue>
-         <description>The mass tolerance used to judge whether the nuclear star cluster is physically plausible.</description>
+         <description>
+         The mass tolerance used to judge whether the nuclear star cluster is physically plausible.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>toleranceRelativeMetallicity</name>
          <defaultValue>1.0d-4</defaultValue>
-         <description>The metallicity tolerance for ODE solution.</description>
+         <description>
+         The metallicity tolerance for ODE solution.
+         </description>
          <source>subParameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>inactiveLuminositiesStellar</name>
          <defaultValue>.false.</defaultValue>
-         <description>Specifies whether or not nuclear star cluster stellar luminosities are inactive properties (i.e. do not appear in any ODE being solved).</description>
+         <description>
+         Specifies whether or not nuclear star cluster stellar luminosities are inactive properties (i.e. do not appear in any ODE being solved).
+         </description>
          <source>subParameters</source>
        </inputParameter>
 
@@ -251,7 +259,7 @@ contains
   <nodeComponentThreadInitializationTask function="Node_Component_NSC_Standard_Thread_Initialize"/>
   !!]
   subroutine Node_Component_NSC_Standard_Thread_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the standard nuclear star cluster component module for each thread.
     !!}
     use :: Events_Hooks                    , only : dependencyDirectionAfter       , dependencyRegEx            , openMPThreadBindingAtLevel, &
@@ -321,7 +329,7 @@ contains
   <nodeComponentThreadUninitializationTask function="Node_Component_NSC_Standard_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_NSC_Standard_Thread_Uninitialize()
-    !!{
+    !!{RST
     Uninitializes the standard nuclear star cluster component module for each thread.
     !!}
     use :: Events_Hooks                    , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeExtraOutputEvent
@@ -351,7 +359,7 @@ contains
   <preEvolveTask function="Node_Component_NSC_Standard_Pre_Evolve"/>
   !!]
   subroutine Node_Component_NSC_Standard_Pre_Evolve(node)
-    !!{
+    !!{RST
     Ensure the nuclear star cluster has been initialized.
     !!}
     use :: Galacticus_Nodes, only : defaultNSCComponent, nodeComponentNSC, nodeComponentNSCStandard, treeNode
@@ -373,7 +381,7 @@ contains
   end subroutine Node_Component_NSC_Standard_Pre_Evolve
 
   subroutine postEvolve(self,node)
-    !!{
+    !!{RST
     Trim histories attached to the nuclear star cluster.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentNSC, nodeComponentNSCStandard, treeNode
@@ -404,7 +412,7 @@ contains
   <postStepTask function="Node_Component_NSC_Standard_Post_Step"/>
   !!]
   subroutine Node_Component_NSC_Standard_Post_Step(node,status)
-    !!{
+    !!{RST
     Trim histories attached to the nuclear star cluster.
     !!}
     use :: Abundances_Structure          , only : abs                , zeroAbundances
@@ -582,7 +590,7 @@ contains
   end subroutine Node_Component_NSC_Standard_Post_Step
 
   subroutine Node_Component_NSC_Standard_Mass_Gas_Sink_Rate(self,rate,interrupt,interruptProcedure)
-    !!{
+    !!{RST
     Account for a sink of gaseous material in the standard nuclear star cluster.
     !!}
     use :: Abundances_Structure, only : operator(*)
@@ -617,7 +625,7 @@ contains
   end subroutine Node_Component_NSC_Standard_Mass_Gas_Sink_Rate
 
   subroutine Node_Component_NSC_Standard_Star_Formation_History_Rate(self,rate,interrupt,interruptProcedure)
-    !!{
+    !!{RST
     Adjust the rates for the star formation history.
     !!}
     use :: Galacticus_Nodes , only : interruptTask, nodeComponentNSC, nodeComponentNSCStandard
@@ -649,7 +657,7 @@ contains
   end subroutine Node_Component_NSC_Standard_Star_Formation_History_Rate
 
   subroutine Node_Component_NSC_Standard_Stellar_Prprts_History_Rate(self,rate,interrupt,interruptProcedure)
-    !!{
+    !!{RST
     Adjust the rates for the stellar properties history.
     !!}
     use :: Error            , only : Error_Report
@@ -694,8 +702,8 @@ contains
   <scaleSetTask function="Node_Component_NSC_Standard_Scale_Set"/>
   !!]
   subroutine Node_Component_NSC_Standard_Scale_Set(node)
-    !!{
-    Set scales for properties of \mono{node}.
+    !!{RST
+    Set scales for properties of ``node``.
     !!}
     use :: Abundances_Structure          , only : abs                   , abundances      , max                     , operator(*)            , &
           &                                       unitAbundances
@@ -777,7 +785,7 @@ contains
   end subroutine Node_Component_NSC_Standard_Scale_Set
 
   subroutine Node_Component_NSC_Standard_Create(node)
-    !!{
+    !!{RST
     Create properties in an standard nuclear star cluster component.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentNSC, nodeComponentSpheroid ,treeNode
@@ -833,8 +841,8 @@ contains
   <inactiveSetTask function="Node_Component_NSC_Standard_Inactive"/>
   !!]
   subroutine Node_Component_NSC_Standard_Inactive(node)
-    !!{
-    Set Jacobian zero status for properties of \mono{node}.
+    !!{RST
+    Set Jacobian zero status for properties of ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentNSC, nodeComponentNSCStandard, treeNode
     implicit none
@@ -852,8 +860,8 @@ contains
   end subroutine Node_Component_NSC_Standard_Inactive
 
   subroutine satelliteMerger(self,node)
-    !!{
-    Transfer any standard nuclear star cluster associated with \mono{node} to its host halo.
+    !!{RST
+    Transfer any standard nuclear star cluster associated with ``node`` to its host halo.
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
@@ -1183,8 +1191,8 @@ contains
   end subroutine satelliteMerger
 
   subroutine Node_Component_NSC_Standard_Star_Formation_History_Extend(node,timeEnd)
-    !!{
-    Extend the range of a star formation history in a standard nuclear star cluster component for \mono{node}.
+    !!{RST
+    Extend the range of a star formation history in a standard nuclear star cluster component for ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentNSC, treeNode
     implicit none
@@ -1204,8 +1212,8 @@ contains
   end subroutine Node_Component_NSC_Standard_Star_Formation_History_Extend
 
   subroutine Node_Component_NSC_Standard_Stellar_Prprts_History_Extend(node,timeEnd)
-    !!{
-    Extend the range of a stellar properties history in a standard nuclear star cluster component for \mono{node}.
+    !!{RST
+    Extend the range of a stellar properties history in a standard nuclear star cluster component for ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentNSC, treeNode
     implicit none
@@ -1225,9 +1233,9 @@ contains
   end subroutine Node_Component_NSC_Standard_Stellar_Prprts_History_Extend
 
   subroutine mergerTreeExtraOutput(self,node,iOutput,treeIndex,nodePassesFilter,treeLock)
-   !!{
-     Update the star formation history after an output time is reached.
-     !!}
+   !!{RST
+   Update the star formation history after an output time is reached.
+   !!}
      use            :: Galacticus_Nodes, only : defaultNSCComponent, nodeComponentNSC, nodeComponentNSCStandard, treeNode
      use            :: Histories       , only : history
      use, intrinsic :: ISO_C_Binding   , only : c_size_t
@@ -1262,7 +1270,7 @@ contains
   <stateStoreTask function="Node_Component_NSC_Standard_State_Store"/>
   !!]
   subroutine Node_Component_NSC_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Write the state to file.
     !!}
     use            :: Display                         , only : displayMessage          , verbosityLevelInfo
@@ -1284,7 +1292,7 @@ contains
   <stateRetrieveTask function="Node_Component_NSC_Standard_State_Retrieve"/>
   !!]
   subroutine Node_Component_NSC_Standard_State_Retrieve(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Retrieve the tabulation state from the file.
     !!}
     use            :: Display                         , only : displayMessage          , verbosityLevelInfo

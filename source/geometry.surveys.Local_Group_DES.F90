@@ -17,14 +17,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements the geometry of the DES survey for Local Group dwarfs.
 !!}
 
 
   !![
-  <surveyGeometry name="surveyGeometryLocalGroupDES">
-   <description>Implements the angular footprint and maximum detection distance of the Dark Energy Survey (DES) as applied to Local Group dwarf galaxy searches. The survey volume is defined by \gls{mangle} polygon files, with the maximum survey distance set by \mono{[distanceMaximumSurvey]}.</description>
+  <surveyGeometry name="surveyGeometryLocalGroupDES" docformat="rst">
+   <description>
+   Implements the angular footprint and maximum detection distance of the Dark Energy Survey (DES) as applied to Local Group dwarf galaxy searches. The survey volume is defined by :term:`mangle` polygon files, with the maximum survey distance set by ``[distanceMaximumSurvey]``.
+   </description>
   </surveyGeometry>
   !!]
   type, extends(surveyGeometryMangle) :: surveyGeometryLocalGroupDES
@@ -39,8 +41,8 @@ Implements the geometry of the DES survey for Local Group dwarfs.
   end type surveyGeometryLocalGroupDES
 
   interface surveyGeometryLocalGroupDES
-     !!{
-     Constructors for the \refClass{surveyGeometryLocalGroupDES} survey geometry class.
+     !!{RST
+     Constructors for the :galacticus-class:`surveyGeometryLocalGroupDES` survey geometry class.
      !!}
      module procedure localGroupDESConstructorParameters
      module procedure localGroupDESConstructorInternal
@@ -52,8 +54,8 @@ Implements the geometry of the DES survey for Local Group dwarfs.
 contains
 
   function localGroupDESConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{surveyGeometryLocalGroupDES} survey geometry class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`surveyGeometryLocalGroupDES` survey geometry class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -62,11 +64,13 @@ contains
     double precision                                             :: distanceMaximumSurvey
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>distanceMaximumSurvey</name>
       <source>parameters</source>
       <defaultValue>300.0d-3</defaultValue>
-      <description>The maximum distance at which galaxies are to be included in the survey.</description>
+      <description>
+      The maximum distance at which galaxies are to be included in the survey.
+      </description>
     </inputParameter>
     !!]
     self=surveyGeometryLocalGroupDES(distanceMaximumSurvey)
@@ -77,8 +81,8 @@ contains
   end function localGroupDESConstructorParameters
 
   function localGroupDESConstructorInternal(distanceMaximumSurvey) result (self)
-    !!{
-    Internal constructor for the \refClass{surveyGeometryLocalGroupDES} survey geometry class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`surveyGeometryLocalGroupDES` survey geometry class.
     !!}
     implicit none
     type            (surveyGeometryLocalGroupDES)                :: self
@@ -92,7 +96,7 @@ contains
   end function localGroupDESConstructorInternal
 
   integer function localGroupDESFieldCount(self)
-    !!{
+    !!{RST
     Return the number of fields in this sample.
     !!}
     implicit none
@@ -104,7 +108,7 @@ contains
   end function localGroupDESFieldCount
 
   double precision function localGroupDESDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
-    !!{
+    !!{RST
     Compute the maximum distance at which a galaxy is visible.
     !!}
     implicit none
@@ -133,8 +137,8 @@ contains
   end function localGroupDESDistanceMaximum
 
   integer function localGroupDESAngularPowerMaximumDegree(self)
-    !!{
-    Return the maximum degree for which angular power is computed for the \mono{localGroupDES} survey.
+    !!{RST
+    Return the maximum degree for which angular power is computed for the ``localGroupDES`` survey.
     !!}
     implicit none
     class(surveyGeometryLocalGroupDES), intent(inout) :: self
@@ -145,8 +149,8 @@ contains
   end function localGroupDESAngularPowerMaximumDegree
 
   function localGroupDESMangleDirectory(self)
-    !!{
-    Return the path to the directory containing \gls{mangle} files.
+    !!{RST
+    Return the path to the directory containing :term:`mangle` files.
     !!}
     use :: Input_Paths, only : inputPath, pathTypeDataStatic
     implicit none
@@ -159,8 +163,8 @@ contains
   end function localGroupDESMangleDirectory
 
   subroutine localGroupDESMangleFiles(self,mangleFiles)
-    !!{
-    Return a list of \gls{mangle} files.
+    !!{RST
+    Return a list of :term:`mangle` files.
     !!}
     implicit none
     class(surveyGeometryLocalGroupDES)                           , intent(inout) :: self

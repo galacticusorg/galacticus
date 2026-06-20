@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an orbital radius output analysis property extractor class.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRadiusOrbital">
-   <description>Extracts the current 3D orbital radius of a satellite node from the center of its host halo, tracking the satellite's position along its orbit for use in analyses of satellite radial distributions and orbital evolution.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorRadiusOrbital" docformat="rst">
+   <description>
+   Extracts the current 3D orbital radius of a satellite node from the center of its host halo, tracking the satellite's position along its orbit for use in analyses of satellite radial distributions and orbital evolution.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusOrbital
-     !!{
+     !!{RST
      An orbital radius property extractor output analysis class.
      !!}
      private
@@ -40,8 +42,8 @@ Implements an orbital radius output analysis property extractor class.
   end type nodePropertyExtractorRadiusOrbital
 
   interface nodePropertyExtractorRadiusOrbital
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusOrbital} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiusOrbital` property extractor class.
      !!}
      module procedure radiusOrbitalConstructorParameters
   end interface nodePropertyExtractorRadiusOrbital
@@ -49,8 +51,8 @@ Implements an orbital radius output analysis property extractor class.
 contains
 
   function radiusOrbitalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusOrbital} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiusOrbital` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,7 +67,7 @@ contains
   end function radiusOrbitalConstructorParameters
 
   double precision function radiusOrbitalExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a radiusOrbital output analysis.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
@@ -98,7 +100,7 @@ contains
 
 
   function radiusOrbitalName(self)
-    !!{
+    !!{RST
     Return the name of the radiusOrbital property.
     !!}
     implicit none
@@ -111,7 +113,7 @@ contains
   end function radiusOrbitalName
 
   function radiusOrbitalDescription(self)
-    !!{
+    !!{RST
     Return a description of the radiusOrbital property.
     !!}
     implicit none
@@ -124,7 +126,7 @@ contains
   end function radiusOrbitalDescription
 
   double precision function radiusOrbitalUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the radiusOrbital property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
@@ -137,7 +139,7 @@ contains
   end function radiusOrbitalUnitsInSI
 
   function radiusOrbitalUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the radiusOrbital property.
     !!}
     use :: Units_MetaData, only : unitType

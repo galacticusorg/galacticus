@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a pruning-by-mass operator on merger trees.
 !!}
 
   !![
-  <mergerTreeOperator name="mergerTreeOperatorPruneClones">
-   <description>Provides a clone pruning operator on merger trees.</description>
+  <mergerTreeOperator name="mergerTreeOperatorPruneClones" docformat="rst">
+   <description>
+   Provides a clone pruning operator on merger trees.
+   </description>
   </mergerTreeOperator>
   !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneClones
-     !!{
+     !!{RST
      A clone pruning merger tree operator class.
      !!}
      private
@@ -36,7 +38,7 @@ Implements a pruning-by-mass operator on merger trees.
   end type mergerTreeOperatorPruneClones
 
   interface mergerTreeOperatorPruneClones
-     !!{
+     !!{RST
      Constructors for the clone pruning merger tree operator class.
      !!}
      module procedure pruneClonesConstructorParameters
@@ -45,7 +47,7 @@ Implements a pruning-by-mass operator on merger trees.
 contains
 
   function pruneClonesConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the clone pruning merger tree operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -61,7 +63,7 @@ contains
   end function pruneClonesConstructorParameters
 
   subroutine pruneClonesOperatePreEvolution(self,tree)
-    !!{
+    !!{RST
     Perform a clone pruning operation on a merger tree.
     !!}
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic             , treeNode

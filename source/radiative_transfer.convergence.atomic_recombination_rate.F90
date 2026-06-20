@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <radiativeTransferConvergence name="radiativeTransferConvergenceHydrogenRecombinationRate">
-   <description>A radiative transfer convergence class that monitors the total hydrogen atomic recombination rate across successive iterations, declaring convergence when the relative change in the total recombination rate falls below the specified tolerance. The convergence criterion is set by \mono{[toleranceRelative]}.</description>
+  <radiativeTransferConvergence name="radiativeTransferConvergenceHydrogenRecombinationRate" docformat="rst">
+   <description>
+   A radiative transfer convergence class that monitors the total hydrogen atomic recombination rate across successive iterations, declaring convergence when the relative change in the total recombination rate falls below the specified tolerance. The convergence criterion is set by ``[toleranceRelative]``.
+   </description>
   </radiativeTransferConvergence>
   !!]
   type, extends(radiativeTransferConvergenceClass) :: radiativeTransferConvergenceHydrogenRecombinationRate
-     !!{
+     !!{RST
      Implementation of a radiative transfer convergence class based on the recombination rate of hydrogen.
      !!}
      private
@@ -35,8 +37,8 @@
   end type radiativeTransferConvergenceHydrogenRecombinationRate
   
   interface radiativeTransferConvergenceHydrogenRecombinationRate
-     !!{
-     Constructors for the \refClass{radiativeTransferConvergenceHydrogenRecombinationRate} radiative transfer matter class.
+     !!{RST
+     Constructors for the :galacticus-class:`radiativeTransferConvergenceHydrogenRecombinationRate` radiative transfer matter class.
      !!}
      module procedure hydrogenRecombinationRateConstructorParameters
      module procedure hydrogenRecombinationRateConstructorInternal
@@ -45,8 +47,8 @@
 contains
 
   function hydrogenRecombinationRateConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{radiativeTransferConvergenceHydrogenRecombinationRate} radiative transfer matter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`radiativeTransferConvergenceHydrogenRecombinationRate` radiative transfer matter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -55,10 +57,12 @@ contains
     double precision                                                                       :: toleranceRelative
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelative</name>
       <defaultValue>1.0d-3</defaultValue>
-      <description>The relative tolerance in total recombination rate required to declare convergence.</description>
+      <description>
+      The relative tolerance in total recombination rate required to declare convergence.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -70,8 +74,8 @@ contains
   end function hydrogenRecombinationRateConstructorParameters
 
   function hydrogenRecombinationRateConstructorInternal(toleranceRelative) result(self)
-    !!{
-    Internal constructor for the \refClass{radiativeTransferConvergenceHydrogenRecombinationRate} radiative transfer matter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`radiativeTransferConvergenceHydrogenRecombinationRate` radiative transfer matter class.
     !!}
     implicit none
     type            (radiativeTransferConvergenceHydrogenRecombinationRate)                :: self
@@ -86,7 +90,7 @@ contains
   end function hydrogenRecombinationRateConstructorInternal
   
   subroutine hydrogenRecombinationRateTestConvergence(self,radiativeTransferMatter_,properties,statusCell,converged)
-    !!{
+    !!{RST
     Test convergence in the computational domain cell.
     !!}
     use :: Display                   , only : displayMessage               , verbosityLevelStandard
@@ -135,7 +139,7 @@ contains
   end subroutine hydrogenRecombinationRateTestConvergence
 
   subroutine hydrogenRecombinationRatePhotonPacketEscapes(self,photonPacket)
-    !!{
+    !!{RST
     Process an escaping photon packet.
     !!}
     implicit none

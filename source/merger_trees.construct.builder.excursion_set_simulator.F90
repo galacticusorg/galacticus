@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree builder class which builds merger trees by simulating trajectories from the excursion set.
   !!}
   
@@ -26,20 +26,14 @@
   use :: Cosmological_Density_Field        , only : cosmologicalMassVarianceClass, criticalOverdensityClass
   
   !![
-  <mergerTreeBuilder name="mergerTreeBuilderExcursionSetSimulator">
+  <mergerTreeBuilder name="mergerTreeBuilderExcursionSetSimulator" docformat="rst">
     <description>
-      \textbf{Warning:} \emph{This is a proof-of-concept implementation---it should not be used to generate
-      scientifically-reliable results.} A merger tree builder class which creates trees by simulating trajectories from the
-      excursion set. As warned above, this is a proof-of-concept implementation of a merger tree builder using direct simulation
-      of the excursion set. It has not been validated or calibrated to produce merger trees that accurately match the statistical
-      properties of trees measured from N-body simulations---in fact, it is known to \emph{not} match the statistical properties
-      of those trees. It has also not been carefully verified to be free from errors, nor has it been optimized for speed or
-      memory footprint. \emph{Caveat arborist!}
+    **Warning:** *This is a proof-of-concept implementation---it should not be used to generate scientifically-reliable results.* A merger tree builder class which creates trees by simulating trajectories from the excursion set. As warned above, this is a proof-of-concept implementation of a merger tree builder using direct simulation of the excursion set. It has not been validated or calibrated to produce merger trees that accurately match the statistical properties of trees measured from N-body simulations---in fact, it is known to *not* match the statistical properties of those trees. It has also not been carefully verified to be free from errors, nor has it been optimized for speed or memory footprint. *Caveat arborist!*
     </description>
   </mergerTreeBuilder>
   !!]
   type, extends(mergerTreeBuilderClass) :: mergerTreeBuilderExcursionSetSimulator
-     !!{
+     !!{RST
      A merger tree builder class which creates trees by simulating trajectories from the excursion set.
      !!}
      private
@@ -57,8 +51,8 @@
   end type mergerTreeBuilderExcursionSetSimulator
 
   interface mergerTreeBuilderExcursionSetSimulator
-     !!{
-     Constructors for the \refClass{mergerTreeBuilderExcursionSetSimulator} merger tree builder class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeBuilderExcursionSetSimulator` merger tree builder class.
      !!}
      module procedure excursionSetSimulatorConstructorParameters
        module procedure excursionSetSimulatorConstructorInternal
@@ -67,8 +61,8 @@
     contains
 
       function excursionSetSimulatorConstructorParameters(parameters) result(self)
-        !!{
-        Constructor for the \refClass{mergerTreeBuilderExcursionSetSimulator} merger tree builder class which takes a parameter set as input.
+        !!{RST
+        Constructor for the :galacticus-class:`mergerTreeBuilderExcursionSetSimulator` merger tree builder class which takes a parameter set as input.
         !!}
         use :: Input_Parameters, only : inputParameter, inputParameters
         implicit none
@@ -84,50 +78,53 @@
              &                                                                     excursionStep
         
         !![
-        <inputParameter>
+        <inputParameter docformat="rst">
 	  <name>redshiftMaximum</name>
 	  <source>parameters</source>
 	  <defaultValue>10.0d0</defaultValue>
-	  <description>The highest redshift to which merger trees will be built.</description>
+	  <description>
+	  The highest redshift to which merger trees will be built.
+	  </description>
 	</inputParameter>
-        <inputParameter>
+        <inputParameter docformat="rst">
 	  <name>varianceStepMinimum</name>
 	  <source>parameters</source>
 	  <defaultValue>1.0d-6</defaultValue>
 	  <description>
-	    The smallest step in variance to take when simulating trajectories from the excursion set. Using a smaller step will
-	    result in less quantization of node masses.
+	  The smallest step in variance to take when simulating trajectories from the excursion set. Using a smaller step will result in less quantization of node masses.
 	  </description>
 	</inputParameter>
-        <inputParameter>
+        <inputParameter docformat="rst">
 	  <name>varianceStepSigmaMaximum</name>
 	  <source>parameters</source>
 	  <defaultValue>5.0d+0</defaultValue>
 	  <description>
-	    Controls the size of the steps in variance when simulating trajectories from the excursion set. Specifically, the step
-	    is never smaller than $\Delta S = [ ( \delta_\mathrm{i} - \delta ) / N ]^2$, where $N=$\mono{[varianceStepSigmaMaximum]} is the number of standard deviations (in a standard normal distribution) that would be
-	    required in a positive fluctuation to make the excursion exceed the initial excursion in this step. In this way, the
-	    probability of ``missing'' a first crossing at some earlier step should be kept small (of order the fraction of a
-	    standard normal distribution which lies more than $N$ standard deviations above zero).
+	  Controls the size of the steps in variance when simulating trajectories from the excursion set. Specifically, the step is never smaller than :math:`\Delta S = [ ( \delta_\mathrm{i} - \delta ) / N ]^2`, where :math:`N=`\ ``[varianceStepSigmaMaximum]`` is the number of standard deviations (in a standard normal distribution) that would be required in a positive fluctuation to make the excursion exceed the initial excursion in this step. In this way, the probability of "missing" a first crossing at some earlier step should be kept small (of order the fraction of a standard normal distribution which lies more than :math:`N` standard deviations above zero).
 	  </description>
 	</inputParameter>
-        <inputParameter>
+        <inputParameter docformat="rst">
 	  <name>excursionStep</name>
 	  <source>parameters</source>
 	  <defaultValue>0.02d0</defaultValue>
-	  <description>Sets the size of the timesteps in excursion, $\delta$, to take when constructing the tree.</description>
+	  <description>
+	  Sets the size of the timesteps in excursion, :math:`\delta`, to take when constructing the tree.
+	  </description>
 	</inputParameter>
-        <inputParameter>
+        <inputParameter docformat="rst">
 	  <name>factorMassConsolidate</name>
 	  <source>parameters</source>
 	  <defaultValue>0.9d0</defaultValue>
-	  <description>The maximum factor ($&lt;1$) by which the mass of a halo can have changed before consolidation is no longer permitted.</description>
+	  <description>
+	  The maximum factor (:math:`&lt;1`) by which the mass of a halo can have changed before consolidation is no longer permitted.
+	  </description>
 	</inputParameter>
-        <inputParameter>
+        <inputParameter docformat="rst">
 	  <name>factorTimeConsolidate</name>
 	  <source>parameters</source>
 	  <defaultValue>0.9d0</defaultValue>
-	  <description>The maximum factor ($&lt;1$) by which the time of a halo can have changed before consolidation is no longer permitted.</description>
+	  <description>
+	  The maximum factor (:math:`&lt;1`) by which the time of a halo can have changed before consolidation is no longer permitted.
+	  </description>
 	</inputParameter>
  	<objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
 	<objectBuilder class="mergerTreeMassResolution" name="mergerTreeMassResolution_" source="parameters"/>
@@ -147,8 +144,8 @@
       end function excursionSetSimulatorConstructorParameters
 
       function excursionSetSimulatorConstructorInternal(timeEarliest,varianceStepMinimum,varianceStepSigmaMaximum,excursionStep,factorMassConsolidate,factorTimeConsolidate,cosmologyFunctions_,mergerTreeMassResolution_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
-        !!{
-        Internal constructor for the \refClass{mergerTreeBuilderExcursionSetSimulator} merger tree builder class.
+        !!{RST
+        Internal constructor for the :galacticus-class:`mergerTreeBuilderExcursionSetSimulator` merger tree builder class.
         !!}
         implicit none
         type            (mergerTreeBuilderExcursionSetSimulator)                        :: self
@@ -171,8 +168,8 @@
       end function excursionSetSimulatorConstructorInternal
 
       subroutine excursionSetSimulatorDestructor(self)
-        !!{
-        Destructor for the \refClass{mergerTreeBuilderExcursionSetSimulator} merger tree builder class.
+        !!{RST
+        Destructor for the :galacticus-class:`mergerTreeBuilderExcursionSetSimulator` merger tree builder class.
         !!}
         implicit none
         type(mergerTreeBuilderExcursionSetSimulator), intent(inout) :: self
@@ -187,7 +184,7 @@
       end subroutine excursionSetSimulatorDestructor
 
       subroutine excursionSetSimulatorBuild(self,tree)
-        !!{
+        !!{RST
         Build a merger tree with a smooth mass accretion history.
         !!}
         use :: Error_Functions    , only : Error_Function

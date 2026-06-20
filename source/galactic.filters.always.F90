@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic filter which always passes.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterAlways">
-   <description>A trivial filter that unconditionally passes every node regardless of its properties, used as a default or placeholder when all nodes should be included in an analysis and also as a null object in testing filter infrastructure.</description>
+  <galacticFilter name="galacticFilterAlways" docformat="rst">
+   <description>
+   A trivial filter that unconditionally passes every node regardless of its properties, used as a default or placeholder when all nodes should be included in an analysis and also as a null object in testing filter infrastructure.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterAlways
-     !!{
+     !!{RST
      A galactic filter class which always passes.
      !!}
      private
@@ -36,8 +38,8 @@ Implements a galactic filter which always passes.
   end type galacticFilterAlways
 
   interface galacticFilterAlways
-     !!{
-     Constructors for the \refClass{galacticFilterAlways} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterAlways` galactic filter class.
      !!}
      module procedure alwaysConstructorParameters
   end interface galacticFilterAlways
@@ -45,8 +47,8 @@ Implements a galactic filter which always passes.
 contains
 
   function alwaysConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterAlways} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterAlways` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function alwaysConstructorParameters
 
   logical function alwaysPasses(self,node)
-    !!{
+    !!{RST
     Implement an always-pass galactic filter.
     !!}
     implicit none

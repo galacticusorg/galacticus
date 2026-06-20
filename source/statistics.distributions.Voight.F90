@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a peak-background split density 1D distribution function.
   !!}
 
   !![
-  <distributionFunction1D name="distributionFunction1DVoight">
-   <description>A 1D distribution function class for Voigt profiles, which are convolutions of a Lorentzian (Cauchy) distribution with a Gaussian distribution, parameterized by the Lorentzian half-width $\gamma$, location $\mu$, and Gaussian width $\sigma$, optionally truncated to a finite interval.</description>
+  <distributionFunction1D name="distributionFunction1DVoight" docformat="rst">
+   <description>
+   A 1D distribution function class for Voigt profiles, which are convolutions of a Lorentzian (Cauchy) distribution with a Gaussian distribution, parameterized by the Lorentzian half-width :math:`\gamma`, location :math:`\mu`, and Gaussian width :math:`\sigma`, optionally truncated to a finite interval.
+   </description>
   </distributionFunction1D>
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DVoight
-     !!{
+     !!{RST
      Implementation of a voight 1D distribution function.
      !!}
      private
@@ -44,8 +46,8 @@
   end type distributionFunction1DVoight
 
   interface distributionFunction1DVoight
-     !!{
-     Constructors for the \refClass{distributionFunction1DVoight} 1D distribution function class.
+     !!{RST
+     Constructors for the :galacticus-class:`distributionFunction1DVoight` 1D distribution function class.
      !!}
      module procedure voightConstructorParameters
      module procedure voightConstructorInternal
@@ -54,9 +56,8 @@
 contains
 
   function voightConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DVoight} 1D distribution function class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DVoight` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -68,30 +69,40 @@ contains
          &                                                           limitUpper
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma</name>
-      <description>The Lorentzian half-width at half-maximum $\gamma > 0$ of the Voigt profile, controlling the width of the Cauchy (Lorentzian) component; larger values give broader, heavier tails.</description>
+      <description>
+      The Lorentzian half-width at half-maximum :math:`\gamma &gt; 0` of the Voigt profile, controlling the width of the Cauchy (Lorentzian) component; larger values give broader, heavier tails.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mu</name>
-      <description>The location parameter $\mu$ of the Voigt profile, specifying the center (peak position) of the combined Lorentzian-Gaussian distribution.</description>
+      <description>
+      The location parameter :math:`\mu` of the Voigt profile, specifying the center (peak position) of the combined Lorentzian-Gaussian distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sigma</name>
-      <description>The Gaussian standard deviation $\sigma > 0$ of the Voigt profile, controlling the width of the Gaussian component; the overall profile width is determined by the combination of $\gamma$ and $\sigma$.</description>
+      <description>
+      The Gaussian standard deviation :math:`\sigma &gt; 0` of the Voigt profile, controlling the width of the Gaussian component; the overall profile width is determined by the combination of :math:`\gamma` and :math:`\sigma`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>limitLower</name>
-      <description>The lower truncation limit of the Voigt distribution; when specified, the distribution is renormalized over the restricted interval $[\mathrm{limitLower}, \mathrm{limitUpper}]$.</description>
+      <description>
+      The lower truncation limit of the Voigt distribution; when specified, the distribution is renormalized over the restricted interval :math:`[\mathrm{limitLower}, \mathrm{limitUpper}]`.
+      </description>
       <defaultValue>-huge(0.0d0)</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>limitUpper</name>
-      <description>The upper truncation limit of the Voigt distribution; when specified, the distribution is renormalized over the restricted interval $[\mathrm{limitLower}, \mathrm{limitUpper}]$.</description>
+      <description>
+      The upper truncation limit of the Voigt distribution; when specified, the distribution is renormalized over the restricted interval :math:`[\mathrm{limitLower}, \mathrm{limitUpper}]`.
+      </description>
       <defaultValue>+huge(0.0d0)</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -106,8 +117,8 @@ contains
   end function voightConstructorParameters
 
   function voightConstructorInternal(gamma,mu,sigma,limitLower,limitUpper,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DVoight} 1D distribution function class.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DVoight` 1D distribution function class.
     !!}
     type            (distributionFunction1DVoight)                                  :: self
     double precision                              , intent(in   )                   :: gamma                 , mu        , &
@@ -143,7 +154,7 @@ contains
   end function voightConstructorInternal
 
   double precision function voightMaximum(self)
-    !!{
+    !!{RST
     Return the maximum extent a Voight distribution.
     !!}
     implicit none
@@ -158,7 +169,7 @@ contains
   end function voightMaximum
   
   double precision function voightMinimum(self)
-    !!{
+    !!{RST
     Return the minimum extent a Voight distribution.
     !!}
     implicit none
@@ -173,7 +184,7 @@ contains
   end function voightMinimum
   
   double precision function voightDensity(self,x)
-    !!{
+    !!{RST
     Return the density of a Voight distribution.
     !!}
     use :: Error_Functions         , only : Faddeeva
@@ -203,7 +214,7 @@ contains
   end function voightDensity
 
   double precision function voightCumulative(self,x)
-    !!{
+    !!{RST
     Return the cumulative probability of a Voight distribution.
     !!}
     use :: Error_Functions         , only : Error_Function

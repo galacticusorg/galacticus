@@ -17,15 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program which tests the \cite{tinker_towardhalo_2008} mass function by comparing to Jeremy Tinker's
-\href{http://web.archive.org/web/20220313133942/https://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar}{code}.
+!!{RST
+Contains a program which tests the :cite:t:`tinker_towardhalo_2008` mass function by comparing to Jeremy Tinker's `code <http://web.archive.org/web/20220313133942/https://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar>`_.
 !!}
 
 program Tests_Halo_Mass_Function_Tinker
-  !!{
-  Tests the \cite{tinker_towardhalo_2008} mass function by comparing to Jeremy Tinker's
-  \href{http://web.archive.org/web/20220313133942/https://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar}{code}.
+  !!{RST
+  Tests the :cite:t:`tinker_towardhalo_2008` mass function by comparing to Jeremy Tinker's `code <http://web.archive.org/web/20220313133942/https://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar>`_.
   !!}
   use :: Cosmological_Density_Field          , only : criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt, cosmologicalMassVarianceFilteredPower
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda

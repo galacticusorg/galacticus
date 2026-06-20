@@ -17,24 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a scaling spherical mass distribution class.
   !!}
 
   !![
-  <massDistribution name="massDistributionSphericalScaler">
+  <massDistribution name="massDistributionSphericalScaler" docformat="rst">
     <description>
-      A mass distribution class for scaling spherical mass distributions. Specifically, the density at position $\mathbf{x}$ is
-      given by
-      \begin{equation}
-      \rho(\mathbf{x}) = \frac{f_\mathrm{M}}{f_\mathrm{r}^3} \rho^\prime(\mathbf{x}/f_\mathrm{r}),
-      \end{equation}      
-      where $\rho^\prime(\mathbf{x})$ is the original mass distribution, and $f_\mathrm{r}=$\mono{[factorScalingLength]}, and $f_\mathrm{M}=$\mono{[factorScalingMass]}.
+    A mass distribution class for scaling spherical mass distributions. Specifically, the density at position :math:`\mathbf{x}` is given by
+
+    .. math::
+
+       \rho(\mathbf{x}) = \frac{f_\mathrm{M}}{f_\mathrm{r}^3} \rho^\prime(\mathbf{x}/f_\mathrm{r}),
+
+    where :math:`\rho^\prime(\mathbf{x})` is the original mass distribution, and :math:`f_\mathrm{r}=`\ ``[factorScalingLength]``, and :math:`f_\mathrm{M}=`\ ``[factorScalingMass]``.
     </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionSphericalScaler
-     !!{
+     !!{RST
      A mass distribution class for scaling spherical mass distributions.
      !!}
      class           (massDistributionSpherical     ), pointer      :: massDistribution_           => null()
@@ -43,7 +44,13 @@
      double precision                                , dimension(3) :: positionTidalTensorPrevious
      type            (tensorRank2Dimension3Symmetric)               :: tidalTensorPrevious
    contains
+     !![
+     <methods docformat="rst">
+       <method method="initialize" description="(Re)initialize the scaling factors of the scaled mass distribution."/>
+     </methods>
+     !!]
      final     ::                                      sphericalScalerDestructor
+     procedure :: initialize                        => sphericalScalerInitialize
      procedure :: massTotal                         => sphericalScalerMassTotal
      procedure :: density                           => sphericalScalerDensity
      procedure :: densityGradientRadial             => sphericalScalerDensityGradientRadial
@@ -72,8 +79,8 @@
   end type massDistributionSphericalScaler
 
   interface massDistributionSphericalScaler
-     !!{
-     Constructors for the \refClass{massDistributionSphericalScaler} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionSphericalScaler` mass distribution class.
      !!}
      module procedure sphericalScalerConstructorParameters
      module procedure sphericalScalerConstructorInternal
@@ -82,9 +89,8 @@
 contains
 
   function sphericalScalerConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalScaler} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionSphericalScaler` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -95,14 +101,18 @@ contains
     double precision                                                 :: factorScalingLength, factorScalingMass
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorScalingLength</name>
-      <description>The factor by which to scale lengths.</description>
+      <description>
+      The factor by which to scale lengths.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorScalingMass</name>
-      <description>The factor by which to scale the mass.</description>
+      <description>
+      The factor by which to scale the mass.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="massDistribution" name="massDistribution_" source="parameters"/>
@@ -121,8 +131,8 @@ contains
   end function sphericalScalerConstructorParameters
   
   function sphericalScalerConstructorInternal(factorScalingLength,factorScalingMass,massDistribution_,chandrasekharIntegralComputeVelocityDispersion) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSphericalScaler} mass distribution class.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionSphericalScaler` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalScaler)                          :: self
@@ -140,9 +150,24 @@ contains
     return
   end function sphericalScalerConstructorInternal
 
+  subroutine sphericalScalerInitialize(self,factorScalingLength,factorScalingMass)
+    !!{RST
+    (Re)initialize the scaling factors of a :galacticus-class:`massDistributionSphericalScaler` mass distribution. Used to re-use a pooled scaler for a new system without reallocating it (the wrapped, dimensionless mass distribution is unchanged). In addition to the two scaling factors, the memoized tidal tensor (which is scale-dependent) is cleared, along with any tabulations cached in the spherical base class.
+    !!}
+    implicit none
+    class           (massDistributionSphericalScaler), intent(inout) :: self
+    double precision                                 , intent(in   ) :: factorScalingLength, factorScalingMass
+
+    self%factorScalingLength        =factorScalingLength
+    self%factorScalingMass          =factorScalingMass
+    self%positionTidalTensorPrevious=-huge(0.0d0)
+    call self%tabulationReset()
+    return
+  end subroutine sphericalScalerInitialize
+
   subroutine sphericalScalerDestructor(self)
-    !!{
-    Destructor for the \refClass{massDistributionSphericalScaler} mass distribution class.
+    !!{RST
+    Destructor for the :galacticus-class:`massDistributionSphericalScaler` mass distribution class.
     !!}
     implicit none
     type(massDistributionSphericalScaler), intent(inout) :: self
@@ -154,7 +179,7 @@ contains
   end subroutine sphericalScalerDestructor
 
   double precision function sphericalScalerMassTotal(self)
-    !!{
+    !!{RST
     Return the total mass in a scaled spherical distribution.
     !!}
     implicit none
@@ -166,8 +191,8 @@ contains
   end function sphericalScalerMassTotal
 
   double precision function sphericalScalerDensity(self,coordinates)
-    !!{
-    Return the density at the specified \mono{coordinates} in a scaled spherical mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a scaled spherical mass distribution.
     !!}
     implicit none
     class(massDistributionSphericalScaler), intent(inout) :: self
@@ -186,7 +211,7 @@ contains
   end function sphericalScalerDensity
 
   double precision function sphericalScalerDensityGradientRadial(self,coordinates,logarithmic)
-    !!{
+    !!{RST
     Return the density gradient in the radial direction in a scaled spherical mass distribution.
     !!}
     implicit none
@@ -211,8 +236,8 @@ contains
   end function sphericalScalerDensityGradientRadial
 
   double precision function sphericalScalerMassEnclosedBySphere(self,radius)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for a scaled spherical mass distribution.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for a scaled spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalScaler), intent(inout), target :: self
@@ -227,8 +252,8 @@ contains
   end function sphericalScalerMassEnclosedBySphere
 
   double precision function sphericalScalerMassEnclosedByCylinder(self,radius) result(mass)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for a scaled spherical mass distribution.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for a scaled spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalScaler), intent(inout), target :: self
@@ -243,7 +268,7 @@ contains
   end function sphericalScalerMassEnclosedByCylinder
 
   logical function sphericalScalerPotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return that the potential has an analytic form.
     !!}
     implicit none
@@ -254,8 +279,8 @@ contains
   end function sphericalScalerPotentialIsAnalytic
 
   double precision function sphericalScalerPotential(self,coordinates,status)
-    !!{
-    Return the potential at the specified \mono{coordinates} in a scaled spherical mass distribution.
+    !!{RST
+    Return the potential at the specified ``coordinates`` in a scaled spherical mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
@@ -278,7 +303,7 @@ contains
   end function sphericalScalerPotential
 
   double precision function sphericalScalerDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
-    !!{
+    !!{RST
     Computes radial moments of the density in a scaled spherical mass distribution.
     !!}
     implicit none
@@ -302,7 +327,7 @@ contains
   end function sphericalScalerDensityRadialMoment
 
   double precision function sphericalScalerRadiusHalfMass(self)
-    !!{
+    !!{RST
     Computes the half-mass radius in a scaled spherical mass distribution.
     !!}
     implicit none
@@ -314,9 +339,8 @@ contains
   end function sphericalScalerRadiusHalfMass
 
   function sphericalScalerAcceleration(self,coordinates)
-    !!{
-    Computes the gravitational acceleration at \mono{coordinates} for spherically-symmetric mass
-    distributions.
+    !!{RST
+    Computes the gravitational acceleration at ``coordinates`` for spherically-symmetric mass distributions.
     !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, gravitationalConstant_internal, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -342,9 +366,8 @@ contains
   end function sphericalScalerAcceleration
 
   double precision function sphericalScalerDensitySphericalAverage(self,radius)
-    !!{
-    Return the spherically-averaged density at the specified \mono{coordinates} in a scaled spherical mass
-    distribution.
+    !!{RST
+    Return the spherically-averaged density at the specified ``coordinates`` in a scaled spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalScaler), intent(inout) :: self
@@ -360,7 +383,7 @@ contains
   end function sphericalScalerDensitySphericalAverage
 
   double precision function sphericalScalerRotationCurve(self,radius)
-    !!{
+    !!{RST
     Return the mid-plane rotation curve for a scaled spherical distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -383,8 +406,8 @@ contains
   end function sphericalScalerRotationCurve
 
   double precision function sphericalScalerRotationCurveGradient(self,radius)
-    !!{
-    Return the mid-plane rotation curve gradient (specifically, $\mathrm{d}V^2_\mathrm{c}/\mathrm{d}r$) for a scaled spherical distribution.
+    !!{RST
+    Return the mid-plane rotation curve gradient (specifically, :math:`\mathrm{d}V^2_\mathrm{c}/\mathrm{d}r`) for a scaled spherical distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
@@ -404,8 +427,8 @@ contains
   end function sphericalScalerRotationCurveGradient
 
   function sphericalScalerTidalTensor(self,coordinates) result(tidalTensor)
-    !!{
-    Computes the gravitational tidal tensor at \mono{coordinates} in a scaled spherical mass distribution.
+    !!{RST
+    Computes the gravitational tidal tensor at ``coordinates`` in a scaled spherical mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Coordinates                     , only : coordinateCartesian           , assignment(=)
@@ -434,7 +457,7 @@ contains
   end function sphericalScalerTidalTensor
   
   function sphericalScalerPositionSample(self,randomNumberGenerator_)
-    !!{
+    !!{RST
     Sample a position from a scaled spherical mass distribution.
     !!}
     implicit none
@@ -448,8 +471,8 @@ contains
   end function sphericalScalerPositionSample
 
   double precision function sphericalScalerFourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
-    !!{
-    Compute the Fourier transform of the density profile at the given \mono{wavenumber} in a spherical, scaled mass distribution.
+    !!{RST
+    Compute the Fourier transform of the density profile at the given ``wavenumber`` in a spherical, scaled mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalScaler), intent(inout) :: self
@@ -460,8 +483,8 @@ contains
   end function sphericalScalerFourierTransform
 
   double precision function sphericalScalerRadiusFreefall(self,time) result(radius)
-    !!{
-    Compute the freefall radius at the given \mono{time} in a spherical mass distribution.
+    !!{RST
+    Compute the freefall radius at the given ``time`` in a spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalScaler), intent(inout) :: self
@@ -479,9 +502,8 @@ contains
   end function sphericalScalerRadiusFreefall
   
   double precision function sphericalScalerRadiusFreefallIncreaseRate(self,time) result(radiusIncreaseRate)
-    !!{
-    Compute the rate of increase of the freefall radius at the given \mono{time} in an spherical mass
-    distribution.
+    !!{RST
+    Compute the rate of increase of the freefall radius at the given ``time`` in an spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalScaler), intent(inout) :: self
@@ -502,8 +524,8 @@ contains
   end function sphericalScalerRadiusFreefallIncreaseRate
 
   double precision function sphericalScalerEnergyPotential(self,radiusOuter) result(energy)
-    !!{
-    Compute the potential energy within a given \mono{radius} in a spherical mass distribution.
+    !!{RST
+    Compute the potential energy within a given ``radius`` in a spherical mass distribution.
     !!}
     implicit none
     class           (massDistributionSphericalScaler), intent(inout) :: self
@@ -516,7 +538,7 @@ contains
   end function sphericalScalerEnergyPotential
 
   double precision function sphericalScalerVelocityRotationCurveMaximum(self) result(velocity)
-    !!{
+    !!{RST
     Return the peak velocity in the rotation curve for an spherical scaled mass distribution.
     !!}
     implicit none
@@ -531,7 +553,7 @@ contains
   end function sphericalScalerVelocityRotationCurveMaximum
 
   double precision function sphericalScalerRadiusRotationCurveMaximum(self) result(radius)
-    !!{
+    !!{RST
     Return the peak velocity in the rotation curve for an spherical scaled mass distribution.
     !!}
     implicit none
@@ -543,7 +565,7 @@ contains
   end function sphericalScalerRadiusRotationCurveMaximum
 
   double precision function sphericalScalerRadiusEnclosingMass(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mass or mass fraction for spherical scaled mass distributions.
     !!}
     implicit none
@@ -572,7 +594,7 @@ contains
   end function sphericalScalerRadiusEnclosingMass
   
   double precision function sphericalScalerRadiusCylindricalEnclosingMass(self,mass,massFractional) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mass or mass fraction for spherical scaled mass distributions.
     !!}
     implicit none
@@ -601,7 +623,7 @@ contains
   end function sphericalScalerRadiusCylindricalEnclosingMass
   
   double precision function sphericalScalerRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
-    !!{
+    !!{RST
     Computes the radius enclosing a given mean density for spherical scaled mass distributions.
     !!}
     implicit none
@@ -630,7 +652,7 @@ contains
   end function sphericalScalerRadiusEnclosingDensity
 
   double precision function sphericalScalerRadiusFromSpecificAngularMomentum(self,angularMomentumSpecific) result(radius)
-    !!{
+    !!{RST
     Computes the radius corresponding to a given specific angular momentum for sphericalScaler mass distributions.
     !!}
     implicit none

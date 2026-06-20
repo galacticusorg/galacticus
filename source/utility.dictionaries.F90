@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which implements ``dictionaries'' (i.e. associative arrays).
+!!{RST
+Contains a module which implements "dictionaries" (i.e. associative arrays).
 !!}
 
 module Dictionaries
-  !!{
-  Implements ``dictionaries'' (i.e. associative arrays).
+  !!{RST
+  Implements "dictionaries" (i.e. associative arrays).
   !!}
   use, intrinsic :: ISO_C_Binding     , only : c_size_t
   use            :: ISO_Varying_String, only : var_str , varying_string
@@ -56,8 +56,8 @@ module Dictionaries
   end type {Type¦label}Container
 
   type :: {Type¦label}Dictionary
-     !!{
-     Derived type for {Type¦label} dictionaries.
+     !!{RST
+     Derived type for Type¦label dictionaries.
      !!}
      private
      integer                                                   :: allocatedSize=0, elementCount=0
@@ -67,12 +67,12 @@ module Dictionaries
      type   (varying_string       )                            :: keyPrevious
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Initialize the dictionary."                                                                      method="initialize"   />
        <method description="Set the value of a key in the dictionary."                                                       method="set"          />
        <method description="Delete a key from the dictionary."                                                               method="delete"       />
        <method description="Return the value for the given key."                                                       method="value"        />
-       <method description="Return the key of the \mono{indexValue}$^\mathrm{th}$ entry in the dictionary."                  method="key"          />
+       <method description="Return the key of the ``indexValue``\ :math:`^\mathrm{th}` entry in the dictionary."                  method="key"          />
        <method description="Return an array of all keys in the dictionary."                                                  method="keys"         />
        <method description="Return an array of all values in the dictionary."                                                method="values"       />
        <method description="Return true if the specified key exists in the dictionary."                                      method="exists"       />
@@ -115,7 +115,7 @@ module Dictionaries
 contains
 
   function {Type¦label}DictionaryConstructor() result(self)
-     !!{
+     !!{RST
      Constructor for scalar dictionaries.
      !!}
      implicit none
@@ -126,7 +126,7 @@ contains
    end function {Type¦label}DictionaryConstructor
 
   subroutine {Type¦label}Initialize(self)
-    !!{
+    !!{RST
     Routine to initialize (or re-initialize) a dictionary.
     !!}
   use :: ISO_Varying_String, only : assignment(=)
@@ -143,7 +143,7 @@ contains
   end subroutine {Type¦label}Initialize
 
   subroutine {Type¦label}Assign(to,from)
-    !!{
+    !!{RST
     Assignment operator for dictionaries.
     !!}
     implicit none
@@ -173,8 +173,8 @@ contains
   end subroutine {Type¦label}Assign
 
   integer function {Type¦label}Size(self)
-    !!{
-    Returns the number of elements in the specified \mono{Dictionary}.
+    !!{RST
+    Returns the number of elements in the specified ``Dictionary``.
     !!}
     implicit none
     class({Type¦label}Dictionary), intent(in   ) :: self
@@ -184,8 +184,8 @@ contains
   end function {Type¦label}Size
 
   logical function {Type¦label}ExistsChar(self,keyCH)
-    !!{
-    Returns true if the specified \mono{key} exists in the specified \mono{self}, false otherwise.
+    !!{RST
+    Returns true if the specified ``key`` exists in the specified ``self``, false otherwise.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -199,9 +199,8 @@ contains
   end function {Type¦label}ExistsChar
 
   function {Type¦label}Lookup(self,key) result(iKey)
-    !!{
-    Return the index of \mono{key} in the sorted keys of \mono{self}, or zero if \mono{key} does not exist. Uses a binary search,
-    so is $\mathcal{O}(\log N)$ in the number of entries.
+    !!{RST
+    Return the index of ``key`` in the sorted keys of ``self``, or zero if ``key`` does not exist. Uses a binary search, so is :math:`\mathcal{O}(\log N)` in the number of entries.
     !!}
     use            :: Arrays_Search     , only : searchArray
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
@@ -225,8 +224,8 @@ contains
   end function {Type¦label}Lookup
 
   logical function {Type¦label}ExistsVarStr(self,key)
-    !!{
-    Returns true if the specified \mono{key} exists in the specified \mono{self}, false otherwise.
+    !!{RST
+    Returns true if the specified ``key`` exists in the specified ``self``, false otherwise.
     !!}
     implicit none
     class({Type¦label}Dictionary), intent(in   ) :: self
@@ -237,8 +236,8 @@ contains
   end function {Type¦label}ExistsVarStr
 
   subroutine {Type¦label}DeleteChar(self,keyCH)
-    !!{
-    Deletes entry \mono{key} from \mono{self}.
+    !!{RST
+    Deletes entry ``key`` from ``self``.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -252,8 +251,8 @@ contains
   end subroutine {Type¦label}DeleteChar
 
   subroutine {Type¦label}DeleteVarStr(self,key)
-    !!{
-    Deletes entry \mono{key} from \mono{Dictionary}.
+    !!{RST
+    Deletes entry ``key`` from ``Dictionary``.
     !!}
     use            :: Arrays_Search     , only : searchArray
     use            :: Error             , only : Error_Report
@@ -283,8 +282,8 @@ contains
   end subroutine {Type¦label}DeleteVarStr
 
   function {Type¦label}KeyInt(self,indexValue) result (key)
-    !!{
-    Returns the key of entry number \mono{index} in \mono{self}.
+    !!{RST
+    Returns the key of entry number ``index`` in ``self``.
     !!}
     implicit none
     type   (varying_string        )                :: key
@@ -296,8 +295,8 @@ contains
   end function {Type¦label}KeyInt
 
   subroutine {Type¦label}Keys(self,keys)
-    !!{
-    Returns an array of all keys in \mono{self}.
+    !!{RST
+    Returns an array of all keys in ``self``.
     !!}
     implicit none
     type (varying_string        ), allocatable, dimension(:), intent(inout) :: keys
@@ -310,8 +309,8 @@ contains
   end subroutine {Type¦label}Keys
 
   subroutine {Type¦label}Values(self,values)
-    !!{
-    Returns an array of all values in \mono{self}.
+    !!{RST
+    Returns an array of all values in ``self``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -333,8 +332,8 @@ contains
   end subroutine {Type¦label}Values
 
   function {Type¦label}ValueInt(self,indexValue)
-    !!{
-    Returns the value of entry number \mono{index} in \mono{Dictionary}.
+    !!{RST
+    Returns the value of entry number ``index`` in ``Dictionary``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -348,8 +347,8 @@ contains
   end function {Type¦label}ValueInt
 
   function {Type¦label}ValueChar(self,keyCH)
-    !!{
-    Returns the value of \mono{Key} in \mono{Dictionary}.
+    !!{RST
+    Returns the value of ``Key`` in ``Dictionary``.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -364,9 +363,8 @@ contains
   end function {Type¦label}ValueChar
 
   function {Type¦label}ValueVarStr(self,key)
-    !!{
-    Returns the value of \mono{key} in \mono{self}. A single binary search ($\mathcal{O}(\log N)$) is used to locate the key,
-    short-circuited by the memoized previous key for repeated access.
+    !!{RST
+    Returns the value of ``key`` in ``self``. A single binary search (:math:`\mathcal{O}(\log N)`) is used to locate the key, short-circuited by the memoized previous key for repeated access.
     !!}
     use            :: Error             , only : Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
@@ -392,8 +390,8 @@ contains
   end function {Type¦label}ValueVarStr
 
   subroutine {Type¦label}SetChar(self,keyCH,value)
-    !!{
-    Sets the value of \mono{key} in \mono{self} to \mono{value}.
+    !!{RST
+    Sets the value of ``key`` in ``self`` to ``value``.
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
@@ -409,8 +407,8 @@ contains
   end subroutine {Type¦label}SetChar
 
   subroutine {Type¦label}SetVarStr(self,key,value)
-    !!{
-    Sets the value of \mono{key} in \mono{self} to \mono{value}.
+    !!{RST
+    Sets the value of ``key`` in ``self`` to ``value``.
     !!}
     use            :: Arrays_Search     , only : searchArray
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
@@ -510,8 +508,8 @@ contains
   end subroutine {Type¦label}SetVarStr
 
   subroutine {Type¦label}Destroy(self)
-    !!{
-    Destroys \mono{self}.
+    !!{RST
+    Destroys ``self``.
     !!}
     implicit none
     class  ({Type¦label}Dictionary), intent(inout) :: self
@@ -528,8 +526,8 @@ contains
   end subroutine {Type¦label}Destroy
 
   subroutine {Type¦label}Destructor(self)
-    !!{
-    Destroys \mono{self}.
+    !!{RST
+    Destroys ``self``.
     !!}
     implicit none
     type({Type¦label}Dictionary), intent(inout) :: self

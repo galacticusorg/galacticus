@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a stellar population selector class which returns a fixed population.
   !!}
 
   !![
-  <stellarPopulationSelector name="stellarPopulationSelectorFixed">
+  <stellarPopulationSelector name="stellarPopulationSelectorFixed" docformat="rst">
    <description>
-    A stellar population selector class which selects a fixed population irrespective of physical conditions.
+   A stellar population selector class which selects a fixed population irrespective of physical conditions.
    </description>
   </stellarPopulationSelector>
   !!]
   type, extends(stellarPopulationSelectorClass) :: stellarPopulationSelectorFixed
-     !!{
+     !!{RST
      A fixed stellar population selector class.
      !!}
      private
@@ -41,8 +41,8 @@
   end type stellarPopulationSelectorFixed
 
   interface stellarPopulationSelectorFixed
-     !!{
-     Constructors for the \refClass{stellarPopulationSelectorFixed} stellar population selector class.
+     !!{RST
+     Constructors for the :galacticus-class:`stellarPopulationSelectorFixed` stellar population selector class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -51,8 +51,8 @@
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{stellarPopulationSelectorFixed} stellar population selector class which takes a parameter list as input.
+    !!{RST
+    Constructor for the :galacticus-class:`stellarPopulationSelectorFixed` stellar population selector class which takes a parameter list as input.
     !!}
     use :: Input_Parameters   , only : inputParameter   , inputParameters
     use :: Stellar_Populations, only : stellarPopulation, stellarPopulationClass
@@ -73,8 +73,8 @@ contains
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(stellarPopulation_) result(self)
-    !!{
-    Internal constructor for the \refClass{stellarPopulationSelectorFixed} stellar population selector class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`stellarPopulationSelectorFixed` stellar population selector class.
     !!}
     implicit none
     type (stellarPopulationSelectorFixed)                        :: self
@@ -87,8 +87,8 @@ contains
   end function fixedConstructorInternal
 
   subroutine fixedDestructor(self)
-    !!{
-    Destructor for the \refClass{stellarPopulationSelectorFixed} stellar population selector class.
+    !!{RST
+    Destructor for the :galacticus-class:`stellarPopulationSelectorFixed` stellar population selector class.
     !!}
     implicit none
     type(stellarPopulationSelectorFixed), intent(inout) :: self
@@ -100,7 +100,7 @@ contains
   end subroutine fixedDestructor
 
   function fixedSelect(self,rateStarFormation,abundances_,component)
-    !!{
+    !!{RST
     Return a fixed stellar population.
     !!}
     implicit none
@@ -116,7 +116,7 @@ contains
   end function fixedSelect
 
   logical function fixedIsStarFormationRateDependent(self)
-    !!{
+    !!{RST
     Return false indicating that stellar population selection is not dependent on star formation rate.
     !!}
     implicit none

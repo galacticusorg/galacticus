@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a code to test the ``Hummer'' recombination cooling class.
+!!{RST
+Contains a code to test the "Hummer" recombination cooling class.
 !!}
 
 program Test_Recombination_Cooling_Hummer
-  !!{
+  !!{RST
   Test the radiative transfer state solver.
   !!}
   use :: Atomic_Cross_Sections_Ionization_Photo      , only : atomicCrossSectionIonizationPhotoVerner

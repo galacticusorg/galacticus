@@ -20,7 +20,9 @@
 	  </xs:complexType>
 	</xs:element>
       </xs:sequence>
+      <!-- docformat="rst" marks the description as reStructuredText. -->
+      <xs:attribute name="docformat" use="optional"/>
     </xs:complexType>
   </xs:element>
-  
+
 </xs:schema>

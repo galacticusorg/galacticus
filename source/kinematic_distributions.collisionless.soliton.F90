@@ -19,19 +19,19 @@
 
   !+    Contributions to this file made by: Yu Zhao
 
-  !!{
+  !!{RST
   Implementation of a kinematic distribution class for the soliton mass distribution.
   !!}
 
   !![
-  <kinematicsDistribution name="kinematicsDistributionSoliton">
+  <kinematicsDistribution name="kinematicsDistributionSoliton" docformat="rst">
     <description>
-      A kinematic distribution class for the solitonic core mass distribution found in fuzzy dark matter halos. The 1D velocity dispersion profile is computed from tabulated solutions to the isotropic Jeans equation applied to the soliton density profile, encoding the quantum pressure support of ultralight axion dark matter.
+    A kinematic distribution class for the solitonic core mass distribution found in fuzzy dark matter halos. The 1D velocity dispersion profile is computed from tabulated solutions to the isotropic Jeans equation applied to the soliton density profile, encoding the quantum pressure support of ultralight axion dark matter.
     </description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionCollisionlessTabulated) :: kinematicsDistributionSoliton
-     !!{
+     !!{RST
      A kinematics distribution for the Soliton mass distribution.
      !!}
    contains
@@ -39,8 +39,8 @@
   end type kinematicsDistributionSoliton
 
   interface kinematicsDistributionSoliton
-     !!{
-     Constructors for the \refClass{kinematicsDistributionSoliton} kinematic distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`kinematicsDistributionSoliton` kinematic distribution class.
      !!}
      module procedure solitonKinematicsConstructorParameters
      module procedure solitonKinematicsConstructorInternal
@@ -50,9 +50,8 @@
 contains
 
   function solitonKinematicsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionSoliton} kinematic distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`kinematicsDistributionSoliton` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,17 +60,21 @@ contains
     double precision                                               :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersion</name>
       <defaultValue>1.0d-6</defaultValue>
       <source>parameters</source>
-      <description>The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+      <description>
+      The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceRelativeVelocityDispersionMaximum</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+      <description>
+      The maximum relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.
+      </description>
     </inputParameter>
     !!]
     self=kinematicsDistributionSoliton(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum)
@@ -82,8 +85,8 @@ contains
   end function solitonKinematicsConstructorParameters
 
   function solitonKinematicsConstructorInternal(toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionSoliton} kinematic distribution class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`kinematicsDistributionSoliton` kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionSoliton)                          :: self
@@ -96,8 +99,8 @@ contains
   end function solitonKinematicsConstructorInternal
   
   function solitonKinematicsConstructorDecorated(kinematicsDistribution_) result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionSoliton} kinematic distribution class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`kinematicsDistributionSoliton` kinematic distribution class.
     !!}
     implicit none
     type (kinematicsDistributionSoliton)                :: self
@@ -109,7 +112,7 @@ contains
   end function solitonKinematicsConstructorDecorated
   
   logical function solitonKinematicsIsCollisional(self)
-    !!{
+    !!{RST
     Return false indicating that the soliton distribution represents collisionless particles.
     !!}
     implicit none
@@ -121,8 +124,8 @@ contains
   end function solitonKinematicsIsCollisional
 
   double precision function solitonKinematicsVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
-    !!{
-    Return the 1D velocity dispersion at the specified \mono{coordinates} in a soliton kinematic distribution.
+    !!{RST
+    Return the 1D velocity dispersion at the specified ``coordinates`` in a soliton kinematic distribution.
     !!}
     use :: Error      , only : Error_Report
     use :: Coordinates, only : coordinateSpherical, assignment(=)

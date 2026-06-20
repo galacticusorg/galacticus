@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements profiling of merger tree evolution.
 !!}
 
 module Merger_Tree_Evolve_Profilers
-  !!{
+  !!{RST
   Provides a class that implements profiling of merger tree evolution.
   !!}
   use, intrinsic :: ISO_C_Binding   , only : c_size_t
@@ -30,24 +30,25 @@ module Merger_Tree_Evolve_Profilers
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>mergerTreeEvolveProfiler</name>
    <descriptiveName>Merger Tree Evolver Profiler</descriptiveName>
-   <description>Class providing profilers for merger tree evolution---diagnostic objects that record
-    timing and performance information for each ODE integration step. For each differential evolution
-    step, a profiler receives the node being evolved, the time range, the number of function
-    evaluations, the property values and rates, and the wall-clock CPU time. This information can
-    be written to log files to identify bottlenecks in the galaxy formation physics or in the ODE
-    integrator configuration.</description>
+   <description>
+   Class providing profilers for merger tree evolution---diagnostic objects that record timing and performance information for each ODE integration step. For each differential evolution step, a profiler receives the node being evolved, the time range, the number of function evaluations, the property values and rates, and the wall-clock CPU time. This information can be written to log files to identify bottlenecks in the galaxy formation physics or in the ODE integrator configuration.
+   </description>
    <default>null</default>
    <method name="stepDescriptor" >
-    <description>Provide a descriptor of the current step.</description>
+    <description>
+    Provide a descriptor of the current step.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type            (varying_string), intent(in   )               :: descriptor                                                  </argument>
    </method>
    <method name="profile" >
-    <description>Profile a differential evolution step.</description>
+    <description>
+    Profile a differential evolution step.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type            (treeNode      ), intent(in   )               :: node                                                        </argument>

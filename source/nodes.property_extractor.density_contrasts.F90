@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a property extractor class for the mass and radii of spheres are specified density contrast.
 !!}
 
@@ -29,20 +29,14 @@ Implements a property extractor class for the mass and radii of spheres are spec
   use :: Root_Finder               , only : rootFinder
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorDensityContrasts">
+  <nodePropertyExtractor name="nodePropertyExtractorDensityContrasts" docformat="rst">
    <description>
-    A property extractor class for the mass and radii of spheres of specified density contrast. A list of density contrasts,
-    $\Delta$ (defined in units of the mean density of the Universe), is specified via the \mono{[densityContrasts]} parameter. For
-    each specified density contrast, two properties are output for each node: \mono{nodeRadius}$\Delta$ and
-    \mono{nodeMass}$\Delta$ which give the radius enclosing a mean density contrast of $\Delta$ and the mass enclosed within that
-    radius. The parameter \mono{[darkMatterOnly]} controls whether density contrasts are measured for total mass (\mono{false}) or
-    dark matter mass only (\mono{true}). In the latter case, density contrasts are defined relative to the mean dark matter
-    density of the Universe.
+   A property extractor class for the mass and radii of spheres of specified density contrast. A list of density contrasts, :math:`\Delta` (defined in units of the mean density of the Universe), is specified via the ``[densityContrasts]`` parameter. For each specified density contrast, two properties are output for each node: ``nodeRadius``\ :math:`\Delta` and ``nodeMass``\ :math:`\Delta` which give the radius enclosing a mean density contrast of :math:`\Delta` and the mass enclosed within that radius. The parameter ``[darkMatterOnly]`` controls whether density contrasts are measured for total mass (``false``) or dark matter mass only (``true``). In the latter case, density contrasts are defined relative to the mean dark matter density of the Universe.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorDensityContrasts
-     !!{
+     !!{RST
      A property extractor class for the mass and radii of spheres are specified density contrast.
      !!}
      private
@@ -68,8 +62,8 @@ Implements a property extractor class for the mass and radii of spheres are spec
   end type nodePropertyExtractorDensityContrasts
 
   interface nodePropertyExtractorDensityContrasts
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorDensityContrasts} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorDensityContrasts` property extractor class.
      !!}
      module procedure densityContrastsConstructorParameters
      module procedure densityContrastsConstructorInternal
@@ -83,8 +77,8 @@ Implements a property extractor class for the mass and radii of spheres are spec
 contains
 
   function densityContrastsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorDensityContrasts} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorDensityContrasts` property extractor class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions, only : enumerationDensityCosmologicalEncode
     use :: Input_Parameters   , only : inputParameter                      , inputParameters
@@ -100,21 +94,27 @@ contains
     
     allocate(densityContrasts(parameters%count('densityContrasts')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityContrasts</name>
-      <description>A list of density contrasts at which to output data.</description>
+      <description>
+      A list of density contrasts at which to output data.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityContrastRelativeTo</name>
-      <description>The density (\mono{mean} or \mono{critical}) used in defining the density contrast.</description>
+      <description>
+      The density (``mean`` or ``critical``) used in defining the density contrast.
+      </description>
       <source>parameters</source>
       <defaultValue>var_str('mean')</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>darkMatterOnly</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not density contrast data should be computed using the dark matter component alone.</description>
+      <description>
+      Specifies whether or not density contrast data should be computed using the dark matter component alone.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
@@ -132,8 +132,8 @@ contains
   end function densityContrastsConstructorParameters
 
   function densityContrastsConstructorInternal(densityContrasts,darkMatterOnly,densityContrastRelativeTo,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorDensityContrasts} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorDensityContrasts` property extractor class.
     !!}
     use :: Galactic_Structure_Options, only : massTypeAll              , massTypeDark
     use :: Root_Finder               , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
@@ -172,8 +172,8 @@ contains
   end function densityContrastsConstructorInternal
 
   subroutine densityContrastsDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorDensityContrasts} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorDensityContrasts` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorDensityContrasts), intent(inout) :: self
@@ -187,8 +187,8 @@ contains
   end subroutine densityContrastsDestructor
 
   integer function densityContrastsElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{densityContrasts} property extractors.
+    !!{RST
+    Return the number of elements in the ``densityContrasts`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityContrasts), intent(inout) :: self
@@ -200,8 +200,8 @@ contains
   end function densityContrastsElementCount
 
   function densityContrastsSize(self,time)
-    !!{
-    Return the number of array elements in the \mono{densityContrasts} property extractors.
+    !!{RST
+    Return the number of array elements in the ``densityContrasts`` property extractors.
     !!}
     implicit none
     integer         (c_size_t                             )                :: densityContrastsSize
@@ -214,7 +214,7 @@ contains
   end function densityContrastsSize
 
   function densityContrastsExtract(self,node,time,instance)
-    !!{
+    !!{RST
     Implement a last isolated redshift output analysis.
     !!}
     use :: Cosmology_Functions       , only : densityCosmologicalMean, densityCosmologicalCritical
@@ -275,8 +275,8 @@ contains
   end function densityContrastsExtract
 
   subroutine densityContrastsNames(self,names,time)
-    !!{
-    Return the names of the \mono{densityContrasts} properties.
+    !!{RST
+    Return the names of the ``densityContrasts`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityContrasts), intent(inout)                             :: self
@@ -291,8 +291,8 @@ contains
   end subroutine densityContrastsNames
 
   subroutine densityContrastsDescriptions(self,descriptions,time)
-    !!{
-    Return descriptions of the \mono{densityContrasts} property.
+    !!{RST
+    Return descriptions of the ``densityContrasts`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityContrasts), intent(inout)                             :: self
@@ -307,8 +307,8 @@ contains
   end subroutine densityContrastsDescriptions
 
   subroutine densityContrastsColumnDescriptions(self,descriptions,values,valuesDescription,valuesUnits,time)
-    !!{
-    Return column descriptions of the \mono{densityContrasts} property.
+    !!{RST
+    Return column descriptions of the ``densityContrasts`` property.
     !!}
     implicit none
     class           (nodePropertyExtractorDensityContrasts), intent(inout)                            :: self
@@ -333,8 +333,8 @@ contains
   end subroutine densityContrastsColumnDescriptions
 
   function densityContrastsUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{densityContrasts} properties in the SI system.
+    !!{RST
+    Return the units of the ``densityContrasts`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
@@ -349,7 +349,7 @@ contains
   end function densityContrastsUnitsInSI
 
   function densityContrastsUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the densityContrasts properties.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
@@ -367,7 +367,7 @@ contains
   end function densityContrastsUnits
 
   double precision function densityContrastsRoot(radius)
-    !!{
+    !!{RST
     Root function used in finding the radius that encloses a given density contrast.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeAll

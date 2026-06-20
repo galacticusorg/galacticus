@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements calculations of the time available for freefall in cooling calculations.
 !!}
 
 module Cooling_Freefall_Times_Available
-  !!{
+  !!{RST
   Provides a class that implements calculations of the freefall radius.
   !!}
   use :: Galacticus_Nodes, only : treeNode
@@ -30,23 +30,25 @@ module Cooling_Freefall_Times_Available
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>freefallTimeAvailable</name>
    <descriptiveName>Freefall Time Available</descriptiveName>
-   <description>Class providing models of the time available for freefall (in Gyr) in the cooling flow calculation,
-    analogous to the cooling time available class but governing the freefall radius. This time, typically anchored
-    to halo formation, enters the computation of the freefall radius and thereby determines which cooling regime
-    applies. The rate of increase of this available time is also provided for use in ODE-based evolution of the
-    hot gas atmosphere.</description>
+   <description>
+   Class providing models of the time available for freefall (in Gyr) in the cooling flow calculation, analogous to the cooling time available class but governing the freefall radius. This time, typically anchored to halo formation, enters the computation of the freefall radius and thereby determines which cooling regime applies. The rate of increase of this available time is also provided for use in ODE-based evolution of the hot gas atmosphere.
+   </description>
    <default>haloFormation</default>
    <method name="timeAvailable" >
-    <description>Returns the time available for freefall in cooling calculations in \mono{node}.</description>
+    <description>
+    Returns the time available for freefall in cooling calculations in ``node``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
    <method name="timeAvailableIncreaseRate" >
-    <description>Returns the rate at which the time available for freefall in cooling calculations increases in \mono{node}.</description>
+    <description>
+    Returns the rate at which the time available for freefall in cooling calculations increases in ``node``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

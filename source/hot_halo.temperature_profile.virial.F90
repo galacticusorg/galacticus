@@ -17,22 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 An implementation of the hot halo temperature class which uses an isothermal virial temperature.
 !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <hotHaloTemperatureProfile name="hotHaloTemperatureProfileVirial">
+  <hotHaloTemperatureProfile name="hotHaloTemperatureProfileVirial" docformat="rst">
    <description>
-    A hot halo temperature profile class which assumes an isothermal halo with a temperature equal to the virial temperature of
-    the halo.
+   A hot halo temperature profile class which assumes an isothermal halo with a temperature equal to the virial temperature of the halo.
    </description>
   </hotHaloTemperatureProfile>
   !!]
   type, extends(hotHaloTemperatureProfileClass) :: hotHaloTemperatureProfileVirial
-     !!{
+     !!{RST
      An implementation of the hot halo temperature profile class which uses an isothermal virial temperature.
      !!}
      private
@@ -43,7 +42,7 @@ An implementation of the hot halo temperature class which uses an isothermal vir
   end type hotHaloTemperatureProfileVirial
 
   interface hotHaloTemperatureProfileVirial
-     !!{
+     !!{RST
      Constructors for the virial hot halo temperature profile class.
      !!}
      module procedure virialConstructorParameters
@@ -53,7 +52,7 @@ An implementation of the hot halo temperature class which uses an isothermal vir
 contains
 
   function virialConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the virial cooling rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -74,7 +73,7 @@ contains
   end function virialConstructorParameters
 
   function virialConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the virial cooling rate class.
     !!}
     implicit none
@@ -88,8 +87,8 @@ contains
   end function virialConstructorInternal
 
   subroutine virialDestructor(self)
-    !!{
-    Destructor for the \refClass{hotHaloTemperatureProfileVirial} hot halo temperature profile class.
+    !!{RST
+    Destructor for the :galacticus-class:`hotHaloTemperatureProfileVirial` hot halo temperature profile class.
     !!}
     implicit none
     type(hotHaloTemperatureProfileVirial), intent(inout) :: self
@@ -101,8 +100,8 @@ contains
   end subroutine virialDestructor
 
   function virialGet(self,node) result(kinematicsDistribution_)
-    !!{
-    Return the virial hot halo temperature distribution for the given \mono{node}.
+    !!{RST
+    Return the virial hot halo temperature distribution for the given ``node``.
     !!}
     use :: Mass_Distributions              , only : kinematicsDistributionIsothermal
     use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial

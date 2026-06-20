@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that provides options controlling cooling.
 !!}
 
 module Cooling_Options
-  !!{
+  !!{RST
   Provides options controlling cooling.
   !!}
   private
   
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>coolingFrom</name>
-   <description>Enumeration of options specifying the reference node from which gas cooling properties are computed: either the current node in the merger tree or the node at the time of halo formation.</description>
+   <description>
+   Enumeration of options specifying the reference node from which gas cooling properties are computed: either the current node in the merger tree or the node at the time of halo formation.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>

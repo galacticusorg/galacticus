@@ -19,12 +19,12 @@
 
 !+    Contributions to this file made by:  Alex Merson.
 
-!!{
+!!{RST
 Contains a module which implements calculations of filter response curves.
 !!}
 
 module Instruments_Filters
-  !!{
+  !!{RST
   Implements calculations of filter response curves.
   !!}
   use :: ISO_Varying_String , only : varying_string
@@ -35,7 +35,7 @@ module Instruments_Filters
        &    Filter_Name     , Filter_Wavelength_Effective, Filters_Initialize, Filter_Response_Function
 
   type filterType
-     !!{
+     !!{RST
      A structure which holds filter response curves.
      !!}
      integer                                                     :: nPoints
@@ -62,7 +62,7 @@ contains
   <nodeComponentInitializationTask function="Filters_Initialize"/>
   !!]
   subroutine Filters_Initialize(parameters)
-    !!{
+    !!{RST
     Initialize the module.
     !!}
     use :: Input_Parameters, only : inputParameters
@@ -70,10 +70,12 @@ contains
     type(inputParameters), intent(inout) :: parameters
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>filtersConstructedOutput</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, any filters constructed internally will be written to file.</description>
+      <description>
+      If true, any filters constructed internally will be written to file.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -81,7 +83,7 @@ contains
   end subroutine Filters_Initialize
   
   integer function Filter_Get_Index(filterName)
-    !!{
+    !!{RST
     Return the index for the specified filter, loading that filter if necessary.
     !!}
     use :: ISO_Varying_String, only : operator(==)
@@ -123,7 +125,7 @@ contains
   end function Filter_Get_Index
 
   function Filter_Name(filterIndex)
-    !!{
+    !!{RST
     Return the name of the specified filter.
     !!}
     implicit none
@@ -139,7 +141,7 @@ contains
   end function Filter_Name
 
   function Filter_Extent(filterIndex)
-    !!{
+    !!{RST
     Return an array containing the minimum and maximum wavelengths tabulated for this specified filter.
     !!}
     implicit none
@@ -156,7 +158,7 @@ contains
   end function Filter_Extent
 
   subroutine Filter_Response_Load(filterName)
-    !!{
+    !!{RST
     Load a filter response curve.
     !!}
     use :: File_Utilities           , only : File_Exists            , Directory_Make
@@ -381,7 +383,7 @@ contains
   <outputFileClose function="Filters_Output"/>
   !!]
   subroutine Filters_Output()
-    !!{
+    !!{RST
     Output accumulated filter data to file.
     !!}
     use :: Output_HDF5              , only : outputFile
@@ -409,11 +411,8 @@ contains
   end subroutine Filters_Output
   
   function Filter_Response_Function(filterIndex) result(interpolator_)
-    !!{
-    Return the filter response function (as an interpolator) as a function of wavelength (specified in Angstroms). Note that we follow the
-    convention of \cite{hogg_k_2002} and assume that the filter response gives the fraction of incident photons received by the
-    detector at a given wavelength, multiplied by the relative photon response (which will be 1 for a photon-counting detector
-    such as a CCD, or proportional to the photon energy for a bolometer/calorimeter type detector.
+    !!{RST
+    Return the filter response function (as an interpolator) as a function of wavelength (specified in Angstroms). Note that we follow the convention of :cite:t:`hogg_k_2002` and assume that the filter response gives the fraction of incident photons received by the detector at a given wavelength, multiplied by the relative photon response (which will be 1 for a photon-counting detector such as a CCD, or proportional to the photon energy for a bolometer/calorimeter type detector).
     !!}
     use :: Numerical_Interpolation, only : interpolator
     implicit none
@@ -430,8 +429,8 @@ contains
   end function Filter_Response_Function
 
   double precision function Filter_Response(filterIndex,wavelength)
-    !!{
-    Return the filter response function at the given \mono{wavelength} (specified in Angstroms).
+    !!{RST
+    Return the filter response function at the given ``wavelength`` (specified in Angstroms).
     !!}
     use :: Numerical_Interpolation, only : interpolator
     implicit none
@@ -446,7 +445,7 @@ contains
   end function Filter_Response
 
   double precision function Filter_Wavelength_Effective(filterIndex)
-    !!{
+    !!{RST
     Return the effective wavelength for the specified filter.
     !!}
     implicit none
@@ -467,7 +466,7 @@ contains
   end function Filter_Wavelength_Effective
 
   double precision function Filter_Vega_Offset(indexFilter)
-    !!{
+    !!{RST
     Compute the Vega-AB offset for the given filter.
     !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
@@ -557,7 +556,7 @@ contains
   contains
 
     double precision function integrandVegaBuserV(wavelength) result(flux)
-      !!{
+      !!{RST
       Integrand used in calculation of Vega-AB offsets.
       !!}
       implicit none
@@ -569,7 +568,7 @@ contains
     end function integrandVegaBuserV
     
     double precision function integrandABBuserV(wavelength) result(flux)
-      !!{
+      !!{RST
       Integrand used in calculation of Vega-AB offsets.
       !!}
       implicit none
@@ -581,7 +580,7 @@ contains
     end function integrandABBuserV
     
     double precision function integrandVegaFilter(wavelength) result(flux)
-      !!{
+      !!{RST
       Integrand used in calculation of Vega-AB offsets.
       !!}
       implicit none
@@ -593,7 +592,7 @@ contains
     end function integrandVegaFilter
     
     double precision function integrandABFilter(wavelength) result(flux)
-      !!{
+      !!{RST
       Integrand used in calculation of Vega-AB offsets.
       !!}
       implicit none

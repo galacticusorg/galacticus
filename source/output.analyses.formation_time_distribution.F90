@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Contains a module which implements a concentration distribution output analysis class for dark matter halo time formation distribution.
   !!}
   
@@ -25,8 +25,10 @@
   use :: Node_Property_Extractors, only : nodePropertyExtractorMassHalo
 
   !![
-  <outputAnalysis name="outputAnalysisFormationTimeDistribution">
-   <description>A dark matter halo time formation distribution  output analysis class.</description>
+  <outputAnalysis name="outputAnalysisFormationTimeDistribution" docformat="rst">
+   <description>
+   A dark matter halo time formation distribution  output analysis class.
+   </description>
    <deepCopy>
     <functionClass variables="galacticFilterParentMass_, nodePropertyExtractorMassParent_"/>
    </deepCopy>
@@ -36,7 +38,7 @@
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisFormationTimeDistribution
-     !!{
+     !!{RST
      A dark matter halo time formation distribution output analysis class.
      !!}
      private
@@ -65,8 +67,8 @@
   end type outputAnalysisFormationTimeDistribution
 
   interface outputAnalysisFormationTimeDistribution
-     !!{
-     Constructors for the ``formationTimeDistribution'' output analysis class.
+     !!{RST
+     Constructors for the "formationTimeDistribution" output analysis class.
      !!}
      module procedure formationTimeDistributionConstructorParameters
      module procedure formationTimeDistributionConstructorFile
@@ -76,8 +78,8 @@
 contains
   
   function formationTimeDistributionConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the ``formationTimeDistribution'' output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the "formationTimeDistribution" output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: Input_Parameters                 , only : inputParameter            , inputParameters
@@ -115,16 +117,20 @@ contains
     <objectBuilder class="nbodyHaloMassError"    name="nbodyHaloMassError_"              source="parameters"                                                /> 
     <objectBuilder class="outputTimes"           name="outputTimes_"                     source="parameters"                                                />
     <objectBuilder class="virialDensityContrast" name="virialDensityContrastDefinition_" source="parameters" parameterName="virialDensityContrastDefinition"/>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceDiagonalize</name>
       <source>parameters</source>
-      <description>If true, all off-diagonal elements of the covariance matrix are set to zero.</description>
+      <description>
+      If true, all off-diagonal elements of the covariance matrix are set to zero.
+      </description>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceTargetOnly</name>
       <source>parameters</source>
-      <description>If true, only the covariance of the target dataset is accounted for (otherwise the model covariance is added).</description>
+      <description>
+      If true, only the covariance of the target dataset is accounted for (otherwise the model covariance is added).
+      </description>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
     !!]
@@ -132,19 +138,23 @@ contains
        if (parameters%count('rootVarianceTargetFractional') == 1) then
           ! For a single value, read as a scalar to allow processing of math in the parameter value.
           !![
-	  <inputParameter>	    
+	  <inputParameter docformat="rst">	    
 	    <name>rootVarianceTargetFractional</name>
 	    <variable>rootVarianceTargetFractional(1)</variable>
 	    <source>parameters</source>
-	    <description>The diagonal of the covariance matrix is forced to be at least equal to this fraction multiplied by the target dataset squared. This may be a list of values corresponding to each element of the target dataset. If the list is shorter than the target dataset the final value in the list is applied to all remaining elements in the target dataset.</description>
+	    <description>
+	    The diagonal of the covariance matrix is forced to be at least equal to this fraction multiplied by the target dataset squared. This may be a list of values corresponding to each element of the target dataset. If the list is shorter than the target dataset the final value in the list is applied to all remaining elements in the target dataset.
+	    </description>
 	  </inputParameter>
           !!]
        else
           !![
-	  <inputParameter>
+	  <inputParameter docformat="rst">
 	    <name>rootVarianceTargetFractional</name>
 	    <source>parameters</source>
-	    <description>The diagonal of the covariance matrix is forced to be at least equal to this fraction multiplied by the target dataset squared. This may be a list of values corresponding to each element of the target dataset. If the list is shorter than the target dataset the final value in the list is applied to all remaining elements in the target dataset.</description>
+	    <description>
+	    The diagonal of the covariance matrix is forced to be at least equal to this fraction multiplied by the target dataset squared. This may be a list of values corresponding to each element of the target dataset. If the list is shorter than the target dataset the final value in the list is applied to all remaining elements in the target dataset.
+	    </description>
 	  </inputParameter>
           !!]
        end if
@@ -152,130 +162,172 @@ contains
        rootVarianceTargetFractional=0.0d0
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMinimum</name>
       <source>parameters</source>
-      <description>The minimum redshift to include in redshift formation calculations.</description>
+      <description>
+      The minimum redshift to include in redshift formation calculations.
+      </description>
       <defaultValue>0.0d0</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMaximum</name>
       <source>parameters</source>
-      <description>The maximum redshift to include in redshift formation calculations.</description>
+      <description>
+      The maximum redshift to include in redshift formation calculations.
+      </description>
       <defaultValue>huge(0.0d0)</defaultValue>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alwaysIsolatedOnly</name>
       <source>parameters</source>
-      <description>If true, include only progenitors which have been always isolated halos.</description>
+      <description>
+      If true, include only progenitors which have been always isolated halos.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftParent</name>
       <source>parameters</source>
-      <description>Redshift of the parent halos.</description>
+      <description>
+      Redshift of the parent halos.
+      </description>
     </inputParameter>
     !!]
     if (parameters%isPresent('fileName')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>fileName</name>
          <source>parameters</source>
-         <description>The name of the file from which to read redshift formation time  parameters.</description>
+         <description>
+         The name of the file from which to read redshift formation time  parameters.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>indexParent</name>
          <source>parameters</source>
-         <description>The parent mass index to use from the file.</description>
+         <description>
+         The parent mass index to use from the file.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>indexRedshift</name>
          <source>parameters</source>
-         <description>The progenitor redshift index to use from the file.</description>
+         <description>
+         The progenitor redshift index to use from the file.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>comment</name>
          <source>parameters</source>
-         <description>A comment describing this analysis.</description>
+         <description>
+         A comment describing this analysis.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>label</name>
          <source>parameters</source>
-         <description>A label for this analysis.</description>
+         <description>
+         A label for this analysis.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>targetLabel</name>
          <source>parameters</source>
-         <description>Label for the target dataset.</description>
+         <description>
+         Label for the target dataset.
+         </description>
        </inputParameter>
        !!]
        self=outputAnalysisFormationTimeDistribution(char(fileName),label,comment,targetLabel,redshiftParent,indexParent,indexRedshift,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,alwaysIsolatedOnly,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_)
     else
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>label</name>
          <source>parameters</source>
          <variable>label</variable>
-         <description>A label for the redshift formation time distribution.</description>
+         <description>
+         A label for the redshift formation time distribution.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>comment</name>
          <source>parameters</source>
          <variable>comment</variable>
-         <description>A descriptive comment for the redshift formation time distribution.</description>
+         <description>
+         A descriptive comment for the redshift formation time distribution.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>redshiftMinimum</name>
          <source>parameters</source>
-         <description>Minimum redshift for the redshift formation time distribution.</description>
+         <description>
+         Minimum redshift for the redshift formation time distribution.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>redshiftMaximum</name>
          <source>parameters</source>
-         <description>Maximum redshift for the redshift formation time distribution.</description>
+         <description>
+         Maximum redshift for the redshift formation time distribution.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>countRedshiftProgenitor</name>
          <source>parameters</source>
-         <description>Number of redshift of progenitors at which to compute the redshift formation time distribution.</description>
+         <description>
+         Number of redshift of progenitors at which to compute the redshift formation time distribution.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massParentMinimum</name>
          <source>parameters</source>
-         <description>Minimum mass of the parent halo for the progenitor mass function.</description>
+         <description>
+         Minimum mass of the parent halo for the progenitor mass function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massParentMaximum</name>
          <source>parameters</source>
-         <description>Maximum mass of the parent halo for the progenitor mass function.</description>
+         <description>
+         Maximum mass of the parent halo for the progenitor mass function.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>redshiftProgenitor</name>
          <source>parameters</source>
-         <description>Redshift of the progenitor halos.</description>
+         <description>
+         Redshift of the progenitor halos.
+         </description>
        </inputParameter>
        !!]
        if (parameters%isPresent('targetLabel')) then
           !![
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>targetLabel</name>
             <source>parameters</source>
-            <description>Label for the target dataset.</description>
+            <description>
+            Label for the target dataset.
+            </description>
           </inputParameter>
           !!]
        end if
        if (parameters%isPresent('functionValueTarget')) then
           if (parameters%isPresent('functionCovarianceTarget')) then
              !![
-             <inputParameter>
+             <inputParameter docformat="rst">
                <name>functionValueTarget</name>
                <source>parameters</source>
-               <description>The target function for likelihood calculations.</description>
+               <description>
+               The target function for likelihood calculations.
+               </description>
              </inputParameter>
-             <inputParameter>
+             <inputParameter docformat="rst">
                <name>functionCovarianceTarget</name>
                <source>parameters</source>
                <variable>functionCovarianceTarget1D</variable>
-               <description>The target function covariance for likelihood calculations.</description>
+               <description>
+               The target function covariance for likelihood calculations.
+               </description>
              </inputParameter>
              !!]
              if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
@@ -340,8 +392,8 @@ contains
   end function formationTimeDistributionConstructorParameters
   
   function formationTimeDistributionConstructorFile(fileName,label,comment,targetLabel,redshiftParent,indexParent,indexRedshift,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,alwaysIsolatedOnly,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_) result(self)
-    !!{
-    Constructor for the ``formationTimeDistribution'' output analysis class which reads all required properties from file.
+    !!{RST
+    Constructor for the "formationTimeDistribution" output analysis class which reads all required properties from file.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: HDF5_Access                      , only : hdf5Access
@@ -431,8 +483,8 @@ contains
   end function formationTimeDistributionConstructorFile
 
   function formationTimeDistributionConstructorInternal(label,comment,redshiftMinimum,redshiftMaximum,countRedshiftProgenitor,massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,covarianceDiagonalize,covarianceTargetOnly,rootVarianceTargetFractional,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
-    !!{
-    Internal constructor for the ``formationTimeDistribution'' output analysis class.
+    !!{RST
+    Internal constructor for the "formationTimeDistribution" output analysis class.
     !!}
     use :: Galactic_Filters                        , only : filterList                                      , galacticFilterDescendantNode                , galacticFilterHaloAlwaysIsolated             ,&
       &                                                     galacticFilterHaloIsolated                      , galacticFilterHaloMass                      , galacticFilterNot                            ,&
@@ -702,8 +754,8 @@ contains
   end function formationTimeDistributionConstructorInternal
 
   subroutine formationTimeDistributionDestructor(self)
-    !!{
-    Destructor for the ``formationTimeDistribution'' output analysis class.
+    !!{RST
+    Destructor for the "formationTimeDistribution" output analysis class.
     !!}
     implicit none
     type(outputAnalysisFormationTimeDistribution), intent(inout) :: self
@@ -722,7 +774,7 @@ contains
   end subroutine formationTimeDistributionDestructor
   
   subroutine formationTimeDistributionReduce(self,reduced)
-    !!{
+    !!{RST
     Implement reduction over progenitor mass functions.
     !!}
     use :: Error, only : Error_Report
@@ -744,7 +796,7 @@ contains
   end subroutine formationTimeDistributionReduce
 
   subroutine formationTimeDistributionFinalizeAnalysis(self)
-    !!{
+    !!{RST
     Implement analysis finalization for formation time distribution. We simply normalize the accumulated weight of parent nodes.
     !!}
 #ifdef USEMPI

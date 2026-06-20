@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which converts physical to comoving coordinates.
 !!}
 
   !![
-  <nbodyOperator name="nbodyOperatorPhysicalToComoving">
-   <description>An N-body data operator which converts physical to comoving coordinates.</description>
+  <nbodyOperator name="nbodyOperatorPhysicalToComoving" docformat="rst">
+   <description>
+   An N-body data operator which converts physical to comoving coordinates.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorPhysicalToComoving
-     !!{
+     !!{RST
      An N-body data operator which converts physical to comoving coordinates.
      !!}
      private
@@ -36,8 +38,8 @@ Implements an N-body data operator which converts physical to comoving coordinat
   end type nbodyOperatorPhysicalToComoving
 
   interface nbodyOperatorPhysicalToComoving
-     !!{
-     Constructors for the \refClass{nbodyOperatorPhysicalToComoving} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorPhysicalToComoving` N-body operator class.
      !!}
      module procedure physicalToComovingConstructorParameters
   end interface nbodyOperatorPhysicalToComoving
@@ -45,8 +47,8 @@ Implements an N-body data operator which converts physical to comoving coordinat
 contains
 
   function physicalToComovingConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorPhysicalToComoving} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorPhysicalToComoving` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -62,7 +64,7 @@ contains
   end function physicalToComovingConstructorParameters
 
   subroutine physicalToComovingOperate(self,simulations)
-    !!{
+    !!{RST
     Convert positions from physical to comoving coordinates of N-body particles.
     !!}
     implicit none

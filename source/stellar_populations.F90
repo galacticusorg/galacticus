@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class for stellar populations.
 !!}
 
 module Stellar_Populations
-  !!{
+  !!{RST
   Implements a class for stellar populations.
   !!}
   use            :: Abundances_Structure      , only : abundances
@@ -33,25 +33,26 @@ module Stellar_Populations
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>stellarPopulation</name>
    <descriptiveName>Stellar Populations</descriptiveName>
-   <description>Class providing stellar populations---composite descriptions of a coeval group of stars formed
-    with a given initial mass function, metallicity, and age. For a given population, implementations return the
-    mass recycled back to the \gls{ism} per unit stellar mass formed, the metal yield, and the energy input rate
-    from stellar evolution as a function of age interval. Both explicit (time-resolved) and instantaneous recycling
-    approximations are supported. The spectra method returns the associated \refClass{stellarPopulationSpectraClass}
-    object for computing integrated luminosities.</description>
+   <description>
+   Class providing stellar populations---composite descriptions of a coeval group of stars formed with a given initial mass function, metallicity, and age. For a given population, implementations return the mass recycled back to the :term:`ISM` per unit stellar mass formed, the metal yield, and the energy input rate from stellar evolution as a function of age interval. Both explicit (time-resolved) and instantaneous recycling approximations are supported. The spectra method returns the associated :galacticus-class:`stellarPopulationSpectraClass` object for computing integrated luminosities.
+   </description>
    <default>standard</default>
    <method name="rateRecycling" >
-    <description>Return the rate of mass recycling (per unit initial stellar mass formed, per unit time) from this stellar population back to the ISM over the age interval $[\mathrm{ageMinimum}, \mathrm{ageMaximum}]$ for the given elemental abundances.</description>
+    <description>
+    Return the rate of mass recycling (per unit initial stellar mass formed, per unit time) from this stellar population back to the ISM over the age interval :math:`[\mathrm{ageMinimum}, \mathrm{ageMaximum}]` for the given elemental abundances.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (abundances), intent(in   ) :: abundances_            </argument>
     <argument>double precision            , intent(in   ) :: ageMinimum , ageMaximum</argument>
    </method>
    <method name="uniqueID" >
-    <description>Return the unique integer identifier assigned to this stellar population, which distinguishes populations with different IMFs, metallicities, or other properties and is used to cache pre-computed integrals.</description>
+    <description>
+    Return the unique integer identifier assigned to this stellar population, which distinguishes populations with different IMFs, metallicities, or other properties and is used to cache pre-computed integrals.
+    </description>
     <type>integer(c_size_t)</type>
     <pass>yes</pass>
     <code>
@@ -60,7 +61,9 @@ module Stellar_Populations
     </code>
    </method>
    <method name="rateYield" >
-    <description>Return the rate of metal (element) yield (per unit initial stellar mass formed, per unit time) from this stellar population over the age interval $[\mathrm{ageMinimum}, \mathrm{ageMaximum}]$, optionally restricted to a specific element index.</description>
+    <description>
+    Return the rate of metal (element) yield (per unit initial stellar mass formed, per unit time) from this stellar population over the age interval :math:`[\mathrm{ageMinimum}, \mathrm{ageMaximum}]`, optionally restricted to a specific element index.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (abundances), intent(in   )           :: abundances_             </argument>
@@ -68,24 +71,32 @@ module Stellar_Populations
     <argument>integer                     , intent(in   ), optional :: elementIndex            </argument>
    </method>
    <method name="rateEnergy" >
-    <description>Return the rate of mechanical energy input (per unit initial stellar mass formed, per unit time) from stellar evolution processes (supernovae, winds) in this population over the age interval $[\mathrm{ageMinimum}, \mathrm{ageMaximum}]$.</description>
+    <description>
+    Return the rate of mechanical energy input (per unit initial stellar mass formed, per unit time) from stellar evolution processes (supernovae, winds) in this population over the age interval :math:`[\mathrm{ageMinimum}, \mathrm{ageMaximum}]`.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (abundances), intent(in   ) :: abundances_            </argument>
     <argument>double precision            , intent(in   ) :: ageMinimum , ageMaximum</argument>
    </method>
    <method name="recycledFractionInstantaneous" >
-    <description>Return the recycled fraction from this population in the instantaneous approximation.</description>
+    <description>
+    Return the recycled fraction from this population in the instantaneous approximation.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="yieldInstantaneous" >
-    <description>Return the metal yield from this population in the instantaneous approximation.</description>
+    <description>
+    Return the metal yield from this population in the instantaneous approximation.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
    </method>
    <method name="spectra" >
-    <description>Return the \refClass{stellarPopulationSpectraClass} object associated with this stellar population, which provides methods to compute the integrated spectral energy distribution as a function of wavelength and age.</description>
+    <description>
+    Return the :galacticus-class:`stellarPopulationSpectraClass` object associated with this stellar population, which provides methods to compute the integrated spectral energy distribution as a function of wavelength and age.
+    </description>
     <type>class(stellarPopulationSpectraClass)</type>
     <pass>yes</pass>
    </method>
@@ -101,7 +112,7 @@ module Stellar_Populations
 contains
 
   subroutine stellarPopulationUniqueIDAssign(self)
-    !!{
+    !!{RST
     Assign a unique ID to a stellar population. Populations are distinguished based on the hash of their descriptor.
     !!}
     use :: Error, only : Error_Report

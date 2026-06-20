@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree filter which passes if the tree matches the given index.
 !!}
 
   use :: Kind_Numbers, only : kind_int8
   
   !![
-  <mergerTreeFilter name="mergerTreeFilterTreeIndex">
-   <description>A merger tree filter which passes only the merger tree whose unique integer index matches a specified value, enabling selective processing or analysis of a single tree from a larger ensemble. The target tree index is specified by the \mono{[index]} parameter.</description>
+  <mergerTreeFilter name="mergerTreeFilterTreeIndex" docformat="rst">
+   <description>
+   A merger tree filter which passes only the merger tree whose unique integer index matches a specified value, enabling selective processing or analysis of a single tree from a larger ensemble. The target tree index is specified by the ``[index]`` parameter.
+   </description>
   </mergerTreeFilter>
   !!]
   type, extends(mergerTreeFilterClass) :: mergerTreeFilterTreeIndex
-     !!{
+     !!{RST
      A merger tree filter class which passes if the tree matches the given index.
      !!}
      private
@@ -39,8 +41,8 @@ Implements a merger tree filter which passes if the tree matches the given index
   end type mergerTreeFilterTreeIndex
 
   interface mergerTreeFilterTreeIndex
-     !!{
-     Constructors for the \refClass{mergerTreeFilterTreeIndex} merger tree filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeFilterTreeIndex` merger tree filter class.
      !!}
      module procedure treeIndexConstructorParameters
      module procedure treeIndexConstructorInternal
@@ -49,8 +51,8 @@ Implements a merger tree filter which passes if the tree matches the given index
 contains
   
   function treeIndexConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeFilterTreeIndex} merger tree filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeFilterTreeIndex` merger tree filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -59,10 +61,12 @@ contains
     integer(kind_int8                )                :: mergerTreeIndex
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mergerTreeIndex</name>
       <source>parameters</source>
-      <description>The index of the merger tree to pass.</description>
+      <description>
+      The index of the merger tree to pass.
+      </description>
     </inputParameter>
     !!]
     self=mergerTreeFilterTreeIndex(mergerTreeIndex)
@@ -73,8 +77,8 @@ contains
   end function treeIndexConstructorParameters
 
   function treeIndexConstructorInternal(mergerTreeIndex) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeFilterTreeIndex} merger tree filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeFilterTreeIndex` merger tree filter class.
     !!}
     implicit none
     type   (mergerTreeFilterTreeIndex)                :: self
@@ -87,7 +91,7 @@ contains
   end function treeIndexConstructorInternal
 
   logical function treeIndexPasses(self,tree) result(passes)
-    !!{
+    !!{RST
     Implement a merger tree filter which passes if the index matches a target index.
     !!}
     implicit none

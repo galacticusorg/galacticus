@@ -17,21 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a random error output analysis distribution operator class providing errors in $\log_{10}$
-  of N-body halo mass.
+  !!{RST
+  Implements a random error output analysis distribution operator class providing errors in :math:`\log_{10}` of N-body halo mass.
   !!}
 
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
   !![
-  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRndmErrNbodyMass">
-   <description>Applies random measurement errors to $\log_{10}$ N-body halo masses, modeling the scatter introduced by halo mass estimation from N-body simulations to enable fair comparison between model and observed mass functions.</description>
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRndmErrNbodyMass" docformat="rst">
+   <description>
+   Applies random measurement errors to :math:`\log_{10}` N-body halo masses, modeling the scatter introduced by halo mass estimation from N-body simulations to enable fair comparison between model and observed mass functions.
+   </description>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRndmErrNbodyMass
-     !!{
-     A random error output distribution operator class providing errors in $\log_{10}$ of N-body halo mass.
+     !!{RST
+     A random error output distribution operator class providing errors in :math:`\log_{10}` of N-body halo mass.
      !!}
      private
      class(nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_ => null()
@@ -41,8 +42,8 @@
   end type outputAnalysisDistributionOperatorRndmErrNbodyMass
 
   interface outputAnalysisDistributionOperatorRndmErrNbodyMass
-     !!{
-     Constructors for the \refClass{outputAnalysisDistributionOperatorRndmErrNbodyMass} output analysis distribution operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorRndmErrNbodyMass` output analysis distribution operator class.
      !!}
      module procedure randomErrorNbodyMassConstructorParameters
      module procedure randomErrorNbodyMassConstructorInternal
@@ -51,8 +52,8 @@
 contains
 
   function randomErrorNbodyMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisDistributionOperatorRndmErrNbodyMass} output analysis distribution operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRndmErrNbodyMass` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,8 +73,8 @@ contains
   end function randomErrorNbodyMassConstructorParameters
 
   function randomErrorNbodyMassConstructorInternal(nbodyHaloMassError_) result(self)
-    !!{
-    Internal constructor for the \refClass{outputAnalysisDistributionOperatorRndmErrNbodyMass} output analysis distribution operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRndmErrNbodyMass` output analysis distribution operator class.
     !!}
     implicit none
     type (outputAnalysisDistributionOperatorRndmErrNbodyMass)                        :: self
@@ -86,8 +87,8 @@ contains
   end function randomErrorNbodyMassConstructorInternal
 
   subroutine randomErrorNbodyMassDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisDistributionOperatorRndmErrNbodyMass} output analysis distribution operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisDistributionOperatorRndmErrNbodyMass` output analysis distribution operator class.
     !!}
     implicit none
     type(outputAnalysisDistributionOperatorRndmErrNbodyMass), intent(inout) :: self
@@ -99,8 +100,8 @@ contains
   end subroutine randomErrorNbodyMassDestructor
 
   double precision function randomErrorNbodyMassRootVariance(self,propertyValue,node)
-    !!{
-    Computes errors on $\log_{10}($halo masses$)$ for N-body halos.
+    !!{RST
+    Computes errors on :math:`\log_{10}(`\ halo masses\ :math:`)` for N-body halos.
     !!}
     implicit none
     class           (outputAnalysisDistributionOperatorRndmErrNbodyMass), intent(inout) :: self

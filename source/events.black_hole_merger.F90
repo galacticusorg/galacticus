@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which performs tasks associated with black hole merger events.
 !!}
 
 module Events_Black_Hole_Merger
-  !!{
+  !!{RST
   Performs tasks associated with black hole merger events.
   !!}
   implicit none
@@ -32,8 +32,8 @@ module Events_Black_Hole_Merger
 contains
 
   subroutine Event_Black_Hole_Merger(blackHole1,blackHole2,blackHoleMerged)
-    !!{
-    Perform tasks associated with a merger beween \mono{blackHole1} and \mono{blackHole2}.
+    !!{RST
+    Perform tasks associated with a merger beween ``blackHole1`` and ``blackHole2``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none

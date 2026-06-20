@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a galactic high-pass filter for halo mass under a given definition.
 !!}
 
@@ -26,15 +26,14 @@ Implements a galactic high-pass filter for halo mass under a given definition.
   use :: Virial_Density_Contrast, only : virialDensityContrastClass
 
   !![
-  <galacticFilter name="galacticFilterHaloMass">
+  <galacticFilter name="galacticFilterHaloMass" docformat="rst">
    <description>
-   A high-pass filter for basic mass. Halos with a halo mass greater than or equal to a fixed threshold,
-   $M_0=$\mono{[massThreshold]}.
+   A high-pass filter for basic mass. Halos with a halo mass greater than or equal to a fixed threshold, :math:`M_0=`\ ``[massThreshold]``.
    </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterHaloMass
-     !!{
+     !!{RST
      A galactic high-pass filter class for halo mass.
      !!}
      private
@@ -48,8 +47,8 @@ Implements a galactic high-pass filter for halo mass under a given definition.
   end type galacticFilterHaloMass
 
   interface galacticFilterHaloMass
-     !!{
-     Constructors for the \refClass{galacticFilterHaloMass} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterHaloMass` galactic filter class.
      !!}
      module procedure haloMassConstructorParameters
      module procedure haloMassConstructorInternal
@@ -58,8 +57,8 @@ Implements a galactic high-pass filter for halo mass under a given definition.
 contains
 
   function haloMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterHaloMass} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterHaloMass` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -72,10 +71,12 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massThreshold</name>
       <source>parameters</source>
-      <description>The parameter $M_0$ (in units of $\mathrm{M}_\odot$) appearing in the mass threshold for the halo mass galactic filter class.</description>
+      <description>
+      The parameter :math:`M_0` (in units of :math:`\mathrm{M}_\odot`) appearing in the mass threshold for the halo mass galactic filter class.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"                                                />
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />
@@ -94,8 +95,8 @@ contains
   end function haloMassConstructorParameters
 
   function haloMassConstructorInternal(massThreshold,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterHaloMass} galactic filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticFilterHaloMass` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterHaloMass    )                        :: self
@@ -111,8 +112,8 @@ contains
   end function haloMassConstructorInternal
 
   subroutine haloMassDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterHaloMass} galactic filter class.
+    !!{RST
+    Destructor for the :galacticus-class:`galacticFilterHaloMass` galactic filter class.
     !!}
     implicit none
     type(galacticFilterHaloMass), intent(inout) :: self
@@ -127,7 +128,7 @@ contains
   end subroutine haloMassDestructor
 
   logical function haloMassPasses(self,node)
-    !!{
+    !!{RST
     Implement a halo mass high-pass galactic filter.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition

@@ -34,7 +34,6 @@ dependencies = [
     "requests",
     "PyYAML",
     "GitPython",
-    "PyPDF2",
     "termcolor",
 ]
 
@@ -78,7 +77,6 @@ py-modules  = [
     "queueManager",
     "validate",
     "emulator_utils",
-    "latex_spellcheck",
     "latex_utils",
 ]
 

@@ -17,33 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a model of the tidal field acting on a satellite assuming spherical symmetry in the host.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
   !![
-  <satelliteTidalField name="satelliteTidalFieldSphericalSymmetry">
+  <satelliteTidalField name="satelliteTidalFieldSphericalSymmetry" docformat="rst">
    <description>
-    A satellite tidal field class which assumes a spherically-symmetric host halo, and computes the tidal field accordingly
-    using:
-    \begin{equation}
-     \mathcal{F} = f_\mathrm{boost} \left[ {\mathrm{G} M_\mathrm{host}(&lt;r_\mathrm{p}) \over r_\mathrm{p}^3} - 4 \pi \mathrm{G}
-     \rho_\mathrm{host}(r_\mathrm{p}) + \omega_\mathrm{p}^2 \right],
-    \end{equation}
-    where $r_\mathrm{p}$ is the pericentric radius. $M_\mathrm{host}(&lt;r)$ is the mass of the host halo enclosed within a sphere
-    of radius $r$, $\rho_\mathrm{host}(r)$ is the host density at radius $r$, and $\omega_\mathrm{p}$ is the orbital angular
-    velocity at pericenter. The term $f_\mathrm{boost}=$\mono{[factorBoost]} scales the overall tidal field. Note
-    that the centrifugal term, $\omega_\mathrm{p}^2$, is included only if the \mono{includeCentrifugalAcceleration}
-    argument is set to true. The tidal field is evaluated at the current orbital position of the
-    satellite by default, but can be evaluated at the orbital pericenter if the \mono{atPericenter} argument is
-    set to true.
+   A satellite tidal field class which assumes a spherically-symmetric host halo, and computes the tidal field accordingly using:
+
+   .. math::
+
+      \mathcal{F} = f_\mathrm{boost} \left[ {\mathrm{G} M_\mathrm{host}(&lt;r_\mathrm{p}) \over r_\mathrm{p}^3} - 4 \pi \mathrm{G}
+      \rho_\mathrm{host}(r_\mathrm{p}) + \omega_\mathrm{p}^2 \right],
+
+   where :math:`r_\mathrm{p}` is the pericentric radius. :math:`M_\mathrm{host}(&lt;r)` is the mass of the host halo enclosed within a sphere of radius :math:`r`, :math:`\rho_\mathrm{host}(r)` is the host density at radius :math:`r`, and :math:`\omega_\mathrm{p}` is the orbital angular velocity at pericenter. The term :math:`f_\mathrm{boost}=`\ ``[factorBoost]`` scales the overall tidal field. Note that the centrifugal term, :math:`\omega_\mathrm{p}^2`, is included only if the ``includeCentrifugalAcceleration`` argument is set to true. The tidal field is evaluated at the current orbital position of the satellite by default, but can be evaluated at the orbital pericenter if the ``atPericenter`` argument is set to true.
    </description>
   </satelliteTidalField>
   !!]
   type, extends(satelliteTidalFieldClass) :: satelliteTidalFieldSphericalSymmetry
-     !!{
+     !!{RST
      Implementation of a satellite tidal friction class which assumes spherical symmetry.
      !!}
      private
@@ -51,7 +46,7 @@
      double precision                                    :: factorBoost
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="factors" description="Compute factors needed for tidal tensor calculation."/>
      </methods>
      !!]
@@ -63,7 +58,7 @@
   end type satelliteTidalFieldSphericalSymmetry
 
   interface satelliteTidalFieldSphericalSymmetry
-     !!{
+     !!{RST
      Constructors for the sphericalSymmetry satellite tidal field class.
      !!}
      module procedure sphericalSymmetryConstructorParameters
@@ -73,8 +68,8 @@
 contains
 
   function sphericalSymmetryConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{satelliteTidalFieldSphericalSymmetry} satellite tidal field class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`satelliteTidalFieldSphericalSymmetry` satellite tidal field class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,10 +79,12 @@ contains
     double precision                                                      :: factorBoost
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorBoost</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The factor by which to boost satellite tidal fields in the \mono{sphericalSymmetry} tidal field class.</description>
+      <description>
+      The factor by which to boost satellite tidal fields in the ``sphericalSymmetry`` tidal field class.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
@@ -101,8 +98,8 @@ contains
   end function sphericalSymmetryConstructorParameters
 
   function sphericalSymmetryConstructorInternal(factorBoost,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{satelliteTidalFieldSphericalSymmetry} satellite tidal field class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`satelliteTidalFieldSphericalSymmetry` satellite tidal field class.
     !!}
     implicit none
     type            (satelliteTidalFieldSphericalSymmetry)                        :: self
@@ -116,8 +113,8 @@ contains
   end function sphericalSymmetryConstructorInternal
 
   subroutine sphericalSymmetryDestructor(self)
-    !!{
-    Destructor for the \refClass{satelliteTidalFieldSphericalSymmetry} satellite tidal field class.
+    !!{RST
+    Destructor for the :galacticus-class:`satelliteTidalFieldSphericalSymmetry` satellite tidal field class.
     !!}
     implicit none
     type(satelliteTidalFieldSphericalSymmetry), intent(inout) :: self
@@ -129,7 +126,7 @@ contains
   end subroutine sphericalSymmetryDestructor
 
   subroutine sphericalSymmetryFactors(self,node,nodeHost,atPericenter,massEnclosedHost,densityHost,radiusOrbital,velocityOrbital)
-    !!{
+    !!{RST
     Compute relevant quantities for spherically symmetric tidal field calculations.
     !!}
     use :: Coordinates       , only : coordinateCylindrical                           , assignment(=)
@@ -181,7 +178,7 @@ contains
   end subroutine sphericalSymmetryFactors
   
   function sphericalSymmetryTidalTensor(self,node,nodeHost,atPericenter,includeCentrifugalAcceleration) result(tidalTensor)
-    !!{
+    !!{RST
     Return the tidal tensor for satellite halos assuming spherical symmetry of the host.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
@@ -234,7 +231,7 @@ contains
   end function sphericalSymmetryTidalTensor
 
   double precision function sphericalSymmetryTidalTensorRadial(self,node,nodeHost,atPericenter,includeCentrifugalAcceleration) result(tidalTensorRadial)
-    !!{
+    !!{RST
     Return the radial part of the tidal tensor for satellite halos assuming spherical symmetry of the host.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
@@ -273,9 +270,8 @@ contains
   end function sphericalSymmetryTidalTensorRadial
 
   double precision function sphericalSymmetryTidalTensorDominant(self,node,nodeHost,atPericenter,includeCentrifugalAcceleration) result(tidalTensorDominant)
-    !!{
-    Return the dominant eigenvalue of the tidal tensor for satellite halos assuming spherical symmetry of the host (in this case equal to the radial
-    component, computed via the \mono{tidalTensorRadial} method).
+    !!{RST
+    Return the dominant eigenvalue of the tidal tensor for satellite halos assuming spherical symmetry of the host (in this case equal to the radial component, computed via the ``tidalTensorRadial`` method).
     !!}
     class  (satelliteTidalFieldSphericalSymmetry), intent(inout)                   :: self
     type   (treeNode                            ), intent(inout)                   :: node

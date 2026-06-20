@@ -17,25 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a stellar feedback model which limits to a maximum mass-loading factor.
   !!}
   
   !![
-  <stellarFeedbackOutflows name="stellarFeedbackOutflowsMassLoadingLimit">
+  <stellarFeedbackOutflows name="stellarFeedbackOutflowsMassLoadingLimit" docformat="rst">
     <description>
     A stellar feedback model which limits to a maximum mass-loading factor. The outflow rate will be
-    \begin{equation}
-    \dot{M}_\mathrm{out} = \mathrm{tanh} (\beta / \beta_\mathrm{max}) \beta_\mathrm{max} \dot{M}_\star,
-    \end{equation}
-    where $\dot{M}_\star$ is the star formation rate, $\beta$ is the mass-loading factor of the decorated
-    model, and $\beta_\mathrm{max}=$\mono{[factorMassLoadingMaximum]} is the maximum mass
-    loading factor.
+
+    .. math::
+
+       \dot{M}_\mathrm{out} = \mathrm{tanh} (\beta / \beta_\mathrm{max}) \beta_\mathrm{max} \dot{M}_\star,
+
+    where :math:`\dot{M}_\star` is the star formation rate, :math:`\beta` is the mass-loading factor of the decorated model, and :math:`\beta_\mathrm{max}=`\ ``[factorMassLoadingMaximum]`` is the maximum mass loading factor.
     </description>
   </stellarFeedbackOutflows>
   !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsMassLoadingLimit
-     !!{
+     !!{RST
      Implementation of a stellar feedback model which limits to a maximum mass-loading factor.
      !!}
      private
@@ -47,7 +47,7 @@
   end type stellarFeedbackOutflowsMassLoadingLimit
 
   interface stellarFeedbackOutflowsMassLoadingLimit
-     !!{
+     !!{RST
      Constructors for the rate-limiting stellar feedback class.
      !!}
      module procedure massLoadingLimitConstructorParameters
@@ -57,7 +57,7 @@
 contains
 
   function massLoadingLimitConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the rate-limiting stellar feedback class which takes a parameter set as input.
     !!}
     use :: Error           , only : Error_Report
@@ -69,10 +69,12 @@ contains
     double precision                                                         :: factorMassLoadingMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>factorMassLoadingMaximum</name>
       <source>parameters</source>
-      <description>The maximum mass loading factor for outflows due to stellar feedback.</description>
+      <description>
+      The maximum mass loading factor for outflows due to stellar feedback.
+      </description>
     </inputParameter>
     <objectBuilder class="stellarFeedbackOutflows" name="stellarFeedbackOutflows_" source="parameters"/>
     !!]
@@ -85,7 +87,7 @@ contains
   end function massLoadingLimitConstructorParameters
 
   function massLoadingLimitConstructorInternal(factorMassLoadingMaximum,stellarFeedbackOutflows_) result(self)
-    !!{
+    !!{RST
     Internal constructor for the massLoadingLimit stellar feedback class.
     !!}
     implicit none
@@ -100,7 +102,7 @@ contains
   end function massLoadingLimitConstructorInternal
 
   subroutine massLoadingLimitDestructor(self)
-    !!{
+    !!{RST
     Internal constructor for the massLoadingLimit stellar feedback class.
     !!}
     implicit none
@@ -113,9 +115,8 @@ contains
   end subroutine massLoadingLimitDestructor
 
   subroutine massLoadingLimitOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
-    !!{
-    Limits the outflow rate from another stellar feedback class such that the mass loading factor never exceeds a given
-    value.
+    !!{RST
+    Limits the outflow rate from another stellar feedback class such that the mass loading factor never exceeds a given value.
     !!}
     implicit none
     class           (stellarFeedbackOutflowsMassLoadingLimit), intent(inout) :: self

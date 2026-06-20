@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a node operator class that applies labels to nodes during tree initialization based on a \refClass{galacticFilterClass}.
+!!{RST
+Implements a node operator class that applies labels to nodes during tree initialization based on a :galacticus-class:`galacticFilterClass`.
 !!}
 
   use :: Galactic_Filters, only : galacticFilterClass
 
   !![
-  <nodeOperator name="nodeOperatorLabel">
-   <description>A node operator class that assigns a string \mono{label} meta-property to nodes passing a \refClass{galacticFilterClass} test. \mono{onInitialize} applies the label at tree initialization; \mono{onPostEvolution} reapplies it after each differential evolution step, allowing dynamic labeling of nodes that satisfy time-varying filter criteria. Labels can be used to identify special populations for subsequent analysis or filtering.</description>
+  <nodeOperator name="nodeOperatorLabel" docformat="rst">
+   <description>
+   A node operator class that assigns a string ``label`` meta-property to nodes passing a :galacticus-class:`galacticFilterClass` test. ``onInitialize`` applies the label at tree initialization; ``onPostEvolution`` reapplies it after each differential evolution step, allowing dynamic labeling of nodes that satisfy time-varying filter criteria. Labels can be used to identify special populations for subsequent analysis or filtering.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorLabel
-     !!{
-     A node operator class that applies labels to nodes during tree initialization based on a \refClass{galacticFilterClass}.
+     !!{RST
+     A node operator class that applies labels to nodes during tree initialization based on a :galacticus-class:`galacticFilterClass`.
      !!}
      private
      type   (varying_string     )          :: label
@@ -45,8 +47,8 @@ Implements a node operator class that applies labels to nodes during tree initia
   end type nodeOperatorLabel
 
   interface nodeOperatorLabel
-     !!{
-     Constructors for the \refClass{nodeOperatorLabel} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorLabel` node operator class.
      !!}
      module procedure labelConstructorParameters
      module procedure labelConstructorInternal
@@ -55,8 +57,8 @@ Implements a node operator class that applies labels to nodes during tree initia
 contains
 
   function labelConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorLabel} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorLabel` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -68,28 +70,36 @@ contains
          &                                         persistent
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <source>parameters</source>
-      <description>The string label to assign as a meta-property to nodes that pass the \refClass{galacticFilterClass} test.</description>
+      <description>
+      The string label to assign as a meta-property to nodes that pass the :galacticus-class:`galacticFilterClass` test.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>onInitialize</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, apply the label to qualifying nodes during tree initialization (the \mono{nodeTreeInitialize} phase) so that static tree properties are labeled before evolution begins.</description>
+      <description>
+      If true, apply the label to qualifying nodes during tree initialization (the ``nodeTreeInitialize`` phase) so that static tree properties are labeled before evolution begins.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>onPostEvolution</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, reapply the label to qualifying nodes after each differential evolution step so that the label reflects time-varying filter criteria evaluated at each output epoch.</description>
+      <description>
+      If true, reapply the label to qualifying nodes after each differential evolution step so that the label reflects time-varying filter criteria evaluated at each output epoch.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>persistent</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true, the label is persistent---once set, it is never unset. Otherwise, labels are not persistent---they switch between set and unset at each timestep. Note that this option has no effect for the \mono{[onInitialize]=true}, \mono{[onPostEvolution]=false} case since in that case labels are applied only once (during tree initialization).</description>
+      <description>
+      If true, the label is persistent---once set, it is never unset. Otherwise, labels are not persistent---they switch between set and unset at each timestep. Note that this option has no effect for the ``[onInitialize]=true``, ``[onPostEvolution]=false`` case since in that case labels are applied only once (during tree initialization).
+      </description>
     </inputParameter>
     <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
     !!]    
@@ -102,8 +112,8 @@ contains
   end function labelConstructorParameters
 
   function labelConstructorInternal(label,onInitialize,onPostEvolution,persistent,galacticFilter_) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorLabel} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorLabel` node operator class which takes a parameter set as input.
     !!}
     use :: Nodes_Labels, only : nodeLabelRegister
     implicit none
@@ -121,8 +131,8 @@ contains
   end function labelConstructorInternal
   
   subroutine labelDestructor(self)
-    !!{
-    Destructor for  the \refClass{nodeOperatorLabel} node operator class.
+    !!{RST
+    Destructor for  the :galacticus-class:`nodeOperatorLabel` node operator class.
     !!}
     implicit none
     type(nodeOperatorLabel), intent(inout) :: self
@@ -134,7 +144,7 @@ contains
   end subroutine labelDestructor
 
   subroutine labelTreeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize node branch tip indices.
     !!}
     use :: Nodes_Labels, only : nodeLabelSet
@@ -148,7 +158,7 @@ contains
   end subroutine labelTreeInitialize
 
   subroutine labelDifferentialEvolutionPost(self,node)
-    !!{
+    !!{RST
     Initialize node branch tip indices.
     !!}
     use :: Nodes_Labels, only : nodeLabelSet, nodeLabelUnset

@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module of globally-accessible functions supporting the \refClass{nodeOperatorClass} class.
+!!{RST
+Contains a module of globally-accessible functions supporting the :galacticus-class:`nodeOperatorClass` class.
 !!}
 
 module Nodes_Operators_Utilities
-  !!{
-  Provides globally-accessible functions supporting the \refClass{nodeOperatorClass} class.
+  !!{RST
+  Provides globally-accessible functions supporting the :galacticus-class:`nodeOperatorClass` class.
   !!}
   private
   public :: nodeOperatorConstruct       , nodeOperatorDestruct    , nodeOperatorDeepCopy  , nodeOperatorDeepCopyReset              , &
@@ -46,9 +46,8 @@ contains
   </functionGlobal>
   !!]
   subroutine nodeOperatorConstruct(parameters,nodeOperator_)
-    !!{
-    Build a \mono{nodeOperator} object from a given parameter set. This is a globally-callable function
-    to allow us to subvert the class/module hierarchy.
+    !!{RST
+    Build a ``nodeOperator`` object from a given parameter set. This is a globally-callable function to allow us to subvert the class/module hierarchy.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter   , inputParameters
@@ -88,8 +87,8 @@ contains
   </functionGlobal>
   !!]
   subroutine nodeOperatorPredeterminedSolveAnalytics(nodeOperator_,node,time)
-    !!{
-    Evaluate analytic ppre-determined roperties using a \mono{nodeOperator} object passed to us as an unlimited polymorphic object.
+    !!{RST
+    Evaluate analytic ppre-determined roperties using a ``nodeOperator`` object passed to us as an unlimited polymorphic object.
     !!}
     use :: Error             , only : Error_Report
     use :: Nodes_Operators   , only : nodeOperatorClass
@@ -117,8 +116,8 @@ contains
   </functionGlobal>
   !!]
   subroutine nodeOperatorDestruct(nodeOperator_)
-    !!{
-    Destruct a \mono{taskEvolveForests} object passed to us as an unlimited polymorphic object.
+    !!{RST
+    Destruct a ``taskEvolveForests`` object passed to us as an unlimited polymorphic object.
     !!}
     use :: Error          , only : Error_Report
     use :: Nodes_Operators, only : nodeOperatorClass
@@ -149,7 +148,7 @@ contains
    </functionGlobal>
   !!]
   subroutine nodeOperatorStateRestore(self,stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Perform a deep copy of galactic structure objects.
     !!}
     use, intrinsic :: ISO_C_Binding  , only : c_ptr            , c_size_t
@@ -182,7 +181,7 @@ contains
   </functionGlobal>
   !!]
   subroutine nodeOperatorStateStore(self,stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Perform a deep copy of galactic structure objects.
     !!}
     use, intrinsic :: ISO_C_Binding  , only : c_ptr            , c_size_t
@@ -211,7 +210,7 @@ contains
   </functionGlobal>
   !!]
   subroutine nodeOperatorDeepCopyReset(self)
-    !!{
+    !!{RST
     Perform a deep copy of galactic structure objects.
     !!}
     use :: Error          , only : Error_Report
@@ -236,7 +235,7 @@ contains
   </functionGlobal>
   !!]
   subroutine nodeOperatorDeepCopyFinalize(self)
-    !!{
+    !!{RST
     Finalize a deep copy of galactic structure objects.
     !!}
     use :: Error          , only : Error_Report
@@ -261,7 +260,7 @@ contains
   </functionGlobal>
   !!]
   subroutine nodeOperatorDeepCopy(self,destination)
-    !!{
+    !!{RST
     Perform a deep copy of galactic structure objects.
     !!}
     use :: Error          , only : Error_Report

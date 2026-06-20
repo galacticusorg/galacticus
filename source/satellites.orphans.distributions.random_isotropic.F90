@@ -17,27 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An abstract implementation of the orphan satellite distribution which assumes an isotropic distribution with randomly
-  assigned positions.
+  !!{RST
+  An abstract implementation of the orphan satellite distribution which assumes an isotropic distribution with randomly assigned positions.
   !!}
 
   use :: Statistics_Distributions, only : distributionFunction1DNormal
 
   !![
-  <satelliteOrphanDistribution name="satelliteOrphanDistributionRandomIsotropic" abstract="yes">
-   <description>An abstract orphan satellite distribution which assumes an isotropic, random distribution of positions, and velocities drawn from an isotropic normal distribution. The radial distribution and velocity dispersion must be specified by the child class.</description>
+  <satelliteOrphanDistribution name="satelliteOrphanDistributionRandomIsotropic" abstract="yes" docformat="rst">
+   <description>
+   An abstract orphan satellite distribution which assumes an isotropic, random distribution of positions, and velocities drawn from an isotropic normal distribution. The radial distribution and velocity dispersion must be specified by the child class.
+   </description>
   </satelliteOrphanDistribution>
   !!]
   type, abstract, extends(satelliteOrphanDistributionClass) :: satelliteOrphanDistributionRandomIsotropic
-     !!{
+     !!{RST
      An abstract orphan satellite distribution which assumes an isotropic, random distribution.
      !!}
      private
      type(distributionFunction1DNormal) :: normalDistribution
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the radius enclosing the given fraction of the orphan satellite population." method="inverseCumulativeMassFunctionRadial" />
        <method description="Return the 1-D velocity dispersion of the orphan satellite population." method="velocityDispersion" />
        <method description="Initialize the class." method="initialize" />
@@ -51,8 +52,8 @@
   end type satelliteOrphanDistributionRandomIsotropic
 
   abstract interface
-     !!{
-     Abstract interface for the inverse cumulative mass function for the radial coordinate in the \mono{randomIsotropic} orphan satellite distribution class.
+     !!{RST
+     Abstract interface for the inverse cumulative mass function for the radial coordinate in the ``randomIsotropic`` orphan satellite distribution class.
      !!}
      double precision function randomIsotropicInverseCMFRadial(self,node,fraction)
        import satelliteOrphanDistributionRandomIsotropic, treeNode
@@ -63,9 +64,8 @@
   end interface
 
   abstract interface
-     !!{
-     Abstract interface for the velocity dispersion in the \mono{randomIsotropic} orphan satellite
-     distribution class.
+     !!{RST
+     Abstract interface for the velocity dispersion in the ``randomIsotropic`` orphan satellite distribution class.
      !!}
      double precision function randomIsotropicVelocityDispersion(self,node)
        import satelliteOrphanDistributionRandomIsotropic, treeNode
@@ -77,8 +77,8 @@
 contains
 
   subroutine randomIsotropicInitialize(self)
-    !!{
-    Perform initialization for the \mono{randomIsotropic} orphan satellite distribution class.
+    !!{RST
+    Perform initialization for the ``randomIsotropic`` orphan satellite distribution class.
     !!}
     implicit none
     class           (satelliteOrphanDistributionRandomIsotropic), intent(inout) :: self
@@ -89,7 +89,7 @@ contains
   end subroutine randomIsotropicInitialize
   
   function randomIsotropicPosition(self,node)
-    !!{
+    !!{RST
     Return the position of an orphan satellite in a random isotropic distribution.
     !!}
     use :: Coordinates             , only : assignment(=)        , coordinateCartesian, coordinateSpherical
@@ -121,7 +121,7 @@ contains
   end function randomIsotropicPosition
 
   function randomIsotropicVelocity(self,node)
-    !!{
+    !!{RST
     Return the velocity of an orphan satellite in a random isotropic distribution.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentPosition, treeNode

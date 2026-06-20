@@ -17,15 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that sets the positions of subhalos to trace the dark matter component of their host halo.
   !!}
 
   use :: Dark_Matter_Halo_Scales       , only : darkMatterHaloScaleClass
   use :: Satellite_Oprhan_Distributions, only : satelliteOrphanDistributionTraceDarkMatter
   !![
-  <nodeOperator name="nodeOperatorPositionTraceDarkMatter">
-   <description>A node operator class that sets the positions of subhalos to trace the dark matter component of their host halo.</description>
+  <nodeOperator name="nodeOperatorPositionTraceDarkMatter" docformat="rst">
+   <description>
+   A node operator class that sets the positions of subhalos to trace the dark matter component of their host halo.
+   </description>
    <deepCopy>
     <functionClass variables="satelliteOrphanDistribution_"/>
    </deepCopy>
@@ -35,7 +37,7 @@
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorPositionTraceDarkMatter
-     !!{
+     !!{RST
      A node operator class that sets the positions of subhalos to trace the dark matter component of their host halo.
      !!}
      private
@@ -43,7 +45,7 @@
      type (satelliteOrphanDistributionTraceDarkMatter), pointer :: satelliteOrphanDistribution_ => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="assignPosition" description="Assign a position to a node such that it traces the dark matter of its host."/>
      </methods>
      !!]
@@ -54,8 +56,8 @@
   end type nodeOperatorPositionTraceDarkMatter
   
   interface nodeOperatorPositionTraceDarkMatter
-     !!{
-     Constructors for the \refClass{nodeOperatorPositionTraceDarkMatter} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorPositionTraceDarkMatter` node operator class.
      !!}
      module procedure positionTraceDarkMatterConstructorParameters
      module procedure positionTraceDarkMatterConstructorInternal
@@ -64,8 +66,8 @@
 contains
   
   function positionTraceDarkMatterConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorPositionTraceDarkMatter} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorPositionTraceDarkMatter` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -85,8 +87,8 @@ contains
   end function positionTraceDarkMatterConstructorParameters
 
   function positionTraceDarkMatterConstructorInternal(darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorPositionTraceDarkMatter} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorPositionTraceDarkMatter` node operator class.
     !!}
     implicit none
     type (nodeOperatorPositionTraceDarkMatter)                        :: self
@@ -103,7 +105,7 @@ contains
   end function positionTraceDarkMatterConstructorInternal
 
   subroutine positionTraceDarkMatterAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : openMPThreadBindingAtLevel, satelliteHostChangeEvent
@@ -115,8 +117,8 @@ contains
   end subroutine positionTraceDarkMatterAutoHook
 
   subroutine positionTraceDarkMatterDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorPositionTraceDarkMatter} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorPositionTraceDarkMatter` node operator class.
     !!}
     use :: Events_Hooks, only : openMPThreadBindingAtLevel, satelliteHostChangeEvent
     implicit none
@@ -131,7 +133,7 @@ contains
   end subroutine positionTraceDarkMatterDestructor
 
   subroutine positionTraceDarkMatterNodeInitialize(self,node)
-    !!{
+    !!{RST
     Assign the position of a subhalo during tree initialization.
     !!}
     implicit none
@@ -143,7 +145,7 @@ contains
   end subroutine positionTraceDarkMatterNodeInitialize
 
   subroutine positionTraceDarkMatterSatelliteHostChange(self,node)
-    !!{
+    !!{RST
     Update the position of a subhalo when it changes host.
     !!}
     use :: Error, only : Error_Report
@@ -161,7 +163,7 @@ contains
   end subroutine positionTraceDarkMatterSatelliteHostChange
   
   subroutine positionTraceDarkMatterNodesMerge(self,node)
-    !!{
+    !!{RST
     Update the position of the node after it merges with a new host.
     !!}
     implicit none
@@ -173,7 +175,7 @@ contains
   end subroutine positionTraceDarkMatterNodesMerge
 
   subroutine positionTraceDarkMatterAssignPosition(self,node,checkSatelliteStatus)
-    !!{
+    !!{RST
     Assign a position to a node such that it traces the dark matter of the host halo.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentPosition

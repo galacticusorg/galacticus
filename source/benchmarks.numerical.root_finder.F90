@@ -17,41 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program to benchmark the \refClass{rootFinder} class.
+!!{RST
+Contains a program to benchmark the :galacticus-class:`rootFinder` class.
 
-Each scenario constructs a \mono{rootFinder} configured for a particular solver type
-and entry point. A precomputed deterministic array of per-call shifts perturbs
-the underlying function on every call so the optimizer cannot constant-fold
-the solver chain and the wrapper's endpoint-value cache sees realistic
-turnover. An inner loop of many \mono{find()} calls per timed trial amortizes
-\mono{System\_Clock} resolution.
+Each scenario constructs a ``rootFinder`` configured for a particular solver type and entry point. A precomputed deterministic array of per-call shifts perturbs the underlying function on every call so the optimizer cannot constant-fold the solver chain and the wrapper's endpoint-value cache sees realistic turnover. An inner loop of many ``find()`` calls per timed trial amortizes ``System_Clock`` resolution.
 
-The scenarios are intentionally aligned with code paths in
-\mono{numerical.root\_finder.F90}:
-\begin{description}
-\item[\mono{*\_bracket}] hits \mono{rootFinderFindRange} (two endpoint
-  evaluations).
-\item[\mono{*\_bracket\_values}] hits \mono{rootFinderFindRangeValues}: the
-  caller precomputes both endpoint function values (so \mono{find} performs
-  no endpoint evaluations of its own; instead the wrapper's cache serves
-  them on the first two GSL callbacks). The two caller-side \mono{fQuad}
-  evaluations sit inside the timed region, just as they do for the
-  \mono{*\_bracket} scenario (where the same two evaluations happen inside
-  \mono{find}), so the difference between the two scenarios is the cost of
-  wrapper-cache hits versus the cost of evaluating those same endpoints
-  through \mono{rootFinderFindRange}'s procedure-pointer call path.
-\item[\mono{*\_bracket\_valueLow}] hits \mono{rootFinderFindRangeValueLow}
-  (one endpoint evaluation).
-\item[\mono{*\_guess}] hits \mono{rootFinderFindGuess} (the degenerate
-  bracket case where two redundant endpoint evaluations happen) plus the
-  bracket-expansion \mono{do while} loop.
-\item[\mono{newton}, \mono{steffenson}] exercise the derivative-based
-  callbacks (no wrapper cache).
-\end{description}
+The scenarios are intentionally aligned with code paths in ``numerical.root_finder.F90``:
 
-A running checksum of the returned roots is accumulated across every call
-and printed at the end so the compiler cannot dead-code-eliminate the work.
+``*_bracket``
+   hits ``rootFinderFindRange`` (two endpoint evaluations).
+
+``*_bracket_values``
+   hits ``rootFinderFindRangeValues``: the caller precomputes both endpoint function values (so ``find`` performs no endpoint evaluations of its own; instead the wrapper's cache serves them on the first two GSL callbacks). The two caller-side ``fQuad`` evaluations sit inside the timed region, just as they do for the ``*_bracket`` scenario (where the same two evaluations happen inside ``find``), so the difference between the two scenarios is the cost of wrapper-cache hits versus the cost of evaluating those same endpoints through ``rootFinderFindRange``'s procedure-pointer call path.
+
+``*_bracket_valueLow``
+   hits ``rootFinderFindRangeValueLow`` (one endpoint evaluation).
+
+``*_guess``
+   hits ``rootFinderFindGuess`` (the degenerate bracket case where two redundant endpoint evaluations happen) plus the bracket-expansion ``do while`` loop.
+
+``newton``, ``steffenson``
+   exercise the derivative-based callbacks (no wrapper cache).
+
+A running checksum of the returned roots is accumulated across every call and printed at the end so the compiler cannot dead-code-eliminate the work.
 !!}
 
 program Benchmark_Numerical_Root_Finder
@@ -110,9 +98,8 @@ program Benchmark_Numerical_Root_Finder
 contains
 
   subroutine buildShifts()
-    !!{
-    Build a deterministic array of per-call shifts in $[-0.4,0.4]$ used to
-    perturb the root location on every call.
+    !!{RST
+    Build a deterministic array of per-call shifts in :math:`[-0.4,0.4]` used to perturb the root location on every call.
     !!}
     integer :: i
 
@@ -125,11 +112,8 @@ contains
   end subroutine buildShifts
 
   subroutine benchmarkBracket(solverType,id,description)
-    !!{
-    Time \mono{find(rootRange)} on a bracket that already contains the root.
-    Each call evaluates the user function at both bracket endpoints
-    (\mono{rootFinderFindRange}) and then iterates the GSL solver to
-    convergence.
+    !!{RST
+    Time ``find(rootRange)`` on a bracket that already contains the root. Each call evaluates the user function at both bracket endpoints (``rootFinderFindRange``) and then iterates the GSL solver to convergence.
     !!}
     integer                         , intent(in   )                      :: solverType
     character       (len=*         ), intent(in   )                      :: id        , description
@@ -171,21 +155,10 @@ contains
   end subroutine benchmarkBracket
 
   subroutine benchmarkBracketValues(solverType,id,description)
-    !!{
-    Time \mono{find(rootRange,rootRangeValues)} where both endpoint function
-    values are precomputed by the caller. Hits the
-    \mono{rootFinderFindRangeValues} entry point and avoids any duplicate
-    evaluation of the user function at the bracket ends inside \mono{find}.
-    The wrapper's cache of endpoint values should also be used by the first
-    two GSL calls.
+    !!{RST
+    Time ``find(rootRange,rootRangeValues)`` where both endpoint function values are precomputed by the caller. Hits the ``rootFinderFindRangeValues`` entry point and avoids any duplicate evaluation of the user function at the bracket ends inside ``find``. The wrapper's cache of endpoint values should also be used by the first two GSL calls.
 
-    The two caller-side \mono{fQuad} evaluations are deliberately inside the
-    timed region: they represent the real cost a caller pays to use this
-    entry point. The matching \mono{*\_bracket} scenario pays the same two
-    evaluations inside \mono{rootFinderFindRange}, so the comparison between
-    the two scenarios isolates "wrapper cache hit" vs.\ "wrapper cache miss
-    plus procedure-pointer call to \mono{finderFunction}" rather than
-    introducing or removing user-function calls.
+    The two caller-side ``fQuad`` evaluations are deliberately inside the timed region: they represent the real cost a caller pays to use this entry point. The matching ``*_bracket`` scenario pays the same two evaluations inside ``rootFinderFindRange``, so the comparison between the two scenarios isolates "wrapper cache hit" vs.\ "wrapper cache miss plus procedure-pointer call to ``finderFunction``" rather than introducing or removing user-function calls.
     !!}
     integer                         , intent(in   )                      :: solverType
     character       (len=*         ), intent(in   )                      :: id        , description
@@ -230,10 +203,8 @@ contains
   end subroutine benchmarkBracketValues
 
   subroutine benchmarkBracketValueLow(solverType,id,description)
-    !!{
-    Time \mono{findWithFLower(rootRange,fLower)}. Hits
-    \mono{rootFinderFindRangeValueLow}, which evaluates the user function at
-    only the upper bracket endpoint.
+    !!{RST
+    Time ``findWithFLower(rootRange,fLower)``. Hits ``rootFinderFindRangeValueLow``, which evaluates the user function at only the upper bracket endpoint.
     !!}
     integer                         , intent(in   )                      :: solverType
     character       (len=*         ), intent(in   )                      :: id        , description
@@ -277,14 +248,8 @@ contains
   end subroutine benchmarkBracketValueLow
 
   subroutine benchmarkGuessExpand(expandType,id,description)
-    !!{
-    Time \mono{find(rootGuess)} on a function whose root sits well above the
-    initial guess, forcing the bracket-expansion loop in
-    \mono{rootFinderFind} to run. With \mono{rangeExpandMultiplicative} and
-    \mono{rangeExpandUpward}=2 the upper bracket doubles from 0.5 until it
-    crosses the root near 10 ($\sim$5 expansion steps). With
-    \mono{rangeExpandAdditive} and \mono{rangeExpandUpward}=2 the upper
-    bracket grows by 2 each step.
+    !!{RST
+    Time ``find(rootGuess)`` on a function whose root sits well above the initial guess, forcing the bracket-expansion loop in ``rootFinderFind`` to run. With ``rangeExpandMultiplicative`` and ``rangeExpandUpward``\ =2 the upper bracket doubles from 0.5 until it crosses the root near 10 (:math:`\sim`\ 5 expansion steps). With ``rangeExpandAdditive`` and ``rangeExpandUpward``\ =2 the upper bracket grows by 2 each step.
     !!}
     type            (enumerationRangeExpandType), intent(in   )         :: expandType
     character       (len=*                     ), intent(in   )         :: id        , description
@@ -328,10 +293,8 @@ contains
   end subroutine benchmarkGuessExpand
 
   subroutine benchmarkDerivative(solverType,id,description)
-    !!{
-    Time \mono{find(rootGuess)} with a derivative-based GSL solver. Both
-    the value-only and value+derivative callbacks are exercised; the
-    wrapper does \emph{not} cache endpoint values in this path.
+    !!{RST
+    Time ``find(rootGuess)`` with a derivative-based GSL solver. Both the value-only and value+derivative callbacks are exercised; the wrapper does *not* cache endpoint values in this path.
     !!}
     integer                         , intent(in   )                      :: solverType
     character       (len=*         ), intent(in   )                      :: id        , description

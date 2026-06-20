@@ -17,35 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a chemical state class which utilizes the {\normalfont \scshape Cloudy} code to
-  compute state in collisional ionization equilibrium.
+  !!{RST
+  Implements a chemical state class which utilizes the  Cloudy code to compute state in collisional ionization equilibrium.
   !!}
 
   !![
-  <chemicalState name="chemicalStateAtomicCIECloudy">
+  <chemicalState name="chemicalStateAtomicCIECloudy" docformat="rst">
    <description>
-    A chemical state class that computes the chemical state using the {\normalfont \scshape Cloudy} code and under the
-    assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero
-    metallicity calculations which use {\normalfont \scshape Cloudy}'s ``primordial'' metallicity. The helium abundance for
-    non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The {\normalfont \scshape
-    Cloudy} code will be downloaded and run to compute the cooling function as needed, which will then be stored for future
-    use. As this process is slow, a precomputed table is provided with \glc. If metallicities outside the range tabulated in
-    this file are required it will be regenerated with an appropriate range.
+   A chemical state class that computes the chemical state using the  Cloudy code and under the assumption of collisional ionization equilibrium with no molecular contribution. Abundances are Solar, except for zero metallicity calculations which use  Cloudy's "primordial" metallicity. The helium abundance for non-zero metallicity is scaled between primordial and Solar values linearly with metallicity. The  Cloudy code will be downloaded and run to compute the cooling function as needed, which will then be stored for future use. As this process is slow, a precomputed table is provided with Galacticus. If metallicities outside the range tabulated in this file are required it will be regenerated with an appropriate range.
    </description>
   </chemicalState>
   !!]
   type, extends(chemicalStateCIEFile) :: chemicalStateAtomicCIECloudy
-     !!{
-     A chemical state class which utilizes the {\normalfont \scshape Cloudy} code to compute
-     state in collisional ionization equilibrium.
+     !!{RST
+     A chemical state class which utilizes the  Cloudy code to compute state in collisional ionization equilibrium.
      !!}
      private
      logical :: initialized
    contains
      !![
-     <methods>
-       <method description="Run {\normalfont \scshape Cloudy} to tabulate chemical state as necessary." method="tabulate" />
+     <methods docformat="rst">
+       <method description="Run Cloudy to tabulate chemical state as necessary." method="tabulate" />
      </methods>
      !!]
      procedure :: tabulate                           => atomicCIECloudyTabulate
@@ -56,8 +48,8 @@
   end type chemicalStateAtomicCIECloudy
 
   interface chemicalStateAtomicCIECloudy
-     !!{
-     Constructors for the \refClass{chemicalStateAtomicCIECloudy} chemical state class.
+     !!{RST
+     Constructors for the :galacticus-class:`chemicalStateAtomicCIECloudy` chemical state class.
      !!}
      module procedure atomicCIECloudyConstructorParameters
      module procedure atomicCIECloudyConstructorInternal
@@ -79,8 +71,8 @@
 contains
 
   function atomicCIECloudyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{chemicalStateAtomicCIECloudy} chemical state class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`chemicalStateAtomicCIECloudy` chemical state class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -95,8 +87,8 @@ contains
   end function atomicCIECloudyConstructorParameters
 
   function atomicCIECloudyConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{chemicalStateAtomicCIECloudy} chemical state class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`chemicalStateAtomicCIECloudy` chemical state class.
     !!}
     use :: Chemical_Abundances_Structure, only : unitChemicalAbundances
     implicit none
@@ -117,7 +109,7 @@ contains
   end function atomicCIECloudyConstructorInternal
 
   subroutine atomicCIECloudyTabulate(self,gasAbundances)
-    !!{
+    !!{RST
     Create the chemical state.
     !!}
     use :: Abundances_Structure , only : Abundances_Get_Metallicity   , metallicityTypeLinearByMassSolar
@@ -180,9 +172,8 @@ contains
   end subroutine atomicCIECloudyTabulate
 
   double precision function atomicCIECloudyElectronDensity(self,numberDensityHydrogen,temperature,gasAbundances,radiation)
-    !!{
-    Return the electron density for collisional ionization equilibrium as computed by
-    {\normalfont \scshape Cloudy}.
+    !!{RST
+    Return the electron density for collisional ionization equilibrium as computed by  Cloudy.
     !!}
     implicit none
     class           (chemicalStateAtomicCIECloudy), intent(inout) :: self
@@ -196,10 +187,8 @@ contains
   end function atomicCIECloudyElectronDensity
 
   double precision function atomicCIECloudyElectronDensityTemperatureLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,radiation)
-    !!{
-    Return the logarithmic slope of the electron density with respect to temperature for
-    collisional ionization equilibrium as computed by {\normalfont \scshape Cloudy}.  read
-    from a file.
+    !!{RST
+    Return the logarithmic slope of the electron density with respect to temperature for collisional ionization equilibrium as computed by  Cloudy.  read from a file.
     !!}
     implicit none
     class           (chemicalStateAtomicCIECloudy), intent(inout) :: self
@@ -213,9 +202,8 @@ contains
   end function atomicCIECloudyElectronDensityTemperatureLogSlope
 
   double precision function atomicCIECloudyElectronDensityDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,radiation)
-    !!{
-    Return the logarithmic slope of the electron density with respect to density for
-    collisional ionization equilibrium as computed by {\normalfont \scshape Cloudy}.
+    !!{RST
+    Return the logarithmic slope of the electron density with respect to density for collisional ionization equilibrium as computed by  Cloudy.
     !!}
     implicit none
     class           (chemicalStateAtomicCIECloudy), intent(inout) :: self
@@ -229,9 +217,8 @@ contains
   end function atomicCIECloudyElectronDensityDensityLogSlope
 
   subroutine atomicCIECloudyChemicalDensities(self,chemicalDensities,numberDensityHydrogen,temperature,gasAbundances,radiation)
-    !!{
-    Return the densities of chemical species at the given temperature and hydrogen density for the specified set of abundances
-    and radiation field. Units of the returned electron density are cm$^-3$.
+    !!{RST
+    Return the densities of chemical species at the given temperature and hydrogen density for the specified set of abundances and radiation field. Units of the returned electron density are cm\ :math:`^-3`.
     !!}
     implicit none
     class           (chemicalStateAtomicCIECloudy), intent(inout) :: self

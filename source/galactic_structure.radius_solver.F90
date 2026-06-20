@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a class for computing radii of galactic components (or more general components).
 !!}
 
 module Galactic_Structure_Solvers
-  !!{
+  !!{RST
   Implements a class for calculations of sizes of galactic components (or more general components).
   !!}
   use :: Galacticus_Nodes, only : treeNode
@@ -30,25 +30,26 @@ module Galactic_Structure_Solvers
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>galacticStructureSolver</name>
    <descriptiveName>Galactic Structure Solver</descriptiveName>
-   <description>Class providing solvers for galactic structure---algorithms that determine the sizes
-    (half-mass or scale radii) of galactic components (disc, bulge, nuclear star cluster), e.g. by finding
-    the equilibrium configuration that satisfies the angular momentum conservation constraint, i.e.
-    the radius at which the specific angular momentum of the component matches that of the infalling
-    gas. Solving for the structure may require self-consistent accounting of the gravitational potential
-    from all components including dark matter, gas, and stars.</description>
+   <description>
+   Class providing solvers for galactic structure---algorithms that determine the sizes (half-mass or scale radii) of galactic components (disc, bulge, nuclear star cluster), e.g. by finding the equilibrium configuration that satisfies the angular momentum conservation constraint, i.e. the radius at which the specific angular momentum of the component matches that of the infalling gas. Solving for the structure may require self-consistent accounting of the gravitational potential from all components including dark matter, gas, and stars.
+   </description>
    <default>equilibrium</default>
    <method name="solve" >
-    <description>Solves for the structure of components in the given \mono{node}.</description>
+    <description>
+    Solves for the structure of components in the given ``node``.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type   (treeNode), intent(inout), target   :: node            </argument>
     <argument>logical          , intent(in   ), optional :: plausibilityOnly</argument>
    </method>
    <method name="revert" >
-    <description>Revert the structure of components in the given \mono{node} (if necessary to ensure that the structure solver will give the same result when called consecutively).</description>
+    <description>
+    Revert the structure of components in the given ``node`` (if necessary to ensure that the structure solver will give the same result when called consecutively).
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

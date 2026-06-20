@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which provides an interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
+!!{RST
+Contains a module which provides an interface to the :term:`Cloudy` code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
 !!}
 
 module Interfaces_Cloudy_CIE
-  !!{
-  Provides an interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
+  !!{RST
+  Provides an interface to the :term:`Cloudy` code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
   !!}
   use :: File_Utilities, only : lockDescriptor
   private
@@ -35,8 +35,8 @@ module Interfaces_Cloudy_CIE
 contains
 
   subroutine Interface_Cloudy_CIE_Tabulate(metallicityMaximumLogarithmic,fileNameCoolingFunction,fileNameChemicalState,versionFileFormat,includeContinuum)
-    !!{
-    An interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
+    !!{RST
+    An interface to the :term:`Cloudy` code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
     !!}
     use :: Display                         , only : displayCounter                     , displayCounterClear           , displayIndent       , displayMessage, &
           &                                         displayUnindent                    , verbosityLevelWorking

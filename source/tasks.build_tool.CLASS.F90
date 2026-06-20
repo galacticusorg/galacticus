@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <task name="taskBuildToolCLASS">
-   <description>A task which downloads, compiles, and installs the CLASS (Cosmic Linear Anisotropy Solving System) Boltzmann code, making it available as an alternative to CAMB for computing CMB anisotropies, matter transfer functions, and linear power spectra.</description>
+  <task name="taskBuildToolCLASS" docformat="rst">
+   <description>
+   A task which downloads, compiles, and installs the CLASS (Cosmic Linear Anisotropy Solving System) Boltzmann code, making it available as an alternative to CAMB for computing CMB anisotropies, matter transfer functions, and linear power spectra.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildToolCLASS
-     !!{
+     !!{RST
      Implementation of a task which builds the CLASS tool.
      !!}
      private
@@ -33,8 +35,8 @@
   end type taskBuildToolCLASS
 
   interface taskBuildToolCLASS
-     !!{
-     Constructors for the \refClass{taskBuildToolCLASS} task.
+     !!{RST
+     Constructors for the :galacticus-class:`taskBuildToolCLASS` task.
      !!}
      module procedure buildToolCLASSParameters
   end interface taskBuildToolCLASS
@@ -42,8 +44,8 @@
 contains
 
   function buildToolCLASSParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskBuildToolCLASS} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskBuildToolCLASS` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -56,7 +58,7 @@ contains
   end function buildToolCLASSParameters
 
   subroutine buildToolCLASSPerform(self,status)
-    !!{
+    !!{RST
     Builds the tabulation.
     !!}
     use :: Display         , only : displayIndent             , displayMessage, displayUnindent
@@ -86,7 +88,7 @@ contains
   end subroutine buildToolCLASSPerform
 
   logical function buildToolCLASSRequiresOutputFile(self)
-    !!{
+    !!{RST
     Specifies that this task does not requires the main output file.
     !!}
     implicit none

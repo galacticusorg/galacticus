@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements calculations of dark matter halo formation times.
 !!}
 
 module Dark_Matter_Halo_Formation_Times
-  !!{
+  !!{RST
   Implements calculations of dark matter halo formation times.
   !!}
   implicit none
@@ -32,8 +32,8 @@ module Dark_Matter_Halo_Formation_Times
 contains
 
   double precision function Dark_Matter_Halo_Formation_Time(node,formationMassFraction,darkMatterHaloMassAccretionHistory_,nodeFormation)
-    !!{
-    Returns the time at which the main branch progenitor of \mono{node} first had a mass equal to \mono{formationMassFraction} of the current mass.
+    !!{RST
+    Returns the time at which the main branch progenitor of ``node`` first had a mass equal to ``formationMassFraction`` of the current mass.
     !!}
     use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryClass
     use :: Error                                    , only : Error_Report

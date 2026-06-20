@@ -17,27 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that tracks the maximum host halo mass which a node has occupied.
   !!}
   
   !![
-  <nodeOperator name="nodeOperatorMassHostMaximum">
+  <nodeOperator name="nodeOperatorMassHostMaximum" docformat="rst">
     <description>
-      A node operator class that tracks the maximum host halo mass which a node has occupied. Intended to be paired with the
-      \refClass{nodePropertyExtractorMassHostMaximum} property extractor class to extract these masses for output.
+    A node operator class that tracks the maximum host halo mass which a node has occupied. Intended to be paired with the :galacticus-class:`nodePropertyExtractorMassHostMaximum` property extractor class to extract these masses for output.
     </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorMassHostMaximum
-     !!{
+     !!{RST
      A node operator class that tracks the maximum host halo mass which a node has occupied.
      !!}
      private
      integer :: massHostMaximumID
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="update" description="Update the maximum host mass of this node."/>
      </methods>
      !!]
@@ -51,8 +50,8 @@
   end type nodeOperatorMassHostMaximum
   
   interface nodeOperatorMassHostMaximum
-     !!{
-     Constructors for the \refClass{nodeOperatorMassHostMaximum} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorMassHostMaximum` node operator class.
      !!}
      module procedure massHostMaximumConstructorParameters
      module procedure massHostMaximumConstructorInternal
@@ -61,8 +60,8 @@
 contains
 
   function massHostMaximumConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorMassHostMaximum} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorMassHostMaximum` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -77,8 +76,8 @@ contains
   end function massHostMaximumConstructorParameters
 
   function massHostMaximumConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorMassHostMaximum} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorMassHostMaximum` node operator class.
     !!}
     implicit none
     type(nodeOperatorMassHostMaximum) :: self
@@ -90,7 +89,7 @@ contains
   end function massHostMaximumConstructorInternal
 
   subroutine massHostMaximumAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : openMPThreadBindingAtLevel, satelliteHostChangeEvent
@@ -102,8 +101,8 @@ contains
   end subroutine massHostMaximumAutoHook
 
   subroutine massHostMaximumDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorMassHostMaximum} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorMassHostMaximum` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteHostChangeEvent
     implicit none
@@ -114,7 +113,7 @@ contains
   end subroutine massHostMaximumDestructor
 
   subroutine massHostMaximumUpdate(self,node,isMerging)
-    !!{
+    !!{RST
     Update the maximum host mass of this node.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -138,7 +137,7 @@ contains
   end subroutine massHostMaximumUpdate
 
   subroutine massHostMaximumSatelliteHostChange(self,node)
-    !!{
+    !!{RST
     Update the maximum host mass of this node in response to a change in host.
     !!}
     use :: Error, only : Error_Report
@@ -156,7 +155,7 @@ contains
   end subroutine massHostMaximumSatelliteHostChange
   
   subroutine massHostMaximumNodeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize the maximum host mass of this node.
     !!}
     implicit none
@@ -168,7 +167,7 @@ contains
   end subroutine massHostMaximumNodeInitialize
 
   subroutine massHostMaximumNodePromote(self,node)
-    !!{
+    !!{RST
     Update the maximum host mass of this node as a result of node promotion.
     !!}
      use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -196,7 +195,7 @@ contains
   end subroutine massHostMaximumNodePromote
   
   subroutine massHostMaximumNodesMerge(self,node)
-    !!{
+    !!{RST
     Update the maximum host mass of this node as a result of node merging.
     !!}
     implicit none
@@ -208,7 +207,7 @@ contains
   end subroutine massHostMaximumNodesMerge
 
   subroutine massHostMaximumDifferentialEvolutionPost(self,node)
-    !!{
+    !!{RST
     Update the maximum host mass of this node, and of any satellite nodes.
     !!}
     implicit none

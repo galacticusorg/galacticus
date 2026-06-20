@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a correlation function output analysis class for the \cite{hearin_dark_2013} analysis.
+!!{RST
+Implements a correlation function output analysis class for the :cite:t:`hearin_dark_2013` analysis.
 !!}
 
   !![
-  <outputAnalysis name="outputAnalysisCorrelationFunctionHearin2013SDSS">
-   <description>Computes the galaxy two-point correlation function split by color for comparison with the \cite{hearin_dark_2013} SDSS analysis, with stellar mass random/systematic error polynomial coefficients and binomial covariance matrix parameters for halo mass range.</description>
+  <outputAnalysis name="outputAnalysisCorrelationFunctionHearin2013SDSS" docformat="rst">
+   <description>
+   Computes the galaxy two-point correlation function split by color for comparison with the :cite:t:`hearin_dark_2013` SDSS analysis, with stellar mass random/systematic error polynomial coefficients and binomial covariance matrix parameters for halo mass range.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisCorrelationFunction) :: outputAnalysisCorrelationFunctionHearin2013SDSS
-     !!{
-     A correlation function function output analysis class for the \cite{hearin_dark_2013} analysis.
+     !!{RST
+     A correlation function function output analysis class for the :cite:t:`hearin_dark_2013` analysis.
      !!}
      private
      double precision                        , allocatable, dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient
@@ -36,8 +38,8 @@ Implements a correlation function output analysis class for the \cite{hearin_dar
   end type outputAnalysisCorrelationFunctionHearin2013SDSS
 
   interface outputAnalysisCorrelationFunctionHearin2013SDSS
-     !!{
-     Constructors for the \refClass{outputAnalysisCorrelationFunctionHearin2013SDSS} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisCorrelationFunctionHearin2013SDSS` output analysis class.
      !!}
      module procedure correlationFunctionHearin2013SDSSConstructorParameters
      module procedure correlationFunctionHearin2013SDSSConstructorInternal
@@ -46,8 +48,8 @@ Implements a correlation function output analysis class for the \cite{hearin_dar
 contains
 
   function correlationFunctionHearin2013SDSSConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisCorrelationFunctionHearin2013SDSS} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisCorrelationFunctionHearin2013SDSS` output analysis class which takes a parameter set as input.
     !!}
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: Input_Parameters  , only : inputParameter, inputParameters
@@ -78,50 +80,64 @@ contains
        allocate(systematicErrorPolynomialCoefficient(1                                                       ))
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for SDSS stellar masses.</description>
+      <description>
+      The minimum random error for SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for SDSS stellar masses.</description>
+      <description>
+      The minimum random error for SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.07d0]</defaultValue>
-      <description>The coefficients of the random error polynomial for SDSS stellar masses.</description>
+      <description>
+      The coefficients of the random error polynomial for SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial for SDSS stellar masses.</description>
+      <description>
+      The coefficients of the systematic error polynomial for SDSS stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massHaloBinsPerDecade</name>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massHaloMinimum</name>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massHaloMaximum</name>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
@@ -147,8 +163,8 @@ contains
   end function correlationFunctionHearin2013SDSSConstructorParameters
 
   function correlationFunctionHearin2013SDSSConstructorInternal(massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterHaloScale_,haloModelPowerSpectrumModifier_,powerSpectrum_) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisCorrelationFunctionHearin2013SDSS} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisCorrelationFunctionHearin2013SDSS` output analysis class for internal use.
     !!}
     use            :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
     use            :: Cosmology_Parameters                  , only : cosmologyParametersSimple

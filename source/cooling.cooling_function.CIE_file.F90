@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a cooling function class which interpolates in a tabulated cooling function read from file.
   !!}
 
@@ -25,125 +25,117 @@
   use :: Table_Labels           , only : enumerationExtrapolationTypeType
 
   !![
-  <coolingFunction name="coolingFunctionCIEFile">
+  <coolingFunction name="coolingFunctionCIEFile" docformat="rst">
    <description>
-    A cooling function class providing a cooling function interpolated from a table read from file.  The HDF5 file containing
-    the table should have the following form:
-    \begin{verbatim}
-    HDF5 "coolingFunction.hdf5" {
-    GROUP "/" {
-       ATTRIBUTE "fileFormat" {
-          DATATYPE  H5T_STRING {
-             STRSIZE 1;
-             STRPAD H5T_STR_NULLTERM;
-             CSET H5T_CSET_ASCII;
-             CTYPE H5T_C_S1;
-          }
-          DATASPACE  SCALAR
-          DATA {
-          (0): "1"
-          }
-       }
-       DATASET "coolingRate" {
-          DATATYPE  H5T_IEEE_F64LE
-          DATASPACE  SIMPLE { ( 7, 8 ) / ( 7, 8 ) }
-       }
-       DATASET "metallicity" {
-          DATATYPE  H5T_IEEE_F64LE
-          DATASPACE  SIMPLE { ( 8 ) / ( 8 ) }
-          ATTRIBUTE "extrapolateHigh" {
-             DATATYPE  H5T_STRING {
-                STRSIZE 3;
-                STRPAD H5T_STR_NULLTERM;
-                CSET H5T_CSET_ASCII;
-                CTYPE H5T_C_S1;
-             }
-             DATASPACE  SCALAR
-             DATA {
-             (0): "fix"
-             }
-          }
-          ATTRIBUTE "extrapolateLow" {
-             DATATYPE  H5T_STRING {
-                STRSIZE 3;
-                STRPAD H5T_STR_NULLTERM;
-                CSET H5T_CSET_ASCII;
-                CTYPE H5T_C_S1;
-             }
-             DATASPACE  SCALAR
-             DATA {
-             (0): "fix"
-             }
-          }
-       }
-       DATASET "temperature" {
-          DATATYPE  H5T_IEEE_F64LE
-          DATASPACE  SIMPLE { ( 7 ) / ( 7 ) }
-          ATTRIBUTE "extrapolateHigh" {
-             DATATYPE  H5T_STRING {
-                STRSIZE 8;
-                STRPAD H5T_STR_NULLTERM;
-                CSET H5T_CSET_ASCII;
-                CTYPE H5T_C_S1;
-             }
-             DATASPACE  SCALAR
-             DATA {
-             (0): "powerLaw"
-             }
-          }
-          ATTRIBUTE "extrapolateLow" {
-             DATATYPE  H5T_STRING {
-                STRSIZE 8;
-                STRPAD H5T_STR_NULLTERM;
-                CSET H5T_CSET_ASCII;
-                CTYPE H5T_C_S1;
-             }
-             DATASPACE  SCALAR
-             DATA {
-             (0): "powerLaw"
-             }
-          }
-       }
-       DATASET "energyContinuum" {
-          DATATYPE  H5T_IEEE_F64LE
-          DATASPACE  SIMPLE { ( 7 ) / ( 7 ) }
-       }
-       DATASET "powerEmittedFractionalCumulative" {
-          DATATYPE  H5T_IEEE_F64LE
-          DATASPACE  SIMPLE { ( 7, 8, 10 ) / ( 7, 8, 10 ) }
-       }
-    }
-    }
-    \end{verbatim}
-    The \mono{temperature} dataset should specify temperature (in Kelvin), while the \mono{metallicity} dataset should give the logarithmic metallicity relative to Solar (a value of -999 or less is taken to imply
-    zero metallicity). The \mono{coolingRate} dataset should specify the cooling function (in ergs cm$^3$
-    s$^{-1}$ computed for a hydrogen density of 1 cm$^{-3}$) respectively at each temperature/metallicity pair. The
-    \mono{extrapolateLow} and \mono{extrapolateHigh} attributes of the \mono{temperature} and \mono{metallicity} datasets specify how the cooling rate should be extrapolated in the
-    low and high vale limits. Allowed options for these attributes are:
-    \begin{description}
-     \item[\mono{zero}] The cooling function is set to zero beyond the relevant limit.
-     \item[\mono{fixed}] The cooling function is held fixed at the value at the relevant limit.
-     \item[\mono{powerLaw}] The cooling function is extrapolated assuming a
-     power-law dependence beyond the relevant limit. This option is only allowed if the
-     cooling function is everywhere positive.
-    \end{description}
-    If the cooling function is everywhere positive the interpolation will be done in the
-    logarithm of temperature, metallicity\footnote{The exception is if the first cooling
-    function is tabulated for zero metallicity. In that case, a linear interpolation in
-    metallicity is always used between zero and the first non-zero tabulated metallicity.}
-    and cooling function. Otherwise, interpolation is linear in these quantities. The cooling
-    function is scaled assuming a quadratic dependence on hydrogen density.
-  
-    The \mono{energyContinuum} and \mono{powerEmittedFractionalCumulative} are optional. If
-    present, \mono{powerEmittedFractionalCumulative} gives the cumulative emitted power as a function of
-    energy for each tabulated metallicity and temperature. The energies at which the emitted power is tabulated are given by
-    \mono{energyContinuum}.
+   A cooling function class providing a cooling function interpolated from a table read from file.  The HDF5 file containing the table should have the following form:
+
+   .. code-block:: none
+
+      HDF5 "coolingFunction.hdf5" {
+      GROUP "/" {
+         ATTRIBUTE "fileFormat" {
+            DATATYPE  H5T_STRING {
+               STRSIZE 1;
+               STRPAD H5T_STR_NULLTERM;
+               CSET H5T_CSET_ASCII;
+               CTYPE H5T_C_S1;
+            }
+            DATASPACE  SCALAR
+            DATA {
+            (0): "1"
+            }
+         }
+         DATASET "coolingRate" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 7, 8 ) / ( 7, 8 ) }
+         }
+         DATASET "metallicity" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 8 ) / ( 8 ) }
+            ATTRIBUTE "extrapolateHigh" {
+               DATATYPE  H5T_STRING {
+                  STRSIZE 3;
+                  STRPAD H5T_STR_NULLTERM;
+                  CSET H5T_CSET_ASCII;
+                  CTYPE H5T_C_S1;
+               }
+               DATASPACE  SCALAR
+               DATA {
+               (0): "fix"
+               }
+            }
+            ATTRIBUTE "extrapolateLow" {
+               DATATYPE  H5T_STRING {
+                  STRSIZE 3;
+                  STRPAD H5T_STR_NULLTERM;
+                  CSET H5T_CSET_ASCII;
+                  CTYPE H5T_C_S1;
+               }
+               DATASPACE  SCALAR
+               DATA {
+               (0): "fix"
+               }
+            }
+         }
+         DATASET "temperature" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 7 ) / ( 7 ) }
+            ATTRIBUTE "extrapolateHigh" {
+               DATATYPE  H5T_STRING {
+                  STRSIZE 8;
+                  STRPAD H5T_STR_NULLTERM;
+                  CSET H5T_CSET_ASCII;
+                  CTYPE H5T_C_S1;
+               }
+               DATASPACE  SCALAR
+               DATA {
+               (0): "powerLaw"
+               }
+            }
+            ATTRIBUTE "extrapolateLow" {
+               DATATYPE  H5T_STRING {
+                  STRSIZE 8;
+                  STRPAD H5T_STR_NULLTERM;
+                  CSET H5T_CSET_ASCII;
+                  CTYPE H5T_C_S1;
+               }
+               DATASPACE  SCALAR
+               DATA {
+               (0): "powerLaw"
+               }
+            }
+         }
+         DATASET "energyContinuum" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 7 ) / ( 7 ) }
+         }
+         DATASET "powerEmittedFractionalCumulative" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 7, 8, 10 ) / ( 7, 8, 10 ) }
+         }
+      }
+      }
+
+   The ``temperature`` dataset should specify temperature (in Kelvin), while the ``metallicity`` dataset should give the logarithmic metallicity relative to Solar (a value of -999 or less is taken to imply zero metallicity). The ``coolingRate`` dataset should specify the cooling function (in ergs cm\ :math:`^3` s\ :math:`^{-1}` computed for a hydrogen density of 1 cm\ :math:`^{-3}`) respectively at each temperature/metallicity pair. The ``extrapolateLow`` and ``extrapolateHigh`` attributes of the ``temperature`` and ``metallicity`` datasets specify how the cooling rate should be extrapolated in the low and high vale limits. Allowed options for these attributes are:
+
+   ``zero``
+      The cooling function is set to zero beyond the relevant limit.
+
+   ``fixed``
+      The cooling function is held fixed at the value at the relevant limit.
+
+   ``powerLaw``
+      The cooling function is extrapolated assuming a power-law dependence beyond the relevant limit. This option is only allowed if the cooling function is everywhere positive.
+
+   If the cooling function is everywhere positive the interpolation will be done in the logarithm of temperature, metallicity\footnoteThe exception is if the first cooling function is tabulated for zero metallicity. In that case, a linear interpolation in metallicity is always used between zero and the first non-zero tabulated metallicity. and cooling function. Otherwise, interpolation is linear in these quantities. The cooling function is scaled assuming a quadratic dependence on hydrogen density.
+
+   The ``energyContinuum`` and ``powerEmittedFractionalCumulative`` are optional. If present, ``powerEmittedFractionalCumulative`` gives the cumulative emitted power as a function of energy for each tabulated metallicity and temperature. The energies at which the emitted power is tabulated are given by ``energyContinuum``.
    </description>
    <runTimeFileDependencies paths="fileName"/>
   </coolingFunction>
   !!]
   type, extends(coolingFunctionClass) :: coolingFunctionCIEFile
-     !!{
+     !!{RST
      A cooling function class which interpolates in a tabulated cooling function read from file.
      !!}
      private
@@ -168,7 +160,7 @@
           &                                                                               coolingFunctionPrevious         , coolingFunctionSlopePrevious
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Read the named cooling function file."                         method="readFile"            />
        <method description="Compute interpolating factors in a CIE cooling function file." method="interpolatingFactors"/>
        <method description="Interpolate in the cooling function."                          method="interpolate"         />
@@ -184,8 +176,8 @@
   end type coolingFunctionCIEFile
 
   interface coolingFunctionCIEFile
-     !!{
-     Constructors for the \refClass{coolingFunctionCIEFile} cooling function class.
+     !!{RST
+     Constructors for the :galacticus-class:`coolingFunctionCIEFile` cooling function class.
      !!}
      module procedure cieFileConstructorParameters
      module procedure cieFileConstructorInternal
@@ -197,8 +189,8 @@
 contains
 
   function cieFileConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{coolingFunctionCIEFile} cooling function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`coolingFunctionCIEFile` cooling function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -207,10 +199,12 @@ contains
     type(varying_string        )                :: fileName
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <source>parameters</source>
-      <description>The name of the file containing a tabulation of the collisional ionization equilibrium cooling function.</description>
+      <description>
+      The name of the file containing a tabulation of the collisional ionization equilibrium cooling function.
+      </description>
     </inputParameter>
     !!]
     self=coolingFunctionCIEFile(fileName)
@@ -221,8 +215,8 @@ contains
   end function cieFileConstructorParameters
 
   function cieFileConstructorInternal(fileName) result(self)
-    !!{
-    Internal constructor for the \refClass{coolingFunctionCIEFile} cooling function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`coolingFunctionCIEFile` cooling function class.
     !!}
     implicit none
     type(coolingFunctionCIEFile)                :: self
@@ -240,7 +234,7 @@ contains
   end function cieFileConstructorInternal
 
   double precision function cieFileCoolingFunction(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !!{
+    !!{RST
     Return the cooling function by interpolating in tabulated CIE data read from a file.
     !!}
     use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances                  , metallicityTypeLinearByMassSolar
@@ -321,7 +315,7 @@ contains
   end function cieFileCoolingFunction
 
   double precision function cieFileCoolingFunctionFractionInBand(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
-    !!{
+    !!{RST
     Return the fraction of the cooling function due to emission in the given energy band by interpolating in tabulated CIE data read from a file.
     !!}
     use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances                  , metallicityTypeLinearByMassSolar
@@ -412,9 +406,8 @@ contains
   end function cieFileCoolingFunctionFractionInBand
 
   double precision function cieFileCoolingFunctionTemperatureLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !!{
-    Return the slope of the cooling function with respect to temperature by interpolating in tabulated CIE data
-    read from a file.
+    !!{RST
+    Return the slope of the cooling function with respect to temperature by interpolating in tabulated CIE data read from a file.
     !!}
     use            :: Abundances_Structure         , only : Abundances_Get_Metallicity, abundances                  , metallicityTypeLinearByMassSolar
     use            :: Chemical_Abundances_Structure, only : chemicalAbundances
@@ -517,7 +510,7 @@ contains
   end function cieFileCoolingFunctionTemperatureLogSlope
 
   double precision function cieFileCoolingFunctionDensityLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !!{
+    !!{RST
     Return the logarithmic slope of the cooling function with respect to density.
     !!}
     use :: Abundances_Structure         , only : abundances
@@ -538,7 +531,7 @@ contains
   end function cieFileCoolingFunctionDensityLogSlope
 
   subroutine cieFileReadFile(self,fileName)
-    !!{
+    !!{RST
     Read in data from a cooling function file.
     !!}
     use :: Display           , only : displayIndent                       , displayUnindent     , verbosityLevelWorking       , displayGreen         , &
@@ -668,7 +661,7 @@ contains
   end subroutine cieFileReadFile
 
   subroutine cieFileInterpolatingFactors(self,temperature,metallicity,iTemperature,hTemperature,iMetallicity,hMetallicity)
-    !!{
+    !!{RST
     Determine the interpolating parameters.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
@@ -720,7 +713,7 @@ contains
   end subroutine cieFileInterpolatingFactors
 
   double precision function cieFileInterpolate(self,iTemperature,hTemperature,iMetallicity,hMetallicity)
-    !!{
+    !!{RST
     Perform the interpolation.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t

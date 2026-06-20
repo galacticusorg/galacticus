@@ -17,17 +17,18 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a generic 1D scatter function (i.e. the scatter of some property weighted by number density of
-  objects binned by some property) output analysis class.
+  !!{RST
+  Implements a generic 1D scatter function (i.e. the scatter of some property weighted by number density of objects binned by some property) output analysis class.
   !!}
 
   use :: ISO_Varying_String         , only : varying_string
   use :: Output_Analysis_Target_Data, only : outputAnalysisTargetDataClass, outputAnalysisTargetDataStandard
 
   !![
-  <outputAnalysis name="outputAnalysisScatterFunction1D">
-   <description>A generic 1D scatter function (i.e. the scatter of some property weighted by number density of objects binned by some property) output analysis class.</description>
+  <outputAnalysis name="outputAnalysisScatterFunction1D" docformat="rst">
+   <description>
+   A generic 1D scatter function (i.e. the scatter of some property weighted by number density of objects binned by some property) output analysis class.
+   </description>
    <deepCopy>
     <functionClass variables="meanFunction, meanSquaredFunction"/>
    </deepCopy>
@@ -37,7 +38,7 @@
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisScatterFunction1D
-     !!{
+     !!{RST
      A generic 1D scatter function (i.e. scatter of some property weighted by number density of objects binned by some property) output analysis class.
      !!}
      private
@@ -78,7 +79,7 @@
           &                                                                                         xAxisIsLog                                     , yAxisIsLog
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the results of the scatter function operator." method="results"         />
        <method description="Finalize analysis of the scatter function operator."  method="finalizeAnalysis"/>
      </methods>
@@ -93,8 +94,8 @@
   end type outputAnalysisScatterFunction1D
 
   interface outputAnalysisScatterFunction1D
-     !!{
-     Constructors for the \refClass{outputAnalysisScatterFunction1D} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisScatterFunction1D` output analysis class.
      !!}
      module procedure scatterFunction1DConstructorParameters
      module procedure scatterFunction1DConstructorInternal
@@ -103,8 +104,8 @@
 contains
 
   function scatterFunction1DConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisScatterFunction1D} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisScatterFunction1D` output analysis class which takes a parameter set as input.
     !!}
     use :: Error                  , only : Error_Report
     use :: Input_Parameters       , only : inputParameter                                , inputParameters
@@ -158,172 +159,228 @@ contains
     if (parameters%count('outputWeight') /= parameters%count('binCenter')*outputTimes_%count()) &
          & call Error_Report('incorrect number of output weights provided'//{introspection:location})
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <source>parameters</source>
       <variable>label</variable>
-      <description>A label for the analysis.</description>
+      <description>
+      A label for the analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>xAxisLabel</name>
       <source>parameters</source>
-      <description>A label for the $x$-axis in a plot of this analysis.</description>
+      <description>
+      A label for the :math:`x`-axis in a plot of this analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>yAxisLabel</name>
       <source>parameters</source>
-      <description>A label for the $y$-axis in a plot of this analysis.</description>
+      <description>
+      A label for the :math:`y`-axis in a plot of this analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>xAxisIsLog</name>
       <source>parameters</source>
-      <description>If true, indicates that the $x$-axis should be logarithmic in a plot of this analysis.</description>
+      <description>
+      If true, indicates that the :math:`x`-axis should be logarithmic in a plot of this analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>yAxisIsLog</name>
       <source>parameters</source>
-      <description>If true, indicates that the $y$-axis should be logarithmic in a plot of this analysis.</description>
+      <description>
+      If true, indicates that the :math:`y`-axis should be logarithmic in a plot of this analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>comment</name>
       <source>parameters</source>
       <variable>comment</variable>
-      <description>A descriptive comment for the analysis.</description>
+      <description>
+      A descriptive comment for the analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyLabel</name>
       <source>parameters</source>
       <variable>propertyLabel</variable>
-      <description>A label for the property variable.</description>
+      <description>
+      A label for the property variable.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyComment</name>
       <source>parameters</source>
       <variable>propertyComment</variable>
-      <description>A descriptive comment for the property variable.</description>
+      <description>
+      A descriptive comment for the property variable.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyUnits</name>
       <source>parameters</source>
       <variable>propertyUnits</variable>
-      <description>A human-readable description of the units for the property.</description>
+      <description>
+      A human-readable description of the units for the property.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyQuantity</name>
       <source>parameters</source>
       <variable>propertyQuantity</variable>
-      <description>An \mono{astropy.units}-parseable units string for the property.</description>
+      <description>
+      An ``astropy.units``-parseable units string for the property.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyIsComoving</name>
       <source>parameters</source>
       <variable>propertyIsComoving</variable>
-      <description>If true, the property is in comoving units.</description>
+      <description>
+      If true, the property is in comoving units.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyUnitsInSI</name>
       <source>parameters</source>
       <variable>propertyUnitsInSI</variable>
-      <description>A units for the property in the SI system.</description>
+      <description>
+      A units for the property in the SI system.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scatterLabel</name>
       <source>parameters</source>
       <variable>scatterLabel</variable>
-      <description>A label for the scatter.</description>
+      <description>
+      A label for the scatter.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scatterComment</name>
       <source>parameters</source>
       <variable>scatterComment</variable>
-      <description>A descriptive comment for the scatter.</description>
+      <description>
+      A descriptive comment for the scatter.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scatterUnits</name>
       <source>parameters</source>
       <variable>scatterUnits</variable>
-      <description>A human-readable description of the units for the scatter.</description>
+      <description>
+      A human-readable description of the units for the scatter.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scatterQuantity</name>
       <source>parameters</source>
       <variable>scatterQuantity</variable>
-      <description>An \mono{astropy.units}-parseable units string for the scatter.</description>
+      <description>
+      An ``astropy.units``-parseable units string for the scatter.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scatterIsComoving</name>
       <source>parameters</source>
       <variable>scatterIsComoving</variable>
-      <description>If true, the scatter is in comoving units.</description>
+      <description>
+      If true, the scatter is in comoving units.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>scatterUnitsInSI</name>
       <source>parameters</source>
       <variable>scatterUnitsInSI</variable>
-      <description>A units for the scatter in the SI system.</description>
+      <description>
+      A units for the scatter in the SI system.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>binCenter</name>
       <source>parameters</source>
       <variable>binCenter</variable>
-      <description>The value of the property at the center of each bin.</description>
+      <description>
+      The value of the property at the center of each bin.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bufferCount</name>
       <source>parameters</source>
       <variable>bufferCount</variable>
-      <description>The number of buffer bins to include below and above the range of actual bins.</description>
+      <description>
+      The number of buffer bins to include below and above the range of actual bins.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputWeight</name>
       <source>parameters</source>
       <variable>outputWeight</variable>
-      <description>The weight to assign to each bin at each output.</description>
+      <description>
+      The weight to assign to each bin at each output.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceModel</name>
       <source>parameters</source>
       <variable>covarianceModel</variable>
-      <description>The model to use for computing covariances.</description>
+      <description>
+      The model to use for computing covariances.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing volume function covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing volume function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>likelihoodNormalize</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true then normalize the likelihood to make it a probability density.</description>
+      <description>
+      If true then normalize the likelihood to make it a probability density.
+      </description>
     </inputParameter>
     !!]
     if (parameters%isPresent('scatterValueTarget')) then
        if (parameters%isPresent('scatterCovarianceTarget')) then
           !![
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>scatterValueTarget</name>
             <source>parameters</source>
-            <description>The target function for likelihood calculations.</description>
+            <description>
+            The target function for likelihood calculations.
+            </description>
           </inputParameter>
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>scatterCovarianceTarget</name>
             <source>parameters</source>
             <variable>scatterCovarianceTarget1D</variable>
-            <description>The target function covariance for likelihood calculations.</description>
+            <description>
+            The target function covariance for likelihood calculations.
+            </description>
           </inputParameter>
           !!]
           if (size(scatterCovarianceTarget1D) == size(scatterValueTarget)**2) then
@@ -339,10 +396,12 @@ contains
        if (parameters%isPresent('scatterCovariance')) call Error_Report('scatterTarget must be specified if scatterCovariance is present'//{introspection:location})
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>targetLabel</name>
       <source>parameters</source>
-      <description>A label for the target dataset in a plot of this analysis.</description>
+      <description>
+      A label for the target dataset in a plot of this analysis.
+      </description>
       <defaultValue>var_str('')</defaultValue>
     </inputParameter>
     !!]
@@ -409,8 +468,8 @@ contains
   end function scatterFunction1DConstructorParameters
 
   function scatterFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyQuantity,propertyIsComoving,propertyUnitsInSI,scatterLabel,scatterComment,scatterUnits,scatterQuantity,scatterIsComoving,scatterUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,targetData_) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisScatterFunction1D} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisScatterFunction1D` output analysis class for internal use.
     !!}
     use :: Error                             , only : Error_Report
     use :: Output_Analysis_Property_Operators, only : outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSquare, propertyOperatorList
@@ -582,8 +641,8 @@ contains
   end function scatterFunction1DConstructorInternal
 
   subroutine scatterFunction1DDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisScatterFunction1D} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisScatterFunction1D` output analysis class.
     !!}
     implicit none
     type(outputAnalysisScatterFunction1D), intent(inout) :: self
@@ -605,7 +664,7 @@ contains
   end subroutine scatterFunction1DDestructor
 
   subroutine scatterFunction1DAnalyze(self,node,iOutput)
-    !!{
+    !!{RST
     Implement a scatterFunction1D output analysis.
     !!}
     implicit none
@@ -620,7 +679,7 @@ contains
   end subroutine scatterFunction1DAnalyze
 
   subroutine scatterFunction1DReduce(self,reduced)
-    !!{
+    !!{RST
     Implement a scatterFunction1D output analysis reduction.
     !!}
     use :: Error, only : Error_Report
@@ -639,8 +698,8 @@ contains
   end subroutine scatterFunction1DReduce
 
   subroutine scatterFunction1DFinalizeAnalysis(self)
-    !!{
-    Finalize analysis of a \mono{scatterFunction1D} output analysis.
+    !!{RST
+    Finalize analysis of a ``scatterFunction1D`` output analysis.
     !!}
     implicit none
     class           (outputAnalysisScatterFunction1D), intent(inout)                 :: self
@@ -677,8 +736,8 @@ contains
   end subroutine scatterFunction1DFinalizeAnalysis
 
   subroutine scatterFunction1DFinalize(self,groupName)
-    !!{
-    Implement a \mono{scatterFunction1D} output analysis finalization.
+    !!{RST
+    Implement a ``scatterFunction1D`` output analysis finalization.
     !!}
     use :: Output_HDF5   , only : outputFile
     use :: HDF5_Access   , only : hdf5Access
@@ -735,7 +794,7 @@ contains
   end subroutine scatterFunction1DFinalize
 
   subroutine scatterFunction1DResults(self,binCenter,scatterValue,scatterCovariance)
-    !!{
+    !!{RST
     Implement a scatterFunction1D output analysis finalization.
     !!}
     implicit none
@@ -765,7 +824,7 @@ contains
   end subroutine scatterFunction1DResults
 
   double precision function scatterFunction1DLogLikelihood(self)
-    !!{
+    !!{RST
     Return the log-likelihood of a scatterFunction1D output analysis.
     !!}
     use :: Error                       , only : Error_Report

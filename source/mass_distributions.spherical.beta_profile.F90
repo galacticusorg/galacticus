@@ -17,24 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a $\beta$-profile mass distribution class.
+  !!{RST
+  Implementation of a :math:`\beta`-profile mass distribution class.
   !!}
 
   !![
-  <massDistribution name="massDistributionBetaProfile">
-   <description>An mass distribution class for $\beta$-profile distributions.</description>
+  <massDistribution name="massDistributionBetaProfile" docformat="rst">
+   <description>
+   An mass distribution class for :math:`\beta`-profile distributions.
+   </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionBetaProfile
-     !!{
-     The $\beta$-profile: $\rho(r)=\rho_0/[1+(r/r_\mathrm{core})^2]^{3\beta/2}$
+     !!{RST
+     The :math:`\beta`-profile: :math:`\rho(r)=\rho_0/[1+(r/r_\mathrm{core})^2]^{3\beta/2}`
      !!}
      double precision :: beta                  , coreRadius           , densityNormalization  , &
           &              momentRadial2Previous , momentRadial3Previous, momentRadial2XPrevious, &
           &              momentRadial3XPrevious, outerRadius
      logical          :: betaIsTwoThirds       , truncateAtOuterRadius
    contains
+     !![
+     <methods>
+       <method method="initialize" description="(Re)initialize the parameters of the $\beta$-profile mass distribution."/>
+     </methods>
+     !!]
+     procedure :: initialize            => betaProfileInitialize
      procedure :: density               => betaProfileDensity
      procedure :: densityGradientRadial => betaProfileDensityGradientRadial
      procedure :: densityRadialMoment   => betaProfileDensityRadialMoment
@@ -46,8 +54,8 @@
   end type massDistributionBetaProfile
 
   interface massDistributionBetaProfile
-     !!{
-     Constructors for the \refClass{massDistributionBetaProfile} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionBetaProfile` mass distribution class.
      !!}
      module procedure betaProfileConstructorParameters
      module procedure betaProfileConstructorInternal
@@ -56,9 +64,8 @@
 contains
 
   function betaProfileConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionBetaProfile} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionBetaProfile` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -73,58 +80,76 @@ contains
     type            (varying_string             )                :: massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
       <defaultValue>2.0d0/3.0d0</defaultValue>
-      <description>The value $\beta$ in a $\beta$-model mass distribution.</description>
+      <description>
+      The value :math:`\beta` in a :math:`\beta`-model mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>densityNormalization</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The density normalization of a $\beta$-model mass distribution.</description>
+      <description>
+      The density normalization of a :math:`\beta`-model mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The mass of a $\beta$-model mass distribution.</description>
+      <description>
+      The mass of a :math:`\beta`-model mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outerRadius</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The outer radius of a $\beta$-model mass distribution.</description>
+      <description>
+      The outer radius of a :math:`\beta`-model mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>coreRadius</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The core radius of a $\beta$-model mass distribution.</description>
+      <description>
+      The core radius of a :math:`\beta`-model mass distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dimensionless</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true then the $\beta$-model mass distribution is considered to be in dimensionless units.</description>
+      <description>
+      If true then the :math:`\beta`-model mass distribution is considered to be in dimensionless units.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>truncateAtOuterRadius</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true then the $\beta$-model mass distribution is truncated beyond the outer radius.</description>
+      <description>
+      If true then the :math:`\beta`-model mass distribution is truncated beyond the outer radius.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <conditionalCall>
@@ -142,8 +167,29 @@ contains
   end function betaProfileConstructorParameters
 
   function betaProfileConstructorInternal(beta,densityNormalization,mass,outerRadius,coreRadius,dimensionless,truncateAtOuterRadius,componentType,massType) result(self)
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionBetaProfile` mass distribution class.
+    !!}
+    implicit none
+    type            (massDistributionBetaProfile )                          :: self
+    double precision                              , intent(in   )           :: beta
+    double precision                              , intent(in   ), optional :: densityNormalization, mass                 , &
+         &                                                                     outerRadius         , coreRadius
+    logical                                       , intent(in   ), optional :: dimensionless       , truncateAtOuterRadius
+    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
+    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    !![
+    <constructorAssign variables="componentType, massType"/>
+    !!]
+
+    call self%initialize(beta,densityNormalization,mass,outerRadius,coreRadius,dimensionless,truncateAtOuterRadius)
+    return
+  end function betaProfileConstructorInternal
+
+  subroutine betaProfileInitialize(self,beta,densityNormalization,mass,outerRadius,coreRadius,dimensionless,truncateAtOuterRadius)
     !!{
-    Constructor for the \refClass{massDistributionBetaProfile} mass distribution class.
+    (Re)initialize the parameters of a \refClass{massDistributionBetaProfile} mass distribution. Factored out of the constructor
+    so that a pooled object can be re-used (re-initialized for a new \gls{node}) without being reallocated.
     !!}
     use :: Display                 , only : displayIndent      , displayMessage, displayUnindent, displayVerbosity, &
           &                                 verbosityLevelDebug
@@ -152,22 +198,18 @@ contains
     use :: Numerical_Comparison    , only : Values_Agree       , Values_Differ
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    type            (massDistributionBetaProfile )                          :: self
+    class           (massDistributionBetaProfile ), intent(inout)           :: self
     double precision                              , intent(in   )           :: beta
-    double precision                              , intent(in   ), optional :: densityNormalization              , mass                      , &
-         &                                                                     outerRadius                       , coreRadius
-    logical                                       , intent(in   ), optional :: dimensionless                     , truncateAtOuterRadius
-    type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
-    type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
+    double precision                              , intent(in   ), optional :: densityNormalization               , mass                     , &
+         &                                                                     outerRadius                        , coreRadius
+    logical                                       , intent(in   ), optional :: dimensionless                      , truncateAtOuterRadius
     double precision                              , parameter               :: radiusTiny                  =1.0d-6
     double precision                                                        :: r
     character       (len=64                      )                          :: message
     double precision                              , save                    :: radiusCoreFractionalPrevious       , normalizationFactorStored
     !$omp threadprivate(radiusCoreFractionalPrevious,normalizationFactorStored)
-    !![
-    <constructorAssign variables="beta, densityNormalization, coreRadius, componentType, massType"/>
-    !!]
 
+    self%beta=beta
     ! Check for special case of β=2/3.
     self%betaIsTwoThirds=Values_Agree(self%beta,2.0d0/3.0d0,relTol=1.0d-3)
     ! Determine if profile is dimensionless.
@@ -251,12 +293,16 @@ contains
     ! Initialize stored results.
     self%momentRadial2XPrevious=-1.0d0
     self%momentRadial3XPrevious=-1.0d0
+    ! Defensively clear any memoized tabulations inherited from the spherical base class, so that a
+    ! re-initialized (pooled) object never serves stale tabulations built for a previous node. The
+    ! β-profile is analytic and normally does not use these, but this guards the numerical fallbacks.
+    call self%tabulationReset()
     return
-  end function betaProfileConstructorInternal
+  end subroutine betaProfileInitialize
 
   double precision function betaProfileDensity(self,coordinates)
-    !!{
-    Return the density at the specified \mono{coordinates} in a $\beta$-profile mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a :math:`\beta`-profile mass distribution.
     !!}
     implicit none
     class           (massDistributionBetaProfile ), intent(inout) :: self
@@ -274,8 +320,8 @@ contains
   end function betaProfileDensity
 
   double precision function betaProfileDensityGradientRadial(self,coordinates,logarithmic)
-    !!{
-    Return the density at the specified \mono{coordinates} in a $\beta$-profile mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a :math:`\beta`-profile mass distribution.
     !!}
     implicit none
     class           (massDistributionBetaProfile ), intent(inout), target   :: self
@@ -316,9 +362,8 @@ contains
   end function betaProfileDensityGradientRadial
 
   double precision function betaProfileMassEnclosedBySphere(self,radius)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for $\beta$-profile mass distributions. Result computed
-    using \href{http://www.wolframalpha.com/input/?i=integrate+4*pi*r^2*rho\%2F\%281\%2Br^2\%29^\%283*beta\%2F2\%29}{Wolfram Alpha}.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for :math:`\beta`-profile mass distributions. Result computed using `Wolfram Alpha <http://www.wolframalpha.com/input/?i=integrate+4*pi*r^2*rho\%2F\%281\%2Br^2\%29^\%283*beta\%2F2\%29>`_.
     !!}
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use :: Numerical_Constants_Math, only : Pi
@@ -379,7 +424,7 @@ contains
   end function betaProfileMassEnclosedBySphere
 
   logical function betaProfilePotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return that the potential has an analytic form.
     !!}
     implicit none
@@ -390,10 +435,8 @@ contains
   end function betaProfilePotentialIsAnalytic
 
   double precision function betaProfilePotential(self,coordinates,status)
-    !!{
-    Return the potential at the specified \mono{coordinates} in a $\beta$-profile mass distribution. Calculated using
-    \href{http://www.wolframalpha.com/input/?i=integrate+4\%2F3+\%CF\%80+r+\%CF\%81+2F1\%283\%2F2\%2C+\%283+\%CE\%B2\%29\%2F2\%2C+5\%2F2\%2C+-r^2\%29}{Wolfram
-    Alpha}.
+    !!{RST
+    Return the potential at the specified ``coordinates`` in a :math:`\beta`-profile mass distribution. Calculated using `Wolfram Alpha <http://www.wolframalpha.com/input/?i=integrate+4\%2F3+\%CF\%80+r+\%CF\%81+2F1\%283\%2F2\%2C+\%283+\%CE\%B2\%29\%2F2\%2C+5\%2F2\%2C+-r^2\%29>`_.
     !!}
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Hypergeometric_Functions        , only : Hypergeometric_2F1
@@ -489,8 +532,8 @@ contains
   end function betaProfilePotential
 
   double precision function betaProfileDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
-    !!{
-    Computes radial moments of the density in a $\beta$-profile mass distribution.
+    !!{RST
+    Computes radial moments of the density in a :math:`\beta`-profile mass distribution.
     !!}
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use :: Numerical_Comparison    , only : Values_Agree
@@ -609,8 +652,8 @@ contains
   contains
 
     double precision function radialMomentTwoThirds(moment,x)
-      !!{
-      Special case of radial moment for $\beta=2/3$ $\beta$-profile.
+      !!{RST
+      Special case of radial moment for :math:`\beta=2/3` :math:`\beta`-profile.
       !!}
       use :: Error, only : Error_Report
       implicit none
@@ -674,8 +717,8 @@ contains
   end function betaProfileDensityRadialMoment
 
   double precision function betaProfileDensitySquareIntegral(self,radiusMinimum,radiusMaximum,isInfinite)
-    !!{
-    Computes the integral of the square of the density in a $\beta$-profile mass distribution.
+    !!{RST
+    Computes the integral of the square of the density in a :math:`\beta`-profile mass distribution.
     !!}
     use :: Gamma_Functions         , only : Gamma_Function
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
@@ -758,7 +801,7 @@ contains
   end function betaProfileDensitySquareIntegral
   
   subroutine betaProfileDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
-    !!{
+    !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
     use :: Input_Parameters, only : inputParameters

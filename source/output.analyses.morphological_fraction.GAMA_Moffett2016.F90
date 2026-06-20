@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a stellar vs halo mass relation analysis class.
   !!}
 
   !![
-  <outputAnalysis name="outputAnalysisMorphologicalFractionGAMAMoffett2016">
-   <description>Computes the early-type morphological fraction as a function of stellar mass for comparison with the \gls{gama} \cite{moffett_galaxy_2016} survey, classifying galaxies by spheroid-to-total ratio threshold (\mono{ratioEarlyType}) with stellar mass and classification error polynomial coefficients.</description>
+  <outputAnalysis name="outputAnalysisMorphologicalFractionGAMAMoffett2016" docformat="rst">
+   <description>
+   Computes the early-type morphological fraction as a function of stellar mass for comparison with the :term:`GAMA` :cite:t:`moffett_galaxy_2016` survey, classifying galaxies by spheroid-to-total ratio threshold (``ratioEarlyType``) with stellar mass and classification error polynomial coefficients.
+   </description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisMorphologicalFractionGAMAMoffett2016
-     !!{
+     !!{RST
      A morphological fraction output analysis class.
      !!}
      private
@@ -44,8 +46,8 @@
   end type outputAnalysisMorphologicalFractionGAMAMoffett2016
 
   interface outputAnalysisMorphologicalFractionGAMAMoffett2016
-     !!{
-     Constructors for the \refClass{outputAnalysisMorphologicalFractionGAMAMoffett2016} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisMorphologicalFractionGAMAMoffett2016` output analysis class.
      !!}
      module procedure morphologicalFractionGAMAMoffett2016ConstructorParameters
      module procedure morphologicalFractionGAMAMoffett2016ConstructorInternal
@@ -54,8 +56,8 @@
 contains
 
   function morphologicalFractionGAMAMoffett2016ConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMorphologicalFractionGAMAMoffett2016} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisMorphologicalFractionGAMAMoffett2016` output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
     use :: Input_Parameters   , only : inputParameter    , inputParameters
@@ -73,45 +75,57 @@ contains
     allocate(systematicErrorPolynomialCoefficient(max(1,parameters%count('systematicErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     allocate(    randomErrorPolynomialCoefficient(max(1,parameters%count(    'randomErrorPolynomialCoefficient',zeroIfNotPresent=.true.))))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>ratioEarlyType</name>
       <defaultValue>0.5d0</defaultValue>
-      <description>The minimum spheroid-to-total ratio for a galaxy to be classified as ``early-type'' when constructing the \gls{gama} early-type fraction function.</description>
+      <description>
+      The minimum spheroid-to-total ratio for a galaxy to be classified as "early-type" when constructing the :term:`GAMA` early-type fraction function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>ratioEarlyTypeError</name>
       <defaultValue>0.3d0</defaultValue>
-      <description>The error in spheroid fraction to be used when constructing the \gls{gama} early-type fraction function.</description>
+      <description>
+      The error in spheroid fraction to be used when constructing the :term:`GAMA` early-type fraction function.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>systematicErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>systematicErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the systematic error polynomial.</description>
+      <description>
+      The coefficients of the systematic error polynomial.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorPolynomialCoefficient</name>
       <source>parameters</source>
       <variable>randomErrorPolynomialCoefficient</variable>
       <defaultValue>[0.0d0]</defaultValue>
-      <description>The coefficients of the random error polynomial.</description>
+      <description>
+      The coefficients of the random error polynomial.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>
       <source>parameters</source>
       <variable>randomErrorMinimum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for stellar masses.</description>
+      <description>
+      The minimum random error for stellar masses.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>randomErrorMaximum</name>
       <source>parameters</source>
       <variable>randomErrorMaximum</variable>
       <defaultValue>0.07d0</defaultValue>
-      <description>The minimum random error for stellar masses.</description>
+      <description>
+      The minimum random error for stellar masses.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
@@ -127,8 +141,8 @@ contains
   end function morphologicalFractionGAMAMoffett2016ConstructorParameters
 
   function morphologicalFractionGAMAMoffett2016ConstructorInternal(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMorphologicalFractionGAMAMoffett2016} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisMorphologicalFractionGAMAMoffett2016` output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
@@ -423,8 +437,8 @@ contains
   end function morphologicalFractionGAMAMoffett2016ConstructorInternal
 
   subroutine morphologicalFractionGAMAMoffett2016Destructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisMorphologicalFractionGAMAMoffett2016} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisMorphologicalFractionGAMAMoffett2016` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMorphologicalFractionGAMAMoffett2016), intent(inout) :: self
@@ -437,7 +451,7 @@ contains
   end subroutine morphologicalFractionGAMAMoffett2016Destructor
 
   double precision function morphologicalFractionGAMAMoffett2016LogLikelihood(self)
-    !!{
+    !!{RST
     Return the log-likelihood of a morphologicalFractionGAMAMoffett2016 output analysis.
     !!}
     use :: Models_Likelihoods_Constants, only : logImpossible
@@ -478,8 +492,8 @@ contains
   end function morphologicalFractionGAMAMoffett2016LogLikelihood
 
   subroutine morphologicalFractionGAMAMoffett2016Finalize(self,groupName)
-    !!{
-    Implement a \mono{morphologicalFractionGAMAMoffett2016} output analysis finalization.
+    !!{RST
+    Implement a ``morphologicalFractionGAMAMoffett2016`` output analysis finalization.
     !!}
     use :: Output_HDF5   , only : outputFile
     use :: HDF5_Access   , only : hdf5Access

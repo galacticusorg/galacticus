@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides functionality for labeling nodes.
 !!}
 
 module Nodes_Labels
-  !!{
+  !!{RST
   Provides functionality for labeling nodes.
   !!}
   use :: ISO_Varying_String, only : varying_string
@@ -37,7 +37,7 @@ module Nodes_Labels
 contains
 
   integer function nodeLabelRegister(label,description) result(labelID)
-    !!{
+    !!{RST
     Register an allowed label for nodes, and return an ID for that label.
     !!}
     use :: Error             , only : Error_Report
@@ -93,7 +93,7 @@ contains
   end function nodeLabelRegister
 
   subroutine mergeLabels(ID,node)
-    !!{
+    !!{RST
     Merge labels of nodes on promotion.
     !!}
     use :: Galacticus_Nodes, only : treeNode    , nodeComponentBasic
@@ -115,7 +115,7 @@ contains
   end subroutine mergeLabels
 
   integer function nodeLabelCount()
-    !!{
+    !!{RST
     Return a count of the number of node labels.
     !!}
     implicit none
@@ -131,7 +131,7 @@ contains
   end function nodeLabelCount
   
   subroutine nodeLabelUnset(labelID,node)
-    !!{
+    !!{RST
     Unset a label on a node.
     !!}
     use :: Error           , only : Error_Report
@@ -155,7 +155,7 @@ contains
   end subroutine nodeLabelUnset
   
   subroutine nodeLabelSet(labelID,node)
-    !!{
+    !!{RST
     Set a label on a node.
     !!}
     use :: Error           , only : Error_Report
@@ -179,7 +179,7 @@ contains
   end subroutine nodeLabelSet
   
   logical function nodeLabelIsPresent(labelID,node)
-    !!{
+    !!{RST
     Return true if the specified label is present in the node.
     !!}
     use :: Error           , only : Error_Report
@@ -201,7 +201,7 @@ contains
   end function nodeLabelIsPresent
 
   subroutine nodeLabelNames(labels)
-    !!{
+    !!{RST
     Return a list of label names.
     !!}
     implicit none
@@ -226,7 +226,7 @@ contains
   end subroutine nodeLabelNames
 
   subroutine nodeLabelDescriptions(descriptions)
-    !!{
+    !!{RST
     Return a list of label descriptions.
     !!}
     implicit none
@@ -251,9 +251,8 @@ contains
   end subroutine nodeLabelDescriptions
 
   subroutine nodeLabelList(node,labels)
-    !!{
-    Return a list of labels for the provided node. Labels are returned as an array, with value 0 or 1 to indicate that the label
-    is not or is set.
+    !!{RST
+    Return a list of labels for the provided node. Labels are returned as an array, with value 0 or 1 to indicate that the label is not or is set.
     !!}
     use :: Galacticus_Nodes, only : treeNode, nodeComponentBasic
     implicit none

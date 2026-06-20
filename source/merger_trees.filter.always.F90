@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree filter which always passes.
 !!}
 
   !![
-  <mergerTreeFilter name="mergerTreeFilterAlways">
-   <description>A merger tree filter which always passes. (Used mostly for testing purposes.)</description>
+  <mergerTreeFilter name="mergerTreeFilterAlways" docformat="rst">
+   <description>
+   A merger tree filter which always passes. (Used mostly for testing purposes.)
+   </description>
   </mergerTreeFilter>
   !!]
   type, extends(mergerTreeFilterClass) :: mergerTreeFilterAlways
-     !!{
+     !!{RST
      A merger tree filter class which always passes.
      !!}
      private
@@ -36,8 +38,8 @@ Implements a merger tree filter which always passes.
   end type mergerTreeFilterAlways
 
   interface mergerTreeFilterAlways
-     !!{
-     Constructors for the \refClass{mergerTreeFilterAlways} merger tree filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeFilterAlways` merger tree filter class.
      !!}
      module procedure alwaysConstructorParameters
   end interface mergerTreeFilterAlways
@@ -45,8 +47,8 @@ Implements a merger tree filter which always passes.
 contains
 
   function alwaysConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeFilterAlways} merger tree filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeFilterAlways` merger tree filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function alwaysConstructorParameters
 
   logical function alwaysPasses(self,tree)
-    !!{
+    !!{RST
     Implement an always-pass merger tree filter.
     !!}
     implicit none

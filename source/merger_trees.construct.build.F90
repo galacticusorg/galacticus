@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a merger tree constructor class which builds merger trees after drawing masses at random from a mass distribution.
   !!}
 
@@ -31,15 +31,14 @@
   use :: Output_Times             , only : outputTimesClass
 
   !![
-  <mergerTreeConstructor name="mergerTreeConstructorBuild">
+  <mergerTreeConstructor name="mergerTreeConstructorBuild" docformat="rst">
    <description>
-    A merger tree constructor class which builds merger trees. This class first creates a distribution of tree root halo masses
-    and then builds a merger tree from each root halo.
+   A merger tree constructor class which builds merger trees. This class first creates a distribution of tree root halo masses and then builds a merger tree from each root halo.
    </description>
   </mergerTreeConstructor>
   !!]
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorBuild
-     !!{
+     !!{RST
      A class implementing merger tree construction by building trees.
      !!}
      private
@@ -65,7 +64,7 @@
      logical                                                                 :: computeTreeWeights
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Construct the set of tree masses to be built." method="constructMasses" />
      </methods>
      !!]
@@ -75,8 +74,8 @@
   end type mergerTreeConstructorBuild
 
   interface mergerTreeConstructorBuild
-     !!{
-     Constructors for the \refClass{mergerTreeConstructorBuild} merger tree constructor class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeConstructorBuild` merger tree constructor class.
      !!}
      module procedure buildConstructorParameters
      module procedure buildConstructorInternal
@@ -85,8 +84,8 @@
 contains
 
   function buildConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeConstructorBuild} merger tree constructor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeConstructorBuild` merger tree constructor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
@@ -105,28 +104,36 @@ contains
     logical                                                     :: processDescending
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftBase</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The redshift at which to plant the base node when building merger trees.</description>
+      <description>
+      The redshift at which to plant the base node when building merger trees.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeSnapTolerance</name>
       <defaultValue>1.0d-6</defaultValue>
-      <description>The fractional tolerance within which the tree base time will be snapped to a nearby output time.</description>
+      <description>
+      The fractional tolerance within which the tree base time will be snapped to a nearby output time.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>treeBeginAt</name>
       <defaultValue>0</defaultValue>
-      <description>The index (in order of increasing base halo mass) of the tree at which to begin when building merger trees. A value of ``0'' means to begin with tree number 1 (if processing trees in ascending order), or equal to the number of trees (otherwise).</description>
+      <description>
+      The index (in order of increasing base halo mass) of the tree at which to begin when building merger trees. A value of "0" means to begin with tree number 1 (if processing trees in ascending order), or equal to the number of trees (otherwise).
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>processDescending</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true, causes merger trees to be processed in order of decreasing mass.</description>
+      <description>
+      If true, causes merger trees to be processed in order of decreasing mass.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
@@ -167,7 +174,7 @@ contains
   end function buildConstructorParameters
 
   function buildConstructorInternal(timeBase,timeSnapTolerance,treeBeginAt,processDescending,cosmologyParameters_,cosmologyFunctions_,mergerTreeBuildMasses_,mergerTreeBuilder_,mergerTreeSeeds_,haloMassFunction_,outputTimes_,randomNumberGenerator_) result(self)
-    !!{
+    !!{RST
     Initializes the merger tree building module.
     !!}
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
@@ -208,8 +215,8 @@ contains
   end function buildConstructorInternal
 
   subroutine buildDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeConstructorBuild} merger tree constructor class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeConstructorBuild` merger tree constructor class.
     !!}
     implicit none
     type(mergerTreeConstructorBuild), intent(inout) :: self
@@ -228,7 +235,7 @@ contains
   end subroutine buildDestructor
 
   function buildConstruct(self,treeNumber,finished) result(tree)
-    !!{
+    !!{RST
     Build a merger tree.
     !!}
     use :: Functions_Global       , only : State_Retrieve_       , State_Store_
@@ -338,7 +345,7 @@ contains
   end function buildConstruct
 
   subroutine buildConstructMasses(self)
-    !!{
+    !!{RST
     Construct the set of tree masses to be built.
     !!}
     use :: Error  , only : Error_Report

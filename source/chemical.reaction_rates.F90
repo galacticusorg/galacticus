@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements a class providing calculations of chemical reaction rates.
 !!}
 
 module Chemical_Reaction_Rates
-  !!{
+  !!{RST
   Provides a class implementing chemical reaction rates.
   !!}
   use :: Chemical_Abundances_Structure, only : chemicalAbundances
@@ -31,18 +31,17 @@ module Chemical_Reaction_Rates
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>chemicalReactionRate</name>
    <descriptiveName>Chemical Reaction Rates</descriptiveName>
-   <description>Class providing rates for chemical reactions among gas-phase species (e.g.\ H$_2$ formation and
-    photodissociation, HD, HeH$^+$). Given local conditions---column density for self-shielding, gas temperature,
-    chemical abundances, a clumping factor, and the ambient radiation field---each implementation returns the net
-    reaction rates (in consistent volumetric units) for each tracked chemical species. These rates drive the
-    non-equilibrium evolution of the chemical network and are particularly relevant for modeling the formation of
-    molecular gas and cooling in the early universe and in low-metallicity \gls{igm} gas.</description>
+   <description>
+   Class providing rates for chemical reactions among gas-phase species (e.g.\ H\ :math:`_2` formation and photodissociation, HD, HeH\ :math:`^+`). Given local conditions---column density for self-shielding, gas temperature, chemical abundances, a clumping factor, and the ambient radiation field---each implementation returns the net reaction rates (in consistent volumetric units) for each tracked chemical species. These rates drive the non-equilibrium evolution of the chemical network and are particularly relevant for modeling the formation of molecular gas and cooling in the early universe and in low-metallicity :term:`IGM` gas.
+   </description>
    <default>zero</default>
    <method name="rates" >
-    <description>Return the collisional excitation cooling rate , in units of J/m$^3$/s, for ion of given \mono{atomicNumber} and \mono{electronNumber} at temperature \mono{T} (in Kelvin).</description>
+    <description>
+    Return the collisional excitation cooling rate , in units of J/m\ :math:`^3`/s, for ion of given ``atomicNumber`` and ``electronNumber`` at temperature ``T`` (in Kelvin).
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>

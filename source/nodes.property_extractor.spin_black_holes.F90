@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorSpinBlackHoles">
-   <description>Extracts a list of dimensionless spin parameters for all supermassive black holes in each node, providing per-black-hole angular momentum data for studies of black hole spin evolution and jet production efficiency.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorSpinBlackHoles" docformat="rst">
+   <description>
+   Extracts a list of dimensionless spin parameters for all supermassive black holes in each node, providing per-black-hole angular momentum data for studies of black hole spin evolution and jet production efficiency.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorSpinBlackHoles
-     !!{
+     !!{RST
      A property extractor which extracts a list of all super-massive black hole spins.
      !!}
      private
@@ -37,8 +39,8 @@
   end type nodePropertyExtractorSpinBlackHoles
 
   interface nodePropertyExtractorSpinBlackHoles
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorSpinBlackHoles} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorSpinBlackHoles` property extractor class.
      !!}
      module procedure spinBlackHolesConstructorParameters
   end interface nodePropertyExtractorSpinBlackHoles
@@ -46,8 +48,8 @@
 contains
 
   function spinBlackHolesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorSpinBlackHoles} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorSpinBlackHoles` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -62,7 +64,7 @@ contains
   end function spinBlackHolesConstructorParameters
 
   integer function spinBlackHolesElementCount(self)
-    !!{
+    !!{RST
     Return a count of the number of properties extracted.
     !!}
     implicit none
@@ -73,7 +75,7 @@ contains
   end function spinBlackHolesElementCount
 
   function spinBlackHolesExtract(self,node,instance) result(spin)
-    !!{
+    !!{RST
     Implement an output extractor for the spins of all supermassive black holes.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
@@ -96,8 +98,8 @@ contains
   end function spinBlackHolesExtract
 
   subroutine spinBlackHolesNames(self,names)
-    !!{
-    Return the names of the \mono{spinBlackHoles} properties.
+    !!{RST
+    Return the names of the ``spinBlackHoles`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorSpinBlackHoles), intent(inout)                             :: self
@@ -110,8 +112,8 @@ contains
   end subroutine spinBlackHolesNames
 
   subroutine spinBlackHolesDescriptions(self,descriptions)
-    !!{
-    Return the descriptions of the \mono{spinBlackHoles} properties.
+    !!{RST
+    Return the descriptions of the ``spinBlackHoles`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorSpinBlackHoles), intent(inout)                             :: self
@@ -124,8 +126,8 @@ contains
   end subroutine spinBlackHolesDescriptions
 
   function spinBlackHolesUnitsInSI(self) result(unitsInSI)
-    !!{
-    Return the units of the \mono{spinBlackHoles} properties in the SI system.
+    !!{RST
+    Return the units of the ``spinBlackHoles`` properties in the SI system.
     !!}
     implicit none
     double precision                                     , dimension(:) , allocatable :: unitsInSI
@@ -138,7 +140,7 @@ contains
   end function spinBlackHolesUnitsInSI
 
   function spinBlackHolesUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the spinBlackHoles properties.
     !!}
     use :: Units_MetaData, only : unitType

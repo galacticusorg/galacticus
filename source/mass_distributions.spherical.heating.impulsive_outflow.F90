@@ -17,31 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a mass distribution heating class that computes heating due to two-body relaxation.
   !!}
 
   !![
-  <massDistributionHeating name="massDistributionHeatingImpulsiveOutflow">
+  <massDistributionHeating name="massDistributionHeatingImpulsiveOutflow" docformat="rst">
     <description>
-      A mass distribution heating class that computes heating due to impulsive outflows---i.e. outflows occurring on
-      timescales that are small relative to the dynamical time of the halo. The model assumed is that the energy injection is given by
-      \begin{equation}
-    \dot{\epsilon}(r) = \alpha \frac{\mathrm{G} \dot{M}_\mathrm{outflow}(r)}{r} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
-    \end{equation}
-      where $\alpha$ is a normalization factor, $t_\phi = M_\mathrm{gas}/\dot{M}_\mathrm{outflow}$ is the timescale for the
-      outflow, and $t_\mathrm{dyn} = r_{1/2}/v_{1/2}$ is the dynamical time at the half-mass radius.
-      
-      The quantity
-      \begin{equation}
-    \dot{\epsilon}^\prime = \dot{M}_\mathrm{outflow} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
-    \end{equation}
-      if provided as an argument to the class constructor.
+    A mass distribution heating class that computes heating due to impulsive outflows---i.e. outflows occurring on timescales that are small relative to the dynamical time of the halo. The model assumed is that the energy injection is given by
+
+    .. math::
+
+       \dot{\epsilon}(r) = \alpha \frac{\mathrm{G} \dot{M}_\mathrm{outflow}(r)}{r} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
+
+    where :math:`\alpha` is a normalization factor, :math:`t_\phi = M_\mathrm{gas}/\dot{M}_\mathrm{outflow}` is the timescale for the outflow, and :math:`t_\mathrm{dyn} = r_{1/2}/v_{1/2}` is the dynamical time at the half-mass radius.
+
+    The quantity
+
+    .. math::
+
+       \dot{\epsilon}^\prime = \dot{M}_\mathrm{outflow} f\left( \frac{t_\phi}{t_\mathrm{dyn}} \right),
+
+    if provided as an argument to the class constructor.
     </description>
   </massDistributionHeating>
   !!]
   type, extends(massDistributionHeatingClass) :: massDistributionHeatingImpulsiveOutflow
-     !!{
+     !!{RST
      Implementation of a mass distribution heating class that computes heating due to impulsive outflows.
      !!}
      private
@@ -54,8 +56,8 @@
   end type massDistributionHeatingImpulsiveOutflow
 
   interface massDistributionHeatingImpulsiveOutflow
-     !!{
-     Constructors for the \refClass{massDistributionHeatingImpulsiveOutflow} mass distribution heating class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionHeatingImpulsiveOutflow` mass distribution heating class.
      !!}
      module procedure impulsiveOutflowConstructorParameters
      module procedure impulsiveOutflowConstructorInternal
@@ -64,9 +66,8 @@
 contains
 
   function impulsiveOutflowConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionHeatingImpulsiveOutflow} mass distribution heating class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionHeatingImpulsiveOutflow` mass distribution heating class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,20 +77,26 @@ contains
           &                                                                     impulsiveEnergyFactor
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>energyImpulsiveOutflowDisk</name>
       <source>parameters</source>
-      <description>The impulsive energy of outflows from the disk.</description>
+      <description>
+      The impulsive energy of outflows from the disk.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>energyImpulsiveOutflowSpheroid</name>
       <source>parameters</source>
-      <description>The impulsive energy of outflows from the spheroid.</description>
+      <description>
+      The impulsive energy of outflows from the spheroid.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>impulsiveEnergyFactor</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The parameter $\alpha$ appearing in the impulsive outflow heating rate.</description>
+      <description>
+      The parameter :math:`\alpha` appearing in the impulsive outflow heating rate.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -101,8 +108,8 @@ contains
   end function impulsiveOutflowConstructorParameters
   
   function impulsiveOutflowConstructorInternal(energyImpulsiveOutflowDisk,energyImpulsiveOutflowSpheroid,impulsiveEnergyFactor) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionHeatingImpulsiveOutflow} mass distribution heating class.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionHeatingImpulsiveOutflow` mass distribution heating class.
     !!}
     implicit none
     type             (massDistributionHeatingImpulsiveOutflow)                :: self
@@ -116,8 +123,8 @@ contains
   end function impulsiveOutflowConstructorInternal
 
   double precision function impulsiveOutflowSpecificEnergy(self,radius,massDistribution_) result(energySpecific)
-    !!{
-    Returns the specific energy of heating in the given \mono{node}.
+    !!{RST
+    Returns the specific energy of heating in the given ``node``.
     !!}
     use :: Galactic_Structure_Options      , only : componentTypeDisk             , componentTypeSpheroid
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -164,7 +171,7 @@ contains
   end function impulsiveOutflowSpecificEnergy
 
   double precision function impulsiveOutflowSpecificEnergyGradient(self,radius,massDistribution_) result(energySpecificGradient)
-    !!{
+    !!{RST
     Returns the gradient of the specific energy of heating.
     !!}
     use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
@@ -234,7 +241,7 @@ contains
   end function impulsiveOutflowSpecificEnergyGradient
 
   logical function impulsiveOutflowSpecificEnergyIsEverywhereZero(self) result(energySpecificIsEverywhereZero)
-    !!{
+    !!{RST
     Returns true if the specific energy is everywhere zero.
     !!}
     implicit none

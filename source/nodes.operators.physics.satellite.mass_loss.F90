@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that triggers merging of satellites based on a merging time.
   !!}
 
   use :: Dark_Matter_Halos_Mass_Loss_Rates, only : darkMatterHaloMassLossRateClass
 
   !![
-  <nodeOperator name="nodeOperatorSatelliteMassLoss">
-   <description>A node operator class that evolves the bound dark matter mass of satellite halos at each ODE timestep using a \refClass{darkMatterHaloMassLossRateClass} to compute the mass loss rate. \mono{massBoundIsInactive} controls whether the bound mass is treated as an inactive ODE variable (set true for improved performance when mass loss is negligible or prescribed externally).</description>
+  <nodeOperator name="nodeOperatorSatelliteMassLoss" docformat="rst">
+   <description>
+   A node operator class that evolves the bound dark matter mass of satellite halos at each ODE timestep using a :galacticus-class:`darkMatterHaloMassLossRateClass` to compute the mass loss rate. ``massBoundIsInactive`` controls whether the bound mass is treated as an inactive ODE variable (set true for improved performance when mass loss is negligible or prescribed externally).
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteMassLoss
-     !!{
+     !!{RST
      A node operator class that triggers merging of satellites based on a merging time.
      !!}
      private
@@ -37,7 +39,7 @@
      logical                                           :: massBoundIsInactive
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="massBoundSet" description="Set the time of merging for a satellite node."/>
      </methods>
      !!]
@@ -51,8 +53,8 @@
   end type nodeOperatorSatelliteMassLoss
   
   interface nodeOperatorSatelliteMassLoss
-     !!{
-     Constructors for the \refClass{nodeOperatorSatelliteMassLoss} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorSatelliteMassLoss` node operator class.
      !!}
      module procedure satelliteMassLossConstructorParameters
      module procedure satelliteMassLossConstructorInternal
@@ -61,8 +63,8 @@
 contains
 
   function satelliteMassLossConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorSatelliteMassLoss} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorSatelliteMassLoss` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,10 +74,12 @@ contains
     logical                                                 :: massBoundIsInactive
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massBoundIsInactive</name>
       <defaultValue>.false.</defaultValue>
-      <description>Specifies whether or not the bound mass of the satellite component is inactive (i.e. does not appear in any ODE being solved).</description>
+      <description>
+      Specifies whether or not the bound mass of the satellite component is inactive (i.e. does not appear in any ODE being solved).
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloMassLossRate" name="darkMatterHaloMassLossRate_" source="parameters"/>
@@ -89,8 +93,8 @@ contains
   end function satelliteMassLossConstructorParameters
 
   function satelliteMassLossConstructorInternal(massBoundIsInactive,darkMatterHaloMassLossRate_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorSatelliteMassLoss} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorSatelliteMassLoss` node operator class.
     !!}
     implicit none
     type   (nodeOperatorSatelliteMassLoss  )                        :: self
@@ -104,7 +108,7 @@ contains
   end function satelliteMassLossConstructorInternal
 
   subroutine satelliteMassLossAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : subhaloPromotionEvent, openMPThreadBindingAtLevel
@@ -116,8 +120,8 @@ contains
   end subroutine satelliteMassLossAutoHook
 
   subroutine satelliteMassLossDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorSatelliteMassLoss} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorSatelliteMassLoss` node operator class.
     !!}
     use :: Events_Hooks, only : subhaloPromotionEvent
     implicit none
@@ -131,7 +135,7 @@ contains
   end subroutine satelliteMassLossDestructor
 
   subroutine satelliteMassLossNodeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize bound mass of any initial satellites in a tree.
     !!}
     implicit none
@@ -151,8 +155,8 @@ contains
   end subroutine satelliteMassLossNodeInitialize
 
   subroutine subhaloPromotion(self,node,nodePromotion)
-    !!{
-    Handle cases where a subhalo is promoted to be an isolated host.    
+    !!{RST
+    Handle cases where a subhalo is promoted to be an isolated host.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic
     implicit none
@@ -173,7 +177,7 @@ contains
   end subroutine subhaloPromotion
 
   subroutine satelliteMassLossNodePromote(self,node)
-    !!{
+    !!{RST
     Act on promotion of a node. Set the bound mass to the basic mass of the parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic
@@ -192,7 +196,7 @@ contains
   end subroutine satelliteMassLossNodePromote
 
   subroutine satelliteMassLossNodesMerge(self,node)
-    !!{
+    !!{RST
     Act on node merging tree.
     !!}
     implicit none
@@ -204,8 +208,8 @@ contains
   end subroutine satelliteMassLossNodesMerge
 
   subroutine satelliteMassLossMassBoundSet(self,node)
-    !!{
-    Set the time of merging for the given \mono{node}.
+    !!{RST
+    Set the time of merging for the given ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite
     use :: Kepler_Orbits   , only : keplerOrbit       , keplerOrbitMasses        , keplerOrbitRadius            , keplerOrbitTheta, &
@@ -224,7 +228,7 @@ contains
   end subroutine satelliteMassLossMassBoundSet
 
   subroutine satelliteMassLossDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Set scales for differential evolution.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic, propertyEvaluate

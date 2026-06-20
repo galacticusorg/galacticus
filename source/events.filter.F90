@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains module which provides a globally-callable event filtering function.
 !!}
 
 module Events_Filters
-  !!{
+  !!{RST
   Provides a globally-callable event filtering function.
   !!}
   private

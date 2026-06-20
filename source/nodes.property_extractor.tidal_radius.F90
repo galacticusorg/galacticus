@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a tidal radius property extractor class.
 !!}
 
   use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRadiusTidal">
-   <description>Extracts the tidal radius of each halo in Mpc, defined as the radius at which the tidal forces from the host halo equal the self-gravity of the subhalo, beyond which mass is susceptible to stripping.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorRadiusTidal" docformat="rst">
+   <description>
+   Extracts the tidal radius of each halo in Mpc, defined as the radius at which the tidal forces from the host halo equal the self-gravity of the subhalo, beyond which mass is susceptible to stripping.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusTidal
-     !!{
+     !!{RST
      A tidal radius property extractor class.
      !!}
      private
@@ -44,8 +46,8 @@ Implements a tidal radius property extractor class.
   end type nodePropertyExtractorRadiusTidal
 
   interface nodePropertyExtractorRadiusTidal
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusTidal} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiusTidal` property extractor class.
      !!}
      module procedure radiusTidalConstructorParameters
      module procedure radiusTidalConstructorInternal
@@ -54,8 +56,8 @@ Implements a tidal radius property extractor class.
 contains
 
   function radiusTidalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusTidal} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiusTidal` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,8 +77,8 @@ contains
   end function radiusTidalConstructorParameters
 
   function radiusTidalConstructorInternal(satelliteTidalStrippingRadius_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorRadiusTidal} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorRadiusTidal` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRadiusTidal  )                        :: self
@@ -89,8 +91,8 @@ contains
   end function radiusTidalConstructorInternal
 
   subroutine radiusTidalDestructor(self)
-    !!{
-    Destructor for the \refClass{nodePropertyExtractorRadiusTidal} property extractor class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodePropertyExtractorRadiusTidal` property extractor class.
     !!}
     implicit none
     type(nodePropertyExtractorRadiusTidal), intent(inout) :: self
@@ -102,7 +104,7 @@ contains
   end subroutine radiusTidalDestructor
 
   double precision function radiusTidalExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a tidal radius property extractor.
     !!}
     implicit none
@@ -116,7 +118,7 @@ contains
   end function radiusTidalExtract
 
   function radiusTidalName(self)
-    !!{
+    !!{RST
     Return the name of the tidal radius property.
     !!}
     implicit none
@@ -129,7 +131,7 @@ contains
   end function radiusTidalName
 
   function radiusTidalDescription(self)
-    !!{
+    !!{RST
     Return a description of the tidal radius property.
     !!}
     implicit none
@@ -142,7 +144,7 @@ contains
   end function radiusTidalDescription
 
   double precision function radiusTidalUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the tidal radius property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
@@ -155,7 +157,7 @@ contains
   end function radiusTidalUnitsInSI
 
   function radiusTidalUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the radiusTidal property.
     !!}
     use :: Units_MetaData, only : unitType

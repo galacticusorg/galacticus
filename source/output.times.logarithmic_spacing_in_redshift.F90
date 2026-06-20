@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Contains an output times class which uses a set of times spaced uniformly in $\log(1+z)$.
+  !!{RST
+  Contains an output times class which uses a set of times spaced uniformly in :math:`\log(1+z)`.
   !!}
   
   !![
-  <outputTimes name="outputTimesLogarithmicSpacingInRedshift">
-   <description>An output times class which uses a set of times spaced uniformly in $\log(1+z)$.</description>
+  <outputTimes name="outputTimesLogarithmicSpacingInRedshift" docformat="rst">
+   <description>
+   An output times class which uses a set of times spaced uniformly in :math:`\log(1+z)`.
+   </description>
   </outputTimes>
   !!]
   type, extends(outputTimesList) :: outputTimesLogarithmicSpacingInRedshift
-     !!{
-     Implementation of an output times class which uses a set of times spaced uniformly in $\log(1+z)$
+     !!{RST
+     Implementation of an output times class which uses a set of times spaced uniformly in :math:`\log(1+z)`
      !!}
      private
      double precision           :: redshiftMinimum, redshiftMaximum
@@ -36,8 +38,8 @@
   end type outputTimesLogarithmicSpacingInRedshift
 
   interface outputTimesLogarithmicSpacingInRedshift
-     !!{
-     Constructors for the \refClass{outputTimesLogarithmicSpacingInRedshift} output times class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputTimesLogarithmicSpacingInRedshift` output times class.
      !!}
      module procedure logarithmicSpacingInRedshiftConstructorParameters
      module procedure logarithmicSpacingInRedshiftConstructorInternal
@@ -46,8 +48,8 @@
 contains
 
   function logarithmicSpacingInRedshiftConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputTimesLogarithmicSpacingInRedshift} output times class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputTimesLogarithmicSpacingInRedshift` output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -58,19 +60,25 @@ contains
     integer         (c_size_t                               )                :: countRedshifts
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMinimum</name>
-      <description>The minimum redshift at which to output.</description>
+      <description>
+      The minimum redshift at which to output.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMaximum</name>
-      <description>The maximum redshift at which to output.</description>
+      <description>
+      The maximum redshift at which to output.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countRedshifts</name>
-      <description>The number of redshifts at which to output.</description>
+      <description>
+      The number of redshifts at which to output.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
@@ -84,8 +92,8 @@ contains
   end function logarithmicSpacingInRedshiftConstructorParameters
 
   function logarithmicSpacingInRedshiftConstructorInternal(redshiftMinimum,redshiftMaximum,countRedshifts,cosmologyFunctions_) result(self)
-    !!{
-    Constructor for the \refClass{outputTimesLogarithmicSpacingInRedshift} output times class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputTimesLogarithmicSpacingInRedshift` output times class which takes a parameter set as input.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none

@@ -13,5 +13,5 @@ the legacy ``perl/Galacticus/`` tree:
 
 This package is distinct from the generated ``galacticus`` module produced by
 ``make libgalacticus.so``, which provides the ``ctypes`` interface to the
-shared library (see ``doc/Python_Interface.tex``).
+shared library (see the Galacticus documentation).
 """

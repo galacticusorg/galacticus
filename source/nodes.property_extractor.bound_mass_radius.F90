@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a property extractor class that extracts the radius enclosing the current bound mass.
 !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorRadiusBoundMass">
-   <description>Extracts the radius enclosing the currently gravitationally bound mass of a node, providing a measure of the physical extent of bound material as a halo undergoes tidal stripping or mass loss.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorRadiusBoundMass" docformat="rst">
+   <description>
+   Extracts the radius enclosing the currently gravitationally bound mass of a node, providing a measure of the physical extent of bound material as a halo undergoes tidal stripping or mass loss.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusBoundMass
-     !!{
+     !!{RST
      A property extractor class that extracts the radius enclosing the current bound mass.
      !!}
      private
@@ -40,8 +42,8 @@ Implements a property extractor class that extracts the radius enclosing the cur
   end type nodePropertyExtractorRadiusBoundMass
 
   interface nodePropertyExtractorRadiusBoundMass
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorRadiusBoundMass} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorRadiusBoundMass` property extractor class.
      !!}
      module procedure radiusBoundMassConstructorParameters
   end interface nodePropertyExtractorRadiusBoundMass
@@ -49,8 +51,8 @@ Implements a property extractor class that extracts the radius enclosing the cur
 contains
 
   function radiusBoundMassConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorRadiusBoundMass} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorRadiusBoundMass` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -65,7 +67,7 @@ contains
   end function radiusBoundMassConstructorParameters
 
   double precision function radiusBoundMassExtract(self,node,instance)
-    !!{
+    !!{RST
     Implement a bound mass radius property extractor.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentSatellite
@@ -95,7 +97,7 @@ contains
   end function radiusBoundMassExtract
 
   function radiusBoundMassName(self)
-    !!{
+    !!{RST
     Return the name of the bound mass radius property.
     !!}
     implicit none
@@ -108,7 +110,7 @@ contains
   end function radiusBoundMassName
 
   function radiusBoundMassDescription(self)
-    !!{
+    !!{RST
     Return a description of the bound mass radius property.
     !!}
     implicit none
@@ -121,7 +123,7 @@ contains
   end function radiusBoundMassDescription
 
   double precision function radiusBoundMassUnitsInSI(self)
-    !!{
+    !!{RST
     Return the units of the bound mass radius property in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
@@ -134,7 +136,7 @@ contains
   end function radiusBoundMassUnitsInSI
 
   function radiusBoundMassUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the radiusBoundMass property.
     !!}
     use :: Units_MetaData, only : unitType

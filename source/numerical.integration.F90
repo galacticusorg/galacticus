@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which performs numerical integration.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module which performs numerical integration.
 !; gsl
 
 module Numerical_Integration
-  !!{
+  !!{RST
   Implements numerical integration.
   !!}
   use, intrinsic :: ISO_C_Binding   , only : c_ptr             , c_size_t, c_int, c_double, &
@@ -63,7 +63,7 @@ module Numerical_Integration
   !!]
   
   type :: gslIntegrationWorkspaceWrapper
-     !!{
+     !!{RST
      Wrapper class for managing GSL functions.
      !!}
      type(c_ptr) :: workspace=c_null_ptr
@@ -72,7 +72,7 @@ module Numerical_Integration
   end type gslIntegrationWorkspaceWrapper
   
   type :: integrator
-     !!{
+     !!{RST
      Class for performing numerical integrations.
      !!}
      private
@@ -86,7 +86,7 @@ module Numerical_Integration
      logical                                                           :: hasSingularities
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Evaluate the integral."                    method="integrate"    />
        <method description="Set tolerances to use in this integrator." method="toleranceSet" />
        <method description="Allocate GSL objects."                     method="gslAllocate"  />
@@ -103,18 +103,18 @@ module Numerical_Integration
   end type integrator
 
   interface integrator
-     !!{
+     !!{RST
      Interface to constructor for integrators.
      !!}
      module procedure :: integratorConstructor
   end interface integrator
   
   interface
-     !!{
+     !!{RST
      Interfaces to GSL integration functions.
      !!}
      function gsl_integration_qag(f,a,b,epsabs,epsrel,limit,key,workspace,result,abserr) bind(c,name='gsl_integration_qag')
-       !!{
+       !!{RST
        Template for the GSL QAG integration function.
        !!}
        import c_ptr, c_size_t, c_int, c_double
@@ -129,7 +129,7 @@ module Numerical_Integration
      end function gsl_integration_qag
 
      function gsl_integration_qags(f,a,b,epsabs,epsrel,limit,workspace,result,abserr) bind(c,name='gsl_integration_qags')
-       !!{
+       !!{RST
        Template for the GSL QAGS integration function.
        !!}
        import c_ptr, c_size_t, c_int, c_double
@@ -143,7 +143,7 @@ module Numerical_Integration
      end function gsl_integration_qags
 
      function gsl_integration_workspace_alloc(n) bind(c,name='gsl_integration_workspace_alloc')
-       !!{
+       !!{RST
        Template for GSL integration workspace allocation function.
        !!}
        import c_ptr, c_size_t
@@ -152,7 +152,7 @@ module Numerical_Integration
      end function gsl_integration_workspace_alloc
 
      subroutine gsl_integration_workspace_free(w) bind(c,name='gsl_integration_workspace_free')
-       !!{
+       !!{RST
        Template for GSL integration workspace deallocation function.
        !!}
        import c_ptr
@@ -174,8 +174,8 @@ module Numerical_Integration
 contains
 
   function integratorConstructor(integrand,toleranceAbsolute,toleranceRelative,intervalsMaximum,hasSingularities,integrationRule) result(self)
-    !!{
-    Constructor for \mono{integrator} objects.
+    !!{RST
+    Constructor for ``integrator`` objects.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -210,8 +210,8 @@ contains
   end function integratorConstructor
 
   subroutine integratorAssign(to,from)
-    !!{
-    Assignment operator for \refClass{integrator} objects.
+    !!{RST
+    Assignment operator for :galacticus-class:`integrator` objects.
     !!}
     implicit none
     class(integrator), intent(  out) :: to
@@ -231,7 +231,7 @@ contains
   end subroutine integratorAssign
   
   subroutine integratorGSLAllocate(self)
-    !!{
+    !!{RST
     Allocate GSL objects.
     !!}
     use :: Interface_GSL, only : gslFunction
@@ -243,8 +243,10 @@ contains
        allocate(self%integrationWorkspace)
        self%integrationWorkspace%workspace=gsl_integration_workspace_alloc(self%intervalsMaximum)
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        dummyPointer_         => self%integrationWorkspace
        self%workspaceManager =  resourceManager(dummyPointer_)
@@ -256,8 +258,10 @@ contains
        allocate(self%integrandFunction)
        self%integrandFunction   %f        =gslFunction                    (     integrandWrapper)
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-	 <description>ICE when passing a derived type component to a class(*) function argument.</description>
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	 <description>
+	 ICE when passing a derived type component to a class(*) function argument.
+	 </description>
        !!]
        dummyPointer_         => self%integrandFunction
        self%functionManager  =  resourceManager(dummyPointer_)
@@ -269,7 +273,7 @@ contains
   end subroutine integratorGSLAllocate
 
   subroutine integratorGSLReallocate(self)
-    !!{
+    !!{RST
     Reallocate GSL objects.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_null_ptr
@@ -290,8 +294,8 @@ contains
   end subroutine integratorGSLReallocate
   
   subroutine integratorToleranceSet(self,toleranceAbsolute,toleranceRelative)
-    !!{
-    Reset tolerance for \mono{integrator} objects.
+    !!{RST
+    Reset tolerance for ``integrator`` objects.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -314,7 +318,7 @@ contains
   end subroutine integratorToleranceSet
   
   recursive double precision function integratorIntegrate(self,limitLower,limitUpper,status)
-    !!{
+    !!{RST
     Perform a numerical integration.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_funptr
@@ -373,8 +377,8 @@ contains
   end function integratorIntegrate
 
   function integrandWrapper(x) bind(c)
-    !!{
-    Wrapper function used for \gls{gsl} integration functions.
+    !!{RST
+    Wrapper function used for :term:`GSL` integration functions.
     !!}
     implicit none
     real(c_double)                       :: integrandWrapper
@@ -385,8 +389,8 @@ contains
   end function integrandWrapper
 
   subroutine gslIntegrationWorkspaceWrapperDestructor(self)
-    !!{
-    Destroy a \mono{gslIntegrationWorkspaceWrapper} object.
+    !!{RST
+    Destroy a ``gslIntegrationWorkspaceWrapper`` object.
     !!}
     implicit none
     type(gslIntegrationWorkspaceWrapper), intent(inout) :: self

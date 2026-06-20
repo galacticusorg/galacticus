@@ -17,26 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a node operator class that implements accretion of gas into the \gls{cgm}.
+  !!{RST
+  Implements a node operator class that implements accretion of gas into the :term:`CGM`.
   !!}
 
   use :: Accretion_Halos, only : accretionHaloClass
 
   !![
-  <nodeOperator name="nodeOperatorCGMAccretion">
+  <nodeOperator name="nodeOperatorCGMAccretion" docformat="rst">
    <description>
-    A node operator class that drives the inflow of gas from the \gls{igm} into the circumgalactic medium (\gls{cgm}) at each
-    ODE timestep, using a \refClass{accretionHaloClass} object to compute the mass and angular momentum accretion rates.
-    \mono{allowNegativeCGMMass} controls whether the \gls{cgm} gas mass is permitted to go negative (rates driving it
-    negative are optionally truncated to zero). \mono{angularMomentumAlwaysGrows} forces \gls{cgm} angular momentum to
-    only increase, preventing reversal from negative accretion rates.
+   A node operator class that drives the inflow of gas from the :term:`IGM` into the circumgalactic medium (:term:`CGM`) at each ODE timestep, using a :galacticus-class:`accretionHaloClass` object to compute the mass and angular momentum accretion rates. ``allowNegativeCGMMass`` controls whether the :term:`CGM` gas mass is permitted to go negative (rates driving it negative are optionally truncated to zero). ``angularMomentumAlwaysGrows`` forces :term:`CGM` angular momentum to only increase, preventing reversal from negative accretion rates.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorCGMAccretion
-     !!{
-     A node operator class that implements accretion of gas into the \gls{cgm}.
+     !!{RST
+     A node operator class that implements accretion of gas into the :term:`CGM`.
      !!}
      private
      class  (accretionHaloClass), pointer :: accretionHalo_       => null()
@@ -52,8 +48,8 @@
   end type nodeOperatorCGMAccretion
   
   interface nodeOperatorCGMAccretion
-     !!{
-     Constructors for the \refClass{nodeOperatorCGMAccretion} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorCGMAccretion` node operator class.
      !!}
      module procedure cgmAccretionConstructorParameters
      module procedure cgmAccretionConstructorInternal
@@ -62,8 +58,8 @@
 contains
   
   function cgmAccretionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorCGMAccretion} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorCGMAccretion` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -73,21 +69,19 @@ contains
     logical                                          :: allowNegativeCGMMass, angularMomentumAlwaysGrows
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>allowNegativeCGMMass</name>
       <defaultValue>.true.</defaultValue>
       <description>
-	If true, allow negative mass in the \gls{cgm}. If false, rates that would drive the \gls{cgm} mass to be negative are
-	truncated to zero.
+      If true, allow negative mass in the :term:`CGM`. If false, rates that would drive the :term:`CGM` mass to be negative are truncated to zero.
       </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>angularMomentumAlwaysGrows</name>
       <defaultValue>.false.</defaultValue>
       <description>
-	Specifies whether or not negative rates of accretion of angular momentum into the hot halo will be treated as positive for
-        the purposes of computing the hot halo angular momentum.
+      Specifies whether or not negative rates of accretion of angular momentum into the hot halo will be treated as positive for the purposes of computing the hot halo angular momentum.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -102,8 +96,8 @@ contains
   end function cgmAccretionConstructorParameters
 
   function cgmAccretionConstructorInternal(allowNegativeCGMMass,angularMomentumAlwaysGrows,accretionHalo_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorCGMAccretion} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorCGMAccretion` node operator class.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
     implicit none
@@ -119,7 +113,7 @@ contains
   end function cgmAccretionConstructorInternal
 
   subroutine cgmAccretionAutoHook(self)
-    !!{
+    !!{RST
     Attach to various event hooks.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent, openMPThreadBindingAtLevel, dependencyDirectionAfter, dependencyRegEx
@@ -133,8 +127,8 @@ contains
   end subroutine cgmAccretionAutoHook
   
   subroutine cgmAccretionDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorCGMAccretion} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorCGMAccretion` node operator class.
     !!}
     use :: Events_Hooks, only : satelliteMergerEvent
     implicit none
@@ -148,8 +142,8 @@ contains
   end subroutine cgmAccretionDestructor
 
   subroutine cgmAccretionNodeInitialize(self,node)
-    !!{
-    Initialize the \gls{cgm} content of a node.
+    !!{RST
+    Initialize the :term:`CGM` content of a node.
     !!}
     use :: Accretion_Halos , only : accretionModeTotal       , accretionModeHot
     use :: Galacticus_Nodes, only : nodeComponentHotHalo     , nodeComponentBasic, nodeComponentSpin, nodeEvent, &
@@ -206,8 +200,8 @@ contains
   end subroutine cgmAccretionNodeInitialize
   
   subroutine cgmAccretionNodePromote(self,node)
-    !!{
-    Update the \gls{cgm} content of a node as a result of promotion.
+    !!{RST
+    Update the :term:`CGM` content of a node as a result of promotion.
     !!}
     use :: Abundances_Structure         , only : zeroAbundances
     use :: Chemical_Abundances_Structure, only : zeroChemicalAbundances
@@ -269,8 +263,8 @@ contains
   end subroutine cgmAccretionNodePromote
 
   subroutine cgmAccretionNodesMerge(self,node)
-    !!{
-    Update the \gls{cgm} content of a node as a result of a merger.
+    !!{RST
+    Update the :term:`CGM` content of a node as a result of a merger.
     !!}
     use :: Abundances_Structure         , only : abundances        , zeroAbundances        , operator(*)
     use :: Chemical_Abundances_Structure, only : chemicalAbundances, zeroChemicalAbundances, operator(*)      , operator(>)
@@ -432,8 +426,8 @@ contains
   end subroutine cgmAccretionNodesMerge
   
   subroutine satelliteMerger(self,node)
-    !!{
-    Remove any hot halo associated with \mono{node} before it merges with its host halo.
+    !!{RST
+    Remove any hot halo associated with ``node`` before it merges with its host halo.
     !!}
     use :: Abundances_Structure         , only : zeroAbundances
     use :: Chemical_Abundances_Structure, only : zeroChemicalAbundances
@@ -517,8 +511,8 @@ contains
   end subroutine satelliteMerger
   
   subroutine cgmAccretionDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
-    Perform accretion of gas into the \gls{cgm}.
+    !!{RST
+    Perform accretion of gas into the :term:`CGM`.
     !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances

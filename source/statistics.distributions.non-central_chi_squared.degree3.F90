@@ -17,24 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a degree-3 non-central $\chi^2$ 1D distribution function.
+  !!{RST
+  Implementation of a degree-3 non-central :math:`\chi^2` 1D distribution function.
   !!}
 
   !![
-  <distributionFunction1D name="distributionFunction1DNonCentralChiDegree3">
+  <distributionFunction1D name="distributionFunction1DNonCentralChiDegree3" docformat="rst">
    <description>
-    A non-central $\chi^2$ distribution with 3 degrees of freedom, parameterized by the non-centrality parameter $\lambda \ge 0$.
-    The density is evaluated using the modified Bessel function of the first kind $I_{1/2}$, and the CDF is computed analytically
-    using complementary error functions. When $\lambda = 0$ the distribution reduces to the central $\chi^2_3$ distribution.
-    This distribution arises naturally when computing the distribution of the modulus of a 3D vector whose components are
-    independent Gaussians with non-zero means.
+   A non-central :math:`\chi^2` distribution with 3 degrees of freedom, parameterized by the non-centrality parameter :math:`\lambda \ge 0`. The density is evaluated using the modified Bessel function of the first kind :math:`I_{1/2}`, and the CDF is computed analytically using complementary error functions. When :math:`\lambda = 0` the distribution reduces to the central :math:`\chi^2_3` distribution. This distribution arises naturally when computing the distribution of the modulus of a 3D vector whose components are independent Gaussians with non-zero means.
    </description>
   </distributionFunction1D>
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DNonCentralChiDegree3
-     !!{
-     Implementation of a non-central $\chi^2$ distribution function with 3 degrees of freedom.
+     !!{RST
+     Implementation of a non-central :math:`\chi^2` distribution function with 3 degrees of freedom.
      !!}
      private
      double precision :: lambda
@@ -47,8 +43,8 @@
   end type distributionFunction1DNonCentralChiDegree3
 
   interface distributionFunction1DNonCentralChiDegree3
-     !!{
-     Constructors for the \refClass{distributionFunction1DNonCentralChiDegree3} 1D distribution function class.
+     !!{RST
+     Constructors for the :galacticus-class:`distributionFunction1DNonCentralChiDegree3` 1D distribution function class.
      !!}
      module procedure nonCentralChiSquaredDegree3ConstructorParameters
      module procedure nonCentralChiSquaredDegree3ConstructorInternal
@@ -57,9 +53,8 @@
 contains
 
   function nonCentralChiSquaredDegree3ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DNonCentralChiDegree3} 1D distribution function class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DNonCentralChiDegree3` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,9 +64,11 @@ contains
     double precision                                                            :: lambda
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>lambda</name>
-      <description>The non-centrality parameter $\lambda \ge 0$ of the non-central $\chi^2$ distribution with 3 degrees of freedom, equal to the sum of squares of the non-central normal means; when $\lambda = 0$ the distribution reduces to a central $\chi^2_3$.</description>
+      <description>
+      The non-centrality parameter :math:`\lambda \ge 0` of the non-central :math:`\chi^2` distribution with 3 degrees of freedom, equal to the sum of squares of the non-central normal means; when :math:`\lambda = 0` the distribution reduces to a central :math:`\chi^2_3`.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -85,8 +82,8 @@ contains
   end function nonCentralChiSquaredDegree3ConstructorParameters
 
   function nonCentralChiSquaredDegree3ConstructorInternal(lambda,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DNonCentralChiDegree3} 1D distribution function class.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DNonCentralChiDegree3` 1D distribution function class.
     !!}
     implicit none
     type            (distributionFunction1DNonCentralChiDegree3)                                  :: self
@@ -104,8 +101,8 @@ contains
   end function nonCentralChiSquaredDegree3ConstructorInternal
 
   double precision function nonCentralChiSquaredDegree3Minimum(self)
-    !!{
-    Return the minimum possible value of a degree-3 non central $\chi^2$ distribution.
+    !!{RST
+    Return the minimum possible value of a degree-3 non central :math:`\chi^2` distribution.
     !!}
     implicit none
     class(distributionFunction1DNonCentralChiDegree3), intent(inout) :: self
@@ -115,8 +112,8 @@ contains
   end function nonCentralChiSquaredDegree3Minimum
 
   double precision function nonCentralChiSquaredDegree3Maximum(self)
-    !!{
-    Return the maximum possible value of a degree-3 non central $\chi^2$ distribution.
+    !!{RST
+    Return the maximum possible value of a degree-3 non central :math:`\chi^2` distribution.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -128,8 +125,8 @@ contains
   end function nonCentralChiSquaredDegree3Maximum
 
   double precision function nonCentralChiSquaredDegree3Density(self,x)
-    !!{
-    Return the density of a degree-3 non central $\chi^2$ distribution.
+    !!{RST
+    Return the density of a degree-3 non central :math:`\chi^2` distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Bessel_Functions        , only : Bessel_Function_In
@@ -164,8 +161,8 @@ contains
   end function nonCentralChiSquaredDegree3Density
 
   double precision function nonCentralChiSquaredDegree3Cumulative(self,x)
-    !!{
-    Return the cumulative probability of a degree-3 non central $\chi^2$ distribution.
+    !!{RST
+    Return the cumulative probability of a degree-3 non central :math:`\chi^2` distribution.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

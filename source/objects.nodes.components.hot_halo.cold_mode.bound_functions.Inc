@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains custom functions for the cold mode hot halo component.
 !!}
 
 double precision function Node_Component_Hot_Halo_Cole_Mode_Mass_Baryonic(self) result(massBaryonic)
-  !!{
+  !!{RST
   Return the baryonic mass for the very simple disk component.
   !!}
   implicit none

@@ -17,21 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a star formation histories class which records \emph{in situ} star formation alongside the star formation history computed by some other class.
+!!{RST
+Implements a star formation histories class which records *in situ* star formation alongside the star formation history computed by some other class.
 !!}
 
   !![
-  <starFormationHistory name="starFormationHistoryInSitu">
+  <starFormationHistory name="starFormationHistoryInSitu" docformat="rst">
    <description>
-     A star formation histories class which records \emph{in situ} star formation. Another \mono{starFormationHistory} object is used to provide the base star formation history. This class tracks a second copy which is
-     identical but excludes any star formation from merging galaxies.
+   A star formation histories class which records *in situ* star formation. Another ``starFormationHistory`` object is used to provide the base star formation history. This class tracks a second copy which is identical but excludes any star formation from merging galaxies.
    </description>
   </starFormationHistory>
   !!]
   type, extends(starFormationHistoryClass) :: starFormationHistoryInSitu
-     !!{
-     A star formation histories class which records \emph{in situ} star formation.
+     !!{RST
+     A star formation histories class which records *in situ* star formation.
      !!}
      private
      class(starFormationHistoryClass), pointer :: starFormationHistory_ => null()
@@ -50,8 +49,8 @@ Implements a star formation histories class which records \emph{in situ} star fo
   end type starFormationHistoryInSitu
 
   interface starFormationHistoryInSitu
-     !!{
-     Constructors for the \refClass{starFormationHistoryInSitu} star formation history class.
+     !!{RST
+     Constructors for the :galacticus-class:`starFormationHistoryInSitu` star formation history class.
      !!}
      module procedure inSituConstructorParameters
      module procedure inSituConstructorInternal
@@ -60,8 +59,8 @@ Implements a star formation histories class which records \emph{in situ} star fo
 contains
 
   function inSituConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{starFormationHistoryInSitu} star formation history class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`starFormationHistoryInSitu` star formation history class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -81,8 +80,8 @@ contains
   end function inSituConstructorParameters
 
   function inSituConstructorInternal(starFormationHistory_) result(self)
-    !!{
-    Internal constructor for the \refClass{starFormationHistoryInSitu} star formation history class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`starFormationHistoryInSitu` star formation history class.
     !!}
     implicit none
     type (starFormationHistoryInSitu)                        :: self
@@ -95,7 +94,7 @@ contains
   end function inSituConstructorInternal
 
   subroutine inSituAutoHook(self)
-    !!{
+    !!{RST
     Attach to the satellite merging event hook.
     !!}
     use :: Events_Hooks, only : openMPThreadBindingAllLevels, satelliteMergerEvent
@@ -107,8 +106,8 @@ contains
   end subroutine inSituAutoHook
 
   subroutine inSituDestructor(self)
-    !!{
-    Destructor for the \refClass{starFormationHistoryInSitu} star formation history class.
+    !!{RST
+    Destructor for the :galacticus-class:`starFormationHistoryInSitu` star formation history class.
     !!}
     implicit none
     type(starFormationHistoryInSitu), intent(inout) :: self
@@ -120,7 +119,7 @@ contains
   end subroutine inSituDestructor
 
   subroutine inSituCreate(self,node,historyStarFormation,timeBegin,timeEnd)
-    !!{
+    !!{RST
     Create the history required for storing star formation history.
     !!}
     implicit none
@@ -141,8 +140,8 @@ contains
   end subroutine inSituCreate
 
   subroutine inSituRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
-    !!{
-    Set the rate the star formation history for \mono{node}.
+    !!{RST
+    Set the rate the star formation history for ``node``.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -171,7 +170,7 @@ contains
   end subroutine inSituRate
   
   subroutine inSituUpdate(self,node,indexOutput,historyStarFormation)
-    !!{
+    !!{RST
     Update the star formation history after outputting.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -206,7 +205,7 @@ contains
   end subroutine inSituUpdate
 
   subroutine inSituScales(self,historyStarFormation,node,massStellar,massGas,abundancesStellar)
-    !!{
+    !!{RST
     Set the scalings for error control on the absolute values of star formation histories.
     !!}
     implicit none
@@ -229,7 +228,7 @@ contains
   end subroutine inSituScales
 
   subroutine inSituSatelliteMerger(self,node)
-    !!{
+    !!{RST
     Zero any in-situ star formation history for the galaxy about to merge.
     !!}
     use :: Error           , only : Error_Report
@@ -262,7 +261,7 @@ contains
   end subroutine inSituSatelliteMerger
 
   function inSituMetallicityBoundaries(self)
-    !!{
+    !!{RST
     Return the boundaries of the metallicities used in this tabulation.
     !!}
     implicit none
@@ -274,7 +273,7 @@ contains
   end function inSituMetallicityBoundaries
 
   function inSituAgeDistribution(self) result(ageDistribution)
-    !!{
+    !!{RST
     Return true since the tabulation (in time and metallicity) is static (independent of node) per output.
     !!}
     implicit none
@@ -286,7 +285,7 @@ contains
   end function inSituAgeDistribution
 
   function inSituTimes(self,node,indexOutput,starFormationHistory,allowTruncation,timeStart)
-    !!{
+    !!{RST
     Return the times used in this tabulation.
     !!}
     implicit none
@@ -303,7 +302,7 @@ contains
   end function inSituTimes
 
   logical function inSituRangeIsSufficient(self,starFormationHistory,rangeHistory) result(rangeIsSufficient)
-    !!{
+    !!{RST
     Return true if the range of this history is sufficient.
     !!}
     implicit none
@@ -315,7 +314,7 @@ contains
   end function inSituRangeIsSufficient
 
   subroutine inSituExtend(self,starFormationHistory,times)
-    !!{
+    !!{RST
     Extend this history to span a sufficient range.
     !!}
     implicit none

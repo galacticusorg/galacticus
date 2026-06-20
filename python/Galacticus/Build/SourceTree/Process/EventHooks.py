@@ -108,16 +108,28 @@ def _code_node(content, source='EventHooks', line=1):
 # Call-site dispatch block (`<eventHook name=… />` at a regular call site)
 # ---------------------------------------------------------------------------
 
-_CALL_SITE_TEMPLATE = """if ({$eventName}EventGlobal%count() > 0) then
-  do {$eventName}Iterator=1,{$eventName}EventGlobal%count()
+# NOTE: this dispatch block runs on very hot paths (e.g. Calculations_Reset, called
+# for every node before every recalculation). The (global) event's `count()` read-locks
+# the event, costing an OMP_Set_Lock/OMP_Unset_Lock round-trip on EVERY dispatch even
+# when no hooks are attached (the guard reads zero and short-circuits). That lock guards
+# only the single-integer read — the loops below iterate `hooks_` unlocked — so it
+# provides no consistency or traversal safety that a lockless read does not (see
+# eventHookCountLockless() / the Event Hooks section of the developer guide). We therefore use
+# the lockless `countLockless()` (an `!$omp atomic read`, paired with `!$omp atomic update`
+# on the count_ writes in attach/detach), hoisted into a single local that drives both the
+# guard and the loop bound. This removes the lock from the dispatch path entirely.
+_CALL_SITE_TEMPLATE = """{$eventName}Count={$eventName}EventGlobal%countLockless()
+if ({$eventName}Count > 0) then
+  do {$eventName}Iterator=1,{$eventName}Count
      select type (hook_ => {$eventName}EventGlobal%hooks_({$eventName}Iterator)%hook_)
      type is (hook{$interfaceType})
        call hook_%function_(hook_%object_{$callWith})
      end select
   end do
 end if
-if ({$eventName}Event%count() > 0) then
-  do {$eventName}Iterator=1,{$eventName}Event%count()
+{$eventName}Count={$eventName}Event%countLockless()
+if ({$eventName}Count > 0) then
+  do {$eventName}Iterator=1,{$eventName}Count
      select type (hook_ => {$eventName}Event%hooks_({$eventName}Iterator)%hook_)
      type is (hook{$interfaceType})
        call hook_%function_(hook_%object_{$callWith})
@@ -149,8 +161,8 @@ def _process_event_hook_call_site(node):
         'type':          None,
         'openMP':        False,
         'attributes':    [],
-        'variables':     [directive['name'] + 'Iterator'],
-        'variableNames': [directive['name'] + 'Iterator'],
+        'variables':     [directive['name'] + 'Iterator', directive['name'] + 'Count'],
+        'variableNames': [directive['name'] + 'Iterator', directive['name'] + 'Count'],
     }])
 
     code = _substitute(_CALL_SITE_TEMPLATE, {
@@ -346,6 +358,8 @@ _ATTACH_TEMPLATE = """  subroutine eventHook{$interfaceType}Attach(self,object_,
     ! Insert the hook into the list.
     self%hooks_(self%count_+1)%hook_ => hook_
     ! Increment the count of hooks into this event and resolve dependencies.
+    ! (atomic update to pair with the lockless atomic read in countLockless())
+    !$omp atomic update
     self%count_=self%count_+1
     call self%resolveDependencies(hook_,dependencies)
     ! Report
@@ -399,6 +413,8 @@ _DETACH_TEMPLATE = """  subroutine eventHook{$interfaceType}Detach(self,object_,
                 else
                    deallocate(self%hooks_)
                 end if
+                ! (atomic update to pair with the lockless atomic read in countLockless())
+                !$omp atomic update
                 self%count_=self%count_-1
                 !$ if (self%isGlobal) call self%unlock()
                 return

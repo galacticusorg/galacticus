@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which displays a banner for \glc.
+!!{RST
+Contains a module which displays a banner for Galacticus.
 !!}
 
 module Display_Banner
-  !!{
-  Displays a banner for \glc.
+  !!{RST
+  Displays a banner for Galacticus.
   !!}
   implicit none
   private
@@ -32,8 +32,8 @@ module Display_Banner
 contains
 
   subroutine Display_Banner_Show
-    !!{
-    Displays the \glc\ banner.
+    !!{RST
+    Displays the Galacticus banner.
     !!}
     use, intrinsic :: ISO_Fortran_Env, only : output_unit
     use            :: Display        , only : displayVerbosity, verbosityLevelSilent
@@ -52,7 +52,7 @@ contains
 #ifndef USEMPI
           if (stdOutIsATTY()) then
              ! Display our ASCII art logo. This was created using the `px2ansi` tool (https://github.com/Nellousan/px2ansi) from
-             ! https://github.com/galacticusorg/galacticus/blob/master/doc/New_Logo_Galaxy_192_Transparent.png after reducing to
+             ! https://github.com/galacticusorg/galacticus/blob/master/docs/New_Logo_Galaxy_192_Transparent.png after reducing to
              ! 64 pixels using `convert -scale 64`.
              write (output_unit,*) "[0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m"
              write (output_unit,*) "[0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m [0m"

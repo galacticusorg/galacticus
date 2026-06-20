@@ -17,25 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that causes halo angular momentum be interpolated linearly between child and parent nodes.
   !!}
 
   !![
-  <nodeOperator name="nodeOperatorHaloAngularMomentumInterpolate">
+  <nodeOperator name="nodeOperatorHaloAngularMomentumInterpolate" docformat="rst">
    <description>
-    A node operator class that causes halo angular momentum be interpolated linearly between child and parent nodes. For primary
-    progenitor nodes, if only the scalar angular momentum, $\lambda$, is available then $\dot{J} = (J_{i+1}-J_i)/(t_{i+1}-t_i)$,
-    where $J_i$ is the angular momentum of the node in the initialized tree, $J_{i+1}$ is the angular momentum of its parent node,
-    and $t_i$ and $t_{i+1}$ are the corresponding times. If vector angular momentum is available the same interpolation is applied
-    to each individual component of angular momentum, with the rate of change of the scalar angular momentum computed
-    self-consistently. For non-primary progenitors both scalar and vector angular momentum are assumed to be constant,
-    i.e. $\dot{J}=0$.
+   A node operator class that causes halo angular momentum be interpolated linearly between child and parent nodes. For primary progenitor nodes, if only the scalar angular momentum, :math:`\lambda`, is available then :math:`\dot{J} = (J_{i+1}-J_i)/(t_{i+1}-t_i)`, where :math:`J_i` is the angular momentum of the node in the initialized tree, :math:`J_{i+1}` is the angular momentum of its parent node, and :math:`t_i` and :math:`t_{i+1}` are the corresponding times. If vector angular momentum is available the same interpolation is applied to each individual component of angular momentum, with the rate of change of the scalar angular momentum computed self-consistently. For non-primary progenitors both scalar and vector angular momentum are assumed to be constant, i.e. :math:`\dot{J}=0`.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorHaloAngularMomentumInterpolate
-     !!{
+     !!{RST
      A node operator class that causes halo angular momentum be interpolated linearly between child and parent nodes.
      !!}
      private
@@ -47,8 +41,8 @@
   end type nodeOperatorHaloAngularMomentumInterpolate
   
   interface nodeOperatorHaloAngularMomentumInterpolate
-     !!{
-     Constructors for the \refClass{nodeOperatorHaloAngularMomentumInterpolate} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorHaloAngularMomentumInterpolate` node operator class.
      !!}
      module procedure haloAngMomInterpolateConstructorParameters
   end interface nodeOperatorHaloAngularMomentumInterpolate
@@ -56,8 +50,8 @@
 contains
   
   function haloAngMomInterpolateConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorHaloAngularMomentumInterpolate} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorHaloAngularMomentumInterpolate` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -72,7 +66,7 @@ contains
   end function haloAngMomInterpolateConstructorParameters
 
   subroutine haloAngMomInterpolateNodeInitialize(self,node)
-    !!{
+    !!{RST
     Compute the rate of growth of halo angular momentum assuming a constant growth rate.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin
@@ -132,7 +126,7 @@ contains
   end subroutine haloAngMomInterpolateNodeInitialize
   
   subroutine haloAngMomInterpolateDifferentialEvolutionAnalytics(self,node)
-    !!{
+    !!{RST
     Mark analytically-solvable properties.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpin
@@ -151,7 +145,7 @@ contains
   end subroutine haloAngMomInterpolateDifferentialEvolutionAnalytics
 
   subroutine haloAngMomInterpolateDifferentialEvolutionSolveAnalytics(self,node,time)
-    !!{
+    !!{RST
     Evolve halo angular momentum at a constant rate, to achieve linear interpolation in time.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin
@@ -198,9 +192,8 @@ contains
   end subroutine haloAngMomInterpolateDifferentialEvolutionSolveAnalytics
 
   subroutine haloAngMomInterpolateNodePromote(self,node)
-    !!{
-    Ensure that \mono{node} is ready for promotion to its parent. In this case, we simply update the angular momentum of \mono{node}
-    to be that of its parent.
+    !!{RST
+    Ensure that ``node`` is ready for promotion to its parent. In this case, we simply update the angular momentum of ``node`` to be that of its parent.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpin, treeNode
     implicit none

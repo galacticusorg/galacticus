@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements an output analysis class that computes subhalo mass functions.
   !!}
   
@@ -25,8 +25,10 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <outputAnalysis name="outputAnalysisSubhaloMassFunction">
-   <description>Computes the subhalo mass function (number of subhalos per unit mass ratio relative to the host halo) at a given redshift, reading bin configuration and target data from file, with options for empty-bin handling and negative binomial scatter in likelihood calculations.</description>
+  <outputAnalysis name="outputAnalysisSubhaloMassFunction" docformat="rst">
+   <description>
+   Computes the subhalo mass function (number of subhalos per unit mass ratio relative to the host halo) at a given redshift, reading bin configuration and target data from file, with options for empty-bin handling and negative binomial scatter in likelihood calculations.
+   </description>
    <deepCopy>
     <functionClass variables="volumeFunctionsSubHalos, volumeFunctionsHostHalos"/>
    </deepCopy>
@@ -37,7 +39,7 @@
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisSubhaloMassFunction
-     !!{
+     !!{RST
      An output analysis class for subhalo mass functions.
      !!}
      private
@@ -58,7 +60,7 @@
      logical                                                                       :: finalized                                  , ignoreEmptyModelBins
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Finalize analysis." method="finalizeAnalysis" />
      </methods>
      !!]
@@ -71,8 +73,8 @@
   end type outputAnalysisSubhaloMassFunction
 
   interface outputAnalysisSubhaloMassFunction
-     !!{
-     Constructors for the \refClass{outputAnalysisSubhaloMassFunction} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisSubhaloMassFunction` output analysis class.
      !!}
      module procedure subhaloMassFunctionConstructorParameters
      module procedure subhaloMassFunctionConstructorFile
@@ -82,8 +84,8 @@
 contains
 
   function subhaloMassFunctionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSubhaloMassFunction} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisSubhaloMassFunction` output analysis class which takes a parameter set as input.
     !!}
     use :: Input_Parameters       , only : inputParameter            , inputParameters
     use :: Output_Times           , only : outputTimesClass
@@ -105,53 +107,69 @@ contains
 
     if (parameters%isPresent('fileName')) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>fileName</name>
          <source>parameters</source>
-         <description>The name of the file from which to read the target dataset.</description>
+         <description>
+         The name of the file from which to read the target dataset.
+         </description>
        </inputParameter>
        !!]
     else
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massRatioMinimum</name>
          <source>parameters</source>
          <defaultValue>1.0d-4</defaultValue>
-         <description>The minimum mass ratio to consider.</description>
+         <description>
+         The minimum mass ratio to consider.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>massRatioMaximum</name>
          <source>parameters</source>
          <defaultValue>1.0d0</defaultValue>
-         <description>The maximum mass ratio to consider.</description>
+         <description>
+         The maximum mass ratio to consider.
+         </description>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>countMassRatios</name>
          <source>parameters</source>
          <defaultValue>10_c_size_t</defaultValue>
-         <description>The number of bins in mass ratio to use.</description>
+         <description>
+         The number of bins in mass ratio to use.
+         </description>
        </inputParameter>
        !!]
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshift</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The redshift at which to compute the subhalo mass function.</description>
+      <description>
+      The redshift at which to compute the subhalo mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>ignoreEmptyModelBins</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, model bins containing no subhalos are ignored. Otherwise, if the target data is non-zero, an impossible likelihood is returned.</description>
+      <description>
+      If true, model bins containing no subhalos are ignored. Otherwise, if the target data is non-zero, an impossible likelihood is returned.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>negativeBinomialScatterFractional</name>
       <source>parameters</source>
       <defaultValue>0.18d0</defaultValue>
-      <defaultSource>\citep{boylan-kolchin_theres_2010}</defaultSource>
-      <description>The fractional scatter (relative to the Poisson scatter) in the negative binomial distribution used in likelihood calculations.</description>
+      <defaultSource>
+      :cite:p:`boylan-kolchin_theres_2010`
+      </defaultSource>
+      <description>
+      The fractional scatter (relative to the Poisson scatter) in the negative binomial distribution used in likelihood calculations.
+      </description>
     </inputParameter>
     <objectBuilder class="outputTimes"           name="outputTimes_"                     source="parameters"                                                />
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />
@@ -183,8 +201,8 @@ contains
   end function subhaloMassFunctionConstructorParameters
   
   function subhaloMassFunctionConstructorFile(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,fileName,negativeBinomialScatterFractional,ignoreEmptyModelBins,redshift) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSubhaloMassFunction} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisSubhaloMassFunction` output analysis class for internal use.
     !!}
     use :: HDF5_Access            , only : hdf5Access
     use :: IO_HDF5                , only : hdf5Object
@@ -241,8 +259,8 @@ contains
   end function subhaloMassFunctionConstructorFile
 
   function subhaloMassFunctionConstructorInternal(darkMatterProfileDMO_,outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,time,massRatioMinimum,massRatioMaximum,countMassRatios,negativeBinomialScatterFractional,ignoreEmptyModelBins,massFunctionTarget,massFunctionCovarianceTarget,labelTarget) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisSubhaloMassFunction} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisSubhaloMassFunction` output analysis class for internal use.
     !!}
     use :: Galactic_Filters                        , only : filterList                                  , galacticFilterAll                  , galacticFilterHaloIsolated   , galacticFilterHaloNotIsolated     , &
           &                                                 galacticFilterLowPass
@@ -473,8 +491,8 @@ contains
   end function subhaloMassFunctionConstructorInternal
 
   subroutine subhaloMassFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisSubhaloMassFunction} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisSubhaloMassFunction` output analysis class.
     !!}
     implicit none
     type(outputAnalysisSubhaloMassFunction), intent(inout) :: self
@@ -493,8 +511,8 @@ contains
   end subroutine subhaloMassFunctionDestructor
 
   subroutine subhaloMassFunctionAnalyze(self,node,iOutput)
-    !!{
-    Implement a \mono{subhaloMassFunction} output analysis.
+    !!{RST
+    Implement a ``subhaloMassFunction`` output analysis.
     !!}
     implicit none
     class  (outputAnalysisSubhaloMassFunction), intent(inout) :: self
@@ -508,8 +526,8 @@ contains
   end subroutine subhaloMassFunctionAnalyze
 
   subroutine subhaloMassFunctionReduce(self,reduced)
-    !!{
-    Implement a \mono{subhaloMassFunction} output analysis reduction.
+    !!{RST
+    Implement a ``subhaloMassFunction`` output analysis reduction.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -527,8 +545,8 @@ contains
   end subroutine subhaloMassFunctionReduce
 
   subroutine subhaloMassFunctionFinalizeAnalysis(self)
-    !!{
-    Finalize analysis of a \mono{subhaloMassFunction} output analysis.
+    !!{RST
+    Finalize analysis of a ``subhaloMassFunction`` output analysis.
     !!}
     implicit none
     class           (outputAnalysisSubhaloMassFunction), intent(inout)               :: self
@@ -554,8 +572,8 @@ contains
   end subroutine subhaloMassFunctionFinalizeAnalysis
 
   subroutine subhaloMassFunctionFinalize(self,groupName)
-    !!{
-    Implement a \mono{subhaloMassFunction} output analysis finalization.
+    !!{RST
+    Implement a ``subhaloMassFunction`` output analysis finalization.
     !!}
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
@@ -605,12 +623,8 @@ contains
   end subroutine subhaloMassFunctionFinalize
 
   double precision function subhaloMassFunctionLogLikelihood(self)
-    !!{
-    Return the log-likelihood of a \mono{subhaloMassFunction} output analysis. The likelihood function
-    assumes that the model prediction for the number of subhalos in any given mass bin follows a negative binomial
-    distribution as was found for dark matter subhalos \citep[][see also
-    \protect\citealt{lu_connection_2016}]{boylan-kolchin_theres_2010}. This has been confirmed by examining the results of many
-    tree realizations, although it in principal could be model-dependent.
+    !!{RST
+    Return the log-likelihood of a ``subhaloMassFunction`` output analysis. The likelihood function assumes that the model prediction for the number of subhalos in any given mass bin follows a negative binomial distribution as was found for dark matter subhalos :cite:p:`boylan-kolchin_theres_2010`. This has been confirmed by examining the results of many tree realizations, although it in principal could be model-dependent.
     !!}
     use :: Numerical_Constants_Math         , only : Pi
     use :: Models_Likelihoods_Constants     , only : logImpossible

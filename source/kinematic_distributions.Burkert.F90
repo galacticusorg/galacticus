@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a kinematic distribution class for Burkert mass distributions.
   !!}
 
   !![
-  <kinematicsDistribution name="kinematicsDistributionBurkert">
-   <description>A kinematic distribution class for Burkert mass distributions.</description>
+  <kinematicsDistribution name="kinematicsDistributionBurkert" docformat="rst">
+   <description>
+   A kinematic distribution class for Burkert mass distributions.
+   </description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionBurkert
-     !!{
+     !!{RST
      A kinematics distribution for Burkert distributions.
      !!}
    contains
@@ -36,8 +38,8 @@
   end type kinematicsDistributionBurkert
 
   interface kinematicsDistributionBurkert
-     !!{
-     Constructors for the \refClass{kinematicsDistributionBurkert} kinematic distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`kinematicsDistributionBurkert` kinematic distribution class.
      !!}
      module procedure burkertConstructorParameters
   end interface kinematicsDistributionBurkert
@@ -45,9 +47,8 @@
 contains
 
   function burkertConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionBurkert} kinematic distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`kinematicsDistributionBurkert` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,7 +63,7 @@ contains
   end function burkertConstructorParameters
   
   logical function burkertIsCollisional(self)
-    !!{
+    !!{RST
     Return true indicating that the burkert kinematic distribution represents collisional particles.
     !!}
     implicit none
@@ -73,8 +74,8 @@ contains
   end function burkertIsCollisional
 
   double precision function burkertVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
-    !!{
-    Return the 1D velocity dispersion at the specified \mono{coordinates} in an Burkert kinematic distribution.
+    !!{RST
+    Return the 1D velocity dispersion at the specified ``coordinates`` in an Burkert kinematic distribution.
     !!}
     use :: Dilogarithms                    , only : Dilogarithm
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal

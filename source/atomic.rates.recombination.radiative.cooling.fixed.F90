@@ -17,22 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of atomic recombination cooling rates which are a fixed multiple of the recombination rate.
   !!}
 
   use :: Atomic_Rates_Recombination_Radiative, only : atomicRecombinationRateRadiativeClass
   
   !![
-  <atomicRecombinationRateRadiativeCooling name="atomicRecombinationRateRadiativeCoolingFixed">
+  <atomicRecombinationRateRadiativeCooling name="atomicRecombinationRateRadiativeCoolingFixed" docformat="rst">
     <description>
-    Atomic radiative cooling rates which are a fixed multiple of the recombination rate,  $\beta = \gamma \alpha$
-    where $\alpha$ is the corresponding radiative recombination coefficient and $\gamma$ is a parameter.
+    Atomic radiative cooling rates which are a fixed multiple of the recombination rate,  :math:`\beta = \gamma \alpha` where :math:`\alpha` is the corresponding radiative recombination coefficient and :math:`\gamma` is a parameter.
     </description>
   </atomicRecombinationRateRadiativeCooling>
   !!]
   type, extends(atomicRecombinationRateRadiativeCoolingClass) :: atomicRecombinationRateRadiativeCoolingFixed
-     !!{
+     !!{RST
      A recombination cooling rate class assuming a thermal electron distribution.
      !!}
      private
@@ -44,8 +43,8 @@
   end type atomicRecombinationRateRadiativeCoolingFixed
 
   interface atomicRecombinationRateRadiativeCoolingFixed
-     !!{
-     Constructors for the \refClass{atomicRecombinationRateRadiativeCoolingFixed} atomic radiative recombination class.
+     !!{RST
+     Constructors for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingFixed` atomic radiative recombination class.
      !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
@@ -54,8 +53,8 @@
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{atomicRecombinationRateRadiativeCoolingFixed} atomic radiative recombination class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingFixed` atomic radiative recombination class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -65,9 +64,11 @@ contains
     double precision                                                              :: gamma
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma</name>
-      <description>The multiplicative factor, $\gamma$, used to compute the cooling coefficient.</description>
+      <description>
+      The multiplicative factor, :math:`\gamma`, used to compute the cooling coefficient.
+      </description>
       <source>parameters</source>
       <defaultValue>0.67d0</defaultValue>
     </inputParameter>
@@ -82,8 +83,8 @@ contains
   end function fixedConstructorParameters
   
   function fixedConstructorInternal(gamma,atomicRecombinationRateRadiative_) result(self)
-    !!{
-    Internal constructor for the \refClass{atomicRecombinationRateRadiativeCoolingFixed} atomic radiative recombination class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingFixed` atomic radiative recombination class.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: Table_Labels    , only : extrapolationTypeExtrapolate
@@ -99,8 +100,8 @@ contains
   end function fixedConstructorInternal
 
   subroutine fixedDestructor(self)
-    !!{
-    Destructor for the \refClass{atomicRecombinationRateRadiativeCoolingFixed} atomic radiative recombination class.
+    !!{RST
+    Destructor for the :galacticus-class:`atomicRecombinationRateRadiativeCoolingFixed` atomic radiative recombination class.
     !!}
     implicit none
     type(atomicRecombinationRateRadiativeCoolingFixed), intent(inout) :: self
@@ -112,7 +113,7 @@ contains
   end subroutine fixedDestructor
 
   double precision function fixedRate(self,atomicNumber,ionizationState,temperature,level)
-    !!{
+    !!{RST
     Returns the cooling rate coefficient.
     !!}
     implicit none

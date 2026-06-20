@@ -17,23 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a exponential variogram model.
   !!}
 
   !![
-  <variogram name="variogramExponential">
+  <variogram name="variogramExponential" docformat="rst">
    <description>
    An exponential variogram model in which the variogram is given by:
-   \begin{equation}
-   C(r) = C_0 + C_1 \left[ 1 - \exp\left( - \frac{r}{C_\mathrm{r}} \right) \right],
-   \end{equation}
-   where $r$ is the separation, and $(C_0,C_1,C_\mathrm{r})$ are parameters of the model.
+
+   .. math::
+
+      C(r) = C_0 + C_1 \left[ 1 - \exp\left( - \frac{r}{C_\mathrm{r}} \right) \right],
+
+   where :math:`r` is the separation, and :math:`(C_0,C_1,C_\mathrm{r})` are parameters of the model.
    </description>
   </variogram>
   !!]
   type, extends(variogramClass) :: variogramExponential
-     !!{
+     !!{RST
      Implementation of a exponential variogram model.
      !!}
      private
@@ -54,8 +56,8 @@
   end type variogramExponential
 
   interface variogramExponential
-     !!{
-     Constructors for the \refClass{variogramExponential} variogram class.
+     !!{RST
+     Constructors for the :galacticus-class:`variogramExponential` variogram class.
      !!}
      module procedure exponentialConstructorParameters
      module procedure exponentialConstructorInternal
@@ -64,8 +66,8 @@
 contains
 
   function exponentialConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{variogramExponential} variogram class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`variogramExponential` variogram class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,17 +77,18 @@ contains
     type   (varying_string      )                :: variogramFitOption
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>variogramFitOption</name>
-      <description>Option controlling how the binned semi-variance data are aggregated before fitting the exponential variogram model; allowed values are \mono{mean}, \mono{median} (default), or \mono{maximum} of the residuals within each separation bin.</description>
+      <description>
+      Option controlling how the binned semi-variance data are aggregated before fitting the exponential variogram model; allowed values are ``mean``, ``median`` (default), or ``maximum`` of the residuals within each separation bin.
+      </description>
       <defaultValue>var_str('median')</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>assumeZeroVarianceAtZeroLag</name>
-      <description>      
-       If true, the variogram model is forced to go to zero for states with zero separation (as expected if the likelihood model
-       being emulated is fully deterministic). Otherwise, the variance at zero separation is treated as a free parameter.
+      <description>
+      If true, the variogram model is forced to go to zero for states with zero separation (as expected if the likelihood model being emulated is fully deterministic). Otherwise, the variance at zero separation is treated as a free parameter.
       </description>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
@@ -99,8 +102,8 @@ contains
   end function exponentialConstructorParameters
 
   function exponentialConstructorInternal(variogramFitOption,assumeZeroVarianceAtZeroLag) result(self)
-    !!{
-    Constructor for the \refClass{variogramExponential} variogram class.
+    !!{RST
+    Constructor for the :galacticus-class:`variogramExponential` variogram class.
     !!}
     implicit none
     type   (variogramExponential             )                :: self
@@ -119,7 +122,7 @@ contains
   end function exponentialConstructorInternal
 
   function exponentialCountParameters(self)
-    !!{
+    !!{RST
     Return the number of parameters in the exponential variogram model.
     !!}
     implicit none
@@ -131,12 +134,14 @@ contains
   end function exponentialCountParameters
 
   double precision function exponentialVariogram(self,separation)
-    !!{
-    Compute the variogram at the given \mono{separation}. Here we use the ``exponential model'':
-    \begin{equation}
-      \gamma(h) =C_0 + C_1 [ 1 - \exp\left(-\frac{h}{a}\right)]
-    \end{equation}
-    where $h$ is the separation, and $C_0$, $C_1$, and $R_\mathrm{C}$ are parameters of the model.
+    !!{RST
+    Compute the variogram at the given ``separation``. Here we use the "exponential model":
+
+    .. math::
+
+       \gamma(h) =C_0 + C_1 [ 1 - \exp\left(-\frac{h}{a}\right)]
+
+    where :math:`h` is the separation, and :math:`C_0`, :math:`C_1`, and :math:`R_\mathrm{C}` are parameters of the model.
     !!}
     implicit none
     class           (variogramExponential), intent(inout)           :: self
@@ -157,7 +162,7 @@ contains
   end function exponentialVariogram
 
   double precision function exponentialCorrelation(self,separation)
-    !!{
+    !!{RST
     Compute correlation of the variogram model. This is just the variance at maximum separation minus the variogram.
     !!}
     implicit none
@@ -171,7 +176,7 @@ contains
   end function exponentialCorrelation
 
   function exponentialModelInitialGuess(self,separations,semiVariances) result(C)
-    !!{
+    !!{RST
     Provide an initial guess for parameters of the exponential variogram model.
     !!}
     implicit none
@@ -191,7 +196,7 @@ contains
   end function exponentialModelInitialGuess
 
   subroutine exponentialFit(self,separations,semiVariances)
-    !!{
+    !!{RST
     Compute best fit coefficients for the exponential variogram model.
     !!}
     implicit none
@@ -216,7 +221,7 @@ contains
   end subroutine exponentialFit
   
   double precision function exponentialModelF(self,C,separations,semiVariances)
-    !!{
+    !!{RST
     Function to be minimized when fitting the variogram.
     !!}
     implicit none
@@ -256,7 +261,7 @@ contains
   end function exponentialModelF
 
   function exponentialModeldF(self,C,separations,semiVariances) result(dfdC)
-    !!{
+    !!{RST
     Derivatives of the function to be minimized when fitting the variogram.
     !!}
     implicit none
@@ -317,7 +322,7 @@ contains
   end function exponentialModeldF
 
   subroutine exponentialModelFdF(self,C,separations,semiVariances,f,dfdC)
-    !!{
+    !!{RST
     Computes both function and derivatives to be minimized when fitting the variogram.
     !!}
     implicit none

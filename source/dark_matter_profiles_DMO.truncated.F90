@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   An implementation of truncated dark matter halo profiles.
   !!}
 
@@ -25,14 +25,14 @@
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   
   !![
-  <darkMatterProfileDMO name="darkMatterProfileDMOTruncated">
+  <darkMatterProfileDMO name="darkMatterProfileDMOTruncated" docformat="rst">
     <description>
-      Truncated dark matter halo profiles are built via the \refClass{massDistributionSphericalTruncated} mass distribution class.
+    Truncated dark matter halo profiles are built via the :galacticus-class:`massDistributionSphericalTruncated` mass distribution class.
     </description>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOTruncated
-     !!{
+     !!{RST
      A dark matter halo profile class implementing truncated dark matter halos.
      !!}
      private
@@ -46,8 +46,8 @@
   end type darkMatterProfileDMOTruncated
 
   interface darkMatterProfileDMOTruncated
-     !!{
-     Constructors for the \refClass{darkMatterProfileDMOTruncated} dark matter halo profile class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterProfileDMOTruncated` dark matter halo profile class.
      !!}
      module procedure truncatedConstructorParameters
      module procedure truncatedConstructorInternal
@@ -56,8 +56,8 @@
 contains
 
   function truncatedConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterProfileDMOTruncated} dark matter halo profile class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterProfileDMOTruncated` dark matter halo profile class which takes a parameter set as input.
     !!}
     use :: Input_Parameters  , only : inputParameters
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversEncode
@@ -70,23 +70,29 @@ contains
     double precision                                               :: radiusFractionalTruncateMinimum, radiusFractionalTruncateMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
-      <description>Selects how solutions are computed when no analytic solution is available. If set to ``\mono{fallThrough}'' then the solution ignoring heating is used, while if set to ``\mono{numerical}'' then numerical solvers are used to find solutions.</description>
+      <description>
+      Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring heating is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusFractionalTruncateMinimum</name>
       <defaultValue>2.0d0</defaultValue>
       <source>parameters</source>
-      <description>The minimum radius (in units of the virial radius) to begin truncating the density profile.</description>
+      <description>
+      The minimum radius (in units of the virial radius) to begin truncating the density profile.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusFractionalTruncateMaximum</name>
       <defaultValue>4.0d0</defaultValue>
       <source>parameters</source>
-      <description>The maximum radius (in units of the virial radius) to finish truncating the density profile.</description>
+      <description>
+      The maximum radius (in units of the virial radius) to finish truncating the density profile.
+      </description>
     </inputParameter>
     <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"   source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
@@ -101,8 +107,8 @@ contains
   end function truncatedConstructorParameters
 
   function truncatedConstructorInternal(radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
-    !!{
-    Internal constructor for the \refClass{darkMatterProfileDMOTruncated} dark matter halo profile class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOTruncated` dark matter halo profile class.
     !!}
     use :: Error             , only : Error_Report
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
@@ -122,8 +128,8 @@ contains
   end function truncatedConstructorInternal
 
   subroutine truncatedDestructor(self)
-    !!{
-    Destructor for the \refClass{darkMatterProfileDMOTruncated} dark matter halo profile class.
+    !!{RST
+    Destructor for the :galacticus-class:`darkMatterProfileDMOTruncated` dark matter halo profile class.
     !!}
     implicit none
     type(darkMatterProfileDMOTruncated), intent(inout) :: self
@@ -136,8 +142,8 @@ contains
   end subroutine truncatedDestructor
 
   function truncatedGet(self,node,weightBy,weightIndex) result(massDistribution_)
-    !!{
-    Return the dark matter mass distribution for the given \mono{node}.
+    !!{RST
+    Return the dark matter mass distribution for the given ``node``.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo             , massTypeDark                   , weightByMass
     use :: Mass_Distributions        , only : massDistributionSphericalTruncated, kinematicsDistributionTruncated, massDistributionSpherical

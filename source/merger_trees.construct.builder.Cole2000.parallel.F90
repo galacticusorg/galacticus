@@ -17,22 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  An implementation of a merger tree builder using the algorithm of \cite{cole_hierarchical_2000} utilizing a recursive
-  construction approach.  
+  !!{RST
+  An implementation of a merger tree builder using the algorithm of :cite:t:`cole_hierarchical_2000` utilizing a recursive construction approach.
   !!}
   
   !![
-  <mergerTreeBuilder name="mergerTreeBuilderCole2000Parallel">
+  <mergerTreeBuilder name="mergerTreeBuilderCole2000Parallel" docformat="rst">
    <description>
-     A merger tree builder class derived fro the \refClass{mergerTreeBuilderCole2000} merger tree builder class which implements a recursive tree
-     construction algorithm utilizing OpenMP task parallelism.
+   A merger tree builder class derived fro the :galacticus-class:`mergerTreeBuilderCole2000` merger tree builder class which implements a recursive tree construction algorithm utilizing OpenMP task parallelism.
    </description>
   </mergerTreeBuilder>
   !!]
   type, extends(mergerTreeBuilderCole2000) :: mergerTreeBuilderCole2000Parallel
-     !!{
-     A merger tree builder class using the algorithm of \cite{cole_hierarchical_2000}.
+     !!{RST
+     A merger tree builder class using the algorithm of :cite:t:`cole_hierarchical_2000`.
      !!}
      private
    contains
@@ -41,8 +39,8 @@
   end type mergerTreeBuilderCole2000Parallel
 
   interface mergerTreeBuilderCole2000Parallel
-     !!{
-     Constructors for the \refClass{mergerTreeBuilderCole2000Parallel} merger tree builder class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeBuilderCole2000Parallel` merger tree builder class.
      !!}
      module procedure cole2000ParallelConstructorParameters
      module procedure cole2000ParallelConstructorInternal
@@ -50,12 +48,9 @@
 
   ! Sub-module scope variables used in tree building.
   !![
-  <workaround type="gfortran" PR="110547" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=110547">
+  <workaround type="gfortran" PR="110547" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=110547" docformat="rst">
     <description>
-      We use a pointer to self here rather than have self be passed to various methods (which are defined as "nopass" in the
-      parent class) because otherwise gfortran calls the destructor of self on exit from these functions when using OpenMP
-      task-based parallelism. This may be a compiler bug. Note that we use a separate pointer here that is not threadprivate as
-      threadprivate variables can not be passed as arguments in untied OpenMP tasks.
+    We use a pointer to self here rather than have self be passed to various methods (which are defined as "nopass" in the parent class) because otherwise gfortran calls the destructor of self on exit from these functions when using OpenMP task-based parallelism. This may be a compiler bug. Note that we use a separate pointer here that is not threadprivate as threadprivate variables can not be passed as arguments in untied OpenMP tasks.
     </description>
   </workaround>
   !!]  
@@ -64,8 +59,8 @@
 contains
 
   function cole2000ParallelConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \cite{cole_hierarchical_2000} merger tree building class which reads parameters from a provided parameter list.
+    !!{RST
+    Constructor for the :cite:t:`cole_hierarchical_2000` merger tree building class which reads parameters from a provided parameter list.
     !!}
     implicit none
     type            (mergerTreeBuilderCole2000Parallel  )                :: self
@@ -82,53 +77,69 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mergeProbability</name>
       <source>parameters</source>
       <defaultValue>0.1d0</defaultValue>
-      <description>The largest probability of branching allowed in a timestep in merger trees built by the \cite{cole_hierarchical_2000} method.</description>
+      <description>
+      The largest probability of branching allowed in a timestep in merger trees built by the :cite:t:`cole_hierarchical_2000` method.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>accretionLimit</name>
       <source>parameters</source>
       <defaultValue>0.1d0</defaultValue>
-      <description>The largest fractional mass change due to subresolution accretion allowed in a timestep in merger trees built by the \cite{cole_hierarchical_2000} method.</description>
+      <description>
+      The largest fractional mass change due to subresolution accretion allowed in a timestep in merger trees built by the :cite:t:`cole_hierarchical_2000` method.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMaximum</name>
       <source>parameters</source>
       <defaultValue>1.0d5</defaultValue>
-      <description>The highest redshift to which merger trees will be built in the \cite{cole_hierarchical_2000} method.</description>
+      <description>
+      The highest redshift to which merger trees will be built in the :cite:t:`cole_hierarchical_2000` method.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceTimeEarliest</name>
       <source>parameters</source>
       <defaultValue>2.0d-6</defaultValue>
-      <description>The fractional tolerance used to judge if a branch is at the earliest allowed time in the tree.</description>
+      <description>
+      The fractional tolerance used to judge if a branch is at the earliest allowed time in the tree.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>branchIntervalStep</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If \mono{false} use the original \cite{cole_hierarchical_2000} method to determine whether branching occurs in a timestep. If \mono{true} draw branching intervals from a negative exponential distribution.</description>
+      <description>
+      If ``false`` use the original :cite:t:`cole_hierarchical_2000` method to determine whether branching occurs in a timestep. If ``true`` draw branching intervals from a negative exponential distribution.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceResolutionSelf</name>
       <source>parameters</source>
       <defaultValue>1.0d-6</defaultValue>
-      <description>The fractional tolerance in node mass at the resolution limit below which branch mis-orderings will be ignored.</description>
+      <description>
+      The fractional tolerance in node mass at the resolution limit below which branch mis-orderings will be ignored.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceResolutionParent</name>
       <source>parameters</source>
       <defaultValue>1.0d-3</defaultValue>
-      <description>The fractional tolerance in parent node mass at the resolution limit below which branch mis-orderings will be ignored.</description>
+      <description>
+      The fractional tolerance in parent node mass at the resolution limit below which branch mis-orderings will be ignored.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>ignoreNoProgress</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, failure to make progress on a branch will be ignored (and the branch terminated).</description>
+      <description>
+      If true, failure to make progress on a branch will be ignored (and the branch terminated).
+      </description>
     </inputParameter>
     <objectBuilder class="mergerTreeMassResolution"       name="mergerTreeMassResolution_"  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"        source="parameters"/>
@@ -163,8 +174,8 @@ contains
   end function cole2000ParallelConstructorParameters
 
   function cole2000ParallelConstructorInternal(mergeProbability,accretionLimit,timeEarliest,toleranceTimeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,ignoreNoProgress,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBuildController_) result(self)
-    !!{
-    Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
+    !!{RST
+    Internal constructor for the :cite:t:`cole_hierarchical_2000` merger tree building class.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -198,7 +209,7 @@ contains
   end function cole2000ParallelConstructorInternal
 
   subroutine cole2000ParallelBuild(self,tree)
-    !!{
+    !!{RST
     Build a merger tree.
     !!}
     !$ use OMP_Lib                 , only : OMP_Get_Max_Threads          , OMP_Get_Thread_Num
@@ -341,7 +352,7 @@ contains
   contains
 
     recursive subroutine convertTimeBranch(nodeTip)
-      !!{
+      !!{RST
       Convert from critical overdensity to time along a branch.
       !!}
       implicit none
@@ -368,7 +379,7 @@ contains
   end subroutine cole2000ParallelBuild
 
   recursive subroutine cole2000ParallelOnBranch(tree,massResolution,node)
-    !!{
+    !!{RST
     Act on branching.
     !!}
     implicit none

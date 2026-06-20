@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Provides a module storing object references needed for galaxy merger trees.
   !!}
   
   module Node_Property_Extractor_Galaxy_Merger_Trees
-    !!{
+    !!{RST
     A module storing object references needed for galaxy merger trees.
     !!}
     private

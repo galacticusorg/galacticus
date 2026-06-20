@@ -17,27 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements the atomic photo-ionization cross-section class.
 !!}
 
 module Atomic_Cross_Sections_Ionization_Photo
-  !!{
+  !!{RST
   Implements the atomic photo-ionization cross-section class.
   !!}
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>atomicCrossSectionIonizationPhoto</name>
    <descriptiveName>Atomic Cross-sections for Photo-ionization</descriptiveName>
-   <description>Class providing photo-ionization cross sections (in cm$^2$) for atoms of a given atomic number in a
-    specified ionization state and electron shell, as a function of photon wavelength (in \AA). These cross sections
-    are used in radiative transfer and \gls{igm} ionization calculations to compute the rate at which photons are
-    absorbed by neutral or partially-ionized gas.</description>
+   <description>
+   Class providing photo-ionization cross sections (in cm\ :math:`^2`) for atoms of a given atomic number in a specified ionization state and electron shell, as a function of photon wavelength (in \AA). These cross sections are used in radiative transfer and :term:`IGM` ionization calculations to compute the rate at which photons are absorbed by neutral or partially-ionized gas.
+   </description>
    <default>verner</default>
    <method name="crossSection" >
-    <description>Returns the cross-section for photoionization (in units of cm$^2$) for a given atom in a given ionization state at the specified \mono{wavelength} (given in units of \AA).</description>
+    <description>
+    Returns the cross-section for photoionization (in units of cm\ :math:`^2`) for a given atom in a given ionization state at the specified ``wavelength`` (given in units of \AA).
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>integer         , intent(in   ) :: atomicNumber, ionizationState, shellNumber</argument>

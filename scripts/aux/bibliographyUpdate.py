@@ -225,7 +225,7 @@ def main():
                     help='Write a Markdown change-log to this file.')
     args = ap.parse_args()
 
-    bib_file = os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'doc', 'Galacticus.bib')
+    bib_file = os.path.join(os.environ['GALACTICUS_EXEC_PATH'], 'docs', 'Galacticus.bib')
     bib_new = bib_file + '.new'
 
     with open(bib_file, 'r') as f:

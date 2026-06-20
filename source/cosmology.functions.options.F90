@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides options for cosmological functions.
 !!}
 
 module Cosmology_Functions_Options
-  !!{
+  !!{RST
   Provides options for cosmological functions.
   !!}
   public

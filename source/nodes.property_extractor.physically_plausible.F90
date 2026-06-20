@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node property extractor which reports if a node is considered to be physically plausible.
   !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorIsPhysicallyPlausible">
-   <description>Extracts an integer flag indicating whether a node's physical state is considered plausible (e.g., non-negative masses, physical sizes), useful for quality control filtering of output catalogs.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorIsPhysicallyPlausible" docformat="rst">
+   <description>
+   Extracts an integer flag indicating whether a node's physical state is considered plausible (e.g., non-negative masses, physical sizes), useful for quality control filtering of output catalogs.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIsPhysicallyPlausible
-     !!{
+     !!{RST
      A node property extractor class which reports if a node is considered to be physically plausible.
-      !!}
+     !!}
      private
    contains
      procedure :: extract     => isPhysicallyPlausibleExtract
@@ -38,8 +40,8 @@
   end type nodePropertyExtractorIsPhysicallyPlausible
 
   interface nodePropertyExtractorIsPhysicallyPlausible
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorIsPhysicallyPlausible} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorIsPhysicallyPlausible` property extractor class.
      !!}
      module procedure isPhysicallyPlausibleConstructorParameters
   end interface nodePropertyExtractorIsPhysicallyPlausible
@@ -47,8 +49,8 @@
 contains
 
   function isPhysicallyPlausibleConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorIsPhysicallyPlausible} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorIsPhysicallyPlausible` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,8 +65,8 @@ contains
   end function isPhysicallyPlausibleConstructorParameters
 
   function isPhysicallyPlausibleExtract(self,node,time,instance)
-    !!{
-    Implement a \mono{isPhysicallyPlausible} node property extractor.
+    !!{RST
+    Implement a ``isPhysicallyPlausible`` node property extractor.
     !!}
     implicit none
     integer         (kind_int8                                 )                          :: isPhysicallyPlausibleExtract
@@ -83,7 +85,7 @@ contains
   end function isPhysicallyPlausibleExtract
 
   function isPhysicallyPlausibleName(self)
-    !!{
+    !!{RST
     Return the name of the isPhysicallyPlausible property.
     !!}
     implicit none
@@ -96,7 +98,7 @@ contains
   end function isPhysicallyPlausibleName
 
   function isPhysicallyPlausibleDescription(self)
-    !!{
+    !!{RST
     Return a description of the isPhysicallyPlausible property.
     !!}
     implicit none

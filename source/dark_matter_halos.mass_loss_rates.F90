@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements calculations of mass loss rates from dark matter halos.
 !!}
 
 module Dark_Matter_Halos_Mass_Loss_Rates
-  !!{
+  !!{RST
   Implements calculations of mass loss rates from dark matter halos.
   !!}
   use :: Galacticus_Nodes, only : treeNode
@@ -30,18 +30,17 @@ module Dark_Matter_Halos_Mass_Loss_Rates
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>darkMatterHaloMassLossRate</name>
    <descriptiveName>Dark Matter Halo Mass Loss Rates</descriptiveName>
    <description>
-    Class providing models of the rate of mass loss from dark matter (sub)halos due to tidal stripping and other
-    processes. Returns the rate of change of halo mass (in $\mathrm{M}_\odot$ Gyr$^{-1}$) for a given node. This class is
-    used in combination with tidal stripping models to track the evolution of subhalo masses as they orbit within a
-    host halo.
+   Class providing models of the rate of mass loss from dark matter (sub)halos due to tidal stripping and other processes. Returns the rate of change of halo mass (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) for a given node. This class is used in combination with tidal stripping models to track the evolution of subhalo masses as they orbit within a host halo.
    </description>
    <default>zero</default>
    <method name="rate" >
-    <description>Returns the rate of mass loss (in $\mathrm{M}_\odot$/Gyr) from \mono{node}.</description>
+    <description>
+    Returns the rate of mass loss (in :math:`\mathrm{M}_\odot`/Gyr) from ``node``.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

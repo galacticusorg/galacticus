@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a kinematic distribution class for decorated mass distributions, that uses the undecorated mass distribution.
   !!}
 
   !![
-  <kinematicsDistribution name="kinematicsDistributionUndecorator">
-   <description>A kinematic distribution class for decorated mass distributions, that uses the undecorated mass distribution.</description>
+  <kinematicsDistribution name="kinematicsDistributionUndecorator" docformat="rst">
+   <description>
+   A kinematic distribution class for decorated mass distributions, that uses the undecorated mass distribution.
+   </description>
   </kinematicsDistribution>
   !!]
   type, public, extends(kinematicsDistributionClass) :: kinematicsDistributionUndecorator
-     !!{
+     !!{RST
      A kinematics distribution for decorated mass distributions, that uses the undecorated mass distribution.
      !!}
      class(kinematicsDistributionClass), pointer :: kinematicsDistribution_ => null()
@@ -38,8 +40,8 @@
   end type kinematicsDistributionUndecorator
 
   interface kinematicsDistributionUndecorator
-     !!{
-     Constructors for the \refClass{kinematicsDistributionUndecorator} kinematic distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`kinematicsDistributionUndecorator` kinematic distribution class.
      !!}
      module procedure undecoratorConstructorParameters
      module procedure undecoratorConstructorInternal
@@ -48,9 +50,8 @@
 contains
 
   function undecoratorConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{kinematicsDistributionUndecorator} kinematic distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`kinematicsDistributionUndecorator` kinematic distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -69,8 +70,8 @@ contains
   end function undecoratorConstructorParameters
 
   function undecoratorConstructorInternal(kinematicsDistribution_) result(self)
-    !!{
-    Internal constructor for the \refClass{kinematicsDistributionUndecorator} kinematic distribution class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`kinematicsDistributionUndecorator` kinematic distribution class.
     !!}
     implicit none
     type (kinematicsDistributionUndecorator)                        :: self
@@ -83,8 +84,8 @@ contains
   end function undecoratorConstructorInternal
   
   subroutine undecoratorDestructor(self)
-    !!{
-    Destructor for the \refClass{kinematicsDistributionUndecorator} kinematic distribution class.
+    !!{RST
+    Destructor for the :galacticus-class:`kinematicsDistributionUndecorator` kinematic distribution class.
     !!}
     implicit none
     type(kinematicsDistributionUndecorator), intent(inout) :: self
@@ -96,7 +97,7 @@ contains
   end subroutine undecoratorDestructor
 
   logical function undecoratorIsCollisional(self)
-    !!{
+    !!{RST
     Return whether undecorator kinematic distribution represents collisional particles.
     !!}
     implicit none
@@ -107,8 +108,8 @@ contains
   end function undecoratorIsCollisional
 
   double precision function undecoratorVelocityDispersion1D(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersion)
-    !!{
-    Return the 1D velocity dispersion at the specified \mono{coordinates} in an undecorator kinematic distribution.
+    !!{RST
+    Return the 1D velocity dispersion at the specified ``coordinates`` in an undecorator kinematic distribution.
     !!}
     implicit none
     class(kinematicsDistributionUndecorator), intent(inout)          :: self

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node property extractor class that combines physical and index properties of galaxy mergers.
   !!}
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergers">
-   <description>Extracts combined physical and index properties for galaxy merger events by composing the \refClass{nodePropertyExtractorGalaxyMergersPhysical} and \refClass{nodePropertyExtractorGalaxyMergersIndices} extractors, packaging scalar and integer merger information (e.g., mass ratios, progenitor IDs, merger times) into a single output for post-processing analysis.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorGalaxyMergers" docformat="rst">
+   <description>
+   Extracts combined physical and index properties for galaxy merger events by composing the :galacticus-class:`nodePropertyExtractorGalaxyMergersPhysical` and :galacticus-class:`nodePropertyExtractorGalaxyMergersIndices` extractors, packaging scalar and integer merger information (e.g., mass ratios, progenitor IDs, merger times) into a single output for post-processing analysis.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorMulti) :: nodePropertyExtractorGalaxyMergers
-     !!{
+     !!{RST
      An output extractor property extractor class that combines physical and index properties of galaxy mergers.
      !!}
      private
@@ -35,8 +37,8 @@
   end type nodePropertyExtractorGalaxyMergers
 
   interface nodePropertyExtractorGalaxyMergers
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorGalaxyMergers} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorGalaxyMergers` property extractor class.
      !!}
      module procedure galaxyMergersConstructorParameters
      module procedure galaxyMergersConstructorInternal
@@ -45,8 +47,8 @@
 contains
 
   function galaxyMergersConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorGalaxyMergers} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorGalaxyMergers` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,8 +63,8 @@ contains
   end function galaxyMergersConstructorParameters
 
   function galaxyMergersConstructorInternal() result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorGalaxyMergers} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorGalaxyMergers` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorGalaxyMergers) :: self

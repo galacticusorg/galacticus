@@ -17,23 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a posterior sampling state initializor class which initializes states using random draws from a Gaussian
-  sphere centered on the mode of the prior distribution.  
+  !!{RST
+  Implementation of a posterior sampling state initializor class which initializes states using random draws from a Gaussian sphere centered on the mode of the prior distribution.
   !!}
 
   !![
-  <posteriorSampleStateInitialize name="posteriorSampleStateInitializeGaussianSphere">
+  <posteriorSampleStateInitialize name="posteriorSampleStateInitializeGaussianSphere" docformat="rst">
     <description>
-      A posterior sampling state initialization class which initializes states using random draws from a Gaussian sphere centered on
-      the mode of the prior distribution.
-   </description>
+    A posterior sampling state initialization class which initializes states using random draws from a Gaussian sphere centered on the mode of the prior distribution.
+    </description>
   </posteriorSampleStateInitialize>
   !!]
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeGaussianSphere
-     !!{
-     Implementation of a posterior sampling state initialization class which initializes states using random draws from a Gaussian
-     sphere centered on the mode of the prior distribution.
+     !!{RST
+     Implementation of a posterior sampling state initialization class which initializes states using random draws from a Gaussian sphere centered on the mode of the prior distribution.
      !!}
      private
      class           (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
@@ -47,8 +44,8 @@
   end type posteriorSampleStateInitializeGaussianSphere
 
   interface posteriorSampleStateInitializeGaussianSphere
-     !!{
-     Constructors for the \refClass{posteriorSampleStateInitializeGaussianSphere} posterior sampling state initialization class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSampleStateInitializeGaussianSphere` posterior sampling state initialization class.
      !!}
      module procedure gaussianSphereConstructorParameters
      module procedure gaussianSphereConstructorInternal
@@ -57,8 +54,8 @@
 contains
 
   function gaussianSphereConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleStateInitializeGaussianSphere} posterior sampling state initialization class.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleStateInitializeGaussianSphere` posterior sampling state initialization class.
     !!}
     use :: Input_Parameters, only : inputParameters
     use :: String_Handling , only : String_Count_Words
@@ -73,19 +70,25 @@ contains
     character(len=:), allocatable :: position_
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusSphere</name>
-      <description>The radius of the Gaussian sphere from which each chain's initial parameter vector is drawn; if \mono{radiusIsRelative} is true this is expressed as a fraction of the prior extent, otherwise it is an absolute radius in parameter space.</description>
+      <description>
+      The radius of the Gaussian sphere from which each chain's initial parameter vector is drawn; if ``radiusIsRelative`` is true this is expressed as a fraction of the prior extent, otherwise it is an absolute radius in parameter space.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusIsRelative</name>
-      <description>If true, the radius of the sphere is assumed to be relative to the extent of the prior, otherwise it is assumed to be an absolute radius.</description>
+      <description>
+      If true, the radius of the sphere is assumed to be relative to the extent of the prior, otherwise it is assumed to be an absolute radius.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>position</name>
-      <description>The initial position for the sphere. If this is set to \mono{priorMedian}, then the sphere is placed at the median of the prior in each dimension. Otherwise, this must be a list of starting parameter values.</description>
+      <description>
+      The initial position for the sphere. If this is set to ``priorMedian``, then the sphere is placed at the median of the prior in each dimension. Otherwise, this must be a list of starting parameter values.
+      </description>
       <source>parameters</source>
       <defaultValue>var_str('priorMedian')</defaultValue>
     </inputParameter>
@@ -113,8 +116,8 @@ contains
   end function gaussianSphereConstructorParameters
 
   function gaussianSphereConstructorInternal(radiusSphere,radiusIsRelative,randomNumberGenerator_,usePriorMedian,stateInitial) result(self)
-    !!{
-    Internal constructor for the \refClass{posteriorSampleStateInitializeGaussianSphere} posterior sampling state initialization class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`posteriorSampleStateInitializeGaussianSphere` posterior sampling state initialization class.
     !!}
     implicit none
     type            (posteriorSampleStateInitializeGaussianSphere)                                        :: self
@@ -131,8 +134,8 @@ contains
   end function gaussianSphereConstructorInternal
 
   subroutine gaussianSphereDestructor(self)
-    !!{
-    Destructor for the \refClass{posteriorSampleStateInitializeGaussianSphere} posterior sampling state initialization class.
+    !!{RST
+    Destructor for the :galacticus-class:`posteriorSampleStateInitializeGaussianSphere` posterior sampling state initialization class.
     !!}
     implicit none
     type(posteriorSampleStateInitializeGaussianSphere), intent(inout) :: self
@@ -144,7 +147,7 @@ contains
   end subroutine gaussianSphereDestructor
 
   subroutine gaussianSphereInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
-    !!{
+    !!{RST
     Initialize simulation state by drawing at random from the parameter priors.
     !!}
     use :: Models_Likelihoods_Constants, only : logImpossible

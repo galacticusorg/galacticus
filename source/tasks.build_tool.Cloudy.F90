@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <task name="taskBuildToolCloudy">
-   <description>A task which downloads, compiles, and installs the Cloudy photoionization and spectral synthesis code, making it available for computing cooling functions, chemical state tables, and emission line strengths of astrophysical plasmas.</description>
+  <task name="taskBuildToolCloudy" docformat="rst">
+   <description>
+   A task which downloads, compiles, and installs the Cloudy photoionization and spectral synthesis code, making it available for computing cooling functions, chemical state tables, and emission line strengths of astrophysical plasmas.
+   </description>
   </task>
   !!]
   type, extends(taskClass) :: taskBuildToolCloudy
-     !!{
+     !!{RST
      Implementation of a task which builds the Cloudy tool.
      !!}
      private
@@ -33,8 +35,8 @@
   end type taskBuildToolCloudy
 
   interface taskBuildToolCloudy
-     !!{
-     Constructors for the \refClass{taskBuildToolCloudy} task.
+     !!{RST
+     Constructors for the :galacticus-class:`taskBuildToolCloudy` task.
      !!}
      module procedure buildToolCloudyParameters
   end interface taskBuildToolCloudy
@@ -42,8 +44,8 @@
 contains
 
   function buildToolCloudyParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{taskBuildToolCloudy} task class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`taskBuildToolCloudy` task class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -56,7 +58,7 @@ contains
   end function buildToolCloudyParameters
 
   subroutine buildToolCloudyPerform(self,status)
-    !!{
+    !!{RST
     Builds the tabulation.
     !!}
     use :: Display          , only : displayIndent              , displayMessage, displayUnindent
@@ -86,7 +88,7 @@ contains
   end subroutine buildToolCloudyPerform
 
   logical function buildToolCloudyRequiresOutputFile(self)
-    !!{
+    !!{RST
     Specifies that this task does not requires the main output file.
     !!}
     implicit none

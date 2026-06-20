@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which computes pair counts in bins of separation.
 !!}
 
@@ -25,12 +25,14 @@ Implements an N-body data operator which computes pair counts in bins of separat
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
-  <nbodyOperator name="nbodyOperatorPairCounts">
-   <description>An N-body data operator which counts particle pairs in logarithmic bins of physical separation, enabling correlation function measurements. Parameters control the separation range and bin count, particle sampling rate, bootstrap resample count, and whether to compute cross-simulation or within-simulation pair counts.</description>
+  <nbodyOperator name="nbodyOperatorPairCounts" docformat="rst">
+   <description>
+   An N-body data operator which counts particle pairs in logarithmic bins of physical separation, enabling correlation function measurements. Parameters control the separation range and bin count, particle sampling rate, bootstrap resample count, and whether to compute cross-simulation or within-simulation pair counts.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorPairCounts
-     !!{
+     !!{RST
      An N-body data operator which computes pair counts in bins of separation.
      !!}
      private
@@ -45,8 +47,8 @@ Implements an N-body data operator which computes pair counts in bins of separat
   end type nbodyOperatorPairCounts
 
   interface nbodyOperatorPairCounts
-     !!{
-     Constructors for the \refClass{nbodyOperatorPairCounts} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorPairCounts` N-body operator class.
      !!}
      module procedure pairCountsConstructorParameters
      module procedure pairCountsConstructorInternal
@@ -55,8 +57,8 @@ Implements an N-body data operator which computes pair counts in bins of separat
 contains
 
   function pairCountsConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorPairCounts} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorPairCounts` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,43 +71,57 @@ contains
     logical                                                     :: includeUnbootstrapped , crossCount
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>crossCount</name>
       <source>parameters</source>
       <defaultValue>.false.</defaultValue>
-      <description>If true, compute cross-simulation pair counts between the first and all simulations. Otherwise, compute pair counts within each simulation.</description>
+      <description>
+      If true, compute cross-simulation pair counts between the first and all simulations. Otherwise, compute pair counts within each simulation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bootstrapSampleCount</name>
       <source>parameters</source>
       <defaultValue>30_c_size_t</defaultValue>
-      <description>The number of bootstrap resamples of the particles that should be used.</description>
+      <description>
+      The number of bootstrap resamples of the particles that should be used.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bootstrapSampleRate</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The sampling rate for particles.</description>
+      <description>
+      The sampling rate for particles.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>separationMinimum</name>
       <source>parameters</source>
-      <description>The minimum pairwise separation (in the same units as particle positions) of pairs to include when counting and binning particle pairs.</description>
+      <description>
+      The minimum pairwise separation (in the same units as particle positions) of pairs to include when counting and binning particle pairs.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>separationMaximum</name>
       <source>parameters</source>
-      <description>The maximum pairwise separation (in the same units as particle positions) of pairs to include when counting and binning particle pairs.</description>
+      <description>
+      The maximum pairwise separation (in the same units as particle positions) of pairs to include when counting and binning particle pairs.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>separationCount</name>
       <source>parameters</source>
-      <description>The number of bins in separation for pair counts.</description>
+      <description>
+      The number of bins in separation for pair counts.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>includeUnbootstrapped</name>
       <source>parameters</source>
-      <description>If true, include results for the unbootstrapped (i.e. original) sample.</description>
+      <description>
+      If true, include results for the unbootstrapped (i.e. original) sample.
+      </description>
       <defaultValue>.true.</defaultValue>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -119,8 +135,8 @@ contains
   end function pairCountsConstructorParameters
 
   function pairCountsConstructorInternal(separationMinimum,separationMaximum,separationCount,crossCount,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorPairCounts} N-body operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyOperatorPairCounts` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorPairCounts)                           :: self
@@ -137,8 +153,8 @@ contains
   end function pairCountsConstructorInternal
 
   subroutine pairCountsDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorPairCounts} N-body operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nbodyOperatorPairCounts` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorPairCounts), intent(inout) :: self
@@ -150,7 +166,7 @@ contains
   end subroutine pairCountsDestructor
   
   subroutine pairCountsOperate(self,simulations)
-    !!{
+    !!{RST
     Compute pair counts of the particles in bins of separation.
     !!}
     use    :: Arrays_Search     , only : searchArray

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a merger tree evolution timestepping class which limits the step the next epoch at which to store global history.
 !!}
 
@@ -27,39 +27,54 @@ Implements a merger tree evolution timestepping class which limits the step the 
   use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
 
   !![
-  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepHistory">
+  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepHistory" docformat="rst">
    <description>
-    A merger tree evolution timestepping class which records and outputs volume averaged properties of the model universe as a
-    function of time. Timesteps are enforced such that:
-    \begin{equation}
-     \Delta t \le t_{\mathrm{history},i} - t
-    \end{equation}
-    where $t$ is the current time, $t_{\mathrm{history},i}$ is the $i^\mathrm{th}$ time at which the global history of galaxies
-    is to be output and $i$ is chosen to be the smallest $i$ such that $t_{\mathrm{history},i} &gt; t$. If there is no $i$ for
-    which $t_{\mathrm{history},i} &gt; t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta
-    t$ then the properties of the galaxy will be accumulated to the global history arrays at the end of the timestep.
-  
-    Volume-averaged properties are stored to the \mono{globalHistory} group of the output file. Currently, the
-    properties stored are:
-    \begin{description}
-     \item[\mono{historyTime}] Cosmic time (in Gyr);
-     \item[\mono{historyExpansion}] Expansion factor;
-     \item[\mono{historyStarFormationRate}] Volume averaged star formation rate (in $\mathrm{M}_\odot/$Gyr/Mpc$^3$).
-     \item[\mono{historyDiskStarFormationRate}] Volume averaged star formation rate in disks (in $\mathrm{M}_\odot/$Gyr/Mpc$^3$).
-     \item[\mono{historySpheroidStarFormationRate}] Volume averaged star formation rate in spheroids (in $\mathrm{M}_\odot/$Gyr/Mpc$^3$).
-     \item[\mono{historyStellarDensity}] Volume averaged stellar mass density (in $\mathrm{M}_\odot/$Mpc$^3$).
-     \item[\mono{historyDiskStellarDensity}] Volume averaged stellar mass density in disks (in $\mathrm{M}_\odot/$Mpc$^3$).
-     \item[\mono{historySpheroidStellarDensity}] Volume averaged stellar mass density in spheroids (in $\mathrm{M}_\odot/$Mpc$^3$).
-     \item[\mono{historyGasDensity}] Volume averaged cooled gas density (in $\mathrm{M}_\odot/$Mpc$^3$).
-     \item[\mono{historyNodeDensity}] Volume averaged resolved node density (in $\mathrm{M}_\odot/$Mpc$^3$).
-    \end{description}
-    Dimensionful datasets have a \mono{unitsInSI} attribute which gives their units\index{units} in the SI
-    system.
+   A merger tree evolution timestepping class which records and outputs volume averaged properties of the model universe as a function of time. Timesteps are enforced such that:
+
+   .. math::
+
+      \Delta t \le t_{\mathrm{history},i} - t
+
+   where :math:`t` is the current time, :math:`t_{\mathrm{history},i}` is the :math:`i^\mathrm{th}` time at which the global history of galaxies is to be output and :math:`i` is chosen to be the smallest :math:`i` such that :math:`t_{\mathrm{history},i} &gt; t`. If there is no :math:`i` for which :math:`t_{\mathrm{history},i} &gt; t` this criterion is not applied. If this criterion is the limiting criterion for :math:`\Delta t` then the properties of the galaxy will be accumulated to the global history arrays at the end of the timestep.
+
+   Volume-averaged properties are stored to the ``globalHistory`` group of the output file. Currently, the properties stored are:
+
+   ``historyTime``
+      Cosmic time (in Gyr);
+
+   ``historyExpansion``
+      Expansion factor;
+
+   ``historyStarFormationRate``
+      Volume averaged star formation rate (in :math:`\mathrm{M}_\odot/`\ Gyr/Mpc\ :math:`^3`).
+
+   ``historyDiskStarFormationRate``
+      Volume averaged star formation rate in disks (in :math:`\mathrm{M}_\odot/`\ Gyr/Mpc\ :math:`^3`).
+
+   ``historySpheroidStarFormationRate``
+      Volume averaged star formation rate in spheroids (in :math:`\mathrm{M}_\odot/`\ Gyr/Mpc\ :math:`^3`).
+
+   ``historyStellarDensity``
+      Volume averaged stellar mass density (in :math:`\mathrm{M}_\odot/`\ Mpc\ :math:`^3`).
+
+   ``historyDiskStellarDensity``
+      Volume averaged stellar mass density in disks (in :math:`\mathrm{M}_\odot/`\ Mpc\ :math:`^3`).
+
+   ``historySpheroidStellarDensity``
+      Volume averaged stellar mass density in spheroids (in :math:`\mathrm{M}_\odot/`\ Mpc\ :math:`^3`).
+
+   ``historyGasDensity``
+      Volume averaged cooled gas density (in :math:`\mathrm{M}_\odot/`\ Mpc\ :math:`^3`).
+
+   ``historyNodeDensity``
+      Volume averaged resolved node density (in :math:`\mathrm{M}_\odot/`\ Mpc\ :math:`^3`).
+
+   Dimensionful datasets have a ``unitsInSI`` attribute which gives their units in the SI system.
    </description>
   </mergerTreeEvolveTimestep>
   !!]
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepHistory
-     !!{
+     !!{RST
      Implementation of a merger tree evolution timestepping class which limits the step the next epoch at which to store global history.
      !!}
      private
@@ -82,8 +97,8 @@ Implements a merger tree evolution timestepping class which limits the step the 
   end type mergerTreeEvolveTimestepHistory
 
   interface mergerTreeEvolveTimestepHistory
-     !!{
-     Constructors for the \refClass{mergerTreeEvolveTimestepHistory} merger tree evolution timestep class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeEvolveTimestepHistory` merger tree evolution timestep class.
      !!}
      module procedure historyConstructorParameters
      module procedure historyConstructorInternal
@@ -92,8 +107,8 @@ Implements a merger tree evolution timestepping class which limits the step the 
 contains
 
   function historyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveTimestepHistory} merger tree evolution timestep class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepHistory` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -113,22 +128,28 @@ contains
     !!]
     ageUniverse=cosmologyFunctions_%cosmicTime(1.0d0)
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeBegin</name>
       <defaultValue>0.05d0*ageUniverse</defaultValue>
-      <description>The earliest time at which to tabulate the volume averaged history of galaxies (in Gyr).</description>
+      <description>
+      The earliest time at which to tabulate the volume averaged history of galaxies (in Gyr).
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeEnd</name>
       <defaultValue>ageUniverse</defaultValue>
-      <description>The latest time at which to tabulate the volume averaged history of galaxies (in Gyr).</description>
+      <description>
+      The latest time at which to tabulate the volume averaged history of galaxies (in Gyr).
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>historyCount</name>
       <defaultValue>30</defaultValue>
-      <description>The number of steps (spaced logarithmically in cosmic time) at which to tabulate the volume averaged history of galaxies.</description>
+      <description>
+      The number of steps (spaced logarithmically in cosmic time) at which to tabulate the volume averaged history of galaxies.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -143,8 +164,8 @@ contains
   end function historyConstructorParameters
 
   function historyConstructorInternal(historyCount,timeBegin,timeEnd,cosmologyFunctions_,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeEvolveTimestepHistory} merger tree evolution timestep class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeEvolveTimestepHistory` merger tree evolution timestep class which takes a parameter set as input.
     !!}
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
@@ -191,7 +212,7 @@ contains
   end function historyConstructorInternal
 
   subroutine historyAutoHook(self)
-    !!{
+    !!{RST
     Create a hook to the HDF5 pre-close event to allow us to finalize and write out our data.
     !!}
     use :: Events_Hooks, only : outputFileCloseEventGlobal
@@ -203,8 +224,8 @@ contains
   end subroutine historyAutoHook
 
   subroutine historyDestructor(self)
-    !!{
-    Destructor for the \refClass{mergerTreeEvolveTimestepHistory} merger tree evolution timestep class.
+    !!{RST
+    Destructor for the :galacticus-class:`mergerTreeEvolveTimestepHistory` merger tree evolution timestep class.
     !!}
     use :: Events_Hooks, only : outputFileCloseEventGlobal
     implicit none
@@ -220,8 +241,8 @@ contains
   end subroutine historyDestructor
 
   double precision function historyTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
-    !!{
-    Determine a suitable timestep for \mono{node} using the history method.
+    !!{RST
+    Determine a suitable timestep for ``node`` using the history method.
     !!}
     use            :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use            :: Galacticus_Nodes      , only : nodeComponentBasic   , treeNode
@@ -261,7 +282,7 @@ contains
   end function historyTimeEvolveTo
 
   subroutine historyStore(self,tree,node,deadlockStatus)
-    !!{
+    !!{RST
     Store various properties in global arrays.
     !!}
     use            :: Galactic_Structure_Options, only : componentTypeDisk    , componentTypeHotHalo, componentTypeSpheroid, massTypeGaseous      , &
@@ -364,8 +385,8 @@ contains
   end subroutine historyStore
 
   subroutine historyWrite(self)
-    !!{
-    Store the global history data to the \glc\ output file.
+    !!{RST
+    Store the global history data to the Galacticus output file.
     !!}
     use :: Error                           , only : Error_Report
     use :: Output_HDF5                     , only : outputFile

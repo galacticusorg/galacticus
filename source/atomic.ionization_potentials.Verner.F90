@@ -19,22 +19,20 @@
 
 !+ Contributions to this file made by: Andrew Benson, Daniel McAndrew.
 
-!!{
-Implements an atomic ionization potential class, which provides potentials for all ionization stages of all atoms from H to Zn
-using data taken from Dima Verner's \href{https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}.
+!!{RST
+Implements an atomic ionization potential class, which provides potentials for all ionization stages of all atoms from H to Zn using data taken from Dima Verner's `code <https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f>`_.
 !!}
 
   !![
-  <atomicIonizationPotential name="atomicIonizationPotentialVerner">
+  <atomicIonizationPotential name="atomicIonizationPotentialVerner" docformat="rst">
    <description>
-    Implements an atomic ionization potential class, which provides potentials for all ionization stages of all atoms from H to Zn using data taken from Dima Verner's \href{https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}.
+   Implements an atomic ionization potential class, which provides potentials for all ionization stages of all atoms from H to Zn using data taken from Dima Verner's `code &lt;https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f&gt;`_.
    </description>
   </atomicIonizationPotential>
   !!]
   type, extends(atomicIonizationPotentialClass) :: atomicIonizationPotentialVerner
-     !!{
-     Implements an atomic ionization potential class, which provides potentials for all ionization stages of all atoms from H
-     to Zn using data taken from Dima Verner's \href{https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}.
+     !!{RST
+     Implements an atomic ionization potential class, which provides potentials for all ionization stages of all atoms from H to Zn using data taken from Dima Verner's `code <https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f>`_.
      !!}
      private
    contains
@@ -42,8 +40,8 @@ using data taken from Dima Verner's \href{https://web.archive.org/web/2022031313
   end type atomicIonizationPotentialVerner
 
   interface atomicIonizationPotentialVerner
-     !!{
-     Constructors for the \refClass{atomicIonizationPotentialVerner} atomic ionization potential class.
+     !!{RST
+     Constructors for the :galacticus-class:`atomicIonizationPotentialVerner` atomic ionization potential class.
      !!}
      module procedure vernerConstructorParameters
   end interface atomicIonizationPotentialVerner
@@ -525,8 +523,8 @@ using data taken from Dima Verner's \href{https://web.archive.org/web/2022031313
 contains
 
   function vernerConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{atomicIonizationPotentialVerner} atomic ionization potential class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`atomicIonizationPotentialVerner` atomic ionization potential class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -541,10 +539,8 @@ contains
   end function vernerConstructorParameters
 
   double precision function vernerPotential(self,atomicNumber,electronNumber)
-    !!{
-    Return the ionization potential (in units of electron volts) for the ion with given \mono{atomicNumber} and
-    \mono{electronNumber} using data taken from Dima Verner's
-    \href{https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f}{code}.
+    !!{RST
+    Return the ionization potential (in units of electron volts) for the ion with given ``atomicNumber`` and ``electronNumber`` using data taken from Dima Verner's `code <https://web.archive.org/web/20220313133801/https://www.pa.uky.edu/~verner/dima/col/cfit.f>`_.
     !!}
     implicit none
     class  (atomicIonizationPotentialVerner), intent(inout) :: self

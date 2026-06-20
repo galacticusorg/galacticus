@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which interfaces with the system output.
 !!}
 
@@ -32,7 +32,7 @@ module System_Output
 
   interface
      function stdOutIsATTY_() bind(c,name='stdOutIsATTY_')
-       !!{
+       !!{RST
        Template for a C function that determines if stdout is a TTY.
        !!}
        import
@@ -43,8 +43,8 @@ module System_Output
 contains
 
   logical function stdOutIsATTY()
-    !!{
-    Return \mono{true} if stdout is a \mono{TTY}.
+    !!{RST
+    Return ``true`` if stdout is a ``TTY``.
     !!}
     implicit none
 

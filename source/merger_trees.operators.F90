@@ -18,25 +18,24 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 module Merger_Tree_Operators
-  !!{
+  !!{RST
   Provides an object that implements operators acting on merger trees.
   !!}
   use :: Galacticus_Nodes, only : mergerTree
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>mergerTreeOperator</name>
    <descriptiveName>Merger Tree Operators</descriptiveName>
-   <description>Class providing operators that act on complete merger trees at well-defined points in the
-    simulation pipeline: before construction, before initialization, before evolution, and after evolution.
-    Tree operators enable arbitrary post-processing, analysis, or modification of merger trees at each
-    stage. Examples include adding constrained perturbations, computing halo statistics, applying tree
-    pruning, or writing intermediate outputs. Multiple operators can be chained via the multi-operator
-    implementation.</description>
+   <description>
+   Class providing operators that act on complete merger trees at well-defined points in the simulation pipeline: before construction, before initialization, before evolution, and after evolution. Tree operators enable arbitrary post-processing, analysis, or modification of merger trees at each stage. Examples include adding constrained perturbations, computing halo statistics, applying tree pruning, or writing intermediate outputs. Multiple operators can be chained via the multi-operator implementation.
+   </description>
    <default>null</default>
    <method name="operatePreConstruction" >
-    <description>Perform an operation on the merger tree prior to construction.</description>
+    <description>
+    Perform an operation on the merger tree prior to construction.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <code>
@@ -46,7 +45,9 @@ module Merger_Tree_Operators
     </code>
    </method>
    <method name="operatePreInitialization" >
-    <description>Perform an operation on the merger tree prior to initialization.</description>
+    <description>
+    Perform an operation on the merger tree prior to initialization.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -58,7 +59,9 @@ module Merger_Tree_Operators
     </code>
    </method>
    <method name="operatePreEvolution" >
-    <description>Perform an operation on the merger tree prior to evolution.</description>
+    <description>
+    Perform an operation on the merger tree prior to evolution.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <selfTarget>yes</selfTarget>
@@ -70,7 +73,9 @@ module Merger_Tree_Operators
     </code>
    </method>
    <method name="operatePostEvolution" >
-    <description>Perform an operation on the merger tree after evolution.</description>
+    <description>
+    Perform an operation on the merger tree after evolution.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <code>
@@ -80,7 +85,9 @@ module Merger_Tree_Operators
     </code>
    </method>
    <method name="finalize" >
-    <description>Finalize the merger tree operator at the end of the simulation, performing any required cleanup, flushing accumulated statistics, and releasing resources held by the operator.</description>
+    <description>
+    Finalize the merger tree operator at the end of the simulation, performing any required cleanup, flushing accumulated statistics, and releasing resources held by the operator.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <code>

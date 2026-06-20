@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_Kepler_Orbits
-  !!{
+  !!{RST
   Tests for orbital parameter conversions.
   !!}
   use :: Display                         , only : displayVerbositySet           , verbosityLevelStandard

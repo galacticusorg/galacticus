@@ -37,12 +37,14 @@
   use :: Radiation_Fields                            , only : radiationField                         , radiationFieldClass                         , radiationFieldIntergalacticBackground
 
   !![
-  <universeOperator name="universeOperatorIntergalacticMediumStateEvolve">
-   <description>An operator on universes which attaches hooks to compute evolution of the intergalactic medium.</description>
+  <universeOperator name="universeOperatorIntergalacticMediumStateEvolve" docformat="rst">
+   <description>
+   An operator on universes which attaches hooks to compute evolution of the intergalactic medium.
+   </description>
   </universeOperator>
   !!]
   type, extends(universeOperatorClass) :: universeOperatorIntergalacticMediumStateEvolve
-     !!{
+     !!{RST
      Implementation of a universeOperator which computes and outputs the power spectrum and related quantities.
      !!}
      private
@@ -72,7 +74,7 @@
           &                                                                                         massFilteringComposite
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Set the state of the IGM state class up to the given time index." method="stateSet" />
      </methods>
      !!]
@@ -82,8 +84,8 @@
   end type universeOperatorIntergalacticMediumStateEvolve
 
   interface universeOperatorIntergalacticMediumStateEvolve
-     !!{
-     Constructors for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universe operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`universeOperatorIntergalacticMediumStateEvolve` universe operator class.
      !!}
      module procedure intergalacticMediumStateEvolveConstructorParameters
      module procedure intergalacticMediumStateEvolveConstructorInternal
@@ -96,8 +98,8 @@
 contains
 
   function intergalacticMediumStateEvolveConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universe operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`universeOperatorIntergalacticMediumStateEvolve` universe operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -123,22 +125,28 @@ contains
          &                                                                             timeMinimum                             , timeMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeCountPerDecade</name>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of time to use for calculations of the properties of the universe.</description>
+      <description>
+      The number of bins per decade of time to use for calculations of the properties of the universe.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMinimum</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>The minimum redshift to use in calculations.</description>
+      <description>
+      The minimum redshift to use in calculations.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMaximum</name>
       <defaultValue>400.0d0</defaultValue>
-      <description>The maximum redshift to use in calculations.</description>
+      <description>
+      The maximum redshift to use in calculations.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"                     name="cosmologyParameters_"                     source="parameters"                                                      />
@@ -182,8 +190,8 @@ contains
   end function intergalacticMediumStateEvolveConstructorParameters
 
   function intergalacticMediumStateEvolveConstructorInternal(timeMinimum,timeMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_,outputTimes_,gauntFactor_,atomicCrossSectionIonizationPhoto_,atomicIonizationPotential_,atomicRecombinationRateDielectronic_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicExcitationRateCollisional_,intergalacticMediumState_,radiationField_) result(self)
-    !!{
-    Internal constructor for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universe operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`universeOperatorIntergalacticMediumStateEvolve` universe operator class.
     !!}
     use            :: Error                                , only : Error_Report
     use, intrinsic :: ISO_C_Binding                        , only : c_size_t
@@ -337,8 +345,8 @@ contains
    end function intergalacticMediumStateEvolveConstructorInternal
 
    subroutine intergalacticMediumStateEvolveDestructor(self)
-     !!{
-     Destructor for the \refClass{universeOperatorIntergalacticMediumStateEvolve} universe operator class.
+     !!{RST
+     Destructor for the :galacticus-class:`universeOperatorIntergalacticMediumStateEvolve` universe operator class.
      !!}
      implicit none
      type(universeOperatorIntergalacticMediumStateEvolve), intent(inout) :: self
@@ -364,7 +372,7 @@ contains
    end subroutine intergalacticMediumStateEvolveDestructor
 
    subroutine intergalacticMediumStateEvolveOperate(self,universe_)
-     !!{
+     !!{RST
      Attach an initial event to a merger tree to cause the properties update function to be called.
      !!}
      use :: Galacticus_Nodes, only : universe, universeEvent
@@ -382,7 +390,7 @@ contains
    end subroutine intergalacticMediumStateEvolveOperate
 
    logical function intergalacticMediumStateEvolveUpdate(event,universe_) result (success)
-     !!{
+     !!{RST
      Update the properties for a given universe.
      !!}
      use            :: Arrays_Search                   , only : searchArrayClosest
@@ -538,7 +546,7 @@ contains
    end function intergalacticMediumStateEvolveUpdate
 
    integer function intergalacticMediumStateEvolveODEs(time,properties,propertiesRateOfChange)
-     !!{
+     !!{RST
      Evaluates the ODEs controlling the evolution temperature.
      !!}
      use :: Interface_GSL                        , only : GSL_Success
@@ -884,7 +892,7 @@ contains
    contains
 
      double precision function integrandPhotoionizationRate(wavelength)
-       !!{
+       !!{RST
        Integrand function used to compute the rate of photoionizations of an ionic species.
        !!}
        use :: Numerical_Constants_Units, only : ergs
@@ -918,7 +926,7 @@ contains
      end function integrandPhotoionizationRate
 
      double precision function integrandPhotoionizationHeatingRate(wavelength)
-       !!{
+       !!{RST
        Integrand function used to compute the rate of photoionization heating of an ionic species.
        !!}
        use :: Numerical_Constants_Units, only : ergs

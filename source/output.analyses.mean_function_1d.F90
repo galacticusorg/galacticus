@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a generic 1D mean function (i.e. mean value of some property weighted by number density of
-  objects binned by some property) output analysis class.
+  !!{RST
+  Implements a generic 1D mean function (i.e. mean value of some property weighted by number density of objects binned by some property) output analysis class.
   !!}
 
   use :: ISO_Varying_String         , only : varying_string
@@ -27,8 +26,10 @@
   use :: Output_Analyses_Options    , only : enumerationOutputAnalysisStateType
 
   !![
-  <outputAnalysis name="outputAnalysisMeanFunction1D">
-   <description>A generic 1D mean function (i.e. mean value of some property weighted by number density of objects binned by some property) output analysis class.</description>
+  <outputAnalysis name="outputAnalysisMeanFunction1D" docformat="rst">
+   <description>
+   A generic 1D mean function (i.e. mean value of some property weighted by number density of objects binned by some property) output analysis class.
+   </description>
    <deepCopy>
     <functionClass variables="volumeFunctionUnweighted, volumeFunctionWeighted, crossCovariance"/>
    </deepCopy>
@@ -38,7 +39,7 @@
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisMeanFunction1D
-     !!{
+     !!{RST
      A generic 1D mean function (i.e. mean value of some property weighted by number density of objects binned by some property) output analysis class.
      !!}
      private
@@ -82,7 +83,7 @@
      integer         (c_size_t                                    )                              :: bufferCount
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the results of the mean function operator." method="results"         />
        <method description="Finalize analysis of the mean function operator."  method="finalizeAnalysis"/>
        <method description="Activate/deactivate reporting."                    method="setReporting"    />
@@ -99,8 +100,8 @@
   end type outputAnalysisMeanFunction1D
 
   interface outputAnalysisMeanFunction1D
-     !!{
-     Constructors for the \refClass{outputAnalysisMeanFunction1D} output analysis class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisMeanFunction1D` output analysis class.
      !!}
      module procedure meanFunction1DConstructorParameters
      module procedure meanFunction1DConstructorInternal
@@ -109,8 +110,8 @@
 contains
 
   function meanFunction1DConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMeanFunction1D} output analysis class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisMeanFunction1D` output analysis class which takes a parameter set as input.
     !!}
     use :: Error                  , only : Error_Report
     use :: Input_Parameters       , only : inputParameter                                , inputParameters
@@ -165,175 +166,231 @@ contains
     if (parameters%count('outputWeight') /= parameters%count('binCenter')*outputTimes_%count()) &
          & call Error_Report('incorrect number of output weights provided'//{introspection:location})
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <source>parameters</source>
       <variable>label</variable>
-      <description>A label for the analysis.</description>
+      <description>
+      A label for the analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>xAxisLabel</name>
       <source>parameters</source>
-      <description>A label for the $x$-axis in a plot of this analysis.</description>
+      <description>
+      A label for the :math:`x`-axis in a plot of this analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>yAxisLabel</name>
       <source>parameters</source>
-      <description>A label for the $y$-axis in a plot of this analysis.</description>
+      <description>
+      A label for the :math:`y`-axis in a plot of this analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>xAxisIsLog</name>
       <source>parameters</source>
-      <description>If true, indicates that the $x$-axis should be logarithmic in a plot of this analysis.</description>
+      <description>
+      If true, indicates that the :math:`x`-axis should be logarithmic in a plot of this analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>yAxisIsLog</name>
       <source>parameters</source>
-      <description>If true, indicates that the $y$-axis should be logarithmic in a plot of this analysis.</description>
+      <description>
+      If true, indicates that the :math:`y`-axis should be logarithmic in a plot of this analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>comment</name>
       <source>parameters</source>
       <variable>comment</variable>
-      <description>A descriptive comment for the analysis.</description>
+      <description>
+      A descriptive comment for the analysis.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyLabel</name>
       <source>parameters</source>
       <variable>propertyLabel</variable>
-      <description>A label for the property variable.</description>
+      <description>
+      A label for the property variable.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyComment</name>
       <source>parameters</source>
       <variable>propertyComment</variable>
-      <description>A descriptive comment for the property variable.</description>
+      <description>
+      A descriptive comment for the property variable.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyUnits</name>
       <source>parameters</source>
       <variable>propertyUnits</variable>
-      <description>A human-readable description of the units for the property.</description>
+      <description>
+      A human-readable description of the units for the property.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyQuantity</name>
       <source>parameters</source>
       <variable>propertyQuantity</variable>
-      <description>An \mono{astropy.units}-parseable units string for the property.</description>
+      <description>
+      An ``astropy.units``-parseable units string for the property.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyIsComoving</name>
       <source>parameters</source>
       <variable>propertyIsComoving</variable>
-      <description>If true, the property is in comoving units.</description>
+      <description>
+      If true, the property is in comoving units.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>propertyUnitsInSI</name>
       <source>parameters</source>
       <variable>propertyUnitsInSI</variable>
-      <description>A units for the property in the SI system.</description>
+      <description>
+      A units for the property in the SI system.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>meanLabel</name>
       <source>parameters</source>
       <variable>meanLabel</variable>
-      <description>A label for the mean.</description>
+      <description>
+      A label for the mean.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>meanComment</name>
       <source>parameters</source>
       <variable>meanComment</variable>
-      <description>A descriptive comment for the mean.</description>
+      <description>
+      A descriptive comment for the mean.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>meanUnits</name>
       <source>parameters</source>
       <variable>meanUnits</variable>
-      <description>A human-readable description of the units for the mean.</description>
+      <description>
+      A human-readable description of the units for the mean.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>meanQuantity</name>
       <source>parameters</source>
       <variable>meanQuantity</variable>
-      <description>An \mono{astropy.units}-parseable units string for the mean.</description>
+      <description>
+      An ``astropy.units``-parseable units string for the mean.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>meanIsComoving</name>
       <source>parameters</source>
       <variable>meanIsComoving</variable>
-      <description>If true, the mean is in comoving units.</description>
+      <description>
+      If true, the mean is in comoving units.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>meanUnitsInSI</name>
       <source>parameters</source>
       <variable>meanUnitsInSI</variable>
-      <description>A units for the mean in the SI system.</description>
+      <description>
+      A units for the mean in the SI system.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>binCenter</name>
       <source>parameters</source>
       <variable>binCenter</variable>
-      <description>The value of the property at the center of each bin.</description>
+      <description>
+      The value of the property at the center of each bin.
+      </description>
     </inputParameter>
     !!]
     if (size(binCenter) == 1) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>binWidth</name>
 	 <source>parameters</source>
 	 <variable>binWidth</variable>
-	 <description>The width of the bins.</description>
+	 <description>
+	 The width of the bins.
+	 </description>
        </inputParameter>
        !!]
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>binCenter</name>
       <source>parameters</source>
       <variable>binCenter</variable>
-      <description>The value of the property at the center of each bin.</description>
+      <description>
+      The value of the property at the center of each bin.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>bufferCount</name>
       <source>parameters</source>
       <variable>bufferCount</variable>
-      <description>The number of buffer bins to include below and above the range of actual bins.</description>
+      <description>
+      The number of buffer bins to include below and above the range of actual bins.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputWeight</name>
       <source>parameters</source>
       <variable>outputWeight</variable>
-      <description>The weight to assign to each bin at each output.</description>
+      <description>
+      The weight to assign to each bin at each output.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceModel</name>
       <source>parameters</source>
       <variable>covarianceModel</variable>
-      <description>The model to use for computing covariances.</description>
+      <description>
+      The model to use for computing covariances.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialBinsPerDecade</name>
       <source>parameters</source>
       <defaultValue>10</defaultValue>
-      <description>The number of bins per decade of halo mass to use when constructing volume function covariance matrices for main branch galaxies.</description>
+      <description>
+      The number of bins per decade of halo mass to use when constructing volume function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMinimum</name>
       <source>parameters</source>
       <defaultValue>1.0d8</defaultValue>
-      <description>The minimum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
+      <description>
+      The minimum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covarianceBinomialMassHaloMaximum</name>
       <source>parameters</source>
       <defaultValue>1.0d16</defaultValue>
-      <description>The maximum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
+      <description>
+      The maximum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>likelihoodNormalize</name>
       <source>parameters</source>
       <defaultValue>.true.</defaultValue>
-      <description>If true then normalize the likelihood to make it a probability density.</description>
+      <description>
+      If true then normalize the likelihood to make it a probability density.
+      </description>
     </inputParameter>
     !!]
     ! Read the target dataset (if provided) and the corresponding target label.  These are read
@@ -344,16 +401,20 @@ contains
     if (parameters%isPresent('meanValueTarget')) then
        if (parameters%isPresent('meanCovarianceTarget')) then
           !![
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>meanValueTarget</name>
             <source>parameters</source>
-            <description>The target function for likelihood calculations.</description>
+            <description>
+            The target function for likelihood calculations.
+            </description>
           </inputParameter>
-          <inputParameter>
+          <inputParameter docformat="rst">
             <name>meanCovarianceTarget</name>
             <source>parameters</source>
             <variable>meanCovarianceTarget1D</variable>
-            <description>The target function covariance for likelihood calculations.</description>
+            <description>
+            The target function covariance for likelihood calculations.
+            </description>
           </inputParameter>
           !!]
           if (size(meanCovarianceTarget1D) == size(meanValueTarget)**2) then
@@ -369,10 +430,12 @@ contains
        if (parameters%isPresent('meanCovariance')) call Error_Report('functionTarget must be specified if meanCovariance is present'//{introspection:location})
     end if
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>targetLabel</name>
       <source>parameters</source>
-      <description>A label for the target dataset in a plot of this analysis.</description>
+      <description>
+      A label for the target dataset in a plot of this analysis.
+      </description>
       <defaultValue>var_str('')</defaultValue>
     </inputParameter>
     !!]
@@ -443,8 +506,8 @@ contains
   end function meanFunction1DConstructorParameters
 
   function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyQuantity,propertyIsComoving,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanQuantity,meanIsComoving,meanUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,targetData_,binWidth) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisMeanFunction1D} output analysis class for internal use.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisMeanFunction1D` output analysis class for internal use.
     !!}
     use :: Error                                   , only : Error_Report
     use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerIdentity
@@ -687,8 +750,8 @@ contains
   end function meanFunction1DConstructorInternal
 
   subroutine meanFunction1DDestructor(self)
-    !!{
-    Destructor for the \refClass{outputAnalysisMeanFunction1D} output analysis class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputAnalysisMeanFunction1D` output analysis class.
     !!}
     implicit none
     type(outputAnalysisMeanFunction1D), intent(inout) :: self
@@ -711,7 +774,7 @@ contains
   end subroutine meanFunction1DDestructor
 
   subroutine meanFunction1DAnalyze(self,node,iOutput)
-    !!{
+    !!{RST
     Implement a meanFunction1D output analysis.
     !!}
     implicit none
@@ -727,7 +790,7 @@ contains
   end subroutine meanFunction1DAnalyze
 
   subroutine meanFunction1DReduce(self,reduced)
-    !!{
+    !!{RST
     Implement a volumeFunction1D output analysis reduction.
     !!}
     use :: Error, only : Error_Report
@@ -747,8 +810,8 @@ contains
   end subroutine meanFunction1DReduce
 
   subroutine meanFunction1DFinalizeAnalysis(self)
-    !!{
-    Finalize analysis of a \mono{meanFunction1D} output analysis.
+    !!{RST
+    Finalize analysis of a ``meanFunction1D`` output analysis.
     !!}
     use    :: Display, only : displayMessage, displayIndent , displayUnindent
     implicit none
@@ -819,8 +882,8 @@ contains
   end subroutine meanFunction1DFinalizeAnalysis
 
   subroutine meanFunction1DFinalize(self,groupName)
-    !!{
-    Implement a \mono{meanFunction1D} output analysis finalization.
+    !!{RST
+    Implement a ``meanFunction1D`` output analysis finalization.
     !!}
     use :: Output_HDF5   , only : outputFile
     use :: HDF5_Access   , only : hdf5Access
@@ -879,7 +942,7 @@ contains
   end subroutine meanFunction1DFinalize
 
   subroutine meanFunction1DResults(self,binCenter,meanValue,meanCovariance)
-    !!{
+    !!{RST
     Implement a meanFunction1D output analysis finalization.
     !!}
     implicit none
@@ -909,7 +972,7 @@ contains
   end subroutine meanFunction1DResults
 
   double precision function meanFunction1DLogLikelihood(self)
-    !!{
+    !!{RST
     Return the log-likelihood of a meanFunction1D output analysis.
     !!}
     use :: Error                       , only : Error_Report
@@ -957,7 +1020,7 @@ contains
   end function meanFunction1DLogLikelihood
 
   subroutine meanFunction1DSetReporting(self,report,reportLabel)
-    !!{
+    !!{RST
     Activate/deactivate reporting.
     !!}
     use :: ISO_Varying_String     , only : assignment(=)

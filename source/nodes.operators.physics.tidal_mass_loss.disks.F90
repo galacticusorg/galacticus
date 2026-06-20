@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that performs tidal mass loss in disks.
   !!}
 
   use :: Tidal_Stripping_Mass_Loss_Rate, only : tidalStrippingClass
   
   !![
-  <nodeOperator name="nodeOperatorTidalMassLossDisks">
-   <description>Computes and applies gravitational tidal stripping of stellar and gaseous mass from satellite galaxy disks as they orbit within the host halo tidal field, removing material outside the satellite's tidal radius at each pericentric passage.</description>
+  <nodeOperator name="nodeOperatorTidalMassLossDisks" docformat="rst">
+   <description>
+   Computes and applies gravitational tidal stripping of stellar and gaseous mass from satellite galaxy disks as they orbit within the host halo tidal field, removing material outside the satellite's tidal radius at each pericentric passage.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorTidalMassLossDisks
-     !!{
+     !!{RST
      A node operator class that performs tidal mass loss in disks.
      !!}
      private
@@ -40,8 +42,8 @@
   end type nodeOperatorTidalMassLossDisks
   
   interface nodeOperatorTidalMassLossDisks
-     !!{
-     Constructors for the \refClass{nodeOperatorTidalMassLossDisks} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorTidalMassLossDisks` node operator class.
      !!}
      module procedure tidalMassLossDisksConstructorParameters
      module procedure tidalMassLossDisksConstructorInternal
@@ -50,8 +52,8 @@
 contains
 
   function tidalMassLossDisksConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorTidalMassLossDisks} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorTidalMassLossDisks` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,8 +73,8 @@ contains
   end function tidalMassLossDisksConstructorParameters
 
   function tidalMassLossDisksConstructorInternal(tidalStripping_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorTidalMassLossDisks} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorTidalMassLossDisks` node operator class.
     !!}
     implicit none
     type (nodeOperatorTidalMassLossDisks)                        :: self
@@ -85,8 +87,8 @@ contains
   end function tidalMassLossDisksConstructorInternal
 
   subroutine tidalMassLossDisksDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorTidalMassLossDisks} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorTidalMassLossDisks` node operator class.
     !!}
     implicit none
     type(nodeOperatorTidalMassLossDisks), intent(inout) :: self
@@ -98,7 +100,7 @@ contains
   end subroutine tidalMassLossDisksDestructor
   
   subroutine tidalMassLossDisksDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Perform star formation in a disk.
     !!}
     use :: Galacticus_Nodes              , only : propertyInactive, nodeComponentDisk  , nodeComponentHotHalo

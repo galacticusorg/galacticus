@@ -17,16 +17,18 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of an ADAF accretion disk.
   !!}
 
   use :: Tables, only : table1DLogarithmicLinear
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>adafRadiativeEfficiencyType</name>
-   <description>Enumeration of radiative efficiency model types for advection-dominated accretion flows (ADAFs): either a fixed efficiency or the thin-disk efficiency formula.</description>
+   <description>
+   Enumeration of radiative efficiency model types for advection-dominated accretion flows (ADAFs): either a fixed efficiency or the thin-disk efficiency formula.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <entry label="fixed"   />
@@ -35,9 +37,11 @@
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>adafViscosity</name>
-   <description>Enumeration of viscosity model types for ADAFs, selecting whether the viscosity parameter $\alpha$ is computed via a fitting function of black hole spin or held at a fixed value.</description>
+   <description>
+   Enumeration of viscosity model types for ADAFs, selecting whether the viscosity parameter :math:`\alpha` is computed via a fitting function of black hole spin or held at a fixed value.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <entry label="fit"  />
@@ -46,9 +50,11 @@
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>adafFieldEnhancement</name>
-   <description>Enumeration of field-enhancing shear models for ADAFs, controlling whether the magnetic field enhancement factor $g$ follows an exponential ($g=\exp(\omega\tau)$) or linear ($g=1+\omega\tau$) form.</description>
+   <description>
+   Enumeration of field-enhancing shear models for ADAFs, controlling whether the magnetic field enhancement factor :math:`g` follows an exponential (:math:`g=\exp(\omega\tau)`) or linear (:math:`g=1+\omega\tau`) form.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <entry label="exponential"/>
@@ -57,9 +63,11 @@
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>adafEnergy</name>
-   <description>Enumeration of energy model types for ADAFs, specifying whether the energy of accreted material is set to that of a pure ADAF (energy at infinity) or to the energy at the innermost stable circular orbit (ISCO).</description>
+   <description>
+   Enumeration of energy model types for ADAFs, specifying whether the energy of accreted material is set to that of a pure ADAF (energy at infinity) or to the energy at the innermost stable circular orbit (ISCO).
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <entry label="pureADAF"/>
@@ -68,9 +76,11 @@
   !!]
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>adafTable</name>
-   <description>Enumeration of pre-computed ADAF look-up tables, identifying whether a table stores jet power or black hole spin-up rate as a function of accretion parameters.</description>
+   <description>
+   Enumeration of pre-computed ADAF look-up tables, identifying whether a table stores jet power or black hole spin-up rate as a function of accretion parameters.
+   </description>
    <visibility>private</visibility>
    <indexing>1</indexing>
    <entry label="powerJet"  />
@@ -79,35 +89,21 @@
   !!]
 
   !![
-  <accretionDisks name="accretionDisksADAF">
+  <accretionDisks name="accretionDisksADAF" docformat="rst">
    <description>
-    A circumnuclear accretion disk class, in which accretion is via an \gls{adaf} \citep{narayan_advection-dominated_1994}
-    which is radiatively inefficient and geometrically thick. The radiative efficiency of the flow, which will be zero for a
-    pure \gls{adaf}, is controlled by \mono{[efficiencyRadiationType]}. If set to \mono{fixed}, then the radiative efficiency is set to the value of the input parameter \mono{[efficiencyRadiation]}. Alternatively, if set to \mono{thinDisk} the radiative efficiency will be set to
-    that of a Shakura-Sunyaev thin disk. The spin up rate of the black hole and the jet power produced as material accretes
-    into the black hole are computed using the method of \cite{benson_maximum_2009}. The maximum efficiency of the jet (in
-    units of the accretion power $\dot{M} \mathrm{c}^2$) is set by \mono{[efficiencyJetMaximum]}---in the
-    model of \cite{benson_maximum_2009} the jet efficiency diverges as $j\rightarrow 1$, setting a maximum is important to
-    avoid numerical instabilities. The energy of the accreted material can be set equal to the energy at infinity (as expected
-    for a pure \gls{adaf}) or the energy at the \gls{isco} by use of the \mono{[energyOption]} parameter (set
-    to \mono{pureADAF} or \mono{ISCO} respectively). The \gls{adaf} structure is controlled
-    by the adiabatic index, $\gamma$, and viscosity parameter, $\alpha$, which are specified via the \mono{[adiabaticIndex]} and \mono{[viscosityOption]} input parameters respectively. The field-enhancing shear,
-    $g$, is computed using $g=\exp(\omega \tau)$ if \mono{[fieldEnhancementOption]} is set to ``exponential''
-    where $\omega$ is the frame-dragging frequency and $\tau$ is the smaller of the radial inflow and azimuthal velocity
-    timescales. If \mono{[fieldEnhancementOption]} is set to ``linear'' then the alternative version,
-    $g=1+\omega \tau$ is used instead. \mono{[viscosityOption]} may be set to ``\mono{fit}'',
-    in which case the fitting function for $\alpha$ as a function of black hole spin is used:
-    \begin{eqnarray}
-     \alpha(j)=0.015+0.02 j^4 &amp; \hbox{ if  }&amp; g=\exp(\omega\tau) \hbox{ and } E=E_\mathrm{ISCO}, \\
-     \alpha(j)=0.025+0.08 j^4 &amp; \hbox{ if } &amp; g=1+\omega\tau \hbox{ and } E=E_\mathrm{ISCO}, \\
-     \alpha(j)=0.010+0.00 j^4 &amp; \hbox{ if } &amp; g=\exp(\omega\tau) \hbox{ and } E=1, \\
-     \alpha(j)=0.025+0.02 j^4 &amp; \hbox{ if } &amp; g=1+\omega\tau \hbox{ and } E=1.  
-    \end{eqnarray}
+   A circumnuclear accretion disk class, in which accretion is via an :term:`ADAF` :cite:p:`narayan_advection-dominated_1994` which is radiatively inefficient and geometrically thick. The radiative efficiency of the flow, which will be zero for a pure :term:`ADAF`, is controlled by ``[efficiencyRadiationType]``. If set to ``fixed``, then the radiative efficiency is set to the value of the input parameter ``[efficiencyRadiation]``. Alternatively, if set to ``thinDisk`` the radiative efficiency will be set to that of a Shakura-Sunyaev thin disk. The spin up rate of the black hole and the jet power produced as material accretes into the black hole are computed using the method of :cite:t:`benson_maximum_2009`. The maximum efficiency of the jet (in units of the accretion power :math:`\dot{M} \mathrm{c}^2`) is set by ``[efficiencyJetMaximum]``---in the model of :cite:t:`benson_maximum_2009` the jet efficiency diverges as :math:`j\rightarrow 1`, setting a maximum is important to avoid numerical instabilities. The energy of the accreted material can be set equal to the energy at infinity (as expected for a pure :term:`ADAF`) or the energy at the :term:`ISCO` by use of the ``[energyOption]`` parameter (set to ``pureADAF`` or ``ISCO`` respectively). The :term:`ADAF` structure is controlled by the adiabatic index, :math:`\gamma`, and viscosity parameter, :math:`\alpha`, which are specified via the ``[adiabaticIndex]`` and ``[viscosityOption]`` input parameters respectively. The field-enhancing shear, :math:`g`, is computed using :math:`g=\exp(\omega \tau)` if ``[fieldEnhancementOption]`` is set to "exponential" where :math:`\omega` is the frame-dragging frequency and :math:`\tau` is the smaller of the radial inflow and azimuthal velocity timescales. If ``[fieldEnhancementOption]`` is set to "linear" then the alternative version, :math:`g=1+\omega \tau` is used instead. ``[viscosityOption]`` may be set to "``fit``", in which case the fitting function for :math:`\alpha` as a function of black hole spin is used:
+
+   .. math::
+
+      \alpha(j)=0.015+0.02 j^4 &amp; \hbox{ if  } g=\exp(\omega\tau) \hbox{ and } E=E_\mathrm{ISCO}, \\
+      \alpha(j)=0.025+0.08 j^4 &amp; \hbox{ if } g=1+\omega\tau \hbox{ and } E=E_\mathrm{ISCO}, \\
+      \alpha(j)=0.010+0.00 j^4 &amp; \hbox{ if } g=\exp(\omega\tau) \hbox{ and } E=1, \\
+      \alpha(j)=0.025+0.02 j^4 &amp; \hbox{ if } g=1+\omega\tau \hbox{ and } E=1.
    </description>
   </accretionDisks>
   !!]
   type, extends(accretionDisksClass) :: accretionDisksADAF
-     !!{
+     !!{RST
      Implementation of an ADAF accretion disk class.
      !!}
      private
@@ -167,7 +163,7 @@
           &                                                          jetPowerDiskFromBlackHoleStored
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Return the dimensionless height of the ADAF at a given radius." method="height" />
        <method description="Return the dimensionless velocity of the ADAF at a given radius." method="velocity" />
        <method description="Return the dimensionless temperature of the ADAF at a given radius." method="temperature" />
@@ -177,12 +173,12 @@
        <method description="Return the radial part of the relativistic boost factor in the ADAF at a given radius." method="gammaRadial" />
        <method description="Return the azimuthal part of the relativistic boost factor in the ADAF at a given radius." method="gammaAzimuthal" />
        <method description="Return the relativistic boost factor in the ADAF at a given radius." method="gamma" />
-       <method description="Return the viscosity parameter, $\alpha$, in the ADAF." method="viscosityParameter" />
+       <method description="Return the viscosity parameter, :math:`\alpha`, in the ADAF." method="viscosityParameter" />
        <method description="Return the dimensionless angular velocity of the ADAF fluid at the given radius." method="fluidAngularVelocity" />
        <method description="Return the magnetic field enhancement factor in the ADAF at the given radius." method="fieldEnhancement" />
        <method description="Return the power of the jet launched by the black hole for the ADAF." method="jetPowerBlackHole" />
        <method description="Return the power of the jet launched from the disk for the ADAF." method="jetPowerDisk" />
-       <method description="Return the power of the jet launched from the disk which is derived frm the black hole." method="jetPowerDiskFromBlackHole" />
+       <method description="Return the power of the jet launched from the disk which is derived from the black hole." method="jetPowerDiskFromBlackHole" />
      </methods>
      !!]
      procedure :: efficiencyRadiative            => adafEfficiencyRadiative
@@ -206,7 +202,7 @@
   end type accretionDisksADAF
 
   interface accretionDisksADAF
-     !!{
+     !!{RST
      Constructors for the ADAF accretion disk class.
      !!}
      module procedure adafConstructorParameters
@@ -219,7 +215,7 @@
 contains
 
   function adafConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the ADAF accretion disk class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -232,61 +228,69 @@ contains
          &                                                 viscosityAlpha         , efficiencyJetMaximum
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>efficiencyRadiationType</name>
       <source>parameters</source>
       <defaultValue>var_str('thinDisk')</defaultValue>
-      <description>Specifies the specific energy of material at the inner edge of an ADAF. \mono{pureADAF} makes the specific energy equal
-        to 1 (i.e. all energy is advected with the flow); \mono{ISCO} makes the specific energy equal to that for the innermost
-        stable circular orbit.</description>
+      <description>
+      Specifies the specific energy of material at the inner edge of an ADAF. ``pureADAF`` makes the specific energy equal to 1 (i.e. all energy is advected with the flow); ``ISCO`` makes the specific energy equal to that for the innermost stable circular orbit.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>efficiencyRadiation</name>
       <source>parameters</source>
       <defaultValue>0.01d0</defaultValue>
-      <description>Specifies the radiative efficiency of an ADAF (i.e. the fraction of $\dot{M}\clight^2$ that is emitted in radiation).</description>
+      <description>
+      Specifies the radiative efficiency of an ADAF (i.e. the fraction of :math:`\dot{M}\clight^2` that is emitted in radiation).
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>energyOption</name>
       <source>parameters</source>
       <defaultValue>var_str('pureADAF')</defaultValue>
-      <description>Specifies the specific energy of material at the inner edge of an ADAF. \mono{pureADAF} makes the specific energy equal
-        to 1 (i.e. all energy is advected with the flow); \mono{ISCO} makes the specific energy equal to that for the innermost
-        stable circular orbit.</description>
+      <description>
+      Specifies the specific energy of material at the inner edge of an ADAF. ``pureADAF`` makes the specific energy equal to 1 (i.e. all energy is advected with the flow); ``ISCO`` makes the specific energy equal to that for the innermost stable circular orbit.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fieldEnhancementOption</name>
       <source>parameters</source>
       <defaultValue>var_str('exponential')</defaultValue>
-      <description>Controls how the field enhancing shear is determined. \mono{exponential} will cause the form $g=\exp(\omega t)$ \citep{benson_maximum_2009}
-       to be used, while \mono{linear} will cause $g=1+\omega t$ to be used instead. The functional form of $\alpha(j)$ (if used) will be adjusted
-       to achieve a sensible spin-up function in each case.</description>
+      <description>
+      Controls how the field enhancing shear is determined. ``exponential`` will cause the form :math:`g=\exp(\omega t)` :cite:p:`benson_maximum_2009` to be used, while ``linear`` will cause :math:`g=1+\omega t` to be used instead. The functional form of :math:`\alpha(j)` (if used) will be adjusted to achieve a sensible spin-up function in each case.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>adiabaticIndex</name>
       <source>parameters</source>
       <defaultValue>adafAdiabaticIndexDefault(enumerationAdafFieldEnhancementEncode(char(fieldEnhancementOption),includesPrefix=.false.))</defaultValue>
-      <description>Specifies the effective adiabatic index $\gamma$ of gas in an ADAF, which controls the thermodynamic response of the accreting gas and influences the structure and radiative efficiency of the flow.</description>
+      <description>
+      Specifies the effective adiabatic index :math:`\gamma` of gas in an ADAF, which controls the thermodynamic response of the accreting gas and influences the structure and radiative efficiency of the flow.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>viscosityOption</name>
       <source>parameters</source>
       <defaultValue>var_str('fit')</defaultValue>
-      <description>Controls how the viscosity parameter $\alpha$ in an ADAF is determined. \mono{fit} will cause $\alpha$ to be computed
-       using the fitting function of \cite{benson_maximum_2009}; \mono{fixed} will cause $\alpha=$\mono{[adafViscosityFixedAlpha]}
-       to be used.</description>
+      <description>
+      Controls how the viscosity parameter :math:`\alpha` in an ADAF is determined. ``fit`` will cause :math:`\alpha` to be computed using the fitting function of :cite:t:`benson_maximum_2009`; ``fixed`` will cause :math:`\alpha=`\ ``[adafViscosityFixedAlpha]`` to be used.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>viscosityAlpha</name>
       <source>parameters</source>
       <defaultValue>0.1d0</defaultValue>
-      <description>The value for the viscosity parameter $\alpha$ in an ADAF to be used if \mono{[adafViscosityOption]}$=$\mono{fixed}.</description>
+      <description>
+      The value for the viscosity parameter :math:`\alpha` in an ADAF to be used if ``[adafViscosityOption]``\ :math:`=`\ ``fixed``.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>efficiencyJetMaximum</name>
       <source>parameters</source>
       <defaultValue>2.0d0</defaultValue>
-      <description>The maximum efficiency allowed for ADAF-driven jets (in units of the accretion power).</description>
+      <description>
+      The maximum efficiency allowed for ADAF-driven jets (in units of the accretion power).
+      </description>
     </inputParameter>
     !!]
     self=accretionDisksADAF(                                                                                                    &
@@ -306,7 +310,7 @@ contains
   end function adafConstructorParameters
 
   function adafConstructorInternal(energyOption,fieldEnhancementOption,efficiencyRadiationType,viscosityOption,efficiencyJetMaximum,efficiencyRadiation,adiabaticIndex,viscosityAlpha) result(self)
-    !!{
+    !!{RST
     Internal constructor for the ADAF accretion disk class.
     !!}
     use :: Black_Hole_Fundamentals     , only : Black_Hole_ISCO_Radius, Black_Hole_ISCO_Specific_Energy, Black_Hole_Rotational_Energy_Spin_Down, Black_Hole_Static_Radius, &
@@ -447,7 +451,7 @@ contains
   end function adafConstructorInternal
 
   double precision function adafEfficiencyRadiative(self,blackHole,accretionRateMass,accretionDiskType) result(efficiencyRadiative)
-    !!{
+    !!{RST
     Computes the radiative efficiency for an ADAF.
     !!}
     use :: Error, only : Error_Report
@@ -475,7 +479,7 @@ contains
   end function adafEfficiencyRadiative
 
   double precision function adafPowerJet(self,blackHole,accretionRateMass)
-    !!{
+    !!{RST
     Computes the jet power of the given black hole in due to accretion from an ADAF disk.
     !!}
     implicit none
@@ -495,9 +499,8 @@ contains
   end function adafPowerJet
 
   double precision function adafRateSpinUp(self,blackHole,accretionRateMass)
-    !!{
-    Computes the spin up rate of the black hole in \mono{blackHole} due to accretion from an ADAF.
-    disk.
+    !!{RST
+    Computes the spin up rate of the black hole in ``blackHole`` due to accretion from an ADAF. disk.
     !!}
     implicit none
     class           (accretionDisksADAF    ), intent(inout) :: self
@@ -520,7 +523,7 @@ contains
   end function adafRateSpinUp
 
   double precision function adafJetPowerDiskFromBlackHole(self,spinBlackHole,radius)
-    !!{
+    !!{RST
     Returns the power extracted from the black hole by the disk-launched jet from an ADAF.
     !!}
     implicit none
@@ -543,7 +546,7 @@ contains
   end function adafJetPowerDiskFromBlackHole
 
   double precision function adafJetPowerDisk(self,spinBlackHole,radius)
-    !!{
+    !!{RST
     Returns the power of the disk-launched jet from an ADAF.
     !!}
     use :: Black_Hole_Fundamentals, only : Black_Hole_Frame_Dragging_Frequency, Black_Hole_Metric_A_Factor, Black_Hole_Metric_D_Factor
@@ -605,7 +608,7 @@ contains
   end function adafJetPowerDisk
 
   double precision function adafJetPowerBlackHole(self,spinBlackHole,radius)
-    !!{
+    !!{RST
     Returns the power of the black hole-launched jet from an ADAF.
     !!}
     use :: Black_Hole_Fundamentals, only : Black_Hole_Frame_Dragging_Frequency, Black_Hole_Metric_A_Factor, Black_Hole_Metric_D_Factor
@@ -669,8 +672,8 @@ contains
   end function adafJetPowerBlackHole
 
   double precision function adafFieldEnhancement(self,spinBlackHole,radius)
-    !!{
-    Returns the field enhancement factor, $g$, in the ADAF.
+    !!{RST
+    Returns the field enhancement factor, :math:`g`, in the ADAF.
     !!}
     use :: Black_Hole_Fundamentals, only : Black_Hole_Frame_Dragging_Frequency, Black_Hole_Metric_D_Factor
     implicit none
@@ -702,7 +705,7 @@ contains
   end function adafFieldEnhancement
 
   double precision function adafFluidAngularVelocity(self,spinBlackHole,radius)
-    !!{
+    !!{RST
     Returns the angular velocity of the rotating fluid with respect to the local inertial observer (ZAMO).
     !!}
     use :: Black_Hole_Fundamentals, only : Black_Hole_Metric_A_Factor, Black_Hole_Metric_D_Factor
@@ -728,8 +731,8 @@ contains
   end function adafFluidAngularVelocity
 
   double precision function adafViscosityParameter(self,spinBlackHole)
-    !!{
-    Returns the effective value of the $\alpha$ viscosity parameter for an ADAF.
+    !!{RST
+    Returns the effective value of the :math:`\alpha` viscosity parameter for an ADAF.
     !!}
     implicit none
     class           (accretionDisksADAF), intent(inout) :: self
@@ -760,9 +763,8 @@ contains
   end function adafViscosityParameter
 
   double precision function adafGamma(self,spinBlackHole,radius)
-    !!{
-    Returns the net relativistic boost factor from the fluid frame of an ADAF to an observer at rest at infinity.
-    The input quantities are in natural units.
+    !!{RST
+    Returns the net relativistic boost factor from the fluid frame of an ADAF to an observer at rest at infinity. The input quantities are in natural units.
     !!}
     implicit none
     class           (accretionDisksADAF), intent(inout) :: self
@@ -780,9 +782,8 @@ contains
   end function adafGamma
 
   double precision function adafGammaAzimuthal(self,spinBlackHole,radius)
-    !!{
-    Returns the $\phi$ component relativistic boost factor from the fluid frame of an ADAF to an observer at rest at infinity.
-    The input quantities are in natural units.
+    !!{RST
+    Returns the :math:`\phi` component relativistic boost factor from the fluid frame of an ADAF to an observer at rest at infinity. The input quantities are in natural units.
     !!}
     use :: Black_Hole_Fundamentals, only : Black_Hole_Metric_A_Factor
     implicit none
@@ -810,9 +811,8 @@ contains
   end function adafGammaAzimuthal
 
   double precision function adafGammaRadial(self,spinBlackHole,radius)
-    !!{
-    Returns the $r$ component relativistic boost factor from the fluid frame of an ADAF to an observer at rest at infinity.
-    The input quantities are in natural units.
+    !!{RST
+    Returns the :math:`r` component relativistic boost factor from the fluid frame of an ADAF to an observer at rest at infinity. The input quantities are in natural units.
     !!}
     implicit none
     class           (accretionDisksADAF), intent(inout) :: self
@@ -835,7 +835,7 @@ contains
   end function adafGammaRadial
 
   double precision function adafAngularMomentum(self,spinBlackHole,radius)
-    !!{
+    !!{RST
     Returns the specific angular momentum of accreted material in the ADAF.
     !!}
     implicit none
@@ -854,7 +854,7 @@ contains
   end function adafAngularMomentum
 
   double precision function adafEnthalpyAngularMomentumProduct(self,spinBlackHole,radius)
-    !!{
+    !!{RST
     Return the product of enthalpy and angular momentum for the ADAF.
     !!}
     use :: Black_Hole_Fundamentals, only : Black_Hole_ISCO_Radius, unitsGravitational
@@ -944,7 +944,7 @@ contains
   end function adafEnthalpyAngularMomentumProduct
 
   double precision function adafEnthalpy(self,spinBlackHole,radius)
-    !!{
+    !!{RST
     Returns the relativistic enthalpy of the ADAF.
     !!}
     implicit none
@@ -970,7 +970,7 @@ contains
   end function adafEnthalpy
 
   double precision function adafTemperature(self,spinBlackHole,radius)
-    !!{
+    !!{RST
     Return the dimensionless temperature of the ADAF
     !!}
     use :: Black_Hole_Fundamentals, only : Black_Hole_ISCO_Radius, unitsGravitational
@@ -1051,9 +1051,8 @@ contains
   end function adafTemperature
 
   double precision function adafVelocity(self,spinBlackHole,radius)
-    !!{
-    Return the (dimensionless) velocity in an ADAF at given \mono{radius}, for a black hole of given
-    \mono{spinBlackHole}.
+    !!{RST
+    Return the (dimensionless) velocity in an ADAF at given ``radius``, for a black hole of given ``spinBlackHole``.
     !!}
     use :: Black_Hole_Fundamentals, only : Black_Hole_Horizon_Radius, Black_Hole_ISCO_Radius
     implicit none
@@ -1182,8 +1181,8 @@ contains
   end function adafVelocity
 
   double precision function adafHeight(self,spinBlackHole,radius)
-    !!{
-    Return the (dimensionless) height in an ADAF at given \mono{radius}, for a black hole of given \mono{spinBlackHole}.
+    !!{RST
+    Return the (dimensionless) height in an ADAF at given ``radius``, for a black hole of given ``spinBlackHole``.
     !!}
     use :: Black_Hole_Fundamentals, only : Black_Hole_Frame_Dragging_Frequency, Black_Hole_Metric_A_Factor, Black_Hole_Metric_D_Factor
     implicit none
@@ -1242,7 +1241,7 @@ contains
   end function adafHeight
 
   double precision function adafAdiabaticIndexDefault(fieldEnhancementOption)
-    !!{
+    !!{RST
     Returns the default adiabatic index in an ADAF give the field enhancement option.
     !!}
     use :: Error, only : Error_Report

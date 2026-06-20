@@ -17,31 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a tidal mass distribution heating class.
   !!}
 
   !![
-  <massDistributionHeating name="massDistributionHeatingTidal">
+  <massDistributionHeating name="massDistributionHeatingTidal" docformat="rst">
     <description>
-      A mass distribution heating model which accounts for heating due to tidal shocking. The model follows the general
-      approach of \cite{gnedin_tidal_1999}. The change in the specific energy of particles at radius $r$ in a halo is given by
-      $\Delta \epsilon = \Delta \epsilon_1 + \Delta \epsilon_2$, where $\Delta \epsilon_1$, and $\Delta \epsilon_2$ are the first
-      and second order perturbations respectively. The first order term is given by $\Delta \epsilon_1 = Q r^2$ where $Q$ is the
-      tidal tensor integrated along the orbital path (see, for example, \citealt{taylor_dynamics_2001}), while the second order
-      term is given by $\Delta \epsilon_2 = (2/3) f \sigma_\mathrm{rms} (1+\chi_\mathrm{r,v}) \sqrt{\Delta \epsilon_1}$
-      \citep[][eqn.~20, see also \protect\citealt{gnedin_self-consistent_1999}; eqn.~18a,b]{gnedin_tidal_1999}. For the particle
-      velocity dispersion, $v_\mathrm{rms}$, we use $\sqrt{3} \sigma_\mathrm{r}(r)$, the radial velocity dispersion in the dark
-      matter profile scaled to the total velocity dispersion assuming an isotropic velocity distribution. The position-velocity
-      correlation function, $\chi_\mathrm{r,v}$, is taken to be a constant given by the parameter \mono{[correlationVelocityRadius]}. The coefficient, $f=$\mono{[coefficientSecondOrder]} is introduced to allow
-      some freedom to adjust the contribution of the second order term. It is degenerate with the value of $\chi_\mathrm{r,v}$
-      but is introduced to allow for possible future promotion of $\chi_\mathrm{r,v}$ from a constant to a function of the dark
-      matter profile potential \citep[see, for example,][appendix~B]{gnedin_self-consistent_1999}.
+    A mass distribution heating model which accounts for heating due to tidal shocking. The model follows the general approach of :cite:t:`gnedin_tidal_1999`. The change in the specific energy of particles at radius :math:`r` in a halo is given by :math:`\Delta \epsilon = \Delta \epsilon_1 + \Delta \epsilon_2`, where :math:`\Delta \epsilon_1`, and :math:`\Delta \epsilon_2` are the first and second order perturbations respectively. The first order term is given by :math:`\Delta \epsilon_1 = Q r^2` where :math:`Q` is the tidal tensor integrated along the orbital path (see, for example, :cite:author:`taylor_dynamics_2001` :cite:year:`taylor_dynamics_2001`), while the second order term is given by :math:`\Delta \epsilon_2 = (2/3) f \sigma_\mathrm{rms} (1+\chi_\mathrm{r,v}) \sqrt{\Delta \epsilon_1}` :cite:p:`gnedin_tidal_1999`. For the particle velocity dispersion, :math:`v_\mathrm{rms}`, we use :math:`\sqrt{3} \sigma_\mathrm{r}(r)`, the radial velocity dispersion in the dark matter profile scaled to the total velocity dispersion assuming an isotropic velocity distribution. The position-velocity correlation function, :math:`\chi_\mathrm{r,v}`, is taken to be a constant given by the parameter ``[correlationVelocityRadius]``. The coefficient, :math:`f=`\ ``[coefficientSecondOrder]`` is introduced to allow some freedom to adjust the contribution of the second order term. It is degenerate with the value of :math:`\chi_\mathrm{r,v}` but is introduced to allow for possible future promotion of :math:`\chi_\mathrm{r,v}` from a constant to a function of the dark matter profile potential :cite:p:`gnedin_self-consistent_1999`.
     </description>
   </massDistributionHeating>
   !!]
   type, extends(massDistributionHeatingClass) :: massDistributionHeatingTidal
-     !!{
+     !!{RST
      Implementation of a tidal mass distribution heating class.
      !!}
      private
@@ -50,7 +38,7 @@
           &              heatSpecificNormalized
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute the first and second order energy perturbations." method="specificEnergyTerms"/>
        <method description="(Re)initialize the parameters of the tidal heating distribution." method="initialize"/>
      </methods>
@@ -63,8 +51,8 @@
   end type massDistributionHeatingTidal
 
   interface massDistributionHeatingTidal
-     !!{
-     Constructors for the \refClass{massDistributionHeatingTidal} mass distribution heating class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionHeatingTidal` mass distribution heating class.
      !!}
      module procedure tidalConstructorParameters
      module procedure tidalConstructorInternal
@@ -73,9 +61,8 @@
 contains
 
   function tidalConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionHeatingTidal} mass distribution heating class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionHeatingTidal` mass distribution heating class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -86,34 +73,44 @@ contains
          &                                                           coefficientSecondOrder2
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>heatSpecificNormalized</name>
-      <description>The normalized specific tidal heating, $Q = \epsilon / r^2$.</description>
+      <description>
+      The normalized specific tidal heating, :math:`Q = \epsilon / r^2`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>coefficientSecondOrder0</name>
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
-      <description>The coefficient, $a_0$, appearing in the second-order heating term, $f_2 = a_0 + a_1 \mathrm{d}\log \rho/\mathrm{d} \log r + a_2 (\mathrm{d}\log \rho/\mathrm{d} \log r)^2$.</description>
+      <description>
+      The coefficient, :math:`a_0`, appearing in the second-order heating term, :math:`f_2 = a_0 + a_1 \mathrm{d}\log \rho/\mathrm{d} \log r + a_2 (\mathrm{d}\log \rho/\mathrm{d} \log r)^2`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>coefficientSecondOrder1</name>
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
-      <description>The coefficient, $a_1$, appearing in the second-order heating term, $f_2 = a_0 + a_1 \mathrm{d}\log \rho/\mathrm{d} \log r + a_2 (\mathrm{d}\log \rho/\mathrm{d} \log r)^2$.</description>
+      <description>
+      The coefficient, :math:`a_1`, appearing in the second-order heating term, :math:`f_2 = a_0 + a_1 \mathrm{d}\log \rho/\mathrm{d} \log r + a_2 (\mathrm{d}\log \rho/\mathrm{d} \log r)^2`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>coefficientSecondOrder2</name>
       <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
-      <description>The coefficient, $a_2$, appearing in the second-order heating term, $f_2 = a_0 + a_1 \mathrm{d}\log \rho/\mathrm{d} \log r + a_2 (\mathrm{d}\log \rho/\mathrm{d} \log r)^2$.</description>
+      <description>
+      The coefficient, :math:`a_2`, appearing in the second-order heating term, :math:`f_2 = a_0 + a_1 \mathrm{d}\log \rho/\mathrm{d} \log r + a_2 (\mathrm{d}\log \rho/\mathrm{d} \log r)^2`.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>correlationVelocityRadius</name>
       <defaultValue>-1.0d0</defaultValue>
       <source>parameters</source>
-      <description>The velocity-position correlation function, $\chi_\mathrm{r,v}$, as defined by \cite[][eqn.~B1]{gnedin_self-consistent_1999} which controls the strength of the second order heating term.</description>
+      <description>
+      The velocity-position correlation function, :math:`\chi_\mathrm{r,v}`, as defined by :cite:t:`gnedin_self-consistent_1999` which controls the strength of the second order heating term.
+      </description>
     </inputParameter>
     !!]
     self=massDistributionHeatingTidal(heatSpecificNormalized,coefficientSecondOrder0,coefficientSecondOrder1,coefficientSecondOrder2,correlationVelocityRadius)
@@ -124,8 +121,8 @@ contains
   end function tidalConstructorParameters
   
   function tidalConstructorInternal(heatSpecificNormalized,coefficientSecondOrder0,coefficientSecondOrder1,coefficientSecondOrder2,correlationVelocityRadius) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionHeatingTidal} mass distribution heating class.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionHeatingTidal` mass distribution heating class.
     !!}
     implicit none
     type             (massDistributionHeatingTidal)                :: self
@@ -140,9 +137,8 @@ contains
   end function tidalConstructorInternal
 
   subroutine tidalInitialize(self,heatSpecificNormalized,coefficientSecondOrder0,coefficientSecondOrder1,coefficientSecondOrder2,correlationVelocityRadius)
-    !!{
-    (Re)initialize the parameters of a tidal mass distribution heating object. This is used
-    when the object is re-used from a pool, to update its properties for a new \gls{node}.
+    !!{RST
+    (Re)initialize the parameters of a tidal mass distribution heating object. This is used when the object is re-used from a pool, to update its properties for a new :term:`node`.
     !!}
     implicit none
     class           (massDistributionHeatingTidal), intent(inout) :: self
@@ -159,7 +155,7 @@ contains
   end subroutine tidalInitialize
 
   double precision function tidalSpecificEnergy(self,radius,massDistribution_) result(energySpecific)
-    !!{
+    !!{RST
     Compute the specific energy in a tidally-heated mass distribution.
     !!}
     implicit none
@@ -175,7 +171,7 @@ contains
   end function tidalSpecificEnergy
 
   double precision function tidalSpecificEnergyGradient(self,radius,massDistribution_) result(energySpecificGradient)
-    !!{
+    !!{RST
     Returns the gradient of the specific energy of heating.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -214,10 +210,8 @@ contains
   end function tidalSpecificEnergyGradient
 
   subroutine tidalSpecificEnergyTerms(self,radius,massDistribution_,energyPerturbationFirstOrder,energyPerturbationSecondOrder,densityLogSlope,velocityDispersion1D)
-    !!{
-    Compute the first and second order perturbations to the energy. The optional \mono{densityLogSlope} and
-    \mono{velocityDispersion1D} arguments return intermediate quantities used to compute the second-order term, allowing callers
-    (e.g.\ \mono{specificEnergyGradient()}) to avoid recomputing them.
+    !!{RST
+    Compute the first and second order perturbations to the energy. The optional ``densityLogSlope`` and ``velocityDispersion1D`` arguments return intermediate quantities used to compute the second-order term, allowing callers (e.g.\ ``specificEnergyGradient()``) to avoid recomputing them.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
@@ -266,7 +260,7 @@ contains
   end subroutine tidalSpecificEnergyTerms
 
   logical function tidalSpecificEnergyIsEverywhereZero(self) result(energySpecificIsEverywhereZero)
-    !!{
+    !!{RST
     Returns true if the specific energy is everywhere zero.
     !!}
     implicit none

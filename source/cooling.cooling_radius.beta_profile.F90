@@ -17,9 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a cooling radius class for $\beta$-profile halos, assuming collisional ionization equilibrium such that
-  cooling time scales as inverse density.
+  !!{RST
+  Implementation of a cooling radius class for :math:`\beta`-profile halos, assuming collisional ionization equilibrium such that cooling time scales as inverse density.
   !!}
 
   use :: Cooling_Times          , only : coolingTimeClass
@@ -30,15 +29,15 @@
   use :: Radiation_Fields       , only : radiationFieldCosmicMicrowaveBackground
 
   !![
-  <coolingRadius name="coolingRadiusBetaProfile">
+  <coolingRadius name="coolingRadiusBetaProfile" docformat="rst">
    <description>
-    A cooling radius class for $\beta$-profile halos. Computes the cooling radius by assuming that the hot gas density profile is a
-    $\beta$-profile ($\rho(r) \propto [r^2+r_\mathrm{c}^2]^{-1}$), and that the cooling rate scales as density squared, $\dot{E}\propto
-    \rho^2$, such that the cooling time scales as inverse density, $t_\mathrm{cool} \propto \rho^{-1}$. Consequently, the cooling radius is given by
-    \begin{equation}
-     r_\mathrm{cool} = r_\mathrm{virial} \left( \left[ {t_\mathrm{avail} \over t_0} - 1 \right] \left[ {t_\mathrm{virial} \over t_0} - 1 \right]^{-1} \right)^{1/2},
-    \end{equation}
-    where $t_0$, and $t_\mathrm{virial}$ are the cooling times at zero radius and the virial radius respectively.
+   A cooling radius class for :math:`\beta`-profile halos. Computes the cooling radius by assuming that the hot gas density profile is a :math:`\beta`-profile (:math:`\rho(r) \propto [r^2+r_\mathrm{c}^2]^{-1}`), and that the cooling rate scales as density squared, :math:`\dot{E}\propto \rho^2`, such that the cooling time scales as inverse density, :math:`t_\mathrm{cool} \propto \rho^{-1}`. Consequently, the cooling radius is given by
+
+   .. math::
+
+      r_\mathrm{cool} = r_\mathrm{virial} \left( \left[ {t_\mathrm{avail} \over t_0} - 1 \right] \left[ {t_\mathrm{virial} \over t_0} - 1 \right]^{-1} \right)^{1/2},
+
+   where :math:`t_0`, and :math:`t_\mathrm{virial}` are the cooling times at zero radius and the virial radius respectively.
    </description>
    <deepCopy>
     <functionClass variables="radiation"/>
@@ -49,9 +48,8 @@
   </coolingRadius>
   !!]
   type, extends(coolingRadiusClass) :: coolingRadiusBetaProfile
-     !!{
-     Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available
-     for cooling equals the cooling time.
+     !!{RST
+     Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available for cooling equals the cooling time.
      !!}
      private
      class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_        => null()
@@ -66,7 +64,7 @@
      double precision                                                   :: radiusGrowthRateStored              , radiusStored
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Reset memoized calculations." method="calculationReset" />
      </methods>
      !!]
@@ -78,7 +76,7 @@
   end type coolingRadiusBetaProfile
 
   interface coolingRadiusBetaProfile
-     !!{
+     !!{RST
      Constructors for the betaProfile cooling radius class.
      !!}
      module procedure betaProfileConstructorParameters
@@ -88,8 +86,8 @@
 contains
 
   function betaProfileConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the $\beta$-profile cooling radius class which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :math:`\beta`-profile cooling radius class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -118,8 +116,8 @@ contains
   end function betaProfileConstructorParameters
 
   function betaProfileConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_) result(self)
-    !!{
-    Internal constructor for the $\beta$-profile cooling radius class.
+    !!{RST
+    Internal constructor for the :math:`\beta`-profile cooling radius class.
     !!}
     use :: Abundances_Structure         , only : Abundances_Property_Count, abundances
     use :: Array_Utilities              , only : operator(.intersection.)
@@ -175,7 +173,7 @@ contains
   end function betaProfileConstructorInternal
 
   subroutine betaProfileAutoHook(self)
-    !!{
+    !!{RST
     Attach to the calculation reset event.
     !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
@@ -187,8 +185,8 @@ contains
   end subroutine betaProfileAutoHook
 
   subroutine betaProfileDestructor(self)
-    !!{
-    Destructor for the $\beta$-profile cooling radius class.
+    !!{RST
+    Destructor for the :math:`\beta`-profile cooling radius class.
     !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
@@ -206,7 +204,7 @@ contains
   end subroutine betaProfileDestructor
 
   subroutine betaProfileCalculationReset(self,node,uniqueID)
-    !!{
+    !!{RST
     Reset the cooling radius calculation.
     !!}
     use :: Kind_Numbers, only : kind_int8
@@ -223,7 +221,7 @@ contains
   end subroutine betaProfileCalculationReset
 
   double precision function betaProfileRadiusGrowthRate(self,node)
-    !!{
+    !!{RST
     Returns the cooling radius growth rate (in Mpc/Gyr) in the hot atmosphere.
     !!}
     use :: Abundances_Structure             , only : abundances
@@ -316,8 +314,8 @@ contains
   end function betaProfileRadiusGrowthRate
 
   double precision function betaProfileRadius(self,node)
-    !!{
-    Return the cooling radius in the $\beta$-profile model.
+    !!{RST
+    Return the cooling radius in the :math:`\beta`-profile model.
     !!}
     use :: Abundances_Structure             , only : abundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances

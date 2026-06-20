@@ -19,12 +19,12 @@
 
 !+    Contributions to this file made by: Niusha Ahvazi
 
-!!{
+!!{RST
 Contains a module that implements a simple two-dimensional integrator.
 !!}
 
 module Numerical_Integration_2D
-  !!{
+  !!{RST
   Implements a simple two-dimensional integrator.
   !!}
   use :: Numerical_Integration, only : integrator
@@ -33,10 +33,8 @@ module Numerical_Integration_2D
   public :: integrator2D
 
   type :: integrator2D
-     !!{
-     A simple 2D integrator. The integrand and tolerances are fixed at construction, and the (one-dimensional) integrator
-     objects used for the inner and outer integrals are built once in the constructor and reused on each call to
-     {\normalfont \ttfamily integrate}.
+     !!{RST
+     A simple 2D integrator. The integrand and tolerances are fixed at construction, and the (one-dimensional) integrator objects used for the inner and outer integrals are built once in the constructor and reused on each call to  integrate.
      !!}
      private
      procedure       (integrandTemplate), nopass        , pointer :: integrand   => null()
@@ -44,7 +42,7 @@ module Numerical_Integration_2D
      type            (integrator        )                         :: integratorX           , integratorY
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="integrate" description="Perform integration over a 2D region."/>
      </methods>
      !!]
@@ -52,14 +50,14 @@ module Numerical_Integration_2D
   end type integrator2D
 
   interface integrator2D
-     !!{
-     Constructors for the \refClass{integrator2D} class.
+     !!{RST
+     Constructors for the :galacticus-class:`integrator2D` class.
      !!}
      module procedure :: integrator2DConstructor
   end interface integrator2D
 
   abstract interface
-     !!{
+     !!{RST
      Template for 2D integrands.
      !!}
      double precision function integrandTemplate(x,y)
@@ -78,10 +76,8 @@ module Numerical_Integration_2D
 contains
 
   function integrator2DConstructor(integrand,toleranceRelative,toleranceAbsolute) result(self)
-    !!{
-    Constructor for the \refClass{integrator2D} class. The {\normalfont \ttfamily integrand} is the two-dimensional function to
-    be integrated. The (optional) {\normalfont \ttfamily toleranceRelative} and {\normalfont \ttfamily toleranceAbsolute}
-    arguments set the relative and absolute tolerances used for both the inner and outer integrals.
+    !!{RST
+    Constructor for the :galacticus-class:`integrator2D` class. The  integrand is the two-dimensional function to be integrated. The (optional)  toleranceRelative and  toleranceAbsolute arguments set the relative and absolute tolerances used for both the inner and outer integrals.
     !!}
     implicit none
     type            (integrator2D     )                          :: self
@@ -99,10 +95,8 @@ contains
   end function integrator2DConstructor
 
   double precision function integrator2DIntegrate(self,boundaries)
-    !!{
-    Perform integration over a 2D region. {\normalfont \ttfamily boundaries} holds the integration limits, with
-    {\normalfont \ttfamily boundaries(1,:)} the limits of the outer ($x$) integral and {\normalfont \ttfamily boundaries(2,:)}
-    the limits of the inner ($y$) integral.
+    !!{RST
+    Perform integration over a 2D region.  boundaries holds the integration limits, with  boundaries(1,:) the limits of the outer (:math:`x`) integral and  boundaries(2,:) the limits of the inner (:math:`y`) integral.
     !!}
     implicit none
     class           (integrator2D), intent(inout), target        :: self
@@ -115,8 +109,8 @@ contains
   end function integrator2DIntegrate
 
   double precision function integrator2DIntegrandX(x)
-    !!{
-    Evaluate the inner ($y$) integral at fixed $x$.
+    !!{RST
+    Evaluate the inner (:math:`y`) integral at fixed :math:`x`.
     !!}
     implicit none
     double precision, intent(in) :: x
@@ -127,8 +121,8 @@ contains
   end function integrator2DIntegrandX
 
   double precision function integrator2DIntegrandY(y)
-    !!{
-    Evaluate the 2D integrand at the current outer-integration $x$ and the given $y$.
+    !!{RST
+    Evaluate the 2D integrand at the current outer-integration :math:`x` and the given :math:`y`.
     !!}
     implicit none
     double precision, intent(in) :: y

@@ -17,8 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a merger tree branching probability class using the algorithm of \cite{parkinson_generating_2008}.
+!!{RST
+Implements a merger tree branching probability class using the algorithm of :cite:t:`parkinson_generating_2008`.
 !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
@@ -26,32 +26,24 @@ Implements a merger tree branching probability class using the algorithm of \cit
   use :: Tables                    , only : table1DLogarithmicLinear
 
   !![
-  <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityParkinsonColeHelly">
+  <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityParkinsonColeHelly" docformat="rst">
    <description>
-    A merger tree branching probability class using the algorithm of \cite{parkinson_generating_2008}. The parameters $G_0$,
-    $\gamma_1$ and $\gamma_2$ of their algorithm are specified by the input parameters \mono{[G0]},
-    \mono{[gamma]} and \mono{[gamma2]} respectively. Additionally, the parameter \mono{accuracyFirstOrder} limits the step in $\delta_\mathrm{crit}$ so that it never exceeds
-    \mono{accuracyFirstOrder}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$, which ensures
-    the the first order expansion of the merging rate that is assumed is accurate. To find bounds on the branching probability,
-    we make use of the fact that eqn.~(4) of \cite{parkinson_generating_2008} can be written as
-    \begin{equation}
-     {\d f \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} \int_{M_\mathrm{min}}^{M/2} {M \over M^\prime} {\d f \over \d t}
-     {\d S \over \d M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime.
-    \end{equation}
-    By holding the $M^\prime$ in the denominator of the first term in the integrand fixed, we obtain an analytic solution to
-    the integral in terms of hypergeometric functions. If we fix this $M^\prime$ at $M_\mathrm{min}$ we obtain an upper limit
-    on the branching probability, while if we fix it to $M/2$ a lower limit is obtained.
-  
-    Calculation of branching probabilities involves computation of several hypergeometric functions which are numerically
-    slow. Two parameters control the accuracy and application of these functions. First, \mono{[precisionHypergeometric]}($=10^{-6}$) specifies the fractional tolerance to which these functions should be
-    computed. Second, if \mono{[hypergeometricTabulate]}$=$\mono{true} then these functions
-    will be tabulated for rapid lookup (at some loss of precision).
+   A merger tree branching probability class using the algorithm of :cite:t:`parkinson_generating_2008`. The parameters :math:`G_0`, :math:`\gamma_1` and :math:`\gamma_2` of their algorithm are specified by the input parameters ``[G0]``, ``[gamma]`` and ``[gamma2]`` respectively. Additionally, the parameter ``accuracyFirstOrder`` limits the step in :math:`\delta_\mathrm{crit}` so that it never exceeds ``accuracyFirstOrder``\ :math:`\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}`, which ensures the the first order expansion of the merging rate that is assumed is accurate. To find bounds on the branching probability, we make use of the fact that eqn. (4) of :cite:t:`parkinson_generating_2008` can be written as
+
+   .. math::
+
+      {\d f \over \d t} = {\mathrm{d} t \over \mathrm{d}\omega} \int_{M_\mathrm{min}}^{M/2} {M \over M^\prime} {\d f \over \d t}
+      {\d S \over \d M^\prime} \left| {\d t \over \d \omega}\right| G[\omega,\sigma(M),\sigma(M^\prime)] \d M^\prime.
+
+   By holding the :math:`M^\prime` in the denominator of the first term in the integrand fixed, we obtain an analytic solution to the integral in terms of hypergeometric functions. If we fix this :math:`M^\prime` at :math:`M_\mathrm{min}` we obtain an upper limit on the branching probability, while if we fix it to :math:`M/2` a lower limit is obtained.
+
+   Calculation of branching probabilities involves computation of several hypergeometric functions which are numerically slow. Two parameters control the accuracy and application of these functions. First, ``[precisionHypergeometric]``\ (:math:`=10^{-6}`) specifies the fractional tolerance to which these functions should be computed. Second, if ``[hypergeometricTabulate]``\ :math:`=`\ ``true`` then these functions will be tabulated for rapid lookup (at some loss of precision).
    </description>
   </mergerTreeBranchingProbability>
   !!]
   type, extends(mergerTreeBranchingProbabilityClass) :: mergerTreeBranchingProbabilityParkinsonColeHelly
-     !!{
-     A merger tree branching probability class using the algorithm of \cite{parkinson_generating_2008}.
+     !!{RST
+     A merger tree branching probability class using the algorithm of :cite:t:`parkinson_generating_2008`.
      !!}
      private
      double precision                                         :: gamma1                                           , gamma2                                     , &
@@ -77,11 +69,11 @@ Implements a merger tree branching probability class using the algorithm of \cit
      type            (integrator                   )          :: integrator_
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Compute common factors needed for the calculations."                         method="computeCommonFactors"/>
-       <method description="Compute the function $V(q)$ from \cite{parkinson_generating_2008}."          method="V"                   />
-       <method description="Compute the part of the modifier term which depends on $\sigma_\mathrm{s}$." method="modifier"            />
-       <method description="Compute the $a$ parameter of the hypergeometric function."                   method="hypergeometricA"     />
+       <method description="Compute the function :math:`V(q)` from :cite:t:`parkinson_generating_2008`."          method="V"                   />
+       <method description="Compute the part of the modifier term which depends on :math:`\sigma_\mathrm{s}`." method="modifier"            />
+       <method description="Compute the :math:`a` parameter of the hypergeometric function."                   method="hypergeometricA"     />
      </methods>
      !!]
      final     ::                          parkinsonColeHellyDestructor
@@ -98,8 +90,8 @@ Implements a merger tree branching probability class using the algorithm of \cit
   end type mergerTreeBranchingProbabilityParkinsonColeHelly
 
   interface mergerTreeBranchingProbabilityParkinsonColeHelly
-     !!{
-     Constructors for the \refClass{mergerTreeBranchingProbabilityParkinsonColeHelly} merger tree branching probability class.
+     !!{RST
+     Constructors for the :galacticus-class:`mergerTreeBranchingProbabilityParkinsonColeHelly` merger tree branching probability class.
      !!}
      module procedure parkinsonColeHellyConstructorParameters
      module procedure parkinsonColeHellyConstructorInternal
@@ -118,9 +110,8 @@ Implements a merger tree branching probability class using the algorithm of \cit
 contains
 
   function parkinsonColeHellyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{mergerTreeBranchingProbabilityParkinsonColeHelly} merger tree branching probability class which reads parameters from a provided
-    parameter list.
+    !!{RST
+    Constructor for the :galacticus-class:`mergerTreeBranchingProbabilityParkinsonColeHelly` merger tree branching probability class which reads parameters from a provided parameter list.
     !!}
     implicit none
     type            (mergerTreeBranchingProbabilityParkinsonColeHelly)                :: self
@@ -135,53 +126,68 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>G0</name>
       <defaultValue>0.57d0</defaultValue>
-      <description>The parameter $G_0$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+      <description>
+      The parameter :math:`G_0` appearing in the modified merger rate expression of :cite:t:`parkinson_generating_2008`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma1</name>
       <defaultValue>0.38d0</defaultValue>
-      <description>The parameter $\gamma_1$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+      <description>
+      The parameter :math:`\gamma_1` appearing in the modified merger rate expression of :cite:t:`parkinson_generating_2008`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma2</name>
       <defaultValue>-0.01d0</defaultValue>
-      <description>The parameter $\gamma_2$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+      <description>
+      The parameter :math:`\gamma_2` appearing in the modified merger rate expression of :cite:t:`parkinson_generating_2008`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>accuracyFirstOrder</name>
       <defaultValue>0.1d0</defaultValue>
-      <description>Limits the step in $\delta_\mathrm{crit}$ when constructing merger trees using the \cite{parkinson_generating_2008}
-         algorithm, so that it never exceeds \mono{accuracyFirstOrder}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$.</description>
+      <description>
+      Limits the step in :math:`\delta_\mathrm{crit}` when constructing merger trees using the :cite:t:`parkinson_generating_2008` algorithm, so that it never exceeds ``accuracyFirstOrder``\ :math:`\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>precisionHypergeometric</name>
       <defaultValue>1.0d-6</defaultValue>
-      <description>The fractional precision required in evaluates of hypergeometric functions in the modified Press-Schechter tree branching calculations.</description>
+      <description>
+      The fractional precision required in evaluates of hypergeometric functions in the modified Press-Schechter tree branching calculations.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>hypergeometricTabulate</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether hypergeometric factors should be precomputed and tabulated in modified Press-Schechter tree branching functions.</description>
+      <description>
+      Specifies whether hypergeometric factors should be precomputed and tabulated in modified Press-Schechter tree branching functions.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>cdmAssumptions</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, assume that $\alpha(=-\mathrm{d}\log \sigma/\mathrm{d}\log M)&gt;0$ and $\mathrm{d}\alpha/\mathrm{d}M&gt;0$ (as is true in the case of \gls{cdm}) when constructing merger trees using the \cite{parkinson_generating_2008}.</description>
+      <description>
+      If true, assume that :math:`\alpha(=-\mathrm{d}\log \sigma/\mathrm{d}\log M)&gt;0` and :math:`\mathrm{d}\alpha/\mathrm{d}M&gt;0` (as is true in the case of :term:`CDM`) when constructing merger trees using the :cite:t:`parkinson_generating_2008`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tolerateRoundOffErrors</name>
       <defaultValue>.false.</defaultValue>
-      <description>If true, round-off errors in integrations of branching probability will be tolerated. This may degrade the accuracy of solutions, but can be unavoidable in models with cut-offs in their power spectra.</description>
+      <description>
+      If true, round-off errors in integrations of branching probability will be tolerated. This may degrade the accuracy of solutions, but can be unavoidable in models with cut-offs in their power spectra.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
@@ -197,8 +203,8 @@ contains
   end function parkinsonColeHellyConstructorParameters
 
   function parkinsonColeHellyConstructorInternal(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,tolerateRoundOffErrors,cosmologicalMassVariance_,criticalOverdensity_) result(self)
-    !!{
-    Internal constructor for the \refClass{mergerTreeBranchingProbabilityParkinsonColeHelly} merger tree branching probability class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`mergerTreeBranchingProbabilityParkinsonColeHelly` merger tree branching probability class.
     !!}
     use :: Error                , only : Error_Report
     use :: Numerical_Integration, only : GSL_Integ_Gauss15
@@ -247,7 +253,7 @@ contains
   end subroutine parkinsonColeHellyDestructor
 
   double precision function parkinsonColeHellyMassBranch(self,haloMass,deltaCritical,time,massResolution,probabilityFraction,randomNumberGenerator_,node)
-    !!{
+    !!{RST
     A merger tree branch split mass function.
     !!}
     implicit none
@@ -277,12 +283,8 @@ contains
   contains
 
     double precision function massBranchCDMAssumptions()
-      !!{
-      A merger tree branch split mass function which assumes a \gls{cdm}-like power spectrum. With these assumptions, it can
-      employ the mass sampling algorithm of \cite{parkinson_generating_2008}. One difference with respect to the algorithm of
-      \cite{parkinson_generating_2008} is that here the normalization of their function $S(q)$ (eqn. A2) is irrelevant, since a
-      branch split has already been decided to have occurred---all that remains necessary is to determine its mass. Variable and
-      function names follow \cite{parkinson_generating_2008}.
+      !!{RST
+      A merger tree branch split mass function which assumes a :term:`CDM`-like power spectrum. With these assumptions, it can employ the mass sampling algorithm of :cite:t:`parkinson_generating_2008`. One difference with respect to the algorithm of :cite:t:`parkinson_generating_2008` is that here the normalization of their function :math:`S(q)` (eqn. A2) is irrelevant, since a branch split has already been decided to have occurred---all that remains necessary is to determine its mass. Variable and function names follow :cite:t:`parkinson_generating_2008`.
       !!}
       implicit none
       logical :: reject
@@ -342,8 +344,8 @@ contains
     end function massBranchCDMAssumptions
 
     double precision function R(massFraction)
-      !!{
-      The function $R(q)$ from \cite[][eqn. A3]{parkinson_generating_2008}.
+      !!{RST
+      The function :math:`R(q)` from :cite:t:`parkinson_generating_2008`.
       !!}
       implicit none
       double precision, intent(in   ) :: massFraction
@@ -373,10 +375,8 @@ contains
     end function R
 
     double precision function massBranchGeneric()
-      !!{
-      Determine the mass of one of the halos to which the given halo branches, given the branching probability, \mono{probability}. Typically, \mono{probabilityFraction} is found by multiplying \mono{probability}
-      by a random variable drawn in the interval 0--1 if a halo branches. This routine then finds the progenitor mass
-      corresponding to this value.
+      !!{RST
+      Determine the mass of one of the halos to which the given halo branches, given the branching probability, ``probability``. Typically, ``probabilityFraction`` is found by multiplying ``probability`` by a random variable drawn in the interval 0--1 if a halo branches. This routine then finds the progenitor mass corresponding to this value.
       !!}
       use :: Root_Finder, only : GSL_Root_fSolver_Brent, rootFinder
       implicit none
@@ -424,8 +424,8 @@ contains
   end function parkinsonColeHellyMassBranch
 
   double precision function parkinsonColeHellyV(self,massFraction,haloMass)
-    !!{
-    The function $V(q)$ from \cite[][eqn. A4]{parkinson_generating_2008}.
+    !!{RST
+    The function :math:`V(q)` from :cite:t:`parkinson_generating_2008`.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
@@ -442,7 +442,7 @@ contains
   end function parkinsonColeHellyV
 
   double precision function parkinsonColeHellyMassBranchRoot(logMassMaximum)
-    !!{
+    !!{RST
     Used to find the mass of a merger tree branching event.
     !!}
     use :: Display        , only : displayGreen    , displayBlue, displayYellow, displayReset
@@ -479,7 +479,7 @@ contains
   end function parkinsonColeHellyMassBranchRoot
 
   double precision function parkinsonColeHellyMassBranchRootDerivative(logMassMaximum)
-    !!{
+    !!{RST
     Used to find the mass of a merger tree branching event.
     !!}
     implicit none
@@ -498,8 +498,8 @@ contains
   end function parkinsonColeHellyMassBranchRootDerivative
 
   double precision function parkinsonColeHellyStepMaximum(self,haloMass,deltaCritical,time,massResolution)
-    !!{
-    Return the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time \mono{deltaCritical} should be allowed to take.
+    !!{RST
+    Return the maximum allowed step in :math:`\delta_\mathrm{crit}` that a halo of mass ``haloMass`` at time ``deltaCritical`` should be allowed to take.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
@@ -532,9 +532,8 @@ contains
   end function parkinsonColeHellyStepMaximum
 
   double precision function parkinsonColeHellyRate(self,mass,deltaCritical,time,massBranch,node)
-    !!{
-    Return the rate per unit mass and per unit change in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time
-    \mono{deltaCritical} will undergo a branching to progenitors with mass \mono{massBranch}.
+    !!{RST
+    Return the rate per unit mass and per unit change in :math:`\delta_\mathrm{crit}` that a halo of mass ``haloMass`` at time ``deltaCritical`` will undergo a branching to progenitors with mass ``massBranch``.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
@@ -558,9 +557,8 @@ contains
   end function parkinsonColeHellyRate
 
   double precision function parkinsonColeHellyProbability(self,haloMass,deltaCritical,time,massResolution,node)
-    !!{
-    Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time
-    \mono{deltaCritical} will undergo a branching to progenitors with mass greater than \mono{massResolution}.
+    !!{RST
+    Return the probability per unit change in :math:`\delta_\mathrm{crit}` that a halo of mass ``haloMass`` at time ``deltaCritical`` will undergo a branching to progenitors with mass greater than ``massResolution``.
     !!}
     use :: Display        , only : displayGreen    , displayBlue             , displayYellow     , displayReset
     use :: Error          , only : errorStatusRound, errorStatusMaxIterations, errorStatusSuccess
@@ -625,7 +623,7 @@ contains
   end function parkinsonColeHellyProbability
 
   double precision function parkinsonColeHellyProbabilityIntegrandLogarithmic(logChildHaloMass)
-    !!{
+    !!{RST
     Integrand for the branching probability.
     !!}
     implicit none
@@ -641,9 +639,8 @@ contains
   end function parkinsonColeHellyProbabilityIntegrandLogarithmic
 
   double precision function parkinsonColeHellyProgenitorMassFunction(childHaloMass,childSigma,childAlpha)
-    !!{
-    Progenitor mass function from Press-Schechter. The constant factor of the parent halo mass is not included here---instead
-    it is included in a multiplicative prefactor by which integrals over this function are multiplied.
+    !!{RST
+    Progenitor mass function from Press-Schechter. The constant factor of the parent halo mass is not included here---instead it is included in a multiplicative prefactor by which integrals over this function are multiplied.
     !!}
     implicit none
     double precision, intent(in   ) :: childAlpha, childHaloMass, childSigma
@@ -655,9 +652,8 @@ contains
   end function parkinsonColeHellyProgenitorMassFunction
 
   double precision function parkinsonColeHellyMergingRate(childSigma,childAlpha)
-    !!{
-    Merging rate from Press-Schechter. The constant factor of $\sqrt{2/\pi}$ not included here---instead it is included in a
-    multiplicative prefactor by which integrals over this function are multiplied.
+    !!{RST
+    Merging rate from Press-Schechter. The constant factor of :math:`\sqrt{2/\pi}` not included here---instead it is included in a multiplicative prefactor by which integrals over this function are multiplied.
     !!}
     implicit none
     double precision, intent(in   ) :: childAlpha       , childSigma
@@ -673,10 +669,8 @@ contains
   end function parkinsonColeHellyMergingRate
 
   double precision function parkinsonColeHellyModifier(self,childSigma)
-    !!{
-    Empirical modification of the progenitor mass function from \cite{parkinson_generating_2008}. The constant factors of
-    $G_0 (\delta_\mathrm{p}/\sigma_\mathrm{p})^{\gamma_2}$ and $1/\sigma_\mathrm{p}^{\gamma_1}$ are not included
-    here---instead they are included in a multiplicative prefactor by which integrals over this function are multiplied.
+    !!{RST
+    Empirical modification of the progenitor mass function from :cite:t:`parkinson_generating_2008`. The constant factors of :math:`G_0 (\delta_\mathrm{p}/\sigma_\mathrm{p})^{\gamma_2}` and :math:`1/\sigma_\mathrm{p}^{\gamma_1}` are not included here---instead they are included in a multiplicative prefactor by which integrals over this function are multiplied.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
@@ -687,8 +681,8 @@ contains
   end function parkinsonColeHellyModifier
 
   function parkinsonColeHellyHypergeometricA(self,gamma) result(a)
-    !!{
-    Compute the $a$ parameter of the hypergeometric function.
+    !!{RST
+    Compute the :math:`a` parameter of the hypergeometric function.
     !!}
     implicit none
     double precision                                                  , dimension(2)  :: a
@@ -700,9 +694,8 @@ contains
   end function parkinsonColeHellyHypergeometricA
   
   double precision function parkinsonColeHellyProbabilityBound(self,haloMass,deltaCritical,time,massResolution,bound,node)
-    !!{
-    Return a bound on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass \mono{haloMass} at time \mono{deltaCritical} will undergo a branching to progenitors with mass greater than
-    \mono{massResolution}.
+    !!{RST
+    Return a bound on the probability per unit change in :math:`\delta_\mathrm{crit}` that a halo of mass ``haloMass`` at time ``deltaCritical`` will undergo a branching to progenitors with mass greater than ``massResolution``.
     !!}
     use            :: Display                 , only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset
     use            :: Error                   , only : Error_Report
@@ -920,10 +913,8 @@ contains
   end function parkinsonColeHellyProbabilityBound
 
   double precision function parkinsonColeHellyFractionSubresolution(self,haloMass,deltaCritical,time,massResolution,node)
-    !!{
-    Return the fraction of mass accreted in subresolution halos, i.e. those below \mono{massResolution}, per unit change in
-    $\delta_\mathrm{crit}$ for a halo of mass \mono{haloMass} at time \mono{deltaCritical}. The integral is computed analytically in
-    terms of the $_2F_1$ hypergeometric function.
+    !!{RST
+    Return the fraction of mass accreted in subresolution halos, i.e. those below ``massResolution``, per unit change in :math:`\delta_\mathrm{crit}` for a halo of mass ``haloMass`` at time ``deltaCritical``. The integral is computed analytically in terms of the :math:`_2F_1` hypergeometric function.
     !!}
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use :: Numerical_Constants_Math, only : Pi
@@ -973,7 +964,7 @@ contains
   end function parkinsonColeHellyFractionSubresolution
 
   subroutine parkinsonColeHellyComputeCommonFactors(self,deltaParent,time,massHaloParent,node)
-    !!{
+    !!{RST
     Precomputes some useful factors that are used in the modified Press-Schechter branching integrals.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -995,7 +986,7 @@ contains
   end subroutine parkinsonColeHellyComputeCommonFactors
 
   subroutine parkinsonColeHellySubresolutionHypergeometricTabulate(self,x,xMinimumIn,xMaximumIn)
-    !!{
+    !!{RST
     Tabulate the hypergeometric term appearing in the subresolution merger fraction expression.
     !!}
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
@@ -1059,7 +1050,7 @@ contains
   end subroutine parkinsonColeHellySubresolutionHypergeometricTabulate
 
   subroutine parkinsonColeHellyUpperBoundHypergeometricTabulate(self,mass,massResolution,massMinimumIn,massMaximumIn)
-    !!{
+    !!{RST
     Tabulate the hypergeometric term appearing in the upper bound branching probability rate expression.
     !!}
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1

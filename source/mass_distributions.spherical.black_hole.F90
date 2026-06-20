@@ -17,21 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a black hole distribution class.
   !!}
 
   !![
-  <massDistribution name="massDistributionBlackHole">
-   <description>A mass distribution class for point masses.</description>
+  <massDistribution name="massDistributionBlackHole" docformat="rst">
+   <description>
+   A mass distribution class for point masses.
+   </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionBlackHole
-     !!{
+     !!{RST
      A black hole distribution.
      !!}
      double precision :: mass, radiusGravitational
    contains
+     !![
+     <methods>
+       <method method="initialize" description="(Re)initialize the parameters of the black hole mass distribution."/>
+     </methods>
+     !!]
+     procedure :: initialize            => blackHoleInitialize
      procedure :: massTotal             => blackHoleMassTotal
      procedure :: density               => blackHoleDensity
      procedure :: densityGradientRadial => blackHoleDensityGradientRadial
@@ -44,8 +52,8 @@
   end type massDistributionBlackHole
 
   interface massDistributionBlackHole
-     !!{
-     Constructors for the \refClass{massDistributionBlackHole} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionBlackHole` mass distribution class.
      !!}
      module procedure blackHoleConstructorParameters
      module procedure blackHoleConstructorInternal
@@ -54,9 +62,8 @@
 contains
 
   function blackHoleConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionBlackHole} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionBlackHole` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -69,28 +76,36 @@ contains
     type            (varying_string           )                :: massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The mass (in $\mathrm{M}_\odot$) of the black hole, which is treated as a point mass whose gravitational potential is $-\mathrm{G}M/r$.</description>
+      <description>
+      The mass (in :math:`\mathrm{M}_\odot`) of the black hole, which is treated as a point mass whose gravitational potential is :math:`-\mathrm{G}M/r`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dimensionless</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true the point mass distribution is considered to be dimensionless.</description>
+      <description>
+      If true the point mass distribution is considered to be dimensionless.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <conditionalCall>
@@ -104,14 +119,9 @@ contains
   end function blackHoleConstructorParameters
   
   function blackHoleConstructorInternal(mass,dimensionless,componentType,massType) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionBlackHole} mass distribution class.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionBlackHole` mass distribution class.
     !!}
-    use :: Error                           , only : Error_Report
-    use :: Numerical_Comparison            , only : Values_Differ
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
-    use :: Numerical_Constants_Physical    , only : speedLight
-    use :: Numerical_Constants_Prefixes    , only : milli
     implicit none
     type            (massDistributionBlackHole   )                          :: self
     double precision                              , intent(in   ), optional :: mass
@@ -121,6 +131,26 @@ contains
     !![
     <constructorAssign variables="componentType, massType"/>
     !!]
+
+    call self%initialize(mass,dimensionless)
+    return
+  end function blackHoleConstructorInternal
+
+  subroutine blackHoleInitialize(self,mass,dimensionless)
+    !!{
+    (Re)initialize the parameters of a \refClass{massDistributionBlackHole} mass distribution. Factored out of the constructor
+    so that a pooled object can be re-used (re-initialized for a new \gls{node}) without being reallocated.
+    !!}
+    use :: Error                           , only : Error_Report
+    use :: Numerical_Comparison            , only : Values_Differ
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Numerical_Constants_Physical    , only : speedLight
+    use :: Numerical_Constants_Prefixes    , only : milli
+    implicit none
+    class           (massDistributionBlackHole), intent(inout)           :: self
+    double precision                           , intent(in   ), optional :: mass
+    logical                                    , intent(in   ), optional :: dimensionless
+
     ! Determine if profile is dimensionless.
     self%dimensionless=.false.
     if (present(dimensionless)) self%dimensionless=dimensionless
@@ -146,11 +176,16 @@ contains
             &                   /     milli                          **2 &
             &                   /     speedLight                     **2
     end if
+    ! Defensively clear any memoized tabulations inherited from the spherical base class, and any
+    ! cached state in an attached kinematics distribution, so that a re-initialized (pooled) object
+    ! never serves stale results built for a previous node.
+    call self%tabulationReset()
+    if (associated(self%kinematicsDistribution_)) call self%kinematicsDistribution_%reset()
     return
-  end function blackHoleConstructorInternal
+  end subroutine blackHoleInitialize
 
   double precision function blackHoleMassTotal(self)
-    !!{
+    !!{RST
     Return the total mass in the black hole.
     !!}
     implicit none
@@ -161,8 +196,8 @@ contains
   end function blackHoleMassTotal
 
   double precision function blackHoleDensity(self,coordinates)
-    !!{
-    Return the density at the specified \mono{coordinates} in a $\beta$-profile mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a :math:`\beta`-profile mass distribution.
     !!}
     implicit none
     class(massDistributionBlackHole), intent(inout) :: self
@@ -175,7 +210,7 @@ contains
   end function blackHoleDensity
 
   double precision function blackHoleDensityGradientRadial(self,coordinates,logarithmic)
-    !!{
+    !!{RST
     Return the density gradient in the radial direction for a point mass.
     !!}
     implicit none
@@ -191,8 +226,8 @@ contains
   end function blackHoleDensityGradientRadial
 
   double precision function blackHoleMassEnclosedBySphere(self,radius)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for a black hole.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for a black hole.
     !!}
     implicit none
     class           (massDistributionBlackHole), intent(inout), target :: self
@@ -203,7 +238,7 @@ contains
   end function blackHoleMassEnclosedBySphere
 
   double precision function blackHoleRotationCurve(self,radius)
-    !!{
+    !!{RST
     Return the rotation curve for a blackHole mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -235,7 +270,7 @@ contains
   end function blackHoleRotationCurve
 
   double precision function blackHoleRotationCurveGradient(self,radius)
-    !!{
+    !!{RST
     Return the rotation curve gradient for a spherical mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -261,7 +296,7 @@ contains
   end function blackHoleRotationCurveGradient
 
   logical function blackHolePotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return that the potential has an analytic form.
     !!}
     implicit none
@@ -272,8 +307,8 @@ contains
   end function blackHolePotentialIsAnalytic
 
   double precision function blackHolePotential(self,coordinates,status)
-    !!{
-    Return the potential at the specified \mono{coordinates} for a point mass.
+    !!{RST
+    Return the potential at the specified ``coordinates`` for a point mass.
     !!}
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
@@ -295,7 +330,7 @@ contains
   end function blackHolePotential
 
   double precision function blackHoleDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
-    !!{
+    !!{RST
     Computes radial moments of the density for a point mass.
     !!}
     use :: Error, only : Error_Report

@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a unitarity output analysis distribution normalizer class.
   !!}
 
   !![
-  <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerUnitarity">
-   <description>An output analysis distribution normalizer class that rescales the distribution so that its total (sum over all bins) equals unity, converting raw counts into a probability distribution.</description>
+  <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerUnitarity" docformat="rst">
+   <description>
+   An output analysis distribution normalizer class that rescales the distribution so that its total (sum over all bins) equals unity, converting raw counts into a probability distribution.
+   </description>
   </outputAnalysisDistributionNormalizer>
   !!]
   type, extends(outputAnalysisDistributionNormalizerClass) :: outputAnalysisDistributionNormalizerUnitarity
-     !!{
+     !!{RST
      A unitarity output distribution normalizer class.
      !!}
      private
@@ -36,8 +38,8 @@
   end type outputAnalysisDistributionNormalizerUnitarity
 
   interface outputAnalysisDistributionNormalizerUnitarity
-     !!{
-     Constructors for the \refClass{outputAnalysisDistributionNormalizerUnitarity} output analysis distribution normalizer class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisDistributionNormalizerUnitarity` output analysis distribution normalizer class.
      !!}
      module procedure unitarityConstructorParameters
   end interface outputAnalysisDistributionNormalizerUnitarity
@@ -45,8 +47,8 @@
 contains
 
   function unitarityConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputAnalysisDistributionNormalizerUnitarity} output analysis distribution normalizer class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisDistributionNormalizerUnitarity` output analysis distribution normalizer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -61,7 +63,7 @@ contains
   end function unitarityConstructorParameters
 
   subroutine unitarityNormalize(self,distribution,covariance,propertyValueMinimum,propertyValueMaximum)
-    !!{
+    !!{RST
     Implement a unitarity output analysis distribution normalizer.
     !!}
     use :: Error, only : Error_Report

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that collects and stores the (infimum of the) excursion corresponding to the mass accretion history for each node.
   !!}
   
@@ -26,12 +26,14 @@
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   
   !![
-  <nodeOperator name="nodeOperatorExcursion">
-   <description>A node operator class that collects and stores the (infimum of the) excursion corresponding to the mass accretion history for each node.</description>
+  <nodeOperator name="nodeOperatorExcursion" docformat="rst">
+   <description>
+   A node operator class that collects and stores the (infimum of the) excursion corresponding to the mass accretion history for each node.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorExcursion
-     !!{
+     !!{RST
      A node operator class that collects and stores the mass accretion history of each node.
      !!}
      private
@@ -47,8 +49,8 @@
   end type nodeOperatorExcursion
   
   interface nodeOperatorExcursion
-     !!{
-     Constructors for the \refClass{nodeOperatorExcursion} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorExcursion` node operator class.
      !!}
      module procedure excursionConstructorParameters
      module procedure excursionConstructorInternal
@@ -57,8 +59,8 @@
 contains
 
   function excursionConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorExcursion} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorExcursion` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -87,8 +89,8 @@ contains
   end function excursionConstructorParameters
 
   function excursionConstructorInternal(cosmologyFunctions_,cosmologicalMassVariance_,criticalOverdensity_,linearGrowth_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorExcursion} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorExcursion` node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -110,7 +112,7 @@ contains
   end function excursionConstructorInternal
 
   subroutine excursionDestructor(self)
-    !!{
+    !!{RST
     Destructor for the critical overdensity excursion set barrier class.
     !!}
     implicit none
@@ -126,7 +128,7 @@ contains
   end subroutine excursionDestructor
 
   subroutine excursionNodeInitialize(self,node)
-    !!{
+    !!{RST
     Record the mass accretion history of the node.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic

@@ -15,7 +15,9 @@
 	  </xs:complexType>
 	</xs:element>
       </xs:sequence>
+      <!-- docformat="rst" marks method descriptions as reStructuredText. -->
+      <xs:attribute name="docformat" use="optional"/>
     </xs:complexType>
   </xs:element>
-  
+
 </xs:schema>

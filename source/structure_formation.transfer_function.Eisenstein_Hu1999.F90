@@ -19,8 +19,8 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-  !!{
-  Implements a transfer function class using the fitting function of \cite{eisenstein_power_1999}.
+  !!{RST
+  Implements a transfer function class using the fitting function of :cite:t:`eisenstein_power_1999`.
   !!}
 
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass
@@ -28,16 +28,15 @@
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
   !![
-  <transferFunction name="transferFunctionEisensteinHu1999">
+  <transferFunction name="transferFunctionEisensteinHu1999" docformat="rst">
    <description>
-    Provides the \cite{eisenstein_power_1999} fitting function to the transfer function. The effective number of neutrino
-    species and the summed mass (in electron volts) of all neutrino species are specified via the \mono{neutrinoNumberEffective} and \mono{neutrinoMassSummed} parameters respectively.
+   Provides the :cite:t:`eisenstein_power_1999` fitting function to the transfer function. The effective number of neutrino species and the summed mass (in electron volts) of all neutrino species are specified via the ``neutrinoNumberEffective`` and ``neutrinoMassSummed`` parameters respectively.
    </description>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionEisensteinHu1999
-     !!{
-     The \mono{eisensteinHu1999} transfer function class.
+     !!{RST
+     The ``eisensteinHu1999`` transfer function class.
      !!}
      private
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
@@ -52,8 +51,8 @@
           &                                                 time
    contains
      !![
-     <methods>
-       <method description="Compute common factors needed by \cite{eisenstein_power_1999} transfer function calculations." method="computeFactors" />
+     <methods docformat="rst">
+       <method description="Compute common factors needed by :cite:t:`eisenstein_power_1999` transfer function calculations." method="computeFactors" />
      </methods>
      !!]
      final     ::                          eisensteinHu1999Destructor
@@ -66,8 +65,8 @@
   end type transferFunctionEisensteinHu1999
 
   interface transferFunctionEisensteinHu1999
-     !!{
-     Constructors for the \refClass{transferFunctionEisensteinHu1999} transfer function class.
+     !!{RST
+     Constructors for the :galacticus-class:`transferFunctionEisensteinHu1999` transfer function class.
      !!}
      module procedure eisensteinHu1999ConstructorParameters
      module procedure eisensteinHu1999ConstructorInternal
@@ -76,9 +75,8 @@
 contains
 
   function eisensteinHu1999ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{transferFunctionEisensteinHu1999} transfer function class
-    which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`transferFunctionEisensteinHu1999` transfer function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -91,18 +89,24 @@ contains
 
     ! Check and read parameters.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>neutrinoNumberEffective</name>
       <source>parameters</source>
       <defaultValue>3.046d0</defaultValue>
-      <defaultSource>\citep{mangano_relic_2005}</defaultSource>
-      <description>The effective number of neutrino species.</description>
+      <defaultSource>
+      :cite:p:`mangano_relic_2005`
+      </defaultSource>
+      <description>
+      The effective number of neutrino species.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>neutrinoMassSummed</name>
       <source>parameters</source>
       <defaultValue>0.0d0</defaultValue>
-      <description>The summed mass (in electron volts) of all neutrino species.</description>
+      <description>
+      The summed mass (in electron volts) of all neutrino species.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
@@ -120,8 +124,8 @@ contains
   end function eisensteinHu1999ConstructorParameters
 
   function eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !!{
-    Internal constructor for the \refClass{transferFunctionEisensteinHu1999} transfer function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`transferFunctionEisensteinHu1999` transfer function class.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
@@ -306,7 +310,7 @@ contains
   end function eisensteinHu1999ConstructorInternal
 
   subroutine eisensteinHu1999Destructor(self)
-    !!{
+    !!{RST
     Destructor for the eisensteinHu1999 transfer function class.
     !!}
     implicit none
@@ -321,8 +325,8 @@ contains
   end subroutine eisensteinHu1999Destructor
 
   subroutine eisensteinHu1999ComputeFactors(self,wavenumber)
-    !!{
-    Compute common factors required by \mono{eisensteinHu1999} transfer function class.
+    !!{RST
+    Compute common factors required by ``eisensteinHu1999`` transfer function class.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     implicit none
@@ -389,7 +393,7 @@ contains
   end subroutine eisensteinHu1999ComputeFactors
 
   double precision function eisensteinHu1999Value(self,wavenumber)
-    !!{
+    !!{RST
     Return the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -428,7 +432,7 @@ contains
   end function eisensteinHu1999Value
 
   double precision function eisensteinHu1999LogarithmicDerivative(self,wavenumber)
-    !!{
+    !!{RST
     Return the logarithmic derivative of the transfer function at the given wavenumber.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
@@ -542,9 +546,8 @@ contains
   end function eisensteinHu1999LogarithmicDerivative
 
   double precision function eisensteinHu1999HalfModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    to a \gls{cdm} transfer function. Not supported in this implementation.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function. Not supported in this implementation.
     !!}
     use :: Error, only : Error_Report, errorStatusFail
     implicit none
@@ -562,9 +565,8 @@ contains
   end function eisensteinHu1999HalfModeMass
 
   double precision function eisensteinHu1999QuarterModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
-    to a \gls{cdm} transfer function. Not supported in this implementation.
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative to a :term:`CDM` transfer function. Not supported in this implementation.
     !!}
     use :: Error, only : Error_Report, errorStatusFail
     implicit none
@@ -582,7 +584,7 @@ contains
   end function eisensteinHu1999QuarterModeMass
 
   double precision function eisensteinHu1999EpochTime(self)
-    !!{
+    !!{RST
     Return the cosmic time at the epoch at which this transfer function is defined.
     !!}
     implicit none

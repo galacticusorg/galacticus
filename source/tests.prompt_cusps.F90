@@ -17,14 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program which tests the \cite{delos_cusp-halo_2025} prompt cusps model.
+!!{RST
+Contains a program which tests the :cite:t:`delos_cusp-halo_2025` prompt cusps model.
 !!}
 
 program Test_Prompt_Cusps
-  !!{
-  Tests the \cite{delos_cusp-halo_2025} prompt cusps model. Values of prompt cusp properties were computed using the
-  \href{https://github.com/delos/cusp-halo-relation}{cusp\_halo\_relation} Python module.  
+  !!{RST
+  Tests the :cite:t:`delos_cusp-halo_2025` prompt cusps model. Values of prompt cusp properties were computed using the `cusp_halo_relation <https://github.com/delos/cusp-halo-relation>`_ Python module.
   !!}
   use :: Coordinates                         , only : coordinateSpherical                                           , assignment(=)
   use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower

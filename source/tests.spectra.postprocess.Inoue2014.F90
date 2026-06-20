@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a program to test the \cite{inoue_updated_2014} algorithm for IGM absorption.
+!!{RST
+Contains a program to test the :cite:t:`inoue_updated_2014` algorithm for IGM absorption.
 !!}
 
 program Test_Inoue2014
-  !!{
-  Tests the \cite{inoue_updated_2014} algorithm for IGM absorption.
+  !!{RST
+  Tests the :cite:t:`inoue_updated_2014` algorithm for IGM absorption.
   !!}
   use :: Display                               , only : displayVerbositySet                           , verbosityLevelStandard
   use :: Stellar_Population_Spectra_Postprocess, only : stellarPopulationSpectraPostprocessorInoue2014

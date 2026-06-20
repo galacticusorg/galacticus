@@ -17,29 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements concentrations of dark matter halo profiles.
 !!}
 
 module Dark_Matter_Profiles_Shape
-  !!{
+  !!{RST
   Provides a class that implements shape parameters of dark matter halo profiles.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>darkMatterProfileShape</name>
    <descriptiveName>Dark Matter Profile Shapes</descriptiveName>
    <description>
-    Class providing the shape parameter $\alpha$ of dark matter halo density profiles such as the Einasto profile,
-    $\rho(r) \propto \exp\{-\frac{2}{\alpha}[(r/r_\mathrm{s})^\alpha - 1]\}$. The shape parameter controls the curvature
-    of the profile near the center and is typically fit from $N$-body simulations as a function of halo mass and redshift.
+   Class providing the shape parameter :math:`\alpha` of dark matter halo density profiles such as the Einasto profile, :math:`\rho(r) \propto \exp\{-\frac{2}{\alpha}[(r/r_\mathrm{s})^\alpha - 1]\}`. The shape parameter controls the curvature of the profile near the center and is typically fit from :math:`N`-body simulations as a function of halo mass and redshift.
    </description>
    <default>gao2008</default>
    <method name="shape" >
-    <description>Returns the dimensionless shape parameter $\alpha$ of the Einasto dark matter density profile for the halo in \mono{node}, controlling the curvature of the inner profile with typical values in the range $0.1$--$0.3$ from N-body simulations.</description>
+    <description>
+    Returns the dimensionless shape parameter :math:`\alpha` of the Einasto dark matter density profile for the halo in ``node``, controlling the curvature of the inner profile with typical values in the range :math:`0.1`--:math:`0.3` from N-body simulations.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>

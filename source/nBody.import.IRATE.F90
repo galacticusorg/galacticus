@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data importer for IRATE files.
 !!}
 
@@ -26,15 +26,15 @@ Implements an N-body data importer for IRATE files.
   use :: IO_HDF5             , only : hdf5Object
 
   !![
-  <nbodyImporter name="nbodyImporterIRATE">
-   <description>An importer for N-body simulation data stored in IRATE (IRvine Astrophysical simulaTion structurE) HDF5 format,
-   reading halo properties from a specified snapshot. The input file is set by \mono{[fileName]}, the snapshot to read by
-   \mono{[snapshot]}, and an optional simulation label by \mono{[label]}.</description>
+  <nbodyImporter name="nbodyImporterIRATE" docformat="rst">
+   <description>
+   An importer for N-body simulation data stored in IRATE (IRvine Astrophysical simulaTion structurE) HDF5 format, reading halo properties from a specified snapshot. The input file is set by ``[fileName]``, the snapshot to read by ``[snapshot]``, and an optional simulation label by ``[label]``.
+   </description>
    <runTimeFileDependencies paths="fileName"/>
   </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterIRATE
-     !!{
+     !!{RST
      An importer for IRATE files.
      !!}
      private
@@ -52,8 +52,8 @@ Implements an N-body data importer for IRATE files.
   end type nbodyImporterIRATE
 
   interface nbodyImporterIRATE
-     !!{
-     Constructors for the \refClass{nbodyImporterIRATE} N-body importer class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyImporterIRATE` N-body importer class.
      !!}
      module procedure irateConstructorParameters
      module procedure irateConstructorInternal
@@ -62,8 +62,8 @@ Implements an N-body data importer for IRATE files.
 contains
 
   function irateConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyImporterIRATE} N-body importer class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyImporterIRATE` N-body importer class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -76,30 +76,38 @@ contains
     integer                                                      :: snapshot
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>fileName</name>
       <source>parameters</source>
-      <description>The name of the file to read.</description>
+      <description>
+      The name of the file to read.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>snapshot</name>
       <source>parameters</source>
-      <description>The snapshot number to read.</description>
+      <description>
+      The snapshot number to read.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>label</name>
       <source>parameters</source>
       <defaultValue>var_str('primary')</defaultValue>
-      <description>A label for the simulation.</description>
+      <description>
+      A label for the simulation.
+      </description>
     </inputParameter>
     !!]
     allocate(properties(parameters%count('properties',zeroIfNotPresent=.true.)))
     if (size(properties) > 0) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>properties</name>
          <source>parameters</source>
-         <description>Properties to read from the simulation.</description>
+         <description>
+         Properties to read from the simulation.
+         </description>
        </inputParameter>
        !!]
     end if
@@ -117,8 +125,8 @@ contains
   end function irateConstructorParameters
 
   function irateConstructorInternal(fileName,label,snapshot,properties,cosmologyParameters_,cosmologyFunctions_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyImporterIRATE} N-body importer class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyImporterIRATE` N-body importer class.
     !!}
     implicit none
     type   (nbodyImporterIRATE      )                              :: self
@@ -136,8 +144,8 @@ contains
   end function irateConstructorInternal
 
   subroutine irateDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyImporterIRATE} N-body importer class.
+    !!{RST
+    Destructor for the :galacticus-class:`nbodyImporterIRATE` N-body importer class.
     !!}
     implicit none
     type(nbodyImporterIRATE), intent(inout) :: self
@@ -150,7 +158,7 @@ contains
   end subroutine irateDestructor
 
   subroutine irateImport(self,simulations)
-    !!{
+    !!{RST
     Import data from a IRATE file.
     !!}
     use :: Display     , only : displayIndent          , displayUnindent               , verbosityLevelStandard
@@ -247,7 +255,7 @@ contains
   end subroutine irateImport
 
   logical function irateIsHDF5(self)
-    !!{
+    !!{RST
     Return whether or not the imported data is from an HDF5 file.
     !!}
     implicit none

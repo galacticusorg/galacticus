@@ -42,7 +42,6 @@ _configure_default()
 # perl/Galacticus/Build/SourceTree.pm; same set as scripts/build/preprocess.py.
 import Galacticus.Build.SourceTree.Process.AddMetaProperty          # noqa: F401
 import Galacticus.Build.SourceTree.Process.Allocate                 # noqa: F401
-import Galacticus.Build.SourceTree.Process.ClassDocumentation       # noqa: F401
 import Galacticus.Build.SourceTree.Process.ConditionalCall          # noqa: F401
 import Galacticus.Build.SourceTree.Process.Constants                # noqa: F401
 import Galacticus.Build.SourceTree.Process.Constructors             # noqa: F401

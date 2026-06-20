@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements the standard black hole node component.
 !!}
 
 module Node_Component_Black_Hole_Standard
-  !!{
+  !!{RST
   Implement black hole tree node methods.
   !!}
   use :: Black_Hole_Binary_Initial_Separation, only : blackHoleBinaryInitialSeparationClass
@@ -103,7 +103,7 @@ contains
   <nodeComponentInitializationTask function="Node_Component_Black_Hole_Standard_Initialize"/>
   !!]
   subroutine Node_Component_Black_Hole_Standard_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the standard black hole component module.
     !!}
     use :: Galacticus_Nodes, only : defaultHotHaloComponent, nodeComponentBlackHoleStandard
@@ -117,10 +117,12 @@ contains
 
     ! Get options controlling output.
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>outputMergers</name>
       <defaultValue>.false.</defaultValue>
-      <description>Determines whether or not properties of black hole mergers will be output.</description>
+      <description>
+      Determines whether or not properties of black hole mergers will be output.
+      </description>
       <source>subParameters</source>
     </inputParameter>
     !!]
@@ -133,7 +135,7 @@ contains
   <nodeComponentThreadInitializationTask function="Node_Component_Black_Hole_Standard_Thread_Initialize"/>
   !!]
   subroutine Node_Component_Black_Hole_Standard_Thread_Initialize(parameters)
-    !!{
+    !!{RST
     Initializes the tree node standard black hole module.
     !!}
     use :: Events_Hooks              , only : satelliteMergerEvent     , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionBefore
@@ -158,18 +160,22 @@ contains
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Thread_Initialize
+
   !![
   <nodeComponentThreadUninitializationTask function="Node_Component_Black_Hole_Standard_Thread_Uninitialize"/>
   !!]
   subroutine Node_Component_Black_Hole_Standard_Thread_Uninitialize()
-    !!{
+    !!{RST
     Uninitializes the tree node standard black hole module.
     !!}
-    use :: Events_Hooks    , only : satelliteMergerEvent
-    use :: Galacticus_Nodes, only : defaultBlackHoleComponent
+    use :: Events_Hooks                           , only : satelliteMergerEvent
+    use :: Galacticus_Nodes                       , only : defaultBlackHoleComponent
+    use :: Node_Component_Black_Hole_Standard_Data, only : massDistributionPool
     implicit none
     if (defaultBlackHoleComponent%standardIsActive()) then
        if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
+       ! Release any pooled mass distributions held by this thread.
+       call massDistributionPool%destroy()
        !![
        <objectDestructor name="blackHoleSeeds_"                  />
        <objectDestructor name="blackHoleBinaryRecoil_"           />
@@ -184,8 +190,8 @@ contains
   <scaleSetTask function="Node_Component_Black_Hole_Standard_Scale_Set"/>
   !!]
   subroutine Node_Component_Black_Hole_Standard_Scale_Set(node)
-    !!{
-    Set scales for properties of \mono{node}.
+    !!{RST
+    Set scales for properties of ``node``.
     !!}
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, nodeComponentSpheroid, nodeComponentNSC, &
       &                             treeNode
@@ -248,8 +254,8 @@ contains
   end subroutine Node_Component_Black_Hole_Standard_Scale_Set
 
   subroutine satelliteMerger(self,node)
-    !!{
-    Merge any black hole associated with \mono{node} before it merges with its host halo.
+    !!{RST
+    Merge any black hole associated with ``node`` before it merges with its host halo.
     !!}
     use :: Galacticus_Nodes        , only : nodeComponentBlackHole , treeNode
     use :: Events_Black_Hole_Merger, only : Event_Black_Hole_Merger
@@ -330,7 +336,7 @@ contains
   end subroutine satelliteMerger
   
   logical function Node_Component_Black_Hole_Standard_Recoil_Escapes(node,velocityRecoil,radius,ignoreCentralBlackHole)
-    !!{
+    !!{RST
     Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
     !!}
     use :: Coordinates               , only : coordinateSpherical   , assignment(=)
@@ -379,7 +385,7 @@ contains
   end function Node_Component_Black_Hole_Standard_Recoil_Escapes
 
   subroutine Node_Component_Black_Hole_Standard_Output_Merger(node,massBlackHole1,massBlackHole2)
-    !!{
+    !!{RST
     Outputs properties of merging black holes.
     !!}
     use :: Output_HDF5     , only : outputFile
@@ -413,7 +419,7 @@ contains
   <postStepTask function="Node_Component_Black_Hole_Standard_Post_Evolve"/>
   !!]
   subroutine Node_Component_Black_Hole_Standard_Post_Evolve(node,status)
-    !!{
+    !!{RST
     Keep black hole spin in physical range.
     !!}
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent, nodeComponentBlackHole, treeNode
@@ -460,7 +466,7 @@ contains
   !!]
 
   subroutine Node_Component_Black_Hole_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Store object state,
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo
@@ -480,7 +486,7 @@ contains
   <stateRetrieveTask function="Node_Component_Black_Hole_Standard_State_Restore"/>
   !!]
   subroutine Node_Component_Black_Hole_Standard_State_Restore(stateFile,gslStateFile,stateOperationID)
-    !!{
+    !!{RST
     Retrieve object state.
     !!}
     use            :: Display      , only : displayMessage, verbosityLevelInfo

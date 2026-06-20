@@ -17,30 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a cooling function class which implements cooling due to Compton scattering off of \gls{cmb} photons.
+  !!{RST
+  Implements a cooling function class which implements cooling due to Compton scattering off of :term:`CMB` photons.
   !!}
 
   use :: Chemical_States, only : chemicalState, chemicalStateClass
 
   !![
-  <coolingFunction name="coolingFunctionCMBCompton">
+  <coolingFunction name="coolingFunctionCMBCompton" docformat="rst">
    <description>
-    A cooling function class that computes the cooling function due to Compton scattering off of \gls{cmb} photons:
-    \begin{equation}
-    \Lambda = {4 \sigma_\mathrm{T} \mathrm{a} \mathrm{k}_\mathrm{B} n_\mathrm{e } \over m_\mathrm{e} \clight} T_\mathrm{CMB}^4
-    \left( T - T_\mathrm{CMB} \right),
-    \end{equation}
-    where $\sigma_\mathrm{T}$ is the Thompson cross-section, $a$ is the radiation constant, $\mathrm{k}_\mathrm{B}$ is
-    Boltzmann's constant, $n_\mathrm{e}$ is the number density of electrons, $m_\mathrm{e}$ is the electron mass, $\clight$ is
-    the speed of light, $T_\mathrm{CMB}$ is the \gls{cmb} temperature at the current cosmic epoch and $T$ is the temperature of
-    the gas. The electron density is computed from the selected chemical state method (see \refPhysics{chemicalState}).
+   A cooling function class that computes the cooling function due to Compton scattering off of :term:`CMB` photons:
+
+   .. math::
+
+      \Lambda = {4 \sigma_\mathrm{T} \mathrm{a} \mathrm{k}_\mathrm{B} n_\mathrm{e } \over m_\mathrm{e} \clight} T_\mathrm{CMB}^4
+      \left( T - T_\mathrm{CMB} \right),
+
+   where :math:`\sigma_\mathrm{T}` is the Thompson cross-section, :math:`a` is the radiation constant, :math:`\mathrm{k}_\mathrm{B}` is Boltzmann's constant, :math:`n_\mathrm{e}` is the number density of electrons, :math:`m_\mathrm{e}` is the electron mass, :math:`\clight` is the speed of light, :math:`T_\mathrm{CMB}` is the :term:`CMB` temperature at the current cosmic epoch and :math:`T` is the temperature of the gas. The electron density is computed from the selected chemical state method (see :galacticus-class:`chemicalState`).
    </description>
   </coolingFunction>
   !!]
   type, extends(coolingFunctionClass) :: coolingFunctionCMBCompton
-     !!{
-     A cooling function class which implements cooling due to Compton scattering off of \gls{cmb} photons.
+     !!{RST
+     A cooling function class which implements cooling due to Compton scattering off of :term:`CMB` photons.
      !!}
      private
      class(chemicalStateClass), pointer :: chemicalState_ => null()
@@ -53,8 +52,8 @@
   end type coolingFunctionCMBCompton
 
   interface coolingFunctionCMBCompton
-     !!{
-     Constructors for the \refClass{coolingFunctionCMBCompton} cooling function class.
+     !!{RST
+     Constructors for the :galacticus-class:`coolingFunctionCMBCompton` cooling function class.
      !!}
      module procedure cmbComptonConstructorParameters
      module procedure cmbComptonConstructorInternal
@@ -63,8 +62,8 @@
 contains
 
   function cmbComptonConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{coolingFunctionCMBCompton} cooling function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`coolingFunctionCMBCompton` cooling function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -84,8 +83,8 @@ contains
   end function cmbComptonConstructorParameters
 
   function cmbComptonConstructorInternal(chemicalState_) result(self)
-    !!{
-    Internal constructor for the \refClass{coolingFunctionCMBCompton} cooling function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`coolingFunctionCMBCompton` cooling function class.
     !!}
     implicit none
     type (coolingFunctionCMBCompton)                        :: self
@@ -98,8 +97,8 @@ contains
   end function cmbComptonConstructorInternal
 
   subroutine cmbComptonDestructor(self)
-    !!{
-    Destructor for the \refClass{coolingFunctionCMBCompton} cooling function class.
+    !!{RST
+    Destructor for the :galacticus-class:`coolingFunctionCMBCompton` cooling function class.
     !!}
     implicit none
     type(coolingFunctionCMBCompton), intent(inout) :: self
@@ -111,8 +110,8 @@ contains
   end subroutine cmbComptonDestructor
 
   double precision function cmbComptonCoolingFunction(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !!{
-    Return the cooling function due to Compton scattering off of \gls{cmb} photons.
+    !!{RST
+    Return the cooling function due to Compton scattering off of :term:`CMB` photons.
     !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
@@ -156,9 +155,8 @@ contains
   end function cmbComptonCoolingFunction
 
   double precision function cmbComptonCoolingFunctionFractionInBand(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
-    !!{
-    Return the fraction of the cooling function due to Compton scattering off of \gls{cmb} photons due to emission in the given
-    band. Since this coolant involves no photon emission the fraction is identically zero.
+    !!{RST
+    Return the fraction of the cooling function due to Compton scattering off of :term:`CMB` photons due to emission in the given band. Since this coolant involves no photon emission the fraction is identically zero.
     !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
@@ -178,9 +176,8 @@ contains
   end function cmbComptonCoolingFunctionFractionInBand
 
   double precision function cmbComptonCoolingFunctionDensityLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !!{
-    Return the logarithmic gradient with respect to density of the cooling function due to Compton scattering off of \gls{cmb}
-    photons.
+    !!{RST
+    Return the logarithmic gradient with respect to density of the cooling function due to Compton scattering off of :term:`CMB` photons.
     !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
@@ -205,9 +202,8 @@ contains
   end function cmbComptonCoolingFunctionDensityLogSlope
 
   double precision function cmbComptonCoolingFunctionTemperatureLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !!{
-    Return the logarithmic gradient with respect to temperature of the cooling function due to Compton scattering off of
-    \gls{cmb} photons.
+    !!{RST
+    Return the logarithmic gradient with respect to temperature of the cooling function due to Compton scattering off of :term:`CMB` photons.
     !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
@@ -241,7 +237,7 @@ contains
   end function cmbComptonCoolingFunctionTemperatureLogSlope
 
   double precision function cmbComptonTemperature(radiation)
-    !!{
+    !!{RST
     Return the temperature of the cosmic microwave background.
     !!}
     use :: Error           , only : Error_Report

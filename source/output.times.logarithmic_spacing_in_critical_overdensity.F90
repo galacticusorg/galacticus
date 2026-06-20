@@ -17,20 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Contains an output times class which uses a set of times spaced uniformly in $\log \delta_\mathrm{c}$.
+  !!{RST
+  Contains an output times class which uses a set of times spaced uniformly in :math:`\log \delta_\mathrm{c}`.
   !!}
 
   use :: Cosmological_Density_Field, only : criticalOverdensityClass, cosmologicalMassVarianceClass
   
   !![
-  <outputTimes name="outputTimesLogarithmicSpacingInCriticalOverdensity">
-   <description>An output times class which uses a set of times spaced uniformly in $\log \delta_\mathrm{c}$.</description>
+  <outputTimes name="outputTimesLogarithmicSpacingInCriticalOverdensity" docformat="rst">
+   <description>
+   An output times class which uses a set of times spaced uniformly in :math:`\log \delta_\mathrm{c}`.
+   </description>
   </outputTimes>
   !!]
   type, extends(outputTimesList) :: outputTimesLogarithmicSpacingInCriticalOverdensity
-     !!{
-     Implementation of an output times class which uses a set of times spaced uniformly in $\log \delta_\mathrm{c}$
+     !!{RST
+     Implementation of an output times class which uses a set of times spaced uniformly in :math:`\log \delta_\mathrm{c}`
      !!}
      private
      class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
@@ -42,8 +44,8 @@
   end type outputTimesLogarithmicSpacingInCriticalOverdensity
 
   interface outputTimesLogarithmicSpacingInCriticalOverdensity
-     !!{
-     Constructors for the \refClass{outputTimesLogarithmicSpacingInCriticalOverdensity} output times class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputTimesLogarithmicSpacingInCriticalOverdensity` output times class.
      !!}
      module procedure logarithmicSpacingInCriticalOverdensityConstructorParameters
      module procedure logarithmicSpacingInCriticalOverdensityConstructorInternal
@@ -52,8 +54,8 @@
 contains
 
   function logarithmicSpacingInCriticalOverdensityConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{outputTimesLogarithmicSpacingInCriticalOverdensity} output times class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputTimesLogarithmicSpacingInCriticalOverdensity` output times class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -66,19 +68,25 @@ contains
     integer         (c_size_t                                          )                :: countTimes
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMinimum</name>
-      <description>The minimum redshift at which to output.</description>
+      <description>
+      The minimum redshift at which to output.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>redshiftMaximum</name>
-      <description>The maximum redshift at which to output.</description>
+      <description>
+      The maximum redshift at which to output.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>countTimes</name>
-      <description>The number of times at which to output.</description>
+      <description>
+      The number of times at which to output.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -96,8 +104,8 @@ contains
   end function logarithmicSpacingInCriticalOverdensityConstructorParameters
 
   function logarithmicSpacingInCriticalOverdensityConstructorInternal(redshiftMinimum,redshiftMaximum,countTimes,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
-    !!{
-    Constructor for the \refClass{outputTimesLogarithmicSpacingInCriticalOverdensity} output times class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputTimesLogarithmicSpacingInCriticalOverdensity` output times class which takes a parameter set as input.
     !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none
@@ -140,8 +148,8 @@ contains
   end function logarithmicSpacingInCriticalOverdensityConstructorInternal
 
   subroutine logarithmicSpacingInCriticalOverdensityDestructor(self)
-    !!{
-    Destructor for the \refClass{outputTimesLogarithmicSpacingInCriticalOverdensity} output times class.
+    !!{RST
+    Destructor for the :galacticus-class:`outputTimesLogarithmicSpacingInCriticalOverdensity` output times class.
     !!}
     implicit none
     type(outputTimesLogarithmicSpacingInCriticalOverdensity), intent(inout) :: self

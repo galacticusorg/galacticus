@@ -17,23 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a simple cooling rate class.
   !!}
 
   !![
-  <coolingRate name="coolingRateSimple">
+  <coolingRate name="coolingRateSimple" docformat="rst">
    <description>
-    A cooling rate class in which the cooling rate equals the mass of hot gas divided by a fixed timescale. Specifically,
-    \begin{equation}
-    \dot{M}_\mathrm{cool} = M_\mathrm{hot}/\tau_\mathrm{cool} ,
-    \end{equation}
-    where $\tau_\mathrm{cool}=$\mono{[timeScale]}.
+   A cooling rate class in which the cooling rate equals the mass of hot gas divided by a fixed timescale. Specifically,
+
+   .. math::
+
+      \dot{M}_\mathrm{cool} = M_\mathrm{hot}/\tau_\mathrm{cool} ,
+
+   where :math:`\tau_\mathrm{cool}=`\ ``[timeScale]``.
    </description>
   </coolingRate>
   !!]
   type, extends(coolingRateClass) :: coolingRateSimple
-     !!{
+     !!{RST
      Implementation of cooling rate class in which the cooling rate equals the mass of hot gas divided by a fixed timescale.
      !!}
      private
@@ -43,7 +45,7 @@
   end type coolingRateSimple
 
   interface coolingRateSimple
-     !!{
+     !!{RST
      Constructors for the simple cooling rate class.
      !!}
      module procedure simpleConstructorParameters
@@ -53,7 +55,7 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the simple cooling rate class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -63,11 +65,13 @@ contains
     double precision                                   :: timeScale
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>timeScale</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The timescale (in Gyr) for cooling in the simple cooling rate model.</description>
+      <description>
+      The timescale (in Gyr) for cooling in the simple cooling rate model.
+      </description>
     </inputParameter>
     !!]
     self=coolingRateSimple(timeScale)
@@ -78,7 +82,7 @@ contains
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(timeScale) result(self)
-    !!{
+    !!{RST
     Internal constructor for the simple cooling rate class.
     !!}
     implicit none
@@ -92,8 +96,8 @@ contains
   end function simpleConstructorInternal
 
   double precision function simpleRate(self,node)
-    !!{
-    Returns the cooling rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the hot atmosphere using a simple timescale model.
+    !!{RST
+    Returns the cooling rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) in the hot atmosphere using a simple timescale model.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none

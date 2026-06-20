@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which provides a class that implements evolution of merger trees.
 !!}
 
 module Merger_Trees_Evolve
-  !!{
+  !!{RST
   Provides a class that implements evolution of merger trees.
   !!}
   use    :: Galacticus_Nodes, only : mergerTree
@@ -31,17 +31,17 @@ module Merger_Trees_Evolve
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>mergerTreeEvolver</name>
    <descriptiveName>Merger Tree Evolvers</descriptiveName>
-   <description>Class providing evolvers for merger trees---the top-level driver that integrates the full
-    system of ODEs for all nodes in a merger tree from an initial time to a specified end time. The evolver
-    loops over nodes, determines the next timestep using the \refClass{mergerTreeEvolveTimestepClass}, calls
-    the node evolver to advance each node, and handles events such as node promotions and mergers. It also
-    manages deadlock detection, work-sharing between CPU cores, and suspension of trees for I/O.</description>
+   <description>
+   Class providing evolvers for merger trees---the top-level driver that integrates the full system of ODEs for all nodes in a merger tree from an initial time to a specified end time. The evolver loops over nodes, determines the next timestep using the :galacticus-class:`mergerTreeEvolveTimestepClass`, calls the node evolver to advance each node, and handles events such as node promotions and mergers. It also manages deadlock detection, work-sharing between CPU cores, and suspension of trees for I/O.
+   </description>
    <default>standard</default>
    <method name="evolve" >
-    <description>Evolve the given \mono{tree} from its current state to \mono{timeEnd}, updating all node properties by integrating ODE physics and returning \mono{treeDidEvolve} and \mono{suspendTree} to indicate progress and whether to defer further evolution.</description>
+    <description>
+    Evolve the given ``tree`` from its current state to ``timeEnd``, updating all node properties by integrating ODE physics and returning ``treeDidEvolve`` and ``suspendTree`` to indicate progress and whether to defer further evolution.
+    </description>
     <type>void</type>
     <pass>yes</pass>
     <argument>type            (mergerTree   ), target  , intent(inout) :: tree                           </argument>

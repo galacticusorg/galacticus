@@ -13,7 +13,6 @@ import os
 import re
 import tempfile
 import subprocess
-import xml.etree.ElementTree as ET
 
 
 from Galacticus.Build.SourceTree         import walk_tree, insert_after_node
@@ -197,25 +196,5 @@ def process_constant(tree, options):
     # Tag final file name.  Matches Constants.pm:156-159.
     for c in all_constants:
         c['fileName'] = file_name
-
-    # Documentation mode: dump collected constants to a per-file XML manifest.
-    if (all_constants
-            and os.environ.get('GALACTICUS_BUILD_DOCS') == 'yes'
-            and file_name is not None):
-        build_path = os.environ.get('BUILDPATH')
-        if build_path:
-            out_name = re.sub(r'\.F90$', '.constants.xml', file_name)
-            out_path = os.path.join(build_path, out_name)
-            root_el = ET.Element('constants')
-            for c in all_constants:
-                const_el = ET.SubElement(root_el, 'constant')
-                for k, v in c.items():
-                    if k == 'processed':
-                        continue
-                    if not isinstance(v, (str, int, float)):
-                        continue
-                    ET.SubElement(const_el, k).text = str(v)
-            ET.ElementTree(root_el).write(out_path, encoding='utf-8', xml_declaration=True)
-
 
 register_process('constant', process_constant)

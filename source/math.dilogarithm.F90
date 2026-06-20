@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements dilogarithms.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module which implements dilogarithms.
 !; gsl
 
 module Dilogarithms
-  !!{
+  !!{RST
   Implements dilogarithms.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_double, c_int
@@ -36,7 +36,7 @@ module Dilogarithms
 
   interface
      function gsl_sf_dilog(x) bind(c,name='gsl_sf_dilog')
-       !!{
+       !!{RST
        Template for the GSL dilogarithm function.
        !!}
        import c_double
@@ -45,7 +45,7 @@ module Dilogarithms
      end function gsl_sf_dilog
 
      function gsl_sf_complex_dilog_e(x,y,a,b) bind(c,name='gsl_sf_complex_dilog_e')
-       !!{
+       !!{RST
        Template for the GSL complex dilogarithm C function.
        !!}
        import
@@ -63,8 +63,8 @@ module Dilogarithms
 contains
 
   double precision function Dilogarithm_Real(x)
-    !!{
-    Evaluate the $\hbox{Si}(x)\equiv\int_0^x \d t \sin(t)/t$ sine integral.
+    !!{RST
+    Evaluate the :math:`\hbox{Si}(x)\equiv\int_0^x \d t \sin(t)/t` sine integral.
     !!}
     implicit none
     double precision, intent(in   ) :: x
@@ -74,7 +74,7 @@ contains
   end function Dilogarithm_Real
 
   double complex function Dilogarithm_Complex(x)
-    !!{
+    !!{RST
     Evaluate the dilogarithm for complex argument.
     !!}
     implicit none

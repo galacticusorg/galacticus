@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module which handles opening of the \glc\ output file.
+!!{RST
+Contains a module which handles opening of the Galacticus output file.
 !!}
 
 module Output_HDF5_Open
-  !!{
-  Handles opening of the \glc\ output file.
+  !!{RST
+  Handles opening of the Galacticus output file.
   !!}
   use :: ISO_Varying_String, only : varying_string
   use :: Error             , only : errorStatusSuccess
@@ -43,8 +43,8 @@ module Output_HDF5_Open
 contains
 
   subroutine Output_HDF5_Open_File(parameters)
-    !!{
-    Open the file for \glc\ output.
+    !!{RST
+    Open the file for Galacticus output.
     !!}
     use :: Output_HDF5       , only : hdf5SieveBufferSize , hdf5UseLatestFormat, hdf5CompressionLevel  , hdf5CacheElementsCount, &
          &                            outputFileIsOpen    , outputFile         , hdf5CacheSizeBytes    , hdf5ChunkSize         , &
@@ -74,56 +74,70 @@ contains
     
     if (.not.outputFileIsOpen) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>outputFileName</name>
          <variable>outputFileName_</variable>
          <defaultValue>var_str('galacticus.hdf5')</defaultValue>
-         <description>The name of the file to which \glc\ results will be written.</description>
+         <description>
+         The name of the file to which Galacticus results will be written.
+         </description>
          <source>parameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>outputScratchFileName</name>
          <variable>outputScratchFileName_</variable>
          <defaultValue>outputFileName_</defaultValue>
-         <description>The name of the file to which \glc\ results will be written temporarily during runs.</description>
+         <description>
+         The name of the file to which Galacticus results will be written temporarily during runs.
+         </description>
          <source>parameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>outputPathCreate</name>
          <defaultValue>.true.</defaultValue>
-         <description>If true, the output path will be created as needed.</description>
+         <description>
+         If true, the output path will be created as needed.
+         </description>
          <source>parameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>hdf5SieveBufferSize</name>
          <defaultValue>65536</defaultValue>
-         <description>The size of the sieve buffer used by the HDF5 library to speed reading/writing of partial datasets.</description>
+         <description>
+         The size of the sieve buffer used by the HDF5 library to speed reading/writing of partial datasets.
+         </description>
          <source>parameters</source>
          <variable>sieveBufferSize</variable>
        </inputParameter>
        !!]
        hdf5SieveBufferSize=sieveBufferSize
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>hdf5UseLatestFormat</name>
          <defaultValue>.false.</defaultValue>
-         <description>Specifies whether to use the latest HDF5 file format.</description>
+         <description>
+         Specifies whether to use the latest HDF5 file format.
+         </description>
          <source>parameters</source>
        </inputParameter>
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>hdf5CacheElementsCount</name>
          <defaultValue>521_size_t</defaultValue>
-         <description>Number of elements in the raw data chunk cache.</description>
+         <description>
+         Number of elements in the raw data chunk cache.
+         </description>
          <source>parameters</source>
          <variable>cacheElementsCount</variable>
        </inputParameter>
        !!]
        hdf5CacheElementsCount=cacheElementsCount
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>hdf5CacheSizeBytes</name>
          <defaultValue>1048576_size_t</defaultValue>
-         <description>Size of the raw data chunk cache in bytes.</description>
+         <description>
+         Size of the raw data chunk cache in bytes.
+         </description>
          <source>parameters</source>
          <variable>cacheSizeBytes</variable>
        </inputParameter>
@@ -177,20 +191,24 @@ contains
        call parameters%parametersGroupOpen(outputFile)
        ! Read parameters.
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>hdf5ChunkSize</name>
          <defaultValue>1024_hsize_t</defaultValue>
-         <description>The chunk size used for outputting HDF5 datasets.</description>
+         <description>
+         The chunk size used for outputting HDF5 datasets.
+         </description>
          <source>parameters</source>
          <variable>chunksize</variable>
        </inputParameter>
        !!]
        hdf5ChunkSize=chunksize
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
          <name>hdf5CompressionLevel</name>
          <defaultValue>-1</defaultValue>
-         <description>The compression level used for outputting HDF5 datasets.</description>
+         <description>
+         The compression level used for outputting HDF5 datasets.
+         </description>
          <source>parameters</source>
        </inputParameter>
        !!]
@@ -210,8 +228,8 @@ contains
   end subroutine Output_HDF5_Open_File
 
   subroutine Output_HDF5_Close_File
-    !!{
-    Close the \glc\ output file.
+    !!{RST
+    Close the Galacticus output file.
     !!}
     use :: Output_HDF5       , only : outputFileIsOpen, outputFile, outputGroup
     use :: File_Utilities    , only : File_Rename
@@ -244,7 +262,7 @@ contains
   end subroutine Output_HDF5_Close_File
 
   subroutine Output_HDF5_Completion_Status(status)
-    !!{
+    !!{RST
     Set the completion status.
     !!}
     implicit none
@@ -255,7 +273,7 @@ contains
   end subroutine Output_HDF5_Completion_Status
   
   subroutine Output_HDF5_Set_Group(nameGroup)
-    !!{
+    !!{RST
     Set the name of the current output group.
     !!}
     use :: Error             , only : Error_Report

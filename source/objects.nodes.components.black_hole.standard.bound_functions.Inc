@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains custom functions for the standard black hole component.
 !!}
 
 double precision function Node_Component_Black_Hole_Standard_Seed_Spin(self)
-  !!{
+  !!{RST
   Return the seed spin for standard black holes.
   !!}
   implicit none
@@ -34,7 +34,7 @@ double precision function Node_Component_Black_Hole_Standard_Seed_Spin(self)
 end function Node_Component_Black_Hole_Standard_Seed_Spin
 
 double precision function Node_Component_Black_Hole_Standard_Spin(self)
-  !!{
+  !!{RST
   Return the spin of a standard black hole.
   !!}
   implicit none
@@ -47,7 +47,7 @@ double precision function Node_Component_Black_Hole_Standard_Spin(self)
 end function Node_Component_Black_Hole_Standard_Spin
 
 double precision function Node_Component_Black_Hole_Standard_Mass_Baryonic(self) result(massBaryonic)
-  !!{
+  !!{RST
   Return the baryonic mass for the standard black hole component.
   !!}
   implicit none
@@ -58,12 +58,13 @@ double precision function Node_Component_Black_Hole_Standard_Mass_Baryonic(self)
 end function Node_Component_Black_Hole_Standard_Mass_Baryonic
 
 function Node_Component_Black_Hole_Standard_Mass_Distribution(self,componentType,massType,weightBy,weightIndex) result(massDistribution_)
-  !!{
+  !!{RST
   Return the mass distribution for the standard black hole component.
   !!}
-  use :: Galactic_Structure_Options, only : componentTypeBlackHole   , massTypeBlackHole           , weightByMass            , weightByLuminosity         , &
-       &                                    enumerationWeightByType  , enumerationComponentTypeType, enumerationMassTypeType
-  use :: Mass_Distributions        , only : massDistributionBlackHole, massDistributionClass       , massDistributionMatches_, kinematicsDistributionLocal
+  use :: Galactic_Structure_Options             , only : componentTypeBlackHole   , massTypeBlackHole           , weightByMass            , weightByLuminosity         , &
+       &                                                 enumerationWeightByType  , enumerationComponentTypeType, enumerationMassTypeType
+  use :: Mass_Distributions                     , only : massDistributionBlackHole, massDistributionClass       , massDistributionMatches_, kinematicsDistributionLocal
+  use :: Node_Component_Black_Hole_Standard_Data, only : massDistributionPool
   implicit none
   class  (massDistributionClass         ), pointer                 :: massDistribution_
   type   (kinematicsDistributionLocal   ), pointer                 :: kinematicsDistribution_
@@ -72,35 +73,52 @@ function Node_Component_Black_Hole_Standard_Mass_Distribution(self,componentType
   type   (enumerationMassTypeType       ), intent(in   ), optional :: massType
   type   (enumerationWeightByType       ), intent(in   ), optional :: weightBy
   integer                                , intent(in   ), optional :: weightIndex
+  logical                                                          :: reused
+  integer                                                          :: i
   !![
   <optionalArgument name="weightBy" defaultsTo="weightByMass" />
   !!]
   !$GLC attributes unused :: weightIndex, componentType, massType
 
-  if     (                                                                                           &	
+  if     (                                                                                           &
        &   massDistributionMatches_(componentTypeBlackHole,massTypeBlackHole,componentType,massType) &
        &  .and.                                                                                      &
        &   weightBy_ == weightByMass                                                                 &
        &  .and.                                                                                      &
        &   self%mass() > 0.0d0                                                                       &
        & ) then
-     ! Create a black hole mass distribution.
-     allocate(massDistributionBlackHole :: massDistribution_)
-     select type (massDistribution_)
+     ! Acquire a black hole mass distribution from the per-thread pool, creating a new one only if no
+     ! re-usable object (reference count of unity) is available.
+     call massDistributionPool%acquire(i,reused)
+     if (.not.reused) allocate(massDistributionBlackHole :: massDistributionPool%slots(i)%object_)
+     select type (massDistribution__ => massDistributionPool%slots(i)%object_)
      type is (massDistributionBlackHole)
+        if (reused) then
+           ! An existing distribution is available for re-use - update its mass for this node. Its
+           ! attached kinematics distribution is unchanged and so is retained.
+           call massDistribution__%initialize(mass=self%mass())
+        else
+           ! No pooled object was available - construct a new mass distribution and attach its
+           ! kinematics distribution.
+           !![
+           <referenceConstruct object="massDistribution__" constructor="massDistributionBlackHole(mass=self%mass(),componentType=componentTypeBlackHole,massType=massTypeBlackHole)"/>
+           !!]
+           allocate(kinematicsDistribution_)
+           !![
+           <referenceConstruct object="kinematicsDistribution_" constructor="kinematicsDistributionLocal(alpha=1.0d0/sqrt(2.0d0))"/>
+           !!]
+           call massDistribution__%setKinematicsDistribution(kinematicsDistribution_)
+           !![
+           <objectDestructor name="kinematicsDistribution_"/>
+           !!]
+        end if
+        ! Increment the reference count since we are returning the object to a calling function which
+        ! will therefore hold a reference to it.
         !![
-        <referenceConstruct object="massDistribution_" constructor="massDistributionBlackHole(mass=self%mass(),componentType=componentTypeBlackHole,massType=massTypeBlackHole)"/>
+        <referenceCountIncrement object="massDistribution__"/>
         !!]
+        massDistribution_ => massDistribution__
      end select
-     ! Construct the kinematic distribution.
-     allocate(kinematicsDistribution_)
-     !![
-     <referenceConstruct object="kinematicsDistribution_" constructor="kinematicsDistributionLocal(alpha=1.0d0/sqrt(2.0d0))"/>
-     !!]
-     call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
-     !![
-     <objectDestructor name="kinematicsDistribution_"/>
-     !!]
   else
      massDistribution_ => null()
   end if

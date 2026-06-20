@@ -17,15 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a cooling function class which sums over other cooling functions.
   !!}
 
   !![
-  <coolingFunction name="coolingFunctionSummation">
-    <description>Computes the total cooling function as a sum over multiple \refClass{coolingFunctionClass} objects, enabling
-    construction of composite cooling functions from individual contributions (e.g., atomic cooling plus CMB Compton
-    scattering).</description>
+  <coolingFunction name="coolingFunctionSummation" docformat="rst">
+    <description>
+    Computes the total cooling function as a sum over multiple :galacticus-class:`coolingFunctionClass` objects, enabling construction of composite cooling functions from individual contributions (e.g., atomic cooling plus CMB Compton scattering).
+    </description>
     <linkedList type="coolantList" variable="coolants" next="next" object="coolingFunction" objectType="coolingFunctionClass"/>
   </coolingFunction>
   !!]
@@ -36,7 +36,7 @@
   end type coolantList
 
   type, extends(coolingFunctionClass) :: coolingFunctionSummation
-     !!{
+     !!{RST
      A cooling function class which sums over other cooling functions.
      !!}
      private
@@ -50,8 +50,8 @@
   end type coolingFunctionSummation
 
   interface coolingFunctionSummation
-     !!{
-     Constructors for the \refClass{coolingFunctionSummation} cooling function class.
+     !!{RST
+     Constructors for the :galacticus-class:`coolingFunctionSummation` cooling function class.
      !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
@@ -60,8 +60,8 @@
 contains
 
   function summationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{coolingFunctionSummation} cooling function class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`coolingFunctionSummation` cooling function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -90,8 +90,8 @@ contains
   end function summationConstructorParameters
 
   function summationConstructorInternal(coolants) result(self)
-    !!{
-    Internal constructor for the \refClass{coolingFunctionSummation} cooling function class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`coolingFunctionSummation` cooling function class.
     !!}
     implicit none
     type(coolingFunctionSummation)                        :: self
@@ -110,8 +110,8 @@ contains
   end function summationConstructorInternal
 
   subroutine summationDestructor(self)
-    !!{
-    Destructor for the \refClass{coolingFunctionSummation} cooling function class.
+    !!{RST
+    Destructor for the :galacticus-class:`coolingFunctionSummation` cooling function class.
     !!}
     implicit none
     type(coolingFunctionSummation), intent(inout) :: self
@@ -132,7 +132,7 @@ contains
   end subroutine summationDestructor
 
   double precision function summationCoolingFunction(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !!{
+    !!{RST
     Return the cooling function summed over other cooling functions.
     !!}
     use :: Abundances_Structure         , only : abundances
@@ -166,7 +166,7 @@ contains
   end function summationCoolingFunction
 
   double precision function summationCoolingFunctionFractionInBand(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
-    !!{
+    !!{RST
     Return the fraction of the cooling function summed over other cooling functions due to emission in the given band.
     !!}
     use :: Abundances_Structure         , only : abundances
@@ -223,9 +223,8 @@ contains
   end function summationCoolingFunctionFractionInBand
 
   double precision function summationCoolingFunctionDensityLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !!{
-    Return the logarithmic gradient with respect to density of the cooling function due to Compton scattering off of \gls{cmb}
-    photons.
+    !!{RST
+    Return the logarithmic gradient with respect to density of the cooling function due to Compton scattering off of :term:`CMB` photons.
     !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
@@ -279,9 +278,8 @@ contains
   end function summationCoolingFunctionDensityLogSlope
 
   double precision function summationCoolingFunctionTemperatureLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !!{
-    Return the logarithmic gradient with respect to temperature of the cooling function due to Compton scattering off of
-    \gls{cmb} photons.
+    !!{RST
+    Return the logarithmic gradient with respect to temperature of the cooling function due to Compton scattering off of :term:`CMB` photons.
     !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances

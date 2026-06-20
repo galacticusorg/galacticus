@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements calculations of attenuation of stellar spectra using the model of \cite{charlot_simple_2000}.
+  !!{RST
+  Implements calculations of attenuation of stellar spectra using the model of :cite:t:`charlot_simple_2000`.
   !!}
 
   !![
-  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationCharlotFall2000">
-   <description>Returns the dust attenuation of stellar spectra according to the model of \cite{charlot_simple_2000}.</description>
+  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationCharlotFall2000" docformat="rst">
+   <description>
+   Returns the dust attenuation of stellar spectra according to the model of :cite:t:`charlot_simple_2000`.
+   </description>
   </stellarSpectraDustAttenuation>
   !!]
   type, extends(stellarSpectraDustAttenuationClass) :: stellarSpectraDustAttenuationCharlotFall2000
-     !!{
-     A class implementing calculations of attenuation of stellar spectra using the model of \cite{charlot_simple_2000}.
+     !!{RST
+     A class implementing calculations of attenuation of stellar spectra using the model of :cite:t:`charlot_simple_2000`.
      !!}
      private
      double precision :: opacityExponent, birthCloudLifetime, opticalDepthISM, opticalDepthBirthClouds
@@ -38,8 +40,8 @@
   end type stellarSpectraDustAttenuationCharlotFall2000
 
   interface stellarSpectraDustAttenuationCharlotFall2000
-     !!{
-     Constructors for the \refClass{stellarSpectraDustAttenuationCharlotFall2000} stellar spectra dust attenuation class.
+     !!{RST
+     Constructors for the :galacticus-class:`stellarSpectraDustAttenuationCharlotFall2000` stellar spectra dust attenuation class.
      !!}
      module procedure charlotFall2000ConstructorParameters
      module procedure charlotFall2000ConstructorInternal
@@ -48,8 +50,8 @@
 contains
 
   function charlotFall2000ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{charlotFall2000} stellar spectra dust attenuation class.
+    !!{RST
+    Default constructor for the ``charlotFall2000`` stellar spectra dust attenuation class.
     !!}
     implicit none
     type            (stellarSpectraDustAttenuationCharlotFall2000)                :: self
@@ -58,28 +60,36 @@ contains
          &                                                                           opticalDepthISM, opticalDepthBirthClouds
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>opacityExponent</name>
       <defaultValue>0.7d0</defaultValue>
-      <description>The power-law exponent of wavelength in the opacity $\tau \propto \lambda^{-n}$ in the \cite{charlot_simple_2000} two-component dust attenuation model; a value of 0.7 corresponds to the standard parameterization for interstellar and birth cloud attenuation.</description>
+      <description>
+      The power-law exponent of wavelength in the opacity :math:`\tau \propto \lambda^{-n}` in the :cite:t:`charlot_simple_2000` two-component dust attenuation model; a value of 0.7 corresponds to the standard parameterization for interstellar and birth cloud attenuation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>birthCloudLifetime</name>
       <defaultValue>1.0d-2</defaultValue>
-      <description>The lifetime of stellar birth clouds (in Gyr) in the \cite{charlot_simple_2000} dust model; stars younger than this age are attenuated by both the ISM component and the birth cloud component, while older stars experience only ISM attenuation.</description>
+      <description>
+      The lifetime of stellar birth clouds (in Gyr) in the :cite:t:`charlot_simple_2000` dust model; stars younger than this age are attenuated by both the ISM component and the birth cloud component, while older stars experience only ISM attenuation.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>opticalDepthISM</name>
       <defaultValue>0.5d0</defaultValue>
-      <description>The effective V-band optical depth $\hat{\tau}_\mathrm{V}^\mathrm{ISM}$ of the diffuse interstellar medium in the \cite{charlot_simple_2000} dust attenuation model, applied to all stellar populations regardless of age.</description>
+      <description>
+      The effective V-band optical depth :math:`\hat{\tau}_\mathrm{V}^\mathrm{ISM}` of the diffuse interstellar medium in the :cite:t:`charlot_simple_2000` dust attenuation model, applied to all stellar populations regardless of age.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>opticalDepthBirthClouds</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The effective V-band optical depth $\hat{\tau}_\mathrm{V}^\mathrm{BC}$ of the stellar birth clouds in the \cite{charlot_simple_2000} dust model, applied only to stellar populations younger than \mono{birthCloudLifetime}; must exceed \mono{opticalDepthISM}.</description>
+      <description>
+      The effective V-band optical depth :math:`\hat{\tau}_\mathrm{V}^\mathrm{BC}` of the stellar birth clouds in the :cite:t:`charlot_simple_2000` dust model, applied only to stellar populations younger than ``birthCloudLifetime``; must exceed ``opticalDepthISM``.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -91,8 +101,8 @@ contains
   end function charlotFall2000ConstructorParameters
 
   function charlotFall2000ConstructorInternal(opacityExponent,birthCloudLifetime,opticalDepthISM,opticalDepthBirthClouds) result(self)
-    !!{
-    Constructor for the \refClass{stellarSpectraDustAttenuationCharlotFall2000} stellar spectra dust attenuation class.
+    !!{RST
+    Constructor for the :galacticus-class:`stellarSpectraDustAttenuationCharlotFall2000` stellar spectra dust attenuation class.
     !!}
     implicit none
     type            (stellarSpectraDustAttenuationCharlotFall2000)                :: self
@@ -106,9 +116,8 @@ contains
   end function charlotFall2000ConstructorInternal
 
   double precision function charlotFall2000Attenuation(self,wavelength,age,vBandAttenuation)
-    !!{
-    Return attenuation of stellar spectra according to the model of \cite{charlot_simple_2000}. Note that the V-band
-    attenuation is taken to be that due to the ISM alone (i.e. not including birth clouds).
+    !!{RST
+    Return attenuation of stellar spectra according to the model of :cite:t:`charlot_simple_2000`. Note that the V-band attenuation is taken to be that due to the ISM alone (i.e. not including birth clouds).
     !!}
     implicit none
     class           (stellarSpectraDustAttenuationCharlotFall2000), intent(inout) :: self
@@ -128,8 +137,8 @@ contains
   end function charlotFall2000Attenuation
 
   logical function charlotFall2000IsAgeDependent(self)
-    !!{
-    Return true since attenuation is age-dependent in the \cite{charlot_simple_2000} dust attenuation model.
+    !!{RST
+    Return true since attenuation is age-dependent in the :cite:t:`charlot_simple_2000` dust attenuation model.
     !!}
     implicit none
     class(stellarSpectraDustAttenuationCharlotFall2000), intent(inout) :: self

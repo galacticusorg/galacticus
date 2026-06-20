@@ -19,23 +19,21 @@
 
 !+    Contributions to this file made by: Paul Menker
   
-!!{
+!!{RST
 Implements a filter for subhalos that could impact a stream during the timestep.
 !!}
 
   use :: Output_Times, only : outputTimesClass
 
   !![
-  <galacticFilter name="galacticFilterStreamKick">
+  <galacticFilter name="galacticFilterStreamKick" docformat="rst">
    <description>
-     A filter for the velocity kick imparted by subhalos to a stellar stream. We compute an upper limit on the velocity kick a
-     subhalo can impart on the stream, for any orientation along a sphere of radius \mono{[radiusOrbitalStream]},
-     and filter out any subhalos that do not create a total velocity kick greater than \mono{[cutoffVelocityKick]}.
-  </description>
+   A filter for the velocity kick imparted by subhalos to a stellar stream. We compute an upper limit on the velocity kick a subhalo can impart on the stream, for any orientation along a sphere of radius ``[radiusOrbitalStream]``, and filter out any subhalos that do not create a total velocity kick greater than ``[cutoffVelocityKick]``.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterStreamKick
-     !!{
+     !!{RST
      A filter for subhalos that could impact a stream during the timestep.
      !!}
      private
@@ -48,8 +46,8 @@ Implements a filter for subhalos that could impact a stream during the timestep.
   end type galacticFilterStreamKick
 
   interface galacticFilterStreamKick
-     !!{
-     Constructors for the \refClass{galacticFilterStreamKick} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterStreamKick` galactic filter class.
      !!}
      module procedure streamKickConstructorParameters
      module procedure streamKickConstructorInternal
@@ -58,8 +56,8 @@ Implements a filter for subhalos that could impact a stream during the timestep.
 contains
 
   function streamKickConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterStreamKick} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterStreamKick` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -70,20 +68,26 @@ contains
          &                                                       speedOrbitalStream
     
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusOrbitalStream</name>
       <source>parameters</source>
-      <description>The orbital radius of the stream (which is assumed to be on a circular orbit).</description>
+      <description>
+      The orbital radius of the stream (which is assumed to be on a circular orbit).
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>speedOrbitalStream</name>
       <source>parameters</source>
-      <description>The orbital speed of the stream (which is assumed to be on a circular orbit).</description>
+      <description>
+      The orbital speed of the stream (which is assumed to be on a circular orbit).
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>cutoffVelocityKick</name>
       <source>parameters</source>
-      <description>The minimum velocity kick (in km/s) that a subhalo must be able to impart on the stream for the node to pass; subhalos whose maximum kick falls below this threshold are rejected.</description>
+      <description>
+      The minimum velocity kick (in km/s) that a subhalo must be able to impart on the stream for the node to pass; subhalos whose maximum kick falls below this threshold are rejected.
+      </description>
     </inputParameter>
     <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     !!]
@@ -96,8 +100,8 @@ contains
   end function streamKickConstructorParameters
 
   function streamKickConstructorInternal(radiusOrbitalStream,speedOrbitalStream,cutoffVelocityKick,outputTimes_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterStreamKick} galactic filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticFilterStreamKick` galactic filter class.
     !!}
     implicit none
     type            (galacticFilterStreamKick)                        :: self
@@ -112,8 +116,8 @@ contains
   end function streamKickConstructorInternal
 
   subroutine streamKickDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterStreamKick} galactic filter class.
+    !!{RST
+    Destructor for the :galacticus-class:`galacticFilterStreamKick` galactic filter class.
     !!}
     implicit none
     type(galacticFilterStreamKick), intent(inout) :: self
@@ -125,7 +129,7 @@ contains
   end subroutine streamKickDestructor
 
   logical function streamKickPasses(self,node) result(passes)
-    !!{
+    !!{RST
     Filter based on whether a subhalo can impact a stream in the timestep.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentSatellite

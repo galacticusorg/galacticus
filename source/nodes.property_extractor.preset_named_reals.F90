@@ -18,15 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorPresetNamedReals">
+  <nodePropertyExtractor name="nodePropertyExtractorPresetNamedReals" docformat="rst">
    <description>
-    A node property extractor which extracts ``preset'' named real quantities. These are typically used to provide additional
-    quantities read from N-body merger trees.
+   A node property extractor which extracts "preset" named real quantities. These are typically used to provide additional quantities read from N-body merger trees.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorPresetNamedReals
-     !!{
+     !!{RST
      A property extractor which extracts presetNamedReals properties.
      !!}
      private
@@ -42,8 +41,8 @@
   end type nodePropertyExtractorPresetNamedReals
 
   interface nodePropertyExtractorPresetNamedReals
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorPresetNamedReals} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorPresetNamedReals` property extractor class.
      !!}
      module procedure presetNamedRealsConstructorParameters
      module procedure presetNamedRealsConstructorInternal
@@ -52,8 +51,8 @@
 contains
 
   function presetNamedRealsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorPresetNamedReals} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorPresetNamedReals` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,9 +62,11 @@ contains
 
     allocate(presetNames(parameters%count('presetNames')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>presetNames</name>
-      <description>The names of preset properties to extract.</description>
+      <description>
+      The names of preset properties to extract.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -77,8 +78,8 @@ contains
   end function presetNamedRealsConstructorParameters
 
   function presetNamedRealsConstructorInternal(presetnames) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorPresetNamedReals} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorPresetNamedReals` property extractor class.
     !!}
     implicit none
     type   (nodePropertyExtractorPresetNamedReals)                              :: self
@@ -98,8 +99,8 @@ contains
   end function presetNamedRealsConstructorInternal
 
   integer function presetNamedRealsElementCount(self,time)
-    !!{
-    Return the number of elements in the \mono{presetNamedReals} property extractors.
+    !!{RST
+    Return the number of elements in the ``presetNamedReals`` property extractors.
     !!}
     implicit none
     class           (nodePropertyExtractorPresetNamedReals), intent(inout) :: self
@@ -111,7 +112,7 @@ contains
   end function presetNamedRealsElementCount
 
   function presetNamedRealsExtract(self,node,time,instance)
-    !!{
+    !!{RST
     Implement a presetNamedReals output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
@@ -134,8 +135,8 @@ contains
   end function presetNamedRealsExtract
 
   subroutine presetNamedRealsNames(self,time,names)
-    !!{
-    Return the names of the \mono{presetNamedReals} properties.
+    !!{RST
+    Return the names of the ``presetNamedReals`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorPresetNamedReals), intent(inout)                             :: self
@@ -149,8 +150,8 @@ contains
   end subroutine presetNamedRealsNames
 
   subroutine presetNamedRealsDescriptions(self,time,descriptions)
-    !!{
-    Return the descriptions of the \mono{presetNamedReals} properties.
+    !!{RST
+    Return the descriptions of the ``presetNamedReals`` properties.
     !!}
     implicit none
     class           (nodePropertyExtractorPresetNamedReals), intent(inout)                             :: self
@@ -164,8 +165,8 @@ contains
   end subroutine presetNamedRealsDescriptions
 
   function presetNamedRealsUnitsInSI(self,time)
-    !!{
-    Return the units of the \mono{presetNamedReals} properties in the SI system.
+    !!{RST
+    Return the units of the ``presetNamedReals`` properties in the SI system.
     !!}
     implicit none
     double precision                                       , dimension(:) , allocatable :: presetNamedRealsUnitsInSI
@@ -179,7 +180,7 @@ contains
   end function presetNamedRealsUnitsInSI
 
   function presetNamedRealsUnits(self,time) result(units)
-    !!{
+    !!{RST
     Return the units of the presetNamedReals properties.
     !!}
     use :: Units_MetaData, only : unitType

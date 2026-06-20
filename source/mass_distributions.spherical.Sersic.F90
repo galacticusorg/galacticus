@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a S\'ersic mass distribution class.
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
 
   !![
-  <massDistribution name="massDistributionSersic">
-   <description>A S\'ersic mass distribution class implementing the spherically deprojected form of the S\'ersic surface brightness profile $I(R) \propto \exp(-b_n [(R/R_e)^{1/n}-1])$, where $n$ controls the profile shape.</description>
+  <massDistribution name="massDistributionSersic" docformat="rst">
+   <description>
+   A S\'ersic mass distribution class implementing the spherically deprojected form of the S\'ersic surface brightness profile :math:`I(R) \propto \exp(-b_n [(R/R_e)^{1/n}-1])`, where :math:`n` controls the profile shape.
+   </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionSersic
-     !!{
+     !!{RST
      The S\'ersic density profile.
      !!}
      double precision                                          :: densityNormalization                  , mass              , &
@@ -47,7 +49,7 @@
      type            (interpolator)                            :: tableInterpolator
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulate the Sersic profile." method="tabulate" />
        <method description="Return the half mass radius of the profile in projection." method="radiusHalfMassProjected" />
      </methods>
@@ -64,8 +66,8 @@
   end type massDistributionSersic
 
   interface massDistributionSersic
-     !!{
-     Constructors for the \refClass{massDistributionSersic} mass distribution class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionSersic` mass distribution class.
      !!}
      module procedure sersicConstructorParameters
      module procedure sersicConstructorInternal
@@ -81,9 +83,8 @@
 contains
 
   function sersicConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionSersic} mass distribution class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionSersic` mass distribution class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode, enumerationMassTypeEncode
@@ -97,41 +98,53 @@ contains
     type            (varying_string        )                :: massType
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>index</name>
       <variable>index_</variable>
       <defaultValue>4.0d0</defaultValue>
-      <description>The S\'ersic index $n$ that controls the shape of the surface brightness (or mass surface density) profile; $n=1$ gives an exponential profile, $n=4$ gives the de~Vaucouleurs profile, and larger $n$ produces more centrally concentrated profiles.</description>
+      <description>
+      The S\'ersic index :math:`n` that controls the shape of the surface brightness (or mass surface density) profile; :math:`n=1` gives an exponential profile, :math:`n=4` gives the de Vaucouleurs profile, and larger :math:`n` produces more centrally concentrated profiles.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>radiusHalfMass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The projected half-mass (effective) radius (in Mpc) of the S\'ersic profile, $R_e$, within which half the total projected mass is enclosed.</description>
+      <description>
+      The projected half-mass (effective) radius (in Mpc) of the S\'ersic profile, :math:`R_e`, within which half the total projected mass is enclosed.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
-      <description>The total mass (in $\mathrm{M}_\odot$) of the S\'ersic profile, used together with \mono{index} and \mono{radiusHalfMass} to set the overall normalization of the density distribution.</description>
+      <description>
+      The total mass (in :math:`\mathrm{M}_\odot`) of the S\'ersic profile, used together with ``index`` and ``radiusHalfMass`` to set the overall normalization of the density distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>dimensionless</name>
       <defaultValue>.true.</defaultValue>
-      <description>If true the S\'ersic profile is considered to be dimensionless.</description>
+      <description>
+      If true the S\'ersic profile is considered to be dimensionless.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>componentType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The component type that this mass distribution represents.</description>
+      <description>
+      The component type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massType</name>
       <defaultValue>var_str('unknown')</defaultValue>
-      <description>The mass type that this mass distribution represents.</description>
+      <description>
+      The mass type that this mass distribution represents.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <conditionalCall>
@@ -146,8 +159,8 @@ contains
   end function sersicConstructorParameters
 
   function sersicConstructorInternal(index,radiusHalfMass,mass,dimensionless,componentType,massType) result(self)
-    !!{
-    Internal constructor for ``sersic'' mass distribution class.
+    !!{RST
+    Internal constructor for "sersic" mass distribution class.
     !!}
     use :: Error               , only : Error_Report
     use :: Numerical_Comparison, only : Values_Differ
@@ -199,8 +212,8 @@ contains
   end function sersicConstructorInternal
 
   double precision function sersicDensity(self,coordinates)
-    !!{
-    Return the density at the specified \mono{coordinates} in a S\'ersic mass distribution.
+    !!{RST
+    Return the density at the specified ``coordinates`` in a S\'ersic mass distribution.
     !!}
     use :: Coordinates , only : assignment(=)               , coordinateSpherical
     implicit none
@@ -222,7 +235,7 @@ contains
   end function sersicDensity
 
   double precision function sersicDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
-    !!{
+    !!{RST
     Returns a radial density moment for the S\'ersic mass distribution.
     !!}
     implicit none
@@ -275,7 +288,7 @@ contains
   end function sersicDensityRadialMoment
 
   double precision function sersicMassTotal(self)
-    !!{
+    !!{RST
     Computes the total mass for S\'ersic mass distributions.
     !!}
     implicit none
@@ -286,8 +299,8 @@ contains
   end function sersicMassTotal
   
   double precision function sersicMassEnclosedBySphere(self,radius)
-    !!{
-    Computes the mass enclosed within a sphere of given \mono{radius} for S\'ersic mass distributions.
+    !!{RST
+    Computes the mass enclosed within a sphere of given ``radius`` for S\'ersic mass distributions.
     !!}
     implicit none
     class           (massDistributionSersic), intent(inout), target :: self
@@ -311,7 +324,7 @@ contains
   end function sersicMassEnclosedBySphere
 
   logical function sersicPotentialIsAnalytic(self) result(isAnalytic)
-    !!{
+    !!{RST
     Return that the potential has an analytic form.
     !!}
     implicit none
@@ -322,8 +335,8 @@ contains
   end function sersicPotentialIsAnalytic
 
   double precision function sersicPotential(self,coordinates,status)
-    !!{
-    Return the potential at the specified \mono{coordinates} in a S\'ersic mass distribution.
+    !!{RST
+    Return the potential at the specified ``coordinates`` in a S\'ersic mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)                 , coordinateSpherical
     use :: Error                           , only : Error_Report
@@ -369,7 +382,7 @@ contains
   end function sersicPotential
 
   double precision function sersicRadiusHalfMass(self)
-    !!{
+    !!{RST
     Return the half-mass radius of a S\'ersic mass distribution.
     !!}
     implicit none
@@ -380,7 +393,7 @@ contains
   end function sersicRadiusHalfMass
 
   double precision function sersicRadiusHalfMassProjected(self)
-    !!{
+    !!{RST
     Return the half-mass radius in projection of a S\'ersic mass distribution.
     !!}
     implicit none
@@ -392,7 +405,7 @@ contains
   end function sersicRadiusHalfMassProjected
 
   subroutine sersicTabulate(self,radius)
-    !!{
+    !!{RST
     Tabulate the density enclosed mass, and potential in a dimensionless S\'ersic profile.
     !!}
     use :: Numerical_Constants_Math, only : Pi
@@ -541,7 +554,7 @@ contains
   end subroutine sersicTabulate
 
   double precision function sersicCoefficientRoot(coefficient)
-    !!{
+    !!{RST
     Root function used in finding the coefficient for S\'ersic profiles.
     !!}
     use :: Gamma_Functions, only : Gamma_Function_Incomplete
@@ -553,7 +566,7 @@ contains
   end function sersicCoefficientRoot
 
   double precision function sersicAbelIntegrand(radius)
-    !!{
+    !!{RST
     The integrand in the Abel integral used to invert the S\'ersic profile to get the corresponding 3-D profile.
     !!}
     use :: Numerical_Constants_Math, only : Pi

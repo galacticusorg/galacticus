@@ -17,17 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an inverting filter.
 !!}
 
   !![
-  <galacticFilter name="galacticFilterNot">
-   <description>Implements logical negation of a wrapped \refClass{galacticFilterClass}, passing nodes that the wrapped filter would reject and rejecting those it would pass, enabling complement-based selection criteria without defining explicit inverse filters.</description>
+  <galacticFilter name="galacticFilterNot" docformat="rst">
+   <description>
+   Implements logical negation of a wrapped :galacticus-class:`galacticFilterClass`, passing nodes that the wrapped filter would reject and rejecting those it would pass, enabling complement-based selection criteria without defining explicit inverse filters.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterNot
-     !!{
+     !!{RST
      A galactic filter which simply inverts the result of another filter.
      !!}
      private
@@ -38,8 +40,8 @@ Implements an inverting filter.
   end type galacticFilterNot
 
   interface galacticFilterNot
-     !!{
-     Constructors for the \refClass{galacticFilterNot} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterNot` galactic filter class.
      !!}
      module procedure notConstructorParameters
      module procedure notConstructorInternal
@@ -48,8 +50,8 @@ Implements an inverting filter.
 contains
 
   function notConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterNot} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterNot` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,8 +71,8 @@ contains
   end function notConstructorParameters
 
   function notConstructorInternal(galacticFilter_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterNot} galactic filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticFilterNot` galactic filter class.
     !!}
     implicit none
     type (galacticFilterNot  )                        :: self
@@ -83,8 +85,8 @@ contains
   end function notConstructorInternal
 
   subroutine notDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterNot} galactic filter class.
+    !!{RST
+    Destructor for the :galacticus-class:`galacticFilterNot` galactic filter class.
     !!}
     implicit none
     type(galacticFilterNot), intent(inout) :: self
@@ -96,7 +98,7 @@ contains
   end subroutine notDestructor
 
   logical function notPasses(self,node)
-    !!{
+    !!{RST
     Implement a not galactic filter.
     !!}
     implicit none

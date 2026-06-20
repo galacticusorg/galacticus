@@ -17,13 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements the geometry of the GAMAnear survey used by \cite{kelvin_galaxy_2014-1}.
+!!{RST
+Implements the geometry of the GAMAnear survey used by :cite:t:`kelvin_galaxy_2014-1`.
 !!}
 
   !![
-  <surveyGeometry name="surveyGeometryKelvin2014GAMAnear">
-   <description>Implements the geometry of the GAMAnear survey of \cite{kelvin_galaxy_2014-1}.</description>
+  <surveyGeometry name="surveyGeometryKelvin2014GAMAnear" docformat="rst">
+   <description>
+   Implements the geometry of the GAMAnear survey of :cite:t:`kelvin_galaxy_2014-1`.
+   </description>
   </surveyGeometry>
   !!]
 
@@ -36,8 +38,8 @@ Implements the geometry of the GAMAnear survey used by \cite{kelvin_galaxy_2014-
   end type surveyGeometryKelvin2014GAMAnear
 
   interface surveyGeometryKelvin2014GAMAnear
-     !!{
-     Constructors for the \cite{kelvin_galaxy_2014-1} survey geometry class.
+     !!{RST
+     Constructors for the :cite:t:`kelvin_galaxy_2014-1` survey geometry class.
      !!}
      module procedure kelvin2014GAMAnearConstructorParameters
      module procedure kelvin2014GAMAnearConstructorInternal
@@ -46,8 +48,8 @@ Implements the geometry of the GAMAnear survey used by \cite{kelvin_galaxy_2014-
 contains
 
   function kelvin2014GAMAnearConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \cite{kelvin_galaxy_2014-1} conditional mass function class.
+    !!{RST
+    Default constructor for the :cite:t:`kelvin_galaxy_2014-1` conditional mass function class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -69,8 +71,8 @@ contains
   end function kelvin2014GAMAnearConstructorParameters
 
   function kelvin2014GAMAnearConstructorInternal(cosmologyFunctions_) result (self)
-    !!{
-    Internal constructor for the \cite{kelvin_galaxy_2014-1} conditional mass function class.
+    !!{RST
+    Internal constructor for the :cite:t:`kelvin_galaxy_2014-1` conditional mass function class.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     implicit none
@@ -89,7 +91,7 @@ contains
   end function kelvin2014GAMAnearConstructorInternal
 
   double precision function kelvin2014GAMAnearDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
-    !!{
+    !!{RST
     Compute the minimum distance at which a galaxy is included in the survey.
     !!}
     implicit none
@@ -104,7 +106,7 @@ contains
   end function kelvin2014GAMAnearDistanceMinimum
 
   double precision function kelvin2014GAMAnearDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,starFormationRate,field)
-    !!{
+    !!{RST
     Compute the maximum distance at which a galaxy is visible.
     !!}
     use :: Error, only : Error_Report

@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements calculations of attenuation of stellar spectra using the model of \cite{gordon_quantitative_2003}.
+  !!{RST
+  Implements calculations of attenuation of stellar spectra using the model of :cite:t:`gordon_quantitative_2003`.
   !!}
 
   !![
-  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationGordon2003">
-   <description>Returns the dust attenuation of stellar spectra according to the model of \cite{gordon_quantitative_2003}.</description>
+  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationGordon2003" docformat="rst">
+   <description>
+   Returns the dust attenuation of stellar spectra according to the model of :cite:t:`gordon_quantitative_2003`.
+   </description>
   </stellarSpectraDustAttenuation>
   !!]
   type, extends(stellarSpectraDustAttenuationTabulated) :: stellarSpectraDustAttenuationGordon2003
-     !!{
-     A class implementing calculations of attenuation of stellar spectra using the model of \cite{gordon_quantitative_2003}.
+     !!{RST
+     A class implementing calculations of attenuation of stellar spectra using the model of :cite:t:`gordon_quantitative_2003`.
      !!}
      private
      type(varying_string) :: sample
@@ -36,17 +38,19 @@
   end type stellarSpectraDustAttenuationGordon2003
 
   interface stellarSpectraDustAttenuationGordon2003
-     !!{
-     Constructors for the \refClass{stellarSpectraDustAttenuationGordon2003} stellar spectra dust attenuation class.
+     !!{RST
+     Constructors for the :galacticus-class:`stellarSpectraDustAttenuationGordon2003` stellar spectra dust attenuation class.
      !!}
      module procedure gordon2003ConstructorParameters
      module procedure gordon2003ConstructorInternal
   end interface stellarSpectraDustAttenuationGordon2003
 
   !![
-  <enumeration>
+  <enumeration docformat="rst">
    <name>gordon2003Sample</name>
-   <description>Enumerates the samples available in the \mono{gordon2003} dust attenuation class.</description>
+   <description>
+   Enumerates the samples available in the ``gordon2003`` dust attenuation class.
+   </description>
    <encodeFunction>yes</encodeFunction>
    <validator>yes</validator>
    <visibility>public</visibility>
@@ -58,8 +62,8 @@
 contains
 
   function gordon2003ConstructorParameters(parameters) result(self)
-    !!{
-    Default constructor for the \mono{gordon2003} stellar spectra dust attenuation class.
+    !!{RST
+    Default constructor for the ``gordon2003`` stellar spectra dust attenuation class.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -68,10 +72,12 @@ contains
     type(varying_string                         )                :: sample
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sample</name>
       <defaultValue>var_str('SMCbar')</defaultValue>
-      <description>The name of the sample from \cite{gordon_quantitative_2003} to use in dust attenuation calculations.</description>
+      <description>
+      The name of the sample from :cite:t:`gordon_quantitative_2003` to use in dust attenuation calculations.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -83,8 +89,8 @@ contains
   end function gordon2003ConstructorParameters
 
   function gordon2003ConstructorInternal(sample) result(self)
-    !!{
-    Constructor for the \refClass{stellarSpectraDustAttenuationGordon2003} stellar spectra dust attenuation class.
+    !!{RST
+    Constructor for the :galacticus-class:`stellarSpectraDustAttenuationGordon2003` stellar spectra dust attenuation class.
     !!}
     use :: Error       , only : Error_Report
     use :: Table_Labels, only : extrapolationTypeExtrapolate

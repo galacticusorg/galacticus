@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements an N-body data operator which computes progenitor mass functions.
 !!}
 
@@ -25,12 +25,14 @@ Implements an N-body data operator which computes progenitor mass functions.
   use, intrinsic :: ISO_C_Binding       , only : c_size_t
 
   !![
-  <nbodyOperator name="nbodyOperatorProgenitorMassFunction">
-   <description>An N-body data operator which computes the progenitor mass function by tabulating mass ratios of progenitor halos relative to their parent halos in logarithmic bins. Parameters specify the parent and progenitor mass ranges, bin counts per decade, the snapshot indices for parent and progenitor selection, and simulation metadata.</description>
+  <nbodyOperator name="nbodyOperatorProgenitorMassFunction" docformat="rst">
+   <description>
+   An N-body data operator which computes the progenitor mass function by tabulating mass ratios of progenitor halos relative to their parent halos in logarithmic bins. Parameters specify the parent and progenitor mass ranges, bin counts per decade, the snapshot indices for parent and progenitor selection, and simulation metadata.
+   </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorProgenitorMassFunction
-     !!{
+     !!{RST
      An N-body data operator which computes progenitor mass functions.
      !!}
      private
@@ -48,8 +50,8 @@ Implements an N-body data operator which computes progenitor mass functions.
   end type nbodyOperatorProgenitorMassFunction
 
   interface nbodyOperatorProgenitorMassFunction
-     !!{
-     Constructors for the \refClass{nbodyOperatorProgenitorMassFunction} N-body operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nbodyOperatorProgenitorMassFunction` N-body operator class.
      !!}
      module procedure progenitorMassFunctionConstructorParameters
      module procedure progenitorMassFunctionConstructorInternal
@@ -58,8 +60,8 @@ Implements an N-body data operator which computes progenitor mass functions.
 contains
 
   function progenitorMassFunctionConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{nbodyOperatorProgenitorMassFunction} N-body operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nbodyOperatorProgenitorMassFunction` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -75,63 +77,85 @@ contains
          &                                                                                description
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParentMinimum</name>
       <source>parameters</source>
-      <description>The minimum halo mass (in $\mathrm{M}_\odot$) of parent halos to include in the progenitor mass function calculation.</description>
+      <description>
+      The minimum halo mass (in :math:`\mathrm{M}_\odot`) of parent halos to include in the progenitor mass function calculation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParentMaximum</name>
       <source>parameters</source>
-      <description>The maximum halo mass (in $\mathrm{M}_\odot$) of parent halos to include in the progenitor mass function calculation.</description>
+      <description>
+      The maximum halo mass (in :math:`\mathrm{M}_\odot`) of parent halos to include in the progenitor mass function calculation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massParentCountPerDecade</name>
       <source>parameters</source>
-      <description>The number of logarithmic bins per decade of parent halo mass used when tabulating the progenitor mass function.</description>
+      <description>
+      The number of logarithmic bins per decade of parent halo mass used when tabulating the progenitor mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massRatioProgenitorMinimum</name>
       <source>parameters</source>
-      <description>The minimum progenitor-to-parent mass ratio to include when binning the progenitor mass function.</description>
+      <description>
+      The minimum progenitor-to-parent mass ratio to include when binning the progenitor mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massRatioProgenitorMaximum</name>
       <source>parameters</source>
-      <description>The maximum progenitor-to-parent mass ratio to include when binning the progenitor mass function.</description>
+      <description>
+      The maximum progenitor-to-parent mass ratio to include when binning the progenitor mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massRatioProgenitorCountPerDecade</name>
       <source>parameters</source>
-      <description>The number of logarithmic bins per decade of progenitor-to-parent mass ratio used when tabulating the progenitor mass function.</description>
+      <description>
+      The number of logarithmic bins per decade of progenitor-to-parent mass ratio used when tabulating the progenitor mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>snapshotParents</name>
       <source>parameters</source>
-      <description>The snapshot index identifying the epoch at which parent halos are selected for the progenitor mass function.</description>
+      <description>
+      The snapshot index identifying the epoch at which parent halos are selected for the progenitor mass function.
+      </description>
     </inputParameter>
     !!]
     allocate(snapshotsProgenitors(parameters%count('snapshotsProgenitors')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>snapshotsProgenitors</name>
       <source>parameters</source>
-      <description>An array of snapshot indices identifying the epochs at which progenitor halos are selected and matched to parent halos in the progenitor mass function.</description>
+      <description>
+      An array of snapshot indices identifying the epochs at which progenitor halos are selected and matched to parent halos in the progenitor mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>description</name>
       <source>parameters</source>
-      <description>A description of this mass function.</description>
+      <description>
+      A description of this mass function.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>simulationReference</name>
       <source>parameters</source>
-      <description>A reference for the simulation.</description>
+      <description>
+      A reference for the simulation.
+      </description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>simulationURL</name>
       <source>parameters</source>
-      <description>A URL for the simulation.</description>
+      <description>
+      A URL for the simulation.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
@@ -144,8 +168,8 @@ contains
   end function progenitorMassFunctionConstructorParameters
 
   function progenitorMassFunctionConstructorInternal(massParentMinimum,massParentMaximum,massParentCountPerDecade,massRatioProgenitorMinimum,massRatioProgenitorMaximum,massRatioProgenitorCountPerDecade,snapshotParents,snapshotsProgenitors,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
-    !!{
-    Internal constructor for the \refClass{nbodyOperatorProgenitorMassFunction} N-body operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nbodyOperatorProgenitorMassFunction` N-body operator class.
     !!}
     implicit none
     type            (nbodyOperatorProgenitorMassFunction)                              :: self
@@ -165,8 +189,8 @@ contains
   end function progenitorMassFunctionConstructorInternal
   
   subroutine progenitorMassFunctionDestructor(self)
-    !!{
-    Destructor for the \refClass{nbodyOperatorProgenitorMassFunction} N-body operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nbodyOperatorProgenitorMassFunction` N-body operator class.
     !!}
     implicit none
     type(nbodyOperatorProgenitorMassFunction), intent(inout) :: self
@@ -178,7 +202,7 @@ contains
   end subroutine progenitorMassFunctionDestructor
 
   subroutine progenitorMassFunctionOperate(self,simulations)
-    !!{
+    !!{RST
     Compute mass functions of particles.
     !!}
     use    :: Arrays_Search     , only : searchArray

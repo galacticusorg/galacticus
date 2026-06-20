@@ -18,12 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorMassBlackHoles">
-   <description>Extracts a list of masses for all supermassive black holes in each node, providing per-black-hole mass data for analysis of black hole demographics and the black hole mass function.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorMassBlackHoles" docformat="rst">
+   <description>
+   Extracts a list of masses for all supermassive black holes in each node, providing per-black-hole mass data for analysis of black hole demographics and the black hole mass function.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorMassBlackHoles
-     !!{
+     !!{RST
      A property extractor which extracts a list of all super-massive black hole masses.
      !!}
      private
@@ -37,8 +39,8 @@
   end type nodePropertyExtractorMassBlackHoles
 
   interface nodePropertyExtractorMassBlackHoles
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorMassBlackHoles} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorMassBlackHoles` property extractor class.
      !!}
      module procedure massBlackHolesConstructorParameters
   end interface nodePropertyExtractorMassBlackHoles
@@ -46,8 +48,8 @@
 contains
 
   function massBlackHolesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorMassBlackHoles} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorMassBlackHoles` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -62,7 +64,7 @@ contains
   end function massBlackHolesConstructorParameters
 
   integer function massBlackHolesElementCount(self)
-    !!{
+    !!{RST
     Return a count of the number of properties extracted.
     !!}
     implicit none
@@ -73,7 +75,7 @@ contains
   end function massBlackHolesElementCount
 
   function massBlackHolesExtract(self,node,instance) result(mass)
-    !!{
+    !!{RST
     Implement an output extractor for the masses of all supermassive black holes.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
@@ -96,8 +98,8 @@ contains
   end function massBlackHolesExtract
 
   subroutine massBlackHolesNames(self,names)
-    !!{
-    Return the names of the \mono{massBlackHoles} properties.
+    !!{RST
+    Return the names of the ``massBlackHoles`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorMassBlackHoles), intent(inout)                             :: self
@@ -110,8 +112,8 @@ contains
   end subroutine massBlackHolesNames
 
   subroutine massBlackHolesDescriptions(self,descriptions)
-    !!{
-    Return the descriptions of the \mono{massBlackHoles} properties.
+    !!{RST
+    Return the descriptions of the ``massBlackHoles`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorMassBlackHoles), intent(inout)                             :: self
@@ -124,7 +126,7 @@ contains
   end subroutine massBlackHolesDescriptions
 
   function massBlackHolesUnitsInSI(self) result(unitsInSI)
-    !!{
+    !!{RST
     Return the units of the black hole mass properties in the SI system.
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
@@ -139,7 +141,7 @@ contains
   end function massBlackHolesUnitsInSI
 
   function massBlackHolesUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the black hole mass properties.
     !!}
     use :: Units_MetaData, only : unitType

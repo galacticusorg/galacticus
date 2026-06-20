@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test random number functions.
 !!}
 
 program Test_Random
-  !!{
+  !!{RST
   Tests that random number functions work.
   !!}
   use            :: Display                 , only : displayVerbositySet     , verbosityLevelStandard

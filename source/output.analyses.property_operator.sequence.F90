@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a sequence output analysis property operator class.
 !!}
 
@@ -27,33 +27,35 @@ Implements a sequence output analysis property operator class.
   end type propertyOperatorList
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSequence">
-   <description>Applies a sequence of \refClass{outputAnalysisPropertyOperatorClass} objects in order to a property value, enabling construction of complex multi-step transformations from simple composable operators.</description>
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSequence" docformat="rst">
+   <description>
+   Applies a sequence of :galacticus-class:`outputAnalysisPropertyOperatorClass` objects in order to a property value, enabling construction of complex multi-step transformations from simple composable operators.
+   </description>
    <linkedList type="propertyOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisPropertyOperatorClass"/>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorSequence
-     !!{
+     !!{RST
      A sequence output property operator class.
      !!}
      private
      type(propertyOperatorList), pointer :: operators => null()
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Prepend an operator to a sequence of property operators." method="prepend" />
-       <method description="Apppend an operator to a sequence of property operators." method="apppend" />
+       <method description="Append an operator to a sequence of property operators." method="apppend" />
      </methods>
      !!]
      final     ::            sequenceDestructor
      procedure :: operate => sequenceOperate
      procedure :: prepend => sequencePrepend
-     procedure :: apppend => sequenceApppend
+     procedure :: apppend => sequenceAppend
   end type outputAnalysisPropertyOperatorSequence
 
   interface outputAnalysisPropertyOperatorSequence
-     !!{
-     Constructors for the \refClass{outputAnalysisPropertyOperatorSequence} output analysis property operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorSequence` output analysis property operator class.
      !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
@@ -62,8 +64,8 @@ Implements a sequence output analysis property operator class.
 contains
 
   function sequenceConstructorParameters(parameters) result (self)
-    !!{
-    Constructor for the \refClass{outputAnalysisPropertyOperatorSequence} output analysis property operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorSequence` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -93,7 +95,7 @@ contains
   end function sequenceConstructorParameters
 
   function sequenceConstructorInternal(operators) result (self)
-    !!{
+    !!{RST
     Internal constructor for the sequence merger tree normalizer class.
     !!}
     implicit none
@@ -113,7 +115,7 @@ contains
   end function sequenceConstructorInternal
 
   subroutine sequenceDestructor(self)
-    !!{
+    !!{RST
     Destructor for the sequence property operator class.
     !!}
     implicit none
@@ -135,7 +137,7 @@ contains
   end subroutine sequenceDestructor
 
   double precision function sequenceOperate(self,propertyValue,node,propertyType,outputIndex)
-    !!{
+    !!{RST
     Implement an sequence output analysis property operator.
     !!}
     implicit none
@@ -156,7 +158,7 @@ contains
   end function sequenceOperate
 
   subroutine sequencePrepend(self,operator_)
-    !!{
+    !!{RST
     Prepend an operator to the sequence.
     !!}
     implicit none
@@ -171,8 +173,8 @@ contains
     return
   end subroutine sequencePrepend
 
-  subroutine sequenceApppend(self,operator_)
-    !!{
+  subroutine sequenceAppend(self,operator_)
+    !!{RST
     Append an operator to the sequence.
     !!}
     implicit none
@@ -189,4 +191,4 @@ contains
     end do
     operatorCurrent%next => operatorNew
     return
-  end subroutine sequenceApppend
+  end subroutine sequenceAppend

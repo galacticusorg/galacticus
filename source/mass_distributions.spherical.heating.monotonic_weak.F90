@@ -19,42 +19,41 @@
 
   !+    Contributions to this file made by: Xiaolong Du.
 
-  !!{
+  !!{RST
   Implements a mass distribution heating class which takes another heating source and enforces monotonic heating energy perturbation.
   !!}
 
   !![
-  <massDistributionHeating name="massDistributionHeatingMonotonicWeak">
+  <massDistributionHeating name="massDistributionHeatingMonotonicWeak" docformat="rst">
     <description>
-      A mass distribution heating class which takes another heating source and enforces monotonic heating energy
-      perturbation. This class enforces a weaker condition (compared to \refClass{massDistributionHeatingMonotonic}):      
-      \begin{equation}
-      \frac{\mathrm{d}r_\mathrm{f}}{\mathrm{d}r_\mathrm{i}} > 0,
-      \end{equation}
-      where $r_\mathrm{i}$ and $r_\mathrm{f}$ are the initial and final radii of the shell respectively.
-      
-      Note that this condition does not ensure that the gradient of the specific heating energy is continuous through the
-      shell-crossing radius. As such, the heated density profile may be discontinuous at this radius also.      
+    A mass distribution heating class which takes another heating source and enforces monotonic heating energy perturbation. This class enforces a weaker condition (compared to :galacticus-class:`massDistributionHeatingMonotonic`):
 
-      Using the fact that
-      \begin{equation}
-      -\frac{\mathrm{G}M}{2 r_\mathrm{f}} = -\frac{\mathrm{G}M}{2 r_\mathrm{i}} + \epsilon(r_\mathrm{i}),
-      \end{equation}
+    .. math::
 
-      where $\epsilon(r)$ is the specific heating energy as a function of radius, and $M$ is the mass enclosed by the shell, we
-      can re-write the above condition as
-      \begin{equation}
-      \frac{\mathrm{d}\epsilon}{\mathrm{d}r_\mathrm{i}} r_\mathrm{i} - \epsilon(r_\mathrm{i}) \frac{4 \pi r_\mathrm{i}^3 \rho_\mathrm{i}(r_\mathrm{i})}{M} + \frac{\mathrm{G}M}{2r_\mathrm{i}} > \xi \frac{\mathrm{G}M}{r_\mathrm{i}},
-      \end{equation}
-      where $\rho_\mathrm{i}(r_\mathrm{i})$ is the density in the unheated profile. Here, $\xi$ should equal zero to precisely
-      match the criterion for no shell-crossing. However, it is often useful to allow $\xi$ to be a small positive number---this
-      avoids getting too close to the boundary of the shell crossing region (where the density can diverge as there is, by
-      definition, a caustic in density at this point).
+       \frac{\mathrm{d}r_\mathrm{f}}{\mathrm{d}r_\mathrm{i}} &gt; 0,
+
+    where :math:`r_\mathrm{i}` and :math:`r_\mathrm{f}` are the initial and final radii of the shell respectively.
+
+    Note that this condition does not ensure that the gradient of the specific heating energy is continuous through the shell-crossing radius. As such, the heated density profile may be discontinuous at this radius also.
+
+    Using the fact that
+
+    .. math::
+
+       -\frac{\mathrm{G}M}{2 r_\mathrm{f}} = -\frac{\mathrm{G}M}{2 r_\mathrm{i}} + \epsilon(r_\mathrm{i}),
+
+    where :math:`\epsilon(r)` is the specific heating energy as a function of radius, and :math:`M` is the mass enclosed by the shell, we can re-write the above condition as
+
+    .. math::
+
+       \frac{\mathrm{d}\epsilon}{\mathrm{d}r_\mathrm{i}} r_\mathrm{i} - \epsilon(r_\mathrm{i}) \frac{4 \pi r_\mathrm{i}^3 \rho_\mathrm{i}(r_\mathrm{i})}{M} + \frac{\mathrm{G}M}{2r_\mathrm{i}} &gt; \xi \frac{\mathrm{G}M}{r_\mathrm{i}},
+
+    where :math:`\rho_\mathrm{i}(r_\mathrm{i})` is the density in the unheated profile. Here, :math:`\xi` should equal zero to precisely match the criterion for no shell-crossing. However, it is often useful to allow :math:`\xi` to be a small positive number---this avoids getting too close to the boundary of the shell crossing region (where the density can diverge as there is, by definition, a caustic in density at this point).
     </description>
   </massDistributionHeating>
   !!]
   type, extends(massDistributionHeatingMonotonic) :: massDistributionHeatingMonotonicWeak
-     !!{
+     !!{RST
      Implementation of a mass distribution heating class which takes another heating source and enforces monotonic heating energy perturbation.
      !!}
      private
@@ -65,8 +64,8 @@
   end type massDistributionHeatingMonotonicWeak
 
   interface massDistributionHeatingMonotonicWeak
-     !!{
-     Constructors for the \refClass{massDistributionHeatingMonotonicWeak} mass distribution heating class.
+     !!{RST
+     Constructors for the :galacticus-class:`massDistributionHeatingMonotonicWeak` mass distribution heating class.
      !!}
      module procedure monotonicWeakConstructorParameters
      module procedure monotonicWeakConstructorInternal
@@ -75,9 +74,8 @@
 contains
 
   function monotonicWeakConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionHeatingMonotonicWeak} mass distribution heating class which builds the object from a parameter
-    set.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionHeatingMonotonicWeak` mass distribution heating class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -87,11 +85,13 @@ contains
     double precision                                                      :: toleranceShellCrossing
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>toleranceShellCrossing</name>
       <defaultValue>1.0d-3</defaultValue>
       <source>parameters</source>
-      <description>The tolerance adopted in determining if the no-shell-crossing assumption is valid.</description>
+      <description>
+      The tolerance adopted in determining if the no-shell-crossing assumption is valid.
+      </description>
     </inputParameter>
     <objectBuilder class="massDistributionHeating" name="massDistributionHeating_" source="parameters"/>
     !!]
@@ -104,8 +104,8 @@ contains
   end function monotonicWeakConstructorParameters
   
   function monotonicWeakConstructorInternal(toleranceShellCrossing,massDistributionHeating_) result(self)
-    !!{
-    Constructor for the \refClass{massDistributionHeatingMonotonicWeak} mass distribution heating class.
+    !!{RST
+    Constructor for the :galacticus-class:`massDistributionHeatingMonotonicWeak` mass distribution heating class.
     !!}
     implicit none
     type            (massDistributionHeatingMonotonicWeak)                        :: self
@@ -118,7 +118,7 @@ contains
   end function monotonicWeakConstructorInternal
 
   logical function monotonicWeakNoShellCrossingIsValid(self,radius,massDistribution_) result(isValid)
-    !!{
+    !!{RST
     Determines if the no shell crossing assumption is valid.
     !!}
     use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
@@ -166,7 +166,7 @@ contains
   end function monotonicWeakNoShellCrossingIsValid
 
   double precision function monotonicWeakRadiusShellCrossingRoot(self,radius,massDistribution_) result(root)
-    !!{
+    !!{RST
     Root function used in finding the radius where shell crossing happens.
     !!}
     use :: Coordinates                     , only : coordinateSpherical           , assignment(=)

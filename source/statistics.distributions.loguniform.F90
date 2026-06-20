@@ -17,27 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a 1D distribution function which is uniform in the logarithm of the variable.
   !!}
 
   !![
-  <distributionFunction1D name="distributionFunction1DLogUniform">
+  <distributionFunction1D name="distributionFunction1DLogUniform" docformat="rst">
    <description>
-    A distribution uniform in the logarithm of $x$ over a finite range
-    \begin{equation}
-     P(x) \propto \left\{ \begin{array}{ll} x^{-1} &amp; \hbox{ if } x_\mathrm{l} \leq x \leq x_\mathrm{u} \\ 0 &amp; \hbox{ otherwise.}  \end{array} \right.
-    \end{equation}
-    Specified using:
-    \begin{description}
-    \item[\mono{[minimum]}] The lower limit of the range, $x_\mathrm{l}$;
-    \item[\mono{[maximum]}] The upper limit of the range, $x_\mathrm{u}$.
-    \end{description}
+   A distribution uniform in the logarithm of :math:`x` over a finite range
+
+   .. math::
+
+      P(x) \propto \left\{ \begin{array}{ll} x^{-1} &amp; \hbox{ if } x_\mathrm{l} \leq x \leq x_\mathrm{u} \\ 0 &amp; \hbox{ otherwise.}  \end{array} \right.
+
+   Specified using:
+
+   ``[minimum]``
+      The lower limit of the range, :math:`x_\mathrm{l}`;
+
+   ``[maximum]``
+      The upper limit of the range, :math:`x_\mathrm{u}`.
    </description>
   </distributionFunction1D>
   !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DLogUniform
-     !!{
+     !!{RST
      Implementation of a 1D distribution function which is uniform in the logarithm of the variable.
      !!}
      private
@@ -52,8 +56,8 @@
   end type distributionFunction1DLogUniform
 
   interface distributionFunction1DLogUniform
-     !!{
-     Constructors for the \refClass{distributionFunction1DLogUniform} 1D distribution function class.
+     !!{RST
+     Constructors for the :galacticus-class:`distributionFunction1DLogUniform` 1D distribution function class.
      !!}
      module procedure logUniformConstructorParameters
      module procedure logUniformConstructorInternal
@@ -62,9 +66,8 @@
 contains
 
   function logUniformConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DLogUniform} 1D distribution function class which builds
-    the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DLogUniform` 1D distribution function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -74,14 +77,18 @@ contains
     double precision                                                  :: limitLower            , limitUpper
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>limitLower</name>
-      <description>The lower bound $x_\mathrm{l} > 0$ of the log-uniform distribution, below which the probability density is zero; must be positive and strictly less than the upper limit.</description>
+      <description>
+      The lower bound :math:`x_\mathrm{l} &gt; 0` of the log-uniform distribution, below which the probability density is zero; must be positive and strictly less than the upper limit.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>limitUpper</name>
-      <description>The upper bound $x_\mathrm{u} > 0$ of the log-uniform distribution, above which the probability density is zero; must be positive and strictly greater than the lower limit.</description>
+      <description>
+      The upper bound :math:`x_\mathrm{u} &gt; 0` of the log-uniform distribution, above which the probability density is zero; must be positive and strictly greater than the lower limit.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -95,8 +102,8 @@ contains
   end function logUniformConstructorParameters
 
   function logUniformConstructorInternal(limitLower,limitUpper,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \refClass{distributionFunction1DLogUniform} 1D distribution function class.
+    !!{RST
+    Constructor for the :galacticus-class:`distributionFunction1DLogUniform` 1D distribution function class.
     !!}
     use :: Error, only : Error_Report
     type            (distributionFunction1DLogUniform)                                  :: self
@@ -120,7 +127,7 @@ contains
   end function logUniformConstructorInternal
 
   double precision function logUniformDensity(self,x)
-    !!{
+    !!{RST
     Return the density of a uniform distribution.
     !!}
     implicit none
@@ -136,7 +143,7 @@ contains
   end function logUniformDensity
 
   double precision function logUniformCumulative(self,x)
-    !!{
+    !!{RST
     Return the cumulative probability of a uniform distribution.
     !!}
     implicit none
@@ -154,7 +161,7 @@ contains
   end function logUniformCumulative
 
   double precision function logUniformInverse(self,p)
-    !!{
+    !!{RST
     Return the inverse of a uniform distribution.
     !!}
     use :: Error, only : Error_Report
@@ -172,7 +179,7 @@ contains
   end function logUniformInverse
 
   double precision function logUniformMinimum(self)
-    !!{
+    !!{RST
     Return the minimum possible value of a logUniform distribution.
     !!}
     implicit none
@@ -183,7 +190,7 @@ contains
   end function logUniformMinimum
 
   double precision function logUniformMaximum(self)
-    !!{
+    !!{RST
     Return the maximum possible value of a logUniform distribution.
     !!}
     implicit none

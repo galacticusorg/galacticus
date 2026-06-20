@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program to test ODE-IV2 solver routines.
 !!}
 
 program Test_ODE_Solver
-  !!{
+  !!{RST
   Tests that ODE solver routines work.
   !!}
   use            :: Display                  , only : displayVerbositySet                             , verbosityLevelStandard

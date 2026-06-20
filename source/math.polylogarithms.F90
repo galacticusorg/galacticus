@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements polylogarithm functions.
 !!}
 
@@ -25,7 +25,7 @@ Contains a module which implements polylogarithm functions.
 !; gsl
 
 module Polylogarithms
-  !!{
+  !!{RST
   Implements polylogarithm functions.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_double
@@ -35,7 +35,7 @@ module Polylogarithms
 
   interface
      function gsl_sf_fermi_dirac_1(x) bind(c,name='gsl_sf_fermi_dirac_1')
-       !!{
+       !!{RST
        Template for the GSL Fermi-Dirac integral of index 1 C function.
        !!}
        import
@@ -46,7 +46,7 @@ module Polylogarithms
 
   interface
      function gsl_sf_fermi_dirac_2(x) bind(c,name='gsl_sf_fermi_dirac_2')
-       !!{
+       !!{RST
        Template for the GSL Fermi-Dirac integral of index 2 C function.
        !!}
        import
@@ -58,7 +58,7 @@ module Polylogarithms
 contains
 
   double precision function Polylogarithm_2(x)
-    !!{
+    !!{RST
     Evaluate the polylogarithm function of order 2.
     !!}
     implicit none
@@ -71,7 +71,7 @@ contains
   end function Polylogarithm_2
 
   double precision function Polylogarithm_3(x)
-    !!{
+    !!{RST
     Evaluate the polylogarithm function of order 3.
     !!}
     implicit none

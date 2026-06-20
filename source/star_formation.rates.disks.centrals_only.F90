@@ -17,19 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a star formation rate in galactic disks which sets rates in satellites to zero.
   !!}
 
   !![
-  <starFormationRateDisks name="starFormationRateDisksCentralsOnly">
-   <description>A star formation rate in galactic disks which sets rates in satellites to zero.</description>
+  <starFormationRateDisks name="starFormationRateDisksCentralsOnly" docformat="rst">
+   <description>
+   A star formation rate in galactic disks which sets rates in satellites to zero.
+   </description>
   </starFormationRateDisks>
   !!]
   type, extends(starFormationRateDisksClass) :: starFormationRateDisksCentralsOnly
-     !!{
-     Implementation of a rate for star formation in galactic disks which computes the rate by integrating a star formation rate
-     over the disk.
+     !!{RST
+     Implementation of a rate for star formation in galactic disks which computes the rate by integrating a star formation rate over the disk.
      !!}
      private
      class(starFormationRateDisksClass), pointer :: starFormationRateDisks_ => null()
@@ -39,8 +40,8 @@
   end type starFormationRateDisksCentralsOnly
 
   interface starFormationRateDisksCentralsOnly
-     !!{
-     Constructors for the \refClass{starFormationRateDisksCentralsOnly} star formation rate in disks class.
+     !!{RST
+     Constructors for the :galacticus-class:`starFormationRateDisksCentralsOnly` star formation rate in disks class.
      !!}
      module procedure centralsOnlyConstructorParameters
      module procedure centralsOnlyConstructorInternal
@@ -49,9 +50,8 @@
 contains
 
   function centralsOnlyConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{starFormationRateDisksCentralsOnly} star formation rate in disks class which takes a
-    parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`starFormationRateDisksCentralsOnly` star formation rate in disks class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -71,8 +71,8 @@ contains
   end function centralsOnlyConstructorParameters
 
   function centralsOnlyConstructorInternal(starFormationRateDisks_) result(self)
-    !!{
-    Internal constructor for the \refClass{starFormationRateDisksCentralsOnly} star formation rate in disks class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`starFormationRateDisksCentralsOnly` star formation rate in disks class.
     !!}
     implicit none
     type (starFormationRateDisksCentralsOnly)                        :: self
@@ -85,8 +85,8 @@ contains
   end function centralsOnlyConstructorInternal
 
   subroutine centralsOnlyDestructor(self)
-    !!{
-    Destructor for the \refClass{starFormationRateDisksCentralsOnly} star formation rate in disks class.
+    !!{RST
+    Destructor for the :galacticus-class:`starFormationRateDisksCentralsOnly` star formation rate in disks class.
     !!}
     implicit none
     type(starFormationRateDisksCentralsOnly), intent(inout) :: self
@@ -98,8 +98,8 @@ contains
   end subroutine centralsOnlyDestructor
 
   double precision function centralsOnlyRate(self,node)
-    !!{
-    Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic disk of \mono{node}. Assumes zero rate for satellites, falling through to another class for centrals.
+    !!{RST
+    Returns the star formation rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) in the galactic disk of ``node``. Assumes zero rate for satellites, falling through to another class for centrals.
     !!}
     implicit none
     class(starFormationRateDisksCentralsOnly), intent(inout), target :: self

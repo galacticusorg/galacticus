@@ -17,13 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Contains a module of globally-accessible functions supporting the \mono{evolveForests} task class.
+!!{RST
+Contains a module of globally-accessible functions supporting the ``evolveForests`` task class.
 !!}
 
 module Tasks_Evolve_Forests_Utilities
-  !!{
-  Provides globally-accessible functions supporting the \mono{evolveForests} task class.
+  !!{RST
+  Provides globally-accessible functions supporting the ``evolveForests`` task class.
   !!}
   private
   public :: Tasks_Evolve_Forest_Construct, Tasks_Evolve_Forest_Perform, &
@@ -46,9 +46,8 @@ contains
   </functionGlobal>
   !!]
   subroutine Tasks_Evolve_Forest_Construct(parameters,task_)
-    !!{
-    Build a \mono{taskEvolveForests} object from a given parameter set. This is a globally-callable function
-    to allow us to subvert the class/module hierarchy.
+    !!{RST
+    Build a ``taskEvolveForests`` object from a given parameter set. This is a globally-callable function to allow us to subvert the class/module hierarchy.
     !!}
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter, inputParameters
@@ -80,8 +79,8 @@ contains
   </functionGlobal>
   !!]
   subroutine Tasks_Evolve_Forest_Perform(task_,status)
-    !!{
-    Perform the task for a \mono{taskEvolveForests} object passed to us as an unlimited polymorphic object.
+    !!{RST
+    Perform the task for a ``taskEvolveForests`` object passed to us as an unlimited polymorphic object.
     !!}
     use :: Error, only : Error_Report
     use :: Tasks, only : task        , taskEvolveForests
@@ -106,8 +105,8 @@ contains
   </functionGlobal>
   !!]
   subroutine Tasks_Evolve_Forest_Destruct(task_)
-    !!{
-    Destruct a \mono{taskEvolveForests} object passed to us as an unlimited polymorphic object.
+    !!{RST
+    Destruct a ``taskEvolveForests`` object passed to us as an unlimited polymorphic object.
     !!}
     use :: Error, only : Error_Report
     use :: Tasks, only : task        , taskEvolveForests

@@ -17,25 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implementation of a posterior sampling likelihood class which implements a likelihood for \glc\ models.
+  !!{RST
+  Implementation of a posterior sampling likelihood class which implements a likelihood for Galacticus models.
   !!}
 
   use :: Display        , only : enumerationVerbosityLevelType
   use :: Output_Analyses, only : outputAnalysis               , outputAnalysisClass
 
   !![
-  <posteriorSampleLikelihood name="posteriorSampleLikelihoodGalaxyPopulation">
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodGalaxyPopulation" docformat="rst">
    <description>
-    A posterior sampling likelihood class which evaluates the likelihood of \glc\ galaxy formation model outputs
-    against observational constraints, supporting parallelized model evaluation across MPI process groups. The number of
-    collaborative MPI groups is set by \mono{[countCollaborativeGroups]}, with analysis storage controlled by \mono{[storeResults]}.    
+   A posterior sampling likelihood class which evaluates the likelihood of Galacticus galaxy formation model outputs against observational constraints, supporting parallelized model evaluation across MPI process groups. The number of collaborative MPI groups is set by ``[countCollaborativeGroups]``, with analysis storage controlled by ``[storeResults]``.
    </description>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodBaseParameters) :: posteriorSampleLikelihoodGalaxyPopulation
-     !!{
-     Implementation of a posterior sampling likelihood class which implements a likelihood for \glc\ models.
+     !!{RST
+     Implementation of a posterior sampling likelihood class which implements a likelihood for Galacticus models.
      !!}
      private
      type   (varying_string               )          :: failedParametersFileName
@@ -53,8 +51,8 @@
   end type posteriorSampleLikelihoodGalaxyPopulation
 
   interface posteriorSampleLikelihoodGalaxyPopulation
-     !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodGalaxyPopulation} posterior sampling likelihood class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSampleLikelihoodGalaxyPopulation` posterior sampling likelihood class.
      !!}
      module procedure galaxyPopulationConstructorParameters
      module procedure galaxyPopulationConstructorInternal
@@ -68,9 +66,8 @@
 contains
 
   function galaxyPopulationConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodGalaxyPopulation} posterior sampling likelihood class which builds the object
-    from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodGalaxyPopulation` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Display         , only : displayVerbosity, enumerationVerbosityLevelDecode, enumerationVerbosityLevelEncode
     use :: Input_Parameters, only : inputParameter  , inputParameters
@@ -88,71 +85,90 @@ contains
     type   (inputParameters                          ), pointer                     :: parametersModel
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>baseParametersFileName</name>
-      <description>The path to the XML parameter file that provides the base configuration for each \glc\ model evaluation, to which parameter changes from the posterior sampler are then applied.</description>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>outputAnalyses</name>
-      <description>If true, results of the analyses on each step will be stored to the output file.</description>
-      <defaultValue>.false.</defaultValue>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>setOutputGroup</name>
-      <description>If true, set the primary output group for each step.</description>
-      <defaultValue>.false.</defaultValue>
-      <source>parameters</source>
-    </inputParameter>
-     <inputParameter>
-     <name>reportEvaluationTimes</name>
-      <description>If true, report the time taken to evaluate each model.</description>
-      <defaultValue>.false.</defaultValue>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>countCollaborativeGroups</name>
-      <description>The number of groups into which MPI processes should be split for the purpose of model evaluation. Each group will be populated with MPI processes. Processes within a group will collaborate on running a single model evaluation. Setting this parameter to a negative value will result in using the maximum possible number of groups (equal to the number of MPI processes).</description>
-      <defaultValue>1</defaultValue>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>firstComeFirstServed</name>
-      <description>If true, collaborative groups will take the next available evaluation and process it. Otherwise, each group will be assigned a fixed set of evaluations in advance.</description>
-      <defaultValue>.false.</defaultValue>
-      <source>parameters</source>
-    </inputParameter>
-    <inputParameter>
-      <name>doPing</name>
-      <defaultValue>.false.</defaultValue>
       <description>
-        If true, the master MPI process will attach to the \mono{calculationReset} event and ping the MPI
-        counter. This can help to ensure that the counter updates regularly.
+      The path to the XML parameter file that provides the base configuration for each Galacticus model evaluation, to which parameter changes from the posterior sampler are then applied.
       </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
+      <name>outputAnalyses</name>
+      <description>
+      If true, results of the analyses on each step will be stored to the output file.
+      </description>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>setOutputGroup</name>
+      <description>
+      If true, set the primary output group for each step.
+      </description>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+     <inputParameter docformat="rst">
+     <name>reportEvaluationTimes</name>
+      <description>
+      If true, report the time taken to evaluate each model.
+      </description>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>countCollaborativeGroups</name>
+      <description>
+      The number of groups into which MPI processes should be split for the purpose of model evaluation. Each group will be populated with MPI processes. Processes within a group will collaborate on running a single model evaluation. Setting this parameter to a negative value will result in using the maximum possible number of groups (equal to the number of MPI processes).
+      </description>
+      <defaultValue>1</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>firstComeFirstServed</name>
+      <description>
+      If true, collaborative groups will take the next available evaluation and process it. Otherwise, each group will be assigned a fixed set of evaluations in advance.
+      </description>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>doPing</name>
+      <defaultValue>.false.</defaultValue>
+      <description>
+      If true, the master MPI process will attach to the ``calculationReset`` event and ping the MPI counter. This can help to ensure that the counter updates regularly.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
       <name>reportFileName</name>
-      <description>If true, report the base parameter file name being evaluated.</description>
+      <description>
+      If true, report the base parameter file name being evaluated.
+      </description>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>reportState</name>
-      <description>If true, log a summary of the model parameter state to standard output at the beginning of each likelihood evaluation.</description>
+      <description>
+      If true, log a summary of the model parameter state to standard output at the beginning of each likelihood evaluation.
+      </description>
       <defaultValue>.false.</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>evolveForestsVerbosity</name>
-      <description>The verbosity level to use while performing evolve forests tasks.</description>
+      <description>
+      The verbosity level to use while performing evolve forests tasks.
+      </description>
       <defaultValue>enumerationVerbosityLevelDecode(displayVerbosity(),includePrefix=.false.)</defaultValue>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>failedParametersFileName</name>
-      <description>The name of the file to which parameters of failed models should be written.</description>
+      <description>
+      The name of the file to which parameters of failed models should be written.
+      </description>
       <defaultValue>var_str('./failedParameters.xml')</defaultValue>
       <source>parameters</source>
     </inputParameter>
@@ -160,9 +176,11 @@ contains
     allocate(changeParametersFileNames(parameters%count('changeParametersFileNames',zeroIfNotPresent=.true.)))
     if (size(changeParametersFileNames) > 0) then
        !![
-       <inputParameter>
+       <inputParameter docformat="rst">
 	 <name>changeParametersFileNames</name>
-	 <description>The names of files containing parameter changes to be applied.</description>
+	 <description>
+	 The names of files containing parameter changes to be applied.
+	 </description>
 	 <source>parameters</source>
        </inputParameter>
        !!]
@@ -179,8 +197,8 @@ contains
 
 
   function galaxyPopulationConstructorInternal(parametersModel,baseParametersFileName,outputAnalyses,setOutputGroup,reportEvaluationTimes,countCollaborativeGroups,firstComeFirstServed,doPing,reportFileName,reportState,evolveForestsVerbosity,failedParametersFileName,changeParametersFileNames) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodGalaxyPopulation} posterior sampling likelihood class.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodGalaxyPopulation` posterior sampling likelihood class.
     !!}
     use :: MPI_Utilities     , only : mpiSelf
     use :: Error             , only : Error_Report
@@ -214,8 +232,10 @@ contains
     allocate(self%parametersModel)
     self%parametersModel%parametersModel => parametersModel
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807">
-      <description>ICE when passing a derived type component to a class(*) function argument.</description>
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
     !!]
     dummyPointer_               => self%parametersModel
     self%parametersModelManager =  resourceManager(dummyPointer_)
@@ -226,8 +246,8 @@ contains
   end function galaxyPopulationConstructorInternal
 
   double precision function galaxyPopulationEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !!{
-    Return the log-likelihood for the \glc\ likelihood function.
+    !!{RST
+    Return the log-likelihood for the Galacticus likelihood function.
     !!}
     use :: Display                       , only : displayIndent                  , displayMessage               , displayUnindent             , displayVerbosity             , &
           &                                       displayVerbositySet            , verbosityLevelSilent         , verbosityLevelStandard      , enumerationVerbosityLevelType
@@ -472,7 +492,7 @@ contains
   contains
 
     subroutine evaluationCounterPing(self,node,uniqueID)
-      !!{
+      !!{RST
       Ping the evaluation counter to force it to respond to requests.
       !!}
       use :: Galacticus_Nodes, only : treeNode
@@ -497,7 +517,7 @@ contains
   end function galaxyPopulationEvaluate
 
   subroutine galaxyPopulationFunctionChanged(self)
-    !!{
+    !!{RST
     Respond to possible changes in the likelihood function.
     !!}
     implicit none
@@ -508,7 +528,7 @@ contains
   end subroutine galaxyPopulationFunctionChanged
 
   logical function galaxyPopulationWillEvaluate(self,simulationState,modelParameters_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
-    !!{
+    !!{RST
     Return true if the log-likelihood will be evaluated.
     !!}
     use :: Models_Likelihoods_Constants  , only : logImpossible
@@ -529,7 +549,7 @@ contains
   end function galaxyPopulationWillEvaluate
 
   subroutine posteriorSampleLikelihoodGalaxyPopulationSignalHandler(signal)
-    !!{
+    !!{RST
     Write out current parameters if a signal was caught during model evaluation.
     !!}
     use :: Display           , only : displayMessage         , displayBold   , displayRed, displayReset, &

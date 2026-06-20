@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module that implements useful OpenMP utilities.
 !!}
 
 module OpenMP_Utilities
-  !!{
+  !!{RST
   Implements useful OpenMP utilities.
   !!}
   private
@@ -33,7 +33,7 @@ contains
   <outputFileClose function="OpenMP_Critical_Wait_Times"/>
   !!]
   subroutine OpenMP_Critical_Wait_Times()
-    !!{
+    !!{RST
     Outputs collected data on OpenMP critical section wait times.
     !!}
 #ifdef OMPPROFILE

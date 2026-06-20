@@ -17,18 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
-  Implements a galactic filter which applies another filter to all descendant nodes of the given node and
-  passes if any primary descendant passes.  
+  !!{RST
+  Implements a galactic filter which applies another filter to all descendant nodes of the given node and passes if any primary descendant passes.
   !!}
   
   !![
-  <galacticFilter name="galacticFilterPrimaryDescendantNode">
-   <description>Applies a delegate galactic filter to all primary descendant nodes of the given node along the main progenitor branch and passes if any such primary descendant satisfies that filter. The \mono{[allowSelf]} parameter controls whether the node itself is included among the candidates tested.</description>
+  <galacticFilter name="galacticFilterPrimaryDescendantNode" docformat="rst">
+   <description>
+   Applies a delegate galactic filter to all primary descendant nodes of the given node along the main progenitor branch and passes if any such primary descendant satisfies that filter. The ``[allowSelf]`` parameter controls whether the node itself is included among the candidates tested.
+   </description>
   </galacticFilter>
   !!]
   type, extends(galacticFilterClass) :: galacticFilterPrimaryDescendantNode
-     !!{
+     !!{RST
      A galactic filter which applies another filter to all descendant nodes of the given node and passes if any primary descendant passes.
      !!}
      private
@@ -40,8 +41,8 @@
   end type galacticFilterPrimaryDescendantNode
 
   interface galacticFilterPrimaryDescendantNode
-     !!{
-     Constructors for the \refClass{galacticFilterPrimaryDescendantNode} galactic filter class.
+     !!{RST
+     Constructors for the :galacticus-class:`galacticFilterPrimaryDescendantNode` galactic filter class.
      !!}
      module procedure primaryDescendantNodeConstructorParameters
      module procedure primaryDescendantNodeConstructorInternal
@@ -50,8 +51,8 @@
 contains
 
   function primaryDescendantNodeConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{galacticFilterPrimaryDescendantNode} galactic filter class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`galacticFilterPrimaryDescendantNode` galactic filter class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -61,10 +62,12 @@ contains
     logical                                                     :: allowSelf
          
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>allowSelf</name>
       <source>parameters</source>
-      <description>If true, the node itself is considered as a descendant, otherwise the node itself is excluded from the descendant node search.</description>
+      <description>
+      If true, the node itself is considered as a descendant, otherwise the node itself is excluded from the descendant node search.
+      </description>
     </inputParameter>
     <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
     !!]
@@ -77,8 +80,8 @@ contains
   end function primaryDescendantNodeConstructorParameters
   
   function primaryDescendantNodeConstructorInternal(allowSelf,galacticFilter_) result(self)
-    !!{
-    Internal constructor for the \refClass{galacticFilterPrimaryDescendantNode} galactic filter class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`galacticFilterPrimaryDescendantNode` galactic filter class.
     !!}
     implicit none
     type   (galacticFilterPrimaryDescendantNode)                        :: self
@@ -92,8 +95,8 @@ contains
   end function primaryDescendantNodeConstructorInternal
   
   subroutine primaryDescendantNodeDestructor(self)
-    !!{
-    Destructor for the \refClass{galacticFilterPrimaryDescendantNode} galactic filter class.
+    !!{RST
+    Destructor for the :galacticus-class:`galacticFilterPrimaryDescendantNode` galactic filter class.
     !!}
     implicit none
     type(galacticFilterPrimaryDescendantNode), intent(inout) :: self
@@ -105,7 +108,7 @@ contains
   end subroutine primaryDescendantNodeDestructor
   
   logical function primaryDescendantNodePasses(self,node)
-    !!{
+    !!{RST
     Implement a filter on descendant node properties.
     !!}
     implicit none

@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a transfer function accelerator class which tabulates a transfer function for rapid interpolation.
   !!}
 
   use :: Tables, only : table1DLinearLinear
 
   !![
-  <transferFunction name="transferFunctionAccelerator">
-   <description>A transfer function class which accelerates calculations of another transfer function class by pre-tabulating the transfer function over a grid of wavenumbers and then using rapid interpolation for subsequent evaluations. The density of the tabulation grid in wavenumber is set by \mono{[wavenumberPerDecade]}.</description>
+  <transferFunction name="transferFunctionAccelerator" docformat="rst">
+   <description>
+   A transfer function class which accelerates calculations of another transfer function class by pre-tabulating the transfer function over a grid of wavenumbers and then using rapid interpolation for subsequent evaluations. The density of the tabulation grid in wavenumber is set by ``[wavenumberPerDecade]``.
+   </description>
   </transferFunction>
   !!]
   type, extends(transferFunctionClass) :: transferFunctionAccelerator
-     !!{
+     !!{RST
      A transfer function class which accelerates calculations of another transfer function class by tabulation for rapid interpolation.
      !!}
      private
@@ -49,7 +51,7 @@
   end type transferFunctionAccelerator
 
   interface transferFunctionAccelerator
-     !!{
+     !!{RST
      Constructors for the accelerator transfer function class.
      !!}
      module procedure acceleratorConstructorParameters
@@ -59,7 +61,7 @@
 contains
 
   function acceleratorConstructorParameters(parameters) result(self)
-    !!{
+    !!{RST
     Constructor for the accelerator transfer function class which takes a parameter set as input.
     !!}
     use :: Cosmology_Parameters, only : cosmologyParametersClass
@@ -71,11 +73,13 @@ contains
     integer                                            :: tablePointsPerDecade
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>tablePointsPerDecade</name>
       <source>parameters</source>
       <defaultValue>10</defaultValue>
-      <description>The number of points per decade of wavenumber at which to tabulate the transfer function.</description>
+      <description>
+      The number of points per decade of wavenumber at which to tabulate the transfer function.
+      </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="transferFunction"    name="transferFunction_"    source="parameters"/>
@@ -89,7 +93,7 @@ contains
   end function acceleratorConstructorParameters
 
   function acceleratorConstructorInternal(transferFunction_,cosmologyParameters_,tablePointsPerDecade) result(self)
-    !!{
+    !!{RST
     Internal constructor for the accelerator transfer function class.
     !!}
     implicit none
@@ -108,7 +112,7 @@ contains
   end function acceleratorConstructorInternal
 
   subroutine acceleratorDestructor(self)
-    !!{
+    !!{RST
     Destructor for the accelerator transfer function class.
     !!}
     implicit none
@@ -123,7 +127,7 @@ contains
   end subroutine acceleratorDestructor
 
   double precision function acceleratorValue(self,wavenumber)
-    !!{
+    !!{RST
     Return the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -138,7 +142,7 @@ contains
   end function acceleratorValue
 
   double precision function acceleratorLogarithmicDerivative(self,wavenumber)
-    !!{
+    !!{RST
     Return the logarithmic derivative of the transfer function at the given wavenumber.
     !!}
     implicit none
@@ -153,7 +157,7 @@ contains
   end function acceleratorLogarithmicDerivative
 
   double precision function acceleratorEpochTime(self)
-    !!{
+    !!{RST
     Return the cosmic time at the epoch at which this transfer function is defined.
     !!}
     implicit none
@@ -164,9 +168,8 @@ contains
   end function acceleratorEpochTime
 
   double precision function acceleratorHalfModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is
-    suppressed by a factor of two relative to a \gls{cdm} transfer function
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function
     !!}
     implicit none
     class  (transferFunctionAccelerator), intent(inout), target   :: self
@@ -177,9 +180,8 @@ contains
   end function acceleratorHalfModeMass
 
   double precision function acceleratorQuarterModeMass(self,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is
-    suppressed by a factor of four relative to a \gls{cdm} transfer function
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative to a :term:`CDM` transfer function
     !!}
     implicit none
     class  (transferFunctionAccelerator), intent(inout), target   :: self
@@ -190,9 +192,8 @@ contains
   end function acceleratorQuarterModeMass
 
   double precision function acceleratorFractionModeMass(self,fraction,status)
-    !!{
-    Compute the mass corresponding to the wavenumber at which the transfer function is
-    suppressed by a factor of four relative to a \gls{cdm} transfer function
+    !!{RST
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative to a :term:`CDM` transfer function
     !!}
     implicit none
     class           (transferFunctionAccelerator), intent(inout), target   :: self
@@ -204,7 +205,7 @@ contains
   end function acceleratorFractionModeMass
 
   subroutine acceleratorTabulate(self,wavenumberLogarithmic)
-    !!{
+    !!{RST
     Tabulate the transfer function for rapid interpolation.
     !!}
     implicit none

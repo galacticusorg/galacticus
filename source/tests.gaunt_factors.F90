@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a program which tests Gaunt factor functions.
 !!}
 
 program Test_Gaunt_Factors
-  !!{
+  !!{RST
   Tests Gaunt factor functions.
   !!}
   use :: Atomic_Ionization_Potentials  , only : atomicIonizationPotentialVerner

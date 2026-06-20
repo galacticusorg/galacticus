@@ -17,11 +17,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which defines various kind types.
 !!}
 module Kind_Numbers
-  !!{
+  !!{RST
   Defines various kind types.
   !!}
   implicit none

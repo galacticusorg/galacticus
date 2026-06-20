@@ -19,9 +19,8 @@
 
   !+    Contributions to this file made by: Niusha Ahvazi
 
-  !!{
-  Implementation of a satellite evaporation due to dark matter self-interactions using the model of
-  \cite{kummer_effective_2018}.
+  !!{RST
+  Implementation of a satellite evaporation due to dark matter self-interactions using the model of :cite:t:`kummer_effective_2018`.
   !!}
 
   use :: Cosmology_Parameters    , only : cosmologyParametersClass
@@ -31,14 +30,15 @@
   use :: Numerical_Interpolation , only : interpolator2D
 
   !![
-  <satelliteEvaporationSIDM name="satelliteEvaporationSIDMKummer2018">
-   <description>A satellite evaporation due to dark matter self-interactions using the model of \cite{kummer_effective_2018}.</description>
+  <satelliteEvaporationSIDM name="satelliteEvaporationSIDMKummer2018" docformat="rst">
+   <description>
+   A satellite evaporation due to dark matter self-interactions using the model of :cite:t:`kummer_effective_2018`.
+   </description>
   </satelliteEvaporationSIDM>
   !!]
   type, extends(satelliteEvaporationSIDMClass) :: satelliteEvaporationSIDMKummer2018
-     !!{
-     Implementation of a satellite evaporation due to dark matter self-interactions using the model of
-     \cite{kummer_effective_2018}.
+     !!{RST
+     Implementation of a satellite evaporation due to dark matter self-interactions using the model of :cite:t:`kummer_effective_2018`.
      !!}
      private
      class           (cosmologyParametersClass ), pointer     :: cosmologyParameters_        => null()
@@ -51,7 +51,7 @@
           &                                                      fractionDarkMatter
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method description="Tabulate the evaporation factor." method="tabulate"          />
        <method description="Return the evaporation factor."   method="evaporationFactor" />
      </methods>
@@ -63,8 +63,8 @@
   end type satelliteEvaporationSIDMKummer2018
 
   interface satelliteEvaporationSIDMKummer2018
-     !!{
-     Constructors for the \refClass{satelliteEvaporationSIDMKummer2018} satellite evaporation due to dark matter self-interactions class.
+     !!{RST
+     Constructors for the :galacticus-class:`satelliteEvaporationSIDMKummer2018` satellite evaporation due to dark matter self-interactions class.
      !!}
      module procedure kummer2018ConstructorParameters
      module procedure kummer2018ConstructorInternal
@@ -73,9 +73,8 @@
 contains
 
   function kummer2018ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{satelliteEvaporationSIDMKummer2018} satellite evaporation due to dark matter self-interactions class
-    which builds the object from a parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`satelliteEvaporationSIDMKummer2018` satellite evaporation due to dark matter self-interactions class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -104,9 +103,8 @@ contains
   end function kummer2018ConstructorParameters
 
   function kummer2018ConstructorInternal(cosmologyParameters_,darkMatterParticle_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !!{
-    Internal constructor for the \refClass{satelliteEvaporationSIDMKummer2018} satellite evaporation due to dark matter self-interactions
-    class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`satelliteEvaporationSIDMKummer2018` satellite evaporation due to dark matter self-interactions class.
     !!}
     implicit none
     type (satelliteEvaporationSIDMKummer2018)                        :: self
@@ -133,8 +131,8 @@ contains
   end function kummer2018ConstructorInternal
 
   subroutine kummer2018Destructor(self)
-    !!{
-    Destructor for the \refClass{satelliteEvaporationSIDMKummer2018} satellite evaporation due to dark matter self-interactions class.
+    !!{RST
+    Destructor for the :galacticus-class:`satelliteEvaporationSIDMKummer2018` satellite evaporation due to dark matter self-interactions class.
     !!}
     implicit none
     type(satelliteEvaporationSIDMKummer2018), intent(inout) :: self
@@ -149,8 +147,8 @@ contains
   end subroutine kummer2018Destructor
 
   double precision function kummer2018MassLossRate(self,node)
-    !!{
-    Return a evaporation for satellites due to dark matter self-interactions using the formulation of \cite{kummer_effective_2018}.
+    !!{RST
+    Return a evaporation for satellites due to dark matter self-interactions using the formulation of :cite:t:`kummer_effective_2018`.
     !!}
     use :: Coordinates                     , only : coordinateSpherical                        , coordinateCartesian        , assignment(=)
     use :: Galactic_Structure_Options      , only : coordinateSystemCartesian                  , radiusLarge                , massTypeDark
@@ -303,8 +301,8 @@ contains
   end function kummer2018MassLossRate
 
   subroutine kummer2018Tabulate(self,xMaximum,velocityMinimum,velocityMaximum)
-    !!{
-    Tabulate the evaporation factor, $\chi_\mathrm{d}$.
+    !!{RST
+    Tabulate the evaporation factor, :math:`\chi_\mathrm{d}`.
     !!}
     use :: Dark_Matter_Particles   , only : darkMatterParticleSelfInteractingDarkMatter
     use :: Numerical_Integration   , only : integrator
@@ -360,8 +358,8 @@ contains
   contains
     
     double precision function integrandEvaporationFactor(theta)
-      !!{
-      The integrand used to evaluate $\chi_\mathrm{e}$ from \cite[][eqn.~3]{kummer_effective_2018}.
+      !!{RST
+      The integrand used to evaluate :math:`\chi_\mathrm{e}` from :cite:t:`kummer_effective_2018`.
       !!}
       implicit none
       double precision, intent(in   ) :: theta
@@ -373,8 +371,8 @@ contains
   end subroutine kummer2018Tabulate
   
   double precision function kummer2018EvaporationFactor(self,x,speedOrbital)
-    !!{
-    Evaluate the evaporation factor from \cite{kummer_effective_2018}.
+    !!{RST
+    Evaluate the evaporation factor from :cite:t:`kummer_effective_2018`.
     !!}
     implicit none
     class           (satelliteEvaporationSIDMKummer2018), intent(inout) :: self

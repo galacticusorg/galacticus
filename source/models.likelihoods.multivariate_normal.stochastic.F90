@@ -17,36 +17,34 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implementation of a posterior sampling likelihood class which implements a multivariate normal likelihood.
   !!}
 
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   
   !![
-  <posteriorSampleLikelihood name="posteriorSampleLikelihoodMltiVrtNormalStochastic">
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodMltiVrtNormalStochastic" docformat="rst">
    <description>
-    The likelihood is identical to that of the \mono{multivariateNormal} class, except that the likelihood function
-    is evaluated stochastically. In addition to the parameter of the \mono{multivariateNormal} class, two additional
-    parameters are required and are specified within the \mono{likelihood} element using:
-    \begin{verbatim}
-      &lt;realizationCount>4000&lt;/realizationCount>
-      &lt;realizationCountMinimum>10&lt;/realizationCountMinimum>
-    \end{verbatim}
-    When evaluating the likelihood, the state vector is set equal to 
-    \begin{equation}
-     S^\prime_i = \sum_{j=1}^N {2 U(S_i) \over N},
-    \end{equation}
-    where $N=$\mono{realizationCount} and $U(x)$ is a uniform random deviate in the range $0$ to $x$. This results in
-    a variance in $S^\prime_i$ of $S_i^2/3N$. This variance is added to the covariance used in evaluating the likelihood. When
-    evaluating the likelihood at a higher temperature the number of realizations is reduced (which increases the covariance, which has
-    the same effect as increasing the temperature) to speed computation, and the likelihood corrected for this fact. The number of
-    realizations is reduced to $N/T$, but never allowed to fall below \mono{realizationCountMinimum}.
+   The likelihood is identical to that of the ``multivariateNormal`` class, except that the likelihood function is evaluated stochastically. In addition to the parameter of the ``multivariateNormal`` class, two additional parameters are required and are specified within the ``likelihood`` element using:
+
+   .. code-block:: none
+
+        &lt;realizationCount&gt;4000&lt;/realizationCount&gt;
+        &lt;realizationCountMinimum&gt;10&lt;/realizationCountMinimum&gt;
+
+   When evaluating the likelihood, the state vector is set equal to
+
+   .. math::
+
+      S^\prime_i = \sum_{j=1}^N {2 U(S_i) \over N},
+
+   where :math:`N=`\ ``realizationCount`` and :math:`U(x)` is a uniform random deviate in the range :math:`0` to :math:`x`. This results in a variance in :math:`S^\prime_i` of :math:`S_i^2/3N`. This variance is added to the covariance used in evaluating the likelihood. When evaluating the likelihood at a higher temperature the number of realizations is reduced (which increases the covariance, which has the same effect as increasing the temperature) to speed computation, and the likelihood corrected for this fact. The number of realizations is reduced to :math:`N/T`, but never allowed to fall below ``realizationCountMinimum``.
    </description>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodMultivariateNormal) :: posteriorSampleLikelihoodMltiVrtNormalStochastic
-     !!{
+     !!{RST
      Implementation of a posterior sampling likelihood class which implements a multivariate likelihood.
      !!}
      private
@@ -59,8 +57,8 @@
   end type posteriorSampleLikelihoodMltiVrtNormalStochastic
 
   interface posteriorSampleLikelihoodMltiVrtNormalStochastic
-     !!{
-     Constructors for the \refClass{posteriorSampleLikelihoodMltiVrtNormalStochastic} posterior sampling likelihood class.
+     !!{RST
+     Constructors for the :galacticus-class:`posteriorSampleLikelihoodMltiVrtNormalStochastic` posterior sampling likelihood class.
      !!}
      module procedure multivariateNormalStochasticConstructorParameters
      module procedure multivariateNormalStochasticConstructorInternal
@@ -69,9 +67,8 @@
 contains
 
   function multivariateNormalStochasticConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodMltiVrtNormalStochastic} posterior sampling likelihood class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodMltiVrtNormalStochastic` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -85,24 +82,32 @@ contains
     allocate(means     (parameters%count('means')                          ))
     allocate(covariance(parameters%count('means'),parameters%count('means')))
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>means</name>
-      <description>The mean of the multivariate normal distribution.</description>
+      <description>
+      The mean of the multivariate normal distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>covariance</name>
-      <description>The covariance matrix for the of the multivariate normal distribution.</description>
+      <description>
+      The covariance matrix for the of the multivariate normal distribution.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>realizationCount</name>
-      <description>The number of realizations of the stochastic likelihood to compute at unit temperature.</description>
+      <description>
+      The number of realizations of the stochastic likelihood to compute at unit temperature.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>realizationCountMinimum</name>
-      <description>The minimum number of realizations of the stochastic likelihood to compute at higher temperatures.</description>
+      <description>
+      The minimum number of realizations of the stochastic likelihood to compute at higher temperatures.
+      </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
@@ -116,8 +121,8 @@ contains
   end function multivariateNormalStochasticConstructorParameters
 
   function multivariateNormalStochasticConstructorInternal(means,covariance,realizationCount,realizationCountMinimum,randomNumberGenerator_) result(self)
-    !!{
-    Constructor for the \refClass{posteriorSampleLikelihoodMltiVrtNormalStochastic} posterior sampling likelihood class.
+    !!{RST
+    Constructor for the :galacticus-class:`posteriorSampleLikelihoodMltiVrtNormalStochastic` posterior sampling likelihood class.
     !!}
     type            (posteriorSampleLikelihoodMltiVrtNormalStochastic)                                :: self
     double precision                                                  , intent(in   ), dimension(:  ) :: means
@@ -133,8 +138,8 @@ contains
   end function multivariateNormalStochasticConstructorInternal
 
   subroutine multivariateNormalStochasticDestructor(self)
-    !!{
-    Destructor for the \refClass{posteriorSampleLikelihoodMltiVrtNormalStochastic} posterior sampling likelihood class.
+    !!{RST
+    Destructor for the :galacticus-class:`posteriorSampleLikelihoodMltiVrtNormalStochastic` posterior sampling likelihood class.
     !!}
     implicit none
     type(posteriorSampleLikelihoodMltiVrtNormalStochastic), intent(inout) :: self
@@ -146,7 +151,7 @@ contains
   end subroutine multivariateNormalStochasticDestructor
 
   double precision function multivariateNormalStochasticEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !!{
+    !!{RST
     Return the log-likelihood for a multivariate-normal likelihood function.
     !!}
     use :: Linear_Algebra                , only : assignment(=)                  , operator(*)
@@ -237,7 +242,7 @@ contains
   end function multivariateNormalStochasticEvaluate
 
   subroutine multivariateNormalStochasticFunctionChanged(self)
-    !!{
+    !!{RST
     Respond to possible changes in the likelihood function.
     !!}
     implicit none

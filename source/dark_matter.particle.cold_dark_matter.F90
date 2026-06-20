@@ -17,18 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Implements a cold dark matter particle class.
 !!}
 
 
   !![
-  <darkMatterParticle name="darkMatterParticleCDM">
-   <description>Provides a cold dark matter particle with effectively infinite mass and negligible free-streaming length, representing the standard collisionless \gls{cdm} model in which structure grows hierarchically from small scales upward.</description>
+  <darkMatterParticle name="darkMatterParticleCDM" docformat="rst">
+   <description>
+   Provides a cold dark matter particle with effectively infinite mass and negligible free-streaming length, representing the standard collisionless :term:`CDM` model in which structure grows hierarchically from small scales upward.
+   </description>
   </darkMatterParticle>
   !!]
   type, extends(darkMatterParticleClass) :: darkMatterParticleCDM
-     !!{
+     !!{RST
      A cold dark matter particle class.
      !!}
      private
@@ -37,8 +39,8 @@ Implements a cold dark matter particle class.
   end type darkMatterParticleCDM
 
   interface darkMatterParticleCDM
-     !!{
-     Constructors for the \refClass{darkMatterParticleCDM} dark matter particle class.
+     !!{RST
+     Constructors for the :galacticus-class:`darkMatterParticleCDM` dark matter particle class.
      !!}
      module procedure CDMConstructorParameters
   end interface darkMatterParticleCDM
@@ -46,8 +48,8 @@ Implements a cold dark matter particle class.
 contains
 
   function CDMConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{darkMatterParticleCDM} dark matter particle class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`darkMatterParticleCDM` dark matter particle class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -62,7 +64,7 @@ contains
   end function CDMConstructorParameters
 
   double precision function CDMMass(self)
-    !!{
+    !!{RST
     Return the mass, in units of keV, of a cold dark matter particle. An infinite mass is assumed.
     !!}
     implicit none

@@ -17,79 +17,104 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
-Implements a class for the conditional mass functions using the \cite{behroozi_comprehensive_2010} fitting function.
+!!{RST
+Implements a class for the conditional mass functions using the :cite:t:`behroozi_comprehensive_2010` fitting function.
 !!}
 
   use :: Tables, only : table1D, table1DLogarithmicLinear
 
   !![
-  <conditionalMassFunction name="conditionalMassFunctionBehroozi2010">
+  <conditionalMassFunction name="conditionalMassFunctionBehroozi2010" docformat="rst">
    <description>
-    A conditional mass function class which implements the fitting functions of \cite{behroozi_comprehensive_2010}:
-    \begin{equation}
-     \langle N_\mathrm{c}(M_\star|M)\rangle \equiv \int_{M_\star}^\infty \phi_\mathrm{c}(M_\star^\prime) \d \ln M_\star^\prime
-     = {1 \over 2} \left[ 1 - \hbox{erf}\left( {\log_{10}M_\star - \log_{10} f_\mathrm{SHMR}(M) \over \sqrt{2}\sigma_{\log
-     M_\star}} \right) \right].
-    \end{equation}
-    Here, the function $f_\mathrm{SHMR}(M)$ is the solution of
-    \begin{equation}
-     \log_{10}M = \log_{10}M_1 + \beta \log_{10}\left({M_\star \over M_{\star,0}}\right) + {(M_\star/M_{\star,0})^\delta \over
-     1 + (M_\star/M_{\star,0})^{-\gamma}} - {1/2}.
-    \end{equation}
-    For satellites,
-    \begin{equation}
-     \langle N_\mathrm{s}(M_\star|M)\rangle \equiv \int_{M_\star}^\infty \phi_\mathrm{s}(M_\star^\prime) \d \ln M_\star^\prime
-     = \langle N_\mathrm{c}(M_\star|M)\rangle \left({f^{-1}_\mathrm{SHMR}(M_\star) \over
-     M_\mathrm{sat}}\right)^{\alpha_\mathrm{sat}} \exp\left(- {M_\mathrm{cut} \over f^{-1}_\mathrm{SHMR}(M_\star)} \right),
-    \end{equation}
-    where
-    \begin{equation}
-     {M_\mathrm{sat} \over 10^{12} \mathrm{M}_\odot} = B_\mathrm{sat} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
-     \mathrm{M}_\odot}\right)^{\beta_\mathrm{sat}},
-    \end{equation}
-    and
-    \begin{equation}
-     {M_\mathrm{cut} \over 10^{12} \mathrm{M}_\odot} = B_\mathrm{cut} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
-     \mathrm{M}_\odot}\right)^{\beta_\mathrm{cut}}.
-    \end{equation}
-    By default, parameter values are taken from the fit of \cite{leauthaud_new_2011}, specifically their \mono{SIG\_MOD1} method for their $z_1$ sample. These default values, and the \glc\ input parameters which can be used to adjust
-    them are shown in Table~\ref{table:Behroozi2010FitParameters}. This method assumes that $P_\mathrm{s}(N|M_\star,M;\delta
-    \ln M_\star)$ is a Poisson distribution while $P_\mathrm{c}(N|M_\star,M;\delta \ln M_\star)$ has a Bernoulli distribution,
-    with each distribution's free parameter fixed by requiring
-    \begin{equation}
-     \phi(M_\star;M) \delta \ln M_\star = \sum_{N=0}^\infty N P(N|M_\star,M;\delta \ln M_\star)
-    \end{equation}
-    \begin{table}
-    \caption{Parameters of the \cite{behroozi_comprehensive_2010} conditional stellar mass function model, along with their
-    default values and the corresponding \glc\ input parameters.}
-    \label{table:Behroozi2010FitParameters}
-    \begin{center}
-    \begin{tabular}{lr@{.}ll}
-    \hline
-    {\normalfont \bfseries Parameter} &amp; \multicolumn{2}{c}{{\normalfont \bfseries Default}} &amp; {\normalfont \bfseries \glc\ name} \\
-    \hline
-    $\alpha_\mathrm{sat}$&amp; 1&amp;0&amp; \mono{[conditionalStellarMassFunctionBehrooziAlphaSatellite]} \\
-    $\log_{10} M_1$&amp; 12&amp;520&amp; \mono{[conditionalStellarMassFunctionBehrooziLog10M1]} \\
-    $\log_{10} M_{\star,0}$&amp; 10&amp;916&amp; \mono{[conditionalStellarMassFunctionBehrooziLog10Mstar0]} \\
-    $\beta$&amp; 0&amp;457&amp; \mono{[conditionalStellarMassFunctionBehrooziBeta]} \\
-    $\delta$&amp; 0&amp;5666&amp; \mono{[conditionalStellarMassFunctionBehrooziDelta]} \\
-    $\gamma$&amp; 1&amp;53&amp; \mono{[conditionalStellarMassFunctionBehrooziGamma]} \\
-    $\sigma_{\log M_\star}$&amp; 0&amp;206&amp; \mono{[conditionalStellarMassFunctionBehrooziSigmaLogMstar]} \\
-    $B_\mathrm{cut}$&amp; 1&amp;47&amp; \mono{[conditionalStellarMassFunctionBehrooziBCut]} \\
-    $B_\mathrm{sat}$&amp; 10&amp;62&amp; \mono{[conditionalStellarMassFunctionBehrooziBSatellite]} \\
-    $\beta_\mathrm{cut}$&amp; $-$0&amp;13&amp; \mono{[conditionalStellarMassFunctionBehrooziBetaCut]} \\
-    $\beta_\mathrm{sat}$&amp; 0&amp;859&amp; \mono{[conditionalStellarMassFunctionBehrooziBetaCut]} \\
-    \hline
-    \end{tabular}
-    \end{center}
-    \end{table}
+   A conditional mass function class which implements the fitting functions of :cite:t:`behroozi_comprehensive_2010`:
+
+   .. math::
+
+      \langle N_\mathrm{c}(M_\star|M)\rangle \equiv \int_{M_\star}^\infty \phi_\mathrm{c}(M_\star^\prime) \d \ln M_\star^\prime
+      = {1 \over 2} \left[ 1 - \hbox{erf}\left( {\log_{10}M_\star - \log_{10} f_\mathrm{SHMR}(M) \over \sqrt{2}\sigma_{\log
+      M_\star}} \right) \right].
+
+   Here, the function :math:`f_\mathrm{SHMR}(M)` is the solution of
+
+   .. math::
+
+      \log_{10}M = \log_{10}M_1 + \beta \log_{10}\left({M_\star \over M_{\star,0}}\right) + {(M_\star/M_{\star,0})^\delta \over
+      1 + (M_\star/M_{\star,0})^{-\gamma}} - {1/2}.
+
+   For satellites,
+
+   .. math::
+
+      \langle N_\mathrm{s}(M_\star|M)\rangle \equiv \int_{M_\star}^\infty \phi_\mathrm{s}(M_\star^\prime) \d \ln M_\star^\prime
+      = \langle N_\mathrm{c}(M_\star|M)\rangle \left({f^{-1}_\mathrm{SHMR}(M_\star) \over
+      M_\mathrm{sat}}\right)^{\alpha_\mathrm{sat}} \exp\left(- {M_\mathrm{cut} \over f^{-1}_\mathrm{SHMR}(M_\star)} \right),
+
+   where
+
+   .. math::
+
+      {M_\mathrm{sat} \over 10^{12} \mathrm{M}_\odot} = B_\mathrm{sat} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
+      \mathrm{M}_\odot}\right)^{\beta_\mathrm{sat}},
+
+   and
+
+   .. math::
+
+      {M_\mathrm{cut} \over 10^{12} \mathrm{M}_\odot} = B_\mathrm{cut} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12}
+      \mathrm{M}_\odot}\right)^{\beta_\mathrm{cut}}.
+
+   By default, parameter values are taken from the fit of :cite:t:`leauthaud_new_2011`, specifically their ``SIG_MOD1`` method for their :math:`z_1` sample. These default values, and the Galacticus input parameters which can be used to adjust them are shown in Table :numref:`{number} &lt;table-Behroozi2010FitParameters&gt;`. This method assumes that :math:`P_\mathrm{s}(N|M_\star,M;\delta \ln M_\star)` is a Poisson distribution while :math:`P_\mathrm{c}(N|M_\star,M;\delta \ln M_\star)` has a Bernoulli distribution, with each distribution's free parameter fixed by requiring
+
+   .. math::
+
+      \phi(M_\star;M) \delta \ln M_\star = \sum_{N=0}^\infty N P(N|M_\star,M;\delta \ln M_\star)
+
+   .. list-table:: Parameters of the :cite:t:`behroozi_comprehensive_2010` conditional stellar mass function model, along with their default values and the corresponding Galacticus input parameters.
+      :name: table-Behroozi2010FitParameters
+      :header-rows: 1
+
+      * - Parameter
+        - Default
+        - Galacticus name
+      * - :math:`\alpha_\mathrm{sat}`
+        - 1.0
+        - ``[conditionalStellarMassFunctionBehrooziAlphaSatellite]``
+      * - :math:`\log_{10} M_1`
+        - 12.520
+        - ``[conditionalStellarMassFunctionBehrooziLog10M1]``
+      * - :math:`\log_{10} M_{\star,0}`
+        - 10.916
+        - ``[conditionalStellarMassFunctionBehrooziLog10Mstar0]``
+      * - :math:`\beta`
+        - 0.457
+        - ``[conditionalStellarMassFunctionBehrooziBeta]``
+      * - :math:`\delta`
+        - 0.5666
+        - ``[conditionalStellarMassFunctionBehrooziDelta]``
+      * - :math:`\gamma`
+        - 1.53
+        - ``[conditionalStellarMassFunctionBehrooziGamma]``
+      * - :math:`\sigma_{\log M_\star}`
+        - 0.206
+        - ``[conditionalStellarMassFunctionBehrooziSigmaLogMstar]``
+      * - :math:`B_\mathrm{cut}`
+        - 1.47
+        - ``[conditionalStellarMassFunctionBehrooziBCut]``
+      * - :math:`B_\mathrm{sat}`
+        - 10.62
+        - ``[conditionalStellarMassFunctionBehrooziBSatellite]``
+      * - :math:`\beta_\mathrm{cut}`
+        - :math:`-`\ 0.13
+        - ``[conditionalStellarMassFunctionBehrooziBetaCut]``
+      * - :math:`\beta_\mathrm{sat}`
+        - 0.859
+        - ``[conditionalStellarMassFunctionBehrooziBetaSatellite]``
    </description>
   </conditionalMassFunction>
   !!]
   type, extends(conditionalMassFunctionClass) :: conditionalMassFunctionBehroozi2010
-     !!{
-     Implements the conditional mass function using the fitting functions of \cite{behroozi_comprehensive_2010}.
+     !!{RST
+     Implements the conditional mass function using the fitting functions of :cite:t:`behroozi_comprehensive_2010`.
      !!}
      ! Parameters of the fitting function.
      private
@@ -116,8 +141,8 @@ Implements a class for the conditional mass functions using the \cite{behroozi_c
      class           (table1D                 ), allocatable  :: fMassHaloTable
    contains
      !![
-     <methods>
-       <method description="Compute the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$." method="compute" />
+     <methods docformat="rst">
+       <method description="Compute the cumulative conditional mass function, :math:`\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})`." method="compute" />
      </methods>
      !!]
      final     ::                         behroozi2010Destructor
@@ -127,8 +152,8 @@ Implements a class for the conditional mass functions using the \cite{behroozi_c
   end type conditionalMassFunctionBehroozi2010
 
   interface conditionalMassFunctionBehroozi2010
-     !!{
-     Constructors for the \cite{behroozi_comprehensive_2010} merging timescale class.
+     !!{RST
+     Constructors for the :cite:t:`behroozi_comprehensive_2010` merging timescale class.
      !!}
      module procedure behroozi2010ConstructorParameters
      module procedure behroozi2010ConstructorInternal
@@ -145,9 +170,8 @@ contains
 
 
   function behroozi2010ConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{conditionalMassFunctionBehroozi2010} conditional mass function class which builds the object from a
-    parameter set.
+    !!{RST
+    Constructor for the :galacticus-class:`conditionalMassFunctionBehroozi2010` conditional mass function class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -161,81 +185,125 @@ contains
          &                                                                  betaSatellite
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>alphaSatellite</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
+      <defaultSource>
+      (:cite:author:`leauthaud_new_2011` :cite:year:`leauthaud_new_2011`; :math:`z_1` sample using their ``SIG_MOD1`` method)
+      </defaultSource>
       <defaultValue>1.0d0</defaultValue>
-      <description>The parameter $\alpha_\mathrm{sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+      <description>
+      The parameter :math:`\alpha_\mathrm{sat}` from the fitting functions of :cite:t:`behroozi_comprehensive_2010`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>log10M1</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
+      <defaultSource>
+      (:cite:author:`leauthaud_new_2011` :cite:year:`leauthaud_new_2011`; :math:`z_1` sample using their ``SIG_MOD1`` method)
+      </defaultSource>
       <defaultValue>12.520d0</defaultValue>
-      <description>The parameter $\log_{10}M_1$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+      <description>
+      The parameter :math:`\log_{10}M_1` from the fitting functions of :cite:t:`behroozi_comprehensive_2010`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>log10Mstar0</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
+      <defaultSource>
+      (:cite:author:`leauthaud_new_2011` :cite:year:`leauthaud_new_2011`; :math:`z_1` sample using their ``SIG_MOD1`` method)
+      </defaultSource>
       <defaultValue>10.916d0</defaultValue>
-      <description>The parameter $\log_{10}M_{\star,0}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+      <description>
+      The parameter :math:`\log_{10}M_{\star,0}` from the fitting functions of :cite:t:`behroozi_comprehensive_2010`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>beta</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
+      <defaultSource>
+      (:cite:author:`leauthaud_new_2011` :cite:year:`leauthaud_new_2011`; :math:`z_1` sample using their ``SIG_MOD1`` method)
+      </defaultSource>
       <defaultValue>0.457d0</defaultValue>
-      <description>The parameter $\beta$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+      <description>
+      The parameter :math:`\beta` from the fitting functions of :cite:t:`behroozi_comprehensive_2010`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>delta</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
+      <defaultSource>
+      (:cite:author:`leauthaud_new_2011` :cite:year:`leauthaud_new_2011`; :math:`z_1` sample using their ``SIG_MOD1`` method)
+      </defaultSource>
       <defaultValue>0.5666d0</defaultValue>
-      <description>The parameter $\delta$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+      <description>
+      The parameter :math:`\delta` from the fitting functions of :cite:t:`behroozi_comprehensive_2010`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>gamma</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
+      <defaultSource>
+      (:cite:author:`leauthaud_new_2011` :cite:year:`leauthaud_new_2011`; :math:`z_1` sample using their ``SIG_MOD1`` method)
+      </defaultSource>
       <defaultValue>1.53d0</defaultValue>
-      <description>The parameter $\gamma$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+      <description>
+      The parameter :math:`\gamma` from the fitting functions of :cite:t:`behroozi_comprehensive_2010`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>sigmaLogMstar</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
+      <defaultSource>
+      (:cite:author:`leauthaud_new_2011` :cite:year:`leauthaud_new_2011`; :math:`z_1` sample using their ``SIG_MOD1`` method)
+      </defaultSource>
       <defaultValue>0.206d0</defaultValue>
-      <description>The parameter $\sigma_{\log M_\star}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+      <description>
+      The parameter :math:`\sigma_{\log M_\star}` from the fitting functions of :cite:t:`behroozi_comprehensive_2010`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>BCut</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
+      <defaultSource>
+      (:cite:author:`leauthaud_new_2011` :cite:year:`leauthaud_new_2011`; :math:`z_1` sample using their ``SIG_MOD1`` method)
+      </defaultSource>
       <defaultValue>1.47d0</defaultValue>
-      <description>The parameter $B_\mathrm{cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+      <description>
+      The parameter :math:`B_\mathrm{cut}` from the fitting functions of :cite:t:`behroozi_comprehensive_2010`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>BSatellite</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
+      <defaultSource>
+      (:cite:author:`leauthaud_new_2011` :cite:year:`leauthaud_new_2011`; :math:`z_1` sample using their ``SIG_MOD1`` method)
+      </defaultSource>
       <defaultValue>10.62d0</defaultValue>
-      <description>The parameter $B_\mathrm{sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+      <description>
+      The parameter :math:`B_\mathrm{sat}` from the fitting functions of :cite:t:`behroozi_comprehensive_2010`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>betaCut</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
+      <defaultSource>
+      (:cite:author:`leauthaud_new_2011` :cite:year:`leauthaud_new_2011`; :math:`z_1` sample using their ``SIG_MOD1`` method)
+      </defaultSource>
       <defaultValue>-0.13d0</defaultValue>
-      <description>The parameter $\beta_\mathrm{cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+      <description>
+      The parameter :math:`\beta_\mathrm{cut}` from the fitting functions of :cite:t:`behroozi_comprehensive_2010`.
+      </description>
       <source>parameters</source>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>betaSatellite</name>
-      <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their \mono{SIG\_MOD1} method)</defaultSource>
+      <defaultSource>
+      (:cite:author:`leauthaud_new_2011` :cite:year:`leauthaud_new_2011`; :math:`z_1` sample using their ``SIG_MOD1`` method)
+      </defaultSource>
       <defaultValue>0.859d0</defaultValue>
-      <description>The parameter $\beta_\mathrm{sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+      <description>
+      The parameter :math:`\beta_\mathrm{sat}` from the fitting functions of :cite:t:`behroozi_comprehensive_2010`.
+      </description>
       <source>parameters</source>
     </inputParameter>
     !!]
@@ -247,8 +315,8 @@ contains
   end function behroozi2010ConstructorParameters
 
   function behroozi2010ConstructorInternal(alphaSatellite,log10M1,log10Mstar0,beta,delta,gamma,sigmaLogMstar,BCut,BSatellite,betaCut,betaSatellite) result(self)
-    !!{
-    Internal constructor for the \cite{behroozi_comprehensive_2010} conditional mass function class.
+    !!{RST
+    Internal constructor for the :cite:t:`behroozi_comprehensive_2010` conditional mass function class.
     !!}
     implicit none
     type            (conditionalMassFunctionBehroozi2010)                :: self
@@ -272,8 +340,8 @@ contains
   end function behroozi2010ConstructorInternal
 
   subroutine behroozi2010Destructor(self)
-    !!{
-    Destructor for the \cite{behroozi_comprehensive_2010} conditional mass function class.
+    !!{RST
+    Destructor for the :cite:t:`behroozi_comprehensive_2010` conditional mass function class.
     !!}
     implicit none
     type(conditionalMassFunctionBehroozi2010), intent(inout) :: self
@@ -284,9 +352,8 @@ contains
   end subroutine behroozi2010Destructor
 
   double precision function behroozi2010MassFunction(self,massHalo,mass,galaxyType)
-    !!{
-    Compute the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv
-    \phi(M_\star|M_\mathrm{halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
+    !!{RST
+    Compute the cumulative conditional mass function, :math:`\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})` using the fitting formula of :cite:t:`behroozi_comprehensive_2010`.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -321,11 +388,8 @@ contains
   end function behroozi2010MassFunction
 
   double precision function behroozi2010MassFunctionVariance(self,massHalo,massLow,massHigh)
-    !!{
-    Computes the variance in the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv
-    \phi(M_\star|M_\mathrm{halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}. Assumes that the number of
-    satellite galaxies is Poisson distributed, while the number of central galaxies follows a Bernoulli distribution, and that
-    the numbers of satellites and centrals are uncorrelated.
+    !!{RST
+    Computes the variance in the cumulative conditional mass function, :math:`\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})` using the fitting formula of :cite:t:`behroozi_comprehensive_2010`. Assumes that the number of satellite galaxies is Poisson distributed, while the number of central galaxies follows a Bernoulli distribution, and that the numbers of satellites and centrals are uncorrelated.
     !!}
     implicit none
     class           (conditionalMassFunctionBehroozi2010), intent(inout) :: self
@@ -345,9 +409,8 @@ contains
   end function behroozi2010MassFunctionVariance
 
   subroutine behroozi2010Compute(self,massHalo,mass,numberCentrals,numberSatellites)
-    !!{
-    Computes the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{
-    halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
+    !!{RST
+    Computes the cumulative conditional mass function, :math:`\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{ halo})` using the fitting formula of :cite:t:`behroozi_comprehensive_2010`.
     !!}
     use :: Table_Labels, only : extrapolationTypeFix
     implicit none
@@ -444,8 +507,8 @@ contains
   end subroutine behroozi2010Compute
 
   elemental double precision function behroozi2010fSHMRInverse(mass)
-    !!{
-    The median mass vs. halo mass relation functional form from \cite{behroozi_comprehensive_2010}.
+    !!{RST
+    The median mass vs. halo mass relation functional form from :cite:t:`behroozi_comprehensive_2010`.
     !!}
     implicit none
     double precision, intent(in   ) :: mass

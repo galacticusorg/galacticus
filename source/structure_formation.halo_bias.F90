@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which implements a dark matter halo bias class.
 !!}
 
 module Dark_Matter_Halo_Biases
-  !!{
+  !!{RST
   Implements a dark matter halo bias class.
   !!}
   use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
@@ -30,28 +30,26 @@ module Dark_Matter_Halo_Biases
   private
 
   !![
-  <functionClass>
+  <functionClass docformat="rst">
    <name>darkMatterHaloBias</name>
    <descriptiveName>Dark Matter Halo Biases</descriptiveName>
    <description>
-    Class providing models of the linear bias factor $b(M, t)$ of dark matter halos---the ratio of
-    halo-to-matter overdensity on large scales, describing how strongly halos cluster relative to the
-    underlying dark matter distribution. More massive halos form in rarer, higher-$\nu$ peaks and are
-    therefore more strongly biased. The bias enters the two-halo term of the halo model power spectrum,
-    void-galaxy cross-correlations, and galaxy clustering predictions. Implementations typically follow
-    analytic fitting functions (e.g.\ \citealt{tinker_large_2010}) calibrated to N-body simulations
-    as a function of halo mass and redshift.
+   Class providing models of the linear bias factor :math:`b(M, t)` of dark matter halos---the ratio of halo-to-matter overdensity on large scales, describing how strongly halos cluster relative to the underlying dark matter distribution. More massive halos form in rarer, higher-:math:`\nu` peaks and are therefore more strongly biased. The bias enters the two-halo term of the halo model power spectrum, void-galaxy cross-correlations, and galaxy clustering predictions. Implementations typically follow analytic fitting functions (e.g.\ :cite:author:`tinker_large_2010` :cite:year:`tinker_large_2010`) calibrated to N-body simulations as a function of halo mass and redshift.
    </description>
    <default>tinker2010</default>
    <method name="biasByMass" >
-    <description>Returns the bias of a halo specified by a mass (in $\mathrm{M}_\odot$) and time (in Gyr).</description>
+    <description>
+    Returns the bias of a halo specified by a mass (in :math:`\mathrm{M}_\odot`) and time (in Gyr).
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   )           :: mass, time</argument>
     <argument>double precision, intent(in   ), optional :: radius</argument>
    </method>
    <method name="biasByNode" >
-    <description>Returns the large-scale linear bias factor $b$ of the dark matter halo represented by the supplied \gls{node}, extracted from the node's basic component for its mass and formation time.</description>
+    <description>
+    Returns the large-scale linear bias factor :math:`b` of the dark matter halo represented by the supplied :term:`node`, extracted from the node's basic component for its mass and formation time.
+    </description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type            (treeNode), intent(inout)           :: node</argument>

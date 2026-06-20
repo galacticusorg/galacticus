@@ -17,19 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that performs ram pressure mass loss in spheroids.
   !!}
 
   use :: Ram_Pressure_Stripping_Mass_Loss_Rate, only : ramPressureStrippingClass
   
   !![
-  <nodeOperator name="nodeOperatorRamPressureMassLossSpheroids">
-   <description>Computes and applies ram pressure stripping of gas from the spheroid (bulge) component of satellite galaxies as they orbit through the hot intracluster medium, removing rotationally unsupported gas more readily stripped than disk gas.</description>
+  <nodeOperator name="nodeOperatorRamPressureMassLossSpheroids" docformat="rst">
+   <description>
+   Computes and applies ram pressure stripping of gas from the spheroid (bulge) component of satellite galaxies as they orbit through the hot intracluster medium, removing rotationally unsupported gas more readily stripped than disk gas.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorRamPressureMassLossSpheroids
-     !!{
+     !!{RST
      A node operator class that performs ram pressure mass loss in spheroids.
      !!}
      private
@@ -40,8 +42,8 @@
   end type nodeOperatorRamPressureMassLossSpheroids
   
   interface nodeOperatorRamPressureMassLossSpheroids
-     !!{
-     Constructors for the \refClass{nodeOperatorRamPressureMassLossSpheroids} node operator class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodeOperatorRamPressureMassLossSpheroids` node operator class.
      !!}
      module procedure ramPressureMassLossSpheroidsConstructorParameters
      module procedure ramPressureMassLossSpheroidsConstructorInternal
@@ -50,8 +52,8 @@
 contains
 
   function ramPressureMassLossSpheroidsConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodeOperatorRamPressureMassLossSpheroids} node operator class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodeOperatorRamPressureMassLossSpheroids` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -71,8 +73,8 @@ contains
   end function ramPressureMassLossSpheroidsConstructorParameters
 
   function ramPressureMassLossSpheroidsConstructorInternal(ramPressureStripping_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodeOperatorRamPressureMassLossSpheroids} node operator class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodeOperatorRamPressureMassLossSpheroids` node operator class.
     !!}
     implicit none
     type (nodeOperatorRamPressureMassLossSpheroids)                        :: self
@@ -85,8 +87,8 @@ contains
   end function ramPressureMassLossSpheroidsConstructorInternal
 
   subroutine ramPressureMassLossSpheroidsDestructor(self)
-    !!{
-    Destructor for the \refClass{nodeOperatorRamPressureMassLossSpheroids} node operator class.
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorRamPressureMassLossSpheroids` node operator class.
     !!}
     implicit none
     type(nodeOperatorRamPressureMassLossSpheroids), intent(inout) :: self
@@ -98,7 +100,7 @@ contains
   end subroutine ramPressureMassLossSpheroidsDestructor
   
   subroutine ramPressureMassLossSpheroidsDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !!{
+    !!{RST
     Perform ram pressure stripping-induced in a spheroid.
     !!}
     use :: Galacticus_Nodes    , only : propertyInactive, nodeComponentSpheroid, nodeComponentHotHalo

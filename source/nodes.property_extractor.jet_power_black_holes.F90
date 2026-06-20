@@ -21,12 +21,14 @@
   use :: Black_Hole_Accretion_Rates, only : blackHoleAccretionRateClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorJetPowerBlackHoles">
-   <description>Extracts a list of jet power values for all supermassive black holes in a node, enabling output of the mechanical AGN feedback power contributed by each black hole separately.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorJetPowerBlackHoles" docformat="rst">
+   <description>
+   Extracts a list of jet power values for all supermassive black holes in a node, enabling output of the mechanical AGN feedback power contributed by each black hole separately.
+   </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorList) :: nodePropertyExtractorJetPowerBlackHoles
-     !!{
+     !!{RST
      A property extractor which extracts a list of all super-massive black hole jet powers.
      !!}
      private
@@ -43,8 +45,8 @@
   end type nodePropertyExtractorJetPowerBlackHoles
 
   interface nodePropertyExtractorJetPowerBlackHoles
-     !!{
-     Constructors for the \refClass{nodePropertyExtractorJetPowerBlackHoles} property extractor class.
+     !!{RST
+     Constructors for the :galacticus-class:`nodePropertyExtractorJetPowerBlackHoles` property extractor class.
      !!}
      module procedure jetPowerBlackHolesConstructorParameters
      module procedure jetPowerBlackHolesConstructorInternal
@@ -53,8 +55,8 @@
 contains
 
   function jetPowerBlackHolesConstructorParameters(parameters) result(self)
-    !!{
-    Constructor for the \refClass{nodePropertyExtractorJetPowerBlackHoles} property extractor class which takes a parameter set as input.
+    !!{RST
+    Constructor for the :galacticus-class:`nodePropertyExtractorJetPowerBlackHoles` property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -77,8 +79,8 @@ contains
   end function jetPowerBlackHolesConstructorParameters
 
   function jetPowerBlackHolesConstructorInternal(blackHoleAccretionRate_,accretionDisks_) result(self)
-    !!{
-    Internal constructor for the \refClass{nodePropertyExtractorJetPowerBlackHoles} property extractor class.
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorJetPowerBlackHoles` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorJetPowerBlackHoles)                        :: self
@@ -92,7 +94,7 @@ contains
   end function jetPowerBlackHolesConstructorInternal
 
   subroutine jetPowerBlackHolesDestructor(self)
-    !!{
+    !!{RST
     Destructor for the critical overdensity jetPowerBlackHoles set barrier class.
     !!}
     implicit none
@@ -106,7 +108,7 @@ contains
   end subroutine jetPowerBlackHolesDestructor
 
   integer function jetPowerBlackHolesElementCount(self)
-    !!{
+    !!{RST
     Return a count of the number of properties extracted.
     !!}
     implicit none
@@ -117,7 +119,7 @@ contains
   end function jetPowerBlackHolesElementCount
 
   function jetPowerBlackHolesExtract(self,node,instance) result(radiativeEfficiency)
-    !!{
+    !!{RST
     Implement an output extractor for the radiative efficiencies of all supermassive black holes.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
@@ -143,8 +145,8 @@ contains
   end function jetPowerBlackHolesExtract
 
   subroutine jetPowerBlackHolesNames(self,names)
-    !!{
-    Return the names of the \mono{jetPowerBlackHoles} properties.
+    !!{RST
+    Return the names of the ``jetPowerBlackHoles`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorJetPowerBlackHoles), intent(inout)                             :: self
@@ -157,8 +159,8 @@ contains
   end subroutine jetPowerBlackHolesNames
 
   subroutine jetPowerBlackHolesDescriptions(self,descriptions)
-    !!{
-    Return the descriptions of the \mono{jetPowerBlackHoles} properties.
+    !!{RST
+    Return the descriptions of the ``jetPowerBlackHoles`` properties.
     !!}
     implicit none
     class(nodePropertyExtractorJetPowerBlackHoles), intent(inout)                             :: self
@@ -171,8 +173,8 @@ contains
   end subroutine jetPowerBlackHolesDescriptions
 
   function jetPowerBlackHolesUnitsInSI(self) result(unitsInSI)
-    !!{
-    Return the units of the \mono{jetPowerBlackHoles} properties in the SI system.
+    !!{RST
+    Return the units of the ``jetPowerBlackHoles`` properties in the SI system.
     !!}
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Numerical_Constants_Astronomical, only : massSolar, gigaYear
@@ -189,7 +191,7 @@ contains
   end function jetPowerBlackHolesUnitsInSI
 
   function jetPowerBlackHolesUnits(self) result(units)
-    !!{
+    !!{RST
     Return the units of the jetPowerBlackHoles properties.
     !!}
     use :: Units_MetaData, only : unitType
