@@ -17,12 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{
+!!{RST
 Contains a module which stores data for the standard black hole node component.
 !!}
 
 module Node_Component_Black_Hole_Standard_Data
-  !!{
+  !!{RST
   Stores data for the standard black hole node component.
   !!}
   use :: Object_Pools, only : objectPool

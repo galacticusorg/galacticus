@@ -24,7 +24,7 @@
   !![
   <massDistribution name="massDistributionBetaProfile" docformat="rst">
    <description>
-   An mass distribution class for :math:`\beta`-profile distributions.
+   A mass distribution class for :math:`\beta`-profile distributions.
    </description>
   </massDistribution>
   !!]
@@ -38,8 +38,8 @@
      logical          :: betaIsTwoThirds       , truncateAtOuterRadius
    contains
      !![
-     <methods>
-       <method method="initialize" description="(Re)initialize the parameters of the $\beta$-profile mass distribution."/>
+     <methods docformat="rst">
+       <method method="initialize" description="(Re)initialize the parameters of the :math:`\beta`-profile mass distribution."/>
      </methods>
      !!]
      procedure :: initialize            => betaProfileInitialize
@@ -187,9 +187,8 @@ contains
   end function betaProfileConstructorInternal
 
   subroutine betaProfileInitialize(self,beta,densityNormalization,mass,outerRadius,coreRadius,dimensionless,truncateAtOuterRadius)
-    !!{
-    (Re)initialize the parameters of a \refClass{massDistributionBetaProfile} mass distribution. Factored out of the constructor
-    so that a pooled object can be re-used (re-initialized for a new \gls{node}) without being reallocated.
+    !!{RST
+    (Re)initialize the parameters of a :galacticus-class:`massDistributionBetaProfile` mass distribution. Factored out of the constructor so that a pooled object can be re-used (re-initialized for a new :term:`node`) without being reallocated.
     !!}
     use :: Display                 , only : displayIndent      , displayMessage, displayUnindent, displayVerbosity, &
           &                                 verbosityLevelDebug
