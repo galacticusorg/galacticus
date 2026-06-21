@@ -26,7 +26,7 @@ We'll begin by looking at the file that defines the class itself.
 The class file
 ~~~~~~~~~~~~~~
 
-Below is the content of the file `source/star_formation.timescale.F90 <https://github.com/galacticusorg/galacticus/blob/master/source/star_formation.timescales.F90>`_. Source files always go in the ``source/`` folder, and are given a name in which concepts (here "star formation" and "timescale" are the two concepts relevant to this class) are separated by ``.`` and words within concepts are separated by ``_``.
+Below is the content of the file `source/star_formation/timescales/_class.F90 <https://github.com/galacticusorg/galacticus/blob/master/source/star_formation/timescales/_class.F90>`_. Source files are organized into a directory hierarchy under the ``source/`` folder, in which each concept (here "star formation" and "timescales" are the two concepts relevant to this class) becomes a directory level, and words within a concept are separated by ``_``. The abstract base class for a set of implementations lives in a file named ``_class.F90`` within the class's directory (here ``source/star_formation/timescales/``).
 
 .. code-block:: fortran
 
@@ -84,7 +84,7 @@ Every class is placed inside its own `module <https://fortran-lang.org/learn/bes
 
    module Star_Formation_Timescales
 
-We give the module a descriptive name - usually this is similar to the name of the file, but with words capitalized, separated by ``_``, and pluralized. So, ``source/star_formation.timescale.F90`` becomes ``Star_Formation_Timescales``
+We give the module a descriptive name - usually this is built from the concepts in the file's directory path, with words capitalized, separated by ``_``, and pluralized. So, ``source/star_formation/timescales/_class.F90`` becomes ``Star_Formation_Timescales``
 
 The module is closed at the end of the file by the line:
 
@@ -203,7 +203,7 @@ Next, we'll look at creating an implementation of this class.
 The implementation file
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Below is the content of the file `source/star_formation.timescale.halo_scaling.F90 <https://github.com/galacticusorg/galacticus/blob/master/source/star_formation.timescales.halo_scaling.F90>`_. The name for this file should follow the name for the corresponding class file, but with a suffix that specifies the concepts for this implementation - ``.halo_scaling`` in this example.
+Below is the content of the file `source/star_formation/timescales/halo_scaling.F90 <https://github.com/galacticusorg/galacticus/blob/master/source/star_formation/timescales/halo_scaling.F90>`_. The file is placed in the same directory as the corresponding class file (``source/star_formation/timescales/``), and is named for the concept specific to this implementation - ``halo_scaling`` in this example.
 
 .. code-block:: fortran
 

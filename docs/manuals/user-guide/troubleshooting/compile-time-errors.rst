@@ -151,7 +151,7 @@ To fix this error, find the constructor function that you intended to call and c
      ...
      File "python/Galacticus/Build/Directives.py", line 134, in _parse_xml_block
        raise RuntimeError(
-   RuntimeError: extract_directives: failed parsing XML while extracting directive 'functionClass' from 'source/star_formation.rates.disks.F90': mismatched tag: line 12, column 2
+   RuntimeError: extract_directives: failed parsing XML while extracting directive 'functionClass' from 'source/star_formation/rates/disks/_class.F90': mismatched tag: line 12, column 2
    XML content was:
    <functionClass>
    <name>starFormationRateDisks</name>

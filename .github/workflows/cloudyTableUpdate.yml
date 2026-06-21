@@ -137,7 +137,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           # Galacticus test codes always return exit status 0; detect failure via log
           if grep -q "FAILED: Cloudy CIE cooling function" test.log; then
-            PYTHONPATH=$GITHUB_WORKSPACE/python python3 scripts/aux/updateCoolingFunctionTestValue.py test.log source/tests.cooling_functions.F90
+            PYTHONPATH=$GITHUB_WORKSPACE/python python3 scripts/aux/updateCoolingFunctionTestValue.py test.log source/tests/cooling_functions.F90
           fi
       - name: Generate app token
         if: ${{ env.appid != '' }}
@@ -186,7 +186,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           BRANCH="cloudy-cie-update-c${CLOUDY_VERSION}"
           git checkout -b "${BRANCH}"
-          git add plots/cooling_function_Atomic_CIE_Cloudy.pdf source/tests.cooling_functions.F90
+          git add plots/cooling_function_Atomic_CIE_Cloudy.pdf source/tests/cooling_functions.F90
           if git diff --cached --quiet; then
             echo "No changes to commit for galacticus repo; skipping PR creation"
             exit 0

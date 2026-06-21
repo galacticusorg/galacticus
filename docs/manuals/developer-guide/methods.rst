@@ -88,21 +88,21 @@ A simple example of this extension capability can be found in the :ref:`scaleSha
 Implementing a New Component
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Implementing a new component involves writing some modules and functions which contain a definition of the component and, if necessary, handle initialization, creation, evolution, and responses to any events. Frequently, the easiest way to make a new component is to copy a previously existing one and modify it as needed. Details of the various functions that component modules must perform are given below. By convention, a component's implementation is split into three or four files, although some components might not need all of these files. These files are named as follows (with ``<component>`` acting as a placeholder for the name of the component in question):
+Implementing a new component involves writing some modules and functions which contain a definition of the component and, if necessary, handle initialization, creation, evolution, and responses to any events. Frequently, the easiest way to make a new component is to copy a previously existing one and modify it as needed. Details of the various functions that component modules must perform are given below. By convention, a component implementation lives in its own directory, ``objects/nodes/components/<component>/<implementation>/`` (with ``<component>`` and ``<implementation>`` acting as placeholders for the component class and implementation names, e.g. ``disk/standard``), and is split into three or four files, although some components might not need all of these files. These files are named as follows:
 
-``objects.nodes.components.<component>.F90``
+``objects/nodes/components/<component>/<implementation>/_class.F90``
    The primary file which describes the component and its properties, and which contains functions that manipulate the component as it evolves through a merger tree (ODE rates, behavior during mergers, etc.);
 
-``objects.nodes.components.<component>.bound_functions.F90``
+``objects/nodes/components/<component>/<implementation>/bound_functions.Inc``
    Contains functions which will be bound to the component object (i.e. the ``nodeComponent<Class><Implementation>`` class), and so will be available as type bound procedures. Generally, these functions will include any which get or set values of properties in the component, those which return information about its internal state (such as a :galacticus-class:`massDistributionClass` object describing the structure of the component), and any other functions which we may want to be overridden by extensions to the component.
 
-``objects.nodes.components.<component>.data.F90``
+``objects/nodes/components/<component>/<implementation>/data.F90``
    Contains any data which may need to be shared between the above two files. This might contain parameters which control some property of the component that is the same for all instances (e.g. if spheroids are modeled as Sérsic profiles all with the same value of the Sérsic index, that value might be placed into this file).
 
-``objects.nodes.components.<component>.structure.F90``
-   Contains any functions which implement the structure (e.g. density, rotation curve) of the component and which cannot be placed in ``objects.nodes.components.<component>.bound_functions.Inc`` due to dependencies on modules which in turn depend on the ``Galacticus_Nodes`` module.
+``objects/nodes/components/<component>/<implementation>/structure.F90``
+   Contains any functions which implement the structure (e.g. density, rotation curve) of the component and which cannot be placed in ``objects/nodes/components/<component>/<implementation>/bound_functions.Inc`` due to dependencies on modules which in turn depend on the ``Galacticus_Nodes`` module.
 
-In general, ``objects.nodes.components.<component>.F90`` is the place for the component definition and functions which process the component during tree evolution (including output), while ``objects.nodes.components.<component>.bound_functions.Inc`` is intended for functions which record or report the internal state of the component.
+In general, the ``_class.F90`` file is the place for the component definition and functions which process the component during tree evolution (including output), while ``bound_functions.Inc`` is intended for functions which record or report the internal state of the component.
 
 .. _manual-sec-ComponentDefinition:
 
@@ -171,7 +171,7 @@ Component definition itself takes the form of an embedded XML document. The foll
       <bindings>
        <binding method="attachPipes" function="Node_Component_Disk_Exponential_Attach_Pipes" type="void" />
       </bindings>
-      <functions>objects.nodes.components.disk.exponential.custom_methods.inc</functions>
+      <functions>objects/nodes/components/disk/exponential/custom_methods.inc</functions>
      </component>
      !!]
 
