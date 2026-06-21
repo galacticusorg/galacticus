@@ -24,7 +24,7 @@
   !![
   <kinematicsDistribution name="kinematicsDistributionTruncated" docformat="rst">
    <description>
-   An truncated kinematic distribution class masses.
+   A kinematic distribution class for truncated mass distributions.
    </description>
   </kinematicsDistribution>
   !!]

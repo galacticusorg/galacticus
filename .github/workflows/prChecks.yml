@@ -46,6 +46,29 @@ jobs:
             fi
           done
           exit $status
+  # Check documentation links
+  Check-Documentation-Links:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v47
+        with:
+          files: |
+            **/*.md
+            **/*.rst
+      - name: Check for links to retired PDF manuals
+        run: |
+          status=0
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            if grep -nE 'releases/download/[^)]*Galacticus_[A-Za-z]+\.pdf' "$file"; then
+              echo "::error file=$file::Link to a retired Galacticus_*.pdf manual found in $file - link to the ReadTheDocs documentation (https://galacticus.readthedocs.io) instead."
+              status=1
+            fi
+          done
+          exit $status
   # Validate XML
   Validate-XML:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}

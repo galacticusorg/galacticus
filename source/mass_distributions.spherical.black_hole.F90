@@ -35,7 +35,7 @@
      double precision :: mass, radiusGravitational
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="initialize" description="(Re)initialize the parameters of the black hole mass distribution."/>
      </methods>
      !!]
@@ -137,9 +137,8 @@ contains
   end function blackHoleConstructorInternal
 
   subroutine blackHoleInitialize(self,mass,dimensionless)
-    !!{
-    (Re)initialize the parameters of a \refClass{massDistributionBlackHole} mass distribution. Factored out of the constructor
-    so that a pooled object can be re-used (re-initialized for a new \gls{node}) without being reallocated.
+    !!{RST
+    (Re)initialize the parameters of a :galacticus-class:`massDistributionBlackHole` mass distribution. Factored out of the constructor so that a pooled object can be re-used (re-initialized for a new :term:`node`) without being reallocated.
     !!}
     use :: Error                           , only : Error_Report
     use :: Numerical_Comparison            , only : Values_Differ

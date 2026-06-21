@@ -78,7 +78,7 @@ It is possible to make a parameter conditional upon the value of another paramet
 
        <nodeOperator value="assemblyHistoryHeuristics" active="[mergerTreeConstructor] == read">
 
-which will result in the ``assemblyHistoryHeuristics`` ``nodeOperator`` being active only if the ``mergerTreeConstructor`` is set to ``new``. The content of the ``active`` element must be a parameter name enclosed in ``[]``, followed by an operator (``==`` or ``!=``), followed by the text to match. The parameter name can include a full path as described below. Note that, while numerical parameters can be used in ``active`` elements, the comparison is always textual, not numerical.
+which will result in the ``assemblyHistoryHeuristics`` ``nodeOperator`` being active only if the ``mergerTreeConstructor`` is set to ``read``. The content of the ``active`` element must be a parameter name enclosed in ``[]``, followed by an operator (``==`` or ``!=``), followed by the text to match. The parameter name can include a full path as described below. Note that, while numerical parameters can be used in ``active`` elements, the comparison is always textual, not numerical.
 
 A parameter value can be given by a math expression\ [#]_. In the above example ``parameter5Name`` has a value of "``=10.0*[parameter4Name:subParameter1Name]``". The initial "``=``" indicates that this is a math expression which should be evaluated. In this case, the expression is ten times value value of "``[parameter4Name:subParameter1Name]``", which refers to the value of the sub-parameter ``subParameter1Name`` of parameter ``parameter4Name``. In this way the values of parameters can be derived from those of other parameters.
 
@@ -477,7 +477,7 @@ Outputs
 
 The ``Outputs`` group contains one or more sub-groups corresponding to the output times requested from Galacticus. Each sub-group contains the following information:
 
-``outputTiype`` *(attribute)*
+``outputType`` *(attribute)*
    The type of the output---common types are ``snapshot`` (for outputs containing halos/galaxies at a single snapshot in time) and ``lightcone`` (for outputs containing halos/galaxies on an observer's past lightcone);
 
 ``outputTime`` *(attribute)*

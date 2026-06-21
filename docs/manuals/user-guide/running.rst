@@ -1,7 +1,7 @@
 Running Galacticus
 ==================
 
-If you have not yet installed Galacticus you should follow the instructions `here <https://github.com/galacticusorg/galacticus/wiki#how-do-i-install-and-use-galacticus>`_ to do so.
+If you have not yet installed Galacticus you should follow the instructions in :doc:`installation/index` to do so.
 
 Setting the Environment
 -----------------------
@@ -163,12 +163,12 @@ Each dataset here is an array containing the named property of each galaxy forme
 
 which lists the mass of stars in each galaxy disk (in units of :math:`\mathrm{M}_\odot`) (note that some of them are zero---these halos in the merger tree either formed no galaxy, or formed a galaxy with no disk component).
 
-These data can be extracted and analyzed using any software or language that supports reading HDF5 files.
+These data can be extracted and analyzed using any software or language that supports reading HDF5 files. The `Dendros <https://github.com/galacticusorg/dendros>`_ package provides ready-made tools for analyzing and plotting Galacticus output, including on-the-fly analyses, MCMC chain diagnostics, and posterior corner plots.
 
 Dry Runs
 ~~~~~~~~
 
-You can tell Galacticus to parse your parameter file, report any warnings, and write the parameters to the output HDF5 file, but then no nothing else (i.e. don't actually run the model) by adding the ``--dry-run`` option, for example:
+You can tell Galacticus to parse your parameter file, report any warnings, and write the parameters to the output HDF5 file, but then do nothing else (i.e. don't actually run the model) by adding the ``--dry-run`` option, for example:
 
 .. code-block:: none
 

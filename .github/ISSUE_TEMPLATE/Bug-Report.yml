@@ -51,11 +51,19 @@ body:
         - Built from source
         - Pre-built executable
         - Docker container
+  - type: input
+    id: compiler
+    attributes:
+      label: Compiler version
+      description: Which compiler and version did you build with (e.g. `gfortran 16.0.1`)? Not needed if you used a pre-built executable or the Docker container, or if the `report.xml` output above already includes it.
+      placeholder: ex. gfortran 16.0.1
+    validations:
+      required: false
   - type: textarea
     id: error
     attributes:
       label: Relevant error message output
-      description: Please copy and paste any relevant error messages what were output. This will be automatically formatted into code, so no need for backticks.
+      description: Please copy and paste any relevant error messages that were output, including the **full stack trace / backtrace** if Galacticus printed one (it is the most useful information for diagnosing a crash). This will be automatically formatted into code, so no need for backticks.
       render: shell
   - type: textarea
     id: parameters

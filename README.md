@@ -19,12 +19,12 @@ This section walks you through building and running a minimal Galacticus model f
 
 Before building, make sure you have the following available:
 
-- A modern Fortran compiler (e.g., `gfortran` ≥ 11)
+- A modern Fortran compiler (`gfortran` ≥ 16; earlier versions will not compile Galacticus)
 - `make`
-- HDF5 libraries (the code writes output in HDF5 format)
-- FFTW3 libraries
-- GSL (GNU Scientific Library)
+- GSL, zlib, HDF5, FoX, and BLAS libraries (HDF5 and FoX must be built with the same compiler used for Galacticus)
 - Python 3 (≥ 3.9; used by the build system for code generation and various supporting scripts)
+
+FFTW3, ANN, and `libmatheval` are optional (needed only for specialized calculations). For the full, platform-specific prerequisite list and step-by-step instructions, see the [Installation guide](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/index.html).
 
 > **Tip:** The easiest way to get a fully configured environment is to use [GitHub Codespaces](#open-in-github-codespaces) (click the badge above). All dependencies are pre-installed.
 
@@ -63,10 +63,10 @@ This runs a small, pre-configured galaxy formation model designed to complete qu
 A successful run will:
 
 - Exit with code `0` (no error message printed to the terminal).
-- Write output to the path specified by the `outputFileName` parameter inside `parameters/quickTest.xml`. By default this is an HDF5 file (`.hdf5`) in the working directory. Open that file to inspect the results (e.g., with `h5ls` or any HDF5 viewer).
+- Write output to an HDF5 file in the working directory. `parameters/quickTest.xml` does not set an output filename, so Galacticus uses the default, `galacticus.hdf5`. Open that file to inspect the results (e.g., with `h5ls` or any HDF5 viewer).
 - Print progress information to standard output during the run. The final line should indicate that the run completed without errors.
 
-To find the output file path, inspect the `outputFileName` element near the top of `parameters/quickTest.xml`.
+The output is written to `galacticus.hdf5` in the directory you ran from. To change this, set an `outputFileName` parameter in the parameter file.
 
 ### Troubleshooting
 
