@@ -20,10 +20,14 @@ src_path         = os.path.join(source_directory, "source")
 
 critical_section_names = {}
 
-for file_name in os.listdir(src_path):
-    if not re.search(r'\.f(90)?$', file_name, re.IGNORECASE):
-        continue
-    full_path = os.path.join(src_path, file_name)
+source_file_paths = []
+for dirpath, dirnames, filenames in os.walk(src_path):
+    dirnames[:] = sorted(d for d in dirnames if not d.startswith('.'))
+    for file_name in filenames:
+        if re.search(r'\.f(90)?$', file_name, re.IGNORECASE):
+            source_file_paths.append(os.path.join(dirpath, file_name))
+
+for full_path in sorted(source_file_paths):
     try:
         with open(full_path, 'r', errors='replace') as fh:
             while True:

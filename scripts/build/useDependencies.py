@@ -701,20 +701,19 @@ def _scan_source_file(sources_entry, file_names_to_process, source_file,
 def _source_files_to_process(root_source_dir, build_path):
     """Return the ordered list of source-file descriptors to scan.
 
-    Walks `<root>/source`, its immediate subdirectories, and
+    Walks `<root>/source`, all of its subdirectories (recursively), and
     `$BUILDPATH/libgalacticus`.  Each descriptor is a dict with
     `fileName`, `fullPathFileName`, and `subDirectoryName` (relative to
     `<root>/source` or `$BUILDPATH`).
     """
     root_source = os.path.join(root_source_dir, 'source')
-    directories = [root_source]
+    directories = []
     if os.path.exists(root_source):
-        for entry in sorted(os.listdir(root_source)):
-            if entry in ('.', '..'):
-                continue
-            full = os.path.join(root_source, entry)
-            if os.path.isdir(full):
-                directories.append(full)
+        for dirpath, dirnames, _ in os.walk(root_source):
+            dirnames[:] = sorted(d for d in dirnames if not d.startswith('.'))
+            directories.append(dirpath)
+    if not directories:
+        directories = [root_source]
     # The libgalacticus subdirectory contains auto-generated Fortran wrappers produced by libraryInterfaces.py; it only exists
     # for library builds. Skip it gracefully when absent so that non-library builds don't fail here.
     libgalacticus_dir = os.path.join(build_path, 'libgalacticus')
@@ -865,7 +864,7 @@ def _write_makefile(path, uses_per_file, source_files, submodules,
 
             # Object-file rule.
             deps_list = (
-                [work_dir + 'utility.OpenMP.workaround.o']
+                [work_dir + 'utility/OpenMP/workaround.o']
                 + modules_used + submodules_used + explicit_deps
             )
             mk.write(
@@ -885,7 +884,7 @@ def _write_makefile(path, uses_per_file, source_files, submodules,
             )
             mk.write(f"\t@echo {obj_path} > {dep_path}~\n")
             mk.write(
-                f"\t@echo {work_dir}utility.OpenMP.workaround.o >> "
+                f"\t@echo {work_dir}utility/OpenMP/workaround.o >> "
                 f"{dep_path}~\n"
             )
             for dep_explicit in explicit_deps:

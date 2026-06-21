@@ -146,12 +146,13 @@ endif
 # front-end (f951), so it must be applied only at the LTO link step via FCFLAGS_LINK (see the %.exe rule).
 FCFLAGS_LINK  += -Wno-stringop-overread
 
-# C compiler flags:
-CFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ ${GALACTICUS_CFLAGS}
+# C compiler flags. The source tree is hierarchical, so add an include path for every source
+# subdirectory (header files such as md5.h or gsl_odeiv2.h live in subdirectories).
+CFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' $(addprefix -I,$(SOURCEDIRS)) -I$(BUILDPATH)/ ${GALACTICUS_CFLAGS}
 export CFLAGS
 
 # C++ compiler flags:
-CPPFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ ${GALACTICUS_CPPFLAGS}
+CPPFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' $(addprefix -I,$(SOURCEDIRS)) -I$(BUILDPATH)/ ${GALACTICUS_CPPFLAGS}
 
 # Detect library compile.
 ifneq ($(IS_LIB_BUILD),)
@@ -252,9 +253,13 @@ ifeq ($(COUNT_TARGETS),1)
   LOCKMD5=no
 endif
 
-# Find all source files.
-ALLSOURCES    = $(wildcard source/*.[fF]90              source/*.h source/*.c source/*.cpp)
-ALLSOURCESINC = $(wildcard source/*.[fF]90 source/*.Inc source/*.h source/*.c source/*.cpp)
+# Find all source directories (the source tree is hierarchical) for use in vpath and include
+# search paths.
+SOURCEDIRS   := $(shell find source -type d 2>/dev/null)
+
+# Find all source files, recursing through the full source directory hierarchy.
+ALLSOURCES    = $(shell find source -type f \( -name '*.f90' -o -name '*.F90'                     -o -name '*.h' -o -name '*.c' -o -name '*.cpp' \) 2>/dev/null)
+ALLSOURCESINC = $(shell find source -type f \( -name '*.f90' -o -name '*.F90' -o -name '*.Inc' -o -name '*.h' -o -name '*.c' -o -name '*.cpp' \) 2>/dev/null)
 
 # General suffix rules: i.e. rules for making a file of one suffix from files of another suffix.
 
@@ -262,7 +267,7 @@ ALLSOURCESINC = $(wildcard source/*.[fF]90 source/*.Inc source/*.h source/*.c so
 # files. Note that .F90 source files should not have names which coincide with the name of a
 # module - this will lead to circular dependency problems as Make becomes confused about how to
 # build the module file.
-vpath %.F90 source
+vpath %.F90 $(SOURCEDIRS)
 $(BUILDPATH)/%.p.F90.up : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
 	./scripts/build/preprocess.py source/$*.F90 $(BUILDPATH)/$*.p.F90
 $(BUILDPATH)/%.p.F90 : $(BUILDPATH)/%.p.F90.up
@@ -312,18 +317,18 @@ $(BUILDPATH)/os.inc:
 $(BUILDPATH)/hdf5FCInterop.dat  : $(BUILDPATH)/hdf5FCInterop.exe $(BUILDPATH)/hdf5FCInteropC.exe
 	$(BUILDPATH)/hdf5FCInterop.exe  >  $(BUILDPATH)/hdf5FCInterop.dat
 	$(BUILDPATH)/hdf5FCInteropC.exe >> $(BUILDPATH)/hdf5FCInterop.dat
-$(BUILDPATH)/hdf5FCInterop.exe  : source/hdf5FCInterop.F90
+$(BUILDPATH)/hdf5FCInterop.exe  : source/system/hdf5FCInterop.F90
 	@mkdir -p $(BUILDPATH)/moduleBuild
-	$(FCCOMPILER) source/hdf5FCInterop.F90 -o $(BUILDPATH)/hdf5FCInterop.exe $(FCFLAGS)
-$(BUILDPATH)/hdf5FCInteropC.exe : source/hdf5FCInteropC.c
-	$(CCOMPILER) source/hdf5FCInteropC.c -o $(BUILDPATH)/hdf5FCInteropC.exe $(CFLAGS)
+	$(FCCOMPILER) source/system/hdf5FCInterop.F90 -o $(BUILDPATH)/hdf5FCInterop.exe $(FCFLAGS)
+$(BUILDPATH)/hdf5FCInteropC.exe : source/system/hdf5FCInteropC.c
+	$(CCOMPILER) source/system/hdf5FCInteropC.c -o $(BUILDPATH)/hdf5FCInteropC.exe $(CFLAGS)
 
 # Configuration of proc filesystem.
 -include $(BUILDPATH)/Makefile_Config_Proc
-$(BUILDPATH)/Makefile_Config_Proc: source/proc_config.c
+$(BUILDPATH)/Makefile_Config_Proc: source/system/proc_config.c
 	@mkdir -p $(BUILDPATH)
 	@touch $(BUILDPATH)/Makefile_Config_Proc
-	$(CCOMPILER) source/proc_config.c -o $(BUILDPATH)/proc_config $(CFLAGS) > /dev/null 2>&1 ; \
+	$(CCOMPILER) source/system/proc_config.c -o $(BUILDPATH)/proc_config $(CFLAGS) > /dev/null 2>&1 ; \
 	if [ $$? -eq 0 ] ; then \
 	 $(BUILDPATH)/proc_config > /dev/null 2>&1 ; \
 	 if [ $$? -eq 0 ] ; then \
@@ -335,9 +340,9 @@ $(BUILDPATH)/Makefile_Config_Proc: source/proc_config.c
 
 # Configuration of file locking implementation.
 -include $(BUILDPATH)/Makefile_Config_OFD
-$(BUILDPATH)/Makefile_Config_OFD: source/flock_config.c
+$(BUILDPATH)/Makefile_Config_OFD: source/system/flock_config.c
 	@mkdir -p $(BUILDPATH)
-	$(CCOMPILER) -c source/flock_config.c -o $(BUILDPATH)/flock_config.o $(CFLAGS) > /dev/null 2>&1 ; \
+	$(CCOMPILER) -c source/system/flock_config.c -o $(BUILDPATH)/flock_config.o $(CFLAGS) > /dev/null 2>&1 ; \
 	if [ $$? -eq 0 ] ; then \
 	 echo "FCFLAGS  += -DOFDAVAIL"   >  $(BUILDPATH)/Makefile_Config_OFD ; \
 	 echo "CFLAGS   += -DOFDAVAIL"   >> $(BUILDPATH)/Makefile_Config_OFD ; \
@@ -350,10 +355,10 @@ $(BUILDPATH)/Makefile_Config_OFD: source/flock_config.c
 
 # Configuration for availability of FFTW3.
 -include $(BUILDPATH)/Makefile_Config_FFTW3
-$(BUILDPATH)/Makefile_Config_FFTW3: source/fftw3_config.F90
+$(BUILDPATH)/Makefile_Config_FFTW3: source/external/FFTW/fftw3_config.F90
 	@mkdir -p $(BUILDPATH)
 	@mkdir -p $(BUILDPATH)/moduleBuild
-	$(FCCOMPILER) -c source/fftw3_config.F90 -o $(BUILDPATH)/fftw3_config.o $(FCFLAGS) > /dev/null 2>&1 ; \
+	$(FCCOMPILER) -c source/external/FFTW/fftw3_config.F90 -o $(BUILDPATH)/fftw3_config.o $(FCFLAGS) > /dev/null 2>&1 ; \
 	if [ $$? -eq 0 ] ; then \
 	 echo "FCFLAGS += -DFFTW3AVAIL"   > $(BUILDPATH)/Makefile_Config_FFTW3 ; \
 	else \
@@ -362,9 +367,9 @@ $(BUILDPATH)/Makefile_Config_FFTW3: source/fftw3_config.F90
 
 # Configuration for availability of ANN.
 -include $(BUILDPATH)/Makefile_Config_ANN
-$(BUILDPATH)/Makefile_Config_ANN: source/ann_config.cpp
+$(BUILDPATH)/Makefile_Config_ANN: source/external/ANN/ann_config.cpp
 	@mkdir -p $(BUILDPATH)
-	$(CPPCOMPILER) -c source/ann_config.cpp -o $(BUILDPATH)/ann_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
+	$(CPPCOMPILER) -c source/external/ANN/ann_config.cpp -o $(BUILDPATH)/ann_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
 	if [ $$? -eq 0 ] ; then \
 	 echo "FCFLAGS  += -DANNAVAIL"   >  $(BUILDPATH)/Makefile_Config_ANN ; \
 	 echo "CPPFLAGS += -DANNAVAIL"   >> $(BUILDPATH)/Makefile_Config_ANN ; \
@@ -375,9 +380,9 @@ $(BUILDPATH)/Makefile_Config_ANN: source/ann_config.cpp
 
 # Configuration for availability of qhull.
 -include $(BUILDPATH)/Makefile_Config_QHull
-$(BUILDPATH)/Makefile_Config_QHull: source/qhull_config.cpp
+$(BUILDPATH)/Makefile_Config_QHull: source/external/Qhull/qhull_config.cpp
 	@mkdir -p $(BUILDPATH)
-	$(CPPCOMPILER) -c source/qhull_config.cpp -o $(BUILDPATH)/qhull_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
+	$(CPPCOMPILER) -c source/external/Qhull/qhull_config.cpp -o $(BUILDPATH)/qhull_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
 	if [ $$? -eq 0 ] ; then \
 	 echo "FCFLAGS  += -DQHULLAVAIL"   >  $(BUILDPATH)/Makefile_Config_QHull ; \
 	 echo "CPPFLAGS += -DQHULLAVAIL"   >> $(BUILDPATH)/Makefile_Config_QHull ; \
@@ -388,9 +393,9 @@ $(BUILDPATH)/Makefile_Config_QHull: source/qhull_config.cpp
 
 # Configuration for availability of libmatheval.
 -include $(BUILDPATH)/Makefile_Config_MathEval
-$(BUILDPATH)/Makefile_Config_MathEval: source/libmatheval_config.cpp
+$(BUILDPATH)/Makefile_Config_MathEval: source/system/libmatheval_config.cpp
 	@mkdir -p $(BUILDPATH)
-	$(CPPCOMPILER) -c source/libmatheval_config.cpp -o $(BUILDPATH)/libmatheval_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
+	$(CPPCOMPILER) -c source/system/libmatheval_config.cpp -o $(BUILDPATH)/libmatheval_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
 	if [ $$? -eq 0 ] ; then \
 	 echo "FCFLAGS  += -DMATHEVALAVAIL"   >  $(BUILDPATH)/Makefile_Config_MathEval ; \
 	 echo "CPPFLAGS += -DMATHEVALAVAIL"   >> $(BUILDPATH)/Makefile_Config_MathEval ; \
@@ -418,7 +423,7 @@ $(BUILDPATH)/Makefile_Config_Git2:
 	echo "CFLAGS   += -DGIT2UNAVAIL" >> $(BUILDPATH)/Makefile_Config_Git2
 	echo "CPPFLAGS += -DGIT2UNAVAIL" >> $(BUILDPATH)/Makefile_Config_Git2
 else
-$(BUILDPATH)/Makefile_Config_Git2: source/libgit2_config.c
+$(BUILDPATH)/Makefile_Config_Git2: source/system/libgit2_config.c
 	@mkdir -p $(BUILDPATH)
 # Probe only against the system/user libgit2 headers (via GALACTICUS_CFLAGS),
 # *not* the full CFLAGS. The latter adds `-I$(BUILDPATH)/`, which can contain a
@@ -426,7 +431,7 @@ $(BUILDPATH)/Makefile_Config_Git2: source/libgit2_config.c
 # generic `%.h` rule for the preprocessed-out include in git2.c). That stub
 # would shadow the real header and make the probe spuriously fail, trapping the
 # build in GIT2UNAVAIL even when a working libgit2 is installed.
-	$(CCOMPILER) -c source/libgit2_config.c -o $(BUILDPATH)/libgit2_config.o $(GALACTICUS_CFLAGS) > /dev/null 2>&1 ; \
+	$(CCOMPILER) -c source/system/libgit2_config.c -o $(BUILDPATH)/libgit2_config.o $(GALACTICUS_CFLAGS) > /dev/null 2>&1 ; \
 	if [ $$? -eq 0 ] ; then \
 	 echo "FCFLAGS  += -DGIT2AVAIL"   >  $(BUILDPATH)/Makefile_Config_Git2 ; \
 	 echo "CFLAGS   += -DGIT2AVAIL"   >> $(BUILDPATH)/Makefile_Config_Git2 ; \
@@ -439,80 +444,82 @@ $(BUILDPATH)/Makefile_Config_Git2: source/libgit2_config.c
 endif
 
 # Object (*.o) files are built by compiling C (*.c) source files.
-vpath %.c source
+vpath %.c $(SOURCEDIRS)
 $(BUILDPATH)/%.o : %.c $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	$(CCOMPILER) -c $< -o $(BUILDPATH)/$*.o $(CFLAGS)
 
 # Object (*.o) can also be built from C++ source files.
-vpath %.cpp source
+vpath %.cpp $(SOURCEDIRS)
 $(BUILDPATH)/%.o : %.cpp $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	$(CPPCOMPILER) -c $< -o $(BUILDPATH)/$*.o $(CPPFLAGS)
 
 # Rules for the QHull library. Use the C++17 standard for these files since they are not compatible with later C++ standards
 # (triggering 'template-id not allowed for constructor' errors)
-$(BUILDPATH)/qhull.o : source/qhull.cpp
-	$(CPPCOMPILER) -c source/qhull.cpp -o $(BUILDPATH)/qhull.o $(CPPFLAGS) -std=gnu++17
+$(BUILDPATH)/external/Qhull/qhull.o : source/external/Qhull/qhull.cpp
+	@mkdir -p $(BUILDPATH)/external/Qhull
+	$(CPPCOMPILER) -c source/external/Qhull/qhull.cpp -o $(BUILDPATH)/external/Qhull/qhull.o $(CPPFLAGS) -std=gnu++17
 
 # Rules for FFTLog library.
-source/FFTlog/cdgamma.f source/FFTlog/drfftb.f source/FFTlog/drffti.f source/FFTlog/drfftf.f: source/FFTlog/fftlog.f
-source/FFTlog/fftlog.f:
-	mkdir -p source/FFTlog
-	mkdir -p $(BUILDPATH)/FFTlog
+source/external/FFTlog/cdgamma.f source/external/FFTlog/drfftb.f source/external/FFTlog/drffti.f source/external/FFTlog/drfftf.f: source/external/FFTlog/fftlog.f
+source/external/FFTlog/fftlog.f:
+	mkdir -p source/external/FFTlog
+	mkdir -p $(BUILDPATH)/external/FFTlog
 	if command -v wget &> /dev/null; then \
-	 wget --no-check-certificate https://github.com/emsig/fftlog/archive/refs/heads/main.zip -O  source/FFTlog/main.zip; \
+	 wget --no-check-certificate https://github.com/emsig/fftlog/archive/refs/heads/main.zip -O  source/external/FFTlog/main.zip; \
 	else \
-	 curl --insecure -L https://github.com/emsig/fftlog/archive/refs/heads/main.zip --output source/FFTlog/main.zip;\
+	 curl --insecure -L https://github.com/emsig/fftlog/archive/refs/heads/main.zip --output source/external/FFTlog/main.zip;\
 	fi
-	cd source/FFTlog; \
+	cd source/external/FFTlog; \
 	unzip main.zip; \
 	mv fftlog-main/src/*.f .; \
+	rm -rf fftlog-main main.zip; \
 	cd -
-	if [ ! -e source/FFTlog/fftlog.f ]; then \
-	 echo "      subroutine fhti(n,mu,q,dlnr,kr,kropt,wsave,ok)" >  source/FFTlog/fftlog.f; \
-	 echo "      stop 'FFTlog was not downloaded - to try again" >> source/FFTlog/fftlog.f; \
-	 echo "     & remove the source/FFTlog directory'"           >> source/FFTlog/fftlog.f; \
-	 echo "      end subroutine fhti"                            >> source/FFTlog/fftlog.f; \
-	 echo "      subroutine fftl(n,ft,norm,dir,ws)"              >> source/FFTlog/fftlog.f; \
-	 echo "      stop 'FFTlog was not downloaded - to try again" >> source/FFTlog/fftlog.f; \
-	 echo "     & remove the source/FFTlog directory'"           >> source/FFTlog/fftlog.f; \
-	 echo "      end subroutine fftl"                            >> source/FFTlog/fftlog.f; \
-	 touch source/FFTlog/cdgamma.f; \
-	 touch source/FFTlog/drfftb.f; \
-	 touch source/FFTlog/drfftf.f; \
-	 touch source/FFTlog/drffti.f; \
+	if [ ! -e source/external/FFTlog/fftlog.f ]; then \
+	 echo "      subroutine fhti(n,mu,q,dlnr,kr,kropt,wsave,ok)" >  source/external/FFTlog/fftlog.f; \
+	 echo "      stop 'FFTlog was not downloaded - to try again" >> source/external/FFTlog/fftlog.f; \
+	 echo "     & remove the source/external/FFTlog directory'"           >> source/external/FFTlog/fftlog.f; \
+	 echo "      end subroutine fhti"                            >> source/external/FFTlog/fftlog.f; \
+	 echo "      subroutine fftl(n,ft,norm,dir,ws)"              >> source/external/FFTlog/fftlog.f; \
+	 echo "      stop 'FFTlog was not downloaded - to try again" >> source/external/FFTlog/fftlog.f; \
+	 echo "     & remove the source/external/FFTlog directory'"           >> source/external/FFTlog/fftlog.f; \
+	 echo "      end subroutine fftl"                            >> source/external/FFTlog/fftlog.f; \
+	 touch source/external/FFTlog/cdgamma.f; \
+	 touch source/external/FFTlog/drfftb.f; \
+	 touch source/external/FFTlog/drfftf.f; \
+	 touch source/external/FFTlog/drffti.f; \
 	else \
-	 cd source/FFTlog; \
+	 cd source/external/FFTlog; \
 	 patch < ../drfftb.f.patch; \
 	 patch < ../drfftf.f.patch; \
 	 patch < ../drffti.f.patch; \
 	 cd -; \
 	 ./scripts/build/useDependencies.py `pwd`; \
 	fi
-	echo $(BUILDPATH)/FFTlog/cdgamma.o > $(BUILDPATH)/FFTlog/cdgamma.d
-	echo $(BUILDPATH)/FFTlog/drfftb.o  > $(BUILDPATH)/FFTlog/drfftb.d
-	echo $(BUILDPATH)/FFTlog/drfftf.o  > $(BUILDPATH)/FFTlog/drfftf.d
-	echo $(BUILDPATH)/FFTlog/drffti.o  > $(BUILDPATH)/FFTlog/drffti.d
-	echo $(BUILDPATH)/FFTlog/fftlog.o  > $(BUILDPATH)/FFTlog/fftlog.d
+	echo $(BUILDPATH)/external/FFTlog/cdgamma.o > $(BUILDPATH)/external/FFTlog/cdgamma.d
+	echo $(BUILDPATH)/external/FFTlog/drfftb.o  > $(BUILDPATH)/external/FFTlog/drfftb.d
+	echo $(BUILDPATH)/external/FFTlog/drfftf.o  > $(BUILDPATH)/external/FFTlog/drfftf.d
+	echo $(BUILDPATH)/external/FFTlog/drffti.o  > $(BUILDPATH)/external/FFTlog/drffti.d
+	echo $(BUILDPATH)/external/FFTlog/fftlog.o  > $(BUILDPATH)/external/FFTlog/fftlog.d
 
-$(BUILDPATH)/FFTlog/%.o: ./source/FFTlog/%.f Makefile
+$(BUILDPATH)/external/FFTlog/%.o: ./source/external/FFTlog/%.f Makefile
 	@mkdir -p $(BUILDPATH)/moduleBuild
-	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/$*.o $(F77FLAGS) -Wno-argument-mismatch -std=legacy
+	$(FCCOMPILER) -c $< -o $(BUILDPATH)/external/FFTlog/$*.o $(F77FLAGS) -Wno-argument-mismatch -std=legacy
 
 # Object (*.o) files are built by compiling Fortran (*.[fF]) source files.
-vpath %.f source
+vpath %.f $(SOURCEDIRS)
 $(BUILDPATH)/%.o : %.f $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	@mkdir -p $(BUILDPATH)/moduleBuild
 	$(FCCOMPILER) -c $< -o $(BUILDPATH)/$*.o $(F77FLAGS)
-vpath %.F source
+vpath %.F $(SOURCEDIRS)
 $(BUILDPATH)/%.o : %.F $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	@mkdir -p $(BUILDPATH)/moduleBuild
 	$(FCCOMPILER) -c $< -o $(BUILDPATH)/$*.o $(F77FLAGS)
 
 # Special rules required for building some sources (unfortunate, but necessary....)
 # pfq.new.f
-$(BUILDPATH)/pFq/pfq.new.o : ./source/pFq/pfq.new.f Makefile
+$(BUILDPATH)/external/pFq/pfq.new.o : ./source/external/pFq/pfq.new.f Makefile
 	@mkdir -p $(BUILDPATH)/moduleBuild
-	$(FCCOMPILER) -c $< -o $(BUILDPATH)/pFq/pfq.new.o $(FCFLAGS)
+	$(FCCOMPILER) -c $< -o $(BUILDPATH)/external/pFq/pfq.new.o $(FCFLAGS)
 
 # Rule for running *.Inc files through the preprocessor. We strip out single quote characters in comment lines to avoid spurious
 # complaints from the preprocessor.

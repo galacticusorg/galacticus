@@ -141,12 +141,17 @@ def main(argv):
     have_per_file       = bool(directives_per_file) and os.path.exists(blob_path)
     cache_mtime         = os.stat(blob_path).st_mtime if have_per_file else None
 
-    # List source files under `<installDir>/source/`.
+    # List source files under `<installDir>/source/`, recursing into
+    # subdirectories.  Names are kept relative to `source/`.
     source_directory   = os.path.join(install_directory, 'source')
-    source_file_names  = sorted(
-        f for f in os.listdir(source_directory)
-        if _SOURCE_SUFFIX_RE.search(f) and not f.startswith('.#')
-    )
+    source_file_names  = []
+    for dirpath, dirnames, filenames in os.walk(source_directory):
+        dirnames[:] = sorted(d for d in dirnames if not d.startswith('.'))
+        for f in filenames:
+            if _SOURCE_SUFFIX_RE.search(f) and not f.startswith('.#'):
+                source_file_names.append(
+                    os.path.relpath(os.path.join(dirpath, f), source_directory))
+    source_file_names.sort()
 
     # Build the UNSTRIPPED identifier list used for the new/removed-file
     # checks below.  Matches the first `@fileIdentifiers` loop in the Perl.

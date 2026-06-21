@@ -17,10 +17,27 @@ work_dir             = build_path.rstrip('/') + '/'
 
 executable_names = []
 
+def _source_files_recursive(root):
+    """Yield every file path under `root`, relative to `root`, walking
+    subdirectories to any depth."""
+    rel = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = sorted(d for d in dirnames if not d.startswith('.'))
+        for fn in filenames:
+            rel.append(os.path.relpath(os.path.join(dirpath, fn), root))
+    return sorted(rel)
+
+
 with open(os.path.join(build_path, "Makefile_All_Execs"), 'w') as out:
-    for file_name in sorted(os.listdir(source_directory)):
+    for file_name in _source_files_recursive(source_directory):
         # Skip temporary files.
-        if file_name.startswith('.#'):
+        if os.path.basename(file_name).startswith('.#'):
+            continue
+        # Skip vendored third-party code: it may carry its own test `program`
+        # units (e.g. Genz's `PROGRAM TSTNRM`) that are not Galacticus
+        # executables.  The flat, pre-hierarchy scan never reached these
+        # subdirectories; preserve that by excluding `external/`.
+        if file_name.split('/', 1)[0] == 'external':
             continue
         # Only Fortran source files.
         if not re.search(r'\.[fF](90)?$', file_name):
@@ -56,15 +73,22 @@ with open(os.path.join(build_path, "Makefile_All_Execs"), 'w') as out:
         if not found_program:
             continue
 
-        file_name_root = re.sub(r'\.[fF](90)?t?$', '', file_name)
+        # `obj_root` is the path-based stem (relative to source/, e.g.
+        # `tests/nodes`) used for every build artifact, which mirrors the
+        # source hierarchy.  `exe_root` is the historical flat, dot-separated
+        # name (e.g. `tests.nodes`) used for the user-facing executable so that
+        # `make tests.nodes.exe`, CI matrices, and test harnesses keep working
+        # unchanged after the source tree was made hierarchical.
+        obj_root = re.sub(r'\.[fF](90)?t?$', '', file_name)
+        exe_root = obj_root.replace('/', '.')
 
         if not exclude_from_all:
-            executable_names.append(file_name_root + '.exe')
+            executable_names.append(exe_root + '.exe')
 
         rule = f"""\
-{file_name_root}.exe: {work_dir}{file_name_root}.o {work_dir}{file_name_root}.d $(MAKE_DEPS) $(UPDATE_DEPS)
-\t./scripts/build/parameterDependencies.py `pwd` {file_name_root}.exe
-\t$(FCCOMPILER) -c {work_dir}{file_name_root}.parameters.F90 -o {work_dir}{file_name_root}.parameters.o $(FCFLAGS)
+{exe_root}.exe: {work_dir}{obj_root}.o {work_dir}{obj_root}.d $(MAKE_DEPS) $(UPDATE_DEPS)
+\t./scripts/build/parameterDependencies.py `pwd` {obj_root}.exe
+\t$(FCCOMPILER) -c {work_dir}{obj_root}.parameters.F90 -o {work_dir}{obj_root}.parameters.o $(FCFLAGS)
 \t@if echo "$(MAKEFLAGS)" | grep -q -E -- ' -j1( |$$)'; then \\
 \t useLocks=no; \\
 \telif echo "$(MAKEFLAGS)" | grep -q -E -- ' -j( |$$)'; then \\
@@ -74,9 +98,9 @@ with open(os.path.join(build_path, "Makefile_All_Execs"), 'w') as out:
 \telse \\
 \t useLocks=no; \\
 \tfi; \\
-\t./scripts/build/sourceDigests.py `pwd` {file_name_root}.exe $$useLocks
-\t$(CCOMPILER) -c {work_dir}{file_name_root}.md5s.c -o {work_dir}{file_name_root}.md5s.o $(CFLAGS)
-\t$(FCCOMPILER) `cat {work_dir}{file_name_root}.d` {work_dir}{file_name_root}.parameters.o {work_dir}{file_name_root}.md5s.o -o {file_name_root}.exe$(SUFFIX) $(FCFLAGS) $(FCFLAGS_LINK) `./scripts/build/libraryDependencies.py {file_name_root}.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
+\t./scripts/build/sourceDigests.py `pwd` {obj_root}.exe $$useLocks
+\t$(CCOMPILER) -c {work_dir}{obj_root}.md5s.c -o {work_dir}{obj_root}.md5s.o $(CFLAGS)
+\t$(FCCOMPILER) `cat {work_dir}{obj_root}.d` {work_dir}{obj_root}.parameters.o {work_dir}{obj_root}.md5s.o -o {exe_root}.exe$(SUFFIX) $(FCFLAGS) $(FCFLAGS_LINK) `./scripts/build/libraryDependencies.py {obj_root}.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
 
 """
         out.write(rule)

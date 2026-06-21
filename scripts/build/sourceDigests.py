@@ -193,14 +193,19 @@ def main(argv):
     updated_types = {}
 
     source_root = os.path.join(source_directory_name, 'source')
-    try:
-        source_names = sorted(os.listdir(source_root))
-    except OSError:
+    if not os.path.isdir(source_root):
         sys.exit("sourceDigests.py: can not open the source directory: "
                  + source_root)
+    source_names = []
+    for dirpath, dirnames, filenames in os.walk(source_root):
+        dirnames[:] = sorted(d for d in dirnames if not d.startswith('.'))
+        for f in filenames:
+            source_names.append(
+                os.path.relpath(os.path.join(dirpath, f), source_root))
+    source_names.sort()
 
     for file_name in source_names:
-        if file_name.startswith('.#'):
+        if os.path.basename(file_name).startswith('.#'):
             continue
         if not re.search(r'\.(F90|cpp)$', file_name):
             continue
@@ -285,7 +290,7 @@ def main(argv):
                 updated_types[hash_name] = 1
 
     # Manually add the base `functionClass` type (no dependencies).
-    fc_base = 'objects.function_class.F90'
+    fc_base = 'objects/function_class.F90'
     fc_base_path = os.path.join('source', fc_base)
     if (cache_mtime is None or
             (os.path.exists(fc_base_path)

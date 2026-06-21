@@ -10,7 +10,7 @@ work
 testSuite/*.log
 testSuite/*.pbs
 testSuite/outputs
-source/FFTlog
+source/external/FFTlog
 source/texfrag
 __pycache__
 *.egg-info

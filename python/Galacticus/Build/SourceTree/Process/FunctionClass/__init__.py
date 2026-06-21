@@ -3230,12 +3230,27 @@ def _generate_class_submodules(directive, classes_ordered, non_abstract_classes,
     for class_record in classes_ordered:
         set_visibility(parent, class_record['type'], 'public')
 
-        # Submodule output path: swap the source file's basename `.F90`
-        # for `.p.F90` and place it under BUILDPATH.
+        # Submodule output path: swap the source file's `.F90` for `.p.F90`
+        # and place it under BUILDPATH, preserving the file's path *relative
+        # to the source tree* so the hierarchical layout is mirrored (e.g.
+        # `source/cosmology/parameters/simple.F90` ->
+        # `$BUILDPATH/cosmology/parameters/simple.p.F90`).  Using only the
+        # basename would flatten every implementation into `$BUILDPATH/` and
+        # collide / mis-locate them once the source tree is hierarchical.
         class_file = class_record.get('file') or ''
-        base = os.path.basename(class_file)
-        base = re.sub(r'\.F90$', '.p.F90', base)
-        fn = os.path.join(build_path, base) if build_path else base
+        exec_path  = os.environ.get('GALACTICUS_EXEC_PATH')
+        rel = None
+        if exec_path:
+            source_root = os.path.abspath(os.path.join(exec_path, 'source'))
+            abs_class   = os.path.abspath(class_file)
+            if abs_class.startswith(source_root + os.sep):
+                rel = os.path.relpath(abs_class, source_root)
+        if rel is None:
+            rel = os.path.basename(class_file)
+        rel = re.sub(r'\.F90$', '.p.F90', rel)
+        fn  = os.path.join(build_path, rel) if build_path else rel
+        if build_path:
+            os.makedirs(os.path.dirname(fn), exist_ok=True)
 
         block = {
             'fileName':    fn,
