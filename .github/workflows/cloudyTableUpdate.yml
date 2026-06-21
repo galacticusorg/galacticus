@@ -22,7 +22,7 @@ jobs:
       old_version: ${{ steps.check.outputs.old_version }}
       new_version: ${{ steps.check.outputs.new_version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Check if Cloudy version changed
@@ -55,12 +55,12 @@ jobs:
       OLD_CLOUDY_VERSION: ${{ needs.detect-cloudy-update.outputs.old_version }}
     steps:
       - name: Check out galacticus repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Check out datasets repository
         if: ${{ env.appid != '' }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: galacticusorg/datasets
           path: datasets
