@@ -152,7 +152,7 @@ runs:
     - name: Install ANN
       shell: bash
       run: |
-        curl -L --fail --retry 5 --retry-all-errors --retry-max-time 120 https://www.cs.umd.edu/~mount/ANN/Files/1.1.2/ann_1.1.2.tar.gz --output ann_1.1.2.tar.gz
+        curl -L --fail --retry 5 --retry-all-errors --retry-max-time 120 http://www.cs.umd.edu/~mount/ANN/Files/1.1.2/ann_1.1.2.tar.gz --output ann_1.1.2.tar.gz
         tar xvfz ann_1.1.2.tar.gz
         cd ann_1.1.2
         sed -E -i~ "s|C\+\+ = g\+\+|C\+\+ = $CPPCOMPILER|" Make-config
