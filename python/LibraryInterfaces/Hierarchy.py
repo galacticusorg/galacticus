@@ -50,7 +50,12 @@ def build_type_hierarchy(source_dir):
     rather than introducing new types in practice).
     """
     hierarchy = {}
-    for path in sorted(Path(source_dir).glob('*.F90')):
+    # Recurse: the source tree is hierarchical, so `.F90` files live in
+    # subdirectories (e.g. `mass_distributions/spherical/adiabatic_Gnedin2004.F90`).
+    # A non-recursive glob would miss almost everything, leaving multi-level
+    # implementations (those extending another implementation) with an
+    # unresolved parent so they never get exposed in the library interface.
+    for path in sorted(Path(source_dir).rglob('*.F90')):
         text = path.read_text(errors='replace')
         # Build a list of (offset, module_name) so each later `type ...`
         # match can be attributed to the enclosing module via a bisect.
