@@ -499,7 +499,13 @@ _SUBMODULE_DECL_RE  = re.compile(
     re.IGNORECASE,
 )
 _INCLUDE_LINE_RE    = re.compile(
-    r"""^\s*include\s+(['"])([\w.\-]+)(['"])""",
+    # The include name may be a hierarchical path (e.g.
+    # 'objects/nodes/components/disk/standard/bound_functions.inc'), so allow
+    # '/' in addition to word characters, '.' and '-'. Without '/', includes of
+    # generated component code in the hierarchical source tree are not followed,
+    # so the `use` statements they contain (e.g. of component *_data modules)
+    # are missed and the resulting object dependency (.d) lists are incomplete.
+    r"""^\s*include\s+(['"])([\w./\-]+)(['"])""",
     re.IGNORECASE,
 )
 
