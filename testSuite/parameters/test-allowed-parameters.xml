@@ -212,6 +212,10 @@
       <factorReset value="2.0"/>
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"/>
+    <!-- Satellite orbits -->
+    <nodeOperator value="satelliteOrbit">
+      <initializeOnly value="true"/>
+    </nodeOperator>
   </nodeOperator>
 
   <!-- Output options -->
