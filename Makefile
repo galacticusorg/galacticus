@@ -253,13 +253,26 @@ ifeq ($(COUNT_TARGETS),1)
   LOCKMD5=no
 endif
 
-# Find all source directories (the source tree is hierarchical) for use in vpath and include
-# search paths.
-SOURCEDIRS   := $(shell find source -type d 2>/dev/null)
+# Recursively expand a wildcard using only Make built-in functions. This deliberately avoids
+# $(shell ...): the 'compileprof' build option sets SHELL to a profiler wrapper that prints timing
+# text (containing colons) to stdout, which would corrupt any $(shell ...)-derived file lists and
+# break Makefile parsing.
+#   $(call rwildcard,<dir>,<pattern>)  e.g. $(call rwildcard,source,*.F90)
+rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2)$(filter $(subst *,%,$2),$d))
 
 # Find all source files, recursing through the full source directory hierarchy.
-ALLSOURCES    = $(shell find source -type f \( -name '*.f90' -o -name '*.F90'                     -o -name '*.h' -o -name '*.c' -o -name '*.cpp' \) 2>/dev/null)
-ALLSOURCESINC = $(shell find source -type f \( -name '*.f90' -o -name '*.F90' -o -name '*.Inc' -o -name '*.h' -o -name '*.c' -o -name '*.cpp' \) 2>/dev/null)
+ALLSOURCES    = $(call rwildcard,source,*.F90) $(call rwildcard,source,*.f90) $(call rwildcard,source,*.h) $(call rwildcard,source,*.c) $(call rwildcard,source,*.cpp)
+ALLSOURCESINC = $(ALLSOURCES) $(call rwildcard,source,*.Inc)
+
+# All source directories (the source tree is hierarchical), for use in vpath and include search
+# paths. Enumerate *every* directory under source/ -- not just those that directly contain source
+# files -- because some sources include a vendored header by a parent-relative path (e.g.
+# `#include <gslODEInitVal2/gsl_odeiv2.h>`), which needs -I pointing at an intermediate directory
+# (here source/external/) that contains no source files of its own. `$(wildcard $d/.)` is non-empty
+# only for directories, so this recurses through the tree using only Make built-ins (no $(shell),
+# which would be corrupted by the 'compileprof' profiler SHELL).
+rsubdirs = $(foreach d,$(wildcard $1/*),$(if $(wildcard $d/.),$d $(call rsubdirs,$d)))
+SOURCEDIRS := source $(call rsubdirs,source)
 
 # General suffix rules: i.e. rules for making a file of one suffix from files of another suffix.
 
