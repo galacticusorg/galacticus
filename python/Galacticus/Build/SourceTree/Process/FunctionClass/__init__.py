@@ -3009,13 +3009,29 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
             'moduleOrder': ['Input_Parameters'],
         })
 
-    # Append directive name to the per-file `.p` parameter-names file.
+    # Append directive name to the per-file `.p` parameter-names file. This must
+    # be written to $BUILDPATH/<path relative to source/>.p, mirroring the
+    # hierarchical source tree, because parameterDependencies.py reads it from
+    # exactly that location. The tree node's `name` is only the basename, so use
+    # its `source` (the full path passed to parse_file); using the basename
+    # would collapse every `_class.F90` into one colliding `_class.p` and lose
+    # all functionClass parameter names from `knownParameterNames`.
     if tree.get('type') == 'file':
-        build_path = os.environ.get('BUILDPATH')
-        tree_name = tree.get('name', '')
-        m = re.match(r'(.+)\.F90$', tree_name)
+        build_path  = os.environ.get('BUILDPATH')
+        source_path = tree.get('source') or tree.get('name', '')
+        rel         = source_path
+        exec_path   = os.environ.get('GALACTICUS_EXEC_PATH')
+        if exec_path:
+            src_root = os.path.abspath(os.path.join(exec_path, 'source'))
+            ap       = os.path.abspath(source_path)
+            if ap.startswith(src_root + os.sep):
+                rel = os.path.relpath(ap, src_root)
+        rel = re.sub(r'^(?:\./)?source/', '', rel)
+        m = re.match(r'(.+)\.F90$', rel)
         if build_path and m:
-            with open(os.path.join(build_path, m.group(1) + '.p'), 'a') as fh:
+            p_path = os.path.join(build_path, m.group(1) + '.p')
+            os.makedirs(os.path.dirname(p_path) or '.', exist_ok=True)
+            with open(p_path, 'a') as fh:
                 fh.write(directive_name + '\n')
 
     recursive_prefix = 'recursive ' if allow_recursion else ''
