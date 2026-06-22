@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "0f9ace2318ca44c96c4069b5833e5f2bbf94dff3",
-        "message": "Merge pull request #1178 from galacticusorg/ci-macos-homebrew-gcc16\n\nci(buildMacOS): switch back to Homebrew GCC 16 install\n",
-        "timestamp": "2026-06-20 04:56:26+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/0f9ace2318ca44c96c4069b5833e5f2bbf94dff3"
+        "id": "e50f9e06c34e0511034666c205ab1cc4d1dfd554",
+        "message": "Merge pull request #1179 from galacticusorg/docs/review-phase0\n\ndocs: documentation review — Phase 0/1 fixes (links, compiler version, docstring RST, extractor parameter-drop)\n",
+        "timestamp": "2026-06-21 02:55:37+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/e50f9e06c34e0511034666c205ab1cc4d1dfd554"
     },
     "surfaceDensity": {
         "percentageBelow": 28.57142857142857,
@@ -17,8 +17,8 @@ window.PONOSV_DATA = {
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 63.63636363636363,
-        "percentageAbove": 36.36363636363637,
+        "percentageBelow": 72.72727272727272,
+        "percentageAbove": 27.272727272727273,
         "target": 0.85
     }
 }
