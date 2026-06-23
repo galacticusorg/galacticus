@@ -62,9 +62,26 @@ def record_success(url, failures):
 # terminates the forms the URLs appear in across the docs: RST hyperlinks
 # (`` `text <url>`_ ``), XML directive attributes (``referenceURL="url"``,
 # ``externalDescription="url"``, ``url="url"``), LaTeX ``\href{url}``, and bare
-# URLs in prose.  ``)`` is allowed (Wikipedia-style URLs); trailing sentence
-# punctuation is stripped afterwards.
-_URL_RE = re.compile(r'https?://[^\s<>"\'}\]]+')
+# URLs in prose.  ``)`` is allowed (Wikipedia-style URLs); ``'`` is allowed
+# (apostrophes appear inside real URLs, e.g.
+# ``.../Claudia's_Stellar_Population_Model.html``).  Trailing sentence
+# punctuation — including a ``'`` used as a closing delimiter around the URL —
+# is stripped afterwards.  Backticks are excluded since they delimit RST inline
+# literals (`` ``url`` ``) and are never valid inside a URL.
+_URL_RE = re.compile(r'https?://[^\s<>"}\]`]+')
+
+# URLs matching any of these patterns are placeholders / illustrative
+# examples (not real links) and are skipped during checking.
+_EXCLUDED_URL_RES = [
+    re.compile(r'^https?://\.+\)?$'),  # placeholder, e.g. "http://......." in code examples
+    # Defunct Google Drive link for BPASS data, retained only for the historical record.
+    re.compile(r'^https://drive\.google\.com/open\?id=0B7vqPPPgOdtIfjUtb3RsV2JUOTFFX29WV1FZNURPMHAxTEtZQjhJOGtyNXZUTTNVSzFZazQ$'),
+]
+
+
+def is_excluded(url):
+    """Return True if the URL is a known placeholder that should not be checked."""
+    return any(pattern.search(url) for pattern in _EXCLUDED_URL_RES)
 
 
 def scan_file(file_name, path, urls):
@@ -76,8 +93,10 @@ def scan_file(file_name, path, urls):
                 line_number += 1
                 for m in _URL_RE.finditer(line):
                     # Unescape XML/LaTeX (``&amp;``, ``&#x2F;``, ``\_`` …) and
-                    # drop trailing sentence punctuation.
-                    url = html.unescape(m.group(0)).rstrip('.,;:')
+                    # drop trailing sentence punctuation and any closing-quote
+                    # delimiter (a ``'`` that wraps the URL, vs. an apostrophe
+                    # inside it which is followed by further URL characters).
+                    url = html.unescape(m.group(0)).rstrip('.,;:\'')
                     url = re.sub(r'\\(.)', r'\1', url)
                     urls.setdefault(url, []).append(
                         {'file': file_name, 'path': path, 'lineNumber': line_number})
@@ -143,6 +162,8 @@ def check_urls(urls, api_token, failures):
         if url.startswith('mailto:'):
             continue
         if url.startswith('#'):
+            continue
+        if is_excluded(url):
             continue
 
         # --- NASA ADS links ---

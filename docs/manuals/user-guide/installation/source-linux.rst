@@ -30,9 +30,9 @@ Galacticus is usually built using the GCC compiler. Currently a very recent vers
 
 .. code-block:: bash
 
-   wget https://ftp.gnu.org/gnu/gcc/gcc-16.0.1/gcc-16.0.1.tar.gz
-   tar xvf gcc-16.0.1.tar.gz
-   cd gcc-16.0.1
+   wget https://ftp.gnu.org/gnu/gcc/gcc-16.1.0/gcc-16.1.0.tar.gz
+   tar xvf gcc-16.1.0.tar.gz
+   cd gcc-16.1.0
    ./contrib/download_prerequisites
    cd ..
    mkdir gcc-build
