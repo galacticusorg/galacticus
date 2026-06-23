@@ -3,22 +3,21 @@ on:
   workflow_dispatch:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-  push:
-    branches:
-      - 'master'
-    paths:
+    # Only run the full suite when code (or the suite itself) changes. Docs-only
+    # PRs (e.g. docs/**, docs/requirements.txt bumps) are covered by the docs
+    # validators in prChecks.yml and the ReadTheDocs build, so they skip this.
+    paths: &codePaths
       - 'Makefile'
       - 'source/**'
-      - 'source/Bivar/**'
-      - 'source/ISO_Varying_String/**'
-      - 'source/gslODEInitVal2/**'
-      - 'source/NSWC/**'
-      - 'source/pFq/**'
-      - 'source/gslSpecFuncApprox/**'
-      - 'source/FFTlog/**'
       - 'python/**'
       - 'scripts/build/**'
       - 'schema/**'
+      - 'testSuite/**'
+      - '.github/workflows/cicd.yml'
+  push:
+    branches:
+      - 'master'
+    paths: *codePaths
 concurrency:
   group: cicd-${{ github.ref }}
   cancel-in-progress: true  
