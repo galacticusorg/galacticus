@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782112824167,
+  "lastUpdate": 1782258456572,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "7c6458a46b99715745b4dc91fb0e3547978382db",
-          "message": "fix: Correct LaTeX syntax error",
-          "timestamp": "2025-04-23T14:53:21-07:00",
-          "tree_id": "879b8397deff54d473a7c5089d45fe92e02866b0",
-          "url": "https://github.com/galacticusorg/galacticus/commit/7c6458a46b99715745b4dc91fb0e3547978382db"
-        },
-        "date": 1745472755064,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 112.833,
-            "unit": "seconds",
-            "range": 0.205192836131276
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10704,6 +10674,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 7.340164616829935,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "55c235cce48356077131ec411afdea96a9cf4eac",
+          "message": "Merge pull request #1183 from galacticusorg/dependabot/pip/sphinxcontrib-bibtex-gte-2.6.5\n\nchore(deps): update sphinxcontrib-bibtex requirement from >=2.6 to >=2.7.0",
+          "timestamp": "2026-06-23T14:28:21Z",
+          "tree_id": "06dcf18a2d65e8feffef5bbf9c041d9687527d12",
+          "url": "https://github.com/galacticusorg/galacticus/commit/55c235cce48356077131ec411afdea96a9cf4eac"
+        },
+        "date": 1782258455927,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 44.849,
+            "range": "0.08160208330673893",
+            "unit": "seconds"
           }
         ]
       }
