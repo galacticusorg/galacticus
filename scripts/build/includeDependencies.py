@@ -43,10 +43,21 @@ for env_var in ("GALACTICUS_CFLAGS", "GALACTICUS_CPPFLAGS"):
 makefile_path = os.path.join(build_path, "Makefile_Include_Dependencies")
 dependency_file_names = []
 
+def _source_files_recursive(root):
+    """Yield every file path under `root`, relative to `root`, walking
+    subdirectories to any depth."""
+    rel = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = sorted(d for d in dirnames if not d.startswith('.'))
+        for fn in filenames:
+            rel.append(os.path.relpath(os.path.join(dirpath, fn), root))
+    return sorted(rel)
+
+
 with open(makefile_path, 'w') as makefile:
-    for file_name in sorted(os.listdir(source_directory)):
+    for file_name in _source_files_recursive(source_directory):
         # Skip temporary files.
-        if file_name.startswith('.#'):
+        if os.path.basename(file_name).startswith('.#'):
             continue
         # Only process Fortran, Fortran include, C, C++, and header files.
         if not re.search(r'\.(f(90)?|inc|c(pp)?|h)$', file_name, re.IGNORECASE):

@@ -90,19 +90,21 @@ def _load_directive_locations(path):
 
 def _source_directory_descriptors(source_root, build_path):
     """Return the list of `{path, leaf}` descriptors -- the top-level `source/`
-    directory with leaf "", plus every immediate subdirectory with
-    `leaf="<subdir>/"`.  Also `mkdir -p` the matching build subdirectories so
-    emitted object paths can land there.
+    directory with leaf "", plus every subdirectory (recursively, to any depth)
+    with `leaf="<relative/path>/"`.  Also `mkdir -p` the matching build
+    subdirectories so emitted object paths can land there.
     """
     descriptors = [{'path': source_root, 'leaf': ''}]
     if not os.path.exists(source_root):
         return descriptors
-    for entry in sorted(os.listdir(source_root)):
-        if entry in ('.', '..'):
-            continue
-        full = os.path.join(source_root, entry)
-        if os.path.isdir(full):
-            descriptors.append({'path': full, 'leaf': entry + '/'})
+    subdirs = []
+    for dirpath, dirnames, _ in os.walk(source_root):
+        dirnames[:] = [d for d in dirnames if not d.startswith('.')]
+        for d in dirnames:
+            subdirs.append(os.path.join(dirpath, d))
+    for full in sorted(subdirs):
+        leaf = os.path.relpath(full, source_root) + '/'
+        descriptors.append({'path': full, 'leaf': leaf})
     for d in descriptors:
         os.makedirs(os.path.join(build_path, d['leaf']), exist_ok=True)
     return descriptors
@@ -125,7 +127,7 @@ def _list_source_files(directory):
 # ---------------------------------------------------------------------------
 
 def _find_function_class_submodules(directive_name, function_class_file,
-                                    locations):
+                                    locations, source_root):
     """Return the list of submodule records produced by one `functionClass`
     directive.  Mirrors moduleDependencies.pl:97-133.
     """
@@ -152,7 +154,15 @@ def _find_function_class_submodules(directive_name, function_class_file,
                 classes.setdefault(class_name, {})['extends'] = m.group(1)
 
     submodules = []
-    leaf = re.sub(r'^.*/(.*)\.F90$', r'\1', function_class_file)
+    # `fileName` must be the stem relative to `source/` (e.g.
+    # `accretion/halo/_class`) so the object path `<build>/<fileName>.o`
+    # mirrors the hierarchical source tree.  Using only the basename would
+    # collapse every `_class.F90` to a single colliding `_class.o`.  Use
+    # `relpath` against the source root rather than stripping `source/` by
+    # regex, since a path may itself contain a directory named `source`
+    # (e.g. `radiative_transfer/source/distributed.F90`).
+    leaf = re.sub(r'\.[fF]90$', '',
+                  os.path.relpath(function_class_file, source_root))
     for class_name, info in classes.items():
         own_name   = info.get('name') or class_name
         extends    = info.get('extends')
@@ -213,7 +223,8 @@ def _scan_file(stack, entry, source_root):
                 if m:
                     parent_mod = m.group(1).lower() + '.mod'
                     submodule_name = m.group(3).lower()
-                    leaf = re.sub(r'^.*/([^/]+)\.F90$', r'\1', file_path)
+                    leaf = re.sub(r'\.[fF]90$', '',
+                                  os.path.relpath(file_path, source_root))
                     entry.setdefault('submodulesProvided', []).append({
                         'moduleName': parent_mod,
                         'submodule':  {
@@ -369,6 +380,16 @@ def _write_makefile(path, modules_per_file, submodules_by_module, work_dir):
                             f"{work_dir}{sub_file}.p.F90"
                         )
                         p_src  = f"{work_dir}{leaf}{preprocessed}"
+                        # An implementation's preprocessed submodule file
+                        # (`p_file`) is *generated as a side effect of
+                        # preprocessing the functionClass base* (`p_src`), by
+                        # the FunctionClass source-tree processor.  Gate the
+                        # implementation behind the base (so make builds the
+                        # base first), and force-regenerate the base if the
+                        # implementation's file is missing.  The `base` prereq
+                        # makes this race-free under `-j`: the base is built
+                        # once before the recipe runs, after which every
+                        # implementation file already exists.
                         mk.write(
                             f"{p_file}.up: {p_src} {submodule['source']}\n"
                         )
@@ -518,7 +539,7 @@ def main(argv):
                 ):
                     submodules_for_file.extend(
                         _find_function_class_submodules(
-                            fc['name'], fc_file, locations,
+                            fc['name'], fc_file, locations, source_root,
                         )
                     )
 

@@ -845,7 +845,7 @@ Finally, the special generic tag ``match`` acts as a ternary operator. If the re
 Numerical Tools
 ---------------
 
-Galacticus provides a variety of tools to solve basic numerical problems. These can be found in files ``source/numerical.*``. Galacticus makes use of the `GNU Scientific Library <http://www.gnu.org/software/gsl/>`_ for many of these tools, but typically provides a higher-level wrapper around those functions, providing a cleaner interface and, in some cases, additional functionality.
+Galacticus provides a variety of tools to solve basic numerical problems. These can be found in files under ``source/numerical/``. Galacticus makes use of the `GNU Scientific Library <http://www.gnu.org/software/gsl/>`_ for many of these tools, but typically provides a higher-level wrapper around those functions, providing a cleaner interface and, in some cases, additional functionality.
 
 Finding Roots of Equations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

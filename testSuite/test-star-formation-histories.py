@@ -45,7 +45,7 @@ for sfhType in ( "adaptive", "metallicitySplit" ):
 
     # Find Solar metallicity from the Galacticus source file.
     metallicitySolar = None
-    for line in open(os.environ['GALACTICUS_EXEC_PATH']+'/source/numerical.constants.astronomical.F90'):
+    for line in open(os.environ['GALACTICUS_EXEC_PATH']+'/source/numerical/constants/astronomical.F90'):
         match = re.match(r'.*variable="metallicitySolar"\s+value="([0-9\.\+\-]+)d([0-9\+\-]+)"',line)
         if match:
             metallicitySolar = float(match.group(1))*10**int(match.group(2))

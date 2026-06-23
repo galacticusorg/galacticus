@@ -118,14 +118,19 @@ def main(argv):
     have_per_file = cache_mtime is not None
 
     source_root = os.path.join(source_directory_name, 'source')
-    try:
-        source_names = sorted(os.listdir(source_root))
-    except OSError:
+    if not os.path.isdir(source_root):
         sys.exit("parameterDependencies.py: can not open the source "
                  "directory: " + source_root)
+    source_names = []
+    for dirpath, dirnames, filenames in os.walk(source_root):
+        dirnames[:] = sorted(d for d in dirnames if not d.startswith('.'))
+        for f in filenames:
+            source_names.append(
+                os.path.relpath(os.path.join(dirpath, f), source_root))
+    source_names.sort()
 
     for file_name in source_names:
-        if file_name.startswith('.#'):
+        if os.path.basename(file_name).startswith('.#'):
             continue
         if not re.search(r'\.(F90|cpp)$', file_name):
             continue

@@ -246,8 +246,8 @@ def generate_output(build):
     with open(tmp_path, 'w') as fh:
         if include_dependencies:
             target = (
-                f"{build_path}/objects.nodes.o "
-                f"{build_path}/objects.nodes.p.F90:"
+                f"{build_path}/objects/nodes/_class.o "
+                f"{build_path}/objects/nodes/_class.p.F90:"
                 + ''.join(f' {build_path}/{p}' for p in include_dependencies)
             )
             fh.write(target)

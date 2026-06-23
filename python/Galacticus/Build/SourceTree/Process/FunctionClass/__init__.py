@@ -3009,13 +3009,29 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
             'moduleOrder': ['Input_Parameters'],
         })
 
-    # Append directive name to the per-file `.p` parameter-names file.
+    # Append directive name to the per-file `.p` parameter-names file. This must
+    # be written to $BUILDPATH/<path relative to source/>.p, mirroring the
+    # hierarchical source tree, because parameterDependencies.py reads it from
+    # exactly that location. The tree node's `name` is only the basename, so use
+    # its `source` (the full path passed to parse_file); using the basename
+    # would collapse every `_class.F90` into one colliding `_class.p` and lose
+    # all functionClass parameter names from `knownParameterNames`.
     if tree.get('type') == 'file':
-        build_path = os.environ.get('BUILDPATH')
-        tree_name = tree.get('name', '')
-        m = re.match(r'(.+)\.F90$', tree_name)
+        build_path  = os.environ.get('BUILDPATH')
+        source_path = tree.get('source') or tree.get('name', '')
+        rel         = source_path
+        exec_path   = os.environ.get('GALACTICUS_EXEC_PATH')
+        if exec_path:
+            src_root = os.path.abspath(os.path.join(exec_path, 'source'))
+            ap       = os.path.abspath(source_path)
+            if ap.startswith(src_root + os.sep):
+                rel = os.path.relpath(ap, src_root)
+        rel = re.sub(r'^(?:\./)?source/', '', rel)
+        m = re.match(r'(.+)\.F90$', rel)
         if build_path and m:
-            with open(os.path.join(build_path, m.group(1) + '.p'), 'a') as fh:
+            p_path = os.path.join(build_path, m.group(1) + '.p')
+            os.makedirs(os.path.dirname(p_path) or '.', exist_ok=True)
+            with open(p_path, 'a') as fh:
                 fh.write(directive_name + '\n')
 
     recursive_prefix = 'recursive ' if allow_recursion else ''
@@ -3230,12 +3246,27 @@ def _generate_class_submodules(directive, classes_ordered, non_abstract_classes,
     for class_record in classes_ordered:
         set_visibility(parent, class_record['type'], 'public')
 
-        # Submodule output path: swap the source file's basename `.F90`
-        # for `.p.F90` and place it under BUILDPATH.
+        # Submodule output path: swap the source file's `.F90` for `.p.F90`
+        # and place it under BUILDPATH, preserving the file's path *relative
+        # to the source tree* so the hierarchical layout is mirrored (e.g.
+        # `source/cosmology/parameters/simple.F90` ->
+        # `$BUILDPATH/cosmology/parameters/simple.p.F90`).  Using only the
+        # basename would flatten every implementation into `$BUILDPATH/` and
+        # collide / mis-locate them once the source tree is hierarchical.
         class_file = class_record.get('file') or ''
-        base = os.path.basename(class_file)
-        base = re.sub(r'\.F90$', '.p.F90', base)
-        fn = os.path.join(build_path, base) if build_path else base
+        exec_path  = os.environ.get('GALACTICUS_EXEC_PATH')
+        rel = None
+        if exec_path:
+            source_root = os.path.abspath(os.path.join(exec_path, 'source'))
+            abs_class   = os.path.abspath(class_file)
+            if abs_class.startswith(source_root + os.sep):
+                rel = os.path.relpath(abs_class, source_root)
+        if rel is None:
+            rel = os.path.basename(class_file)
+        rel = re.sub(r'\.F90$', '.p.F90', rel)
+        fn  = os.path.join(build_path, rel) if build_path else rel
+        if build_path:
+            os.makedirs(os.path.dirname(fn), exist_ok=True)
 
         block = {
             'fileName':    fn,

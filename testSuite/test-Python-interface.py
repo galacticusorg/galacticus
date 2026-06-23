@@ -411,7 +411,7 @@ with safe_section("distributionFunctionMultivariateNormal"):
 # seven coupled-but-individually-optional fields the 1D function output-analyses
 # (mean / scatter / volume) used to expose as separate constructor args.
 # Bundling them collapses the wrapper-pipeline's optional-argument branching
-# from 2^12+ to 2^6 on each affected outer constructor (see source/output.analyses.target_data.F90).
+# from 2^12+ to 2^6 on each affected outer constructor (see source/output/analyses/target_data/_class.F90).
 # This test exercises three things:
 #   1. Round-trip from Python: construct an instance via the wrapper, call a
 #      method on it, get a value back.  `hasTarget()` returns true iff both

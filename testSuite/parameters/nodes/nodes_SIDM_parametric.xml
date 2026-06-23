@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<!-- Parameter file used by the SIDM parametric model unit test (source/tests.SIDM_parametric_model.F90). -->
+<!-- Parameter file used by the SIDM parametric model unit test (source/tests/SIDM_parametric_model.F90). -->
 <!-- It enables the dark matter profile component (with a settable scale radius) in addition to the basic component. -->
 
 <parameters>

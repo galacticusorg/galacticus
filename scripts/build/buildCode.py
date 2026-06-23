@@ -243,11 +243,13 @@ def _scan_targets(directive, locations, source_directory):
     # Match `*.f`, `*.F`, `*.f90`, `*.F90`, `*.ft`, `*.Ft`, …
     pattern = re.compile(r'\.[fF](90)?t?$')
     out = []
-    for entry in os.listdir(source_directory):
-        if entry.startswith('.#'):
-            continue
-        if pattern.search(entry):
-            out.append(os.path.join(source_directory, entry))
+    for dirpath, dirnames, filenames in os.walk(source_directory):
+        dirnames[:] = sorted(d for d in dirnames if not d.startswith('.'))
+        for entry in filenames:
+            if entry.startswith('.#'):
+                continue
+            if pattern.search(entry):
+                out.append(os.path.join(dirpath, entry))
     return out
 
 
