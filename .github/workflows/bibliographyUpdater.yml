@@ -28,7 +28,7 @@ jobs:
       appid: ${{ secrets.DEPLOY_APP_ID }}
       adstoken: ${{ secrets.NASA_ADS_API_TOKEN }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/create-github-app-token@v3
         if: ${{ env.appid != '' }}
         id: generate-token
