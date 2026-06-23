@@ -332,9 +332,9 @@ $(BUILDPATH)/hdf5FCInterop.dat  : $(BUILDPATH)/hdf5FCInterop.exe $(BUILDPATH)/hd
 	$(BUILDPATH)/hdf5FCInteropC.exe >> $(BUILDPATH)/hdf5FCInterop.dat
 $(BUILDPATH)/hdf5FCInterop.exe  : source/system/hdf5FCInterop.F90
 	@mkdir -p $(BUILDPATH)/moduleBuild
-	$(FCCOMPILER) source/system/hdf5FCInterop.F90 -o $(BUILDPATH)/hdf5FCInterop.exe $(FCFLAGS)
+	+$(FCCOMPILER) source/system/hdf5FCInterop.F90 -o $(BUILDPATH)/hdf5FCInterop.exe $(FCFLAGS)
 $(BUILDPATH)/hdf5FCInteropC.exe : source/system/hdf5FCInteropC.c
-	$(CCOMPILER) source/system/hdf5FCInteropC.c -o $(BUILDPATH)/hdf5FCInteropC.exe $(CFLAGS)
+	+$(CCOMPILER) source/system/hdf5FCInteropC.c -o $(BUILDPATH)/hdf5FCInteropC.exe $(CFLAGS)
 
 # Configuration of proc filesystem.
 -include $(BUILDPATH)/Makefile_Config_Proc
@@ -701,7 +701,7 @@ libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classe
 # GNU Fortran emits stack-based trampolines). Newer kernels/loaders refuse to `dlopen()` such a library,
 # causing the Python interface to fail with "cannot enable executable stack as shared object requires:
 # Invalid argument". This flag is applied only to the library link, leaving executable builds unchanged.
-	$(FCCOMPILER) -shared $(LINKNOEXECSTACK) `sort -u $(BUILDPATH)/libgalacticus.d $(BUILDPATH)/libgalacticus_classes.d` $(BUILDPATH)/libgalacticus.parameters.o $(BUILDPATH)/libgalacticus.md5s.o -o libgalacticus.so $(FCFLAGS) $(FCFLAGS_LINK) `scripts/build/libraryDependencies.py libgalacticus.o $(FCFLAGS)`
+	+$(FCCOMPILER) -shared $(LINKNOEXECSTACK) `sort -u $(BUILDPATH)/libgalacticus.d $(BUILDPATH)/libgalacticus_classes.d` $(BUILDPATH)/libgalacticus.parameters.o $(BUILDPATH)/libgalacticus.md5s.o -o libgalacticus.so $(FCFLAGS) $(FCFLAGS_LINK) `scripts/build/libraryDependencies.py libgalacticus.o $(FCFLAGS)`
 endif
 
 # Ensure that we don't delete object files which make considers to be intermediate
