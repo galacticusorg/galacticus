@@ -8,7 +8,7 @@ version = "0.0.0"
 description = "Python infrastructure for the Galacticus semi-analytic galaxy formation model."
 readme = "README.md"
 license = {file = "COPYING"}
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     {name = "Andrew Benson"},
 ]
@@ -95,7 +95,7 @@ exclude  = ["*.tests", "*.tests.*", "tests", "tests.*"]
 # discussion in the audit for the rationale.
 # ----------------------------------------------------------------------
 [tool.mypy]
-python_version           = "3.9"
+python_version           = "3.10"
 ignore_missing_imports   = true
 disallow_untyped_defs    = false
 warn_unused_ignores      = true
