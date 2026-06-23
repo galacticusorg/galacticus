@@ -220,23 +220,23 @@ contains
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
     use :: Display                         , only : displayMessage       , displayIndent     , displayUnindent
     implicit none
-    class           (nodeOperatorPositionInterpolated), intent(inout)                  :: self
-    type            (treeNode                        ), intent(inout)                  :: node
-    double precision                                  , intent(in   )                  :: time
-    class           (nodeComponentPosition           ), pointer                        :: position
-    double precision                                  , dimension(3     )              :: position_          , velocity_
-    double precision                                  , dimension(4,3   )              :: coefficientsCubic
-    double precision                                  , dimension(    20)              :: coefficientsSpiral
-    double precision                                  , dimension(  2, 2)              :: coefficientsAngle  , coefficientsLogRadius
-    double precision                                  , dimension(2,2, 3)              :: vectorInPlaneNormal
-    double precision                                  , dimension(2     )              :: angle              , logRadius
-    double precision                                  , dimension(:     ), allocatable :: coefficients
-    integer         (c_size_t                        )                                 :: countTrace         , iTrace               , &
-         &                                                                                offset
-    integer                                                                            :: i
-    logical                                                                            :: isSpiral           , report
-    double precision                                                                   :: lengthBox
-    character       (len=1024                        )                                 :: label
+    class           (nodeOperatorPositionInterpolated), intent(inout)              :: self
+    type            (treeNode                        ), intent(inout)              :: node
+    double precision                                  , intent(in   )              :: time
+    class           (nodeComponentPosition           ), pointer                    :: position
+    double precision                                  , dimension(3     )          :: position_          , velocity_
+    double precision                                  , dimension(4,3   )          :: coefficientsCubic
+    double precision                                  , dimension(    20)          :: coefficientsSpiral
+    double precision                                  , dimension(  2, 2)          :: coefficientsAngle  , coefficientsLogRadius
+    double precision                                  , dimension(2,2, 3)          :: vectorInPlaneNormal
+    double precision                                  , dimension(2     )          :: angle              , logRadius
+    double precision                                  , dimension(:     ), pointer :: coefficients
+    integer         (c_size_t                        )                             :: countTrace         , iTrace               , &
+         &                                                                            offset
+    integer                                                                        :: i
+    logical                                                                        :: isSpiral           , report
+    double precision                                                               :: lengthBox
+    character       (len=1024                        )                             :: label
     !$GLC attributes initialized :: coefficients
 
     report=any(node%index() == self%nodeIndicesReport)
@@ -245,8 +245,8 @@ contains
        call displayIndent("Position interpolation for node | time: "//trim(adjustl(label)))
     end if
     ! Extract all interpolation coefficients.
-    position     => node    %position                 (                   )
-    coefficients =  position%floatRank1MetaPropertyGet(self%coefficientsID)
+    position     => node    %position                          (                   )
+    coefficients => position%floatRank1MetaPropertyGetReference(self%coefficientsID)
     ! Determine the number of steps in the interpolation.
     countTrace  =size(coefficients)/(2_c_size_t+countCoefficientsCubicPolynomial+countCoefficientsLogarithmicSpiral)
     ! Find the appropriate time.
