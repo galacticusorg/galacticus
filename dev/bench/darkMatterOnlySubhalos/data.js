@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782112746139,
+  "lastUpdate": 1782258451775,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "7c6458a46b99715745b4dc91fb0e3547978382db",
-          "message": "fix: Correct LaTeX syntax error",
-          "timestamp": "2025-04-23T14:53:21-07:00",
-          "tree_id": "879b8397deff54d473a7c5089d45fe92e02866b0",
-          "url": "https://github.com/galacticusorg/galacticus/commit/7c6458a46b99715745b4dc91fb0e3547978382db"
-        },
-        "date": 1745472748890,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 57.616,
-            "unit": "seconds",
-            "range": 0.113808611273465
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8784,6 +8754,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 14635.788794238668,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "55c235cce48356077131ec411afdea96a9cf4eac",
+          "message": "Merge pull request #1183 from galacticusorg/dependabot/pip/sphinxcontrib-bibtex-gte-2.6.5\n\nchore(deps): update sphinxcontrib-bibtex requirement from >=2.6 to >=2.7.0",
+          "timestamp": "2026-06-23T14:28:21Z",
+          "tree_id": "06dcf18a2d65e8feffef5bbf9c041d9687527d12",
+          "url": "https://github.com/galacticusorg/galacticus/commit/55c235cce48356077131ec411afdea96a9cf4eac"
+        },
+        "date": 1782258447085,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 31.169,
+            "range": "0.07144858291106992",
+            "unit": "seconds"
           }
         ]
       }
