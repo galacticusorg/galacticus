@@ -105,6 +105,88 @@ def Class_Meta_Property_Get(build, class_dict):
         })
 
 
+def Class_Meta_Property_Get_Reference(build, class_dict):
+    """Generate one `<class><Label>Rank<N>MetaPropertyGetReference` per
+    rank>=1 meta-property type, returning a POINTER to the stored array
+    (no allocate, no copy).
+
+    Purely additive sibling of `Class_Meta_Property_Get`.  A pointer to a
+    scalar would be pointless, so rank-0 meta-properties are skipped.  The
+    returned pointer is read-only by contract and is valid only while the
+    component and its allocation persist (see the correctness contract in
+    the position-interpolation operator).
+    """
+    name      = class_dict['name']
+    cap       = _ucfirst(name)
+    type_name = 'nodeComponent' + cap
+    active    = name in (build.get('componentClassListActive') or [])
+
+    for mpt in meta_property_types:
+        rank = mpt['rank']
+        if rank == 0:                       # a pointer to a scalar is pointless here
+            continue
+        cap_label = _ucfirst(mpt['label'])
+        rank_attr = ', pointer, dimension(' + ','.join([':'] * rank) + ')'
+
+        if active:
+            content = (
+                f"if (.not.{name}{cap_label}Rank{rank}MetaPropertyCreator(metaPropertyID))"
+                f" call metaPropertyNoCreator('{name}',char({name}{cap_label}"
+                f"Rank{rank}MetaPropertyLabels(metaPropertyID)),'{mpt['label']}',"
+                f"{rank})\n"
+                f"value_=>self%{mpt['label']}Rank{rank}"
+                f"MetaProperties(metaPropertyID)%values\n"
+            )
+        else:
+            content = ''
+
+        return_type_text = (
+            f"{mpt['intrinsic']}"
+            + (f"({mpt['type']})" if 'type' in mpt else "")
+            + f"{rank_attr} => value_"
+        )
+
+        function = {
+            'type':        return_type_text,
+            # The procedure name is abbreviated to `...MetaPropertyRef` (rather
+            # than the full `...MetaPropertyGetReference` used for the public,
+            # caller-facing type-bound name below) so that it stays within the
+            # Fortran 63-character identifier limit: the longest class+label
+            # combination (`darkMatterProfile`+`longInteger`) already reaches
+            # 61 characters with the existing `...MetaPropertyGet` suffix.
+            'name':        f"{type_name}{cap_label}Rank{rank}MetaPropertyRef",
+            'description': (
+                f"Return a pointer to the stored rank-{rank} {mpt['label']} "
+                f"meta-property of a {type_name} component given its ID (no "
+                f"copy; read-only - valid only while the component and its "
+                f"allocation persist)."
+            ),
+            'modules':     ['ISO_Varying_String'],
+            'variables':   [
+                {
+                    'intrinsic':  'class',
+                    'type':       type_name,
+                    'attributes': ['intent(in   )', 'target'],
+                    'variables':  ['self'],
+                },
+                {
+                    'intrinsic':  'integer',
+                    'attributes': ['intent(in   )'],
+                    'variables':  ['metaPropertyID'],
+                },
+            ],
+            'content':     content,
+        }
+
+        build.setdefault('types', {}).setdefault(type_name, {}) \
+                                      .setdefault('boundFunctions', []) \
+                                      .append({
+            'type':       'procedure',
+            'descriptor': function,
+            'name':       f"{mpt['label']}Rank{rank}MetaPropertyGetReference",
+        })
+
+
 def Class_Meta_Property_Set(build, class_dict):
     """Generate one `<class><Label>Rank<N>MetaPropertySet` per
     meta-property type, storing the provided value.
@@ -183,5 +265,6 @@ def _ucfirst(text):
     return text[:1].upper() + text[1:] if text else text
 
 
-register('classMetaProperties', 'classIteratedFunctions', Class_Meta_Property_Get)
-register('classMetaProperties', 'classIteratedFunctions', Class_Meta_Property_Set)
+register('classMetaProperties', 'classIteratedFunctions', Class_Meta_Property_Get          )
+register('classMetaProperties', 'classIteratedFunctions', Class_Meta_Property_Get_Reference)
+register('classMetaProperties', 'classIteratedFunctions', Class_Meta_Property_Set          )
