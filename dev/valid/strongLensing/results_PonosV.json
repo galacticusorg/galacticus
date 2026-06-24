@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "55c235cce48356077131ec411afdea96a9cf4eac",
-        "message": "Merge pull request #1183 from galacticusorg/dependabot/pip/sphinxcontrib-bibtex-gte-2.6.5\n\nchore(deps): update sphinxcontrib-bibtex requirement from >=2.6 to >=2.7.0\n",
-        "timestamp": "2026-06-23 14:28:21+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/55c235cce48356077131ec411afdea96a9cf4eac"
+        "id": "72702669f0a79e7ee835e7e194f51b18e94cbc44",
+        "message": "Merge pull request #1188 from galacticusorg/feature/metaproperty-getreference-pointer-getter\n\nperf: pointer-returning meta-property getter to avoid per-call array copy\n",
+        "timestamp": "2026-06-24 14:24:56+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/72702669f0a79e7ee835e7e194f51b18e94cbc44"
     },
     "surfaceDensity": {
-        "percentageBelow": 35.71428571428571,
-        "percentageAbove": 64.28571428571429,
+        "percentageBelow": 28.57142857142857,
+        "percentageAbove": 71.42857142857143,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 75.0,
-        "percentageAbove": 25.0,
+        "percentageBelow": 63.63636363636363,
+        "percentageAbove": 36.36363636363637,
         "target": 0.85
     }
 }
