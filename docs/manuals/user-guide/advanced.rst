@@ -949,4 +949,4 @@ However, in cases where a small number of trees are much more massive than any o
 .. [#] This approach allows a direct connection to be made between the structure of the input parameter XML file and the internal object hierarchy used by Galacticus, allowing very fine-grained control over the composition of Galacticus functionality. In particular it permits easy construction of objects which work by modifying results from other objects, such as the :galacticus-class:`darkMatterProfileConcentrationSchneider2015` model for dark matter halo concentrations.
 .. [#] This functionality requires that ``libmatheval`` is installed.
 .. [#] Note that this does not capture the full details of the correlations between parameters, since it uses just the covariance matrix. For a more accurate calculation the full Monte Carlo Markov Chains used in the WMAP-9 parameter fitting should be used instead.
-.. [#] As described `here <https://www-auth.cs.wisc.edu/lists/condor-users/2009-January/msg00086.shtml>`_ for example.
+.. [#] As described `here <https://www-auth.cs.wisc.edu/lists/htcondor-users/2009-January/msg00086.shtml>`_ for example.
