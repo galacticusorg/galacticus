@@ -9,5 +9,5 @@ Below is a flowchart indicating the ingredients of Galacticus outflows model. (G
       ISM
       CGM
       IGM
-      ISM -->|"<a href='https://galacticus.readthedocs.io/en/latest/physics/index.html#stellarFeedbackOutflows' style='text-decoration: none'>outflow (ejective)</a>"| CGM
-      ISM -->|"<a href='https://galacticus.readthedocs.io/en/latest/physics/index.html#stellarFeedbackOutflows' style='text-decoration: none'>outflow (expulsive)</a>"| IGM
+      ISM -->|"<a href='https://galacticus.readthedocs.io/en/latest/physics/stellarFeedbackOutflows.html' style='text-decoration: none'>outflow (ejective)</a>"| CGM
+      ISM -->|"<a href='https://galacticus.readthedocs.io/en/latest/physics/stellarFeedbackOutflows.html' style='text-decoration: none'>outflow (expulsive)</a>"| IGM

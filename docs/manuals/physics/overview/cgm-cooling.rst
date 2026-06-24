@@ -7,16 +7,16 @@ Below is a flowchart indicating the ingredients of Galacticus CGM cooling model.
 
    flowchart LR
       Galaxy
-      Cold[<a href='https://galacticus.readthedocs.io/en/latest/physics/index.html#coldModeInfallRate' style='text-decoration: none'>Cold Mode Inflow</a>]
-      Lambda[<a href='https://galacticus.readthedocs.io/en/latest/physics/index.html#coolingFunction' style='text-decoration: none'>Cooling Function</a>]
-      Radius[<a href='https://galacticus.readthedocs.io/en/latest/physics/index.html#coolingRadius' style='text-decoration: none'>Cooling Radius</a>]
-      Rate[<a href='https://galacticus.readthedocs.io/en/latest/physics/index.html#coolingRate' style='text-decoration: none'>Cooling Rate</a>]
-      Time[<a href='https://galacticus.readthedocs.io/en/latest/physics/index.html#coolingTime' style='text-decoration: none'>Cooling Time</a>]
-      RadiusFreefall[<a href='https://galacticus.readthedocs.io/en/latest/physics/index.html#freefallRadius' style='text-decoration: none'>Freefall Radius</a>]
-      Available[<a href='https://galacticus.readthedocs.io/en/latest/physics/index.html#coolingTimeAvailable' style='text-decoration: none'>Time Available Cooling]
-      AvailableFreefall[<a href='https://galacticus.readthedocs.io/en/latest/physics/index.html#freefallTimeAvailable' style='text-decoration: none'>Time Available Freefall]
-      Infall[<a href='https://galacticus.readthedocs.io/en/latest/physics/index.html#coolingInfallRadius' style='text-decoration: none'>Infall Radius</a>]
-      Angular[<a href='https://galacticus.readthedocs.io/en/latest/physics/index.html#coolingSpecificAngularMomentum' style='text-decoration: none'>Angular Momentum Content</a>]
+      Cold[<a href='https://galacticus.readthedocs.io/en/latest/physics/coldModeInfallRate.html' style='text-decoration: none'>Cold Mode Inflow</a>]
+      Lambda[<a href='https://galacticus.readthedocs.io/en/latest/physics/coolingFunction.html' style='text-decoration: none'>Cooling Function</a>]
+      Radius[<a href='https://galacticus.readthedocs.io/en/latest/physics/coolingRadius.html' style='text-decoration: none'>Cooling Radius</a>]
+      Rate[<a href='https://galacticus.readthedocs.io/en/latest/physics/coolingRate.html' style='text-decoration: none'>Cooling Rate</a>]
+      Time[<a href='https://galacticus.readthedocs.io/en/latest/physics/coolingTime.html' style='text-decoration: none'>Cooling Time</a>]
+      RadiusFreefall[<a href='https://galacticus.readthedocs.io/en/latest/physics/freefallRadius.html' style='text-decoration: none'>Freefall Radius</a>]
+      Available[<a href='https://galacticus.readthedocs.io/en/latest/physics/coolingTimeAvailable.html' style='text-decoration: none'>Time Available Cooling]
+      AvailableFreefall[<a href='https://galacticus.readthedocs.io/en/latest/physics/freefallTimeAvailable.html' style='text-decoration: none'>Time Available Freefall]
+      Infall[<a href='https://galacticus.readthedocs.io/en/latest/physics/coolingInfallRadius.html' style='text-decoration: none'>Infall Radius</a>]
+      Angular[<a href='https://galacticus.readthedocs.io/en/latest/physics/coolingSpecificAngularMomentum.html' style='text-decoration: none'>Angular Momentum Content</a>]
       Lambda --> Time
       Time --> Radius
       Available --> Radius

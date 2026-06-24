@@ -13,5 +13,5 @@ Below is a flowchart indicating the physical components and processes that typic
        SMBH
        CGM -- accretion --> SMBH
        Spheroid -- accretion --> SMBH
-       Disk -->|<a href='https://galacticus.readthedocs.io/en/latest/physics/index.html#nodeOperatorBlackHolesWinds' style='text-decoration: none'>energy input</a>| Spheroid -- outflow --> CGM
-       Disk -->|<a href='https://galacticus.readthedocs.io/en/latest/physics/index.html#blackHoleCGMHeating' style='text-decoration: none'>energy input</a>| CGM -- outflow --> IGM
+       Disk -->|<a href='https://galacticus.readthedocs.io/en/latest/physics/nodeOperator.html#nodeOperatorBlackHolesWinds' style='text-decoration: none'>energy input</a>| Spheroid -- outflow --> CGM
+       Disk -->|<a href='https://galacticus.readthedocs.io/en/latest/physics/blackHoleCGMHeating.html' style='text-decoration: none'>energy input</a>| CGM -- outflow --> IGM
