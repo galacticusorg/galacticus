@@ -35,22 +35,22 @@ Consider the following, highly simplified, description of how the process of sta
 Components
 ----------
 
-The variables highlighted in red represent physical quantities - in this case the masses of stars and ISM in the galaxy. These are provided by a "`component <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_" (e.g. a galactic disk) in Galacticus.
+The variables highlighted in red represent physical quantities - in this case the masses of stars and ISM in the galaxy. These are provided by a "`component <https://galacticus.readthedocs.io/en/latest/physics/components.html>`_" (e.g. a galactic disk) in Galacticus.
 
 Operators
 ---------
 
-The operators highlighted in magenta represent a physical process - in this case the process of star formation, which moves mass from the ISM to the stars. Physical processes in Galacticus are implemented by the `nodeOperatorClass <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_.
+The operators highlighted in magenta represent a physical process - in this case the process of star formation, which moves mass from the ISM to the stars. Physical processes in Galacticus are implemented by the `nodeOperatorClass <https://galacticus.readthedocs.io/en/latest/physics/index.html#nodeOperator>`_.
 
 Functions
 ---------
 
-The function highlighted in blue represents the actual physics of that process - in this case it describes the rate of star formation. Such functions in Galacticus are provided by numerous different `functionClass <https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/index.html>`_ objects - e.g. `starFormationRateDisksClass <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_ in the case of star formation rates in galaxy disks.
+The function highlighted in blue represents the actual physics of that process - in this case it describes the rate of star formation. Such functions in Galacticus are provided by numerous different `functionClass <https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/index.html>`_ objects - e.g. `starFormationRateDisksClass <https://galacticus.readthedocs.io/en/latest/physics/index.html#starFormationRateDisks>`_ in the case of star formation rates in galaxy disks.
 
 Engine
 ------
 
-Galacticus' evolver engine works by applying a set of `nodeOperatorClass <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_ objects to each node in a merger tree in turn - gradually evolving the components in that node forward in time in accordance with the physical processes described by those `nodeOperatorClass <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_ objects. The engine consists of the `mergerTreeEvolverClass <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_ and `mergerTreeNodeEvolverClass <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_ classes.
+Galacticus' evolver engine works by applying a set of `nodeOperatorClass <https://galacticus.readthedocs.io/en/latest/physics/index.html#nodeOperator>`_ objects to each node in a merger tree in turn - gradually evolving the components in that node forward in time in accordance with the physical processes described by those `nodeOperatorClass <https://galacticus.readthedocs.io/en/latest/physics/index.html#nodeOperator>`_ objects. The engine consists of the `mergerTreeEvolverClass <https://galacticus.readthedocs.io/en/latest/physics/index.html#mergerTreeEvolver>`_ and `mergerTreeNodeEvolverClass <https://galacticus.readthedocs.io/en/latest/physics/index.html#mergerTreeNodeEvolver>`_ classes.
 
 .. toctree::
    :maxdepth: 1
