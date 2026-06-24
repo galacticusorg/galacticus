@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782258586863,
+  "lastUpdate": 1782334755193,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=10 Gyr; vₖ=20 km/s)": [
@@ -5683,6 +5683,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": 8.540690543057437,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "72702669f0a79e7ee835e7e194f51b18e94cbc44",
+          "message": "Merge pull request #1188 from galacticusorg/feature/metaproperty-getreference-pointer-getter\n\nperf: pointer-returning meta-property getter to avoid per-call array copy",
+          "timestamp": "2026-06-24T14:24:56Z",
+          "tree_id": "85a96f6c41c239f94657f088e34259d3daaed848",
+          "url": "https://github.com/galacticusorg/galacticus/commit/72702669f0a79e7ee835e7e194f51b18e94cbc44"
+        },
+        "date": 1782334753841,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": 4.4739821157517214,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": 8.101346345494678,
             "unit": "-logℒ"
           }
         ]
