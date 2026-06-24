@@ -100,7 +100,7 @@ with open(os.path.join(build_path, "Makefile_All_Execs"), 'w') as out:
 \tfi; \\
 \t./scripts/build/sourceDigests.py `pwd` {obj_root}.exe $$useLocks
 \t$(CCOMPILER) -c {work_dir}{obj_root}.md5s.c -o {work_dir}{obj_root}.md5s.o $(CFLAGS)
-\t$(FCCOMPILER) `cat {work_dir}{obj_root}.d` {work_dir}{obj_root}.parameters.o {work_dir}{obj_root}.md5s.o -o {exe_root}.exe$(SUFFIX) $(FCFLAGS) $(FCFLAGS_LINK) `./scripts/build/libraryDependencies.py {obj_root}.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
+\t+$(FCCOMPILER) `cat {work_dir}{obj_root}.d` {work_dir}{obj_root}.parameters.o {work_dir}{obj_root}.md5s.o -o {exe_root}.exe$(SUFFIX) $(FCFLAGS) $(FCFLAGS_LINK) `./scripts/build/libraryDependencies.py {obj_root}.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
 
 """
         out.write(rule)
