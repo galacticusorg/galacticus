@@ -23,9 +23,9 @@ Below is a flowchart indicating the physical components and processes that typic
        end
        CGM -->|<a href='https://github.com/galacticusorg/galacticus/wiki/CGM-Cooling-Physics' style='text-decoration: none'>cooling</a>| DiskISM
        DiskISM -->|<a href='https://github.com/galacticusorg/galacticus/wiki/Star-Formation-Physics' style='text-decoration: none'>star formation</a>| DiskStars
-       DiskStars -->|<a href='https://galacticus.readthedocs.io/en/latest/physics/index.html#stellarPopulationProperties' style='text-decoration: none'>recycling</a>| DiskISM
+       DiskStars -->|<a href='https://galacticus.readthedocs.io/en/latest/physics/stellarPopulationProperties.html' style='text-decoration: none'>recycling</a>| DiskISM
        SpheroidISM -->|<a href='https://github.com/galacticusorg/galacticus/wiki/Star-Formation-Physics' style='text-decoration: none'>star formation</a>| SpheroidStars
-       SpheroidStars -->|<a href='https://galacticus.readthedocs.io/en/latest/physics/index.html#stellarPopulationProperties' style='text-decoration: none'>recycling</a>| SpheroidISM
-       Disk -->|<a href='https://galacticus.readthedocs.io/en/latest/physics/index.html#galacticDynamicsBarInstability' style='text-decoration: none'>instability</a>| Spheroid
+       SpheroidStars -->|<a href='https://galacticus.readthedocs.io/en/latest/physics/stellarPopulationProperties.html' style='text-decoration: none'>recycling</a>| SpheroidISM
+       Disk -->|<a href='https://galacticus.readthedocs.io/en/latest/physics/galacticDynamicsBarInstability.html' style='text-decoration: none'>instability</a>| Spheroid
        DiskISM -->|<a href='https://github.com/galacticusorg/galacticus/wiki/Outflow-Physics' style='text-decoration: none'>outflow</a>| Environment
        SpheroidISM -->|<a href='https://github.com/galacticusorg/galacticus/wiki/Outflow-Physics' style='text-decoration: none'>outflow</a>| Environment
