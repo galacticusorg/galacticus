@@ -72,6 +72,8 @@ contains
       The probability :math:`p \in (0,1]` of success on a single Bernoulli trial; the distribution models the number of successes before :math:`r` failures occur, with mean :math:`pr/(1-p)`.
       </description>
       <source>parameters</source>
+      <minimum>0.0</minimum>
+      <maximum>1.0</maximum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>countFailures</name>
@@ -79,6 +81,7 @@ contains
       The target number of failures :math:`r` before the experiment stops; the distribution gives the number of successes :math:`k` observed before the :math:`r`-th failure, with variance :math:`pr/(1-p)^2`.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]

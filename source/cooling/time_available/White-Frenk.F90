@@ -78,6 +78,8 @@ contains
      <description>
      Interpolates (geometrically) between the age of the Universe and the halo dynamical time for the time available for cooling in the :cite:t:`white_galaxy_1991` method.
      </description>
+     <minimum>0.0</minimum>
+     <maximum>1.0</maximum>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]

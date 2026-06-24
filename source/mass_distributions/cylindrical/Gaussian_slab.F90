@@ -79,6 +79,7 @@ contains
       The scale height of the Gaussian slab profile.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>densityCentral</name>

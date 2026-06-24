@@ -100,15 +100,15 @@
   <mergerTreeOperator value="sequence">
 
     <mergerTreeOperator value="conditionalMF">
-      <outputGroupName value="treeStatisticsInitial"/>
-      <parentMassCount value="2"/>
-      <parentMassMinimum value="1.0e12"/>
-      <parentMassMaximum value="1.0e13"/>
+      <nameGroupOutput value="treeStatisticsInitial"/>
+      <countMassParent value="2"/>
+      <massParentMinimum value="1.0e12"/>
+      <massParentMaximum value="1.0e13"/>
       <massRatioCount value="50"/>
       <massRatioMinimum value="1.0e-2"/>
       <massRatioMaximum value="2.0"/>
-      <parentRedshifts value="0.0 0.0"/>
-      <progenitorRedshifts value="0.5 1.0"/>
+      <redshiftsParent value="0.0 0.0"/>
+      <redshiftsProgenitor value="0.5 1.0"/>
     </mergerTreeOperator>
 
     <mergerTreeOperator value="regridTimes">
@@ -130,7 +130,7 @@
           0.319703  0.279802  0.242469  0.207549  0.174898  0.144383
           0.115883  0.089288  0.064493  0.041403  0.019933  0.000000
 	  "/>
-      <massResolution value="2.36e10"/>
+      <massCutOff value="2.36e10"/>
       <mergerTreeBuilder value="cole2000">
         <accretionLimit value="0.1"/>
         <mergeProbability value="0.1"/>
@@ -141,15 +141,15 @@
     </mergerTreeOperator>
 
     <mergerTreeOperator value="conditionalMF">
-      <outputGroupName value="treeStatisticsAfterInsertion"/>
-      <parentMassCount value="2"/>
-      <parentMassMinimum value="1.0e12"/>
-      <parentMassMaximum value="1.0e13"/>
+      <nameGroupOutput value="treeStatisticsAfterInsertion"/>
+      <countMassParent value="2"/>
+      <massParentMinimum value="1.0e12"/>
+      <massParentMaximum value="1.0e13"/>
       <massRatioCount value="50"/>
       <massRatioMinimum value="1.0e-2"/>
       <massRatioMaximum value="2.0"/>
-      <parentRedshifts value="0.0 0.0"/>
-      <progenitorRedshifts value="0.5 1.0"/>
+      <redshiftsParent value="0.0 0.0"/>
+      <redshiftsProgenitor value="0.5 1.0"/>
     </mergerTreeOperator>
 
   </mergerTreeOperator>

@@ -48,6 +48,20 @@ jobs:
           cd $GITHUB_WORKSPACE
           export GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE
           python -m pytest -v
+      - name: Generate and check parameter catalog
+        run: |
+          cd $GITHUB_WORKSPACE
+          export GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE
+          python3 scripts/build/parameterCatalog.py `pwd` parameters.catalog.json
+          python3 scripts/build/parameterCatalogCheck.py parameters.catalog.json
+      - name: Validate parameter files
+        run: |
+          cd $GITHUB_WORKSPACE
+          export GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE
+          python3 scripts/build/parameterValidate.py \
+            --catalog parameters.catalog.json \
+            --exceptions testSuite/parameterValidationExceptions.json \
+            testSuite/parameters parameters parameters.xml
       - run: echo "This job's status is ${{ job.status }}."
   # Build and deploy
   ## Linux

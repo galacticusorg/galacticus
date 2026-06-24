@@ -82,6 +82,8 @@ contains
       <description>
       The number (1-7) of the distribution to compute.
       </description>
+      <minimum>1</minimum>
+      <maximum>7</maximum>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>

@@ -137,6 +137,7 @@ contains
       The scale height of the exponential disk profile.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>scaleRadius</name>

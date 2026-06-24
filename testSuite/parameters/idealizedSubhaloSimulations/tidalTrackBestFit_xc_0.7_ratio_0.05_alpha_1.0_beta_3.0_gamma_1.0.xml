@@ -97,7 +97,6 @@
   </virialOrbit>
 
   <!-- Galaxy mergers -->
-  <mergerMassMovements value="null"/>
   <mergerRemnantSize   value="null"/>
 
   <!-- Orbiting model of satellites -->

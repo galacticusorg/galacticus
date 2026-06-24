@@ -1,0 +1,23 @@
+{
+  "_comment": "Findings that the parameter-file validator (scripts/build/parameterValidate.py) should treat as intentional, so the CI gate does not fail on them. Each entry is matched by file basename + finding kind + the trailing parameter/element name. Keep this list minimal and justified.",
+  "exceptions": [
+    {
+      "file": "parameterMigration.xml",
+      "kind": "unknown",
+      "name": "massDestruction",
+      "reason": "Pre-migration parameter name; this file exists to test the parameter-migration machinery. Remove once the validator applies migrations (Step 4)."
+    },
+    {
+      "file": "parameterMigration.xml",
+      "kind": "unknown",
+      "name": "massDestructionFractional",
+      "reason": "Pre-migration parameter name; migration test fixture. Remove once the validator applies migrations (Step 4)."
+    },
+    {
+      "file": "test-allowed-parameters.xml",
+      "kind": "unknown",
+      "name": "scaleCutOff",
+      "reason": "Deliberately-invalid parameter included to assert run-time unknown-parameter detection. Must NOT carry ignoreWarnings (that would disable the run-time check), so it is excepted here instead."
+    }
+  ]
+}

@@ -99,6 +99,8 @@ contains
       <description>
       The redshift interval (0-3) to use.
       </description>
+      <minimum>0</minimum>
+      <maximum>3</maximum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>randomErrorMinimum</name>

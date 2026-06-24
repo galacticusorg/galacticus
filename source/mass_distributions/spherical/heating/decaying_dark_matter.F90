@@ -111,6 +111,7 @@ contains
       Parameter controlling the magnitude of heating due to mass loss.
       </description>
       <defaultValue>0.5d0</defaultValue>
+      <minimum>0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>includeKickHeating</name>

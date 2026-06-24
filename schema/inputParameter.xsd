@@ -25,6 +25,23 @@
     </xs:restriction>
   </xs:simpleType>
 
+  <!-- A numeric bound (minimum/maximum) carrying an optional `inclusive`
+       attribute (default "true"); the element text is the bound value. -->
+  <xs:complexType name="bound">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="inclusive" use="optional">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="true" />
+              <xs:enumeration value="false"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
   <xs:element name="inputParameter">
     <xs:complexType>
       <xs:all>
@@ -36,6 +53,11 @@
 	<xs:element name="cardinality"   type="cardinality"   minOccurs="0" maxOccurs="1"/>
 	<xs:element name="defaultValue"  type="xs:string"     minOccurs="0" maxOccurs="1"/>
 	<xs:element name="defaultSource" type="xs:string"     minOccurs="0" maxOccurs="1"/>
+	<!-- Optional validate-time constraints (enforced by the parameter-file
+	     validator; added to directives incrementally). -->
+	<xs:element name="minimum"       type="bound"         minOccurs="0" maxOccurs="1"/>
+	<xs:element name="maximum"       type="bound"         minOccurs="0" maxOccurs="1"/>
+	<xs:element name="allowedValues" type="xs:string"     minOccurs="0" maxOccurs="1"/>
       </xs:all>
       <!-- docformat="rst" marks the description as reStructuredText, rendered
            on ReadTheDocs (see scripts/doc/extractDocsRST.py). -->

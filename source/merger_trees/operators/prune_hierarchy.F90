@@ -65,6 +65,7 @@ contains
       <description>
       The depth in the substructure hierarchy at which to prune a tree.
       </description>
+      <minimum>1</minimum>
     </inputParameter>
     !!]
     self=mergerTreeOperatorPruneHierarchy(hierarchyDepth)
