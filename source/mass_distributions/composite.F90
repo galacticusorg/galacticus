@@ -30,11 +30,8 @@
   </massDistribution>
   !!]
 
-  type, public :: massDistributionList
-     class(massDistributionClass), pointer :: massDistribution_ => null()
-     type (massDistributionList ), pointer :: next              => null()
-  end type massDistributionList
-
+  ! Note: the massDistributionList node type is defined in the parent module (_class.F90), alongside
+  ! the shared node free-list, so it can be used by the disk/spheroid getters and treeNode builder.
 
   type, public, extends(massDistributionClass) :: massDistributionComposite
      !!{RST
@@ -92,6 +89,10 @@
      module procedure compositeConstructorParameters
      module procedure compositeConstructorInternal
   end interface massDistributionComposite
+
+  ! The massDistributionList node free-list and its massDistributionListAcquire/Release helpers live
+  ! in the parent module (_class.F90) so they can be shared with the disk/spheroid getters and the
+  ! treeNodeMassDistribution builder; they are used below in compositeSubset and compositeDestructor.
 
 contains
 
@@ -161,7 +162,7 @@ contains
           !![
           <objectDestructor name="massDistribution_%massDistribution_"/>
           !!]
-          deallocate(massDistribution_)
+          call massDistributionListRelease(massDistribution_)
           massDistribution_ => massDistributionNext
        end do
     end if
@@ -381,7 +382,8 @@ contains
     type (massDistributionList        ), pointer                 :: subsetHead         , subsetNext    , &
          &                                                          compositesHead     , compositesNext, &
          &                                                          massDistribution_
-    integer                                                      :: countComponents
+    integer                                                      :: countComponents    , countMembers
+    logical                                                      :: allWhole
     !![
     <optionalArgument name="componentType" defaultsTo="componentTypeAll"/>
     <optionalArgument name="massType"      defaultsTo="massTypeAll"     />
@@ -394,50 +396,72 @@ contains
        compositesHead    => null()
        massDistribution_ => self%massDistributions
        countComponents   =  0
+       countMembers      =  0
+       allWhole          =  .true.
        do while (associated(massDistribution_))
+          countMembers=countMembers+1
           select type (massDistribution__ => massDistribution_ %massDistribution_)
           class is (massDistributionComposite)
              massDistribution___ => massDistribution__%subset(componentType_,massType_)
              if (associated(massDistribution___)) then
+                ! A composite member is included "whole" only if its subset returned the member
+                ! itself; a partial sub-composite means the result differs from "self".
+                if (.not.associated(massDistribution___,massDistribution_%massDistribution_)) allWhole=.false.
                 countComponents=countComponents+1
                 if (associated(subsetHead)) then
-                   allocate(subsetNext%next)
-                   subsetNext => subsetNext%next
+                   subsetNext%next => massDistributionListAcquire()
+                   subsetNext      => subsetNext%next
                 else
-                   allocate(subsetHead     )
-                   subsetNext => subsetHead
+                   subsetHead      => massDistributionListAcquire()
+                   subsetNext      => subsetHead
                 end if
                 subsetNext%massDistribution_ => massDistribution___
                 if (associated(compositesHead)) then
-                   allocate(compositesNext%next)
-                   compositesNext => compositesNext%next
+                   compositesNext%next => massDistributionListAcquire()
+                   compositesNext      => compositesNext%next
                 else
-                   allocate(compositesHead     )
-                   compositesNext => compositesHead
+                   compositesHead      => massDistributionListAcquire()
+                   compositesNext      => compositesHead
                 end if
                 compositesNext%massDistribution_ => massDistribution___
+             else
+                ! A composite member matched nothing, so the subset cannot equal "self".
+                allWhole=.false.
              end if
           class default
              if (massDistribution__%matches(componentType,massType)) then
                 countComponents=countComponents+1
                 if (associated(subsetHead)) then
-                   allocate(subsetNext%next)
+                   subsetNext%next => massDistributionListAcquire()
                    subsetNext => subsetNext%next
                 else
-                   allocate(subsetHead     )
+                   subsetHead => massDistributionListAcquire()
                    subsetNext => subsetHead
                 end if
                 subsetNext%massDistribution_ => massDistribution__
+             else
+                ! A member did not match, so the subset cannot equal "self".
+                allWhole=.false.
              end if
           end select
           massDistribution_ => massDistribution_%next
        end do
        if (associated(subsetHead)) then
-          if (countComponents == 1) then
+          if (countComponents == countMembers .and. countMembers > 1 .and. allWhole) then
+             ! Every member matched and was included whole, so the subset is identical to "self":
+             ! return "self" directly and recycle the temporary list we built, instead of
+             ! constructing a duplicate composite.
+             do while (associated(subsetHead))
+                subsetNext => subsetHead%next
+                call massDistributionListRelease(subsetHead)
+                subsetHead => subsetNext
+             end do
+             call compositeSelfAcquire(self,subset)
+          else if (countComponents == 1) then
              !![
 	     <referenceAcquire target="subset" source="subsetHead%massDistribution_"/>
 	     !!]
-             deallocate(subsetHead)
+             call massDistributionListRelease(subsetHead)
           else
              allocate(massDistributionComposite :: subset)
              select type(subset)
@@ -453,12 +477,27 @@ contains
           !![
 	  <objectDestructor name="compositesHead%massDistribution_" nullify="no"/>
 	  !!]
-          deallocate(compositesHead)
+          call massDistributionListRelease(compositesHead)
           compositesHead => compositesNext
        end do
     end if
     return
   end function compositeSubset
+
+  subroutine compositeSelfAcquire(self,self_)
+    !!{RST
+    Return a counted reference to self (used by :galacticus-class:`compositeSubset` when the
+    requested subset is identical to the whole composite). A submodule-local equivalent of the
+    module-level selfAcquire, declared here so it is linkable from this submodule.
+    !!}
+    implicit none
+    class(massDistributionComposite), intent(inout), target  :: self
+    class(massDistributionClass    ),                pointer :: self_
+
+    self_ => self
+    call self_%referenceCountIncrement()
+    return
+  end subroutine compositeSelfAcquire
 
   double precision function compositeMassTotal(self)
     !!{RST

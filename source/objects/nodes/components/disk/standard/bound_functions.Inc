@@ -26,7 +26,7 @@ function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massT
   Return the mass distribution for the standard disk component.
   !!}
   use :: Mass_Distributions               , only : massDistributionClass      , massDistributionCylindricalScaler, massDistributionComposite   , massDistributionList   , &
-       &                                           massDistributionCylindrical, massDistributionMatches_
+       &                                           massDistributionCylindrical, massDistributionMatches_         , massDistributionListAcquire
   use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_             , kinematicDistribution_      , scalerStellarPool      , &
        &                                           scalerGasPool
   use :: Galactic_Structure_Options       , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous             , enumerationWeightByType, &
@@ -129,8 +129,8 @@ function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massT
      if      (includeStars .and. includeGas) then
         ! Wrap the dimensionless mass distribution inside scaler classes to allow us to re-scale it to any disk system, and then composite those.
         allocate(massDistributionTotal          )
-        allocate(massDistributionComponents     )
-        allocate(massDistributionComponents%next)
+        massDistributionComponents                        => massDistributionListAcquire()
+        massDistributionComponents%next                   => massDistributionListAcquire()
         massDistributionComponents     %massDistribution_ => massDistributionStellar
         massDistributionComponents%next%massDistribution_ => massDistributionGas
         !![
