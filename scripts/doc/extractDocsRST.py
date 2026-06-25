@@ -32,12 +32,34 @@ import sys
 import textwrap
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Make the in-tree Galacticus Python packages importable.  The doc build sets
+# PYTHONPATH=python; add it explicitly so the extractor also runs stand-alone.
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), os.pardir, os.pardir, 'python'))
 from latexToRST import (                                       # noqa: E402
     parse_glossary, glossary_display_map, latex_to_rst,
 )
 from extractContributors import (                              # noqa: E402
     collect_contributor_names, render_contributors_rst,
 )
+from Galacticus.Parameters.query import resolved_parameters    # noqa: E402
+
+
+def _build_catalog(source_dir):
+    """Build the parameter catalog for richer parameter docs (type, allowed
+    values, ranges, inherited parameters).  Returns None and warns on any
+    failure, so the documentation build never depends on it."""
+    os.environ.setdefault(
+        'GALACTICUS_EXEC_PATH',
+        os.path.dirname(os.path.abspath(source_dir)) or '.')
+    try:
+        from Galacticus.Parameters.catalog import build_catalog
+        return build_catalog(source_dir)
+    except Exception as exc:                                    # noqa: BLE001
+        print(f'NOTE: parameter catalog unavailable ({exc}); parameter docs '
+              f'will not include type/range/enumeration enrichment.',
+              file=sys.stderr)
+        return None
 
 # ``!![ … !!]`` directive block.
 _BLOCK_RE = re.compile(r'^[ \t]*!!\[(.*?)^[ \t]*!!\]', re.DOTALL | re.MULTILINE)
@@ -347,21 +369,75 @@ def scan_source(source_dir: str):
 # Rendering
 # ---------------------------------------------------------------------------
 
+def _range_label(constraints: dict | None) -> str | None:
+    """Render a `{minimum,maximum}` constraint as an inequality string."""
+    if not constraints:
+        return None
+    parts = []
+    minimum = constraints.get('minimum')
+    maximum = constraints.get('maximum')
+    if minimum:
+        parts.append(f'{"≥" if minimum.get("inclusive") else ">"} {minimum["value"]}')
+    if maximum:
+        parts.append(f'{"≤" if maximum.get("inclusive") else "<"} {maximum["value"]}')
+    return ', '.join(parts) or None
+
+
+def _parameter_facets(p: dict) -> list[str]:
+    """Catalog-derived annotations for a parameter: type, allowed values, range,
+    and default — shown as a parenthetical after the parameter name."""
+    facets = []
+    ptype = p.get('type')
+    if ptype and ptype != 'unknown':
+        facets.append(ptype)
+    allowed = p.get('allowedValues')
+    if allowed:
+        facets.append('one of ' + ', '.join(f'``{v}``' for v in allowed))
+    rng = _range_label(p.get('constraints'))
+    if rng:
+        facets.append(rng)
+    default = p.get('default')
+    if default is not None and str(default).strip() != '':
+        facets.append(f'default ``{str(default).strip()}``')
+    return facets
+
+
 def render_parameter(p: dict, glsmap: dict) -> str:
     name = p.get('name', '')
     desc = _desc_to_rst(p.get('description'), glsmap)
     # Parameter descriptions are short; collapse to a single logical line.
     desc = re.sub(r'\s*\n\s*', ' ', desc).strip()
-    default = p.get('default')
     head = f'``[{name}]``'
-    if default not in (None, ''):
-        head += f' (default ``{str(default).strip()}``)'
+    facets = _parameter_facets(p)
+    if facets:
+        head += ' (' + '; '.join(facets) + ')'
+    if p.get('inheritedFrom'):
+        desc = (desc + ' ' if desc else '') + f'*(inherited from* ``{p["inheritedFrom"]}``\\ *)*'
     return f'* {head} — {desc}' if desc else f'* {head}'
+
+
+def _implementation_parameters(impl: dict, params_by_file: dict,
+                               catalog: dict | None) -> list[dict]:
+    """Parameters to document for an implementation.
+
+    With a catalog, use its per-implementation resolved set (own + inherited,
+    annotated with type / allowed values / range), preferring the raw
+    source-extracted description for the implementation's own parameters.
+    Without a catalog, fall back to the file-based extraction (no enrichment)."""
+    file_params = params_by_file.get(impl.get('file', ''), [])
+    if catalog is None or impl.get('name') not in catalog.get('implementations', {}):
+        return file_params
+    raw_description = {p['name']: p.get('description') for p in file_params}
+    resolved = resolved_parameters(catalog, impl['name'])
+    for parameter in resolved:
+        if raw_description.get(parameter['name']) is not None:
+            parameter['description'] = raw_description[parameter['name']]
+    return resolved
 
 
 def render_family(fam: str, families: dict, implementations: dict,
                   params_by_file: dict, methods_by_file: dict,
-                  glsmap: dict) -> str:
+                  glsmap: dict, catalog: dict | None = None) -> str:
     directive = families[fam]
     descriptive = directive.get('descriptiveName', fam)
     out = [f'.. _physics-{fam}:\n', _heading(descriptive, '=')]
@@ -418,7 +494,7 @@ def render_family(fam: str, families: dict, implementations: dict,
                 out.append(f'* ``{meth["name"]}`` — {mdesc}' if mdesc
                            else f'* ``{meth["name"]}``')
             out.append('')
-        params = params_by_file.get(impl.get('file', ''), [])
+        params = _implementation_parameters(impl, params_by_file, catalog)
         if params:
             out.append('**Parameters**\n')
             for p in params:
@@ -643,12 +719,16 @@ def main() -> int:
     (families, implementations, params_by_file, methods_by_file, enumerations,
      modules, workarounds) = scan_source(source_dir)
 
+    # Build the parameter catalog to enrich parameter docs (type, allowed values,
+    # ranges, inherited parameters); degrades gracefully to None.
+    catalog = _build_catalog(source_dir)
+
     physics_dir = os.path.join(out_dir, 'physics')
     os.makedirs(physics_dir, exist_ok=True)
 
     for fam in implementations:
         page = render_family(fam, families, implementations,
-                             params_by_file, methods_by_file, glsmap)
+                             params_by_file, methods_by_file, glsmap, catalog)
         with open(os.path.join(physics_dir, f'{fam}.rst'), 'w',
                   encoding='utf-8') as fh:
             fh.write(page)

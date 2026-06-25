@@ -178,6 +178,20 @@ def discover_enumerations(source_files):
     return enumerations
 
 
+# A string default is written in Fortran as `var_str('value')`; the value a user
+# actually enters in a parameter file is just the inner string.
+_VAR_STR_RE = re.compile(r"""^var_str\s*\(\s*(['"])(.*)\1\s*\)$""", re.IGNORECASE)
+
+
+def _normalize_default(value):
+    """Render a default value as a user would enter it: unwrap `var_str('x')`
+    to `x`.  Leaves numeric/boolean literals and expressions unchanged."""
+    if value is None:
+        return None
+    match = _VAR_STR_RE.match(value.strip())
+    return match.group(2) if match else value
+
+
 def _constraint_bound(raw):
     """Parse a `<minimum>`/`<maximum>` directive value into ``{value, inclusive}``.
 
@@ -298,7 +312,7 @@ def _harvest_parameters(scope_node, declaration_lookup, source_elements,
                 'provenance':    inferred['provenance'],
                 'enumeration':   enumeration_links.get(variable),
                 'constraints':   _capture_constraints(directive),
-                'default':       _scalar(directive.get('defaultValue')),
+                'default':       _normalize_default(_scalar(directive.get('defaultValue'))),
                 'cardinality':   _scalar(directive.get('cardinality')),
                 'description':   _scalar(directive.get('description')),
             })
