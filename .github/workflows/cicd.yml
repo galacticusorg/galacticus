@@ -2285,7 +2285,7 @@ jobs:
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
-          app-id: ${{ secrets.DEPLOY_APP_ID }}
+          client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
           permission-contents: write
           permission-workflows: write
