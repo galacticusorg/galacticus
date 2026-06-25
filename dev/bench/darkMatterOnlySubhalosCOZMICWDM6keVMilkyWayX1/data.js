@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782334654420,
+  "lastUpdate": 1782427579146,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 6keV resolutionX1)": [
@@ -2639,6 +2639,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 16.368983494377932,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5fd64fb3e3d1b610310c5eb0f420473a719674d9",
+          "message": "Merge pull request #1191 from galacticusorg/feature/parameter-catalog-validation\n\nTyped parameter catalog, validator, and CI gate",
+          "timestamp": "2026-06-25T14:34:53Z",
+          "tree_id": "db871ddd22bb19cf252311ab767782ab2160bf94",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5fd64fb3e3d1b610310c5eb0f420473a719674d9"
+        },
+        "date": 1782427577989,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 0.20948404207684634,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 3.3205302789846414,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 13.66952639524619,
             "unit": "-logℒ"
           }
         ]
