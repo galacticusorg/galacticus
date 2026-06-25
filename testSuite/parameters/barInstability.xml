@@ -51,7 +51,7 @@
 
   <!-- Structure formation options -->
   <linearGrowth value="collisionlessMatter"/>
-  <haloMassFunction value="Tinker2008"/>
+  <haloMassFunction value="tinker2008"/>
   <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 

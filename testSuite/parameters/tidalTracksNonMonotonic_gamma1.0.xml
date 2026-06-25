@@ -86,7 +86,6 @@
   <galacticStructureSolver        value="null"/>
 
   <!-- Galaxy mergers -->
-  <mergerMassMovements            value="null"/>
   <mergerRemnantSize              value="null"/>
 
   <!-- Satellite orbit options -->

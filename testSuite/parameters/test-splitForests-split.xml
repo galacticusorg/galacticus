@@ -75,7 +75,7 @@
 
   <!-- Structure formation options -->
   <linearGrowth value="collisionlessMatter"/>
-  <haloMassFunction value="Tinker2008"/>
+  <haloMassFunction value="tinker2008"/>
   <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 
@@ -206,9 +206,7 @@
     <destinationGasMinorMerger value="spheroid"/>
     <massRatioMajorMerger value="0.25"/>
   </mergerMassMovements>
-  <mergerRemnantSize value="null">
-    <energyOrbital value="1"/>
-  </mergerRemnantSize>
+  <mergerRemnantSize value="null"/>
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
     <!-- Cosmological epoch -->
@@ -258,8 +256,8 @@
     <outputReferences value="false"/>
   </mergerTreeOutputter>
   <nodePropertyExtractor value="multi">
-    <nodePropertyExtract value="nodeIndices"/>
-    <nodePropertyExtract value="satelliteStatus"/>
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="satelliteStatus"/>
   </nodePropertyExtractor>
 
 </parameters>

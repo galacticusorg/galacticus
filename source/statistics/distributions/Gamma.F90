@@ -72,6 +72,7 @@ contains
       The shape parameter :math:`k &gt; 0` of the gamma distribution, controlling the skewness and peakedness; for :math:`k=1` it reduces to an exponential distribution, and for large :math:`k` it approaches a Gaussian.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>rate</name>
@@ -79,6 +80,7 @@ contains
       The rate parameter :math:`\lambda &gt; 0` of the gamma distribution (the inverse of the scale parameter :math:`\theta = 1/\lambda`), which determines the horizontal scale; larger values give a more concentrated distribution near zero.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>limitLower</name>
@@ -86,6 +88,7 @@ contains
       The lower truncation limit of the gamma distribution; when set, the distribution is renormalized to integrate to unity over :math:`[\mathrm{limitLower}, \mathrm{limitUpper}]` rather than :math:`[0, \infty)`.
       </description>
       <source>parameters</source>
+      <minimum>0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>limitUpper</name>
@@ -93,6 +96,7 @@ contains
       The upper truncation limit of the gamma distribution; when set, the distribution is renormalized to integrate to unity over :math:`[\mathrm{limitLower}, \mathrm{limitUpper}]` rather than :math:`[0, \infty)`.
       </description>
       <source>parameters</source>
+      <minimum>0.0</minimum>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]

@@ -42,7 +42,7 @@
   <hotHaloRamPressureStripping value="font2008">
     <solverFailureIsFatal value="false"/>
   </hotHaloRamPressureStripping>
-  <hotHaloRamPressureForce     value="font2008       "        />
+  <hotHaloRamPressureForce     value="font2008"        />
   <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
   
   <!-- Galactic structure solver options -->

@@ -11,7 +11,6 @@
     <inputFileName value="forests.csv"/>
     <outputFileName value="forests.hdf5"/>
     <outputFormat value="galacticus"/>
-    <source value="unknown"/>
     <massParticle value="8.60e-2"/>
     <!-- Specify that halo masses do include subhalo contributions. (Note that the
 	 expectation is that masses of isolated halos have been derived from

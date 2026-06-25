@@ -164,6 +164,7 @@ contains
       The parameter :math:`\gamma` of the Zhao1996 profile.
       </description>
       <source>parameters</source>
+      <maximum inclusive="false">3.0</maximum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>densityNormalization</name>

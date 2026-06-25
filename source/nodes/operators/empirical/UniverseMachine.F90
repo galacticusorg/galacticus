@@ -122,6 +122,7 @@ contains
       Sets the fraction of galaxy mass belonging to the spheroid component.
       </description>
       <defaultValue>1.0d0</defaultValue>
+      <minimum>0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>fractionMassDisk</name>
@@ -130,6 +131,7 @@ contains
       Sets the fraction of galaxy mass belonging to the disk component.
       </description>
       <defaultValue>0.0d0</defaultValue>
+      <minimum>0.0</minimum>
     </inputParameter>       
     <inputParameter docformat="rst">
       <name>epsilon_0</name>

@@ -92,6 +92,7 @@ contains
       <description>
       The largest fractional mass change due to subresolution accretion allowed in a timestep in merger trees built by the :cite:t:`cole_hierarchical_2000` method.
       </description>
+      <maximum inclusive="false">1.0</maximum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>redshiftMaximum</name>

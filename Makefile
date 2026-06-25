@@ -801,6 +801,17 @@ $(BUILDPATH)/Makefile_All_Execs: ./scripts/build/findExecutables.py $(ALLSOURCES
 
 deps: $(MAKE_DEPS) $(BUILDPATH)/Makefile_All_Execs
 
+# Typed parameter catalog: a machine-readable description of every functionClass
+# implementation's input parameters (name, inferred type, default, nesting) and
+# the objects it builds.  Regenerated whenever the source changes; consumed by
+# parameter-file validation tooling.  Not on the compile path, so build it
+# explicitly with `make parameters-catalog`.
+$(BUILDPATH)/parameters.catalog.json: ./scripts/build/parameterCatalog.py ./python/Galacticus/Parameters/__init__.py ./python/Galacticus/Parameters/catalog.py ./python/Galacticus/Parameters/inference.py $(ALLSOURCES)
+	@mkdir -p $(BUILDPATH)
+	./scripts/build/parameterCatalog.py `pwd` $(BUILDPATH)/parameters.catalog.json
+
+parameters-catalog: $(BUILDPATH)/parameters.catalog.json
+
 # Rules for XSpec code.
 aux/XSpec/%.o: ./aux/XSpec/%.f Makefile
 	$(FCCOMPILER) -c $< -o aux/XSpec/$*.o $(FCFLAGS)

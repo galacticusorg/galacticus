@@ -72,6 +72,7 @@ contains
       The maximum radius of the satellite halo in units of its virial radius. This value will be used to compute the initial bound mass of the satellite halo by integrating the density profile up to this maximum radius, assuming that the density profile is zero beyond this radius.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]

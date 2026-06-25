@@ -16,8 +16,7 @@
   <posteriorSampleLikelihood value="galaxyPopulation">
     <baseParametersFileName value="base.xml"/>
     <failedParametersFileName value="failedParameters.xml"/>
-    <randomize value="false"/>
-    <evolveForestsVerbosity value="0"/>
+    <evolveForestsVerbosity value="silent"/>
   </posteriorSampleLikelihood>
 
   <!-- Particle swarm optimization -->
