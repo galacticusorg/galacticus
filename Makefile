@@ -812,6 +812,13 @@ $(BUILDPATH)/parameters.catalog.json: ./scripts/build/parameterCatalog.py ./pyth
 
 parameters-catalog: $(BUILDPATH)/parameters.catalog.json
 
+# Editor-assistance schema for parameter files, generated from the catalog and
+# committed (so editors can reference it). Regenerate with `make parameters-schema`
+# after changing functionClass implementations or enumerations; CI checks it is
+# up to date.
+parameters-schema:
+	./scripts/build/parameterSchema.py `pwd` schema/parameters.xsd
+
 # Rules for XSpec code.
 aux/XSpec/%.o: ./aux/XSpec/%.f Makefile
 	$(FCCOMPILER) -c $< -o aux/XSpec/$*.o $(FCFLAGS)

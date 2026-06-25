@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Default parameters for Galacticus v0.9.4 -->
 <!-- 30-October-2011                          -->
-<parameters>
+ <parameters xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:noNamespaceSchemaLocation="schema/parameters.xsd">
   <formatVersion>2</formatVersion>
   <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-23T18:13:06"/>
 
