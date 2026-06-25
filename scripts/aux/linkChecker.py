@@ -98,6 +98,13 @@ def scan_file(file_name, path, urls):
                     # inside it which is followed by further URL characters).
                     url = html.unescape(m.group(0)).rstrip('.,;:\'')
                     url = re.sub(r'\\(.)', r'\1', url)
+                    # Drop a trailing ``)`` that closes an enclosing construct
+                    # (shell ``$(curl ...)``, prose parenthetical) rather than
+                    # belonging to the URL.  Balanced parens — e.g. Wikipedia's
+                    # ``..._(computer_programming)`` — are kept; only an excess
+                    # of closing over opening parens is stripped.
+                    while url.endswith(')') and url.count(')') > url.count('('):
+                        url = url[:-1]
                     urls.setdefault(url, []).append(
                         {'file': file_name, 'path': path, 'lineNumber': line_number})
     except OSError as e:
