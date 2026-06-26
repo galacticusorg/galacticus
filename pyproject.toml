@@ -82,6 +82,16 @@ fallback_version = "0.0.0"
 version_scheme   = "no-guess-dev"
 local_scheme     = "node-and-date"
 
+# The repository carries non-version tags (e.g. `publication/doi/10.1103/...`).
+# Require version tags to start with `v`, so the `git describe --match` glob
+# becomes `v*[0-9]*` and the DOI tags are ignored -- otherwise the default match
+# (`*[0-9]*`) selects a DOI tag and the build fails with "Can't parse version
+# from tag". `strict = false` keeps `vX`/`vX.Y`/`vX.Y.Z` all valid and silences
+# the future-default warning.
+[tool.setuptools_scm.tag]
+prefix = "v"
+strict = false
+
 # ----------------------------------------------------------------------
 # setuptools layout: source lives under python/ rather than alongside
 # pyproject.toml at the repo root, so we tell setuptools to treat python/
