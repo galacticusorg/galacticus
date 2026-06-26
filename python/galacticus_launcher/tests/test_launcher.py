@@ -8,6 +8,12 @@ import os
 
 import pytest
 
+# The launcher's only third-party deps. Skip the whole module (rather than
+# erroring at collection) where they are absent -- e.g. a minimal CI job that
+# installs pytest but not the package's runtime dependencies.
+pytest.importorskip("platformdirs")
+pytest.importorskip("requests")
+
 from galacticus_launcher import platforms, paths, cli, download
 
 
