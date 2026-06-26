@@ -16,6 +16,13 @@ macOS (Apple Silicon). On other platforms — including native Windows — there
 no pre-built binary; build :doc:`from source <source-linux>` instead (on Windows,
 use WSL 2 and the Linux build).
 
+.. note::
+
+   The pre-built macOS binaries are compiled on a recent macOS and will only run
+   on that version or newer. The launcher checks this before running: if your
+   macOS is too old it stops with a clear message (rather than a cryptic
+   ``dyld`` error) telling you to upgrade macOS or build from source.
+
 Running a model
 ---------------
 

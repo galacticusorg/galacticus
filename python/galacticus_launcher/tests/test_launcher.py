@@ -14,7 +14,9 @@ import pytest
 pytest.importorskip("platformdirs")
 pytest.importorskip("requests")
 
-from galacticus_launcher import platforms, paths, cli, download
+import struct
+
+from galacticus_launcher import platforms, paths, cli, download, macos
 
 
 # --- platform mapping ------------------------------------------------------
@@ -228,3 +230,72 @@ def test_human_readable():
     assert cli._human(1023) == "1023 B"
     assert cli._human(1024).endswith("KiB")
     assert cli._human(1024 ** 3).endswith("GiB")
+
+
+# --- macOS compatibility guard --------------------------------------------
+
+def _macho64(load_command):
+    """A minimal little-endian 64-bit Mach-O carrying one load command."""
+    header = struct.pack(
+        "<IiiIIIII",
+        0xFEEDFACF,    # magic (MH_MAGIC_64)
+        0x01000007,    # cputype (x86_64)
+        0x3,           # cpusubtype
+        0x2,           # filetype (MH_EXECUTE)
+        1,             # ncmds
+        len(load_command),  # sizeofcmds
+        0, 0,          # flags, reserved
+    )
+    return header + load_command
+
+
+def _lc_build_version(major, minor):
+    minos = (major << 16) | (minor << 8)
+    # cmd, cmdsize, platform(=macOS), minos, sdk, ntools
+    return struct.pack("<IIIIII", 0x32, 24, 1, minos, minos, 0)
+
+
+def _lc_version_min(major, minor):
+    version = (major << 16) | (minor << 8)
+    # cmd, cmdsize, version, sdk
+    return struct.pack("<IIII", 0x24, 16, version, version)
+
+
+def test_parse_minimum_macos_build_version(tmp_path):
+    binary = tmp_path / "Galacticus_MacOS.exe"
+    binary.write_bytes(_macho64(_lc_build_version(14, 0)))
+    assert macos.parse_minimum_macos(binary) == (14, 0)
+
+
+def test_parse_minimum_macos_version_min(tmp_path):
+    binary = tmp_path / "Galacticus_MacOS.exe"
+    binary.write_bytes(_macho64(_lc_version_min(13, 3)))
+    assert macos.parse_minimum_macos(binary) == (13, 3)
+
+
+def test_parse_minimum_macos_not_macho(tmp_path):
+    plain = tmp_path / "Galacticus.exe"
+    plain.write_bytes(b"\x7fELF" + b"\x00" * 60)  # an ELF, not a Mach-O
+    assert macos.parse_minimum_macos(plain) is None
+
+
+def test_incompatible_reason_blocks_older_host(tmp_path, monkeypatch):
+    monkeypatch.setattr(macos.platform, "system", lambda: "Darwin")
+    monkeypatch.setattr(macos, "parse_minimum_macos", lambda path: (15, 0))
+    monkeypatch.setattr(macos, "host_version", lambda: (13, 5))
+    reason = macos.incompatible_reason(tmp_path / "bin")
+    assert reason is not None and "15.0" in reason and "13.5" in reason
+
+
+def test_incompatible_reason_allows_newer_host(tmp_path, monkeypatch):
+    monkeypatch.setattr(macos.platform, "system", lambda: "Darwin")
+    monkeypatch.setattr(macos, "parse_minimum_macos", lambda path: (15, 0))
+    monkeypatch.setattr(macos, "host_version", lambda: (15, 2))
+    assert macos.incompatible_reason(tmp_path / "bin") is None
+
+
+def test_incompatible_reason_noop_off_macos(tmp_path, monkeypatch):
+    monkeypatch.setattr(macos.platform, "system", lambda: "Linux")
+    # Even if a minimum could be read, a non-macOS host is never blocked.
+    monkeypatch.setattr(macos, "parse_minimum_macos", lambda path: (99, 0))
+    assert macos.incompatible_reason(tmp_path / "bin") is None

@@ -19,7 +19,7 @@ from pathlib import Path
 
 import platformdirs
 
-from . import __version__, download, paths, platforms, validate as _validate
+from . import __version__, download, macos, paths, platforms, validate as _validate
 
 _COMMANDS = {"install", "update", "run", "validate", "clean", "info"}
 
@@ -110,6 +110,12 @@ def _ensure(install):
             f"{install.exec_path}. Build it, or unset GALACTICUS_EXEC_PATH/"
             "GALACTICUS_HOME to use a managed download."
         )
+    # On macOS, refuse a downloaded binary that requires a newer macOS than this
+    # host (it would otherwise fail at exec with a cryptic dyld error).
+    if install.binary is not None and Path(install.binary).is_file():
+        reason = macos.incompatible_reason(install.binary)
+        if reason:
+            raise RuntimeError(reason)
 
 
 def _cmd_install(install, *, force):
@@ -162,6 +168,10 @@ def _cmd_info():
         print(f"release tag    : {install.tag}")
     print(f"executable     : {install.binary}"
           f"{'' if install.binary and Path(install.binary).is_file() else '  (not present)'}")
+    if install.binary is not None and Path(install.binary).is_file():
+        minimum = macos.parse_minimum_macos(install.binary)
+        if minimum is not None:  # only macOS (Mach-O) binaries report this
+            print(f"min macOS      : {minimum[0]}.{minimum[1]}")
     # Show the paths the binary will actually use. For a managed install these
     # are imposed by the launcher; for env/home they reflect the resolved
     # effective locations (dynamic defaults to <data>/dynamic when unset).
