@@ -118,7 +118,7 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v7
-      - name: Mirror bleeding-edge assets onto the version tag
+      - name: Mirror bleeding-edge assets and pin datasets onto the version tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.ref_name }}
@@ -139,9 +139,25 @@ jobs:
               --pattern "${asset}" --dir release-assets || \
               echo "WARNING: ${asset} not found on bleeding-edge; skipping."
           done
-          # Create the release if it does not yet exist, then (re)upload assets.
+          # Pin the datasets version: record the current datasets master HEAD
+          # commit so this release always installs against the same data. The
+          # launcher reads the `datasets.ref` asset; the value is also written
+          # into the release notes for users installing manually (not via pip).
+          datasets_sha=$(git ls-remote https://github.com/galacticusorg/datasets.git HEAD | cut -f1)
+          echo "datasets pinned to ${datasets_sha}"
+          printf '%s\n' "${datasets_sha}" > release-assets/datasets.ref
+          # Create the release (with generated notes) if it does not yet exist.
           gh release view "${TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1 || \
             gh release create "${TAG}" --repo "${GITHUB_REPOSITORY}" \
               --title "${TAG}" --generate-notes
+          # Append the datasets pin to the release notes (idempotent: only once).
+          body=$(gh release view "${TAG}" --repo "${GITHUB_REPOSITORY}" --json body -q .body)
+          if ! printf '%s' "${body}" | grep -q "galacticusorg/datasets@"; then
+            {
+              printf '%s\n\n' "${body}"
+              printf '**Run-time datasets:** this release was built against `galacticusorg/datasets@%s`. If you install manually (not via `pip install galacticus`), check out the datasets repository at this commit for matching data.\n' "${datasets_sha}"
+            } > release-notes.md
+            gh release edit "${TAG}" --repo "${GITHUB_REPOSITORY}" --notes-file release-notes.md
+          fi
           gh release upload "${TAG}" release-assets/* \
             --repo "${GITHUB_REPOSITORY}" --clobber

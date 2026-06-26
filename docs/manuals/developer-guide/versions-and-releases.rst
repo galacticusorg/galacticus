@@ -107,9 +107,13 @@ therefore lightweight:
    GitHub release, mirroring the current ``bleeding-edge`` binary and tools
    assets onto it (see `Publishing the Python Package to PyPI`_ below). This is
    what makes ``pip install galacticus`` resolve to the new version.
-#. Create the corresponding
-   `datasets <https://github.com/galacticusorg/datasets>`_ release so that
-   matching versions of the code and data are available.
+The publish workflow also pins the run-time data: it records the current
+``datasets`` ``master`` commit as a ``datasets.ref`` asset on the release and
+notes that commit in the release body, so every install of that version (whether
+via ``pip`` or by hand) uses the same data. Cutting a matching tagged
+`datasets <https://github.com/galacticusorg/datasets>`_ release is therefore
+optional — useful for a human-readable version, but the recorded commit is the
+source of truth.
 
 .. note::
 

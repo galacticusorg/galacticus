@@ -158,6 +158,34 @@ def test_asset_url():
                    "download/v1.2.3/tools.tar.bz2")
 
 
+def test_datasets_url():
+    assert download.datasets_url().endswith("/datasets/archive/master.zip")
+    assert download.datasets_url("deadbeef").endswith("/datasets/archive/deadbeef.zip")
+
+
+def test_resolve_datasets_ref_env_override(monkeypatch):
+    monkeypatch.setenv("GALACTICUS_DATASETS_REF", "my-branch")
+    assert download.resolve_datasets_ref("v1.2.3") == "my-branch"
+
+
+def test_resolve_datasets_ref_bleeding(monkeypatch):
+    monkeypatch.delenv("GALACTICUS_DATASETS_REF", raising=False)
+    # bleeding-edge tracks master and never hits the network for a pin.
+    assert download.resolve_datasets_ref("bleeding-edge") == "master"
+
+
+def test_resolve_datasets_ref_pinned(monkeypatch):
+    monkeypatch.delenv("GALACTICUS_DATASETS_REF", raising=False)
+    monkeypatch.setattr(download, "_read_remote_text", lambda url: "abc123def\n")
+    assert download.resolve_datasets_ref("v1.2.3") == "abc123def"
+
+
+def test_resolve_datasets_ref_unpinned_falls_back(monkeypatch):
+    monkeypatch.delenv("GALACTICUS_DATASETS_REF", raising=False)
+    monkeypatch.setattr(download, "_read_remote_text", lambda url: None)
+    assert download.resolve_datasets_ref("v1.2.3") == "master"
+
+
 # --- cache cleaning --------------------------------------------------------
 
 def test_purge_tree_older_than(tmp_path):

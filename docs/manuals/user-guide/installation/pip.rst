@@ -85,5 +85,8 @@ downloads. Run ``galacticus info`` to see which install is in effect.
 
    The launcher fetches assets from the GitHub release matching the installed
    package version (development installs track the rolling ``bleeding-edge``
-   release). ``GALACTICUS_RELEASE_TAG`` and ``GALACTICUS_DATASETS_REF`` override
-   the release tag and datasets ref respectively.
+   release). For a versioned release the run-time datasets are pinned to a
+   specific ``datasets`` commit, recorded on the release, so a given package
+   version always installs the same data. ``GALACTICUS_RELEASE_TAG`` and
+   ``GALACTICUS_DATASETS_REF`` override the release tag and datasets ref
+   respectively.

@@ -51,10 +51,44 @@ def source_url(tag):
     return f"https://github.com/{REPO}/archive/refs/tags/{tag}.zip"
 
 
-def datasets_url():
-    """URL of the datasets archive (``GALACTICUS_DATASETS_REF`` selects a ref)."""
-    ref = os.environ.get("GALACTICUS_DATASETS_REF", "master")
-    return f"https://github.com/{DATASETS_REPO}/archive/refs/heads/{ref}.zip"
+def datasets_url(ref="master"):
+    """URL of the datasets archive at `ref` (a branch, tag, or commit SHA).
+
+    GitHub's ``archive/<ref>.zip`` endpoint resolves all three, so a pinned
+    commit SHA yields exactly that snapshot.
+    """
+    return f"https://github.com/{DATASETS_REPO}/archive/{ref}.zip"
+
+
+def resolve_datasets_ref(tag, *, log=print):
+    """Resolve which datasets ref to fetch for a release `tag`.
+
+    ``GALACTICUS_DATASETS_REF`` overrides everything. Otherwise a versioned
+    release pins datasets to the commit recorded in its ``datasets.ref`` asset
+    (written by the publish workflow), so a given package version always fetches
+    the same data. Dev/bleeding-edge installs, or a release with no pin, track
+    datasets ``master``.
+    """
+    override = os.environ.get("GALACTICUS_DATASETS_REF")
+    if override:
+        return override
+    if tag and tag != "bleeding-edge":
+        pinned = _read_remote_text(asset_url(tag, "datasets.ref"))
+        if pinned:
+            return pinned.strip().split()[0]
+        log(f"  no datasets pin on release {tag}; using datasets master.")
+    return "master"
+
+
+def _read_remote_text(url):
+    """Return the text body of `url`, or None if it is absent / unreachable."""
+    try:
+        response = requests.get(url, timeout=30)
+        if response.status_code == 200:
+            return response.text
+    except requests.RequestException:  # pragma: no cover - network
+        pass
+    return None
 
 
 def provision(install, *, force=False, log=print):
@@ -107,12 +141,13 @@ def _provision_datasets(install, *, force, log):
     sentinel = _sentinel(install.data_path, "datasets")
     if sentinel.exists() and not force:
         return False
-    log("Fetching datasets ...")
+    ref = resolve_datasets_ref(install.tag, log=log)
+    log(f"Fetching datasets ({ref}) ...")
     with tempfile.TemporaryDirectory() as work:
         archive = Path(work) / "datasets.zip"
-        _download(datasets_url(), archive, log=log)
+        _download(datasets_url(ref), archive, log=log)
         _extract_strip_top(archive, install.data_path)
-    sentinel.write_text(os.environ.get("GALACTICUS_DATASETS_REF", "master"))
+    sentinel.write_text(ref)
     return True
 
 
