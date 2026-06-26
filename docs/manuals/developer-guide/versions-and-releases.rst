@@ -22,7 +22,7 @@ The "API" for Galacticus consists of:
    #. The main output HDF5 file;
    #. Any auxiliary files that are output.
 
-Changes to the format or syntax of any of these files are considered to incompatible API changes. Note that additions to the formats that don't break backward compatibility (e.g. adding a new class with new parameters) *are* backwards compatible and so do not require a major version increment.
+Changes to the format or syntax of any of these files are considered to be incompatible API changes. Note that additions to the formats that don't break backward compatibility (e.g. adding a new class with new parameters) *are* backwards compatible and so do not require a major version increment.
 
 Versions are implemented through GitHub's "`release <https://docs.github.com/en/github/administering-a-repository/releasing-projects-on-github/about-releases>`_" mechanism, and so are based on ``git`` "`tags <https://git-scm.com/book/en/v2/Git-Basics-Tagging>`_". Associated with each release are a statically-linked binary executable and documentation. Additionally a Docker image is built for each version, which can be retrieved using ``docker pull galacticusorg/galacticus:X.Y.Z``.
 
