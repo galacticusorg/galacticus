@@ -43,6 +43,10 @@ To do this:
 
    Galacticus needs to write some data files to disk at run time. Usually these are written to ``$GALACTICUS_DATA_PATH/dynamic/``. If you do not have write permission to that location, you should set the environment variable ``GALACTICUS_DYNAMIC_DATA_PATH`` to a path where dynamically-generated files can be written.
 
+.. note::
+
+   The run-time tools (CAMB, CLASS, Cloudy, FSPS, RecFast, AxionCAMB, and mangle) are, by default, stored under the dynamic data path alongside regenerable data. You can relocate them by setting the environment variable ``GALACTICUS_TOOLS_PATH`` to a separate directory. This is useful if you want to keep the (immutable) pre-built tools apart from regenerable cache data — for example so that the cache can be cleared without removing the tools, or to share a read-only tools directory between installs. When unset, ``GALACTICUS_TOOLS_PATH`` defaults to the dynamic data path, so existing setups are unaffected.
+
 You can then run a quick test model using:
 
 .. code-block:: bash

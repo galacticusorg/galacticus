@@ -52,8 +52,40 @@ jobs:
           name: python-distribution
           path: dist/
 
+  Verify-Release:
+    # Guard against tagging before CI/CD has refreshed `bleeding-edge`: the
+    # versioned release mirrors the assets currently on `bleeding-edge`, so the
+    # `bleeding-edge` tag must point at the very commit being released. Fail fast
+    # otherwise, blocking BOTH the PyPI publish and the asset mirror. A no-op for
+    # the TestPyPI dry run (workflow_dispatch), so it can never skip its needers.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Verify bleeding-edge matches the tagged commit
+        if: ${{ github.event_name == 'push' }}
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          git fetch origin 'refs/tags/bleeding-edge:refs/tags/bleeding-edge' --force
+          bleeding=$(git rev-list -n1 bleeding-edge)
+          tagged=$(git rev-list -n1 "${TAG}")
+          echo "bleeding-edge -> ${bleeding}"
+          echo "${TAG} -> ${tagged}"
+          if [ "${bleeding}" != "${tagged}" ]; then
+            echo "::error::bleeding-edge (${bleeding}) does not point at ${TAG} (${tagged}). Wait for the master CI/CD run for this commit to finish and refresh bleeding-edge before tagging, then re-tag."
+            exit 1
+          fi
+      - name: Dry-run note
+        if: ${{ github.event_name != 'push' }}
+        run: echo "workflow_dispatch dry run - skipping bleeding-edge verification."
+
   Publish-PyPI:
-    needs: Build-Distribution
+    needs: [Build-Distribution, Verify-Release]
     runs-on: ubuntu-latest
     # Trusted Publishing requires an environment and the id-token permission.
     environment: pypi
@@ -79,7 +111,7 @@ jobs:
     # tag so the launcher can fetch artefacts pinned to this release. Runs only
     # for real tag pushes (not the TestPyPI dry run).
     if: ${{ github.event_name == 'push' }}
-    needs: Build-Distribution
+    needs: [Build-Distribution, Verify-Release]
     runs-on: ubuntu-latest
     permissions:
       contents: write

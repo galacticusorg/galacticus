@@ -54,11 +54,14 @@ def main(argv=None):
 
     clean_parser = sub.add_parser("clean", help="purge the regenerable cache")
     clean_parser.add_argument("--all", action="store_true",
-                              help="remove the entire dynamic cache")
+                              help="remove the entire dynamic data cache")
     clean_parser.add_argument("--older-than", type=float, metavar="N",
                               help="only remove cache files older than N days")
     clean_parser.add_argument("--prune-installs", action="store_true",
                               help="also remove superseded per-version install dirs")
+    clean_parser.add_argument("--force", action="store_true",
+                              help="clean even when pre-built tools share the "
+                                   "dynamic path (deletes them too)")
     clean_parser.add_argument("--dry-run", action="store_true",
                               help="report what would be freed; delete nothing")
 
@@ -159,39 +162,68 @@ def _cmd_info():
         print(f"release tag    : {install.tag}")
     print(f"executable     : {install.binary}"
           f"{'' if install.binary and Path(install.binary).is_file() else '  (not present)'}")
-    env = install.environ()
-    for name in ("GALACTICUS_EXEC_PATH", "GALACTICUS_DATA_PATH",
-                 "GALACTICUS_TOOLS_PATH", "GALACTICUS_DYNAMIC_DATA_PATH"):
-        print(f"{name:<28} = {env.get(name, '(unset)')}")
-    cache_base = Path(platformdirs.user_cache_dir(paths.APP_NAME))
-    print(f"cache size     : {_human(_tree_size(cache_base))} ({cache_base})")
+    # Show the paths the binary will actually use. For a managed install these
+    # are imposed by the launcher; for env/home they reflect the resolved
+    # effective locations (dynamic defaults to <data>/dynamic when unset).
+    rows = [
+        ("GALACTICUS_EXEC_PATH", install.exec_path),
+        ("GALACTICUS_DATA_PATH", install.data_path),
+        ("GALACTICUS_TOOLS_PATH", install.tools_path),
+        ("GALACTICUS_DYNAMIC_DATA_PATH", install.dynamic_path),
+    ]
+    for name, value in rows:
+        suffix = ""
+        if name == "GALACTICUS_TOOLS_PATH" and install.tools_path is None:
+            value = "(unset; tools share the dynamic path)"
+        elif name == "GALACTICUS_DYNAMIC_DATA_PATH" and not install.managed \
+                and os.environ.get("GALACTICUS_DYNAMIC_DATA_PATH") is None:
+            suffix = "  (default <data>/dynamic)"
+        print(f"{name:<28} = {value if value is not None else '(unset)'}{suffix}")
+    if install.dynamic_path is not None:
+        size = _tree_size(install.dynamic_path)
+        note = "" if install.tools_separated else "  (includes pre-built tools)"
+        print(f"dynamic data   : {_human(size)} ({install.dynamic_path}){note}")
     return 0
 
 
 def _cmd_clean(args):
-    cache_base = Path(platformdirs.user_cache_dir(paths.APP_NAME))
+    install = paths.resolve()
+    target = install.dynamic_path
+    if target is None or not Path(target).exists():
+        print("Nothing to clean (no dynamic data path resolved).")
+        return 0
+    # Guard: when tools are NOT on a separate path they live under the dynamic
+    # path, and purging it would delete pre-built tools a binary-only install
+    # cannot rebuild. Refuse unless the user explicitly forces it.
+    if not install.tools_separated and not args.force:
+        size = _tree_size(target)
+        print(
+            f"galacticus: {target} ({_human(size)}) holds regenerable data AND "
+            "pre-built tools (no separate GALACTICUS_TOOLS_PATH is set).\n"
+            "Refusing to clean to avoid deleting tools that a binary-only install "
+            "cannot rebuild. Set GALACTICUS_TOOLS_PATH to a separate location to "
+            "keep tools out of the cache, or pass --force to clean everything here.",
+            file=sys.stderr,
+        )
+        return 1
+
     cutoff = None
     if args.older_than is not None:
         cutoff = time.time() - args.older_than * 86400.0
-
-    freed, removed = _purge_tree(cache_base, cutoff=cutoff, dry_run=args.dry_run)
+    freed, removed = _purge_tree(Path(target), cutoff=cutoff, dry_run=args.dry_run)
     verb = "Would free" if args.dry_run else "Freed"
-    print(f"{verb} {_human(freed)} from cache ({removed} item(s)).")
+    print(f"{verb} {_human(freed)} from {target} ({removed} item(s)).")
 
-    if args.prune_installs:
-        current = paths.resolve()
+    if args.prune_installs and install.managed:
         data_base = Path(platformdirs.user_data_dir(paths.APP_NAME))
-        keep = current.tag if current.managed else None
-        pruned = 0
+        keep = install.tag
         for child in (data_base.iterdir() if data_base.is_dir() else []):
             if child.is_dir() and child.name != keep:
                 size = _tree_size(child)
                 print(f"{verb} {_human(size)} from install {child.name}.")
                 if not args.dry_run:
                     _rmtree(child)
-                pruned += 1
-        if keep:
-            print(f"Kept current install: {keep}")
+        print(f"Kept current install: {keep}")
     return 0
 
 

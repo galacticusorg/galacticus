@@ -75,8 +75,8 @@ def test_resolve_managed(monkeypatch):
     assert install.tag == "v1.2.3"
     # Tools live under the durable data root; dynamic under the cache root.
     assert install.tools_path.parent == install.exec_path.parent
-    assert "cache" not in str(install.tools_path).lower() or install.tools_path != install.dynamic_path
     assert install.dynamic_path != install.tools_path
+    assert install.tools_separated  # managed always separates tools from cache
     env = install.environ()
     assert env["GALACTICUS_TOOLS_PATH"] == str(install.tools_path)
     assert env["GALACTICUS_DYNAMIC_DATA_PATH"] == str(install.dynamic_path)
@@ -95,6 +95,30 @@ def test_resolve_environment(monkeypatch, tmp_path):
     assert install.source == paths.SOURCE_ENVIRONMENT
     assert not install.managed
     assert install.binary == exec_dir / "Galacticus.exe"
+    # Dynamic data path defaults to <data>/dynamic when unset, so info/clean
+    # reflect where the binary actually writes regenerable data.
+    assert install.dynamic_path == data_dir / "dynamic"
+    # Tools are not separated (no GALACTICUS_TOOLS_PATH), so they share dynamic.
+    assert install.tools_path is None
+    assert not install.tools_separated
+    # environ() must NOT impose tools/dynamic in environment mode.
+    env = install.environ({"PATH": "/usr/bin"})
+    assert "GALACTICUS_TOOLS_PATH" not in env
+    assert "GALACTICUS_DYNAMIC_DATA_PATH" not in env
+
+
+def test_resolve_environment_separated_tools(monkeypatch, tmp_path):
+    _clear_galacticus_env(monkeypatch)
+    exec_dir = tmp_path / "build"
+    exec_dir.mkdir()
+    (exec_dir / "Galacticus.exe").write_text("#!/bin/true\n")
+    (tmp_path / "datasets").mkdir()
+    tools_dir = tmp_path / "tools"
+    monkeypatch.setenv("GALACTICUS_EXEC_PATH", str(exec_dir))
+    monkeypatch.setenv("GALACTICUS_DATA_PATH", str(tmp_path / "datasets"))
+    monkeypatch.setenv("GALACTICUS_TOOLS_PATH", str(tools_dir))
+    install = paths.resolve()
+    assert install.tools_separated  # explicit tools path differs from dynamic
 
 
 def test_resolve_environment_without_binary_falls_through(monkeypatch, tmp_path):

@@ -28,11 +28,13 @@ import requests
 REPO = "galacticusorg/galacticus"
 DATASETS_REPO = "galacticusorg/datasets"
 
-# Tool executables whose execute bit must be restored after unpacking a zip
-# (macOS tools ship as .zip; tar archives already preserve permissions).
+# Tool executables in the pre-built tools archive whose execute bit must be
+# restored after unpacking a zip (macOS tools ship as .zip; tar archives already
+# preserve permissions). This list matches the binaries the CI `Build-Tools`
+# jobs pack into tools.tar.bz2 / toolsMacOS*.zip; tools built at run time and
+# NOT shipped (CosmicEmu's emu.exe, AGN_Spectrum) are intentionally absent.
 _TOOL_EXECUTABLE_NAMES = frozenset({
-    "camb", "class", "recfast.exe", "cloudy.exe", "autosps.exe",
-    "harmonize", "ransack", "emu.exe",
+    "camb", "class", "recfast.exe", "cloudy.exe", "autosps.exe", "harmonize",
 })
 
 _CHUNK = 1 << 20  # 1 MiB

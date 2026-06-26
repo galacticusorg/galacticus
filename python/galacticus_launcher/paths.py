@@ -62,16 +62,38 @@ class Install(namedtuple(
     def managed(self):
         return self.source == SOURCE_MANAGED
 
+    @property
+    def tools_separated(self):
+        """True if the pre-built tools live on a path distinct from the dynamic
+        (regenerable) data path, so the dynamic path can be purged safely.
+
+        Always true for a managed install (tools under the data root). For an
+        environment/home install it is true only when ``GALACTICUS_TOOLS_PATH``
+        was set to something other than the dynamic path; otherwise tools are
+        colocated under the dynamic path (the binary's default) and purging the
+        dynamic path would also delete them.
+        """
+        if self.managed:
+            return True
+        return self.tools_path is not None and self.tools_path != self.dynamic_path
+
     def environ(self, base=None):
         """Return a copy of `base` (default ``os.environ``) with the Galacticus
-        path variables set to this install's locations."""
+        path variables set to this install's locations.
+
+        A managed install imposes the full layout (exec/data/tools/dynamic). An
+        environment/home install only fixes exec/data and otherwise passes the
+        user's environment through unchanged, so ``GALACTICUS_TOOLS_PATH`` /
+        ``GALACTICUS_DYNAMIC_DATA_PATH`` stay exactly as the user set them (or
+        unset -> the binary's own defaults) and ``run`` behaves identically to
+        invoking the binary directly.
+        """
         env = dict(os.environ if base is None else base)
         env["GALACTICUS_EXEC_PATH"] = str(self.exec_path)
         if self.data_path is not None:
             env["GALACTICUS_DATA_PATH"] = str(self.data_path)
-        if self.tools_path is not None:
+        if self.managed:
             env["GALACTICUS_TOOLS_PATH"] = str(self.tools_path)
-        if self.dynamic_path is not None:
             env["GALACTICUS_DYNAMIC_DATA_PATH"] = str(self.dynamic_path)
         return env
 
@@ -133,7 +155,7 @@ def resolve(version=None):
         return Install(
             source=SOURCE_HOME, tag=None, exec_path=home, data_path=data,
             tools_path=_env_path("GALACTICUS_TOOLS_PATH"),
-            dynamic_path=_env_path("GALACTICUS_DYNAMIC_DATA_PATH"),
+            dynamic_path=_effective_dynamic(data),
             binary=binary, assets=None,
         )
 
@@ -147,7 +169,7 @@ def resolve(version=None):
                 source=SOURCE_ENVIRONMENT, tag=None, exec_path=Path(exec_env),
                 data_path=Path(data_env),
                 tools_path=_env_path("GALACTICUS_TOOLS_PATH"),
-                dynamic_path=_env_path("GALACTICUS_DYNAMIC_DATA_PATH"),
+                dynamic_path=_effective_dynamic(Path(data_env)),
                 binary=binary, assets=None,
             )
 
@@ -170,3 +192,14 @@ def resolve(version=None):
 def _env_path(name):
     value = os.environ.get(name)
     return Path(value) if value else None
+
+
+def _effective_dynamic(data_path):
+    """The dynamic (regenerable) data path the binary will actually use:
+    ``GALACTICUS_DYNAMIC_DATA_PATH`` if set, else ``<data_path>/dynamic`` (the
+    binary's default), else None. Used so ``info``/``clean`` reflect where the
+    regenerable data really lives for an environment/home install."""
+    explicit = _env_path("GALACTICUS_DYNAMIC_DATA_PATH")
+    if explicit is not None:
+        return explicit
+    return (data_path / "dynamic") if data_path is not None else None
