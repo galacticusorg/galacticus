@@ -65,7 +65,7 @@ contains
     use :: File_Utilities    , only : Directory_Make   , File_Exists          , File_Lock      , File_Unlock, &
           &                           lockDescriptor
     use :: Error             , only : Error_Report
-    use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath        , pathTypeTools
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//)   , replace    , &
           &                           varying_string
     use :: String_Handling   , only : stringSubstitute
@@ -88,11 +88,11 @@ contains
     ! Set path and version
     cambVersion     =dependencyVersion("camb"    )
     forutilsVersion =dependencyVersion("forutils")
-    cambPath        =inputPath(pathTypeDataDynamic)//"CAMB-"//cambVersion//"/fortran/"
+    cambPath        =inputPath(pathTypeTools)//"CAMB-"//cambVersion//"/fortran/"
     executable      =cambPath//"camb"
     makeFile        =cambPath//"Makefile"
     makeFileForUtils=cambPath//"../forutils/Makefile"
-    tarBall         =inputPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz"
+    tarBall         =inputPath(pathTypeTools)//"CAMB_"//char(cambVersion)//".tar.gz"
     tarBallForUtils =cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz"
     ! Build the CAMB code.
     if (.not.File_Exists(executable)) then
@@ -108,7 +108,7 @@ contains
              if (status /= 0 .or. .not.File_Exists(tarBall)) call Error_Report("unable to download CAMB"//{introspection:location})
           end if
           call displayMessage("unpacking CAMB code....",verbosityLevelWorking)
-          command="tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//" -f "//inputPath(pathTypeDataDynamic)//"CAMB_"//cambVersion//".tar.gz"
+          command="tar -x -v -z -C "//inputPath(pathTypeTools)//" -f "//inputPath(pathTypeTools)//"CAMB_"//cambVersion//".tar.gz"
           call System_Command_Do(command,status);
           if (status /= 0 .or. .not.File_Exists(cambPath)) call Error_Report('failed to unpack CAMB code'//{introspection:location})
           ! Download the "forutils" package if necessary.

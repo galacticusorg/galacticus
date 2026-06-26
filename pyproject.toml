@@ -1,11 +1,13 @@
 [build-system]
-requires = ["setuptools>=82.0.1", "wheel"]
+requires = ["setuptools>=82.0.1", "wheel", "setuptools_scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "galacticus"
-version = "0.0.0"
-description = "Python infrastructure for the Galacticus semi-analytic galaxy formation model."
+# Version is derived from git tags by setuptools_scm (see [tool.setuptools_scm]
+# below). Tag a release `vX.Y.Z` to publish 0.0.0+... dev builds otherwise.
+dynamic = ["version"]
+description = "Install and run the Galacticus semi-analytic galaxy formation model."
 readme = "README.md"
 license = {file = "COPYING"}
 requires-python = ">=3.10"
@@ -35,6 +37,7 @@ dependencies = [
     "PyYAML",
     "GitPython",
     "termcolor",
+    "platformdirs",
 ]
 
 [project.optional-dependencies]
@@ -58,10 +61,26 @@ lint = [
     "pyflakes",
 ]
 
+[project.scripts]
+# End-user launcher: `galacticus run model.xml`, `galacticus install`, etc.
+galacticus = "galacticus_launcher.cli:main"
+
 [project.urls]
 Homepage      = "https://github.com/galacticusorg/galacticus"
 Documentation = "https://github.com/galacticusorg/galacticus/wiki"
 Issues        = "https://github.com/galacticusorg/galacticus/issues"
+
+# ----------------------------------------------------------------------
+# Versioning: setuptools_scm derives the version from git tags so PyPI
+# releases are immutable and reproducible.  A clean `vX.Y.Z` tag yields
+# version `X.Y.Z`; untagged/dev checkouts get a `0.0.0.devN+g<hash>`
+# version, which the launcher treats as "track bleeding-edge".  The
+# fallback keeps builds working in a tarball with no .git present.
+# ----------------------------------------------------------------------
+[tool.setuptools_scm]
+fallback_version = "0.0.0"
+version_scheme   = "no-guess-dev"
+local_scheme     = "node-and-date"
 
 # ----------------------------------------------------------------------
 # setuptools layout: source lives under python/ rather than alongside

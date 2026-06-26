@@ -40,6 +40,7 @@ module Input_Paths
    <entry label="exec"       />
    <entry label="dataStatic" />
    <entry label="dataDynamic"/>
+   <entry label="tools"      />
   </enumeration>
   !!]
 
@@ -80,6 +81,17 @@ contains
           call Get_Environment_Variable("GALACTICUS_DYNAMIC_DATA_PATH",length=pathLength,status=pathStatus)
           if (pathStatus == 0)                                                                     &
                & call pathsRetrieve(pathTypeDataDynamic,"GALACTICUS_DYNAMIC_DATA_PATH",pathLength)
+          ! Pre-built external tools (CAMB, CLASS, Cloudy, FSPS, RecFast,
+          ! AxionCAMB, mangle) default to living under the dynamic data path, but
+          ! can be relocated independently via the GALACTICUS_TOOLS_PATH
+          ! environment variable. This allows a managed (e.g. pip) install to keep
+          ! immutable, pre-built tool binaries separate from the regenerable
+          ! dynamic data cache, so that the cache can be purged without losing the
+          ! tools (which a binary-only install cannot rebuild).
+          paths(pathTypeTools%ID)=paths(pathTypeDataDynamic%ID)
+          call Get_Environment_Variable("GALACTICUS_TOOLS_PATH",length=pathLength,status=pathStatus)
+          if (pathStatus == 0)                                                                     &
+               & call pathsRetrieve(pathTypeTools,"GALACTICUS_TOOLS_PATH",pathLength)
           pathsRetrieved=.true.
        end if
        !$omp end critical (Input_Path_Initialize)

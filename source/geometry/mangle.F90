@@ -216,7 +216,7 @@ contains
     use :: File_Utilities    , only : Directory_Make   , File_Exists          , File_Lock      , File_Unlock  , &
           &                           lockDescriptor
     use :: Error             , only : Error_Report
-    use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath        , pathTypeTools
     use :: ISO_Varying_String, only : operator(//)     , varying_string       , char           , assignment(=)
     use :: String_Handling   , only : stringSubstitute
     use :: System_Download   , only : download
@@ -234,7 +234,7 @@ contains
 
     ! Get the version to use.
     mangleVersion=dependencyVersion("mangle")
-    manglePath   =inputPath(pathTypeDataDynamic)//"mangle-"//mangleVersion//"/"
+    manglePath   =inputPath(pathTypeTools)//"mangle-"//mangleVersion//"/"
     ! Build the mangle code.
     if (.not.File_Exists(manglePath//"bin/harmonize")) then
        call Directory_Make(     manglePath                                         )
@@ -248,7 +248,7 @@ contains
              if (status /= 0 .or. .not.File_Exists(manglePath//".tar.gz")) call Error_Report("unable to download mangle"//{introspection:location})
           end if
           call displayMessage("unpacking mangle code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//" -f "//manglePath//".tar.gz",status)
+          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeTools)//" -f "//manglePath//".tar.gz",status)
           if (status /= 0 .or. .not.File_Exists(manglePath//"src/Makefile.in")) call Error_Report('failed to unpack mangle code'//{introspection:location})
        end if
        staticOptions=""

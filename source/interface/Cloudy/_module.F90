@@ -50,7 +50,7 @@ contains
     use :: Display           , only : displayMessage   , verbosityLevelWorking
     use :: File_Utilities    , only : File_Exists
     use :: Error             , only : Error_Report
-    use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath        , pathTypeTools
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//)     , varying_string
     use :: String_Handling   , only : stringSubstitute
     use :: System_Command    , only : System_Command_Do
@@ -72,7 +72,7 @@ contains
     cloudyVersion     ="c"//dependencyVersion("cloudy"                 )
     cloudyVersionMajor=     dependencyVersion("cloudy",majorOnly=.true.)
     ! Specify Cloudy path.
-    cloudyPath   =inputPath(pathTypeDataDynamic)//cloudyVersion
+    cloudyPath   =inputPath(pathTypeTools)//cloudyVersion
     ! Check for existence of executable - build if necessary.
     if (.not.File_Exists(cloudyPath//"/source/cloudy.exe")) then
        ! Check for existence of source code - unpack and patch if necessary.
@@ -89,7 +89,7 @@ contains
           end if
           ! Unpack and patch the code.
           call displayMessage("unpacking and patching Cloudy code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//" -f "//cloudyPath//".tar.gz",status)
+          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeTools)//" -f "//cloudyPath//".tar.gz",status)
           if (status /= 0 .or. .not.File_Exists(cloudyPath)) call Error_Report("failed to unpack Cloudy code"//{introspection:location})
           call System_Command_Do('sed -i~ -E s/"^#\!\/bin\/sh"/"#\!\/usr\/bin\/env bash"/ '//cloudyPath//'/source/configure.sh',status)
           if (status /= 0                                  ) call Error_Report("failed to patch Cloudy code"//{introspection:location})

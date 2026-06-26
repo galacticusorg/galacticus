@@ -68,7 +68,7 @@ contains
          &                            Directory_Make
     use :: Display           , only : displayMessage   , verbosityLevelWorking
     use :: Error             , only : Error_Report
-    use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath        , pathTypeTools
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//), replace       , &
           &                           varying_string
     use :: String_Handling   , only : stringSubstitute
@@ -86,8 +86,8 @@ contains
     !!]
 
     ! Set path and version
-    axionCambPath   =inputPath(pathTypeDataDynamic)//"AxionCAMB/"
-    lockPath        =inputPath(pathTypeDataDynamic)//"axion_camb"
+    axionCambPath   =inputPath(pathTypeTools)//"AxionCAMB/"
+    lockPath        =inputPath(pathTypeTools)//"axion_camb"
     exePath         =axionCambPath//"camb"
     axionCambVersion="?"
     call File_Lock(char(lockPath),fileLock,lockIsShared=.false.)
