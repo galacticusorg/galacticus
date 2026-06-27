@@ -111,7 +111,7 @@ contains
     message telling the user what to install.
     !!}
     use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : assignment(=), char        , operator(//), operator(==), &
+    use :: ISO_Varying_String, only : assignment(=), char        , len         , operator(//), &
          &                            var_str      , varying_string
     use :: System_Which      , only : which
     implicit none
@@ -137,7 +137,7 @@ contains
     end select
     compilerName=compiler(language)
     compilerPath=which(char(compilerName),status)
-    if (status /= 0 .or. compilerPath == var_str('')) then
+    if (status /= 0 .or. len(compilerPath) == 0) then
        if (present(toolName)) then
           forWhat=var_str(' to build the ')//toolName//var_str(' tool')
        else
