@@ -221,7 +221,8 @@ contains
     use :: String_Handling   , only : stringSubstitute
     use :: System_Download   , only : download
     use :: System_Command    , only : System_Command_Do
-    use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran, languageC
+    use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran, languageC, &
+         &                            compilerValidate
     implicit none
     type   (varying_string), intent(  out)           :: manglePath, mangleVersion
     logical                , intent(in   ), optional :: static
@@ -237,6 +238,8 @@ contains
     manglePath   =inputPath(pathTypeDataDynamic)//"mangle-"//mangleVersion//"/"
     ! Build the mangle code.
     if (.not.File_Exists(manglePath//"bin/harmonize")) then
+       call compilerValidate(languageFortran,'mangle')
+       call compilerValidate(languageC      ,'mangle')
        call Directory_Make(     manglePath                                         )
        call File_Lock     (char(manglePath//"mangle"),fileLock,lockIsShared=.false.)
        ! Unpack the code.

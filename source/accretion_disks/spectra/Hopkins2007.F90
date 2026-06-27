@@ -148,6 +148,7 @@ contains
     use            :: Numerical_Ranges                , only : Make_Range             , rangeTypeLogarithmic
     use            :: String_Handling                 , only : operator(//)
     use            :: System_Command                  , only : System_Command_Do
+    use            :: System_Compilers                , only : languageC              , compilerValidate
     use            :: System_Download                 , only : download
     implicit none
     class           (accretionDiskSpectraHopkins2007), intent(inout)               :: self
@@ -199,6 +200,7 @@ contains
        end if
        ! Compile the AGN SED code.
        if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) then
+          call compilerValidate(languageC,'AGN spectrum')
           call System_Command_Do("cd "//char(inputPath(pathTypeDataStatic))//"aux/AGN_Spectrum; gcc agn_spectrum.c -o agn_spectrum.x -lm");
           if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) call Error_Report('failed to compile agn_spectrum.c'//{introspection:location})
        end if
