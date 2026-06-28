@@ -1,0 +1,163 @@
+name: 'Publish'
+
+# Cut a versioned release of Galacticus:
+#   * build the `galacticus` Python distribution (sdist + wheel) and publish it
+#     to PyPI via Trusted Publishing (OIDC -- no stored token); and
+#   * create a versioned GitHub Release carrying the same pre-built binary and
+#     tools assets that the CI/CD `Deploy` job publishes to `bleeding-edge`, so
+#     that the launcher can fetch reproducible artefacts pinned to the version.
+#
+# Trigger by pushing a semantic-version tag, e.g.:
+#   git tag v1.2.3 && git push origin v1.2.3
+#
+# One-time setup required before the first run:
+#   * Configure a PyPI (and, for the dry run, TestPyPI) Trusted Publisher for
+#     this repository + workflow (`publish.yml`) and environment (`pypi`).
+#     See https://docs.pypi.org/trusted-publishers/ .
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      testpypi:
+        description: 'Publish to TestPyPI instead of PyPI (dry run)'
+        type: boolean
+        default: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  Build-Distribution:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v7
+        with:
+          # setuptools_scm derives the version from tags, so we need full history.
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Build sdist and wheel
+        run: |
+          python -m pip install --upgrade build
+          python -m build
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-distribution
+          path: dist/
+
+  Verify-Release:
+    # Guard against tagging before CI/CD has refreshed `bleeding-edge`: the
+    # versioned release mirrors the assets currently on `bleeding-edge`, so the
+    # `bleeding-edge` tag must point at the very commit being released. Fail fast
+    # otherwise, blocking BOTH the PyPI publish and the asset mirror. A no-op for
+    # the TestPyPI dry run (workflow_dispatch), so it can never skip its needers.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Verify bleeding-edge matches the tagged commit
+        if: ${{ github.event_name == 'push' }}
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          git fetch origin 'refs/tags/bleeding-edge:refs/tags/bleeding-edge' --force
+          bleeding=$(git rev-list -n1 bleeding-edge)
+          tagged=$(git rev-list -n1 "${TAG}")
+          echo "bleeding-edge -> ${bleeding}"
+          echo "${TAG} -> ${tagged}"
+          if [ "${bleeding}" != "${tagged}" ]; then
+            echo "::error::bleeding-edge (${bleeding}) does not point at ${TAG} (${tagged}). Wait for the master CI/CD run for this commit to finish and refresh bleeding-edge before tagging, then re-tag."
+            exit 1
+          fi
+      - name: Dry-run note
+        if: ${{ github.event_name != 'push' }}
+        run: echo "workflow_dispatch dry run - skipping bleeding-edge verification."
+
+  Publish-PyPI:
+    needs: [Build-Distribution, Verify-Release]
+    runs-on: ubuntu-latest
+    # Trusted Publishing requires an environment and the id-token permission.
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-distribution
+          path: dist/
+      - name: Publish to TestPyPI
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.testpypi }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+      - name: Publish to PyPI
+        if: ${{ github.event_name == 'push' }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  Release-Assets:
+    # Mirror the current `bleeding-edge` binary/tools assets onto the versioned
+    # tag so the launcher can fetch artefacts pinned to this release. Runs only
+    # for real tag pushes (not the TestPyPI dry run).
+    if: ${{ github.event_name == 'push' }}
+    needs: [Build-Distribution, Verify-Release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v7
+      - name: Mirror bleeding-edge assets and pin datasets onto the version tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          assets=(
+            Galacticus.exe
+            Galacticus_MacOS.exe
+            Galacticus_MacOS-M1.exe
+            tools.tar.bz2
+            toolsMacOS.zip
+            toolsMacOSM1.zip
+          )
+          mkdir -p release-assets
+          for asset in "${assets[@]}"; do
+            echo "Downloading ${asset} from bleeding-edge ..."
+            gh release download bleeding-edge --repo "${GITHUB_REPOSITORY}" \
+              --pattern "${asset}" --dir release-assets || \
+              echo "WARNING: ${asset} not found on bleeding-edge; skipping."
+          done
+          # Pin the datasets version: record the current datasets master HEAD
+          # commit so this release always installs against the same data. The
+          # launcher reads the `datasets.ref` asset; the value is also written
+          # into the release notes for users installing manually (not via pip).
+          datasets_sha=$(git ls-remote https://github.com/galacticusorg/datasets.git HEAD | cut -f1)
+          echo "datasets pinned to ${datasets_sha}"
+          printf '%s\n' "${datasets_sha}" > release-assets/datasets.ref
+          # Create the release (with generated notes) if it does not yet exist.
+          gh release view "${TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1 || \
+            gh release create "${TAG}" --repo "${GITHUB_REPOSITORY}" \
+              --title "${TAG}" --generate-notes
+          # Append the datasets pin to the release notes (idempotent: only once).
+          body=$(gh release view "${TAG}" --repo "${GITHUB_REPOSITORY}" --json body -q .body)
+          if ! printf '%s' "${body}" | grep -q "galacticusorg/datasets@"; then
+            {
+              printf '%s\n\n' "${body}"
+              printf '**Run-time datasets:** this release was built against `galacticusorg/datasets@%s`. If you install manually (not via `pip install galacticus`), check out the datasets repository at this commit for matching data.\n' "${datasets_sha}"
+            } > release-notes.md
+            gh release edit "${TAG}" --repo "${GITHUB_REPOSITORY}" --notes-file release-notes.md
+          fi
+          gh release upload "${TAG}" release-assets/* \
+            --repo "${GITHUB_REPOSITORY}" --clobber

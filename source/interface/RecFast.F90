@@ -38,7 +38,7 @@ contains
     use :: File_Utilities    , only : Directory_Make   , File_Exists          , File_Lock         , File_Unlock   , &
           &                           lockDescriptor
     use :: Error             , only : Error_Report
-    use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic  , pathTypeDataStatic
+    use :: Input_Paths       , only : inputPath        , pathTypeTools        , pathTypeDataStatic
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//)      , varying_string, &
          &                            var_str
     use :: System_Command    , only : System_Command_Do
@@ -58,7 +58,7 @@ contains
     !!]
 
     ! Set path.
-    recfastPath=inputPath(pathTypeDataDynamic)//"RecFast/"
+    recfastPath=inputPath(pathTypeTools)//"RecFast/"
     ! Build the code if the executable does not exist.
     pathExe=recfastPath//"recfast.exe"
     if (.not.File_Exists(pathExe)) then

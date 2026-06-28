@@ -13,6 +13,15 @@ Have questions? Ask them in the [discussion forum](https://github.com/galacticus
 
 ## Quickstart
 
+> **Just want to run models?** If you don't need to modify the code, the easiest way to get started is to install the pre-built launcher from PyPI — no compiler or manual setup required:
+>
+> ```bash
+> pip install galacticus
+> galacticus run parameters/quickTest.xml
+> ```
+>
+> The first run downloads the right binary, datasets, and tools for your platform (Linux x86-64, macOS Intel, or macOS Apple Silicon) and configures the environment for you. See the [pip installation guide](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/pip.html). The rest of this section covers building from source, which you need only if you want to modify or extend Galacticus.
+
 This section walks you through building and running a minimal Galacticus model for the first time.
 
 ### Prerequisites

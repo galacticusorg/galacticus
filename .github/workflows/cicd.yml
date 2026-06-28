@@ -41,7 +41,10 @@ jobs:
         with:
           python-version: '3.x'
       - name: Install pytest
-        run: python -m pip install --upgrade pip pytest
+        # platformdirs + requests are needed by the galacticus_launcher tests
+        # (the only third-party deps in the python/ pytest suite); both are tiny
+        # pure-Python packages so the job stays fast.
+        run: python -m pip install --upgrade pip pytest platformdirs requests
       - name: Run Python regression tests
         run: |
           cd $GITHUB_WORKSPACE

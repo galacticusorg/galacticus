@@ -4,8 +4,13 @@ Installation
 Galacticus is designed to run on Linux, with experimental support for macOS.
 There are several ways to install it, listed here from easiest to most involved:
 
-* **Pre-compiled binary** — the quickest way to get running; no compilation
-  required. Available for :doc:`Linux <binary>` and :doc:`macOS <binary-macos>`.
+* **pip** — the quickest way to get running for end users. ``pip install
+  galacticus`` installs a launcher that downloads the right pre-built binary,
+  datasets, and tools on first use and sets the environment up for you; see
+  :doc:`pip`.
+* **Pre-compiled binary** — download and configure the binary yourself; no
+  compilation required. Available for :doc:`Linux <binary>` and
+  :doc:`macOS <binary-macos>`.
 * **Container** — a ready-to-use Docker image with Galacticus already installed;
   see :doc:`container`.
 * **From source** — needed if you want to modify or extend the code. Step-by-step
@@ -56,6 +61,7 @@ Python
    :maxdepth: 1
    :caption: Installation routes
 
+   pip
    binary
    binary-macos
    container
