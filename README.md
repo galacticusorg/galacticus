@@ -1,11 +1,16 @@
 # Welcome to Galacticus
 
 [![CI/CD](https://github.com/galacticusorg/galacticus/actions/workflows/cicd.yml/badge.svg)](https://github.com/galacticusorg/galacticus/actions/workflows/cicd.yml)
+[![PyPI version](https://img.shields.io/pypi/v/galacticus.svg)](https://pypi.org/project/galacticus/)
+[![Python versions](https://img.shields.io/pypi/pyversions/galacticus.svg)](https://pypi.org/project/galacticus/)
+[![Documentation](https://readthedocs.org/projects/galacticus/badge/?version=latest)](https://galacticus.readthedocs.io/en/latest/)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Welcome to the Galacticus project. Galacticus is a semi-analytic model of galaxy formation - a powerful toolkit for modeling the physics of how galaxies form.
-For more information please see the [wiki](https://github.com/galacticusorg/galacticus/wiki), and for a description of the physics see the [description paper](https://arxiv.org/abs/1008.1786) on Galacticus.
+Galacticus is a semi-analytic model of galaxy formation — a powerful, flexible toolkit for modeling the physics of how galaxies form and evolve. For the science behind it, see the [description paper](https://arxiv.org/abs/1008.1786); for everything else, the [documentation](https://galacticus.readthedocs.io/).
 
-Have questions? Ask them in the [discussion forum](https://github.com/galacticusorg/galacticus/discussions).
+**Install:** `pip install galacticus` gets you a ready-to-run model with no compilation — pre-built binaries, datasets, and tools are downloaded automatically for Linux and macOS. See the [Quickstart](#quickstart) and the [pip installation guide](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/pip.html).
+
+Have questions? Ask in the [discussion forum](https://github.com/galacticusorg/galacticus/discussions), or browse the [wiki](https://github.com/galacticusorg/galacticus/wiki).
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=master&repo=204087682)
 

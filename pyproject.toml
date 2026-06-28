@@ -67,7 +67,8 @@ galacticus = "galacticus_launcher.cli:main"
 
 [project.urls]
 Homepage      = "https://github.com/galacticusorg/galacticus"
-Documentation = "https://github.com/galacticusorg/galacticus/wiki"
+Documentation = "https://galacticus.readthedocs.io/"
+Wiki          = "https://github.com/galacticusorg/galacticus/wiki"
 Issues        = "https://github.com/galacticusorg/galacticus/issues"
 
 # ----------------------------------------------------------------------
