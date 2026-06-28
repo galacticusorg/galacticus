@@ -62,6 +62,11 @@ runs:
     - name: Install GCC 16 (gcc/g++/gfortran)
       shell: bash
       run: |
+        # The runner image pre-installs AWS's `aws/tap`, which Galacticus never
+        # uses. Newer Homebrew enforces "tap trust" and warns about it on every
+        # `brew update`. Remove the unused tap to keep CI logs clean. The `|| true`
+        # guards against runner images that don't ship the tap.
+        brew untap aws/tap 2>/dev/null || true
         # Refresh the formula index first: the runner image ships an older
         # `gcc` (e.g. 15.2.0) and a stale tap that reports it as current, so a
         # bare `brew install gcc` is a no-op and no `gcc-16` binary appears.
