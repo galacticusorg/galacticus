@@ -43,7 +43,7 @@ contains
          &                            var_str
     use :: System_Command    , only : System_Command_Do
     use :: System_Download   , only : download
-    use :: System_Compilers  , only : compiler         , languageFortran
+    use :: System_Compilers  , only : compiler         , languageFortran      , compilerValidate
     implicit none
     type     (varying_string), intent(  out)           :: recfastPath, recfastVersion
     logical                  , intent(in   ), optional :: static
@@ -62,6 +62,7 @@ contains
     ! Build the code if the executable does not exist.
     pathExe=recfastPath//"recfast.exe"
     if (.not.File_Exists(pathExe)) then
+       call compilerValidate(languageFortran,'RecFast')
        call Directory_Make(recfastPath                              )
        call File_Lock     (pathExe    ,fileLock,lockIsShared=.false.)
        ! Patch the code if not already patched.

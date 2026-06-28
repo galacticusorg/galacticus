@@ -71,7 +71,7 @@ contains
     use :: String_Handling   , only : stringSubstitute
     use :: System_Command    , only : System_Command_Do
     use :: System_Download   , only : download
-    use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran
+    use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran, compilerValidate
     implicit none
     type     (varying_string), intent(  out)           :: cambPath       , cambVersion
     logical                  , intent(in   ), optional :: static
@@ -96,6 +96,7 @@ contains
     tarBallForUtils =cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz"
     ! Build the CAMB code.
     if (.not.File_Exists(executable)) then
+       call compilerValidate(languageFortran,'CAMB')
        call Directory_Make(cambPath                                      )
        call File_Lock     (cambPath//"camb",fileLock,lockIsShared=.false.)
        ! Unpack the code.

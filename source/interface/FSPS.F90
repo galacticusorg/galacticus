@@ -62,7 +62,7 @@ contains
     use :: String_Handling   , only : operator(//)     , stringSubstitute
     use :: System_Command    , only : System_Command_Do
     use :: System_Download   , only : download
-    use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran
+    use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran   , compilerValidate
     use :: System_Which      , only : which
     implicit none
     type     (varying_string), intent(  out)           :: fspsPath, fspsVersion
@@ -85,6 +85,7 @@ contains
     call File_Lock(char(lockPath),fspsLock)
     ! Build the code if the executable does not exist.
     if (.not.File_Exists(execPath)) then
+       call compilerValidate(languageFortran,'FSPS')
        ! Download the code if not already done.
        if (.not.File_Exists(fspsPath)) then
           tarPath=inputPath(pathTypeTools)//"FSPS_"//char(fspsVersion)//".tar.gz"

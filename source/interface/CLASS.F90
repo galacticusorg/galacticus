@@ -72,7 +72,7 @@ contains
     use :: String_Handling   , only : stringSubstitute
     use :: System_Command    , only : System_Command_Do
     use :: System_Download   , only : download
-    use :: System_Compilers  , only : compiler         , compilerOptions      , languageC
+    use :: System_Compilers  , only : compiler         , compilerOptions      , languageC   , compilerValidate
     implicit none
     type   (varying_string), intent(  out)           :: classPath, classVersion
     logical                , intent(in   ), optional :: static
@@ -88,6 +88,7 @@ contains
     classPath   =inputPath(pathTypeTools)//"class_public-"//classVersion//"/"
     ! Build the CLASS code.
     if (.not.File_Exists(classPath//"class")) then
+       call compilerValidate(languageC,'CLASS')
        call Directory_Make(     classPath                                        )
        call File_Lock     (char(classPath//"class"),fileLock,lockIsShared=.false.)
        ! Unpack the code.

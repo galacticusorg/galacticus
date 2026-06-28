@@ -55,7 +55,7 @@ contains
     use :: String_Handling   , only : stringSubstitute
     use :: System_Command    , only : System_Command_Do
     use :: System_Download   , only : download
-    use :: System_Compilers  , only : compiler         , compilerOptions      , languageCPlusPlus
+    use :: System_Compilers  , only : compiler         , compilerOptions      , languageCPlusPlus, compilerValidate
     implicit none
     type     (varying_string), intent(  out)           :: cloudyPath   , cloudyVersion
     logical                  , intent(in   ), optional :: static
@@ -75,6 +75,7 @@ contains
     cloudyPath   =inputPath(pathTypeTools)//cloudyVersion
     ! Check for existence of executable - build if necessary.
     if (.not.File_Exists(cloudyPath//"/source/cloudy.exe")) then
+       call compilerValidate(languageCPlusPlus,'Cloudy')
        ! Check for existence of source code - unpack and patch if necessary.
        if (.not.File_Exists(cloudyPath)) then
           ! Check for existence of tarball - download the Cloudy code if necessary.
