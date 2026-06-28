@@ -18,6 +18,7 @@ import pytest
 from Galacticus.Parameters.catalog import (
     derive_label, _resolve_source_elements, harvest_file,
     discover_enumerations, _enumeration_links, _capture_constraints,
+    _normalize_default,
 )
 from Galacticus.Build.SourceTree import parse_file
 
@@ -164,6 +165,18 @@ def test_harvest_links_enumeration(tmp_path):
     entries = harvest_file(str(impl), {"myClass"}, str(source_root))
     params = {p['name']: p for p in entries[0]['parameters']}
     assert params['densityType']['enumeration'] == 'fixedDensityType'
+
+
+def test_normalize_default():
+    assert _normalize_default("var_str('critical')") == 'critical'
+    assert _normalize_default('var_str("none")') == 'none'
+    assert _normalize_default("var_str( 'x' )") == 'x'
+    # Non-var_str defaults pass through unchanged.
+    assert _normalize_default('9.97d0') == '9.97d0'
+    assert _normalize_default('.true.') == '.true.'
+    assert _normalize_default("inputPath(pathTypeDataStatic)//'f.hdf5'") \
+        == "inputPath(pathTypeDataStatic)//'f.hdf5'"
+    assert _normalize_default(None) is None
 
 
 def test_capture_constraints():
