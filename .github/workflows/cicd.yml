@@ -61,6 +61,13 @@ jobs:
             --catalog parameters.catalog.json \
             --exceptions testSuite/parameterValidationExceptions.json \
             testSuite/parameters parameters parameters.xml
+      - name: Check parameter-file schema is up to date
+        run: |
+          cd $GITHUB_WORKSPACE
+          export GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE
+          python3 scripts/build/parameterSchema.py `pwd` schema/parameters.xsd
+          git diff --exit-code -- schema/parameters.xsd \
+            || { echo "schema/parameters.xsd is out of date; run 'make parameters-schema' and commit."; exit 1; }
       - run: echo "This job's status is ${{ job.status }}."
   # Build and deploy
   ## Linux

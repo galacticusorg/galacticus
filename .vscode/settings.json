@@ -1,0 +1,9 @@
+{
+  "//": "Associate Galacticus parameter files with the generated XSD so that VS Code's XML extension (redhat.vscode-xml) provides real-time validation and autocompletion. See docs/manuals/user-guide/advanced.rst ('Editor validation and autocompletion').",
+  "xml.fileAssociations": [
+    {
+      "pattern": "**/parameters/**/*.xml",
+      "systemId": "${workspaceFolder}/schema/parameters.xsd"
+    }
+  ]
+}
