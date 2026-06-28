@@ -34,7 +34,7 @@ module Mass_Distributions
   use :: Tensors                   , only : tensorRank2Dimension3Symmetric
   use :: Numerical_Interpolation   , only : interpolator
   private
-  public  :: massDistributionMatches_
+  public  :: massDistributionMatches_, massDistributionListAcquire, massDistributionListRelease
   
   !![
   <functionClass docformat="rst">
@@ -1026,9 +1026,73 @@ module Mass_Distributions
   integer            , parameter                 :: massSolversIncrement=10
   integer                                        :: massSolversCount    = 0
   !$omp threadprivate(massSolvers,massSolversCount)
-  
+
+  ! Linked-list node type for composite mass distributions. Defined here (rather than in
+  ! composite.F90) so that the node free-list below and its acquire/release helpers - shared by the
+  ! composite class, the disk/spheroid component getters, and the treeNodeMassDistribution builder -
+  ! can be declared and used. Placed after massDistributionClass (defined above) and before the
+  ! composite class type (which references it).
+  type, public :: massDistributionList
+     class(massDistributionClass), pointer :: massDistribution_ => null()
+     type (massDistributionList ), pointer :: next              => null()
+  end type massDistributionList
+
+  ! Thread-private free-list of recycled massDistributionList nodes, shared by all producers of
+  ! composite member lists (the composite class, the disk/spheroid component getters, and the
+  ! per-node treeNodeMassDistribution builder). Building these lists and tearing them down would
+  ! otherwise allocate/deallocate one node per member per call - a dominant source of allocation
+  ! churn in baryonic models. Recycling the node containers (not the objects they reference) removes
+  ! that churn. Per-thread, so no locking and no cross-thread node migration. BOUNDED: releases beyond
+  ! the maximum are deallocated (releases - every composite teardown - vastly outnumber acquires, so
+  ! an uncapped list would grow without bound).
+  integer                      , parameter :: massDistributionListFreeMaximum =  1024
+  type   (massDistributionList), pointer   :: massDistributionListFree        => null()
+  integer                                  :: massDistributionListFreeCount   =     0
+  !$omp threadprivate(massDistributionListFree,massDistributionListFreeCount)
+
 contains
-  
+
+  function massDistributionListAcquire() result(node)
+    !!{RST
+    Return a ``massDistributionList`` node, reusing one from the thread-private free-list if
+    available, otherwise allocating a new one. The returned node has both pointers nullified.
+    !!}
+    implicit none
+    type(massDistributionList), pointer :: node
+
+    if (associated(massDistributionListFree)) then
+       node                          => massDistributionListFree
+       massDistributionListFree      => node%next
+       massDistributionListFreeCount =  massDistributionListFreeCount-1
+       node%next                     => null()
+       node%massDistribution_        => null()
+    else
+       allocate(node)
+    end if
+    return
+  end function massDistributionListAcquire
+
+  subroutine massDistributionListRelease(node)
+    !!{RST
+    Return a ``massDistributionList`` node to the thread-private free-list for re-use, nullifying
+    the caller's pointer. The caller must already have released (e.g.\ via an ``objectDestructor``)
+    any object referenced by ``node%massDistribution_``.
+    !!}
+    implicit none
+    type(massDistributionList), pointer, intent(inout) :: node
+
+    node%massDistribution_ => null()
+    if (massDistributionListFreeCount < massDistributionListFreeMaximum) then
+       node%next                     => massDistributionListFree
+       massDistributionListFree      => node
+       massDistributionListFreeCount =  massDistributionListFreeCount+1
+       node                          => null()
+    else
+       deallocate(node)
+    end if
+    return
+  end subroutine massDistributionListRelease
+
   subroutine kinematicsDistributionDestructor(self)
     !!{RST
     Destroy a kinematics distribution.

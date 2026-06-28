@@ -41,12 +41,14 @@ program Test_Mass_Distributions
        &                                    massDistributionSIDMParametricProfile, massDistributionBlackHole
   use :: Numerical_Constants_Math  , only : Pi                                   , e
   use :: Tensors                   , only : assignment(=)
-  use :: Unit_Tests                , only : Assert                               , Unit_Tests_Begin_Group             , Unit_Tests_End_Group                   , Unit_Tests_Finish
+  use :: Unit_Tests                , only : Assert                               , Unit_Tests_Begin_Group             , Unit_Tests_End_Group                   , Unit_Tests_Finish                           , &
+       &                                    compareEquals                        , compareNotEqual
   implicit none
-  class           (massDistributionClass                  )                                    , allocatable :: massDistribution_                                                                                                       , massDistributionRotated                   , &
-       &                                                                                                        massDistributionDisk                                                                                                    , massDistributionSpheroid                  , &
+  class           (massDistributionClass                  )                                    , allocatable :: massDistribution_                                                                                                       , massDistributionRotated   , &
+       &                                                                                                        massDistributionDisk                                                                                                    , massDistributionSpheroid  , &
        &                                                                                                        massDistributionDMO
-  class           (massDistributionClass                  )                                    , pointer     :: massDistributionDisk_                                                                                                   , massDistributionSpheroid_ 
+  class           (massDistributionClass                  )                                    , pointer     :: massDistributionDisk_                                                                                                   , massDistributionSpheroid_ , &
+       &                                                                                                        massDistributionAll_                                                                                                    , massDistributionDiskAgain_
   class           (kinematicsDistributionClass            )                                    , pointer     :: kinematicsDistribution_
   type            (massDistributionList                   )                                    , pointer     :: massDistributions
   integer                                                  , parameter                                       :: sidmParametricTableCount              =7
@@ -83,7 +85,7 @@ program Test_Mass_Distributions
        &                                                                                                        positionReference
   type            (coordinateCartesian                    )                                                  :: positionCartesian
   type            (enumerationMassDistributionSymmetryType)                                                  :: symmetry_
-  integer                                                                                                    :: i
+  integer                                                                                                    :: i                                                                                                                       , referenceCountDiscard
   double precision                                                                                           :: radiusInProjection                                                                                                      , radius                                           , &
        &                                                                                                        rotationCurveGradientAnalytic                                                                                           , rotationCurveGradientNumerical                   , &
        &                                                                                                        massFraction                                                                                                            , time
@@ -629,6 +631,63 @@ program Test_Mass_Distributions
   call Assert("Density at (x,y,z)=(1,0,0) kpc",massDistribution_%density(positionCartesian),1.47756308872d18                      ,relTol=1.0d-6)
   nullify   (massDistributions)
   deallocate(massDistribution_)
+  call Unit_Tests_End_Group()
+
+  ! Composite subset: all-match fast path & list-node free-list re-use.
+  ! Exercises the optimizations in compositeSubset: (1) when every member matches the requested
+  ! filter the whole composite is returned directly ("self") instead of rebuilding a duplicate, and
+  ! (2) the thread-private massDistributionList free-list recycles member-list nodes. The composite
+  ! is rebuilt and destroyed on each iteration so the free-list acquire/release path is exercised
+  ! across object lifetimes; densities must stay correct and stable. Reference values match the
+  ! "Composite profile" test above (same component parameters).
+  call Unit_Tests_Begin_Group("Composite subset (fast path & node re-use)")
+  do i=1,4
+     allocate(                                   massDistributions                       )
+     allocate(                                   massDistributions%next                  )
+     allocate(massDistributionHernquist       :: massDistributions     %massDistribution_)
+     allocate(massDistributionExponentialDisk :: massDistributions%next%massDistribution_)
+     select type (massDistribution_ => massDistributions     %massDistribution_)
+     type is (massDistributionHernquist      )
+        massDistribution_=massDistributionHernquist      (mass=9.0d09,scaleLength=0.7d-3                   ,componentType=componentTypeSpheroid)
+     end select
+     select type (massDistribution_ => massDistributions%next%massDistribution_)
+     type is (massDistributionExponentialDisk)
+        massDistribution_=massDistributionExponentialDisk(mass=5.7d10,scaleRadius=2.9d-3,scaleHeight=0.3d-3,componentType=componentTypeDisk    )
+     end select
+     allocate(massDistributionComposite :: massDistribution_)
+     select type (massDistribution_)
+     type is (massDistributionComposite)
+        massDistribution_=massDistributionComposite(massDistributions)
+     end select
+     positionCartesian=[1.0d-3,0.0d0,0.0d0]
+     ! All-match subset (default componentTypeAll, massTypeAll): every member matches, so the fast
+     ! path returns a distribution equivalent to the full composite.
+     massDistributionAll_       => massDistribution_%subset(                                   )
+     ! Partial subsets must return only the matching component (i.e. NOT the whole composite).
+     massDistributionDisk_      => massDistribution_%subset(componentType=componentTypeDisk    )
+     massDistributionSpheroid_  => massDistribution_%subset(componentType=componentTypeSpheroid)
+     ! Re-subsetting the same composite must give an identical result (free-list re-use path).
+     massDistributionDiskAgain_ => massDistribution_%subset(componentType=componentTypeDisk    )
+     call Assert("all-match subset = full composite"            ,loc(massDistributionAll_      ),loc(massDistribution_    ),compare=compareEquals  )
+     call Assert("disk subset      ≠ full composite"            ,loc(massDistributionDisk_     ),loc(massDistribution_    ),compare=compareNotEqual)
+     call Assert("spheroid subset  ≠ full composite"            ,loc(massDistributionSpheroid_ ),loc(massDistribution_    ),compare=compareNotEqual)
+     call Assert("disk re-subset   = disk subset"               ,loc(massDistributionDiskAgain_),loc(massDistributionDisk_),compare=compareEquals  )
+     call Assert("all-match subset density = full composite"    ,massDistributionAll_      %density(positionCartesian),1.47756308872d18,relTol=1.0d-6)
+     call Assert("disk subset density      = disk component"    ,massDistributionDisk_     %density(positionCartesian),1.27347675828d18,relTol=1.0d-6)
+     call Assert("spheroid subset density  = spheroid component",massDistributionSpheroid_ %density(positionCartesian),2.04086330446d17,relTol=1.0d-6)
+     call Assert("re-subset disk density consistent"            ,massDistributionDiskAgain_%density(positionCartesian),1.27347675828d18,relTol=1.0d-6)
+     ! Release references. The all-match result is "self" (the composite), so balance its reference
+     ! count without destroying it; the partial subsets are counted references to members.
+     referenceCountDiscard=massDistributionAll_%referenceCountDecrement()
+     !![
+     <objectDestructor name="massDistributionDisk_"     />
+     <objectDestructor name="massDistributionSpheroid_" />
+     <objectDestructor name="massDistributionDiskAgain_"/>
+     !!]
+     nullify   (massDistributionAll_)
+     nullify   (massDistributions   )
+     deallocate(massDistribution_   )
+  end do
   call Unit_Tests_End_Group()
 
   ! Patej & Loeb (2015) profile.

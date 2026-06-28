@@ -200,7 +200,8 @@ def Tree_Node_Mass_Distribution(build):
             ("Mass_Distributions        , only : massDistributionClass"
              "       , massDistributionComposite, massDistributionList"
              "   , massDistributionZero, kinematicsDistributionClass"
-             ", kinematicsDistributionIsothermal"),
+             ", kinematicsDistributionIsothermal"
+             ", massDistributionListAcquire, massDistributionListRelease"),
             ("Galactic_Structure_Options, only : enumerationComponentTypeType"
              ", enumerationMassTypeType  , enumerationWeightByType"
              ", componentTypeAll    , componentTypeDarkMatterOnly"
@@ -303,13 +304,13 @@ def Tree_Node_Mass_Distribution(build):
             f"%massDistribution(componentType__,massType__,weightBy_,weightIndex_)\n"
             "       if (associated(massDistributionComponent)) then\n"
             "          if (associated(massDistributionList_)) then\n"
-            "            allocate(next_    %next)\n"
-            "            allocate(nextCopy_%next)\n"
+            "            next_    %next => massDistributionListAcquire()\n"
+            "            nextCopy_%next => massDistributionListAcquire()\n"
             "            next_     => next_    %next\n"
             "            nextCopy_ => nextCopy_%next\n"
             "          else\n"
-            "            allocate(massDistributionList_    )\n"
-            "            allocate(massDistributionListCopy_)\n"
+            "            massDistributionList_     => massDistributionListAcquire()\n"
+            "            massDistributionListCopy_ => massDistributionListAcquire()\n"
             "            next_     => massDistributionList_\n"
             "            nextCopy_ => massDistributionListCopy_\n"
             "          end if\n"
@@ -459,7 +460,7 @@ _MASS_DISTRIBUTION_TAIL = """   allocate(massDistributionComposite :: massDistri
     <objectDestructor name="next_%massDistribution_" nullify="no"/>
     !!]
     nextCopy_ => next_%next
-    deallocate(next_)
+    call massDistributionListRelease(next_)
     next_ => nextCopy_
    end do
    nullify(massDistributionList_)
