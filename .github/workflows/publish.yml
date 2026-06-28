@@ -102,7 +102,12 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+          # A repeated dry run from the same commit produces the same dev
+          # version; skip rather than fail if it was already uploaded.
+          skip-existing: true
       - name: Publish to PyPI
+        # No skip-existing here: a duplicate version on a real release should
+        # fail loudly (it signals a tagging mistake).
         if: ${{ github.event_name == 'push' }}
         uses: pypa/gh-action-pypi-publish@release/v1
 

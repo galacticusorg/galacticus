@@ -73,14 +73,19 @@ Issues        = "https://github.com/galacticusorg/galacticus/issues"
 # ----------------------------------------------------------------------
 # Versioning: setuptools_scm derives the version from git tags so PyPI
 # releases are immutable and reproducible.  A clean `vX.Y.Z` tag yields
-# version `X.Y.Z`; untagged/dev checkouts get a `0.0.0.devN+g<hash>`
-# version, which the launcher treats as "track bleeding-edge".  The
-# fallback keeps builds working in a tarball with no .git present.
+# version `X.Y.Z`; untagged/dev checkouts get a `0.0.0.devN` version,
+# which the launcher treats as "track bleeding-edge".  The fallback keeps
+# builds working in a tarball with no .git present.
+#
+# `local_scheme = "no-local-version"` omits the `+g<hash>` local segment.
+# PyPI/TestPyPI reject any local version identifier (a `+...` suffix), so
+# this is required for dev builds to be uploadable (e.g. the TestPyPI dry
+# run); a clean tagged release has no local segment either way.
 # ----------------------------------------------------------------------
 [tool.setuptools_scm]
 fallback_version = "0.0.0"
 version_scheme   = "no-guess-dev"
-local_scheme     = "node-and-date"
+local_scheme     = "no-local-version"
 
 # The repository carries non-version tags (e.g. `publication/doi/10.1103/...`).
 # Require version tags to start with `v`, so the `git describe --match` glob
