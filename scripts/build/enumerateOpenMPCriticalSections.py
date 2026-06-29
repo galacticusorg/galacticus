@@ -5,10 +5,37 @@ import sys
 import xml.etree.ElementTree as ET
 
 from Galacticus.Build.FortranUtils import get_fortran_line
+from Galacticus.Build.ParallelScan import scan as parallel_scan
 
 # Locate all OpenMP critical sections, and build an enumeration of them for use
 # in source code instrumentation.
 # Andrew Benson (ported to Python 2026)
+
+
+def _scan_one(full_path):
+    """Worker: scan one source file and return a dict mapping each OpenMP
+    critical-section name found to its occurrence count within that file.
+
+    Each file is read independently and writes to no shared state, so the scans
+    run concurrently across a fork-based process pool; the per-file cost is
+    dominated by blocking file I/O (open/read over NFS), which overlaps when run
+    in parallel. The small per-file count dicts are then merged in task order.
+    """
+    counts = {}
+    try:
+        with open(full_path, 'r', errors='replace') as fh:
+            while True:
+                raw, processed, _ = get_fortran_line(fh)
+                if not raw:
+                    break
+                m = re.match(r'^\s*!\$omp\s+critical\s*\(([a-z0-9_]+)\)', processed, re.IGNORECASE)
+                if m:
+                    name = m.group(1).lower()
+                    counts[name] = counts.get(name, 0) + 1
+    except OSError:
+        return {}
+    return counts
+
 
 if len(sys.argv) != 2:
     print("Usage: enumerateOpenMPCriticalSections.py <sourceDirectory>", file=sys.stderr)
@@ -27,19 +54,12 @@ for dirpath, dirnames, filenames in os.walk(src_path):
         if re.search(r'\.f(90)?$', file_name, re.IGNORECASE):
             source_file_paths.append(os.path.join(dirpath, file_name))
 
-for full_path in sorted(source_file_paths):
-    try:
-        with open(full_path, 'r', errors='replace') as fh:
-            while True:
-                raw, processed, _ = get_fortran_line(fh)
-                if not raw:
-                    break
-                m = re.match(r'^\s*!\$omp\s+critical\s*\(([a-z0-9_]+)\)', processed, re.IGNORECASE)
-                if m:
-                    name = m.group(1).lower()
-                    critical_section_names[name] = critical_section_names.get(name, 0) + 1
-    except OSError:
-        continue
+# Scan every file (concurrently) and merge results in the original sorted order
+# so the accumulated counts match a serial run exactly.
+tasks = sorted(source_file_paths)
+for counts in parallel_scan(tasks, _scan_one, "enumerateOpenMPCriticalSections.py"):
+    for name, count in counts.items():
+        critical_section_names[name] = critical_section_names.get(name, 0) + count
 
 
 def _update_file(old_path, new_path):
