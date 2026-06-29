@@ -26,8 +26,6 @@ Mirrors scripts/build/moduleDependencies.pl.
 Andrew Benson (ported to Python 2026).
 """
 
-import concurrent.futures
-import multiprocessing
 import os
 import pickle
 import re
@@ -35,10 +33,11 @@ import sys
 import xml.etree.ElementTree as ET
 
 
-from Galacticus.Build.Directives import extract_directives
-from Galacticus.Build.SourceTree import parse_file, walk_tree
-from List.ExtraUtils             import as_array
-from XML.Utils                   import xml_to_dict
+from Galacticus.Build.Directives   import extract_directives
+from Galacticus.Build.ParallelScan import scan as parallel_scan
+from Galacticus.Build.SourceTree   import parse_file, walk_tree
+from List.ExtraUtils              import as_array
+from XML.Utils                    import xml_to_dict
 
 
 # ---------------------------------------------------------------------------
@@ -307,42 +306,17 @@ def _scan_one(task):
     return file_identifier, name, desc, entry
 
 
-def _parallel_jobs(n_tasks):
-    """How many workers to use. Overridable with GALACTICUS_MODULE_DEPS_JOBS;
-    defaults to 16. Capped at the number of tasks. Because the work is
-    I/O-latency bound, oversubscribing CPUs is intentional -- workers spend most
-    of their time blocked on NFS, so more workers than cores still overlaps
-    waits. Set to 1 to force the serial path.
-    """
-    try:
-        jobs = int(os.environ.get('GALACTICUS_MODULE_DEPS_JOBS', '16'))
-    except ValueError:
-        jobs = 16
-    return max(1, min(jobs, n_tasks))
-
-
 def _scan_files(scan_list, source_root, locations):
     """Scan every file in `scan_list` (a list of `(file_identifier, name, desc)`
     preserving the serial loop's order) and return the results in that SAME
     order, so downstream `modules_per_file` insertion order -- and therefore the
-    emitted Makefile -- is identical to the serial version.
+    emitted Makefile -- is identical to the serial version. The read-only
+    `source_root`/`locations` are published to `_WORKER` first so forked workers
+    inherit them via copy-on-write instead of re-pickling per task.
     """
-    if not scan_list:
-        return []
     _WORKER['source_root'] = source_root
     _WORKER['locations']   = locations
-    jobs = _parallel_jobs(len(scan_list))
-    if jobs == 1:
-        return [_scan_one(task) for task in scan_list]
-    results = [None] * len(scan_list)
-    ctx = multiprocessing.get_context('fork')
-    with concurrent.futures.ProcessPoolExecutor(
-            max_workers=jobs, mp_context=ctx) as pool:
-        futures = {pool.submit(_scan_one, task): i
-                   for i, task in enumerate(scan_list)}
-        for future in concurrent.futures.as_completed(futures):
-            results[futures[future]] = future.result()
-    return results
+    return parallel_scan(scan_list, _scan_one, 'moduleDependencies.py')
 
 
 # ---------------------------------------------------------------------------
