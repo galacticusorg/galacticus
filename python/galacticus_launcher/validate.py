@@ -40,36 +40,97 @@ def find_catalog(install):
     return candidate if candidate.is_file() else None
 
 
-def validate(param_file, install, *, structural=False):
+def _galacticus_python_dir(install):
+    return Path(install.exec_path) / "python"
+
+
+def _ensure_importable(install):
+    """Put the exec-path ``python/`` tree (matching the binary) on ``sys.path``."""
+    python_dir = _galacticus_python_dir(install)
+    if python_dir.is_dir() and str(python_dir) not in sys.path:
+        sys.path.insert(0, str(python_dir))
+
+
+def _import_resolver(install):
+    _ensure_importable(install)
+    from Galacticus.Parameters import resolve
+    return resolve
+
+
+def resolve_to_file(param_file, install, change_files=(), *, output,
+                    conditionals=True):
+    """Resolve ``param_file`` (+ change files) and write ``output``.
+
+    Raises ``RuntimeError`` (which the CLI reports) on a resolution error or if
+    the resolver cannot be imported.
+    """
+    try:
+        resolve = _import_resolver(install)
+    except ImportError as error:
+        raise RuntimeError(f"parameter resolver unavailable: {error}")
+    try:
+        resolve.resolve_file(param_file, list(change_files), output=output,
+                             conditionals=conditionals)
+    except resolve.ResolveError as error:
+        raise RuntimeError(f"cannot resolve {param_file}: {error}")
+
+
+def validate(param_file, install, *, structural=False, change_files=()):
     """Validate `param_file` for `install`; return a :class:`Result`.
 
-    Prefers the catalog-aware Python checker; falls back to the binary's
+    Prefers the catalog-aware Python checker (run on the fully RESOLVED tree --
+    XInclude, change files, and conditionals applied -- so it checks the
+    structure Galacticus will actually build); falls back to the binary's
     ``--dry-run``.  ``ok`` is False only on an error-level finding or a parse /
-    dry-run failure (type-level findings are warnings and do not fail).
+    resolve / dry-run failure (type-level findings are warnings and do not fail).
     """
     catalog_path = find_catalog(install)
     if catalog_path is not None:
-        return _validate_with_catalog(param_file, install, catalog_path, structural)
-    return _validate_with_dry_run(param_file, install)
+        return _validate_with_catalog(param_file, install, catalog_path, structural,
+                                      change_files)
+    return _validate_with_dry_run(param_file, install, change_files)
 
 
-def _validate_with_catalog(param_file, install, catalog_path, structural):
+def _validate_with_catalog(param_file, install, catalog_path, structural, change_files):
     import json
+    import tempfile
 
-    # The checker lives under the exec path's python/ tree; make it importable.
-    python_dir = Path(install.exec_path) / "python"
-    if python_dir.is_dir() and str(python_dir) not in sys.path:
-        sys.path.insert(0, str(python_dir))
+    _ensure_importable(install)
     try:
         from Galacticus.Parameters.validate import validate_file
     except ImportError as error:
         return Result(True, [], "catalog-unavailable", str(error))
 
-    with open(catalog_path) as handle:
-        catalog = json.load(handle)
-    findings_raw, parse_error = validate_file(
-        str(param_file), catalog, structural=structural
-    )
+    # Resolve first so validation sees the structure Galacticus will build. If the
+    # resolver is unavailable (very old install), fall back to the raw file --
+    # validate_file still expands XInclude itself.
+    target = str(param_file)
+    resolved_tmp = None
+    try:
+        resolve = _import_resolver(install)
+    except ImportError:
+        resolve = None
+    if resolve is not None:
+        handle = tempfile.NamedTemporaryFile(suffix=".xml", delete=False)
+        handle.close()
+        try:
+            resolve.resolve_file(param_file, list(change_files), output=handle.name)
+        except resolve.ResolveError as error:
+            os.unlink(handle.name)
+            return Result(False,
+                          [Finding("error", "resolve", str(param_file), str(error))],
+                          "catalog", str(error))
+        target, resolved_tmp = handle.name, handle.name
+
+    try:
+        with open(catalog_path) as handle:
+            catalog = json.load(handle)
+        findings_raw, parse_error = validate_file(
+            target, catalog, structural=structural)
+    finally:
+        if resolved_tmp is not None:
+            os.unlink(resolved_tmp)
+
     if parse_error:
         return Result(False, [Finding("error", "parse", str(param_file), parse_error)],
                       "catalog", parse_error)
@@ -78,11 +139,11 @@ def _validate_with_catalog(param_file, install, catalog_path, structural):
     return Result(ok, findings, "catalog", str(catalog_path))
 
 
-def _validate_with_dry_run(param_file, install):
+def _validate_with_dry_run(param_file, install, change_files=()):
     env = install.environ()
     try:
         completed = subprocess.run(
-            [str(install.binary), str(param_file), "--dry-run"],
+            [str(install.binary), str(param_file), *change_files, "--dry-run"],
             env=env, capture_output=True, text=True,
         )
     except OSError as error:

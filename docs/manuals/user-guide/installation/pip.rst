@@ -56,8 +56,31 @@ Commands
 ``galacticus update``
    Re-download the install for the current package version.
 
-``galacticus validate <file>``
-   Validate a parameter file without running it.
+``galacticus validate <file> [change files...]``
+   Validate a parameter file without running it. Validation is performed on the
+   *resolved* tree (XInclude, any change files, and ``active=`` conditionals are
+   applied first), so it checks the structure Galacticus will actually build.
+
+``galacticus resolve <file> [change files...] -o <output>``
+   Apply the file-level transformations Galacticus performs when reading a
+   parameter file — XInclude expansion, change-file application, and ``active=``
+   conditional evaluation/pruning — and write a single, clean, self-contained
+   parameter file to ``<output>``. Math expressions (``=[...]``) and ``id``/
+   ``idRef`` anchors are left intact for Galacticus to handle at run time. Pass
+   ``--no-conditionals`` to leave conditionals in place, or ``--validate`` to
+   validate the result. This needs no executable or download.
+
+   This is the recommended way to use the launcher with **MPI**: resolve once,
+   then launch the (unchanged) executable under ``mpirun`` on the resolved file —
+
+   .. code-block:: bash
+
+      galacticus resolve model.xml changes.xml -o resolved.xml
+      mpirun -n 16 Galacticus.exe resolved.xml
+
+   Do **not** run ``mpirun galacticus run …``: that would resolve and launch once
+   per rank. (For a single-process run, ``galacticus run --resolve <file>``
+   resolves to a temporary file and runs that.)
 
 ``galacticus clean``
    Purge the regenerable data cache so it cannot grow without bound. Use
