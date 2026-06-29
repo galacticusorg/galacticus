@@ -135,14 +135,14 @@ runs:
     - name: Install FoX
       shell: bash
       run: |
-        curl -L --fail --retry 5 --retry-all-errors --retry-max-time 120 https://github.com/andreww/fox/archive/refs/tags/4.1.0.tar.gz --output FoX-4.1.0.tar.gz
-        tar xvfz FoX-4.1.0.tar.gz
-        cd fox-4.1.0
+        curl -L --fail --retry 5 --retry-all-errors --retry-max-time 120 https://github.com/galacticusorg/fox/archive/refs/tags/v4.1.4.tar.gz --output FoX-4.1.4.tar.gz
+        tar xvfz FoX-4.1.4.tar.gz
+        cd fox-4.1.4
         FC=${FCCOMPILER} ./configure --prefix=/usr/local
         make -j3
         sudo make install
         cd ..
-        rm -rf fox-4.1.0 FoX-4.1.0.tar.gz
+        rm -rf fox-4.1.4 FoX-4.1.4.tar.gz
     - name: Install FFTW3
       shell: bash
       run: |

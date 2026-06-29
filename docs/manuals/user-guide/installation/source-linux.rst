@@ -90,13 +90,13 @@ Required
    make
    make install
 
-* FoX `v4.1.3 <https://github.com/galacticusorg/fox/archive/refs/tags/v4.1.3.tar.gz>`_
+* FoX `v4.1.4 <https://github.com/galacticusorg/fox/archive/refs/tags/v4.1.4.tar.gz>`_
 
 .. code-block:: bash
 
-   wget https://github.com/galacticusorg/fox/archive/refs/tags/v4.1.3.tar.gz -O fox-4.1.3.tar.gz
-   tar -vxzf fox-4.1.3.tar.gz
-   cd fox-4.1.3
+   wget https://github.com/galacticusorg/fox/archive/refs/tags/v4.1.4.tar.gz -O fox-4.1.4.tar.gz
+   tar -vxzf fox-4.1.4.tar.gz
+   cd fox-4.1.4
    FC=gfortran ./configure --prefix=$INSTALL_PATH
    make
    make install

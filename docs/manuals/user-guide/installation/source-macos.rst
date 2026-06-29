@@ -120,14 +120,14 @@ Install FoX
 
 .. code-block:: bash
 
-   curl -L https://github.com/galacticusorg/fox/archive/refs/tags/v4.1.3.tar.gz --output FoX-4.1.3.tar.gz
-   tar xvfz FoX-4.1.3.tar.gz
-   cd fox-4.1.3
+   curl -L https://github.com/galacticusorg/fox/archive/refs/tags/v4.1.4.tar.gz --output FoX-4.1.4.tar.gz
+   tar xvfz FoX-4.1.4.tar.gz
+   cd fox-4.1.4
    FC=gfortran-16 ./configure --prefix=/usr/local
    make -j
    sudo make install
    cd ..
-   rm -rf fox-4.1.3 FoX-4.1.3.tar.gz
+   rm -rf fox-4.1.4 FoX-4.1.4.tar.gz
 
 Install FFTW3
 -------------
