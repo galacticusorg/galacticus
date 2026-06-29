@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782427648713,
+  "lastUpdate": 1782694921835,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "e974094460a97b468f46fdaf79770b1f1fc51e0d",
-          "message": "Merge pull request #637 from galacticusorg/featSingleEpochError\n\nProvide a more helpful error message when single epoch output is not allowed",
-          "timestamp": "2024-07-09T15:16:37Z",
-          "tree_id": "ebba49aa8dcf854cba2baad3d37b18e4da7435f4",
-          "url": "https://github.com/galacticusorg/galacticus/commit/e974094460a97b468f46fdaf79770b1f1fc51e0d"
-        },
-        "date": 1720556338888,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
-            "value": 13.9314461307549,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": 6.5537461106679,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
-            "value": 5.00086399252571,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9900,6 +9861,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/5fd64fb3e3d1b610310c5eb0f420473a719674d9"
         },
         "date": 1782427647995,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": 13.93162972497932,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 6.553741456976611,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": 5.001018843020751,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "93fa1d95c8971a4006918b5f53b089a2b45d7e46",
+          "message": "Merge pull request #1199 from galacticusorg/claude/galacticus-tool-compiler-check\n\nCheck compiler availability before building run-time tools",
+          "timestamp": "2026-06-28T19:42:54Z",
+          "tree_id": "3931af7fdbc02d7b3a2da75d75c2ecbe386c9cea",
+          "url": "https://github.com/galacticusorg/galacticus/commit/93fa1d95c8971a4006918b5f53b089a2b45d7e46"
+        },
+        "date": 1782694921068,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
