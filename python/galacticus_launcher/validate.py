@@ -30,14 +30,21 @@ Result = namedtuple("Result", ["ok", "findings", "method", "detail"])
 def find_catalog(install):
     """Locate a ``parameters.catalog.json``, or None.
 
-    Honors ``GALACTICUS_PARAMETER_CATALOG`` first, then looks beside the
-    executable's exec path.
+    Honors ``GALACTICUS_PARAMETER_CATALOG`` first; then the exec path root (where
+    a managed install generates it at provision time); then the default build
+    output dir ``work/build/`` (where ``make parameters-catalog`` writes it for a
+    build-from-source install). A non-default ``BUILDPATH`` is supported via the
+    env override.
     """
     override = os.environ.get("GALACTICUS_PARAMETER_CATALOG")
     if override and Path(override).is_file():
         return Path(override)
-    candidate = Path(install.exec_path) / "parameters.catalog.json"
-    return candidate if candidate.is_file() else None
+    exec_path = Path(install.exec_path)
+    for candidate in (exec_path / "parameters.catalog.json",
+                      exec_path / "work" / "build" / "parameters.catalog.json"):
+        if candidate.is_file():
+            return candidate
+    return None
 
 
 def _galacticus_python_dir(install):

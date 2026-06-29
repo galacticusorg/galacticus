@@ -118,6 +118,12 @@ executable is present, or if ``GALACTICUS_HOME`` points at a build/clone tree
 containing ``Galacticus.exe``, the launcher uses that install and skips all
 downloads. Run ``galacticus info`` to see which install is in effect.
 
+For such a build, catalog-aware validation needs the parameter catalog, which a
+managed install generates automatically but a source build does not. Generate it
+once with ``make parameters-catalog`` (it is written to the build tree where the
+launcher looks for it); without it, ``galacticus validate`` falls back to the
+executable's ``--dry-run``.
+
 .. note::
 
    The launcher fetches assets from the GitHub release matching the installed

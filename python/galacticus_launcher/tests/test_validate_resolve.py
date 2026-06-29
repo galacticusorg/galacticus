@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from galacticus_launcher import cli, paths
+from galacticus_launcher import cli, download, paths
 from galacticus_launcher import validate as launcher_validate
 
 REPO = Path(__file__).resolve().parents[3]
@@ -138,3 +138,85 @@ def test_validate_ok_on_resolved_good_file(tmp_path, monkeypatch):
                   '<parameters><accretionHalo value="simple"/></parameters>')
     result = launcher_validate.validate(str(main), _install())
     assert result.ok and result.method == "catalog"
+
+
+# --- catalog generation at provision time (Stage 4 delivery: option B) -------
+
+def _install_at(exec_path):
+    return paths.Install(
+        source=paths.SOURCE_MANAGED, tag="v1.0.0", exec_path=exec_path,
+        data_path=None, tools_path=None, dynamic_path=None, binary=None, assets=None)
+
+
+def _fake_generator(exec_path):
+    gen = exec_path / "scripts" / "build" / "parameterCatalog.py"
+    gen.parent.mkdir(parents=True, exist_ok=True)
+    gen.write_text("# stub generator\n")
+    return gen
+
+
+def test_provision_catalog_generates_when_missing(tmp_path, monkeypatch):
+    _fake_generator(tmp_path)
+    captured = {}
+
+    def fake_run(cmd, **kwargs):
+        captured["cmd"] = cmd
+        Path(cmd[3]).write_text("{}")        # the generator writes the catalog
+    monkeypatch.setattr(download.subprocess, "run", fake_run)
+
+    assert download._provision_catalog(_install_at(tmp_path), force=False,
+                                       log=lambda *a: None) is True
+    assert (tmp_path / "parameters.catalog.json").is_file()
+    assert captured["cmd"][2:] == [str(tmp_path), str(tmp_path / "parameters.catalog.json")]
+
+
+def test_provision_catalog_skips_when_present(tmp_path, monkeypatch):
+    _fake_generator(tmp_path)
+    (tmp_path / "parameters.catalog.json").write_text("{}")
+    ran = []
+    monkeypatch.setattr(download.subprocess, "run", lambda *a, **k: ran.append(a))
+    assert download._provision_catalog(_install_at(tmp_path), force=False,
+                                       log=lambda *a: None) is False
+    assert ran == []                         # not regenerated
+    # ... but force=True regenerates.
+    monkeypatch.setattr(download.subprocess, "run",
+                        lambda cmd, **k: Path(cmd[3]).write_text("{}"))
+    assert download._provision_catalog(_install_at(tmp_path), force=True,
+                                       log=lambda *a: None) is True
+
+
+def test_provision_catalog_without_source_is_noop(tmp_path):
+    assert download._provision_catalog(_install_at(tmp_path), force=False,
+                                       log=lambda *a: None) is False
+
+
+def test_find_catalog_locations(tmp_path, monkeypatch):
+    monkeypatch.delenv("GALACTICUS_PARAMETER_CATALOG", raising=False)
+    install = _install_at(tmp_path)
+    assert launcher_validate.find_catalog(install) is None
+    # Build-dir location (where `make parameters-catalog` writes).
+    build = tmp_path / "work" / "build"
+    build.mkdir(parents=True)
+    (build / "parameters.catalog.json").write_text("{}")
+    assert launcher_validate.find_catalog(install) == build / "parameters.catalog.json"
+    # Exec-path root (managed provision) takes precedence over the build dir.
+    root_catalog = tmp_path / "parameters.catalog.json"
+    root_catalog.write_text("{}")
+    assert launcher_validate.find_catalog(install) == root_catalog
+    # Explicit env override beats both.
+    override = tmp_path / "custom.json"
+    override.write_text("{}")
+    monkeypatch.setenv("GALACTICUS_PARAMETER_CATALOG", str(override))
+    assert launcher_validate.find_catalog(install) == override
+
+
+def test_provision_catalog_failure_is_best_effort(tmp_path, monkeypatch):
+    _fake_generator(tmp_path)
+
+    def boom(*a, **k):
+        raise download.subprocess.CalledProcessError(1, "parameterCatalog.py")
+    monkeypatch.setattr(download.subprocess, "run", boom)
+    messages = []
+    assert download._provision_catalog(_install_at(tmp_path), force=False,
+                                       log=messages.append) is False
+    assert any("could not generate" in m for m in messages)
