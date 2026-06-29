@@ -21,9 +21,10 @@ import sys
 import xml.etree.ElementTree as ET
 
 
-from Galacticus.Build.SourceTree import parse_file, walk_tree
-from List.ExtraUtils             import as_array
-from XML.Utils                   import dict_to_xml_string, xml_to_dict
+from Galacticus.Build.ParallelScan import scan as parallel_scan
+from Galacticus.Build.SourceTree   import parse_file, walk_tree
+from List.ExtraUtils              import as_array
+from XML.Utils                    import dict_to_xml_string, xml_to_dict
 
 
 # ---------------------------------------------------------------------------
@@ -100,6 +101,24 @@ def _inherits_from(classes, class_name, base_class):
     return False
 
 
+def _scan_one(task):
+    """Worker: parse one file and return `(file_identifier, entries)`. Mirrors
+    the per-file body of the serial loop; writes no shared state. The file read
+    + AST parse (the slow, NFS-blocking part) is what runs concurrently.
+    """
+    file_identifier, file_name = task
+    tree = parse_file(file_name)
+    classes, directives = _collect_types_and_directives(tree, 'deepCopyActions')
+    entries = []
+    for node in directives:
+        directive  = node.get('directive') or {}
+        base_class = directive.get('class')
+        for class_name in sorted(classes):
+            if _inherits_from(classes, class_name, base_class):
+                entries.append({'type': class_name, 'class': base_class})
+    return file_identifier, entries
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -119,29 +138,22 @@ def main(argv):
     actions_per_file, cache_mtime = _load_cache(blob_path)
     have_per_file = cache_mtime is not None
 
-    # Iterate over every file that contains a deepCopyActions directive.
+    # Select the files that need a (re)scan, preserving directive-location order.
     files = as_array((directive_locations.get('deepCopyActions') or {}).get('file'))
+    scan_list = []
     for file_name in files:
         file_identifier = _file_identifier(file_name)
         if (have_per_file
                 and file_identifier in actions_per_file
                 and os.stat(file_name).st_mtime < cache_mtime):
             continue
+        scan_list.append((file_identifier, file_name))
+
+    # Parse the files concurrently; merge in scan order, reproducing the serial
+    # pop-then-maybe-set behaviour exactly.
+    for file_identifier, entries in parallel_scan(
+            scan_list, _scan_one, 'deepCopyActions.py'):
         actions_per_file.pop(file_identifier, None)
-
-        tree = parse_file(file_name)
-        classes, directives = _collect_types_and_directives(
-            tree, 'deepCopyActions',
-        )
-
-        # For every directive, record every (derived-type, base-class) pair.
-        entries = []
-        for node in directives:
-            directive  = node.get('directive') or {}
-            base_class = directive.get('class')
-            for class_name in sorted(classes):
-                if _inherits_from(classes, class_name, base_class):
-                    entries.append({'type': class_name, 'class': base_class})
         if entries:
             actions_per_file[file_identifier] = {'deepCopyActions': entries}
 
