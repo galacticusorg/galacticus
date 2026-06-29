@@ -26,6 +26,8 @@ Mirrors scripts/build/moduleDependencies.pl.
 Andrew Benson (ported to Python 2026).
 """
 
+import concurrent.futures
+import multiprocessing
 import os
 import pickle
 import re
@@ -251,6 +253,96 @@ def _scan_file(stack, entry, source_root):
                     in_latex = True
         finally:
             fh.close()
+
+
+# ---------------------------------------------------------------------------
+# Per-file processing (parallelised across files)
+# ---------------------------------------------------------------------------
+#
+# Each source file is scanned independently: it reads the file (and any
+# `include`d files) and produces a single `entry` dict that writes to no shared
+# state. The per-file cost is dominated by blocking file I/O (open/read of the
+# source on NFS), which on a loaded node stretches from microseconds to
+# milliseconds per file; running the scans concurrently overlaps those waits
+# (and the parsing CPU work) instead of paying them one at a time.
+#
+# A fork-based process pool is used rather than threads so the workers are fully
+# isolated -- no assumptions are made about the thread-safety of the parser --
+# and the regex/AST parsing parallelises too. Workers inherit the read-only
+# `locations` map and `source_root` via copy-on-write fork, so nothing large is
+# pickled per task; only the small result dicts come back.
+
+_WORKER = {}
+
+
+def _scan_one(task):
+    """Worker: scan one source file and return its `(file_identifier, name,
+    desc, entry)`. Mirrors the per-file body of the serial scan loop exactly.
+    """
+    file_identifier, name, desc = task
+    source_root = _WORKER['source_root']
+    locations   = _WORKER['locations']
+    file_path   = desc['path'] + '/' + name
+
+    # functionClass -> synthesise submodule records.
+    function_classes = extract_directives(file_path, 'functionClass')
+    submodules_for_file = []
+    for fc in function_classes:
+        for fc_file in as_array((locations.get(fc['name']) or {}).get('file')):
+            submodules_for_file.extend(
+                _find_function_class_submodules(
+                    fc['name'], fc_file, locations, source_root,
+                )
+            )
+
+    entry = {}
+    if submodules_for_file:
+        entry['submodules'] = submodules_for_file
+    entry.setdefault('files', []).append(file_path)
+    entry['sourceFileName']            = name
+    entry['sourceDirectoryDescriptor'] = desc
+    entry.setdefault('modulesProvided', [])
+
+    _scan_file([file_path], entry, source_root)
+    return file_identifier, name, desc, entry
+
+
+def _parallel_jobs(n_tasks):
+    """How many workers to use. Overridable with GALACTICUS_MODULE_DEPS_JOBS;
+    defaults to 16. Capped at the number of tasks. Because the work is
+    I/O-latency bound, oversubscribing CPUs is intentional -- workers spend most
+    of their time blocked on NFS, so more workers than cores still overlaps
+    waits. Set to 1 to force the serial path.
+    """
+    try:
+        jobs = int(os.environ.get('GALACTICUS_MODULE_DEPS_JOBS', '16'))
+    except ValueError:
+        jobs = 16
+    return max(1, min(jobs, n_tasks))
+
+
+def _scan_files(scan_list, source_root, locations):
+    """Scan every file in `scan_list` (a list of `(file_identifier, name, desc)`
+    preserving the serial loop's order) and return the results in that SAME
+    order, so downstream `modules_per_file` insertion order -- and therefore the
+    emitted Makefile -- is identical to the serial version.
+    """
+    if not scan_list:
+        return []
+    _WORKER['source_root'] = source_root
+    _WORKER['locations']   = locations
+    jobs = _parallel_jobs(len(scan_list))
+    if jobs == 1:
+        return [_scan_one(task) for task in scan_list]
+    results = [None] * len(scan_list)
+    ctx = multiprocessing.get_context('fork')
+    with concurrent.futures.ProcessPoolExecutor(
+            max_workers=jobs, mp_context=ctx) as pool:
+        futures = {pool.submit(_scan_one, task): i
+                   for i, task in enumerate(scan_list)}
+        for future in concurrent.futures.as_completed(futures):
+            results[futures[future]] = future.result()
+    return results
 
 
 # ---------------------------------------------------------------------------
@@ -510,10 +602,13 @@ def main(argv):
         if any(fid not in unstripped_set for fid in modules_per_file):
             force_rescan = True
 
-    # Per-file scan.
+    # Decide which files need a (re)scan, preserving the deterministic
+    # descriptor-then-sorted-name order so the merge below reproduces the serial
+    # insertion order exactly.
+    scan_list = []
     for desc in descriptors:
         for name in _list_source_files(desc['path']):
-            file_path      = desc['path'] + '/' + name
+            file_path       = desc['path'] + '/' + name
             file_identifier = _file_identifier(file_path)
 
             rescan = True
@@ -527,31 +622,14 @@ def main(argv):
                 rescan = bool(stale)
             if not (rescan or force_rescan):
                 continue
+            scan_list.append((file_identifier, name, desc))
 
-            modules_per_file.pop(file_identifier, None)
-
-            # functionClass -> synthesise submodule records.
-            function_classes = extract_directives(file_path, 'functionClass')
-            submodules_for_file = []
-            for fc in function_classes:
-                for fc_file in as_array(
-                    (locations.get(fc['name']) or {}).get('file'),
-                ):
-                    submodules_for_file.extend(
-                        _find_function_class_submodules(
-                            fc['name'], fc_file, locations, source_root,
-                        )
-                    )
-
-            entry = modules_per_file.setdefault(file_identifier, {})
-            if submodules_for_file:
-                entry['submodules'] = submodules_for_file
-            entry.setdefault('files', []).append(file_path)
-            entry['sourceFileName']           = name
-            entry['sourceDirectoryDescriptor'] = desc
-            entry.setdefault('modulesProvided', [])
-
-            _scan_file([file_path], entry, source_root)
+    # Scan the files (concurrently) and merge results in scan-list order so the
+    # output is identical to a serial run.
+    for file_identifier, name, desc, entry in _scan_files(
+            scan_list, source_root, locations):
+        modules_per_file.pop(file_identifier, None)
+        modules_per_file[file_identifier] = entry
 
     # Build the submodule-by-module map.
     submodules_by_module = _build_submodule_map(modules_per_file)
