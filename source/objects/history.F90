@@ -1072,13 +1072,13 @@ contains
      !!{RST
      Combines the data in ``addHistory`` with that in ``history_``. This function is designed for histories that track integrated quantities (such as total mass of stars formed in a time interval for example). ``history_`` will be extended if necessary to span the range of ``addHistory``. Then, the data from ``addHistory`` will be added to that in ``history_`` by finding the fraction of each timestep in ``addHistory`` that overlaps with each timestep in ``history_`` and assuming that the corresponding fraction of the data value should be added to ``history_``.
      !!}
-     use            :: Error           , only : Error_Report
-     use            :: Numerical_Ranges, only : rangeTypeUndefined
+     use :: Error           , only : Error_Report
+     use :: Numerical_Ranges, only : rangeTypeUndefined
      implicit none
      class           (history ), intent(inout)           :: history_
      type            (history ), intent(in   )           :: addHistory
      logical                   , intent(in   ), optional :: autoExtend
-     integer                                             :: addCount           , addHistoryPointCount
+     integer                                             :: addCount  , addHistoryPointCount
      !![
      <optionalArgument name="autoExtend" defaultsTo=".false." />
      !!]
@@ -1132,26 +1132,27 @@ contains
 
    subroutine History_Increment_Core(time,data,addHistory)
      !!{RST
-     Accumulate the data in ``addHistory`` into the ``data`` array defined on the time grid ``time``. Shared
-     by \refmethod{history}{increment} (operating on a history object's own storage) and
-     \refmethod{history}{incrementSerialized} (operating on a rank-remapped view of a serialized rate
-     vector). The caller guarantees that ``data`` already spans the range of ``addHistory`` (i.e. any
-     required extension has been performed) and that the two have the same number of histories. Bins of
-     ``addHistory`` that contribute nothing are skipped (adding zero is an exact no-op), and the common case
-     of identical time grids collapses to a single element-wise addition.
+     Accumulate the data in ``addHistory`` into the ``data`` array defined on the time grid
+     ``time``. Shared by ``increment`` (operating on a history object's own storage) and
+     ``incrementSerialized`` (operating on a rank-remapped view of a serialized rate vector)
+     methods. The caller guarantees that ``data`` already spans the range of ``addHistory``
+     (i.e. any required extension has been performed) and that the two have the same number of
+     histories. Bins of ``addHistory`` that contribute nothing are skipped (adding zero is an
+     exact no-op), and the common case of identical time grids collapses to a single
+     element-wise addition.
      !!}
      use            :: Arrays_Search, only : searchArray
      use, intrinsic :: ISO_C_Binding, only : c_size_t
      implicit none
-     double precision         , intent(in   )           :: time(:)
-     double precision         , intent(inout)           :: data(:,:)
-     type            (history ), intent(in   )           :: addHistory
-     integer                                             :: addCount
-     integer         (c_size_t)                          :: timeBeginIndex     , timeEndIndex        , &
-          &                                                 iPoint             , jPoint
-     double precision                                    :: fractionContributed, timeBegin           , &
-          &                                                 timeEnd            , timeBeginAdd        , &
-          &                                                 timeEndAdd
+     double precision          , intent(in   ) :: time(:)
+     double precision          , intent(inout) :: data(:,:)
+     type            (history ), intent(in   ) :: addHistory
+     integer                                   :: addCount
+     integer         (c_size_t)                :: timeBeginIndex     , timeEndIndex, &
+          &                                       iPoint             , jPoint
+     double precision                          :: fractionContributed, timeBegin   , &
+          &                                       timeEnd            , timeBeginAdd, &
+          &                                       timeEndAdd
 
      addCount=size(addHistory%time)
      ! Aligned-grid fast path: when both histories share the same time grid the overlap integration reduces
@@ -1173,18 +1174,18 @@ contains
            timeBeginIndex=1_c_size_t
         else
            timeBeginAdd  =addHistory%time(iPoint-1)
-           timeBeginIndex=min(searchArray(time,timeBeginAdd)+1,size(time))
+           timeBeginIndex=min(searchArray(time,           timeBeginAdd        )+1,size(time))
         end if
-        timeEndAdd     =addHistory%time(iPoint  )
-        timeEndIndex   =min(searchArray(time,addHistory%time(iPoint))+1,size(time))
+        timeEndAdd       =addHistory%time(iPoint  )
+        timeEndIndex     =min(searchArray(time,addHistory%time        (iPoint))+1,size(time))
         ! Loop over all points in the target grid to which we need to add this contribution.
         do jPoint=timeBeginIndex,timeEndIndex
            if (jPoint == 1) then
-              timeBegin=                       timeBeginAdd
+              timeBegin=                   timeBeginAdd
            else
               timeBegin=max(time(jPoint-1),timeBeginAdd)
            end if
-           timeEnd            =min(time(jPoint  ),timeEndAdd  )
+           timeEnd            =min(time(jPoint),timeEndAdd)
            fractionContributed=max(0.0d0,(timeEnd-timeBegin)/(timeEndAdd-timeBeginAdd))
            data(jPoint,:)     =data(jPoint,:)+addHistory%data(iPoint,:)*fractionContributed
         end do
@@ -1194,21 +1195,22 @@ contains
 
    subroutine History_Increment_Serialized(self,dataVector,addHistory)
      !!{RST
-     Accumulate ``addHistory`` directly into a *serialized* history held in ``dataVector`` (for example, a
-     slice of the ODE rate vector), using ``self`` only as a template that supplies the time grid and shape.
-     The serialized vector is rank-remapped to a two-dimensional view - using the same column-major layout as
-     \refmethod{history}{serialize} and \refmethod{history}{deserialize} - and incremented in place. This
-     avoids the deserialize/increment/serialize round-trip and its three array copies. The view cannot be
-     reallocated, so ``addHistory`` must fit within the template grid (always true for ODE rate
-     accumulation, where the slice length is exactly the template's serialized size).
+     Accumulate ``addHistory`` directly into a *serialized* history held in ``dataVector`` (for
+     example, a slice of the ODE rate vector), using ``self`` only as a template that supplies
+     the time grid and shape.  The serialized vector is rank-remapped to a two-dimensional view
+     - using the same column-major layout as ``serialize`` and ``deserialize`` - and incremented
+     in place. This avoids the deserialize/increment/serialize round-trip and its three array
+     copies. The view cannot be reallocated, so ``addHistory`` must fit within the template grid
+     (always true for ODE rate accumulation, where the slice length is exactly the template's
+     serialized size).
      !!}
      use :: Error, only : Error_Report
      implicit none
-     class           (history), intent(in   ), target             :: self
-     double precision         , intent(inout), target, contiguous :: dataVector(:)
-     type            (history), intent(in   )                     :: addHistory
-     double precision         , pointer       , dimension(:,:)    :: data
-     integer                                                      :: addCount
+     class           (history), intent(in   ), target                              :: self
+     double precision         , intent(inout), target , dimension(:  ), contiguous :: dataVector(:)
+     type            (history), intent(in   )                                      :: addHistory
+     double precision                        , pointer, dimension(:,:)             :: data
+     integer                                                                       :: addCount
 
      ! Nothing to add?
      if (.not.allocated(addHistory%time)) return

@@ -22,7 +22,7 @@ from Galacticus.Build.Components.DataTypes  import data_object_definition
 # directly into a slice of the ODE rate vector in place rather than doing a
 # deserialize/increment/serialize round-trip (which copies the whole
 # serialized array three times). Only types whose serialized size is large
-# enough for the copies to matter benefit; today only `history` (the
+# enough for the copies to matter benefit; today only `history` (used for
 # star-formation-history accumulation) does. A name listed here MUST have a
 # matching type-bound procedure or the generated code fails to compile.
 INCREMENT_SERIALIZED_TYPES = {'history'}
