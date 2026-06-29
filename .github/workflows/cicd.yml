@@ -14,10 +14,12 @@ on:
       - 'schema/**'
       - 'testSuite/**'
       - '.github/workflows/cicd.yml'
+      - '.github/actions/**'
   push:
     branches:
       - 'master'
-    paths: *codePaths
+    # Always run on pushes to master (even docs-only changes) so build
+    # artifacts are available in case we want to tag the commit for release.
 concurrency:
   group: cicd-${{ github.ref }}
   cancel-in-progress: true  
