@@ -76,6 +76,8 @@ _EXCLUDED_URL_RES = [
     re.compile(r'^https?://\.+\)?$'),  # placeholder, e.g. "http://......." in code examples
     # Defunct Google Drive link for BPASS data, retained only for the historical record.
     re.compile(r'^https://drive\.google\.com/open\?id=0B7vqPPPgOdtIfjUtb3RsV2JUOTFFX29WV1FZNURPMHAxTEtZQjhJOGtyNXZUTTNVSzFZazQ$'),
+    # Defunct Maraston stellar population model link, retained only for the historical record.
+    re.compile(r"^http://www\.icg\.port\.ac\.uk/~maraston/Claudia's_Stellar_Population_Model\.html$"),
 ]
 
 
