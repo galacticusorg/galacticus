@@ -24,6 +24,7 @@ import sys
 
 from Galacticus.Build.FileChanges               import update as file_changes_update
 from Galacticus.Build.Directives      import extract_directives
+from Galacticus.Build.ParallelScan    import scan as parallel_scan
 from XML.Utils                        import dict_to_xml_string
 
 
@@ -126,6 +127,156 @@ def _add_implicit_directives(directive, per_file_entry, file_name, file_path):
 
 
 # ---------------------------------------------------------------------------
+# Per-file processing (parallelised across files)
+# ---------------------------------------------------------------------------
+#
+# Each source file is scanned independently: it reads the file (and any
+# `include`d files) and produces a single per-file `entry` dict that writes to
+# no shared state. The per-file cost is dominated by blocking file I/O
+# (open/read of the source on NFS), which on a loaded node stretches from
+# microseconds to milliseconds per file; running the scans concurrently overlaps
+# those waits (and the directive-parsing CPU work) instead of paying them one at
+# a time.
+#
+# A fork-based process pool is used rather than threads so the workers are fully
+# isolated -- no assumptions are made about the thread-safety of the parser.
+# Workers inherit the read-only `source_directory`/`build_path` via copy-on-write
+# fork (published to `_WORKER` before the scan), so nothing large is pickled per
+# task; only the small per-file result dicts come back.
+
+_WORKER = {}
+
+
+def _scan_one(task):
+    """Worker: scan one source file (and its include tree) and return
+    `(file_identifier, entry)`. Mirrors the per-file body of the serial scan
+    loop exactly, writing to no shared state.
+    """
+    source_file_name, file_path, file_identifier = task
+    source_directory = _WORKER['source_directory']
+    build_path       = _WORKER['build_path']
+
+    entry = {'files': [file_path]}
+
+    # Walk include files depth-first.
+    pending = [file_path]
+    while pending:
+        current = pending.pop()
+        included = _collect_included_files(current, source_directory)
+        pending.extend(included)
+        entry['files'].extend(included)
+
+        # Extract every directive in the current file.
+        for directive in extract_directives(
+            current, '*', set_root_element_type=True,
+        ):
+            root_type = directive.get('rootElementType')
+            if root_type == 'include':
+                # Include directive: record the source file and the
+                # include file name, drop `content`, and XML-serialize
+                # the remaining attributes for the per-directive file.
+                directive['source'] = current
+                content = directive.get('content', '')
+                if isinstance(content, str):
+                    m = _INCLUDE_BODY_RE.search(content)
+                    if m:
+                        include_leaf = m.group(1)
+                        include_leaf = re.sub(r'\.inc$', '.Inc',
+                                              include_leaf)
+                        directive['fileName'] = os.path.join(
+                            build_path, include_leaf,
+                        )
+                directive.pop('content', None)
+
+                directive_name = (
+                    directive.get('name')
+                    or directive.get('directive')
+                )
+                key = f"{directive_name}.{directive.get('type')}"
+                entry.setdefault('includeDirectives', {})[key] = {
+                    'source':   current,
+                    'fileName': directive.get('fileName'),
+                    'xml':      dict_to_xml_string(root_type, directive),
+                }
+            else:
+                # Non-include directive: remember the source file.
+                non_include = entry.setdefault('nonIncludeDirectives', {})
+                slot = non_include.setdefault(
+                    root_type, {'files': [], 'dependency': []},
+                )
+                slot['files'].append(file_path)
+
+                if root_type == 'functionClass':
+                    preprocessed = re.sub(
+                        r'\.F90$', '.p.F90',
+                        os.path.join(build_path, source_file_name),
+                    )
+                    entry.setdefault(
+                        'functionClasses', {},
+                    )[directive['name']] = preprocessed
+                    _add_implicit_directives(
+                        directive, entry,
+                        preprocessed, preprocessed,
+                    )
+
+    return file_identifier, entry
+
+
+# Literal (compile-time-interned) strings used as dict keys / fixed values when
+# building a per-file `entry` in `_scan_one`. When the serial loop builds entries
+# in-process these literals are a single interned object shared across every
+# entry, so `pickle` writes them once and back-references thereafter. Entries
+# returned from forked workers are unpickled into fresh, de-interned objects, so
+# without help the saved blob would grow (lost back-references) and differ
+# byte-for-byte from the serial blob. `_canonicalize` re-interns exactly these
+# strings (only) so the merged structure pickles identically -- interning more
+# (e.g. every identifier-like string) would wrongly share parser-derived strings
+# that the serial run keeps distinct. Keep this set in sync with the literal
+# keys/values produced by `_scan_one`.
+_ENTRY_LITERALS = {
+    'files', 'includeDirectives', 'source', 'fileName', 'xml',
+    'nonIncludeDirectives', 'dependency', 'functionClasses',
+    'galacticusStateRetrieveTask', 'galacticusStateStoreTask',
+    'functionClassDestroyTask',
+}
+_ENTRY_CANON = {s: s for s in _ENTRY_LITERALS}
+
+
+def _canonicalize(obj):
+    """Return a copy of `obj` with the `_ENTRY_LITERALS` strings replaced by
+    their canonical interned instances (preserving dict insertion order and all
+    other object identities), so a worker-returned entry pickles identically to
+    one the serial loop built in-process. A no-op in the serial path (those
+    strings are already the interned literals), so output is unchanged there.
+    """
+    if isinstance(obj, dict):
+        return {
+            _ENTRY_CANON.get(k, k) if isinstance(k, str) else k:
+                _canonicalize(v)
+            for k, v in obj.items()
+        }
+    if isinstance(obj, list):
+        return [_canonicalize(x) for x in obj]
+    if isinstance(obj, str):
+        return _ENTRY_CANON.get(obj, obj)
+    return obj
+
+
+def _scan_files(scan_list, source_directory, build_path):
+    """Scan every file in `scan_list` (a list of
+    `(source_file_name, file_path, file_identifier)` preserving the serial
+    loop's order) and return the results in that SAME order, so the merge into
+    `directives_per_file` -- and therefore the cross-file reduction and emitted
+    Makefile -- is identical to the serial version. The read-only
+    `source_directory`/`build_path` are published to `_WORKER` first so forked
+    workers inherit them via copy-on-write instead of re-pickling per task.
+    """
+    _WORKER['source_directory'] = source_directory
+    _WORKER['build_path']       = build_path
+    return parallel_scan(scan_list, _scan_one, 'codeDirectivesParse.py')
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -169,7 +320,10 @@ def main(argv):
     if any(fid not in file_identifier_set for fid in directives_per_file):
         force_rescan = True
 
-    # Iterate over source files.
+    # Decide which files need a (re)scan, preserving the deterministic sorted
+    # `source_file_names` order so the merge below reproduces the serial
+    # insertion order (and hence the cross-file reduction) exactly.
+    scan_list = []
     for source_file_name in source_file_names:
         file_path       = source_directory + '/' + source_file_name
         file_identifier = file_path.replace('/', '_')
@@ -189,73 +343,16 @@ def main(argv):
         if not (rescan or force_rescan):
             continue
 
-        # Drop stale cache entry and reinitialise.
+        scan_list.append((source_file_name, file_path, file_identifier))
+
+    # Scan the files (concurrently) and merge results in scan-list order so the
+    # output is identical to a serial run: each rescanned file's stale cache
+    # entry is dropped and the freshly-built entry reinserted in the same order
+    # the serial loop would have produced.
+    for file_identifier, entry in _scan_files(
+            scan_list, source_directory, build_path):
         directives_per_file.pop(file_identifier, None)
-        entry = directives_per_file.setdefault(
-            file_identifier,
-            {'files': [file_path]},
-        )
-
-        # Walk include files depth-first.
-        pending = [file_path]
-        while pending:
-            current = pending.pop()
-            included = _collect_included_files(current, source_directory)
-            pending.extend(included)
-            entry['files'].extend(included)
-
-            # Extract every directive in the current file.
-            for directive in extract_directives(
-                current, '*', set_root_element_type=True,
-            ):
-                root_type = directive.get('rootElementType')
-                if root_type == 'include':
-                    # Include directive: record the source file and the
-                    # include file name, drop `content`, and XML-serialize
-                    # the remaining attributes for the per-directive file.
-                    directive['source'] = current
-                    content = directive.get('content', '')
-                    if isinstance(content, str):
-                        m = _INCLUDE_BODY_RE.search(content)
-                        if m:
-                            include_leaf = m.group(1)
-                            include_leaf = re.sub(r'\.inc$', '.Inc',
-                                                  include_leaf)
-                            directive['fileName'] = os.path.join(
-                                build_path, include_leaf,
-                            )
-                    directive.pop('content', None)
-
-                    directive_name = (
-                        directive.get('name')
-                        or directive.get('directive')
-                    )
-                    key = f"{directive_name}.{directive.get('type')}"
-                    entry.setdefault('includeDirectives', {})[key] = {
-                        'source':   current,
-                        'fileName': directive.get('fileName'),
-                        'xml':      dict_to_xml_string(root_type, directive),
-                    }
-                else:
-                    # Non-include directive: remember the source file.
-                    non_include = entry.setdefault('nonIncludeDirectives', {})
-                    slot = non_include.setdefault(
-                        root_type, {'files': [], 'dependency': []},
-                    )
-                    slot['files'].append(file_path)
-
-                    if root_type == 'functionClass':
-                        preprocessed = re.sub(
-                            r'\.F90$', '.p.F90',
-                            os.path.join(build_path, source_file_name),
-                        )
-                        entry.setdefault(
-                            'functionClasses', {},
-                        )[directive['name']] = preprocessed
-                        _add_implicit_directives(
-                            directive, entry,
-                            preprocessed, preprocessed,
-                        )
+        directives_per_file[file_identifier] = _canonicalize(entry)
 
     # -----------------------------------------------------------------------
     # Reduce across files.
