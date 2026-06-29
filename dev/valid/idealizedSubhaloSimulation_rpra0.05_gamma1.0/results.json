@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "5fd64fb3e3d1b610310c5eb0f420473a719674d9",
-        "message": "Merge pull request #1191 from galacticusorg/feature/parameter-catalog-validation\n\nTyped parameter catalog, validator, and CI gate\n",
-        "timestamp": "2026-06-25 14:34:53+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/5fd64fb3e3d1b610310c5eb0f420473a719674d9"
+        "id": "93fa1d95c8971a4006918b5f53b089a2b45d7e46",
+        "message": "Merge pull request #1199 from galacticusorg/claude/galacticus-tool-compiler-check\n\nCheck compiler availability before building run-time tools\n",
+        "timestamp": "2026-06-28 19:42:54+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/93fa1d95c8971a4006918b5f53b089a2b45d7e46"
     },
     "results": [
         {
