@@ -225,6 +225,91 @@ def test_purge_tree_all(tmp_path):
     assert list(tmp_path.iterdir()) == []
 
 
+# --- parameter-file resolution ---------------------------------------------
+
+def _install_with_exec(exec_path):
+    """A minimal Install whose only populated field is `exec_path`."""
+    return paths.Install(
+        source=paths.SOURCE_MANAGED, tag="v1.2.3", exec_path=exec_path,
+        data_path=None, tools_path=None, dynamic_path=None, binary=None, assets=None,
+    )
+
+
+def test_resolve_parameter_file_cwd_wins(tmp_path, monkeypatch):
+    exec_dir = tmp_path / "exec"
+    (exec_dir / "parameters").mkdir(parents=True)
+    (exec_dir / "parameters" / "quickTest.xml").write_text("<exec/>")
+    work = tmp_path / "work"
+    (work / "parameters").mkdir(parents=True)
+    (work / "parameters" / "quickTest.xml").write_text("<cwd/>")
+    monkeypatch.chdir(work)
+    install = _install_with_exec(exec_dir)
+    # A relative path that exists in the CWD resolves there, not the exec dir.
+    resolved = cli._resolve_parameter_file(install, "parameters/quickTest.xml")
+    assert os.path.realpath(resolved) == str(work / "parameters" / "quickTest.xml")
+
+
+def test_resolve_parameter_file_falls_back_to_exec(tmp_path, monkeypatch):
+    exec_dir = tmp_path / "exec"
+    (exec_dir / "parameters").mkdir(parents=True)
+    bundled = exec_dir / "parameters" / "quickTest.xml"
+    bundled.write_text("<exec/>")
+    work = tmp_path / "work"
+    work.mkdir()
+    monkeypatch.chdir(work)
+    install = _install_with_exec(exec_dir)
+    # Not present in CWD -> resolves to the bundled copy under the exec dir.
+    resolved = cli._resolve_parameter_file(install, "parameters/quickTest.xml")
+    assert resolved == str(bundled)
+
+
+def test_resolve_parameter_file_passthrough_when_missing(tmp_path, monkeypatch):
+    exec_dir = tmp_path / "exec"
+    exec_dir.mkdir()
+    monkeypatch.chdir(tmp_path)
+    install = _install_with_exec(exec_dir)
+    # Neither CWD nor exec dir has it -> passed through unchanged for the
+    # binary to report its own error.
+    resolved = cli._resolve_parameter_file(install, "does/not/exist.xml")
+    assert resolved == "does/not/exist.xml"
+
+
+def test_resolve_parameter_file_absolute_untouched(tmp_path):
+    exec_dir = tmp_path / "exec"
+    exec_dir.mkdir()
+    target = tmp_path / "elsewhere.xml"
+    target.write_text("<x/>")
+    install = _install_with_exec(exec_dir)
+    resolved = cli._resolve_parameter_file(install, str(target))
+    assert resolved == str(target)
+
+
+# --- download progress -----------------------------------------------------
+
+def test_progress_milestones_non_tty(capsys):
+    lines = []
+    progress = download._Progress(1000, log=lines.append)
+    assert not progress._tty  # custom log is never treated as a TTY
+    for _ in range(10):
+        progress.update(100)
+    progress.finish()
+    # Milestone lines report percentage as the download advances.
+    assert any("100%" in line for line in lines)
+    assert any("50%" in line for line in lines)
+
+
+def test_progress_unknown_total_no_crash():
+    lines = []
+    progress = download._Progress(None, log=lines.append)
+    progress.update(500)
+    progress.finish()  # must not raise when the total is unknown
+
+
+def test_download_human_readable():
+    assert download._human(0) == "0 B"
+    assert download._human(1024).endswith("KiB")
+
+
 def test_human_readable():
     assert cli._human(0) == "0 B"
     assert cli._human(1023) == "1023 B"

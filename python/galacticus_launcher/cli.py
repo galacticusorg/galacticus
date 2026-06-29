@@ -133,6 +133,7 @@ def _cmd_install(install, *, force):
 
 
 def _cmd_validate(install, parameter_file, structural):
+    parameter_file = _resolve_parameter_file(install, parameter_file)
     result = _validate.validate(parameter_file, install, structural=structural)
     _report_findings(result)
     if result.ok:
@@ -143,11 +144,12 @@ def _cmd_validate(install, parameter_file, structural):
 
 
 def _cmd_run(install, args):
+    parameter_file = _resolve_parameter_file(install, args.parameter_file)
     if not args.no_validate:
-        result = _validate.validate(args.parameter_file, install)
+        result = _validate.validate(parameter_file, install)
         _report_findings(result)
         if not result.ok:
-            print(f"galacticus: refusing to run; {args.parameter_file} failed "
+            print(f"galacticus: refusing to run; {parameter_file} failed "
                   "validation (use --no-validate to override).", file=sys.stderr)
             return 1
     if install.data_path is None:
@@ -155,7 +157,7 @@ def _cmd_run(install, args):
               "Set GALACTICUS_DATA_PATH.", file=sys.stderr)
     env = install.environ()
     extra = [a for a in (args.extra or []) if a != "--"]
-    command = [str(install.binary), str(args.parameter_file), *extra]
+    command = [str(install.binary), parameter_file, *extra]
     sys.stdout.flush()
     os.execve(str(install.binary), command, env)  # replaces this process
 
@@ -238,6 +240,33 @@ def _cmd_clean(args):
 
 
 # --- helpers ---------------------------------------------------------------
+
+def _resolve_parameter_file(install, parameter_file):
+    """Return the parameter file to hand to the binary, as a string.
+
+    Galacticus reads relative paths in a parameter file (and the parameter file
+    argument itself) relative to the *current working directory*, but the bundled
+    example parameter files (``parameters/quickTest.xml`` etc.) live under the
+    install's ``GALACTICUS_EXEC_PATH``, not the user's CWD.  So ``galacticus run
+    parameters/quickTest.xml`` would fail for a pip user unless they happened to
+    be standing in the exec dir.
+
+    Resolution: a path that exists relative to the CWD (or an absolute path) is
+    used as-is, so the user's own files always win.  Otherwise, if the path
+    exists under the install's exec dir, the absolute path there is used, letting
+    the bundled examples run from any directory.  A path that matches neither is
+    passed through unchanged so the binary emits its own "file not found" error.
+    Output is still written relative to the CWD, as before.
+    """
+    given = Path(parameter_file)
+    if given.exists():
+        return str(given)
+    if install.exec_path is not None and not given.is_absolute():
+        bundled = Path(install.exec_path) / parameter_file
+        if bundled.is_file():
+            return str(bundled)
+    return parameter_file
+
 
 def _report_findings(result):
     for finding in result.findings:
