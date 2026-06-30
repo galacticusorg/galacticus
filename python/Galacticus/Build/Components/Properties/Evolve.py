@@ -17,6 +17,17 @@ from Galacticus.Build.Components.Utils      import (
 from Galacticus.Build.Components.DataTypes  import data_object_definition
 
 
+# Object property types that implement an `incrementSerialized(dataVector,
+# addValue)` type-bound procedure, allowing the rate wrapper to accumulate
+# directly into a slice of the ODE rate vector in place rather than doing a
+# deserialize/increment/serialize round-trip (which copies the whole
+# serialized array three times). Only types whose serialized size is large
+# enough for the copies to matter benefit; today only `history` (used for
+# star-formation-history accumulation) does. A name listed here MUST have a
+# matching type-bound procedure or the generated code fails to compile.
+INCREMENT_SERIALIZED_TYPES = {'history'}
+
+
 def _is_debugging():
     flags = os.environ.get('GALACTICUS_FCFLAGS', '')
     return any(tok == '-DDEBUGGING' for tok in flags.split())
@@ -267,7 +278,8 @@ def Build_Rate_Functions(build, class_dict, member, prop):
         ])
 
     debug_iterator_required = False
-    if not is_intrinsic(ptype):
+    use_increment_serialized = (not is_intrinsic(ptype)) and ptype in INCREMENT_SERIALIZED_TYPES
+    if not is_intrinsic(ptype) and not use_increment_serialized:
         current_descriptor, _ = data_object_definition(prop.get('data') or {}, match_only=True)
         current_descriptor.setdefault('variables', []).append('current')
         function['variables'].append(current_descriptor)
@@ -342,16 +354,29 @@ def Build_Rate_Functions(build, class_dict, member, prop):
                     "end if\n"
                 )
     else:
-        content += (
-            f"count=self%{prop['name']}Data%serializeCount()\n"
-            "if (count > 0) then\n"
-            f"{offset_block}"
-            f"   current=self%{prop['name']}Data\n"
-            "   call current%deserialize(nodeRates(offset:offset+count-1))\n"
-            "   call current%increment(setValue)\n"
-            "   call current%serialize(nodeRates(offset:offset+count-1))\n"
-            "end if\n"
-        )
+        if use_increment_serialized:
+            # Accumulate directly into the rate-vector slice in place, avoiding
+            # the deserialize/increment/serialize round-trip and its array
+            # copies.
+            content += (
+                f"count=self%{prop['name']}Data%serializeCount()\n"
+                "if (count > 0) then\n"
+                f"{offset_block}"
+                f"   call self%{prop['name']}Data%incrementSerialized"
+                "(nodeRates(offset:offset+count-1),setValue)\n"
+                "end if\n"
+            )
+        else:
+            content += (
+                f"count=self%{prop['name']}Data%serializeCount()\n"
+                "if (count > 0) then\n"
+                f"{offset_block}"
+                f"   current=self%{prop['name']}Data\n"
+                "   call current%deserialize(nodeRates(offset:offset+count-1))\n"
+                "   call current%increment(setValue)\n"
+                "   call current%serialize(nodeRates(offset:offset+count-1))\n"
+                "end if\n"
+            )
         if debugging:
             function['variables'].append({
                 'intrinsic':  'double precision',

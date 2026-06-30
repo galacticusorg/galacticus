@@ -60,6 +60,7 @@ module Histories
        <method description="Removes any times in a history which have become outdated." method="trim" />
        <method description="Removes any times in a history *after* the given time. Optionally returns a history object with the removed history." method="trimForward" />
        <method description="Adds two histories, possibly with different time series." method="increment" />
+       <method description="Adds a history directly into a serialized history vector (e.g. a slice of the ODE rate vector) in place, using this history as a template for the time grid - avoiding the deserialize/increment/serialize round-trip." method="incrementSerialized" />
        <method description="Adds two histories, possibly with different time series, by interpolating the second onto the times of the first and adding the interpolated values." method="interpolatedIncrement" />
        <method description="Extends the time range of a history to encompass the specified limits." method="extend" />
        <method description="Resets all entries in a history to zero." method="reset" />
@@ -94,6 +95,7 @@ module Histories
      procedure :: trimForward           => History_Trim_Forward
      procedure :: extend                => History_Extend
      procedure :: increment             => History_Increment
+     procedure :: incrementSerialized   => History_Increment_Serialized
      procedure :: interpolatedIncrement => History_Interpolated_Increment
      procedure :: reset                 => History_Reset
      procedure :: setToUnity            => History_Set_To_Unity
@@ -1070,20 +1072,13 @@ contains
      !!{RST
      Combines the data in ``addHistory`` with that in ``history_``. This function is designed for histories that track integrated quantities (such as total mass of stars formed in a time interval for example). ``history_`` will be extended if necessary to span the range of ``addHistory``. Then, the data from ``addHistory`` will be added to that in ``history_`` by finding the fraction of each timestep in ``addHistory`` that overlaps with each timestep in ``history_`` and assuming that the corresponding fraction of the data value should be added to ``history_``.
      !!}
-     use            :: Arrays_Search   , only : searchArray
-     use            :: Error           , only : Error_Report
-     use, intrinsic :: ISO_C_Binding   , only : c_size_t
-     use            :: Numerical_Ranges, only : rangeTypeUndefined
+     use :: Error           , only : Error_Report
+     use :: Numerical_Ranges, only : rangeTypeUndefined
      implicit none
      class           (history ), intent(inout)           :: history_
      type            (history ), intent(in   )           :: addHistory
      logical                   , intent(in   ), optional :: autoExtend
-     integer                                             :: addCount           , addHistoryPointCount
-     integer         (c_size_t)                          :: timeBeginIndex     , timeEndIndex        , &
-          &                                                 iPoint             , jPoint
-     double precision                                    :: fractionContributed, timeBegin           , &
-          &                                                 timeEnd            , timeBeginAdd        , &
-          &                                                 timeEndAdd
+     integer                                             :: addCount  , addHistoryPointCount
      !![
      <optionalArgument name="autoExtend" defaultsTo=".false." />
      !!]
@@ -1130,36 +1125,112 @@ contains
            end if
         end if
         ! Transfer each entry from addHistory to history_.
-        do iPoint=1,addCount
-           if (iPoint == 1) then
-              timeBeginAdd=0.0d0
-           else
-              timeBeginAdd=addHistory%time(iPoint-1)
-           end if
-           timeEndAdd     =addHistory%time(iPoint  )
-           ! Find indices in history_ spanned by addHistory point.
-           if (iPoint > 1) then
-              ! Reuse the end index from the previous loop iteration if available.
-              timeBeginIndex=timeEndIndex
-           else
-              timeBeginIndex=1
-           end if
-           timeEndIndex=min(searchArray(history_%time,addHistory%time(iPoint))+1,size(history_%time))
-           ! Loop over all points in history_ to which we need to add this contribution.
-           do jPoint=timeBeginIndex,timeEndIndex
-              if (jPoint == 1) then
-                 timeBegin=                            timeBeginAdd
-              else
-                 timeBegin=max(history_%time(jPoint-1),timeBeginAdd)
-              end if
-              timeEnd     =min(history_%time(jPoint  ),timeEndAdd  )
-              fractionContributed=max(0.0d0,(timeEnd-timeBegin)/(timeEndAdd-timeBeginAdd))
-              history_%data(jPoint,:)=history_%data(jPoint,:)+addHistory%data(iPoint,:)*fractionContributed
-           end do
-        end do
+        call History_Increment_Core(history_%time,history_%data,addHistory)
      end select
      return
    end subroutine History_Increment
+
+   subroutine History_Increment_Core(time,data,addHistory)
+     !!{RST
+     Accumulate the data in ``addHistory`` into the ``data`` array defined on the time grid
+     ``time``. Shared by ``increment`` (operating on a history object's own storage) and
+     ``incrementSerialized`` (operating on a rank-remapped view of a serialized rate vector)
+     methods. The caller guarantees that ``data`` already spans the range of ``addHistory``
+     (i.e. any required extension has been performed) and that the two have the same number of
+     histories. Bins of ``addHistory`` that contribute nothing are skipped (adding zero is an
+     exact no-op), and the common case of identical time grids collapses to a single
+     element-wise addition.
+     !!}
+     use            :: Arrays_Search, only : searchArray
+     use, intrinsic :: ISO_C_Binding, only : c_size_t
+     implicit none
+     double precision          , intent(in   ) :: time(:)
+     double precision          , intent(inout) :: data(:,:)
+     type            (history ), intent(in   ) :: addHistory
+     integer                                   :: addCount
+     integer         (c_size_t)                :: timeBeginIndex     , timeEndIndex, &
+          &                                       iPoint             , jPoint
+     double precision                          :: fractionContributed, timeBegin   , &
+          &                                       timeEnd            , timeBeginAdd, &
+          &                                       timeEndAdd
+
+     addCount=size(addHistory%time)
+     ! Aligned-grid fast path: when both histories share the same time grid the overlap integration reduces
+     ! to a direct element-wise addition, eliminating the per-bin binary searches entirely.
+     if (size(time) == addCount) then
+        if (all(time == addHistory%time)) then
+           data=data+addHistory%data
+           return
+        end if
+     end if
+     ! General overlap loop. Skip any addHistory bin whose contribution is identically zero - this is the
+     ! common case for the per-substep star-formation-history rate accumulation, where only a single bin is
+     ! non-zero. The begin index is recomputed independently for each contributing bin (it equals the end
+     ! index that the previous, now-skipped, iteration would have produced) so the result is unchanged.
+     do iPoint=1,addCount
+        if (all(addHistory%data(iPoint,:) == 0.0d0)) cycle
+        if (iPoint == 1) then
+           timeBeginAdd  =0.0d0
+           timeBeginIndex=1_c_size_t
+        else
+           timeBeginAdd  =addHistory%time(iPoint-1)
+           timeBeginIndex=min(searchArray(time,           timeBeginAdd        )+1,size(time))
+        end if
+        timeEndAdd       =addHistory%time(iPoint  )
+        timeEndIndex     =min(searchArray(time,addHistory%time        (iPoint))+1,size(time))
+        ! Loop over all points in the target grid to which we need to add this contribution.
+        do jPoint=timeBeginIndex,timeEndIndex
+           if (jPoint == 1) then
+              timeBegin=                   timeBeginAdd
+           else
+              timeBegin=max(time(jPoint-1),timeBeginAdd)
+           end if
+           timeEnd            =min(time(jPoint),timeEndAdd)
+           fractionContributed=max(0.0d0,(timeEnd-timeBegin)/(timeEndAdd-timeBeginAdd))
+           data(jPoint,:)     =data(jPoint,:)+addHistory%data(iPoint,:)*fractionContributed
+        end do
+     end do
+     return
+   end subroutine History_Increment_Core
+
+   subroutine History_Increment_Serialized(self,dataVector,addHistory)
+     !!{RST
+     Accumulate ``addHistory`` directly into a *serialized* history held in ``dataVector`` (for
+     example, a slice of the ODE rate vector), using ``self`` only as a template that supplies
+     the time grid and shape.  The serialized vector is rank-remapped to a two-dimensional view
+     - using the same column-major layout as ``serialize`` and ``deserialize`` - and incremented
+     in place. This avoids the deserialize/increment/serialize round-trip and its three array
+     copies. The view cannot be reallocated, so ``addHistory`` must fit within the template grid
+     (always true for ODE rate accumulation, where the slice length is exactly the template's
+     serialized size).
+     !!}
+     use :: Error, only : Error_Report
+     implicit none
+     class           (history), intent(in   ), target                              :: self
+     double precision         , intent(inout), target , dimension(:  ), contiguous :: dataVector(:)
+     type            (history), intent(in   )                                      :: addHistory
+     double precision                        , pointer, dimension(:,:)             :: data
+     integer                                                                       :: addCount
+
+     ! Nothing to add?
+     if (.not.allocated(addHistory%time)) return
+     if (size(addHistory%time) == 0) return
+     ! The template must exist and define the grid.
+     if (.not.allocated(self%time) .or. .not.allocated(self%data)) &
+          & call Error_Report('template history does not exist'//{introspection:location})
+     ! The two objects must contain the same number of histories.
+     if (size(self%data,dim=2) /= size(addHistory%data,dim=2)) &
+          & call Error_Report('two objects contain differing numbers of histories'//{introspection:location})
+     ! The serialized view cannot be extended, so addHistory must fit within the template grid.
+     addCount=size(addHistory%time)
+     if (addHistory%time(1) < self%time(1) .or. addHistory%time(addCount) > self%time(size(self%time))) &
+          & call Error_Report('serialized history increment cannot extend the time grid'//{introspection:location})
+     ! Map the serialized vector as a 2D array using the same column-major layout as (de)serialize - no copy.
+     data(1:size(self%time),1:size(self%data,dim=2)) => dataVector
+     ! Accumulate in place into the rate vector.
+     call History_Increment_Core(self%time,data,addHistory)
+     return
+   end subroutine History_Increment_Serialized
 
    function History_Divide(self,divisor)
      !!{RST
