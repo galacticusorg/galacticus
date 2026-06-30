@@ -21,9 +21,68 @@ import sys
 import xml.etree.ElementTree as ET
 
 
-from Galacticus.Build.Directives import extract_directives
-from List.ExtraUtils             import as_array, hash_list, smart_push
-from XML.Utils                   import xml_to_dict
+from Galacticus.Build.Directives   import extract_directives
+from Galacticus.Build.ParallelScan import scan as parallel_scan
+from List.ExtraUtils              import as_array, hash_list, smart_push
+from XML.Utils                    import xml_to_dict
+
+
+# Directives consulted per source file (module-level so the parallel worker can
+# see it). Order matters only in that it is fixed.
+_DIRECTIVE_NAMES = (
+    'functionClass', 'inputParameter', 'enumeration',
+    'eventHook', 'eventHookStatic', 'eventHookManager',
+    'functionsGlobal', 'objectDestructor',
+)
+
+# Read-only context shared with forked scan workers (inherited via copy-on-write,
+# so it is not pickled per task). Populated in main() before the scan.
+_WORKER = {}
+
+
+def _scan_one(task):
+    """Worker: do the full per-file scan for one source file and return
+    `(file_identifier, entry, event_hook_modules, manager)`.
+
+    Mirrors the body of main()'s per-file loop exactly, but captures the two
+    cross-file side effects -- the ordered `event_hook_modules` pool and the
+    singleton `eventHooksManager` record -- into locals so they can be merged
+    deterministically (in file order) by the caller instead of mutating shared
+    state from a worker.
+    """
+    file_identifier, sf = task
+    file_path = sf['fullPathFileName']
+
+    entry = {
+        'files':                [file_path],
+        'modulesUsed':          [],
+        'dependenciesExplicit': [],
+        'modulesProvided':      {},
+        'submodules':           [],
+        'submodulesProvided':   [],
+        'libraryDependencies':  {},
+    }
+
+    directives = {
+        name: extract_directives(file_path, name)
+        for name in _DIRECTIVE_NAMES
+    }
+
+    file_names_to_process = [file_path]
+    event_hook_modules = []
+    manager = {}   # captures any uses_per_file['eventHooksManager'] write
+
+    _apply_directive_requirements(
+        entry, sf, directives, _WORKER['locations'], _WORKER['state_storables'],
+        _WORKER['work_dir'], file_identifier, event_hook_modules,
+        manager, file_names_to_process,
+    )
+    _scan_source_file(
+        entry, file_names_to_process, sf, directives,
+        _WORKER['locations'], _WORKER['root_source_dir'], _WORKER['work_dir'],
+        _WORKER['preprocessor_set'],
+    )
+    return file_identifier, entry, event_hook_modules, manager
 
 
 # ---------------------------------------------------------------------------
@@ -976,17 +1035,12 @@ def main(argv):
 
     preprocessor_set = frozenset(preprocessor_directives)
     event_hook_modules = []
-    directive_names = (
-        'functionClass', 'inputParameter', 'enumeration',
-        'eventHook', 'eventHookStatic', 'eventHookManager',
-        'functionsGlobal', 'objectDestructor',
-    )
 
-    # Per-file scan.
+    # Decide which files need a (re)scan, preserving `source_files` order so the
+    # merge below reproduces the serial accumulation order exactly.
+    scan_list = []
     for sf in source_files:
-        file_path       = sf['fullPathFileName']
-        file_identifier = _file_identifier(file_path)
-
+        file_identifier = _file_identifier(sf['fullPathFileName'])
         rescan = True
         if have_per_file and file_identifier in uses_per_file:
             tracked = uses_per_file[file_identifier].get('files') or []
@@ -997,35 +1051,25 @@ def main(argv):
             rescan = bool(stale)
         if not (rescan or force_rescan):
             continue
+        scan_list.append((file_identifier, sf))
+
+    # Scan the files concurrently, then merge results in scan-list order. The
+    # per-file `entry`, the ordered `event_hook_modules` pool, and the singleton
+    # `eventHooksManager` record are reconstructed exactly as a serial run would.
+    _WORKER.update({
+        'locations':        locations,
+        'state_storables':  state_storables,
+        'work_dir':         work_dir,
+        'root_source_dir':  root_source_dir,
+        'preprocessor_set': preprocessor_set,
+    })
+    for file_identifier, entry, file_event_hook_modules, manager in parallel_scan(
+            scan_list, _scan_one, 'useDependencies.py'):
         uses_per_file.pop(file_identifier, None)
-
-        entry = uses_per_file.setdefault(file_identifier, {
-            'files':                [file_path],
-            'modulesUsed':          [],
-            'dependenciesExplicit': [],
-            'modulesProvided':      {},
-            'submodules':           [],
-            'submodulesProvided':   [],
-            'libraryDependencies':  {},
-        })
-
-        directives = {
-            name: extract_directives(file_path, name)
-            for name in directive_names
-        }
-
-        file_names_to_process = [file_path]
-
-        _apply_directive_requirements(
-            entry, sf, directives, locations, state_storables,
-            work_dir, file_identifier, event_hook_modules,
-            uses_per_file, file_names_to_process,
-        )
-
-        _scan_source_file(
-            entry, file_names_to_process, sf, directives,
-            locations, root_source_dir, work_dir, preprocessor_set,
-        )
+        uses_per_file[file_identifier] = entry
+        event_hook_modules.extend(file_event_hook_modules)
+        if 'eventHooksManager' in manager:
+            uses_per_file['eventHooksManager'] = manager['eventHooksManager']
 
     _finalise_event_hooks_manager(uses_per_file, event_hook_modules)
 
