@@ -17,6 +17,7 @@ Four components make up a runnable install:
 
 import os
 import shutil
+import sys
 import tarfile
 import tempfile
 import time
@@ -176,17 +177,21 @@ def _provision_tools(install, *, force, log):
 
 
 def _download(url, dest, *, log=print, retries=4):
-    """Stream `url` to `dest` with exponential-backoff retries."""
+    """Stream `url` to `dest` with exponential-backoff retries and progress."""
     last_error = None
     for attempt in range(retries):
         try:
             with requests.get(url, stream=True, timeout=60) as response:
                 response.raise_for_status()
+                total = _content_length(response)
                 tmp = Path(str(dest) + ".part")
+                progress = _Progress(total, log=log)
                 with open(tmp, "wb") as handle:
                     for chunk in response.iter_content(chunk_size=_CHUNK):
                         if chunk:
                             handle.write(chunk)
+                            progress.update(len(chunk))
+                progress.finish()
                 tmp.replace(dest)
             return
         except (requests.RequestException, OSError) as error:  # pragma: no cover - network
@@ -197,6 +202,84 @@ def _download(url, dest, *, log=print, retries=4):
             log(f"  download failed ({error}); retrying in {wait}s ...")
             time.sleep(wait)
     raise RuntimeError(f"failed to download {url}: {last_error}")
+
+
+def _content_length(response):
+    """Total size in bytes from the response headers, or None if not advertised."""
+    value = response.headers.get("Content-Length")
+    try:
+        return int(value) if value is not None else None
+    except (TypeError, ValueError):  # pragma: no cover - malformed header
+        return None
+
+
+class _Progress:
+    """Render download progress.
+
+    On an interactive terminal a single carriage-return-updated bar is drawn to
+    stderr.  Otherwise (logs, pipes, non-default ``log``) progress is emitted as
+    occasional milestone lines, so it stays readable without a TTY.  Dependency
+    free -- no ``tqdm`` -- to keep the launcher's footprint minimal.
+    """
+
+    _BAR_WIDTH = 30
+    _MILESTONE = 0.10  # log every 10% when not a TTY
+
+    def __init__(self, total, *, log=print):
+        self._total = total if total and total > 0 else None
+        self._log = log
+        self._done = 0
+        self._last_render = 0.0
+        self._next_milestone = self._MILESTONE
+        self._tty = (
+            log is print
+            and hasattr(sys.stderr, "isatty")
+            and sys.stderr.isatty()
+        )
+        self._active = False
+
+    def update(self, count):
+        self._done += count
+        if self._tty:
+            self._render_bar()
+        elif self._total is not None:
+            fraction = self._done / self._total
+            if fraction >= self._next_milestone:
+                while self._next_milestone <= fraction:
+                    self._next_milestone += self._MILESTONE
+                self._log(f"  ... {int(fraction * 100)}% "
+                          f"({_human(self._done)} / {_human(self._total)})")
+
+    def finish(self):
+        if self._tty and self._active:
+            self._render_bar(force=True)
+            sys.stderr.write("\n")
+            sys.stderr.flush()
+
+    def _render_bar(self, *, force=False):
+        now = time.monotonic()
+        if not force and now - self._last_render < 0.1:
+            return
+        self._last_render = now
+        self._active = True
+        if self._total is not None:
+            fraction = min(1.0, self._done / self._total)
+            filled = int(self._BAR_WIDTH * fraction)
+            bar = "#" * filled + "-" * (self._BAR_WIDTH - filled)
+            text = (f"\r  [{bar}] {int(fraction * 100):3d}% "
+                    f"{_human(self._done)} / {_human(self._total)}")
+        else:
+            text = f"\r  {_human(self._done)} downloaded"
+        sys.stderr.write(text)
+        sys.stderr.flush()
+
+
+def _human(num_bytes):
+    value = float(num_bytes)
+    for unit in ("B", "KiB", "MiB", "GiB", "TiB"):
+        if value < 1024.0 or unit == "TiB":
+            return f"{value:.1f} {unit}" if unit != "B" else f"{int(value)} B"
+        value /= 1024.0
 
 
 def _extract(archive, dest, fmt):

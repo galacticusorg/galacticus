@@ -30,11 +30,18 @@ Running a model
 
    galacticus run parameters/quickTest.xml
 
-On first use you will see the launcher fetch the executable, datasets, and tools;
-subsequent runs reuse the cached copies. ``galacticus run`` validates the
-parameter file before dispatching it; pass ``--no-validate`` to skip that, and
-any other arguments (e.g. ``--dry-run``) are passed straight through to the
-executable. ``galacticus <file>`` is shorthand for ``galacticus run <file>``.
+On first use you will see the launcher fetch the executable, datasets, and tools,
+with a progress bar for each download; subsequent runs reuse the cached copies.
+``galacticus run`` validates the parameter file before dispatching it; pass
+``--no-validate`` to skip that, and any other arguments (e.g. ``--dry-run``) are
+passed straight through to the executable. ``galacticus <file>`` is shorthand for
+``galacticus run <file>``.
+
+The bundled example parameter files (such as ``parameters/quickTest.xml``)
+resolve against the install, so the command above works from any directory --
+you do not need to ``cd`` into the install tree. A relative path that exists
+in your current directory always takes precedence, so your own parameter files
+are found first.
 
 The model writes its output (by default ``galacticus.hdf5``) to the current
 directory, exactly as the executable does when run directly. See
