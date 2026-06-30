@@ -18,7 +18,7 @@ compiler_options = sys.argv[2:]
 
 # Library dependency graph: key depends on values.
 dependencies = {
-    'hdf5hl_fortran': ['hdf5_hl'],
+    'hdf5_hl_fortran': ['hdf5_hl'],
     'hdf5_hl'       : ['hdf5'],
     'hdf5_fortran'  : ['hdf5'],
     'hdf5'          : ['z'],
@@ -34,7 +34,7 @@ static_link_dependencies = {
     'hdf5'          : ['z', 'dl'],
     'hdf5_hl'       : ['hdf5'],
     'hdf5_fortran'  : ['hdf5'],
-    'hdf5hl_fortran': ['hdf5_hl'],
+    'hdf5_hl_fortran': ['hdf5_hl'],
     'gsl'           : ['gslcblas'],
     'FoX_dom'       : ['FoX_fsys', 'FoX_utils', 'FoX_sax', 'FoX_wxml'],
     'FoX_sax'       : ['FoX_common'],

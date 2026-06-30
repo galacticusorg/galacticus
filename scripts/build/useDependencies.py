@@ -106,7 +106,7 @@ MODULE_LIBRARIES = {
     'fox_wxml':           'FoX_wxml',
     'fox_utils':          'FoX_utils',
     'hdf5':               'hdf5_fortran',
-    'h5tb':               'hdf5hl_fortran',
+    'h5tb':               'hdf5_hl_fortran',
     'vectors':            'blas',
     'models_likelihoods': 'matheval',
     'input_parameters':   'matheval',
