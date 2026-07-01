@@ -16,19 +16,29 @@ Galacticus bakes eagerly into the DOM and that the
   (``source/utility/input_parameters.F90``) applied, in command-line order, each
   ``<change>`` in document order, to the post-XInclude tree.
 
+Stage 2 adds:
+
+* **Reference validation** -- every ``idRef`` must resolve to an element with a
+  matching ``id`` and the SAME tag.  References are VALIDATED but NEVER
+  dereferenced/inlined: Galacticus keeps them as runtime pointers to a single
+  shared object, so inlining would create separate copies and change behaviour.
+* **Conditionals** -- ``active="[path] ==|!= value"`` are evaluated (string
+  comparison, fixed-point over dependency chains, with idRef dereferencing during
+  path resolution, mirroring ``inputParametersEvaluateConditionals``) and
+  inactive subtrees are PRUNED, leaving a clean unconditional tree.
+
 NOT handled here (by design -- see the plan):
 
-* ``id``/``idRef`` are validated but NEVER dereferenced (they are runtime
-  pointers -> a shared object; dereferencing would create separate copies).
-  Reference validation + conditionals are Stage 2.
 * ``=[...]`` math expressions are left INTACT for Galacticus to evaluate at
   runtime (deferred).
 
-Processing order matches Galacticus: XInclude -> changes.
+Processing order matches Galacticus: XInclude -> changes -> references ->
+conditionals.
 
 Uses ``lxml`` (already a dependency of the ``galacticus`` launcher).
 """
 
+import collections
 import copy
 import os
 import re
@@ -281,24 +291,189 @@ def apply_changes(root, change_files):
                 _apply_change(root, change)
 
 
+# --- references (id / idRef) ------------------------------------------------
+
+def check_references(root):
+    """Return ``[(tag, idRef), ...]`` for every ``idRef`` with no matching,
+    same-tag ``id`` -- the contract Galacticus' ``resolveReferences`` enforces
+    (an unmatched ``idRef`` is a fatal run-time error)."""
+    ids_by_tag = collections.defaultdict(set)
+    for element in root.iter():
+        if _is_element(element) and element.get('id') is not None:
+            ids_by_tag[element.tag].add(element.get('id'))
+    problems = []
+    for element in root.iter():
+        if not _is_element(element):
+            continue
+        id_ref = element.get('idRef')
+        if id_ref is not None and id_ref not in ids_by_tag.get(element.tag, ()):
+            problems.append((element.tag, id_ref))
+    return problems
+
+
+def _dereference(node, root):
+    """Follow ``idRef`` to the same-tag element carrying the matching ``id``."""
+    id_ref = node.get('idRef')
+    if id_ref is None:
+        return node
+    for candidate in root.iter(node.tag):
+        if candidate.get('id') == id_ref:
+            return candidate
+    raise ResolveError(f"unable to find referenced parameter '{id_ref}'")
+
+
+# --- conditionals (active="[path] ==|!= value") -----------------------------
+
+# Temporary attribute used to record evaluated active state during the
+# fixed-point pass; presence == "activeEvaluated", value '1'/'0' == active.
+_ACTIVE_STATE = '__resolver_active'
+
+
+def _parse_condition(condition):
+    """Parse ``[path] == value`` / ``[path] != value`` -> (path, equals, value)."""
+    text = condition.strip()
+    if not (text.startswith('[') and ']' in text and text.index(']') >= 2):
+        raise ResolveError(
+            f"unable to parse parameter name in conditional '{condition}'")
+    close = text.index(']')
+    path = text[1:close]
+    rest = text[close + 1:].lstrip()
+    operator = rest[:2]
+    if operator == '==':
+        equals = True
+    elif operator == '!=':
+        equals = False
+    else:
+        raise ResolveError(f"unable to parse operator in conditional '{condition}'")
+    return path, equals, rest[2:].strip()
+
+
+def _node_value(node):
+    """The parameter's value, read from the ``value`` attribute (mirrors
+    ``inputParameterGet``: a node with no ``value`` attribute is an error)."""
+    value = node.get('value')
+    if value is None:
+        raise ResolveError(
+            f"no parameter value present on <{node.tag}> used in a conditional")
+    return value
+
+
+def _resolve_conditional_target(current, path, root):
+    """Resolve a conditional ``path`` to the node it conditions upon, replicating
+    Galacticus' walker: bare first step is absolute from the root, ``.``/``..``
+    are self/parent, named steps match the first ACTIVE child of that name that
+    carries a value/<value>/idRef; idRef nodes are dereferenced en route."""
+    segments = path.split('/')
+    node = current if segments[0] in ('.', '..') else root
+    for segment in segments:
+        if segment == '.':
+            continue
+        if segment == '..':
+            node = node.getparent()
+            if node is None:
+                raise ResolveError('no parent parameter exists')
+            continue
+        match = None
+        for child in node:
+            if (_is_element(child)
+                    and child.get(_ACTIVE_STATE, '1') == '1'
+                    and child.tag == segment
+                    and (child.get('value') is not None
+                         or child.find('value') is not None
+                         or child.get('idRef') is not None)):
+                match = child
+                break
+        if match is None:
+            raise ResolveError(f"no child parameter '{segment}' exists")
+        node = _dereference(match, root)
+    return node
+
+
+def evaluate_conditionals(root):
+    """Evaluate every ``active`` conditional (fixed-point) then prune inactive
+    subtrees, leaving an unconditional tree."""
+    while True:
+        all_evaluated = True
+        did_evaluate = False
+        for element in root.iter():
+            if not _is_element(element) or element.get(_ACTIVE_STATE) is not None:
+                continue
+            condition = element.get('active')
+            if condition is None:
+                element.set(_ACTIVE_STATE, '1')        # unconditional: always active
+                did_evaluate = True
+                continue
+            path, equals, value_test = _parse_condition(condition)
+            target = _resolve_conditional_target(element, path, root)
+            if target.get(_ACTIVE_STATE) is None:
+                all_evaluated = False                  # dependency not yet known
+                continue
+            matches = _node_value(target).strip() == value_test
+            element.set(_ACTIVE_STATE, '1' if matches == equals else '0')
+            did_evaluate = True
+        if all_evaluated:
+            break
+        if not did_evaluate:
+            raise ResolveError(
+                'failed to evaluate parameter active statuses (cyclic conditional?)')
+    _prune_inactive(root)
+
+
+def _prune_inactive(element):
+    """Remove inactive subtrees; strip the (now-unconditional) ``active`` markers
+    from survivors."""
+    for child in list(element):
+        if not _is_element(child):
+            continue
+        if child.get(_ACTIVE_STATE) == '0':
+            element.remove(child)
+        else:
+            child.attrib.pop(_ACTIVE_STATE, None)
+            child.attrib.pop('active', None)
+            _prune_inactive(child)
+    element.attrib.pop(_ACTIVE_STATE, None)
+
+
 # --- top-level --------------------------------------------------------------
 
-def resolve_tree(tree, base_dir, change_files=()):
-    """Resolve an lxml parameter ``tree`` in place: XInclude then changes."""
+def resolve_tree(tree, base_dir, change_files=(), conditionals=True):
+    """Resolve an lxml parameter ``tree`` in place, in Galacticus' order:
+    XInclude -> changes -> reference validation -> conditionals.
+
+    ``conditionals=False`` skips conditional evaluation/pruning, leaving the tree
+    at the point the ``--output-processed-parameters`` oracle serializes it
+    (XInclude + changes baked in, ``active=`` attributes still present) -- used by
+    the differential test, which can only certify the oracle-faithful scope.
+    """
     root = tree.getroot()
     _expand_xincludes(root, base_dir or '.')
     if change_files:
         apply_changes(root, change_files)
+    problems = check_references(root)
+    if problems:
+        tag, id_ref = problems[0]
+        raise ResolveError(
+            f"idRef '{id_ref}' on <{tag}> has no matching element with id='{id_ref}'")
+    if conditionals:
+        evaluate_conditionals(root)
+        # Conditional pruning must not strand an idRef whose id'd target it removed.
+        problems = check_references(root)
+        if problems:
+            tag, id_ref = problems[0]
+            raise ResolveError(
+                f"conditional pruning left a dangling idRef '{id_ref}' on <{tag}> "
+                "(its id'd target was conditionally removed); not supported")
     return tree
 
 
-def resolve_file(path, change_files=(), output=None):
+def resolve_file(path, change_files=(), output=None, conditionals=True):
     """Resolve ``path`` (+ optional change files); optionally write ``output``.
 
     Returns the resolved lxml ``ElementTree``.
     """
     tree = load(path)
-    resolve_tree(tree, os.path.dirname(os.path.abspath(path)), change_files)
+    resolve_tree(tree, os.path.dirname(os.path.abspath(path)), change_files,
+                 conditionals=conditionals)
     if output is not None:
         with open(output, 'wb') as handle:
             handle.write(to_bytes(tree))

@@ -3,8 +3,12 @@
 Sub-commands:
 
 * ``install`` / ``update`` -- provision (or refresh) the managed install.
-* ``run <params.xml> [args...]`` -- validate then dispatch to the executable.
-* ``validate <params.xml>`` -- run validation only.
+* ``run <params.xml> [change files...] [args...]`` -- validate then dispatch to
+  the executable (``--resolve`` runs a fully-resolved temporary file instead).
+* ``validate <params.xml> [change files...]`` -- run validation only.
+* ``resolve <params.xml> [change files...] -o <out>`` -- write a resolved
+  (XInclude/changes/conditionals applied) parameter file; the serial pre-step for
+  MPI runs.
 * ``clean`` -- purge the regenerable cache (never the durable install).
 * ``info`` -- report the resolved install, paths, and environment.
 
@@ -21,7 +25,7 @@ import platformdirs
 
 from . import __version__, download, macos, paths, platforms, validate as _validate
 
-_COMMANDS = {"install", "update", "run", "validate", "clean", "info"}
+_COMMANDS = {"install", "update", "run", "validate", "resolve", "clean", "info"}
 
 
 def main(argv=None):
@@ -41,16 +45,35 @@ def main(argv=None):
     sub.add_parser("update", help="re-download the install for the current version")
 
     run_parser = sub.add_parser("run", help="run a parameter file")
-    run_parser.add_argument("parameter_file")
     run_parser.add_argument("--no-validate", action="store_true",
                             help="skip pre-dispatch parameter validation")
+    run_parser.add_argument("--resolve", action="store_true",
+                            help="resolve (XInclude, changes, conditionals) to a "
+                                 "temporary file, then run that")
+    run_parser.add_argument("parameter_file")
     run_parser.add_argument("extra", nargs=argparse.REMAINDER,
-                            help="arguments passed through to Galacticus.exe")
+                            help="change files, then arguments passed through to "
+                                 "Galacticus.exe")
 
     validate_parser = sub.add_parser("validate", help="validate a parameter file")
     validate_parser.add_argument("parameter_file")
+    validate_parser.add_argument("change_files", nargs="*",
+                                 help="change files applied (in order) before validation")
     validate_parser.add_argument("--structural", action="store_true",
                                  help="also run structural checks")
+
+    resolve_parser = sub.add_parser(
+        "resolve", help="resolve a parameter file (XInclude, change files, "
+                        "conditionals) to a single clean file")
+    resolve_parser.add_argument("parameter_file")
+    resolve_parser.add_argument("change_files", nargs="*",
+                                help="change files applied in order")
+    resolve_parser.add_argument("-o", "--output", required=True,
+                                help="write the resolved parameter file here")
+    resolve_parser.add_argument("--no-conditionals", action="store_true",
+                                help="do not evaluate/prune active= conditionals")
+    resolve_parser.add_argument("--validate", action="store_true",
+                                help="also validate the resolved file")
 
     clean_parser = sub.add_parser("clean", help="purge the regenerable cache")
     clean_parser.add_argument("--all", action="store_true",
@@ -91,9 +114,13 @@ def _dispatch(args):
     install = paths.resolve()
     if args.command in ("install", "update"):
         return _cmd_install(install, force=(args.command == "update"))
+    if args.command == "resolve":
+        # Resolution is pure Python; no binary/download is required.
+        return _cmd_resolve(install, args)
     if args.command == "validate":
         _ensure(install)
-        return _cmd_validate(install, args.parameter_file, args.structural)
+        return _cmd_validate(install, args.parameter_file, args.structural,
+                             args.change_files)
     if args.command == "run":
         _ensure(install)
         return _cmd_run(install, args)
@@ -132,9 +159,11 @@ def _cmd_install(install, *, force):
     return 0
 
 
-def _cmd_validate(install, parameter_file, structural):
+def _cmd_validate(install, parameter_file, structural, change_files):
     parameter_file = _resolve_parameter_file(install, parameter_file)
-    result = _validate.validate(parameter_file, install, structural=structural)
+    change_files = [_resolve_parameter_file(install, c) for c in change_files]
+    result = _validate.validate(parameter_file, install, structural=structural,
+                               change_files=change_files)
     _report_findings(result)
     if result.ok:
         print(f"OK ({result.method}): {parameter_file}")
@@ -143,10 +172,53 @@ def _cmd_validate(install, parameter_file, structural):
     return 1
 
 
+def _cmd_resolve(install, args):
+    parameter_file = _resolve_parameter_file(install, args.parameter_file)
+    change_files = [_resolve_parameter_file(install, c) for c in args.change_files]
+    try:
+        _validate.resolve_to_file(parameter_file, install, change_files,
+                                  output=args.output,
+                                  conditionals=not args.no_conditionals)
+    except RuntimeError as error:
+        print(f"galacticus: {error}", file=sys.stderr)
+        return 1
+    print(f"Resolved {parameter_file} -> {args.output}")
+    if args.validate:
+        result = _validate.validate(args.output, install)
+        _report_findings(result)
+        if not result.ok:
+            print(f"INVALID ({result.method}): {args.output}", file=sys.stderr)
+            return 1
+        print(f"OK ({result.method}): {args.output}")
+    return 0
+
+
+def _split_change_files(extra):
+    """Split ``run`` trailing args into (change files, pass-through options).
+
+    Mirrors the Galacticus command line: leading non-option arguments are change
+    files; everything from the first option (or ``--``) on is passed through.
+    """
+    change_files, passthrough, rest = [], [], False
+    for arg in extra:
+        if arg == "--":
+            rest = True
+            continue
+        if not rest and not arg.startswith("-"):
+            change_files.append(arg)
+        else:
+            rest = True
+            passthrough.append(arg)
+    return change_files, passthrough
+
+
 def _cmd_run(install, args):
     parameter_file = _resolve_parameter_file(install, args.parameter_file)
+    change_files, passthrough = _split_change_files(list(args.extra or []))
+    change_files = [_resolve_parameter_file(install, c) for c in change_files]
     if not args.no_validate:
-        result = _validate.validate(parameter_file, install)
+        result = _validate.validate(parameter_file, install,
+                                   change_files=change_files)
         _report_findings(result)
         if not result.ok:
             print(f"galacticus: refusing to run; {parameter_file} failed "
@@ -156,8 +228,22 @@ def _cmd_run(install, args):
         print("galacticus: warning: no datasets path resolved; the run may fail. "
               "Set GALACTICUS_DATA_PATH.", file=sys.stderr)
     env = install.environ()
-    extra = [a for a in (args.extra or []) if a != "--"]
-    command = [str(install.binary), parameter_file, *extra]
+    if args.resolve:
+        import tempfile
+        handle = tempfile.NamedTemporaryFile(suffix=".xml", delete=False)
+        handle.close()
+        try:
+            _validate.resolve_to_file(parameter_file, install, change_files,
+                                      output=handle.name)
+        except RuntimeError as error:
+            os.unlink(handle.name)
+            print(f"galacticus: {error}", file=sys.stderr)
+            return 1
+        # The resolved file already has change files baked in; pass only options.
+        command = [str(install.binary), handle.name, *passthrough]
+    else:
+        # Change files + pass-through options go to the binary, which applies them.
+        command = [str(install.binary), parameter_file, *change_files, *passthrough]
     sys.stdout.flush()
     os.execve(str(install.binary), command, env)  # replaces this process
 

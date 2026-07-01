@@ -17,6 +17,7 @@ Four components make up a runnable install:
 
 import os
 import shutil
+import subprocess
 import sys
 import tarfile
 import tempfile
@@ -114,7 +115,36 @@ def provision(install, *, force=False, log=print):
         done.append("datasets")
     if _provision_tools(install, force=force, log=log):
         done.append("tools")
+    if _provision_catalog(install, force=force, log=log):
+        done.append("parameter catalog")
     return done
+
+
+def _provision_catalog(install, *, force, log):
+    """Generate the parameter catalog from the just-provisioned source tree.
+
+    The catalog (used by ``galacticus validate``) is NOT a committed/shipped
+    artifact; it is generated on demand here so it always matches the installed
+    source. Best-effort: a failure is logged but does not fail the install
+    (validation then falls back to the executable's ``--dry-run``).
+    """
+    catalog = Path(install.exec_path) / "parameters.catalog.json"
+    generator = Path(install.exec_path) / "scripts" / "build" / "parameterCatalog.py"
+    if not generator.is_file():
+        return False                       # source tree not present
+    if catalog.is_file() and not force:
+        return False
+    log("Generating parameter catalog ...")
+    try:
+        subprocess.run(
+            [sys.executable, str(generator), str(install.exec_path), str(catalog)],
+            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+    except (OSError, subprocess.CalledProcessError) as error:
+        log(f"warning: could not generate the parameter catalog ({error}); "
+            "validation will fall back to the executable's --dry-run.")
+        return False
+    return catalog.is_file()
 
 
 def _sentinel(directory, name):

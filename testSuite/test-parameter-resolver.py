@@ -91,16 +91,20 @@ def _run_oracle(param_file, change_files, out_path, timeout=40):
 
 
 def _compare(param_file, change_files, label, out_path):
+    # Compare only the oracle-faithful scope (XInclude + changes + reference
+    # validation); the oracle keeps `active=` and does not prune, so conditional
+    # evaluation is excluded here and covered by unit tests instead.
     if not _run_oracle(param_file, change_files, out_path):
         # Oracle errored before serialize; a faithful resolver must agree (error).
         try:
-            resolve.resolve_file(param_file, change_files)
+            resolve.resolve_file(param_file, change_files, conditionals=False)
         except Exception:
             return True, "both error (agreement)"
         return False, "oracle errored but resolver succeeded (too lenient)"
     try:
         oracle = etree.parse(out_path).getroot()
-        mine = resolve.resolve_file(param_file, change_files).getroot()
+        mine = resolve.resolve_file(param_file, change_files,
+                                    conditionals=False).getroot()
     except Exception as exc:                                  # pragma: no cover
         return False, f"comparison setup error: {exc}"
     diff = _first_diff(_norm(oracle), _norm(mine))
@@ -176,6 +180,29 @@ def main():
         if not ok:
             failures += 1
             print(f"  FAILED: {os.path.relpath(path, REPO)} :: {detail}")
+
+    # Conditionals: the oracle keeps `active=` (cannot certify pruning), so verify
+    # end-to-end instead -- fully resolve a real conditional file and confirm
+    # Galacticus accepts the pruned result.
+    tests_params = os.path.join(REPO, "testSuite", "parameters", "testsParameters.xml")
+    if os.path.isfile(tests_params):
+        print("Conditional end-to-end (testsParameters.xml):")
+        resolved = os.path.join(tempfile.gettempdir(), "resolver_resolved.xml")
+        try:
+            root = resolve.resolve_file(tests_params, output=resolved).getroot()
+        except Exception as exc:
+            failures += 1
+            print(f"  FAILED: resolve raised :: {exc}")
+        else:
+            active1 = [c.get("value") for c in root if c.tag == "active1"]
+            if active1 != ["0.2"]:
+                failures += 1
+                print(f"  FAILED: conditional pruning -> active1 {active1}, expected ['0.2']")
+            elif not _run_oracle(resolved, [], out_path):
+                failures += 1
+                print("  FAILED: Galacticus rejected the conditionally-pruned file")
+            else:
+                print("  ok: pruned to active1=0.2 and accepted by Galacticus")
 
     if failures:
         print(f"FAILED: {failures} resolver/oracle divergence(s)")
