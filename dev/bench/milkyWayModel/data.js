@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782694895019,
+  "lastUpdate": 1782864183892,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "5acea79249949bfbb328f843f32bcc474e606421",
-          "message": "Merge pull request #836 from galacticusorg/featDetectRecursiveObjectBuild\n\nDetect recursion in `objectBuilder` directives",
-          "timestamp": "2025-05-03T16:38:03Z",
-          "tree_id": "c1befa33a562f28d14f1774711788bb8c5d0640f",
-          "url": "https://github.com/galacticusorg/galacticus/commit/5acea79249949bfbb328f843f32bcc474e606421"
-        },
-        "date": 1746313518614,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 112.262,
-            "unit": "seconds",
-            "range": 0.385841418202216
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10704,6 +10674,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 7.428797028309957,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "eb01ebaafc79728509e5e9578e14895dbd436657",
+          "message": "Merge pull request #1207 from galacticusorg/feature/parameter-resolver\n\nfeat: add Python parameter-file resolver (XInclude + change files)",
+          "timestamp": "2026-06-30T15:37:59Z",
+          "tree_id": "0c6cde6f2231351e12f47a92e6aaf0fa98d275b1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/eb01ebaafc79728509e5e9578e14895dbd436657"
+        },
+        "date": 1782864183109,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 38.378,
+            "range": "0.09029728678094354",
+            "unit": "seconds"
           }
         ]
       }
