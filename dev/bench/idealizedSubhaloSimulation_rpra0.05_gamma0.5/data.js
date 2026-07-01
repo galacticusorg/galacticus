@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782864280825,
+  "lastUpdate": 1782941585046,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "2d424a3b299a73cded972164f4aa036c6756fef7",
-          "message": "feat: Add a `nodePropertyExtractor` for projected orbital radius",
-          "timestamp": "2024-07-20T16:58:14-07:00",
-          "tree_id": "d85e5beb82de3630a46e37b185076fa5b9aefa96",
-          "url": "https://github.com/galacticusorg/galacticus/commit/2d424a3b299a73cded972164f4aa036c6756fef7"
-        },
-        "date": 1721543290344,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
-            "value": 21.580989589489,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": 7.89676204848734,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
-            "value": 9.84983097584262,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9894,6 +9855,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/eb01ebaafc79728509e5e9578e14895dbd436657"
         },
         "date": 1782864280048,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": 23.380593533083903,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 8.011134821970838,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 10.110599764478055,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1cdc7ffbe77c9cfed5ac63f4d9294933109531f4",
+          "message": "Merge pull request #1209 from galacticusorg/feature/parameter-resolver-conditionals\n\nfeat: parameter resolver — references, conditionals, launcher wiring, catalog generation",
+          "timestamp": "2026-07-01T15:58:56Z",
+          "tree_id": "36bf4dda8264f41589d5416f1571ddd7582c98e5",
+          "url": "https://github.com/galacticusorg/galacticus/commit/1cdc7ffbe77c9cfed5ac63f4d9294933109531f4"
+        },
+        "date": 1782941584642,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
