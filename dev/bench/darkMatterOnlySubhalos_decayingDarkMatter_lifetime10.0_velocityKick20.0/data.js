@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782694944215,
+  "lastUpdate": 1782864310729,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=10 Gyr; vₖ=20 km/s)": [
@@ -5785,6 +5785,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": 8.714787565153783,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "eb01ebaafc79728509e5e9578e14895dbd436657",
+          "message": "Merge pull request #1207 from galacticusorg/feature/parameter-resolver\n\nfeat: add Python parameter-file resolver (XInclude + change files)",
+          "timestamp": "2026-06-30T15:37:59Z",
+          "tree_id": "0c6cde6f2231351e12f47a92e6aaf0fa98d275b1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/eb01ebaafc79728509e5e9578e14895dbd436657"
+        },
+        "date": 1782864310020,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": 3.5863015917233856,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": 8.142397310076333,
             "unit": "-logℒ"
           }
         ]
