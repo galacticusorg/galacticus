@@ -29,13 +29,28 @@
   use    :: Galacticus_Nodes                  , only : nodeComponentBasic                 , nodeComponentDarkMatterProfile   , treeNode
   use    :: Halo_Spin_Distributions           , only : haloSpinDistributionClass
   use    :: Kind_Numbers                      , only : kind_int8
-  use    :: Merger_Tree_Read_Importers        , only : mergerTreeImporterClass
+  use    :: Merger_Tree_Read_Importers        , only : mergerTreeImporterClass            , nodeData
   use    :: Merger_Tree_Seeds                 , only : mergerTreeSeedsClass
   use    :: Nodes_Operators                   , only : nodeOperatorClass
   use    :: Numerical_Random_Numbers          , only : randomNumberGeneratorClass
   use    :: Output_Times                      , only : outputTimes                        , outputTimesClass
   use    :: Satellite_Merging_Timescales      , only : satelliteMergingTimescalesClass
   use    :: Virial_Orbits                     , only : virialOrbitClass
+
+  ! Enumeration of subhalo branch walk termination reasons.
+  !![
+  <enumeration docformat="rst">
+   <name>branchTerminus</name>
+   <description>
+   Enumeration of the reasons a subhalo branch walk terminates: ``branchTip`` indicates that the end of the branch was reached (no descendant exists); ``mergerWithIsolated`` indicates that the descendant is an isolated halo with which this branch merges; ``promotion`` indicates that the descendant is an isolated halo to which this branch must be promoted; ``mergerWithSubhalo`` indicates a merger with a more senior subhalo sharing the same descendant.
+   </description>
+   <entry label="undefined"         />
+   <entry label="branchTip"         />
+   <entry label="mergerWithIsolated"/>
+   <entry label="promotion"         />
+   <entry label="mergerWithSubhalo" />
+  </enumeration>
+  !!]
 
   ! Enumeration of node reachability status.
   !![
@@ -283,6 +298,27 @@
      procedure :: current       => progenitorIteratorCurrent
      procedure :: exist         => progenitorIteratorExist
   end type progenitorIterator
+
+  ! Iterator object for walking subhalo branches, following descendants until the branch tip, a merger, or a subhalo promotion
+  ! is reached. After the walk ends the ``terminus`` component records the reason, with ``mergesWithIndex`` recording the index
+  ! of the node merged with where relevant, and ``node`` pointing to the last node visited.
+  type :: branchIterator
+     class  (nodeData                     ), pointer :: node            => null()
+     type   (mergerTreeConstructorRead    ), pointer :: constructor     => null()
+     type   (enumerationBranchTerminusType)          :: terminus
+     integer(kind_int8                    )          :: mergesWithIndex
+     logical                                         :: immediate                , started, &
+          &                                             finished
+   contains
+     !![
+     <methods docformat="rst">
+       <method description="Initialize the iterator to walk the subhalo branch beginning at the given node." method="branchSet" />
+       <method description="Move to the next node in the branch. Returns true if a node was visited, false once the walk has ended." method="next" />
+     </methods>
+     !!]
+     procedure :: branchSet => branchIteratorBranchSet
+     procedure :: next      => branchIteratorNext
+  end type branchIterator
 
   ! Variables used in root-finding.
   class           (nodeComponentDarkMatterProfile     ), pointer :: darkMatterProfile_
@@ -2328,189 +2364,140 @@ contains
     class           (nodeData                 ), target   , dimension(:), intent(inout) :: nodes
     type            (treeNodeList             )           , dimension(:), intent(inout) :: nodeList
     integer         (c_size_t                 )                         , intent(  out) :: historyCountMaximum
-    class           (nodeData                 ), pointer                                :: lastSeenNode                , progenitorNode            , &
-         &                                                                                 node
+    class           (nodeData                 ), pointer                                :: lastSeenNode                , node
     type            (treeNode                 ), pointer                                :: firstProgenitor             , hostNode                  , &
          &                                                                                 orbitalPartner              , satelliteNode
-    integer                                    , parameter                              :: passAssign                =1, passMerge               =2
-    class           (nodeComponentBasic       ), pointer                                :: basicChild                  , basic
+    class           (nodeComponentBasic       ), pointer                                :: basic
     class           (nodeComponentSatellite   ), pointer                                :: satellite
-    class           (nodeComponentPosition    ), pointer                                :: position                    , positionChild
-    integer                                                                             :: iNode                       , pass_
+    integer                                                                             :: iNode
     integer         (c_size_t                 )                                         :: historyCount                , iIsolatedNode
     logical                                                                             :: branchMerges                , branchTipReached          , &
-         &                                                                                 endOfBranch                 , isolatedProgenitorExists  , &
-         &                                                                                 nodeWillMerge               , nodeIsMostMassive         , &
-         &                                                                                 nodeIsMostSenior            , progenitorsExist
+         &                                                                                 isolatedProgenitorExists    , nodeWillMerge             , &
+         &                                                                                 nodeIsMostMassive           , progenitorsExist
     double precision                                                                    :: timeSubhaloMerges
-    type            (progenitorIterator       )                                         :: progenitors
+    type            (branchIterator           )                                         :: branch
 
     ! Initialize.
     historyCountMaximum  = 0
     nodes%mergesWithIndex=-1
-    ! First pass assigns isolated node indices to all descendants, second pass finds mergers.
-    do pass_=passAssign,passMerge
-       do iNode=1,size(nodes)
-          if (nodes(iNode)%primaryIsolatedNodeIndex /= nodeReachabilityUnreachable%ID) then
-             iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
-             ! Find the subset with descendants.
-             if (associated(nodes(iNode)%descendant)) then
-                ! Determine if this is the most senior progenitor.
-                nodeIsMostMassive=.true.
-                if (self%alwaysPromoteMostMassive) &
-                     & call self%progenitorSurvey(nodes(iNode)%descendant,nodes,progenitorsExist,isolatedProgenitorExists,nodes(iNode),nodeIsMostMassive)
-                ! Flag indicating if this is a node for which a merging time should be set.
-                nodeWillMerge=.false.
-                ! Select the subset which have a subhalo descendant, or which are an initial subhalo.
-                if (nodes(iNode)%descendant%isSubhalo.or.nodes(iNode)%isSubhalo) then
-                   ! Trace descendants until merging or final time.
-                   endOfBranch     =.false.
-                   branchTipReached=.false.
-                   branchMerges    =.false.
-                   historyCount    =0
-                   if (nodes(iNode)%isSubhalo) then
-                      node => nodes(iNode)
-                   else
-                      ! Check for an immediate subhalo-subhalo merger.
-                      if (self%isSubhaloSubhaloMerger(nodes,nodes(iNode))) then
-                         endOfBranch =.true.
-                         branchMerges=.true.
-                         nodes(iNode)%mergesWithIndex=nodes(iNode)%descendant%nodeIndex
-                         historyCount=historyCount+max(0_kind_int8,self%mergerTreeImporter_%subhaloTraceCount(nodes(iNode)))
-                      end if
-                      lastSeenNode => nodes(iNode)
-                      node         => nodes(iNode)%descendant
-                   end if
-                   do while (.not.endOfBranch)
-                      ! Record which isolated node this node belongs to.
-                      node%isolatedNodeIndex=iIsolatedNode
-                      ! Increment the history count for this branch.
-                      historyCount=historyCount+1
-                      ! Test the branch.
-                      if (.not.associated(node%descendant)) then
-                         ! No descendant, indicating tip of branch has been reached
-                         branchTipReached            =.true.
-                         endOfBranch                 =.true.
-                         historyCount                =historyCount+max(0_kind_int8,self%mergerTreeImporter_%subhaloTraceCount(node))
-                      else if (.not.node%descendant%isSubhalo) then
-                         ! Descendant is not a subhalo, treat as a merging event or a subhalo promotion.
-                         endOfBranch                 =.true.
-                         historyCount                =historyCount+max(0_kind_int8,self%mergerTreeImporter_%subhaloTraceCount(node))
-                         ! Search for any isolated progenitors of the node's descendant, and determine if our node is the most
-                         ! senior progenitor.
-                         call self%progenitorSurvey(node%descendant,nodes,progenitorsExist,isolatedProgenitorExists,node,nodeIsMostSenior)
-                         ! If an isolated progenitor exists, or this is not the most senior subhalo progenitor, this is a merger
-                         ! event. If not, it is a subhalo promotion (which will be handled elsewhere).
-                         if (isolatedProgenitorExists .or. .not.nodeIsMostSenior) then
-                            branchMerges                =.true.
-                            nodes(iNode)%mergesWithIndex=node%descendant%nodeIndex
-                            lastSeenNode                => node
-                            node                        => node%descendant
-                         end if
-                      else
-                         ! Merges with another subhalo.
-                         call progenitors%descendantSet(self,node%descendant,nodes)
-                         do while (progenitors%next(nodes))
-                            progenitorNode => progenitors%current(nodes)
-                            if     (                                                                                       &
-                                 &                     progenitorNode%nodeIndex         /= node%nodeIndex                  &
-                                 &  .and.              progenitorNode%isolatedNodeIndex /= nodeReachabilityUnreachable%ID  &
-                                 &  .and.   associated(progenitorNode%descendant                                         ) &
-                                 &  .and.massIsGreater(progenitorNode                   ,  node                          ) &
-                                 & ) then
-                               ! Another node merges into current node's descendant subhalo and is more massive than current
-                               ! node. Therefore, class this as a subhalo-subhalo merger.
-                               branchMerges                =  .true.
-                               endOfBranch                 =  .true.
-                               nodes(iNode)%mergesWithIndex=  progenitorNode%descendant%nodeIndex
-                               historyCount                =  historyCount+max(0_kind_int8,self%mergerTreeImporter_%subhaloTraceCount(node))
-                               lastSeenNode                => node
-                               node                        => node%descendant
-                               exit
-                            end if
-                         end do
-                         ! Step to the next descendant.
-                         if (.not.endOfBranch) node => node%descendant
-                      end if
-                   end do
-                   ! If on the isolated node index assigning pass, skip to the next halo.
-                   if (pass_ == passAssign) cycle
-                   ! Only set a merging time if this node is not the primary progenitor of its parent.
-                   if (.not.nodeList(iIsolatedNode)%node%isPrimaryProgenitor()) then
-                      ! Record the largest history.
-                      historyCountMaximum=max(historyCountMaximum,historyCount)
-                      ! Set an appropriate merging time for this subhalo.
-                      if      (branchTipReached) then
-                         timeSubhaloMerges=satelliteMergeTimeInfinite ! Subhalo never merges, so set merging time to effective infinity.
-                      else if (branchMerges    ) then
-                         ! Find the time of merging, accounting for any additional (subresolution) time.
-                         timeSubhaloMerges=node%nodeTime
-                         call self%timeUntilMergingSubresolution(lastSeenNode,nodes,nodeList,iNode,timeSubhaloMerges)
-                      else
-                         ! Neither the branch tip was reached, not does this branch merge. Therefore, this must be a subhalo which is
-                         ! promoted to be an isolated halo. Simply set an infinite merging time as we do not wish this node to merge.
-                         timeSubhaloMerges=satelliteMergeTimeInfinite
-                      end if
-                      ! Flag that this node will merge.
-                      nodeWillMerge=.true.
-                   end if
-                else if (pass_ == passAssign) then
-                   ! If on the isolated node index assigning pass, skip to the next halo.
-                   cycle
-                else if (.not.nodeList(iIsolatedNode)%node%isPrimaryProgenitor() .or. ( self%alwaysPromoteMostMassive .and. .not.nodeIsMostMassive )) then
-                   ! Descendant is not a subhalo but this node is not the primary progenitor. Or we are always promoting the most
-                   ! massive progenitor, even if it is a subhalo and there are isolated progenitors present. Assume the halo
-                   ! merges instantaneously at the time of merging with its parent halo. (That merging event occurs at the time of
-                   ! the parent halo.)
-                   basic             => nodeList(iIsolatedNode)%node%parent%basic()
-                   timeSubhaloMerges =  basic                              %time ()
-                   ! Flag that this node will merge.
-                   nodeWillMerge=.true.
-                   ! Record the node with which the merger occurs.
-                   nodes(iNode)%mergesWithIndex=nodes(iNode)%descendant%nodeIndex
-                   ! Ensure the history arrays will be large enough to hold data for this node.
-                   historyCountMaximum=max(historyCountMaximum,max(0_kind_int8,self%mergerTreeImporter_%subhaloTraceCount(nodes(iNode))))
-                   ! Account for any subresolution merging time.
-                   call self%timeUntilMergingSubresolution(nodes(iNode),nodes,nodeList,iNode,timeSubhaloMerges)
-                end if
-                ! Set a merging time and/or orbit if this node will merge.
-                if (self%presetMergerTimes) then
-                   ! If the node does not merge set an infinite merging time.
-                   if (.not.nodeWillMerge) timeSubhaloMerges=satelliteMergeTimeInfinite
-                   ! Store the time of merging for this node and all of its primary progenitors.
-                   firstProgenitor => nodeList(iIsolatedNode)%node
-                   do while (associated(firstProgenitor))
-                      satellite => firstProgenitor%satellite(autoCreate=.true.)
-                      call satellite%timeOfMergingSet(timeSubhaloMerges)
-                      firstProgenitor => firstProgenitor%firstChild
-                   end do
-                end if
-             else
-                ! Node has no descendant - it must therefore be an initial subhalo seen only once. A position history must be set
-                ! for this, so ensure the history arrays are sufficiently sized.
-                historyCountMaximum=max(historyCountMaximum,max(0_kind_int8,self%mergerTreeImporter_%subhaloTraceCount(nodes(iNode))))
-             end if
-             ! Set position and velocity if required.
-             if (self%presetPositions) then
-                position => nodeList(iIsolatedNode)%node%position(autoCreate=.true.)
-                call position%positionSet(nodes(iNode)%position)
-                call position%velocitySet(nodes(iNode)%velocity)
-                ! Detect if the node parent has no isolated child - in which case one will have been made for it using a
-                ! direct copy of itself. Note that this is an ugly solution - once trees can handle nodes with no primary
-                ! progenitor (but with secondary progenitors) a cleaner test could be used here.
-                if (associated(nodeList(iIsolatedNode)%node%firstChild)) then
-                   basic      => nodeList(iIsolatedNode)%node           %basic()
-                   basicChild => nodeList(iIsolatedNode)%node%firstChild%basic()
-                   if (nodeList(iIsolatedNode)%node%uniqueID() == nodeList(iIsolatedNode)%node%firstChild%uniqueID()) then
-                      ! Set the position and velocity of the pseudo-primary progenitor here also.
-                      positionChild => nodeList(iIsolatedNode)%node%firstChild%position(autoCreate=.true.)
-                      call positionChild%positionSet(nodes(iNode)%position)
-                      call positionChild%velocitySet(nodes(iNode)%velocity)
-                   end if
-                end if
-             end if
+    ! First pass: walk all subhalo branches, assigning isolated node indices to the nodes along each branch, and recording
+    ! initial estimates of the nodes with which merging branches merge. Note that the classification of a branch depends on the
+    ! isolated node indices assigned by earlier walks (via the detection of subhalo-subhalo mergers), so this pass must complete
+    ! for all nodes before the second pass (which determines mergers and merging times) is performed.
+    do iNode=1,size(nodes)
+       if (nodes(iNode)%primaryIsolatedNodeIndex == nodeReachabilityUnreachable%ID) cycle
+       iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
+       if (associated(nodes(iNode)%descendant)) then
+          ! Select the subset which have a subhalo descendant, or which are an initial subhalo.
+          if (nodes(iNode)%descendant%isSubhalo.or.nodes(iNode)%isSubhalo) then
+             ! Walk the branch, recording which isolated node each node along it belongs to.
+             call branch%branchSet(self,nodes(iNode),nodes)
+             do while (branch%next(nodes))
+                branch%node%isolatedNodeIndex=iIsolatedNode
+             end do
+             if     (                                                     &
+                  &   branch%terminus == branchTerminusMergerWithIsolated &
+                  &  .or.                                                 &
+                  &   branch%terminus == branchTerminusMergerWithSubhalo  &
+                  & ) nodes(iNode)%mergesWithIndex=branch%mergesWithIndex
           end if
-       end do
+       else
+          ! Node has no descendant - it must therefore be an initial subhalo seen only once. A position history must be set for
+          ! this, so ensure the history arrays are sufficiently sized.
+          historyCountMaximum=max(historyCountMaximum,max(0_kind_int8,self%mergerTreeImporter_%subhaloTraceCount(nodes(iNode))))
+          ! Set position and velocity if required. (Positions of nodes with descendants are set in the second pass, but
+          ! positions of descendant-less nodes may be needed by the subresolution merging time calculations of that pass, so
+          ! must be set now.)
+          if (self%presetPositions) call positionsPreset()
+       end if
+    end do
+    ! Second pass: determine how and when each branch merges, and set merging times, positions, and velocities.
+    do iNode=1,size(nodes)
+       if (nodes(iNode)%primaryIsolatedNodeIndex == nodeReachabilityUnreachable%ID) cycle
+       iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
+       ! Find the subset with descendants.
+       if (associated(nodes(iNode)%descendant)) then
+          ! Determine if this is the most senior progenitor.
+          nodeIsMostMassive=.true.
+          if (self%alwaysPromoteMostMassive) &
+               & call self%progenitorSurvey(nodes(iNode)%descendant,nodes,progenitorsExist,isolatedProgenitorExists,nodes(iNode),nodeIsMostMassive)
+          ! Flag indicating if this is a node for which a merging time should be set.
+          nodeWillMerge=.false.
+          ! Select the subset which have a subhalo descendant, or which are an initial subhalo.
+          if (nodes(iNode)%descendant%isSubhalo.or.nodes(iNode)%isSubhalo) then
+             ! Trace descendants until merging or final time.
+             historyCount=0
+             call branch%branchSet(self,nodes(iNode),nodes)
+             do while (branch%next(nodes))
+                ! Record which isolated node this node belongs to.
+                branch%node%isolatedNodeIndex=iIsolatedNode
+                ! Increment the history count for this branch.
+                historyCount=historyCount+1
+             end do
+             ! Account for any subresolution trace data at the end of the branch.
+             historyCount=historyCount+max(0_kind_int8,self%mergerTreeImporter_%subhaloTraceCount(branch%node))
+             ! Extract the outcome of the walk.
+             branchTipReached=branch%terminus == branchTerminusBranchTip
+             branchMerges    =branch%terminus == branchTerminusMergerWithIsolated .or. branch%terminus == branchTerminusMergerWithSubhalo
+             if (branchMerges) then
+                nodes(iNode)%mergesWithIndex =  branch%mergesWithIndex
+                lastSeenNode                 => branch%node
+                node                         => branch%node%descendant
+             end if
+             ! Only set a merging time if this node is not the primary progenitor of its parent.
+             if (.not.nodeList(iIsolatedNode)%node%isPrimaryProgenitor()) then
+                ! Record the largest history.
+                historyCountMaximum=max(historyCountMaximum,historyCount)
+                ! Set an appropriate merging time for this subhalo.
+                if      (branchTipReached) then
+                   timeSubhaloMerges=satelliteMergeTimeInfinite ! Subhalo never merges, so set merging time to effective infinity.
+                else if (branchMerges    ) then
+                   ! Find the time of merging, accounting for any additional (subresolution) time.
+                   timeSubhaloMerges=node%nodeTime
+                   call self%timeUntilMergingSubresolution(lastSeenNode,nodes,nodeList,iNode,timeSubhaloMerges)
+                else
+                   ! Neither the branch tip was reached, not does this branch merge. Therefore, this must be a subhalo which is
+                   ! promoted to be an isolated halo. Simply set an infinite merging time as we do not wish this node to merge.
+                   timeSubhaloMerges=satelliteMergeTimeInfinite
+                end if
+                ! Flag that this node will merge.
+                nodeWillMerge=.true.
+             end if
+          else if (.not.nodeList(iIsolatedNode)%node%isPrimaryProgenitor() .or. ( self%alwaysPromoteMostMassive .and. .not.nodeIsMostMassive )) then
+             ! Descendant is not a subhalo but this node is not the primary progenitor. Or we are always promoting the most
+             ! massive progenitor, even if it is a subhalo and there are isolated progenitors present. Assume the halo
+             ! merges instantaneously at the time of merging with its parent halo. (That merging event occurs at the time of
+             ! the parent halo.)
+             basic             => nodeList(iIsolatedNode)%node%parent%basic()
+             timeSubhaloMerges =  basic                              %time ()
+             ! Flag that this node will merge.
+             nodeWillMerge=.true.
+             ! Record the node with which the merger occurs.
+             nodes(iNode)%mergesWithIndex=nodes(iNode)%descendant%nodeIndex
+             ! Ensure the history arrays will be large enough to hold data for this node.
+             historyCountMaximum=max(historyCountMaximum,max(0_kind_int8,self%mergerTreeImporter_%subhaloTraceCount(nodes(iNode))))
+             ! Account for any subresolution merging time.
+             call self%timeUntilMergingSubresolution(nodes(iNode),nodes,nodeList,iNode,timeSubhaloMerges)
+          end if
+          ! Set a merging time and/or orbit if this node will merge.
+          if (self%presetMergerTimes) then
+             ! If the node does not merge set an infinite merging time.
+             if (.not.nodeWillMerge) timeSubhaloMerges=satelliteMergeTimeInfinite
+             ! Store the time of merging for this node and all of its primary progenitors.
+             firstProgenitor => nodeList(iIsolatedNode)%node
+             do while (associated(firstProgenitor))
+                satellite => firstProgenitor%satellite(autoCreate=.true.)
+                call satellite%timeOfMergingSet(timeSubhaloMerges)
+                firstProgenitor => firstProgenitor%firstChild
+             end do
+          end if
+       else
+          ! Node has no descendant - it must therefore be an initial subhalo seen only once. A position history must be set
+          ! for this, so ensure the history arrays are sufficiently sized.
+          historyCountMaximum=max(historyCountMaximum,max(0_kind_int8,self%mergerTreeImporter_%subhaloTraceCount(nodes(iNode))))
+       end if
+       ! Set position and velocity if required.
+       if (self%presetPositions) call positionsPreset()
     end do
     ! Set orbits.
     if (self%presetOrbits) then
@@ -2540,6 +2527,32 @@ contains
        end do
     end if
     return
+
+  contains
+
+    subroutine positionsPreset()
+      !!{RST
+      Set the position and velocity of the current node and, if the node's primary progenitor is a direct clone of itself
+      (as made for nodes with no isolated child - note that this is an ugly solution - once trees can handle nodes with no
+      primary progenitor, but with secondary progenitors, a cleaner test could be used here), of that clone also.
+      !!}
+      implicit none
+      class(nodeComponentPosition), pointer :: position_, positionChild
+
+      position_ => nodeList(iIsolatedNode)%node%position(autoCreate=.true.)
+      call position_%positionSet(nodes(iNode)%position)
+      call position_%velocitySet(nodes(iNode)%velocity)
+      if (associated(nodeList(iIsolatedNode)%node%firstChild)) then
+         if (nodeList(iIsolatedNode)%node%uniqueID() == nodeList(iIsolatedNode)%node%firstChild%uniqueID()) then
+            ! Set the position and velocity of the pseudo-primary progenitor here also.
+            positionChild => nodeList(iIsolatedNode)%node%firstChild%position(autoCreate=.true.)
+            call positionChild%positionSet(nodes(iNode)%position)
+            call positionChild%velocitySet(nodes(iNode)%velocity)
+         end if
+      end if
+      return
+    end subroutine positionsPreset
+
   end subroutine readScanForMergers
 
   subroutine readSetOrbit(self,satelliteNode,hostNode,orbitalPartner)
@@ -3065,16 +3078,15 @@ contains
     integer         (c_size_t                 )                         , intent(in   ) :: historyCountMaximum
     double precision                                    , dimension(:  ), intent(inout) :: historyMass        , historyTime
     double precision                                    , dimension(:,:), intent(inout) :: position           , velocity
-    class           (nodeData                 ), pointer                                :: progenitorNode     , node
+    class           (nodeData                 ), pointer                                :: node
     class           (nodeComponentSatellite   ), pointer                                :: satellite
     class           (nodeComponentPosition    ), pointer                                :: position_
     integer         (c_size_t                 )                                         :: historyCount       , iIsolatedNode
     integer                                                                             :: iNode
-    logical                                                                             :: endOfBranch
     type            (varying_string           )                                         :: message
     type            (history                  )                                         :: subhaloHistory
     type            (longIntegerHistory       )                                         :: subhaloIndexHistory
-    type            (progenitorIterator       )                                         :: progenitors
+    type            (branchIterator           )                                         :: branch
 
     if (self%presetSubhaloMasses.or.self%presetPositions.or.self%presetSubhaloIndices) then
        ! Check that preset subhalo masses are supported.
@@ -3095,14 +3107,11 @@ contains
              historyBuildHasDescendantSelect: if (associated(nodes(iNode)%descendant)) then
                 ! Select the subset which have a subhalo as a descendant and are not the primary progenitor or are initial subhalos. Also skip immediate subhalo-subhalo mergers.
                 historyBuildSubhaloSelect: if ((nodes(iNode)%descendant%isSubhalo.or.nodes(iNode)%isSubhalo).and..not.self%isSubhaloSubhaloMerger(nodes,nodes(iNode))) then
-                   ! Trace descendants until merging or final time.
-                   if (nodes(iNode)%isSubhalo) then
-                      node => nodes(iNode)
-                   else
-                      node => nodes(iNode)%descendant
-                   end if
-                   endOfBranch =.false.
-                   historyBuildBranchWalk: do while (.not.endOfBranch)
+                   ! Trace descendants until merging or final time. (Note that the immediate subhalo-subhalo merger case was
+                   ! excluded above, for both subhalo and non-subhalo starting nodes, so the walk is never empty here.)
+                   call branch%branchSet(self,nodes(iNode),nodes)
+                   historyBuildBranchWalk: do while (branch%next(nodes))
+                      node => branch%node
                       ! Increment the history count for this branch.
                       historyCount=historyCount+1
                       ! Check for history count array size being exceeded.
@@ -3117,29 +3126,6 @@ contains
                       if (self%presetSubhaloMasses ) historyMass (  historyCount)=node%nodeMass
                       if (self%presetPositions     ) position    (:,historyCount)=node%position
                       if (self%presetPositions     ) velocity    (:,historyCount)=node%velocity
-                      ! Test the branch.
-                      if (.not.associated(node%descendant).or..not.node%descendant%isSubhalo) then
-                         ! End of branch reached.                         
-                         endOfBranch=.true.
-                      else
-                         ! Check if merges with another subhalo.
-                         call progenitors%descendantSet(self,node%descendant,nodes)
-                         do while (progenitors%next(nodes))
-                            progenitorNode => progenitors%current(nodes)
-                            if     (                                                                                        &
-                                 &                      progenitorNode%nodeIndex         /= node%nodeIndex                  &
-                                 &  .and.               progenitorNode%isolatedNodeIndex /= nodeReachabilityUnreachable%ID  &
-                                 &  .and.    associated(progenitorNode%descendant                                         ) &
-                                 &  .and. massIsGreater(progenitorNode                   ,  node                          ) &
-                                 & ) then
-                               ! Subhalo-subhalo merger.                               
-                               endOfBranch =.true.
-                               exit
-                            end if
-                         end do
-                         ! Step to the next descendant.
-                         if (.not.endOfBranch) node => node%descendant
-                      end if
                    end do historyBuildBranchWalk
                    ! Set the mass history for this node.
                    if (self%presetSubhaloMasses) then
@@ -3245,19 +3231,22 @@ contains
     return
   end subroutine readAssignUniqueIDsToClones
 
-  logical function readIsSubhaloSubhaloMerger(self,nodes,node)
+  logical function readIsSubhaloSubhaloMerger(self,nodes,node,mergesWithIndex)
     !!{RST
-    Returns true if ``node`` undergoes a subhalo-subhalo merger.
+    Returns true if ``node`` undergoes a subhalo-subhalo merger. If ``mergesWithIndex`` is present it is set to the index of the
+    node with which the merger occurs (i.e. the descendant of the senior co-progenitor), or :math:`-1` if no merger occurs.
     !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
-    class(mergerTreeConstructorRead)              , intent(inout) :: self
-    class(nodeData                 ), dimension(:), intent(inout) :: nodes
-    class(nodeData                 )              , intent(in   ) :: node
-    class(nodeData                 ), pointer                     :: progenitorNode
-    type (progenitorIterator       )                              :: progenitors
+    class  (mergerTreeConstructorRead)              , intent(inout)           :: self
+    class  (nodeData                 ), dimension(:), intent(inout)           :: nodes
+    class  (nodeData                 )              , intent(in   )           :: node
+    integer(kind_int8                )              , intent(  out), optional :: mergesWithIndex
+    class  (nodeData                 ), pointer                               :: progenitorNode
+    type   (progenitorIterator       )                                        :: progenitors
 
     readIsSubhaloSubhaloMerger=.false.
+    if (present(mergesWithIndex)) mergesWithIndex=-1_kind_int8
     ! Return immediately if there is no descendant. (Since there can be no merger if there is no descendant.)
     if (.not.associated(node%descendant          )) return
     ! Return immediately if descendant is not a subhalo, as this could then not be a subhalo-subhalo merger.
@@ -3273,7 +3262,8 @@ contains
             &  .and.massIsGreater(progenitorNode                   ,  node                          ) &
             & ) then
           ! It does, so this is a subhalo-subhalo merger.
-          readIsSubhaloSubhaloMerger =.true.
+          readIsSubhaloSubhaloMerger=.true.
+          if (present(mergesWithIndex)) mergesWithIndex=progenitorNode%descendant%nodeIndex
           exit
        end if
     end do
@@ -3686,3 +3676,86 @@ contains
     progenitorIteratorExist=self%progenitorsFound
     return
   end function progenitorIteratorExist
+
+  subroutine branchIteratorBranchSet(self,constructor,start,nodes)
+    !!{RST
+    Initialize a branch iterator object to walk the subhalo branch beginning at ``start``. If ``start`` is a subhalo it is the
+    first node visited, otherwise the walk begins from its descendant - unless ``start`` undergoes an immediate subhalo-subhalo
+    merger, in which case the walk is empty (``immediate`` is set true), the terminus is set accordingly, and ``node`` is left
+    pointing at ``start``.
+    !!}
+    implicit none
+    class(branchIterator           )              , intent(inout)         :: self
+    type (mergerTreeConstructorRead), target      , intent(inout)         :: constructor
+    class(nodeData                 ), target      , intent(inout)         :: start
+    class(nodeData                 ), dimension(:), intent(inout)         :: nodes
+
+    self%constructor     => constructor
+    self%terminus        =  branchTerminusUndefined
+    self%mergesWithIndex =  -1_kind_int8
+    self%immediate       =  .false.
+    self%started         =  .false.
+    self%finished        =  .false.
+    if (start%isSubhalo) then
+       self%node => start
+    else
+       self%node => start%descendant
+       ! Check for an immediate subhalo-subhalo merger.
+       if (constructor%isSubhaloSubhaloMerger(nodes,start)) then
+          self%terminus        =  branchTerminusMergerWithSubhalo
+          self%mergesWithIndex =  start%descendant%nodeIndex
+          self%immediate       =  .true.
+          self%finished        =  .true.
+          self%node            => start
+       end if
+    end if
+    return
+  end subroutine branchIteratorBranchSet
+
+  logical function branchIteratorNext(self,nodes)
+    !!{RST
+    Move to the next node in the branch walk (available as the ``node`` component), returning true if a node was visited, false
+    once the walk has ended. After the final visit the ``terminus`` component records the reason that the walk ended, with
+    ``mergesWithIndex`` recording the index of the node merged with where relevant.
+    !!}
+    implicit none
+    class  (branchIterator)              , intent(inout) :: self
+    class  (nodeData      ), dimension(:), intent(inout) :: nodes
+    logical                                              :: progenitorsExist, isolatedProgenitorExists, &
+         &                                                  nodeIsMostSenior
+    integer(kind_int8     )                              :: mergesWithIndex
+
+    if (self%finished) then
+       branchIteratorNext=.false.
+       return
+    end if
+    if (self%started) then
+       self%node => self%node%descendant
+    else
+       self%started=.true.
+    end if
+    branchIteratorNext=.true.
+    ! Classify the branch at this node to determine if the walk ends here.
+    if      (.not.associated(self%node%descendant          )) then
+       ! No descendant, indicating that the tip of the branch has been reached.
+       self%terminus       =branchTerminusBranchTip
+       self%finished       =.true.
+    else if (.not.           self%node%descendant%isSubhalo ) then
+       ! Descendant is not a subhalo - this is either a merger with an isolated halo, or a subhalo promotion (which will be
+       ! handled elsewhere).
+       call self%constructor%progenitorSurvey(self%node%descendant,nodes,progenitorsExist,isolatedProgenitorExists,self%node,nodeIsMostSenior)
+       if (isolatedProgenitorExists .or. .not.nodeIsMostSenior) then
+          self%terminus       =branchTerminusMergerWithIsolated
+          self%mergesWithIndex=self%node%descendant%nodeIndex
+       else
+          self%terminus       =branchTerminusPromotion
+       end if
+       self%finished       =.true.
+    else if (self%constructor%isSubhaloSubhaloMerger(nodes,self%node,mergesWithIndex)) then
+       ! A more senior subhalo shares this node's descendant - this is a subhalo-subhalo merger.
+       self%terminus       =branchTerminusMergerWithSubhalo
+       self%mergesWithIndex=mergesWithIndex
+       self%finished       =.true.
+    end if
+    return
+  end function branchIteratorNext
