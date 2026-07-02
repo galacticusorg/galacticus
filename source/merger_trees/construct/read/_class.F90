@@ -29,7 +29,6 @@
   use    :: Galacticus_Nodes                  , only : nodeComponentBasic                 , nodeComponentDarkMatterProfile   , treeNode
   use    :: Halo_Spin_Distributions           , only : haloSpinDistributionClass
   use    :: Kind_Numbers                      , only : kind_int8
-  use    :: MPI_Utilities                     , only : mpiCounter
   use    :: Merger_Tree_Read_Importers        , only : mergerTreeImporterClass
   use    :: Merger_Tree_Seeds                 , only : mergerTreeSeedsClass
   use    :: Nodes_Operators                   , only : nodeOperatorClass
@@ -37,18 +36,6 @@
   use    :: Output_Times                      , only : outputTimes                        , outputTimesClass
   use    :: Satellite_Merging_Timescales      , only : satelliteMergingTimescalesClass
   use    :: Virial_Orbits                     , only : virialOrbitClass
-
-  ! Enumeration of cross-tree event types.
-  !![
-  <enumeration docformat="rst">
-   <name>pushType</name>
-   <description>
-   Enumeration of cross-tree event types used when reading merger trees: ``branchJump`` handles nodes that switch host branches between snapshots, while ``subhaloPromotion`` handles subhalos promoted to isolated status.
-   </description>
-   <entry label="branchJump"      />
-   <entry label="subhaloPromotion"/>
-  </enumeration>
-  !!]
 
   ! Enumeration of node reachability status.
   !![
@@ -208,17 +195,7 @@
      double precision                                            , allocatable, dimension(:) :: outputTimes
      integer         (c_size_t                                  ), allocatable, dimension(:) :: descendantLocations                              , nodeLocations
      integer         (kind_int8                                 ), allocatable, dimension(:) :: descendantIndicesSorted                          , nodeIndicesSorted
-     integer                                                                                 :: splitForestActiveForest
-     integer         (c_size_t                                  )                            :: splitForestNextTree                              , splitForestUniqueID
-     integer         (c_size_t                                  ), allocatable, dimension(:) :: splitForestTreeSize                              , splitForestTreeStart               , &
-          &                                                                                     splitForestMapIndex
-     integer         (kind_int8                                 ), allocatable, dimension(:) :: splitForestPushTo                                , splitForestPullFrom
-     type            (enumerationPushTypeType                   ), allocatable, dimension(:) :: splitForestPushType
-     double precision                                            , allocatable, dimension(:) :: splitForestPushTime
-     logical                                                     , allocatable, dimension(:) :: splitForestIsPrimary                            , splitForestPushDone                , &
-          &                                                                                     splitForestPullDone
      logical                                                                                 :: warningNestedHierarchyIssued
-     logical                                                                                 :: warningSplitForestNestedHierarchyIssued
    contains
      !![
      <methods docformat="rst">
@@ -240,13 +217,6 @@
        <method description="Build and attached bound mass histories to subhalos." method="buildSubhaloMassHistories" />
        <method description="Compute the additional time until merging after a subhalo is lost from the tree (presumably due to limited resolution)." method="timeUntilMergingSubresolution" />
        <method description="Modify relative positions and velocities to account for both any periodicity of the simulated volume, and for Hubble flow." method="phaseSpacePositionRealize" />
-       <method description="Find initial root node affinities for all nodes." method="rootNodeAffinitiesInitial" />
-       <method description="Return true if the given node is on the current &quot;push-to&quot; list of nodes for split forests." method="isOnPushList" />
-       <method description="Return true if the given node is on the current &quot;pull-from&quot; list of nodes for split forests." method="isOnPullList" />
-       <method description="Return the index of the given node in the &quot;push-to&quot; list of nodes for split forests." method="pushListIndex" />
-       <method description="Return the index of the given node in the &quot;pull-from&quot; list of nodes for split forests." method="pullListIndex" />
-       <method description="Return the number of the given node in the &quot;pull-from&quot; list of nodes for split forests." method="pullListCount" />
-       <method description="Assign events to nodes if they jump between trees in a forest." method="assignSplitForestEvents" />
        <method description="Returns true if ``node`` undergoes a subhalo-subhalo merger." method="isSubhaloSubhaloMerger" />
        <method description="Create an array of standard nodes and associated structures." method="createNodeArray" />
      </methods>
@@ -271,13 +241,6 @@
      procedure :: buildSubhaloMassHistories     => readBuildSubhaloMassHistories
      procedure :: timeUntilMergingSubresolution => readTimeUntilMergingSubresolution
      procedure :: phaseSpacePositionRealize     => readPhaseSpacePositionRealize
-     procedure :: rootNodeAffinitiesInitial     => readRootNodeAffinitiesInitial
-     procedure :: isOnPushList                  => readIsOnPushList
-     procedure :: isOnPullList                  => readIsOnPullList
-     procedure :: pushListIndex                 => readPushListIndex
-     procedure :: pullListIndex                 => readPullListIndex
-     procedure :: pullListCount                 => readPullListCount
-     procedure :: assignSplitForestEvents       => readAssignSplitForestEvents
      procedure :: isSubhaloSubhaloMerger        => readIsSubhaloSubhaloMerger
      procedure :: createNodeArray               => readCreateNodeArray
   end type mergerTreeConstructorRead
@@ -320,9 +283,6 @@
   double precision                                               :: radiusHalfMass_
   class           (mergerTreeConstructorRead          ), pointer :: self_
   !$omp threadprivate(darkMatterProfile_,basic_,node_,radiusHalfMass_,self_)
-
-  ! Counter used to assign unique IDs to split forests.
-  type(mpiCounter) :: splitForestUniqueID
 
   ! Fractional offset in time used for cloned nodes.
   double precision :: fractionOffsetTimeClones=1.0d-9
@@ -384,7 +344,7 @@ contains
       <name>forestSizeMaximum</name>
       <defaultValue>0_c_size_t</defaultValue>
       <description>
-      The maximum number of nodes allowed in a forest before it will be broken up into trees and processed individually. A value of 0 implies that forests should never be split.
+      The maximum number of nodes allowed in a forest. A value of 0 implies no limit. Splitting of over-sized forests into trees for individual processing is not currently supported (pending an MPI-compatible reimplementation) so any forest exceeding this limit results in a fatal error.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -745,12 +705,9 @@ contains
     !!]
 
     ! Initialize statuses.
-    self%warningNestedHierarchyIssued           =.false.
-    self%warningSplitForestNestedHierarchyIssued=.false.
+    self%warningNestedHierarchyIssued=.false.
     ! Set initial state indicating if the first tree to process has been found.
-    self%foundBeginAt                           =self%beginAt == -1_kind_int8
-    ! Initialize split forests counter.
-    splitForestUniqueID=mpiCounter()
+    self%foundBeginAt                =self%beginAt == -1_kind_int8
     ! Get array of output times.
     self%outputTimesCount=self%outputTimes_%count()
     allocate(self%outputTimes(self%outputTimesCount))
@@ -775,15 +732,6 @@ contains
           end if
        end if
        call Error_Report(message//{introspection:location})
-    end if
-    ! Warn about lack of branch jumps and subhalo promotions if split forests are being used.
-    if (self%forestSizeMaximum > 0_c_size_t .and. .not.(self%allowBranchJumps .and. self%allowSubhaloPromotions)) then
-       message=displayMagenta()//'WARNING:'//displayReset()//' large forests may be split for processing but '
-       if (                                     .not.self%allowBranchJumps) message=message//' branch jumps'
-       if (.not.self%allowSubhaloPromotions.and..not.self%allowBranchJumps) message=message//' and'
-       if (.not.self%allowSubhaloPromotions                               ) message=message//' subhalo promotions'
-       message=message//' are not allowed - this can result in inconsistent treatment between split and unsplit forest processing'
-       call Warn(message)
     end if
     ! Warn if subhalo promotions are allowed, but branch jumps are not.
     if (self%allowSubhaloPromotions.and..not.self%allowBranchJumps) then
@@ -958,7 +906,6 @@ contains
     use :: Merger_Tree_State_Store   , only : treeStateStoreSequence
     use :: Merger_Tree_Walkers       , only : mergerTreeWalkerAllNodes
     use :: Numerical_Comparison      , only : Values_Agree
-    use :: Sorting                   , only : sort
     use :: String_Handling           , only : operator(//)
     use :: Vectors                   , only : Vector_Magnitude                 , Vector_Product
     implicit none
@@ -981,7 +928,6 @@ contains
     integer         (c_size_t                 )                                       :: historyCountMaximum   , iNode            , &
          &                                                                               iOutput               , treeNumberMaximum, &
          &                                                                               treeNumberOffset
-    logical                                                                           :: returnSplitForest
     type            (mergerTreeWalkerAllNodes )                                       :: treeWalkerAll
     type            (varying_string           )                                       :: message
 
@@ -991,8 +937,6 @@ contains
     call State_Retrieve_()
     ! Recover the state of the next tree to read.
     treeNumberInternal=treeStateStoreSequence
-    ! Determine if we have any split forests to return.
-    returnSplitForest=allocated(self%splitForestTreeSize)
     ! Scan trees until we find one to process. This allows us to skip trees until the tree index specified by `beginAt` is found.
     do while (.true.)
        ! Find the maximum tree number in the current file.
@@ -1048,41 +992,16 @@ contains
        message='Storing state for tree #'
        message=message//treeStateStoreSequence
        call State_Store_(message)
-       ! Check if the size of this forest exceeds the maximum allowed.
+       ! Check if the size of this forest exceeds the maximum allowed. Split forest processing was removed pending an
+       ! MPI-compatible reimplementation - the original implementation can be found in the git history of this file.
        if     (                                                                                    &
-            &   .not.returnSplitForest                                                             &
-            &  .and.                                                                               &
             &   self%mergerTreeImporter_%nodeCount(int(treeNumberOffset)) > self%forestSizeMaximum &
             &  .and.                                                                               &
             &   0                                                         < self%forestSizeMaximum &
-            & ) then
-#ifdef USEMPI
-          call Error_Report('split forest processing is not supported under MPI'                        //{introspection:location})
-#else
-          call Error_Report('split forest processing is currently broken until MPI support is completed'//{introspection:location})
-#endif
-          ! Check if the importer supports reading subsets of halos from a forest.
-          if (.not.self%mergerTreeImporter_%canReadSubsets()) call Error_Report('forest exceeds maximum allowed size but importer cannot read subsets of halos'//{introspection:location})
-          ! Import nodes, and keep only the minimally required data to map the tree structure.
-          call self%mergerTreeImporter_%import(int(treeNumberOffset),nodes,structureOnly=.true.)
-          ! Find initial root node affinities of all nodes.
-          call self%rootNodeAffinitiesInitial(nodes)
-          deallocate(nodes)
-          returnSplitForest      =.true.
-          self%splitForestNextTree    =0
-          self%splitForestActiveForest=int(treeNumberOffset)
-       end if
-       ! Determine subset of nodes to read.
-       if (returnSplitForest) then
-          ! Move to the next tree.
-          self%splitForestNextTree=self%splitForestNextTree+1
-          allocate(nodeSubset(self%splitForestTreeSize(self%splitForestNextTree)))
-          nodeSubset=self%splitForestMapIndex(self%splitForestTreeStart(self%splitForestNextTree):self%splitForestTreeStart(self%splitForestNextTree)+self%splitForestTreeSize(self%splitForestNextTree)-1)
-          call sort(nodeSubset)
-       else
-          allocate(nodeSubset(1))
-          nodeSubset=[-1_c_size_t]
-       end if
+            & ) call Error_Report('forest exceeds [forestSizeMaximum] but split forest processing is not currently supported'//{introspection:location})
+       ! Read all nodes of the forest.
+       allocate(nodeSubset(1))
+       nodeSubset=[-1_c_size_t]
        ! Read data from the file.
        !![
        <conditionalCall>
@@ -1226,8 +1145,6 @@ contains
           call readBuildChildAndSiblingLinks   (     nodes,nodeList                  ,childIsSubhalo)
           ! (Re)assign host tree pointers.
           call readAssignHostTreePointers      (tree                                                )
-          ! Assign split forest events.
-          call self%assignSplitForestEvents    (     nodes,nodeList                                 )
           ! Check that all required properties exist.
           if (self%presetPositions.or.self%presetOrbits) then
              ! Position and velocity methods are required.
@@ -1345,18 +1262,6 @@ contains
           call readValidateIsolatedHalos                                             (nodes                             )
           ! Scan subhalos to determine when and how they merge.
           call self%scanForMergers                                                   (nodes,nodeList,historyCountMaximum)
-          ! If a split forest was used, but all trees from it have now been processed, remove the split forest data as we no
-          ! longer need it at this point.
-          if (returnSplitForest) then
-             if (self%splitForestNextTree == size(self%splitForestTreeStart)) then
-                deallocate(self%splitForestTreeSize )
-                deallocate(self%splitForestTreeStart)
-                deallocate(self%splitForestPushTo   )
-                deallocate(self%splitForestPullFrom )
-                deallocate(self%splitForestPushType )
-                deallocate(self%splitForestMapIndex )
-             end if
-          end if
           ! Search for any nodes which were flagged as merging with another node and assign appropriate pointers.
           call self%assignMergers           (nodes,nodeList)
           ! Find cases where something that was a subhalo stops being a subhalo and add events to handle.
@@ -1506,8 +1411,8 @@ contains
     type   (varying_string           )                                       :: message
 
     do iNode=1,size(nodes)
-       ! Does this node have a descendant? And is it staying in this tree?
-       if (nodes(iNode)%descendantIndex >= 0.and..not.self%isOnPushList(nodes(iNode))) then
+       ! Does this node have a descendant?
+       if (nodes(iNode)%descendantIndex >= 0) then
           nodeLocation=self%nodeLocation(nodes(iNode)%descendantIndex)
           if (nodes(nodeLocation)%nodeIndex /= nodes(iNode)%descendantIndex) then
              message='failed to find descendant node: '
@@ -2565,17 +2470,6 @@ contains
                 ! Node has no descendant - it must therefore be an initial subhalo seen only once. A position history must be set
                 ! for this, so ensure the history arrays are sufficiently sized.
                 historyCountMaximum=max(historyCountMaximum,max(0_kind_int8,self%mergerTreeImporter_%subhaloTraceCount(nodes(iNode))))
-             end if
-             ! Handle cases where a node jumps to another tree.
-             if (pass_ == passMerge .and. self%isOnPushList(nodes(iNode)) .and. self%presetMergerTimes) then
-                ! Merger times are to be preset, but this node will be pushed to another tree. We must set its merging time to be
-                ! infinite in this case.
-                firstProgenitor => nodeList(iIsolatedNode)%node
-                do while (associated(firstProgenitor))
-                   satellite => firstProgenitor%satellite(autoCreate=.true.)
-                   call satellite%timeOfMergingSet(satelliteMergeTimeInfinite)
-                   firstProgenitor => firstProgenitor%firstChild
-                end do
              end if
              ! Set position and velocity if required.
              if (self%presetPositions) then
@@ -3717,586 +3611,3 @@ contains
     progenitorIteratorExist=self%progenitorsFound
     return
   end function progenitorIteratorExist
-
-  subroutine readRootNodeAffinitiesInitial(self,nodes)
-    !!{RST
-    Find initial root node affinities for all nodes.
-    !!}
-    use :: Display                   , only : displayIndent     , displayMessage, displayUnindent, verbosityLevelInfo, &
-          &                                   verbosityLevelWarn
-    use :: ISO_Varying_String        , only : assignment(=)     , operator(//)  , varying_string
-    use :: Merger_Tree_Read_Importers, only : nodeDataMinimal
-    use :: Sorting                   , only : sortIndex
-    use :: String_Handling           , only : operator(//)
-    implicit none
-    class  (mergerTreeConstructorRead)                        , intent(inout) :: self
-    class  (nodeDataMinimal          ), dimension(         : ), intent(inout) :: nodes
-    integer(kind_int8                ), dimension(size(nodes))                :: rootAffinity
-    integer(c_size_t                 )                                        :: i                , j                       , &
-         &                                                                       treeCount        , pushCount               , &
-         &                                                                       k                , progenitorLocation      , &
-         &                                                                       forestSizeI      , forestSizeJ
-    integer(kind_int8                )                                        :: treeIndexPrevious, treeStartPrevious       , &
-         &                                                                       progenitorIndex
-    type   (varying_string           )                                        :: message
-    logical                                                                   :: nodeIsMostMassive, isolatedProgenitorExists, &
-         &                                                                       nodeIsPrimary
-
-    ! Get a unique ID for this split forest.
-    self%splitForestUniqueID=splitForestUniqueID%increment()
-    ! Build sorted indices into nodes.
-    call self%createNodeIndices(nodes)
-    ! Initialize root affinities to impossible value.
-    rootAffinity=-1_kind_int8
-    ! Iterate over nodes.
-    do i=1,size(nodes)
-       ! Trace through hosts until a self-hosting node is found.
-       j=i
-       do while (nodes(j)%nodeIndex /= nodes(j)%hostIndex)
-          j=self%nodeLocation(nodes(j)%hostIndex)
-       end do
-       ! Trace descendants until a root node is reached.
-       do while (nodes(j)%descendantIndex >= 0)
-          ! Jump to descendant.
-          if (nodes(j)%descendantIndex >= 0) j=self%nodeLocation(nodes(j)%descendantIndex)
-          ! Trace through hosts until a self-hosting node is found.
-          do while (nodes(j)%nodeIndex /= nodes(j)%hostIndex)
-             j=self%nodeLocation(nodes(j)%hostIndex)
-          end do
-       end do
-       ! Store root affinity.
-       rootAffinity(i)=nodes(j)%nodeIndex
-    end do
-    ! Search for nodes which have a descendant or host with different root affinity and attempt to regroup trees into subforests
-    ! of the original forest.
-    do i=1,size(nodes)
-       ! Process only nodes with a descendant.
-       if (nodes(i)%descendantIndex >= 0) then
-          ! Check for different root affinity in descendant.
-          do k=1,2
-             select case (k)
-             case (1)
-                j=self%nodeLocation(nodes(i)%descendantIndex)
-             case (2)
-                j=self%nodeLocation(nodes(i)%      hostIndex)
-             end select
-             if (rootAffinity(i) /= rootAffinity(j)) then
-                forestSizeI=count(rootAffinity == rootAffinity(i))
-                if (forestSizeI             >= self%forestSizeMaximum) cycle
-                forestSizeJ=count(rootAffinity == rootAffinity(j))
-                if (forestSizeI+forestSizeJ >  self%forestSizeMaximum) cycle
-                where (rootAffinity == rootAffinity(j))
-                   rootAffinity=rootAffinity(i)
-                end where
-              end if
-          end do
-       end if
-    end do
-    ! Get a sorted index into the root node affinities.
-    allocate(self%splitForestMapIndex(size(nodes)))
-    self%splitForestMapIndex=sortIndex(rootaffinity)
-    ! Count trees in the forest.
-    treeCount        = 0
-    treeIndexPrevious=-1
-    do i=1,size(nodes)
-       if (rootAffinity(self%splitForestMapIndex(i)) /= treeIndexPrevious) then
-          treeCount        =treeCount                           +1
-          treeIndexPrevious=rootAffinity(self%splitForestMapIndex(i))
-       end if
-    end do
-    ! Identify tree size and start offsets.
-    allocate(self%splitForestTreeSize (treeCount))
-    allocate(self%splitForestTreeStart(treeCount))
-    treeIndexPrevious=-1
-    treeStartPrevious= 0
-    treeCount        = 0
-    do i=1,size(nodes)
-       if (rootAffinity(self%splitForestMapIndex(i)) /= treeIndexPrevious) then
-          treeCount                      =treeCount                           +1
-          treeIndexPrevious              =rootAffinity(self%splitForestMapIndex(i))
-          self%splitForestTreeStart(treeCount)=                                 i
-       end if
-    end do
-    if (treeCount > 1) then
-       do i=1,treeCount-1
-          self%splitForestTreeSize(i)=self%splitForestTreeStart(i+1)-self%splitForestTreeStart(i)
-       end do
-    end if
-    self%splitForestTreeSize(treeCount)=size(nodes)+1-self%splitForestTreeStart(treeCount)
-    ! Report.
-    call displayIndent('Breaking forest into trees:',verbosityLevelInfo)
-    do i=1,treeCount
-       message="Tree "
-       message=message//i//" of "//treeCount//" contains "//self%splitForestTreeSize(i)//" node"
-       if (self%splitForestTreeSize(i) > 1) message=message//"s"
-       call displayMessage(message,verbosityLevelInfo)
-    end do
-    ! Search for nodes which have a descendant with different root affinity.
-    pushCount=0
-    do i=1,size(nodes)
-       ! Process only nodes with a descendant.
-       if (nodes(i)%descendantIndex >= 0) then
-          ! Check for different root affinity in descendant.
-          j=self%nodeLocation(nodes(i)%descendantIndex)
-          k=self%nodeLocation(nodes(j)%      hostIndex)
-          if     (                                    &
-               &   rootAffinity(i) /= rootAffinity(j) &
-               &  .or.                                &
-               &   rootAffinity(i) /= rootAffinity(k) &
-               & ) then
-             ! Descendant has different root affinity - this is a cross-tree subhalo promotion event or cross-tree branch jump
-             ! event.
-             pushCount=pushCount+1
-          end if
-       end if
-    end do
-    message="Found "
-    message=message//pushCount//" links between trees"
-    call displayMessage(message,verbosityLevelInfo)
-    ! Build a list of push and pull links.
-    allocate(self%splitForestPushTo   (pushCount))
-    allocate(self%splitForestPullFrom (pushCount))
-    allocate(self%splitForestPushType (pushCount))
-    allocate(self%splitForestPushTime (pushCount))
-    allocate(self%splitForestIsPrimary(pushCount))
-    allocate(self%splitForestPushDone (pushCount))
-    allocate(self%splitForestPullDone (pushCount))
-    pushCount=0
-    do i=1,size(nodes)
-       ! Process only nodes with a descendant.
-       if (nodes(i)%descendantIndex >= 0) then
-          ! Check for different root affinity in descendant.
-          j=self%nodeLocation(nodes(i)%descendantIndex)
-          ! Test for an inter-tree event. These are identified by a node having a different initial root affinity than its descendant.
-          if (rootAffinity(i) /= rootAffinity(j)) then
-             ! Determine if our node is the primary progenitor and if an isolated progenitor exists.
-             isolatedProgenitorExists=.false.
-             nodeIsMostMassive       =.true.
-             progenitorIndex         =self%descendantNodeSortIndex(nodes(i)%descendantIndex)
-             if (progenitorIndex > 0 .and. progenitorIndex <= size(nodes)) then
-                progenitorLocation=self%descendantLocations(progenitorIndex)
-                do while (nodes(progenitorLocation)%descendantIndex == nodes(i)%descendantIndex)
-                   ! Determine progenitor status.
-                   if (nodes(progenitorLocation)%nodeIndex /= nodes(progenitorLocation)%hostIndex) then
-                      if     (                                                           &
-                           &   nodes(progenitorLocation)%nodeIndex /= nodes(i)%nodeIndex &
-                           &  .and.                                                      &
-                           &   nodes(progenitorLocation)%nodeMass  >  nodes(i)%nodeMass  &
-                           & ) nodeIsMostMassive=.false.
-                   else
-                      isolatedProgenitorExists=.true.
-                   end if
-                   ! Move to the next progenitor.
-                   progenitorIndex=progenitorIndex-1
-                   if (progenitorIndex > 0) then
-                      progenitorLocation=self%descendantLocations(progenitorIndex)
-                   else
-                      exit
-                   end if
-                end do
-             end if
-             nodeIsPrimary=nodeIsMostMassive.and..not.isolatedProgenitorExists
-             ! Determine the type of event. If the descendant is a subhalo, then this is an inter-tree branch jump. If the
-             ! descendant is not a subhalo this is an inter-tree subhalo promotion.
-             pushCount=pushCount+1
-             if (nodes(j)%nodeIndex == nodes(j)%hostIndex) then
-                ! Inter-tree subhalo promotion.
-                self%splitForestPushTime (pushCount)=nodes(j)%      nodeTime
-                self%splitForestPushTo   (pushCount)=nodes(i)%      nodeIndex
-                self%splitForestPullFrom (pushCount)=nodes(i)%descendantIndex
-                self%splitForestIsPrimary(pushCount)=nodeIsPrimary
-                self%splitForestPushType (pushCount)=pushTypeSubhaloPromotion
-                self%splitForestPushDone (pushCount)=.false.
-                self%splitForestPullDone (pushCount)=.false.
-             else
-                ! For non-primary progenitors, detect nested subhalo hierarchy. The descendant node is a subhalo. As nested hierarchies are not currently
-                ! handled, we must instead find the isolated host of the descendant and push to that node instead.
-                if (.not.nodeIsPrimary) then
-                   if (.not.self%warningSplitForestNestedHierarchyIssued) then
-                      message='nested hierarchy in split forests detected [node '
-                      message=message//nodes(j)%nodeIndex//']'
-                      message=message//char(10)//'ignoring as not currently supported'
-                      message=message//char(10)//'warning will not be issued again'
-                      call displayMessage(message,verbosityLevelWarn)
-                      self%warningSplitForestNestedHierarchyIssued=.true.
-                   end if
-                   do while (nodes(j)%nodeIndex /= nodes(j)%hostIndex)
-                      j=self%nodeLocation(nodes(j)%hostIndex)
-                   end do
-                end if
-                ! Inter-tree branch jump.
-                k                              =self%nodeLocation(nodes(i)%hostIndex)
-                self%splitForestPushTime (pushCount)=              nodes(k)%nodeTime
-                self%splitForestPushTo   (pushCount)=              nodes(i)%nodeIndex
-                self%splitForestPullFrom (pushCount)=              nodes(j)%nodeIndex
-                self%splitForestIsPrimary(pushCount)=nodeIsPrimary
-                self%splitForestPushType (pushCount)=pushTypeBranchJump
-                self%splitForestPushDone (pushCount)=.false.
-                self%splitForestPullDone (pushCount)=.false.
-             end if
-          end if
-       end if
-    end do
-    call displayUnindent('done',verbosityLevelInfo)
-    return
-  end subroutine readRootNodeAffinitiesInitial
-
-  logical function readIsOnPushList(self,node)
-    !!{RST
-    Return true if the given node is on the current "push-to" list of nodes for split forests.
-    !!}
-    use :: Merger_Tree_Read_Importers, only : nodeData
-    implicit none
-    class(mergerTreeConstructorRead), intent(inout) :: self
-    class(nodeData                 ), intent(in   ) :: node
-
-    if (allocated(self%splitForestPushTo)) then
-       readIsOnPushList=any(self%splitForestPushTo == node%nodeIndex)
-    else
-       readIsOnPushList=.false.
-    end if
-    return
-  end function readIsOnPushList
-
-  logical function readIsOnPullList(self,node)
-    !!{RST
-    Return true if the given node is on the current "pull-from" list of nodes for split forests.
-    !!}
-    use :: Merger_Tree_Read_Importers, only : nodeData
-    implicit none
-    class(mergerTreeConstructorRead), intent(inout) :: self
-    class(nodeData                 ), intent(in   ) :: node
-
-    if (allocated(self%splitForestPullFrom)) then
-       readIsOnPullList=any(self%splitForestPullFrom == node%nodeIndex)
-    else
-       readIsOnPullList=.false.
-    end if
-    return
-  end function readIsOnPullList
-
-  function readPushListIndex(self,node)
-    !!{RST
-    Return the index of the given node in the "push-to" list of nodes for split forests.
-    !!}
-    use :: Merger_Tree_Read_Importers, only : nodeData
-    implicit none
-    class  (mergerTreeConstructorRead), intent(inout) :: self
-    integer(c_size_t                 )                :: readPushListIndex
-    class  (nodeData                 ), intent(in   ) :: node
-    integer(c_size_t                 )                :: i
-
-    readPushListIndex=-1_c_size_t
-    do i=1,size(self%splitForestPushTo)
-       if (self%splitForestPushTo(i) == node%nodeIndex) then
-          readPushListIndex=i
-          exit
-       end if
-    end do
-    return
-  end function readPushListIndex
-
-  function readPullListIndex(self,node,iPull)
-    !!{RST
-    Return the index of the given node in the "pull-from" list of nodes for split forests.
-    !!}
-    use :: Merger_Tree_Read_Importers, only : nodeData
-    implicit none
-    class  (mergerTreeConstructorRead), intent(inout) :: self
-    integer(c_size_t                 )                :: readPullListIndex
-    class  (nodeData                 ), intent(in   ) :: node
-    integer(c_size_t                 ), intent(in   ) :: iPull
-    integer(c_size_t                 )                :: i                , matchesRemaining
-
-    readPullListIndex   =-1_c_size_t
-    matchesRemaining=iPull
-    do i=1,size(self%splitForestPullFrom)
-       if (self%splitForestPullFrom(i) == node%nodeIndex) then
-          matchesRemaining=matchesRemaining-1
-          if (matchesRemaining == 0) then
-             readPullListIndex   =i
-             exit
-          end if
-       end if
-    end do
-    return
-  end function readPullListIndex
-
-  function readPullListCount(self,node)
-    !!{RST
-    Return the number of the given node in the "pull-from" list of nodes for split forests.
-    !!}
-    use :: Merger_Tree_Read_Importers, only : nodeData
-    implicit none
-    class  (mergerTreeConstructorRead), intent(inout) :: self
-    integer(c_size_t                 )                :: readPullListCount
-    class  (nodeData                 ), intent(in   ) :: node
-
-    if (allocated(self%splitForestPullFrom)) then
-       readPullListCount=count(self%splitForestPullFrom == node%nodeIndex)
-    else
-       readPullListCount=0
-    end if
-    return
-  end function readPullListCount
-
-  subroutine readAssignSplitForestEvents(self,nodes,nodeList)
-    !!{RST
-    Assign events to nodes if they jump between trees in a forest.
-    !!}
-    use :: Display                   , only : displayIndent          , displayMessage     , displayUnindent             , verbosityLevelInfo
-    use :: Error                     , only : Error_Report
-    use :: Galacticus_Nodes          , only : nodeEvent              , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, treeNode, &
-          &                                   treeNodeList
-    use :: Merger_Tree_Read_Importers, only : nodeData
-    use :: Node_Events_Inter_Tree    , only : Node_Pull_From_Tree    , Node_Push_From_Tree
-    use :: String_Handling           , only : operator(//)
-    implicit none
-    class           (mergerTreeConstructorRead)              , intent(inout), target :: self
-    class           (nodeData                 ), dimension(:), intent(inout), target :: nodes
-    type            (treeNodeList             ), dimension(:), intent(inout)         :: nodeList
-    class           (nodeEvent                ), pointer                             :: newEvent
-    class           (nodeData                 ), pointer                             :: node
-    type            (treeNode                 ), pointer                             :: nodeNew
-    integer                                                                          :: iNode
-    integer         (c_size_t                 )                                      :: iIsolatedNode    , progenitorLocation, &
-         &                                                                              iPull
-    integer         (kind_int8                )                                      :: progenitorIndex
-    type            (varying_string           )                                      :: message
-    character       (len=12                   )                                      :: label
-    logical                                                                          :: nodeIsMostMassive
-
-    !! TODO: Handle cases where branch jumps and/or subhalo promotions are disallowed.
-
-    call displayIndent('Assigning inter-tree events',verbosityLevelInfo)
-    do iNode=1,size(nodes)
-       ! Process only isolated nodes.
-       if (nodes(iNode)%isolatedNodeIndex == nodeReachabilityUnreachable%ID) cycle
-       ! Trace through subhalo descendants.
-       node => nodes(iNode)
-       newEvent => null (     )
-       do while (.true.)
-          if (self%isOnPushList(node)) then
-             iIsolatedNode =  nodes(iNode)%isolatedNodeIndex
-             if (.not.self%splitForestPushDone(self%pushListIndex(node))) then
-                select case (self%splitForestPushType(self%pushListIndex(node))%ID)
-                case (pushTypeSubhaloPromotion%ID)
-                   allocate(nodeEventSubhaloPromotionInterTree :: newEvent)
-                case (pushTypeBranchJump      %ID)
-                   allocate(nodeEventBranchJumpInterTree       :: newEvent)
-                end select
-                call nodeList(iIsolatedNode)%node%attachEvent(newEvent)
-                newEvent%time =  self%splitForestPushTime(self%pushListIndex(node))
-                newEvent%node => null()
-                newEvent%task => Node_Push_From_Tree
-                select type (newEvent)
-                type is (nodeEventSubhaloPromotionInterTree)
-                   newEvent%splitForestUniqueID =  self%splitForestUniqueID
-                   newEvent%pairedNodeID        =  self%splitForestPushTo(self%pushListIndex(node))
-                   newEvent%mergeTimeSet        => null()
-                type is (nodeEventBranchJumpInterTree      )
-                   newEvent%splitForestUniqueID =  self%splitForestUniqueID
-                   newEvent%pairedNodeID        =  self%splitForestPushTo(self%pushListIndex(node))
-                   newEvent%mergeTimeSet        => null()
-                end select
-                self%splitForestPushDone(self%pushListIndex(node))=.true.
-                write (label,'(f12.8)') self%splitForestPushTime(self%pushListIndex(node))
-                message="Attaching push event ["
-                message=message//newEvent%ID//"] to node "//node%nodeIndex//" [-->"//self%splitForestPullFrom(self%pushListIndex(node))//"] {ref:"//self%splitForestPushTo(self%pushListIndex(node))//"} at time "//label//" Gyr"
-                call displayMessage(message,verbosityLevelInfo)
-             end if
-          end if
-          if (self%isOnPullList(node)) then
-             do iPull=1,self%pullListCount(node)
-                if (.not.self%splitForestPullDone(self%pullListIndex(node,iPull))) then
-                   select case (self%splitForestPushType(self%pullListIndex(node,iPull))%ID)
-                   case (pushTypeSubhaloPromotion%ID)
-                      allocate(nodeEventSubhaloPromotionInterTree :: newEvent)
-                   case (pushTypeBranchJump      %ID)
-                      allocate(nodeEventBranchJumpInterTree       :: newEvent)
-                   case default
-                      call Error_Report('unknown push type'//{introspection:location})
-                   end select
-                   iIsolatedNode=nodes(iNode)%isolatedNodeIndex
-                   if (self%splitForestIsPrimary(self%pullListIndex(node,iPull))) then
-                      ! For a subhalo promotion primary progenitor, create a temporary primary progenitor node (unless we have
-                      ! previously done so) to which we attach the event. This will later be replaced with our node.
-                      if (self%splitForestPushType(self%pullListIndex(node,iPull)) == pushTypeBranchJump) then
-                         nodeNew => nodeList(iIsolatedNode)%node
-                      else
-                         call readInsertClonedProgenitor(nodeList(iIsolatedNode)%node,transferSatellites=.true.,clone=nodeNew)
-                      end if
-                      select type (newEvent)
-                      type is (nodeEventSubhaloPromotionInterTree)
-                         newEvent%mergeTimeSet => null()
-                      type is (nodeEventBranchJumpInterTree      )
-                         newEvent%mergeTimeSet => null()
-                         class default
-                         call Error_Report('unknown event type'//{introspection:location})
-                      end select
-                      call nodeNew%attachEvent(newEvent)
-                   else
-                      ! For a non-primary progenitor, attach the event to the primary progenitor of the node, such that our node
-                      ! can later be added as a sibling. If the primary progenitor has no child, create a clone.
-                      if (.not.associated(nodeList(iIsolatedNode)%node%firstChild)) &
-                           & call readInsertClonedProgenitor(nodeList(iIsolatedNode)%node,transferSatellites=.true.,clone=nodeNew)
-                      select type (newEvent)
-                      type is (nodeEventSubhaloPromotionInterTree)
-                         newEvent%mergeTimeSet => readInterTreeMergeTimeSet
-                         newEvent%creator      => self
-                      type is (nodeEventBranchJumpInterTree      )
-                         newEvent%mergeTimeSet => readInterTreeMergeTimeSet
-                         newEvent%creator      => self
-                      class default
-                         call Error_Report('unknown event type'//{introspection:location})
-                      end select
-                      call nodeList(iIsolatedNode)%node%firstChild%attachEvent(newEvent)
-                   end if
-                   newEvent%time =  self%splitForestPushTime(self%pullListIndex(node,iPull))
-                   newEvent%node => null()
-                   newEvent%task => Node_Pull_From_Tree
-                   select type (newEvent)
-                   type is (nodeEventSubhaloPromotionInterTree)
-                      newEvent%splitForestUniqueID=self%splitForestUniqueID
-                      newEvent%pairedNodeID       =self%splitForestPushTo      (self%pullListIndex(node,iPull))
-                      newEvent%isPrimary          =self%splitForestIsPrimary   (self%pullListIndex(node,iPull))
-                   type is (nodeEventBranchJumpInterTree      )
-                      newEvent%splitForestUniqueID=self%splitForestUniqueID
-                      newEvent%pairedNodeID       =self%splitForestPushTo      (self%pullListIndex(node,iPull))
-                      newEvent%isPrimary          =self%splitForestIsPrimary   (self%pullListIndex(node,iPull))
-                   class default
-                      call Error_Report('unknown event type'//{introspection:location})
-                   end select
-                   self%splitForestPullDone(self%pullListIndex(node,iPull))=.true.
-                   write (label,'(f12.8)') self%splitForestPushTime(self%pullListIndex(node,iPull))
-                   message="Attaching pull event ["
-                   message=message//newEvent%ID//"] to node "//node%nodeIndex//" [<--"//self%splitForestPushTo(self%pullListIndex(node,iPull))//"] {ref:"//self%splitForestPushTo(self%pullListIndex(node,iPull))//"} at time "//label//" Gyr"
-                   call displayMessage(message,verbosityLevelInfo)
-                end if
-             end do
-          end if
-          ! Is this the primary progenitor of its descendant?
-          nodeIsMostMassive=.true.
-          progenitorIndex  =self%descendantNodeSortIndex(node%descendantIndex)
-          if (progenitorIndex > 0 .and. progenitorIndex <= size(nodes)) then
-             progenitorLocation=self%descendantLocations(progenitorIndex)
-             do while (nodes(progenitorLocation)%descendantIndex == node%descendantIndex)
-                ! Determine progenitor status.
-                if     (                                                                      &
-                     &                 nodes(progenitorLocation)%nodeIndex /= node%nodeIndex  &
-                     &  .and.                                                                 &
-                     &   massIsGreater(nodes(progenitorLocation)           ,  node          ) &
-                     & ) nodeIsMostMassive=.false.
-                ! Move to the next progenitor.
-                progenitorIndex=progenitorIndex-1
-                if (progenitorIndex > 0) then
-                   progenitorLocation=self%descendantLocations(progenitorIndex)
-                else
-                   exit
-                end if
-             end do
-          end if
-          ! Move to a subhalo descendant.
-          if (associated(node%descendant).and.node%descendant%isSubhalo.and.nodeIsMostMassive) then
-             node => node%descendant
-             ! If we've reached an isolated node, stop as we will process it in another pass through the loop.
-             if (node%isolatedNodeIndex /= nodeReachabilityUnreachable%ID) exit
-          else
-             exit
-          end if
-       end do
-    end do
-    call displayUnindent('done',verbosityLevelInfo)
-    return
-  end subroutine readAssignSplitForestEvents
-
-  subroutine readInterTreeMergeTimeSet(self,nodeSatellite,nodeHost)
-    !!{RST
-    Set the merging time for a node undergoing and inter-tree transfer.
-    !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition, nodeComponentSatellite, treeNode
-    use :: Kepler_Orbits   , only : keplerOrbit
-    use :: String_Handling , only : operator(//)
-    implicit none
-    class           (*                       ), intent(inout)          :: self
-    type            (treeNode                ), intent(inout), target  :: nodeSatellite              , nodeHost
-    type            (treeNode                )               , pointer :: nodeTarget
-    class           (nodeComponentSatellite  )               , pointer :: satelliteSatellite
-    class           (nodeComponentBasic      )               , pointer :: basicSatellite             , basicHost       , &
-         &                                                                basicTarget
-    class           (nodeComponentPosition   )               , pointer :: positionSatellite           , positionHost
-    logical                                   , parameter              :: acceptUnboundOrbits=.false.
-    double precision                          , dimension(3)           :: relativePosition           , relativeVelocity
-    double precision                                                   :: timeUntilMerging           , radiusPericenter, &
-         &                                                                radiusApocenter            , radiusVirial
-    type            (keplerOrbit             )                         :: orbit
-    type            (varying_string          )                         :: message
-
-    select type (self)
-    class is (mergerTreeConstructorRead)
-       if (self%presetMergerTimes) then
-          ! If merger times are to preset, compute subresolution merging time.
-          basicSatellite     => nodeSatellite%basic    (                 )
-          basicHost          => nodeHost     %basic    (                 )
-          positionSatellite  => nodeSatellite%position (                 )
-          positionHost       => nodeHost     %position (                 )
-          satelliteSatellite => nodeSatellite%satellite(autoCreate=.true.)
-          relativePosition   =  positionSatellite%position()-positionHost%position()
-          relativeVelocity   =  positionSatellite%velocity()-positionHost%velocity()
-          orbit              =  readOrbitConstruct(basicSatellite%mass(),basicHost%mass(),relativePosition,relativeVelocity)
-          timeUntilMerging   =  self%satelliteMergingTimescales_%timeUntilMerging(nodeSatellite,orbit)
-          call satelliteSatellite%timeOfMergingSet(timeUntilMerging+basicSatellite%time())
-          ! Set target node.
-          nodeTarget => nodeHost
-          do while (.true.)
-             basicTarget => nodeTarget%basic()
-             if (basicTarget%time() <= satelliteSatellite%timeOfMerging() .or. .not.associated(nodeTarget%parent)) exit
-             nodeTarget => nodeTarget%parent
-          end do
-          nodeSatellite%mergeTarget   => nodeTarget
-          nodeSatellite%siblingMergee => nodeTarget   %firstMergee
-          nodeTarget   %firstMergee   => nodeSatellite
-          ! Assign virial orbit if necessary.
-          if (self%presetOrbits) then
-             ! Propagate orbit to the virial radius.
-             radiusPericenter     =  orbit               %radiusPericenter (        )
-             radiusApocenter      =  orbit               %radiusApocenter  (        )
-             radiusVirial         =  self%darkMatterHaloScale_%radiusVirial(nodeHost)
-             ! Check if the orbit intersects the virial radius.
-             if     (                                                              &
-                  &    radiusVirial >= radiusPericenter                            &
-                  &  .and.                                                         &
-                  &   (radiusVirial <= radiusApocenter  .or. .not.orbit%isBound()) &
-                  &  .and.                                                         &
-                  &   (.not.self%presetOrbitsBoundOnly  .or.      orbit%isBound()) &
-                  & ) then
-                call orbit%propagate(radiusVirial,infalling=.true.)
-                ! Set the orbit.
-                call satelliteSatellite%virialOrbitSet(orbit)
-                ! If the satellite component supports full phase-space position, set that also.
-                if (satelliteSatellite%positionIsSettable()) call satelliteSatellite%positionSet(relativePosition)
-                if (satelliteSatellite%velocityIsSettable()) call satelliteSatellite%velocitySet(relativeVelocity)
-             else if (self%presetOrbitsSetAll) then
-                ! The given orbit does not cross the virial radius. Since all orbits must be set, choose an orbit at random.
-                orbit=self%virialOrbit_%orbit(nodeSatellite,nodeHost,acceptUnboundOrbits)
-                call satelliteSatellite%virialOrbitSet(orbit)
-             else if (self%presetOrbitsAssertAllSet) then
-                message='virial orbit could not be set for node '
-                message=message//nodeSatellite%index()//char(10)
-                message=message//' -> set [presetOrbitsAssertAllSet]=false to ignore this problem'//char(10)
-                message=message//'    (this may lead to other problems)'
-                call Error_Report(message//{introspection:location})
-             end if
-          end if
-       else if (self%presetMergerNodes) then
-          ! If merger nodes are to be set, set that now.
-          nodeSatellite%mergeTarget   => nodeHost
-          nodeSatellite%siblingMergee => nodeHost     %firstMergee
-          nodeHost     %firstMergee   => nodeSatellite
-       end if
-    class default
-       call Error_Report('incorrect class'//{introspection:location})
-    end select
-    return
-  end subroutine readInterTreeMergeTimeSet
