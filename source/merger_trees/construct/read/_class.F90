@@ -219,8 +219,6 @@
           &                                                                                     splitForestPullDone
      logical                                                                                 :: warningNestedHierarchyIssued
      logical                                                                                 :: warningSplitForestNestedHierarchyIssued
-     real                                                        , allocatable, dimension(:) :: timingTimes
-     type            (varying_string                            ), allocatable, dimension(:) :: timingLabels
    contains
      !![
      <methods docformat="rst">
@@ -242,8 +240,6 @@
        <method description="Build and attached bound mass histories to subhalos." method="buildSubhaloMassHistories" />
        <method description="Compute the additional time until merging after a subhalo is lost from the tree (presumably due to limited resolution)." method="timeUntilMergingSubresolution" />
        <method description="Modify relative positions and velocities to account for both any periodicity of the simulated volume, and for Hubble flow." method="phaseSpacePositionRealize" />
-       <method description="Record timing data." method="timingRecord" />
-       <method description="Report on time taken in various steps of processing merger trees read from file." method="timingReport" />
        <method description="Find initial root node affinities for all nodes." method="rootNodeAffinitiesInitial" />
        <method description="Return true if the given node is on the current &quot;push-to&quot; list of nodes for split forests." method="isOnPushList" />
        <method description="Return true if the given node is on the current &quot;pull-from&quot; list of nodes for split forests." method="isOnPullList" />
@@ -275,8 +271,6 @@
      procedure :: buildSubhaloMassHistories     => readBuildSubhaloMassHistories
      procedure :: timeUntilMergingSubresolution => readTimeUntilMergingSubresolution
      procedure :: phaseSpacePositionRealize     => readPhaseSpacePositionRealize
-     procedure :: timingRecord                  => readTimingRecord
-     procedure :: timingReport                  => readTimingReport
      procedure :: rootNodeAffinitiesInitial     => readRootNodeAffinitiesInitial
      procedure :: isOnPushList                  => readIsOnPushList
      procedure :: isOnPullList                  => readIsOnPullList
@@ -1370,8 +1364,6 @@ contains
           ! Search for subhalos which move between branches/trees.
           call self%scanForBranchJumps      (nodes,nodeList)
           ! Allocate arrays for history building.
-          if (allocated(position)) deallocate(position)
-          if (allocated(velocity)) deallocate(velocity)
           allocate(historyTime(int(historyCountMaximum)))
           if (self%presetSubhaloIndices                             ) then
              allocate(historyIndex(int(historyCountMaximum)))
@@ -1395,11 +1387,11 @@ contains
           ! Assign new uniqueIDs to any cloned nodes inserted into the trees.
           call readAssignUniqueIDsToClones(nodeList)
           ! Deallocate history building arrays.
-          if (allocated(historyTime)) deallocate(historyTime )
-          if (allocated(historyMass)) deallocate(historyIndex)
-          if (allocated(historyMass)) deallocate(historyMass )
-          if (allocated(position   )) deallocate(position    )
-          if (allocated(velocity   )) deallocate(velocity    )
+          deallocate(historyTime )
+          deallocate(historyIndex)
+          deallocate(historyMass )
+          deallocate(position    )
+          deallocate(velocity    )
           ! Deallocate the temporary arrays.
           deallocate(nodeList)
           ! Destroy sorted node indices.
@@ -1437,10 +1429,10 @@ contains
     allocate(self%descendantIndicesSorted(size(nodes)))
     self%nodeLocations      =sortIndex(nodes%nodeIndex      )
     self%descendantLocations=sortIndex(nodes%descendantIndex)
-    forall (iNode=1:size(nodes))
+    do iNode=1,size(nodes)
        self%nodeIndicesSorted      (iNode)=nodes(self%nodeLocations      (iNode))%nodeIndex
        self%descendantIndicesSorted(iNode)=nodes(self%descendantLocations(iNode))%descendantIndex
-    end forall
+    end do
     do iNode=2,size(nodes)
        if (self%nodeIndicesSorted(iNode) == self%nodeIndicesSorted(iNode-1)) then
           message="WARNING: duplicate node index found in merger tree - this is not allowed ["
@@ -1644,7 +1636,6 @@ contains
     class           (nodeComponentBasic       ), pointer                                    :: basic
     class           (nodeComponentSatellite   ), pointer                                    :: satellite
     integer         (c_size_t                 )                                             :: iNode
-    integer                                                                                 :: i
     logical                                                                                 :: isolatedProgenitorExists, nodeIsMostMassive, &
          &                                                                                     progenitorIsIsolated
     type            (progenitorIterator       )                                             :: progenitors
@@ -1696,27 +1687,10 @@ contains
                    !
                    ! If other isolated progenitors exist, we need to insert a placeholder node as the primary progenitor.
                    if (isolatedProgenitorExists) then
-                      allocate(nodeNew)
-                      call nodeList(descendantNode%isolatedNodeIndex)%node%copyNodeTo(nodeNew)
-                      if (nodeNew%satelliteCount() > 0) then
-                         ! Remove any satellite component from the copied node - each branch should have only a single satellite.
-                         do i=nodeNew%satelliteCount(),1,-1
-                            call nodeNew%satelliteRemove(i)
-                         end do
-                      end if
-                      nodeNew                                         %sibling        => nodeList(descendantNode%isolatedNodeIndex)%node%firstChild
-                      nodeNew                                         %parent         => nodeList(descendantNode%isolatedNodeIndex)%node
-                      nodeNew                                         %firstSatellite => null()
-                      nodeNew                                         %firstChild     => null()
-                      nodeNew                                         %mergeTarget    => null()
-                      nodeNew                                         %firstMergee    => null()
-                      nodeNew                                         %siblingMergee  => null()
-                      nodeNew                                         %event          => null()
-                      nodeList(descendantNode%isolatedNodeIndex)%node%firstChild      => nodeNew
-                      basic                                                           => nodeNew                                        %basic     ()
-                      call basic%timeSet(basic%time()*(1.0d0-fractionOffsetTimeClones))
-                      promotionNode        =>                                                  nodeNew
-                      timeSubhaloPromotion =  basic                                           %    time()
+                      call readInsertClonedProgenitor(nodeList(descendantNode%isolatedNodeIndex)%node,transferSatellites=.false.,clone=nodeNew)
+                      basic                => nodeNew%basic()
+                      promotionNode        => nodeNew
+                      timeSubhaloPromotion =  basic  %time ()
                    else
                       promotionNode        => nodeList      (descendantNode%isolatedNodeIndex)%node
                       timeSubhaloPromotion =  descendantNode                                  %nodeTime
@@ -2627,20 +2601,17 @@ contains
     end do
     ! Set orbits.
     if (self%presetOrbits) then
-       iIsolatedNode=0
        do iNode=1,size(nodes)
           if (nodes(iNode)%primaryIsolatedNodeIndex /= nodeReachabilityUnreachable%ID) then
              iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
              ! Find the most massive progenitor.
              nodeIsMostMassive=.true.
-             if (self%alwaysPromoteMostMassive) then
-                if (self%alwaysPromoteMostMassive.and.associated(nodes(iNode)%descendant)) then
-                   call progenitors%descendantSet(self,nodes(iNode)%descendant,nodes)
-                   do while (progenitors%next(nodes))
-                      progenitorNode => progenitors%current(nodes)
-                      if (progenitorNode%nodeMass > nodes(iNode)%nodeMass) nodeIsMostMassive=.false.
-                   end do
-                end if
+             if (self%alwaysPromoteMostMassive.and.associated(nodes(iNode)%descendant)) then
+                call progenitors%descendantSet(self,nodes(iNode)%descendant,nodes)
+                do while (progenitors%next(nodes))
+                   progenitorNode => progenitors%current(nodes)
+                   if (progenitorNode%nodeMass > nodes(iNode)%nodeMass) nodeIsMostMassive=.false.
+                end do
              end if
              ! Set the orbit for this halo if required. For this to be required we must first have a parent node. Then, we must be
              ! either not the primary progenitor, or there must be a more massive subhalo which will be promoted.
@@ -2932,20 +2903,11 @@ contains
                    else
                       ! In nested hierarchies we must find the isolated node which hosts our node and our node's host.
                       !! First find the ultimate host of our descendant.
-                      isolatedHostNode     => descendantNode     %descendant%host
-                      do while (associated(isolatedHostNode    %host).and..not.associated(isolatedHostNode    %host,isolatedHostNode    ))
-                         isolatedHostNode     => isolatedHostNode    %host
-                      end do
+                      isolatedHostNode     => readIsolatedHost(descendantNode      %descendant%host)
                       !! Next find our ultimate host...
-                      isolatedHostHostNode => descendantNode%host
-                      do while (associated(isolatedHostHostNode%host).and..not.associated(isolatedHostHostNode%host,isolatedHostHostNode))
-                         isolatedHostHostNode => isolatedHostHostNode%host
-                      end do
+                      isolatedHostHostNode => readIsolatedHost(descendantNode                 %host)
                       !! and then find the ultimate host of its descendant.
-                      isolatedHostHostNode => isolatedHostHostNode%descendant%host
-                      do while (associated(isolatedHostHostNode%host).and..not.associated(isolatedHostHostNode%host,isolatedHostHostNode))
-                         isolatedHostHostNode => isolatedHostHostNode%host
-                      end do
+                      isolatedHostHostNode => readIsolatedHost(isolatedHostHostNode%descendant%host)
                       if (isolatedHostNode%nodeIndex /= isolatedHostHostNode%nodeIndex) then
                          ! Host has a descendant, but its host is not the same as our descendant's host.
                          subhaloJumps=.true.
@@ -2956,11 +2918,8 @@ contains
                             ! Handle cases where the subhalo skipped one or more timesteps.
                             do while (isolatedHostNode%nodeTime > hostDescendant%nodeTime)
                                if (associated(hostDescendant%descendant)) then
-                                  hostDescendant => hostDescendant%descendant%host
                                   ! In nested hierarchies, find the isolated host node.
-                                  do while (associated(hostDescendant%host).and..not.associated(hostDescendant%host,hostDescendant))
-                                     hostDescendant => hostDescendant%host
-                                  end do
+                                  hostDescendant => readIsolatedHost(hostDescendant%descendant%host)
                                else
                                   exit
                                end if
@@ -2969,11 +2928,8 @@ contains
                             ! Handle cases where the host skipped one or more timesteps.
                             do while (isolatedHostNode%nodeTime < hostDescendant%nodeTime)
                                if (associated(isolatedHostNode%descendant)) then
-                                  isolatedHostNode => isolatedHostNode%descendant%host
                                   ! In nested hierarchies, find the isolated host node.
-                                  do while (associated(isolatedHostNode%host).and..not.associated(isolatedHostNode%host,isolatedHostNode))
-                                     isolatedHostNode => isolatedHostNode%host
-                                  end do
+                                  isolatedHostNode => readIsolatedHost(isolatedHostNode%descendant%host)
                                else
                                   exit
                                end if
@@ -3034,6 +2990,22 @@ contains
     return
   end function readLastHostDescendant
 
+  function readIsolatedHost(node) result (isolatedHost)
+    !!{RST
+    Return a pointer to the isolated node hosting ``node`` (which may be ``node`` itself), found by walking host pointers until a self-hosting node is reached.
+    !!}
+    use :: Merger_Tree_Read_Importers, only : nodeData
+    implicit none
+    class(nodeData), pointer               :: isolatedHost
+    class(nodeData), intent(in   ), target :: node
+
+    isolatedHost => node
+    do while (associated(isolatedHost%host).and..not.associated(isolatedHost%host,isolatedHost))
+       isolatedHost => isolatedHost%host
+    end do
+    return
+  end function readIsolatedHost
+
   subroutine readCreateBranchJumpEvent(node,jumpToHost,timeOfJump)
     !!{RST
     Create a matched-pair of branch jump events in the given nodes.
@@ -3058,6 +3030,54 @@ contains
     pairEvent%ID   =  newEvent%ID
     return
   end subroutine readCreateBranchJumpEvent
+
+  subroutine readInsertClonedProgenitor(node,transferSatellites,clone)
+    !!{RST
+    Insert a clone of ``node`` as its own primary progenitor. The clone is shifted to a very slightly earlier time to avoid having
+    two identical halos existing simultaneously (which can be problematic if outputting quantities which use the node index as a
+    label in dataset names for example). Any prior first child of ``node`` becomes the sibling of the clone. If
+    ``transferSatellites`` is true then satellites of ``node`` are transferred to the clone, otherwise they remain attached to
+    ``node``.
+    !!}
+    implicit none
+    type   (treeNode          ), intent(inout), target :: node
+    logical                    , intent(in   )         :: transferSatellites
+    type   (treeNode          ), pointer               :: clone
+    type   (treeNode          ), pointer               :: satellite
+    class  (nodeComponentBasic), pointer               :: basicClone
+    integer                                            :: i
+
+    allocate(clone)
+    call node%copyNodeTo(clone)
+    ! Remove any satellite component from the copied node - each branch should have only a single satellite.
+    do i=clone%satelliteCount(),1,-1
+       call clone%satelliteRemove(i)
+    end do
+    clone%sibling       => node%firstChild
+    clone%parent        => node
+    clone%firstChild    => null()
+    clone%mergeTarget   => null()
+    clone%firstMergee   => null()
+    clone%siblingMergee => null()
+    ! Events remain attached to the original and we do not want to duplicate them.
+    clone%event         => null()
+    node %firstChild    => clone
+    basicClone => clone%basic()
+    call basicClone%timeSet(basicClone%time()*(1.0d0-fractionOffsetTimeClones))
+    if (transferSatellites) then
+       ! Any satellites are now attached to the clone.
+       node%firstSatellite => null()
+       satellite => clone%firstSatellite
+       do while (associated(satellite))
+          satellite%parent => clone
+          satellite        => satellite%sibling
+       end do
+    else
+       ! Satellites remain attached to the original node.
+       clone%firstSatellite => null()
+    end if
+    return
+  end subroutine readInsertClonedProgenitor
 
   subroutine readBuildSubhaloMassHistories(self,nodes,nodeList,historyCountMaximum,historyTime,historyIndex,historyMass,position,velocity)
     !!{RST
@@ -3217,9 +3237,8 @@ contains
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class  (nodeData          ), dimension(:), intent(inout) :: nodes
-    type   (treeNode          ), pointer                     :: nodeNew , nodeSatellite
-    class  (nodeComponentBasic), pointer                     :: basicNew
-    integer                                                  :: iNode   , i
+    type   (treeNode          ), pointer                     :: nodeNew
+    integer                                                  :: iNode
 
     ! Search for cases where a node has no progenitors which do not descend into subhalos.
     do iNode=1,size(nodes)
@@ -3230,34 +3249,8 @@ contains
              ! Select nodes with subhalo descendants which are also the primary progenitor of their parent.
              if (nodes(iNode)%descendant%isSubhalo.and.associated(nodes(iNode)%node%parent%firstChild,nodes(iNode)%node)) then
                 ! Insert a copy of the parent node as its own primary progenitor. This avoids current node being promoted into its
-                ! parent even though it is intended to descend into a subhalo. The copy is shifted to a very slightly earlier
-                ! time to avoid having two identical halos existing simultaneously (which can be problematic if outputting
-                ! quantities which use the node index as a label in dataset names for example).
-                allocate(nodeNew)
-                call nodes(iNode)%node%parent%copyNodeTo(nodeNew)
-                if (nodeNew%satelliteCount() > 0) then
-                   ! Remove any satellite component from the copied node - each branch should have only a single satellite.
-                   do i=nodeNew%satelliteCount(),1,-1
-                      call nodeNew%satelliteRemove(i)
-                   end do
-                end if
-                nodeNew%sibling                     => nodes(iNode)%node
-                nodeNew%parent                      => nodes(iNode)%node%parent
-                nodeNew%firstChild                  => null()
-                nodeNew%mergeTarget                 => null()
-                nodeNew%siblingMergee               => null()
-                nodes(iNode)%node%parent%firstChild => nodeNew
-                basicNew                            => nodeNew%basic()
-                call basicNew%timeSet(basicNew%time()*(1.0d0-fractionOffsetTimeClones))
-                ! Events remain attached to the original and we do not want to duplicate them.
-                nodeNew%event => null()
-                ! Any satellites are now attached to the copy.
-                nodes(iNode)%node%parent%firstSatellite => null()
-                nodeSatellite => nodeNew%firstSatellite
-                do while (associated(nodeSatellite))
-                   nodeSatellite%parent => nodeNew
-                   nodeSatellite        => nodeSatellite%sibling
-                end do
+                ! parent even though it is intended to descend into a subhalo.
+                call readInsertClonedProgenitor(nodes(iNode)%node%parent,transferSatellites=.true.,clone=nodeNew)
              end if
           end if
        end if
@@ -3346,9 +3339,7 @@ contains
           if (nodes(iNode)%nodeIndex == branchRootHost) node => nodes(iNode)
        end do
        if (associated(node)) then
-          do while (associated(node%host).and..not.associated(node%host,node))
-             node => node%host
-          end do
+          node => readIsolatedHost(node)
           branchRootHost=node%nodeIndex
        end if
     else
@@ -3360,16 +3351,10 @@ contains
        ! Determine if node is in the branch to be output.
        if (present(branchRoot)) then
           outputNode=.false.
-          node => nodes(iNode)
-          do while (associated(node%host).and..not.associated(node%host,node))
-             node => node%host
-          end do
+          node => readIsolatedHost(nodes(iNode))
           outputNode=node%nodeIndex == branchRootHost
           do while (.not.outputNode.and.associated(node%descendant))
-             node => node%descendant
-             do while (associated(node%host).and..not.associated(node%host,node))
-                node => node%host
-             end do
+             node => readIsolatedHost(node%descendant)
              outputNode=node%nodeIndex == branchRootHost
           end do
        else
@@ -3677,6 +3662,11 @@ contains
           self%progenitorLocation=self%constructor%descendantLocations(self%progenitorIndex)
           if (associated(nodes(self%progenitorLocation)%descendant)) exit
        end do
+       ! If the sorted index was exhausted before a location was assigned, no further progenitors exist.
+       if (self%progenitorLocation < 1) then
+          progenitorIteratorNext=.false.
+          return
+       end if
        if (.not.associated(nodes(self%progenitorLocation)%descendant)) then
           progenitorIteratorNext=.false.
           return
@@ -3727,60 +3717,6 @@ contains
     progenitorIteratorExist=self%progenitorsFound
     return
   end function progenitorIteratorExist
-
-  subroutine readTimingRecord(self,label)
-    !!{RST
-    Record timing data.
-    !!}
-    implicit none
-    class    (mergerTreeConstructorRead), intent(inout)               :: self
-    character(len=*                    ), intent(in   )               :: label
-    real                                , allocatable  , dimension(:) :: timingTimesTmp
-    type     (varying_string           ), allocatable  , dimension(:) :: timingLabelsTmp
-    real                                                              :: timeNow
-
-    call CPU_Time(timeNow)
-    if (allocated(self%timingTimes)) then
-       call Move_Alloc(self%timingTimes ,timingTimesTmp )
-       call Move_Alloc(self%timingLabels,timingLabelsTmp)
-       allocate(self%timingTimes (size(timingTimesTmp )+1))
-       allocate(self%timingLabels(size(timingLabelsTmp)+1))
-       self%timingTimes (1:size(timingTimesTmp ))=timingTimesTmp
-       self%timingLabels(1:size(timingLabelsTmp))=timingLabelsTmp
-       deallocate(timingTimesTmp )
-       deallocate(timingLabelsTmp)
-    else
-      allocate(self%timingTimes (1))
-      allocate(self%timingLabels(1))
-    end if
-    self%timingTimes (size(self%timingTimes ))=timeNow
-    self%timingLabels(size(self%timingLabels))=trim(label)
-    return
-  end subroutine readTimingRecord
-
-  subroutine readTimingReport(self)
-    !!{RST
-    Report on time taken in various steps of processing merger trees read from file.
-    !!}
-    use :: Display, only : displayIndent, displayMessage, displayUnindent
-    implicit none
-    class    (mergerTreeConstructorRead), intent(inout) :: self
-    integer                                             :: i        , lengthMaximum
-    type     (varying_string           )                :: message
-    character(len=12                   )                :: timeTaken
-
-    call displayIndent("Merger tree read processing report:")
-    if (allocated(self%timingTimes).and.size(self%timingTimes) > 1) then
-       lengthMaximum=maxval(len(self%timingLabels))
-       do i=2,size(self%timingTimes)
-          write (timeTaken,'(f10.2)') self%timingTimes(i)-self%timingTimes(i-1)
-          message=repeat(" ",lengthMaximum-len(self%timingLabels(i)))//self%timingLabels(i)//": "//trim(adjustl(timeTaken))//" s"
-          call displayMessage(message)
-       end do
-    end if
-    call displayUnindent("done")
-    return
-  end subroutine readTimingReport
 
   subroutine readRootNodeAffinitiesInitial(self,nodes)
     !!{RST
@@ -4110,8 +4046,8 @@ contains
     !!}
     use :: Display                   , only : displayIndent          , displayMessage     , displayUnindent             , verbosityLevelInfo
     use :: Error                     , only : Error_Report
-    use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeEvent          , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
-          &                                   treeNode               , treeNodeList
+    use :: Galacticus_Nodes          , only : nodeEvent              , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, treeNode, &
+          &                                   treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: Node_Events_Inter_Tree    , only : Node_Pull_From_Tree    , Node_Push_From_Tree
     use :: String_Handling           , only : operator(//)
@@ -4121,9 +4057,8 @@ contains
     type            (treeNodeList             ), dimension(:), intent(inout)         :: nodeList
     class           (nodeEvent                ), pointer                             :: newEvent
     class           (nodeData                 ), pointer                             :: node
-    type            (treeNode                 ), pointer                             :: nodeNew          , satellite
-    class           (nodeComponentBasic       ), pointer                             :: basicNew
-    integer                                                                          :: iNode            , i
+    type            (treeNode                 ), pointer                             :: nodeNew
+    integer                                                                          :: iNode
     integer         (c_size_t                 )                                      :: iIsolatedNode    , progenitorLocation, &
          &                                                                              iPull
     integer         (kind_int8                )                                      :: progenitorIndex
@@ -4189,31 +4124,7 @@ contains
                       if (self%splitForestPushType(self%pullListIndex(node,iPull)) == pushTypeBranchJump) then
                          nodeNew => nodeList(iIsolatedNode)%node
                       else
-                         allocate                                    (nodeNew)
-                         call nodeList(iIsolatedNode)%node%copyNodeTo(nodeNew)
-                         if (nodeNew%satelliteCount() > 0) then
-                            ! Remove any satellite component from the copied node - each branch should have only a single satellite.
-                            do i=nodeNew%satelliteCount(),1,-1
-                               call nodeNew%satelliteRemove(i)
-                            end do
-                         end if
-                         nodeNew%sibling                         => nodeList(iIsolatedNode)%node%firstChild
-                         nodeNew%parent                          => nodeList(iIsolatedNode)%node
-                         nodeNew%firstChild                      => null()
-                         nodeNew%mergeTarget                     => null()
-                         nodeNew%siblingMergee                   => null()
-                         nodeList(iIsolatedNode)%node%firstChild => nodeNew
-                         basicNew                                => nodeNew%basic()
-                         call basicNew%timeSet(basicNew%time()*(1.0d0-fractionOffsetTimeClones))
-                         ! Events remain attached to the original and we do not want to duplicate them.
-                         nodeNew%event => null()
-                         ! Any satellites are now attached to the copy.
-                         nodeList(iIsolatedNode)%node%firstSatellite => null()
-                         satellite => nodeNew%firstSatellite
-                         do while (associated(satellite))
-                            satellite%parent => nodeNew
-                            satellite        => satellite%sibling
-                         end do
+                         call readInsertClonedProgenitor(nodeList(iIsolatedNode)%node,transferSatellites=.true.,clone=nodeNew)
                       end if
                       select type (newEvent)
                       type is (nodeEventSubhaloPromotionInterTree)
@@ -4227,33 +4138,8 @@ contains
                    else
                       ! For a non-primary progenitor, attach the event to the primary progenitor of the node, such that our node
                       ! can later be added as a sibling. If the primary progenitor has no child, create a clone.
-                      if (.not.associated(nodeList(iIsolatedNode)%node%firstChild)) then
-                         allocate                                    (nodeNew)
-                         call nodeList(iIsolatedNode)%node%copyNodeTo(nodeNew)
-                         if (nodeNew%satelliteCount() > 0) then
-                            ! Remove any satellite component from the copied node - each branch should have only a single satellite.
-                            do i=nodeNew%satelliteCount(),1,-1
-                               call nodeNew%satelliteRemove(i)
-                            end do
-                         end if
-                         nodeNew%parent                          => nodeList(iIsolatedNode)%node
-                         nodeNew%sibling                         => null()
-                         nodeNew%firstChild                      => null()
-                         nodeNew%mergeTarget                     => null()
-                         nodeNew%siblingMergee                   => null()
-                         nodeList(iIsolatedNode)%node%firstChild => nodeNew
-                         basicNew                                => nodeNew%basic()
-                         call basicNew%timeSet(basicNew%time()*(1.0d0-fractionOffsetTimeClones))
-                         ! Events remain attached to the original and we do not want to duplicate them.
-                         nodeNew%event => null()
-                         ! Any satellites are now attached to the copy.
-                         nodeList(iIsolatedNode)%node%firstSatellite => null()
-                         satellite => nodeNew%firstSatellite
-                         do while (associated(satellite))
-                            satellite%parent => nodeNew
-                            satellite        => satellite%sibling
-                         end do
-                      end if
+                      if (.not.associated(nodeList(iIsolatedNode)%node%firstChild)) &
+                           & call readInsertClonedProgenitor(nodeList(iIsolatedNode)%node,transferSatellites=.true.,clone=nodeNew)
                       select type (newEvent)
                       type is (nodeEventSubhaloPromotionInterTree)
                          newEvent%mergeTimeSet => readInterTreeMergeTimeSet
