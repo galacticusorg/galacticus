@@ -36,7 +36,7 @@ program Tests_IO_HDF5
        &                                                                       integerValueReread             , i                    , &
        &                                                                       j                              , k
   logical                                                                   :: appendableOK
-  integer                                                                   :: unitsStatus
+  integer                                                                   :: unitsStatus                    , attributesStatus
   type            (unitType       )                                         :: unitsValue
   integer                                       , dimension(10)             :: integerValueArray
   integer                                       , dimension(10)             :: integerValueArrayRereadStatic
@@ -69,10 +69,29 @@ program Tests_IO_HDF5
   double precision                              , dimension(10,10,10,10,10) :: doubleValueArray5d
   double precision                              , dimension(10,10,10,10,10) :: doubleValueArray5dRereadStatic
   double precision                 , allocatable, dimension( :, :, :, :, :) :: doubleValueArray5dReread      , doubleValueArray5dRereadExpect
-  type            (varying_string )             , dimension(20)             :: datasetNamesReference
+  type            (varying_string )             , dimension(27)             :: datasetNamesReference
   type            (hdf5VarDouble  ), allocatable, dimension( :)             :: varDoubleArray2D              , varDoubleDataset2DArrayReread
   type            (hdf5VarDouble2D), allocatable, dimension( :)             :: varDoubleArray3D              , varDoubleDataset3DArrayReread
   type            (hdf5VarInteger8), allocatable, dimension( :)             :: varInteger8Array2D            , varInteger8Dataset2dArrayReread
+  type            (hdf5VarDouble  ), allocatable, dimension( :, :)          :: varDoubleArrayGrid            , varDoubleDatasetGridReread
+  integer                                       , dimension(8,6)            :: integerValueArray2d
+  integer                                       , dimension(8,6)            :: integerValueArray2dRereadStatic
+  integer                          , allocatable, dimension( :, :)          :: integerValueArray2dReread
+  integer                                       , dimension(5,4,3)          :: integerValueArray3d
+  integer         (kind=kind_int8 )             , dimension(8,6)            :: integer8ValueArray2d
+  integer         (kind=kind_int8 )             , dimension(8,6)            :: integer8ValueArray2dRereadStatic
+  integer         (kind=kind_int8 ), allocatable, dimension( :, :)          :: integer8ValueArray2dReread
+  integer         (kind=kind_int8 )             , dimension(5,4,3)          :: integer8ValueArray3d
+  integer         (kind=kind_int8 ), allocatable, dimension( :, :, :)       :: integer8ValueArray3dReread
+  integer         (kind=kind_int8 )             , dimension(3,4,2,5)        :: integer8ValueArray4d
+  double precision                              , dimension(4,4,4,4,4,4)    :: doubleValueArray6d
+  double precision                              , dimension(4,4,4,4,4,4)    :: doubleValueArray6dRereadStatic
+  double precision                 , allocatable, dimension( :,:,:,:,:,:)   :: doubleValueArray6dReread      , doubleValueArray6dRereadExpect
+  double precision                              , dimension(3,2)            :: doubleAttribute2d
+  real                             , allocatable, dimension( :)             :: tableRealColumn
+  integer                          , allocatable, dimension( :)             :: tableIntegerColumn
+  integer         (kind=kind_int8 ), allocatable, dimension( :)             :: tableInteger8Column
+  character       (len=8          ), allocatable, dimension( :)             :: tableCharacterColumn
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -196,6 +215,11 @@ program Tests_IO_HDF5
        call groupObject%readAttributeStatic("doubleAttribute1dArray",doubleValueArrayRereadStatic)
        call Assert("re-read 1-D array double attribute to static array",doubleValueArray,doubleValueArrayRereadStatic)
 
+       ! Write a double 2-D array attribute to the group. There is no Fortran reader for 2-D attributes, so it is verified
+       ! externally (via h5py) after the file is closed.
+       doubleAttribute2d=reshape([1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0],[3,2])
+       call groupObject%writeAttribute(doubleAttribute2d,"doubleAttribute2dArray")
+
        ! Write a scalar character attribute to the group.
        characterValue='abcdefghijklmnopqrstuvwxyz'
        call groupObject%writeAttribute(characterValue,"characterAttribute")
@@ -252,6 +276,11 @@ program Tests_IO_HDF5
        call groupObject%readAttribute("varStringAttributePseudoScalar",varStringValueReread,allowPseudoScalar=.true.)
        call Assert("re-read pseudo-scalar varString attribute",varStringValueArray(1),varStringValueReread)
 
+       ! Write a logical scalar attribute to the group (stored as an integer 0 or 1), and read it back as an integer.
+       call groupObject%writeAttribute(.true.,"logicalAttribute")
+       call groupObject%readAttribute("logicalAttribute",integerValueReread)
+       call Assert("re-read logical attribute as integer",integerValueReread,1)
+
        ! Write an extensible integer 1-D array dataset to the group.
        if (appendableOK) then
           integerValueArray=[0,11,22,33,44,55,66,77,88,99]
@@ -301,6 +330,22 @@ program Tests_IO_HDF5
        call Assert("re-read part of referenced 1-D array integer dataset to allocatable array",integerValueArray(4:4),integerValueArrayReread(1:1))
        deallocate(integerValueArrayReread)
 
+       ! Write an integer 2-D array dataset to the group.
+       integerValueArray2d=reshape([(3*i-7,i=1,size(integerValueArray2d))],shape(integerValueArray2d))
+       call groupObject%writeDataset(integerValueArray2d,"integerDataset2dArray","This is an example dataset")
+       ! Read the integer 2-D array dataset back into a static array.
+       call groupObject%readDatasetStatic("integerDataset2dArray",integerValueArray2dRereadStatic)
+       call Assert("re-read 2-D array integer dataset to static array",reshape(integerValueArray2d,[size(integerValueArray2d)]),reshape(integerValueArray2dRereadStatic,[size(integerValueArray2dRereadStatic)]))
+       ! Read the integer 2-D array dataset back into an allocatable array.
+       call groupObject%readDataset("integerDataset2dArray",integerValueArray2dReread)
+       call Assert("re-read 2-D array integer dataset to allocatable array",reshape(integerValueArray2d,[size(integerValueArray2d)]),reshape(integerValueArray2dReread,[size(integerValueArray2dReread)]))
+       deallocate(integerValueArray2dReread)
+
+       ! Write an integer 3-D array dataset to the group. No 3-D integer reader exists, so it is verified externally (via
+       ! h5py) after the file is closed.
+       integerValueArray3d=reshape([(2*i+1,i=1,size(integerValueArray3d))],shape(integerValueArray3d))
+       call groupObject%writeDataset(integerValueArray3d,"integerDataset3dArray","This is an example dataset")
+
        ! Write an extensible long integer 1-D array dataset to the group.
        if (appendableOK) then
           integer8ValueArray=[0,11,22,33,44,55,66,77,88,99]
@@ -348,6 +393,31 @@ program Tests_IO_HDF5
        integer8ValueArrayReread=0
        call groupObject%readDataset("anotherReference",integer8ValueArrayReread,int([2],kind=HSIZE_T),int([1],kind=HSIZE_T))
        call Assert("re-read part of referenced 1-D array long integer dataset to allocatable array",integer8ValueArray(4:4),integer8ValueArrayReread(1:1))
+
+       ! Write a long integer 2-D array dataset to the group. Use values exceeding the 32-bit range to confirm genuine 64-bit
+       ! storage.
+       integer8ValueArray2d=reshape([(4294967296_kind_int8+int(5*i,kind=kind_int8),i=1,size(integer8ValueArray2d))],shape(integer8ValueArray2d))
+       call groupObject%writeDataset(integer8ValueArray2d,"integer8Dataset2dArray","This is an example dataset")
+       ! Read the long integer 2-D array dataset back into a static array.
+       call groupObject%readDatasetStatic("integer8Dataset2dArray",integer8ValueArray2dRereadStatic)
+       call Assert("re-read 2-D array long integer dataset to static array",reshape(integer8ValueArray2d,[size(integer8ValueArray2d)]),reshape(integer8ValueArray2dRereadStatic,[size(integer8ValueArray2dRereadStatic)]))
+       ! Read the long integer 2-D array dataset back into an allocatable array.
+       call groupObject%readDataset("integer8Dataset2dArray",integer8ValueArray2dReread)
+       call Assert("re-read 2-D array long integer dataset to allocatable array",reshape(integer8ValueArray2d,[size(integer8ValueArray2d)]),reshape(integer8ValueArray2dReread,[size(integer8ValueArray2dReread)]))
+       deallocate(integer8ValueArray2dReread)
+
+       ! Write a long integer 3-D array dataset to the group.
+       integer8ValueArray3d=reshape([(4294967296_kind_int8+int(3*i,kind=kind_int8),i=1,size(integer8ValueArray3d))],shape(integer8ValueArray3d))
+       call groupObject%writeDataset(integer8ValueArray3d,"integer8Dataset3dArray","This is an example dataset")
+       ! Read the long integer 3-D array dataset back into an allocatable array.
+       call groupObject%readDataset("integer8Dataset3dArray",integer8ValueArray3dReread)
+       call Assert("re-read 3-D array long integer dataset to allocatable array",reshape(integer8ValueArray3d,[size(integer8ValueArray3d)]),reshape(integer8ValueArray3dReread,[size(integer8ValueArray3dReread)]))
+       deallocate(integer8ValueArray3dReread)
+
+       ! Write a long integer 4-D array dataset to the group. No 4-D long integer reader exists, so it is verified externally
+       ! (via h5py) after the file is closed.
+       integer8ValueArray4d=reshape([(4294967296_kind_int8+int(7*i,kind=kind_int8),i=1,size(integer8ValueArray4d))],shape(integer8ValueArray4d))
+       call groupObject%writeDataset(integer8ValueArray4d,"integer8Dataset4dArray","This is an example dataset")
 
        ! Write an extensible double 1-D array dataset to the group.
        if (appendableOK) then
@@ -670,6 +740,50 @@ program Tests_IO_HDF5
        call Assert("re-read part of referenced 5-D array double dataset to allocatable array",doubleValueArray5d(4:4,6:7,2:4,6:7,5:8),doubleValueArray5dReread(1:1,1:2,1:3,1:2,1:4))
        deallocate(doubleValueArray5dReread)
 
+       ! Write an extensible double 6-D array dataset to the group.
+       if (appendableOK) then
+          doubleValueArray6d=3.141d0
+          call groupObject%writeDataset(doubleValueArray6d,"doubleDataset6dArrayExtensible","This is an extensible dataset",appendTo=.true.)
+          ! Append to the extensible double 6-D array dataset.
+          doubleValueArray6d=1.416d0
+          call groupObject%writeDataset(doubleValueArray6d,"doubleDataset6dArrayExtensible",appendTo=.true.)
+          ! Write a new dataset to which we will then append.
+          doubleValueArray6d=3.141d0
+          call groupObject%writeDataset(doubleValueArray6d,"doubleDataset6dArrayExtensibleAppendDim","This is an extensible dataset to which we will append",appendTo=.true.)
+          ! Append to the extensible double 6-D array dataset.
+          doubleValueArray6d=1.416d0
+          call groupObject%writeDataset(doubleValueArray6d(:,:,:,:,1:1,:),"doubleDataset6dArrayExtensibleAppendDim",appendTo=.true.,appendDimension=5)
+          ! Re-read the array.
+          call groupObject%readDataset("doubleDataset6dArrayExtensibleAppendDim",doubleValueArray6dReread)
+          allocate(doubleValueArray6dRereadExpect(4,4,4,4,5,4))
+          doubleValueArray6dRereadExpect(:,:,:,:,:,:)=3.141d0
+          doubleValueArray6dRereadExpect(:,:,:,:,5,:)=1.416d0
+          call Assert("append to arbitrary dimension of a 6-D array double dataset",reshape(doubleValueArray6dReread,[size(doubleValueArray6dReread)]),reshape(doubleValueArray6dRereadExpect,[size(doubleValueArray6dRereadExpect)]))
+          deallocate(doubleValueArray6dRereadExpect)
+          deallocate(doubleValueArray6dReread      )
+       end if
+
+       ! Write a double 6-D array dataset to the group.
+       doubleValueArray6d=3.141d0
+       call groupObject%writeDataset(doubleValueArray6d,"doubleDataset6dArray","This is an example dataset")
+       ! Write a double 6-D array dataset to the group.
+       doubleValueArray6d=reshape([(dble(i)*0.01d0,i=1,size(doubleValueArray6d))],shape(doubleValueArray6d))
+       call groupObject%writeDataset(doubleValueArray6d,"doubleDataset6dArray")
+       ! Read a double 6-D array dataset from the group into a static array.
+       call groupObject%readDatasetStatic("doubleDataset6dArray",doubleValueArray6dRereadStatic)
+       call Assert("re-read 6-D array double dataset to static array",reshape(doubleValueArray6d,[size(doubleValueArray6d)]),reshape(doubleValueArray6dRereadStatic,[size(doubleValueArray6dRereadStatic)]))
+       ! Read a double 6-D array dataset from the group into an allocatable array.
+       call groupObject%readDataset("doubleDataset6dArray",doubleValueArray6dReread)
+       call Assert("re-read 6-D array double dataset to allocatable array",reshape(doubleValueArray6d,[size(doubleValueArray6d)]),reshape(doubleValueArray6dReread,[size(doubleValueArray6dReread)]))
+       deallocate(doubleValueArray6dReread)
+       ! Read part of a double 6-D array dataset from the group into a static array.
+       call groupObject%readDatasetStatic("doubleDataset6dArray",doubleValueArray6dRereadStatic,int([2,1,2,1,2,1],kind=HSIZE_T),int([2,3,2,3,2,3],kind=HSIZE_T))
+       call Assert("re-read part of a 6-D array double dataset to static array",reshape(doubleValueArray6d(2:3,1:3,2:3,1:3,2:3,1:3),[216]),reshape(doubleValueArray6dRereadStatic(1:2,1:3,1:2,1:3,1:2,1:3),[216]))
+       ! Read part of a double 6-D array dataset from the group into an allocatable array.
+       call groupObject%readDataset("doubleDataset6dArray",doubleValueArray6dReread,int([2,1,2,1,2,1],kind=HSIZE_T),int([2,3,2,3,2,3],kind=HSIZE_T))
+       call Assert("re-read part of a 6-D array double dataset to allocatable array",reshape(doubleValueArray6d(2:3,1:3,2:3,1:3,2:3,1:3),[216]),reshape(doubleValueArray6dReread(1:2,1:3,1:2,1:3,1:2,1:3),[216]))
+       deallocate(doubleValueArray6dReread)
+
        ! Write a character 1-D array dataset to the group.
        characterValueArray='aAbBcCdDeEfFgGhH'
        call groupObject%writeDataset(characterValueArray,"characterDataset1dArray")
@@ -780,6 +894,27 @@ program Tests_IO_HDF5
        deallocate(varInteger8Dataset2dArrayReread)
        deallocate(varInteger8Array2D             )
 
+       ! Write a 2-D array of variable-length double rows to the group.
+       allocate(varDoubleArrayGrid(4,3))
+       do i=1,4
+          do j=1,3
+             allocate(varDoubleArrayGrid(i,j)%row(i+j))
+             do k=1,i+j
+                varDoubleArrayGrid(i,j)%row(k)=dble(9*i+5*j+2*k)
+             end do
+          end do
+       end do
+       call groupObject%writeDataset(varDoubleArrayGrid,"varDoubleDatasetGrid")
+       ! Read the 2-D array of variable-length double rows back.
+       call groupObject%readDataset("varDoubleDatasetGrid",varDoubleDatasetGridReread)
+       call Assert(                                                                                          &
+            &      "re-read 2-D grid varDouble dataset"                                                    , &
+            &      [((all(varDoubleArrayGrid(i,j)%row == varDoubleDatasetGridReread(i,j)%row),i=1,4),j=1,3)], &
+            &      spread(.true.,1,12)                                                                       &
+            &     )
+       deallocate(varDoubleDatasetGridReread)
+       deallocate(varDoubleArrayGrid        )
+
        ! Write a scalar integer attribute to the group.
        integerValue=2020
        call groupObject%writeAttribute(integerValue,"integerShortAttribute")
@@ -826,20 +961,27 @@ program Tests_IO_HDF5
                  &                 "doubleDataset3dArray      ", &
                  &                 "doubleDataset4dArray      ", &
                  &                 "doubleDataset5dArray      ", &
+                 &                 "doubleDataset6dArray      ", &
                  &                 "doubleReference           ", &
                  &                 "integer8Dataset1dArray    ", &
+                 &                 "integer8Dataset2dArray    ", &
+                 &                 "integer8Dataset3dArray    ", &
+                 &                 "integer8Dataset4dArray    ", &
                  &                 "integerDataset1dArray     ", &
+                 &                 "integerDataset2dArray     ", &
+                 &                 "integerDataset3dArray     ", &
                  &                 "integerShortDataset1dArray", &
                  &                 "myReference               ", &
                  &                 "varDoubleDataset2dArray   ", &
                  &                 "varDoubleDataset3dArray   ", &
+                 &                 "varDoubleDatasetGrid      ", &
                  &                 "varInteger8Dataset2dArray ", &
                  &                 "varStringDataset1dArray   "  &
                  &                ]
             do i=1,size(datasetNamesReference)
                datasetNamesReference(i)=trim(datasetNamesReference(i))
             end do
-            call Assert("recover correct number of datasets in group",size(datasetNames),20)
+            call Assert("recover correct number of datasets in group",size(datasetNames),27)
             call Assert("recover names of datasets in group",datasetNames,datasetNamesReference)
           end block
        end if
@@ -900,6 +1042,18 @@ program Tests_IO_HDF5
      call fileObject%readAttribute("stringAttribute"            ,          characterValueReread                            )
      call Assert("read h5py string attribute (character)",characterValueReread,"this is a variable length string")
      call Assert("read h5py string attribute (varying_string)",varStringValueReread,var_str("this is a variable length string"))
+     ! Read columns from a table (a compound-type dataset following the H5TB conventions) in the h5py file.
+     call fileObject%readTable("myTable","realColumn"     ,tableRealColumn     )
+     call Assert("read real column of h5py table"      ,tableRealColumn     ,[(real(i)+0.5,i=1,8)]                            )
+     call fileObject%readTable("myTable","integerColumn" ,tableIntegerColumn  )
+     call Assert("read integer column of h5py table"   ,tableIntegerColumn  ,[(10*i,i=1,8)]                                   )
+     call fileObject%readTable("myTable","integer8Column",tableInteger8Column )
+     call Assert("read integer8 column of h5py table"  ,tableInteger8Column ,[(4294967296_kind_int8+int(i,kind=kind_int8),i=1,8)])
+     ! Read a subsection of the long integer column (start is zero-based, so records 3 through 6).
+     call fileObject%readTable("myTable","integer8Column",tableInteger8Column ,readBegin=2_HSIZE_T,readCount=4_HSIZE_T)
+     call Assert("read subsection of integer8 column of h5py table",tableInteger8Column,[(4294967296_kind_int8+int(i,kind=kind_int8),i=3,6)])
+     call fileObject%readTable("myTable","characterColumn",tableCharacterColumn)
+     call Assert("read character column of h5py table" ,tableCharacterColumn,[character(len=8) :: "rec1","rec2","rec3","rec4","rec5","rec6","rec7","rec8"])
      call Unit_Tests_End_Group()
    end block
 
@@ -908,6 +1062,13 @@ program Tests_IO_HDF5
   call Unit_Tests_Begin_Group("units compound attribute")
   call System_Command_Do("./testSuite/scripts/verify_units.py",unitsStatus)
   call Assert("re-read units compound attribute (via h5py)",unitsStatus,0)
+  call Unit_Tests_End_Group()
+
+  ! Verify the 2-D double attribute written above by reading it back with h5py (there is no Fortran reader for 2-D
+  ! attributes). The verifier script exits with non-zero status on any mismatch.
+  call Unit_Tests_Begin_Group("2-D double attribute")
+  call System_Command_Do("./testSuite/scripts/verify_attributes.py",attributesStatus)
+  call Assert("re-read 2-D double attribute (via h5py)",attributesStatus,0)
   call Unit_Tests_End_Group()
 
   ! End unit tests.
