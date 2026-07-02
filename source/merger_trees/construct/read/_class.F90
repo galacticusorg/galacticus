@@ -199,6 +199,9 @@
    contains
      !![
      <methods docformat="rst">
+       <method description="Locate the next forest to process, advancing through files as necessary, and skipping forests until that specified by ``[beginAt]`` is found." method="findNextForest" />
+       <method description="Add the masses and angular momenta of subhalos to their host halos where these are not already included in the data read from file." method="addSubhaloContributions" />
+       <method description="Validate that the default node components support setting of all properties which are to be preset." method="validatePresetComponents" />
        <method description="Ensure that any node which was once a subhalo remains a subhalo." method="enforceSubhaloStatus" />
        <method description="Scan for cases where a subhalo stops being a subhalo and so must be promoted." method="scanForSubhaloPromotions" />
        <method description="Create a sorted list of node indices with an index into the original array." method="createNodeIndices" />
@@ -223,6 +226,9 @@
      !!]
      final     ::                                  readDestructor
      procedure :: construct                     => readConstruct
+     procedure :: findNextForest                => readFindNextForest
+     procedure :: addSubhaloContributions       => readAddSubhaloContributions
+     procedure :: validatePresetComponents      => readValidatePresetComponents
      procedure :: enforceSubhaloStatus          => readEnforceSubhaloStatus
      procedure :: scanForSubhaloPromotions      => readScanForSubhaloPromotions
      procedure :: createNodeIndices             => readCreateNodeIndices
@@ -896,18 +902,15 @@ contains
     !!{RST
     Construct a merger tree by reading its definition from file.
     !!}
-    use :: Array_Utilities           , only : operator(.intersection.)
     use :: Arrays_Search             , only : searchArrayClosest
-    use :: Functions_Global          , only : State_Retrieve_                  , State_Store_
-    use :: Error                     , only : Component_List                   , Error_Report
-    use :: Galacticus_Nodes          , only : defaultDarkMatterProfileComponent, defaultPositionComponent, defaultSatelliteComponent, defaultSpinComponent, &
-         &                                    mergerTree                       , treeNodeList
-    use :: Merger_Tree_Read_Importers, only : nodeData                         , nodeDataMinimal
+    use :: Functions_Global          , only : State_Retrieve_       , State_Store_
+    use :: Error                     , only : Error_Report
+    use :: Galacticus_Nodes          , only : mergerTree            , treeNodeList
+    use :: Merger_Tree_Read_Importers, only : nodeData              , nodeDataMinimal
     use :: Merger_Tree_State_Store   , only : treeStateStoreSequence
     use :: Merger_Tree_Walkers       , only : mergerTreeWalkerAllNodes
     use :: Numerical_Comparison      , only : Values_Agree
     use :: String_Handling           , only : operator(//)
-    use :: Vectors                   , only : Vector_Magnitude                 , Vector_Product
     implicit none
     type            (mergerTree               ), pointer                              :: tree
     class           (mergerTreeConstructorRead), intent(inout)                        :: self
@@ -915,19 +918,16 @@ contains
     logical                                    , intent(  out)                        :: finished
     integer         (c_size_t                 )                                       :: treeNumberInternal
     integer         (kind_int8                ), allocatable, dimension(:  )          :: historyIndex
-    double precision                           , allocatable, dimension(:  )          :: historyMass           , historyTime
-    double precision                           , allocatable, dimension(:,:)          :: position              , velocity
+    double precision                           , allocatable, dimension(:  )          :: historyMass       , historyTime
+    double precision                           , allocatable, dimension(:,:)          :: position          , velocity
     class           (nodeDataMinimal          ), allocatable, dimension(:  ), target  :: nodes
     type            (treeNode                 )                             , pointer :: nodeWork
     type            (treeNodeList             ), allocatable, dimension(:  )          :: nodeList
     logical                                    , allocatable, dimension(:  )          :: childIsSubhalo
-    double precision                                        , dimension(3  )          :: relativePosition      , relativeVelocity , &
-         &                                                                               orbitalAngularMomentum
     integer         (c_size_t                 ), allocatable, dimension(:  )          :: nodeSubset
     integer                                                                           :: isolatedNodeCount
-    integer         (c_size_t                 )                                       :: historyCountMaximum   , iNode            , &
-         &                                                                               iOutput               , treeNumberMaximum, &
-         &                                                                               treeNumberOffset
+    integer         (c_size_t                 )                                       :: historyCountMaximum, iNode            , &
+         &                                                                               iOutput            , treeNumberOffset
     type            (mergerTreeWalkerAllNodes )                                       :: treeWalkerAll
     type            (varying_string           )                                       :: message
 
@@ -937,7 +937,207 @@ contains
     call State_Retrieve_()
     ! Recover the state of the next tree to read.
     treeNumberInternal=treeStateStoreSequence
-    ! Scan trees until we find one to process. This allows us to skip trees until the tree index specified by `beginAt` is found.
+    ! Find the next forest to process. If all forests are used up, we are done.
+    call self%findNextForest(treeNumber,treeNumberOffset,finished)
+    if (finished) then
+       nullify(tree)
+       return
+    end if
+    ! Set tree properties.
+    allocate(tree)
+    ! treeIndex
+    tree%index            =self%mergerTreeImporter_%treeIndex (int(treeNumberOffset))
+    ! volumeWeight
+    self%treeWeightCurrent=self%mergerTreeImporter_%treeWeight(int(treeNumberOffset))
+    tree%volumeWeight     =self%treeWeightCurrent
+    ! Initialize no events.
+    tree%event             => null()
+    tree%initializedUntil  =  0.0d0
+    tree%isTreeInitialized =  .false.
+    call tree%properties%initialize()
+    ! Restart the random number sequence for this tree. We use the tree index modulo the largest number representable by
+    ! the integer type.
+    allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
+    !$omp critical(mergerTreeConstructReadDeepCopyReset)
+    !![
+    <deepCopyReset variables="self%randomNumberGenerator_"/>
+    <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+    <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
+    !!]
+    !$omp end critical(mergerTreeConstructReadDeepCopyReset)
+    call self                 %randomSequenceNonDeterministicWarn(tree)
+    call self%mergerTreeSeeds_%set                               (tree)
+    ! Store internal state.
+    message='Storing state for tree #'
+    message=message//treeStateStoreSequence
+    call State_Store_(message)
+    ! Check if the size of this forest exceeds the maximum allowed. Split forest processing was removed pending an
+    ! MPI-compatible reimplementation - the original implementation can be found in the git history of this file.
+    if     (                                                                                    &
+         &   self%mergerTreeImporter_%nodeCount(int(treeNumberOffset)) > self%forestSizeMaximum &
+         &  .and.                                                                               &
+         &   0                                                         < self%forestSizeMaximum &
+         & ) call Error_Report('forest exceeds [forestSizeMaximum] but split forest processing is not currently supported'//{introspection:location})
+    ! Read all nodes of the forest.
+    allocate(nodeSubset(1))
+    nodeSubset=[-1_c_size_t]
+    ! Read data from the file.
+    !![
+    <conditionalCall>
+    <call>
+      call self%mergerTreeImporter_%import(                                                                                                                      &amp;
+         &amp;                             int(treeNumberOffset)                                                                                               , &amp;
+         &amp;                             nodes                                                                                                               , &amp;
+         &amp;                             requireScaleRadii         = self%presetScaleRadii                                                                   , &amp;
+         &amp;                             requireAngularMomenta     =(self%presetAngularMomenta     .and.self%mergerTreeImporter_%angularMomentaAvailable  ()), &amp;
+         &amp;                             requireAngularMomenta3D   =                                                                                           &amp;
+         &amp;                                                        (                                                                                          &amp;
+         &amp;                                                           self%presetAngularMomenta3D                                                             &amp;
+         &amp;                                                          .or.                                                                                     &amp;
+         &amp;                                                           (                                                                                       &amp;
+         &amp;                                                             self%presetAngularMomenta                                                             &amp;
+         &amp;                                                            .and.                                                                                  &amp;
+         &amp;                                                             self%subhaloAngularMomentaMethod == subhaloAngularMomentaMethodSummation              &amp;
+         &amp;                                                           )                                                                                       &amp;
+         &amp;                                                         )                                                                                         &amp;
+         &amp;                                                        .and.                                                                                      &amp;
+         &amp;                                                         self%mergerTreeImporter_%angularMomenta3DAvailable()                                    , &amp;
+         &amp;                             requireSpin               =(self%presetAngularMomenta     .and.self%mergerTreeImporter_%spinAvailable            ()), &amp;
+         &amp;                             requireSpin3D             =(self%presetAngularMomenta3D   .and.self%mergerTreeImporter_%spin3DAvailable          ()), &amp;
+         &amp;                             requirePositions          =(self%presetPositions          .or. self%presetOrbits                                   ), &amp;
+         &amp;                             nodeSubset                =nodeSubset                                                                                 &amp;
+         &amp;                             {conditions}                                                                                                          &amp;
+         &amp;                            )
+     </call>
+     <argument name="requireNamedReals"    value="self%presetNamedReals"    condition="size(self%presetNamedReals   ) > 0"/>
+     <argument name="requireNamedIntegers" value="self%presetNamedIntegers" condition="size(self%presetNamedIntegers) > 0"/>
+    </conditionalCall>
+    !!]
+    deallocate(nodeSubset)
+    select type (nodes)
+    class is (nodeData)
+       ! Snap node times to output times if a tolerance has been specified.
+       if (self%outputTimeSnapTolerance > 0.0d0) then
+          ! Loop over all nodes.
+          do iNode=1,size(nodes)
+             ! Find closest output time to the node time.
+             iOutput=searchArrayClosest(self%outputTimes,nodes(iNode)%nodeTime)
+             ! Test if this time is sufficiently close that we should snap the node time to it.
+             if (Values_Agree(nodes(iNode)%nodeTime,self%outputTimes(iOutput),relTol=self%outputTimeSnapTolerance)) &
+                  & nodes(iNode)%nodeTime=self%outputTimes(iOutput)
+          end do
+       end if
+       ! Sort node indices.
+       call self%createNodeIndices      (nodes)
+       ! Identify subhalos.
+       nodes%isSubhalo=nodes%nodeIndex /= nodes%hostIndex
+       ! Build pointers to descendant nodes.
+       call self%buildDescendantPointers(nodes)
+       ! Find cases where something that was a subhalo stops being a subhalo and prevent them if necessary.
+       call self%enforceSubhaloStatus   (nodes)
+       ! If necessary, add masses and angular momenta of subhalos to host halos.
+       call self%addSubhaloContributions(nodes)
+       ! Associate parent pointers with the descendant host.
+       call readBuildParentPointers         (     nodes                                          )
+       ! Create an array of standard nodes.
+       call self%createNodeArray            (tree,nodes,nodeList,isolatedNodeCount,childIsSubhalo)
+       ! Assign parent pointers and properties.
+       call self%buildIsolatedParentPointers(tree,nodes,nodeList                                 )
+       ! Now build child and sibling links.
+       call readBuildChildAndSiblingLinks   (     nodes,nodeList                  ,childIsSubhalo)
+       ! (Re)assign host tree pointers.
+       call readAssignHostTreePointers      (tree                                                )
+       ! Check that all required properties exist.
+       call self%validatePresetComponents()
+       ! Apply any tree initialization operators.
+       treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
+       do while (treeWalkerAll%next(nodeWork))
+          call self%nodeOperator_%nodeTreeInitialize(nodeWork)
+       end do
+       ! Assign named properties.
+       if     (                                    &
+            &   size(self%presetNamedReals   ) > 0 &
+            &  .or.                                &
+            &   size(self%presetNamedIntegers) > 0 &
+            & )                                    &
+            &                                   call self%assignNamedProperties   (nodes,nodeList                    )
+       ! Assign scale radii.
+       if     ( self%presetScaleRadii         ) call self%assignScaleRadii        (nodes,nodeList                    )
+       ! Assign spin parameters.
+       if     (                             &
+            &   self%presetAngularMomenta   &
+            &  .or.                         &
+            &   self%presetAngularMomenta3D &
+            & )                                 call self%assignAngularMomenta    (nodes,nodeList                    )
+       ! Assign isolated node indices to subhalos.
+       call readAssignIsolatedNodeIndices                                         (nodes                             )
+       ! Ensure that isolated nodes with progenitors that descend into subhalos have valid primary progenitors.
+       call readValidateIsolatedHalos                                             (nodes                             )
+       ! Scan subhalos to determine when and how they merge.
+       call self%scanForMergers                                                   (nodes,nodeList,historyCountMaximum)
+       ! Search for any nodes which were flagged as merging with another node and assign appropriate pointers.
+       call self%assignMergers           (nodes,nodeList)
+       ! Find cases where something that was a subhalo stops being a subhalo and add events to handle.
+       call self%scanForSubhaloPromotions(nodes,nodeList)
+       ! Search for subhalos which move between branches/trees.
+       call self%scanForBranchJumps      (nodes,nodeList)
+       ! Allocate arrays for history building.
+       allocate(historyTime(int(historyCountMaximum)))
+       if (self%presetSubhaloIndices                             ) then
+          allocate(historyIndex(int(historyCountMaximum)))
+       else
+          allocate(historyIndex(0 ))
+       end if
+       if (self%presetSubhaloMasses                              ) then
+          allocate(historyMass (int(historyCountMaximum)))
+       else
+          allocate(historyMass (0 ))
+       end if
+       if (self%presetPositions    .or.self%presetOrbits) then
+          allocate(position    (3,int(historyCountMaximum)))
+          allocate(velocity    (3,int(historyCountMaximum)))
+       else
+          allocate(position    (0,                      0 ))
+          allocate(velocity    (0,                      0 ))
+       end if
+       ! Build subhalo mass histories if required.
+       call self%buildSubhaloMassHistories(nodes,nodeList,historyCountMaximum,historyTime,historyIndex,historyMass,position,velocity)
+       ! Assign new uniqueIDs to any cloned nodes inserted into the trees.
+       call readAssignUniqueIDsToClones(nodeList)
+       ! Deallocate history building arrays.
+       deallocate(historyTime )
+       deallocate(historyIndex)
+       deallocate(historyMass )
+       deallocate(position    )
+       deallocate(velocity    )
+       ! Deallocate the temporary arrays.
+       deallocate(nodeList)
+       ! Destroy sorted node indices.
+       call self%destroyNodeIndices()
+    class default
+       call Error_Report('nodes arrays is of wrong class'//{introspection:location})
+    end select
+    ! Deallocate nodes.
+    deallocate(nodes)
+    finished=.false.
+    return
+  end function readConstruct
+
+  subroutine readFindNextForest(self,treeNumber,treeNumberOffset,finished)
+    !!{RST
+    Locate the next forest to process, advancing through files as necessary. Until the forest specified by ``[beginAt]`` has been
+    found, forests are skipped (by decrementing the internal tree number offset, which moves us on to trying the next forest in
+    the file). On return, ``treeNumberOffset`` is the number of the forest to process in the current file, unless ``finished`` is
+    true in which case all forests have been processed.
+    !!}
+    implicit none
+    class  (mergerTreeConstructorRead), intent(inout) :: self
+    integer(c_size_t                 ), intent(in   ) :: treeNumber
+    integer(c_size_t                 ), intent(  out) :: treeNumberOffset
+    logical                           , intent(  out) :: finished
+    integer(c_size_t                 )                :: treeNumberMaximum
+
+    finished=.false.
     do while (.true.)
        ! Find the maximum tree number in the current file.
        treeNumberMaximum=int(self%mergerTreeImporter_%treeCount(),kind=c_size_t)
@@ -949,369 +1149,232 @@ contains
           treeNumberMaximum=int(self%mergerTreeImporter_%treeCount(),kind=c_size_t)
        end do
        treeNumberOffset=treeNumber-self%treeNumberOffset
-       ! If all trees are used up, we're done.
+       ! If all trees are used up, we are done.
        if (treeNumberOffset > treeNumberMaximum) then
-          nullify(tree)
           finished=.true.
-          exit
+          return
        end if
        ! Test if this is the first forest that we are to process, or if we have already found that forest.
        if (.not.self%foundBeginAt .and. self%mergerTreeImporter_%treeIndex (int(treeNumberOffset)) /= self%beginAt) then
           ! Decrement our internal offset, and try again - this will move us to trying the next forest in the file.
           self%treeNumberOffset=self%treeNumberOffset-1_c_size_t
-          cycle
        else
           ! The first forest to process is found - record this.
           self%foundBeginAt=.true.
+          return
        end if
-       ! Set tree properties.
-       allocate(tree)
-       ! treeIndex
-       tree%index            =self%mergerTreeImporter_%treeIndex (int(treeNumberOffset))
-       ! volumeWeight
-       self%treeWeightCurrent=self%mergerTreeImporter_%treeWeight(int(treeNumberOffset))
-       tree%volumeWeight     =self%treeWeightCurrent
-       ! Initialize no events.
-       tree%event             => null()
-       tree%initializedUntil  =  0.0d0
-       tree%isTreeInitialized =  .false.
-       call tree%properties%initialize()
-       ! Restart the random number sequence for this tree. We use the tree index modulo the largest number representable by
-       ! the integer type.
-       allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
-       !$omp critical(mergerTreeConstructReadDeepCopyReset)
-       !![
-       <deepCopyReset variables="self%randomNumberGenerator_"/>
-       <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
-       <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
-       !!]
-       !$omp end critical(mergerTreeConstructReadDeepCopyReset)
-       call self                 %randomSequenceNonDeterministicWarn(tree)
-       call self%mergerTreeSeeds_%set                               (tree)
-       ! Store internal state.
-       message='Storing state for tree #'
-       message=message//treeStateStoreSequence
-       call State_Store_(message)
-       ! Check if the size of this forest exceeds the maximum allowed. Split forest processing was removed pending an
-       ! MPI-compatible reimplementation - the original implementation can be found in the git history of this file.
-       if     (                                                                                    &
-            &   self%mergerTreeImporter_%nodeCount(int(treeNumberOffset)) > self%forestSizeMaximum &
-            &  .and.                                                                               &
-            &   0                                                         < self%forestSizeMaximum &
-            & ) call Error_Report('forest exceeds [forestSizeMaximum] but split forest processing is not currently supported'//{introspection:location})
-       ! Read all nodes of the forest.
-       allocate(nodeSubset(1))
-       nodeSubset=[-1_c_size_t]
-       ! Read data from the file.
-       !![
-       <conditionalCall>
-       <call>
-         call self%mergerTreeImporter_%import(                                                                                                                      &amp;
-            &amp;                             int(treeNumberOffset)                                                                                               , &amp;
-            &amp;                             nodes                                                                                                               , &amp;
-            &amp;                             requireScaleRadii         = self%presetScaleRadii                                                                   , &amp;
-            &amp;                             requireAngularMomenta     =(self%presetAngularMomenta     .and.self%mergerTreeImporter_%angularMomentaAvailable  ()), &amp;
-            &amp;                             requireAngularMomenta3D   =                                                                                           &amp;
-            &amp;                                                        (                                                                                          &amp;
-            &amp;                                                           self%presetAngularMomenta3D                                                             &amp;
-            &amp;                                                          .or.                                                                                     &amp;
-            &amp;                                                           (                                                                                       &amp;
-            &amp;                                                             self%presetAngularMomenta                                                             &amp;
-            &amp;                                                            .and.                                                                                  &amp;
-            &amp;                                                             self%subhaloAngularMomentaMethod == subhaloAngularMomentaMethodSummation              &amp;
-            &amp;                                                           )                                                                                       &amp;
-            &amp;                                                         )                                                                                         &amp;
-            &amp;                                                        .and.                                                                                      &amp;
-            &amp;                                                         self%mergerTreeImporter_%angularMomenta3DAvailable()                                    , &amp;
-            &amp;                             requireSpin               =(self%presetAngularMomenta     .and.self%mergerTreeImporter_%spinAvailable            ()), &amp;
-            &amp;                             requireSpin3D             =(self%presetAngularMomenta3D   .and.self%mergerTreeImporter_%spin3DAvailable          ()), &amp;
-            &amp;                             requirePositions          =(self%presetPositions          .or. self%presetOrbits                                   ), &amp;
-            &amp;                             nodeSubset                =nodeSubset                                                                                 &amp;
-            &amp;                             {conditions}                                                                                                          &amp;
-            &amp;                            )
-        </call>
-        <argument name="requireNamedReals"    value="self%presetNamedReals"    condition="size(self%presetNamedReals   ) > 0"/>
-        <argument name="requireNamedIntegers" value="self%presetNamedIntegers" condition="size(self%presetNamedIntegers) > 0"/>
-       </conditionalCall>
-       !!]
-       deallocate(nodeSubset)
-       select type (nodes)
-       class is (nodeData)
-          ! Snap node times to output times if a tolerance has been specified.
-          if (self%outputTimeSnapTolerance > 0.0d0) then
-             ! Loop over all nodes.
-             do iNode=1,size(nodes)
-                ! Find closest output time to the node time.
-                iOutput=searchArrayClosest(self%outputTimes,nodes(iNode)%nodeTime)
-                ! Test if this time is sufficiently close that we should snap the node time to it.
-                if (Values_Agree(nodes(iNode)%nodeTime,self%outputTimes(iOutput),relTol=self%outputTimeSnapTolerance)) &
-                     & nodes(iNode)%nodeTime=self%outputTimes(iOutput)
-             end do
-          end if
-          ! Sort node indices.
-          call self%createNodeIndices      (nodes)
-          ! Identify subhalos.
-          nodes%isSubhalo=nodes%nodeIndex /= nodes%hostIndex
-          ! Build pointers to descendant nodes.
-          call self%buildDescendantPointers(nodes)
-          ! Find cases where something that was a subhalo stops being a subhalo and prevent them if necessary.
-          call self%enforceSubhaloStatus   (nodes)
-          ! If necessary, add masses and angular momenta of subhalos to host halos.
-          if (.not.self%mergerTreeImporter_%angularMomentaIncludeSubhalos().and.self%subhaloAngularMomentaMethod == subhaloAngularMomentaMethodScale) then
-             ! This method requires angular momenta to be available.
-             if (.not.self%mergerTreeImporter_%angularMomentaAvailable()) call Error_Report('scaling parent angular momentum for subhalo masses requires angular momenta availability'//{introspection:location})
-             do iNode=1,size(nodes)
-                if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) then
-                   if (self%presetAngularMomenta  )            &
-                        & nodes      (iNode)%angularMomentum   &
-                        &      =nodes(iNode)%angularMomentum   &
-                        &      /nodes(iNode)%nodeMass
-                   if (self%presetAngularMomenta3D)            &
-                        & nodes      (iNode)%angularMomentum3D &
-                        &      =nodes(iNode)%angularMomentum3D &
-                        &      /nodes(iNode)%nodeMass
-                end if
-             end do
-          end if
-          if (.not.self%mergerTreeImporter_%massesIncludeSubhalos()) then
-             do iNode=1,size(nodes)
-                if (nodes(iNode)%host%nodeIndex /= nodes(iNode)%nodeIndex) nodes  (iNode)%host%nodeMass &
-                     &                                                      =nodes(iNode)%host%nodeMass &
-                     &                                                      +nodes(iNode)%nodeMass
-             end do
-          end if
-          if (.not.self%mergerTreeImporter_%angularMomentaIncludeSubhalos().and.self%subhaloAngularMomentaMethod == subhaloAngularMomentaMethodScale) then
-             do iNode=1,size(nodes)
-                if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) then
-                   if (self%presetAngularMomenta  )            &
-                        & nodes      (iNode)%angularMomentum   &
-                        &      =nodes(iNode)%angularMomentum   &
-                        &      *nodes(iNode)%nodeMass
-                   if (self%presetAngularMomenta3D)            &
-                        & nodes      (iNode)%angularMomentum3D &
-                        &      =nodes(iNode)%angularMomentum3D &
-                        &      *nodes(iNode)%nodeMass
-
-                end if
-             end do
-          end if
-          if     (                                                                          &
-               &  (                                                                         &
-               &    self%presetAngularMomenta3D                                             &
-               &   .or.                                                                     &
-               &    self%presetAngularMomenta                                               &
-               &  )                                                                         &
-               &  .and.                                                                     &
-               &   .not.self%mergerTreeImporter_%angularMomentaIncludeSubhalos()            &
-               &  .and.                                                                     &
-               &   self%subhaloAngularMomentaMethod == subhaloAngularMomentaMethodSummation &
-               & ) then
-             ! This method requires 3D angular momenta to be available.
-             if (.not.self%mergerTreeImporter_%angularMomenta3DAvailable())                                                                  &
-                  & call Error_Report(                                                                                                       &
-                  &                   'adding subhalo angular momenta to parent angular momentum requires 3D angular momenta availability'// &
-                  &                   {introspection:location}                                                                               &
-                  &                  )
-             do iNode=1,size(nodes)
-                if (nodes(iNode)%host%nodeIndex /= nodes(iNode)%nodeIndex) then
-                   ! Find relative position and velocity.
-                   relativePosition=nodes(iNode)%position-nodes(iNode)%host%position
-                   relativeVelocity=nodes(iNode)%velocity-nodes(iNode)%host%velocity
-                   ! Update position/velocity for periodicity and Hubble flow.
-                   call self%phaseSpacePositionRealize(nodes(iNode)%nodeTime,relativePosition,relativeVelocity)
-                   ! Compute orbital angular momentum of subhalo.
-                   orbitalAngularMomentum=+nodes(iNode)%nodeMass                             &
-                        &                 *Vector_Product(relativePosition,relativeVelocity)
-                   ! Sum orbital and internal angular momenta.
-                   nodes        (iNode)%host%angularMomentum3D &
-                        & =nodes(iNode)%host%angularMomentum3D &
-                        & +nodes(iNode)     %angularMomentum3D &
-                        & +orbitalAngularMomentum
-                end if
-             end do
-             ! Update scalar angular momenta.
-             do iNode=1,size(nodes)
-                if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) &
-                     & nodes(iNode)%angularMomentum=Vector_Magnitude(nodes(iNode)%angularMomentum3D)
-             end do
-          end if
-          ! Associate parent pointers with the descendant host.
-          call readBuildParentPointers         (     nodes                                          )
-          ! Create an array of standard nodes.
-          call self%createNodeArray            (tree,nodes,nodeList,isolatedNodeCount,childIsSubhalo)
-          ! Assign parent pointers and properties.
-          call self%buildIsolatedParentPointers(tree,nodes,nodeList                                 )
-          ! Now build child and sibling links.
-          call readBuildChildAndSiblingLinks   (     nodes,nodeList                  ,childIsSubhalo)
-          ! (Re)assign host tree pointers.
-          call readAssignHostTreePointers      (tree                                                )
-          ! Check that all required properties exist.
-          if (self%presetPositions.or.self%presetOrbits) then
-             ! Position and velocity methods are required.
-             if     (                                                                                                                                                &
-                  &  .not.(                                                                                                                                          &
-                  &         defaultPositionComponent%positionIsSettable()                                                                                            &
-                  &        .and.                                                                                                                                     &
-                  &         defaultPositionComponent%velocityIsSettable()                                                                                            &
-                  &       )                                                                                                                                          &
-                  & )                                                                                                                                                &
-                  & call Error_Report                                                                                                                                &
-                  &      (                                                                                                                                           &
-                  &       'presetting positions or orbits requires a component that supports position and velocity setting (e.g. set [componentPosition]=preset);'// &
-                  &       Component_List(                                                                                                                            &
-                  &                      'position'                                                                                                                , &
-                  &                       defaultPositionComponent        %             positionAttributeMatch(requireSettable=.true.)                               &
-                  &                      .intersection.                                                                                                              &
-                  &                       defaultPositionComponent        %             velocityAttributeMatch(requireSettable=.true.)                               &
-                  &                     )                                                                                                                         // &
-                  &       char(10)                                                                                                                                // &
-                  &       'alternatively setting [presetPositions]=false and [presetOrbits]=false will remove the need to store positions and velocities'         // &
-                  &       {introspection:location}                                                                                                                   &
-                  & )
-          end if
-          if (self%presetMergerTimes     ) then
-             ! Time of merging property is required.
-             if (.not.defaultSatelliteComponent%timeOfMergingIsSettable                ())                                                                           &
-                  & call Error_Report                                                                                                                                &
-                  &      (                                                                                                                                           &
-                  &       'presetting merging times requires a component that supports setting of merging times.'                                                 // &
-                  &       Component_List(                                                                                                                            &
-                  &                      'satellite'                                                                                                               , &
-                  &                       defaultSatelliteComponent       %        timeOfMergingAttributeMatch(requireSettable=.true.)                               &
-                  &                      )                                                                                                                        // &
-                  &       {introspection:location}                                                                                                                   &
-                  &      )
-          end if
-          if (self%presetScaleRadii      ) then
-             ! Scale radius property is required.
-             if (.not.defaultDarkMatterProfileComponent%scaleIsSettable                ())                                                                           &
-                  & call Error_Report                                                                                                                                &
-                  &      (                                                                                                                                           &
-                  &       'presetting scale radii requires a component that supports setting of scale radii.'                                                     // &
-                  &       Component_List(                                                                                                                            &
-                  &                      'darkMatterProfile'                                                                                                       , &
-                  &                      defaultDarkMatterProfileComponent%                scaleAttributeMatch(requireSettable=.true.)                               &
-                  &                     )                                                                                                                         // &
-                  &       {introspection:location}                                                                                                                   &
-                  &      )
-          end if
-          if (self%presetAngularMomenta  ) then
-             ! Angular momentum property is required.
-             if (.not.defaultSpinComponent             %angularMomentumIsSettable      ())                                                                           &
-                  & call Error_Report                                                                                                                                &
-                  &      (                                                                                                                                           &
-                  &       'presetting angular momenta requires a component that supports setting of angular momenta.'                                             // &
-                  &       Component_List(                                                                                                                            &
-                  &                      'spin'                                                                                                                    , &
-                  &                      defaultSpinComponent             %      angularMomentumAttributeMatch(requireSettable=.true.)                               &
-                  &                     )                                                                                                                         // &
-                  &       {introspection:location}                                                                                                                   &
-                  &      )
-          end if
-          if (self%presetAngularMomenta3D) then
-             ! Spin property is required.
-             if (.not.defaultSpinComponent             %angularMomentumVectorIsSettable())                                                                           &
-                  & call Error_Report                                                                                                                                &
-                  &      (                                                                                                                                           &
-                  &       'presetting angular momentum vectors requires a component that supports setting of angular momentum vectors.'                           // &
-                  &       Component_List(                                                                                                                            &
-                  &                      'spinVector'                                                                                                              , &
-                  &                      defaultSpinComponent             %angularMomentumVectorAttributeMatch(requireSettable=.true.)                               &
-                  &                     )                                                                                                                         // &
-                  &       {introspection:location}                                                                                                                   &
-                  &      )
-          end if
-          if (self%presetOrbits     ) then
-             ! Orbit property is required.
-             if (.not.defaultSatelliteComponent        %virialOrbitIsSettable())                                                                                     &
-                  & call Error_Report                                                                                                                                &
-                  &      (                                                                                                                                           &
-                  &       'presetting orbits requires a component that supports setting of orbits (e.g. [componentSatellite]=preset);'                            // &
-                  &       Component_List(                                                                                                                            &
-                  &                      'satellite'                                                                                                               , &
-                  &                      defaultSatelliteComponent        %          virialOrbitAttributeMatch(requireSettable=.true.)                               &
-                  &                     )                                                                                                                         // &
-                  &       char(10)                                                                                                                                // &
-                  &       'Alternatively, set [presetOrbits]=false to prevent attempts to set orbits)'                                                            // &
-                  &       {introspection:location}                                                                                                                   &
-                  &      )
-          end if
-          ! Apply any tree initialization operators.
-          treeWalkerAll=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
-          do while (treeWalkerAll%next(nodeWork))
-             call self%nodeOperator_%nodeTreeInitialize(nodeWork)
-          end do
-          ! Assign named properties.
-          if     (                                    &
-               &   size(self%presetNamedReals   ) > 0 &
-               &  .or.                                &
-               &   size(self%presetNamedIntegers) > 0 &
-               & )                                    &
-               &                                   call self%assignNamedProperties   (nodes,nodeList                    )
-          ! Assign scale radii.
-          if     ( self%presetScaleRadii         ) call self%assignScaleRadii        (nodes,nodeList                    )
-          ! Assign spin parameters.
-          if     (                             &
-               &   self%presetAngularMomenta   &
-               &  .or.                         &
-               &   self%presetAngularMomenta3D &
-               & )                                 call self%assignAngularMomenta    (nodes,nodeList                    )
-          ! Assign isolated node indices to subhalos.
-          call readAssignIsolatedNodeIndices                                         (nodes                             )
-          ! Ensure that isolated nodes with progenitors that descend into subhalos have valid primary progenitors.
-          call readValidateIsolatedHalos                                             (nodes                             )
-          ! Scan subhalos to determine when and how they merge.
-          call self%scanForMergers                                                   (nodes,nodeList,historyCountMaximum)
-          ! Search for any nodes which were flagged as merging with another node and assign appropriate pointers.
-          call self%assignMergers           (nodes,nodeList)
-          ! Find cases where something that was a subhalo stops being a subhalo and add events to handle.
-          call self%scanForSubhaloPromotions(nodes,nodeList)
-          ! Search for subhalos which move between branches/trees.
-          call self%scanForBranchJumps      (nodes,nodeList)
-          ! Allocate arrays for history building.
-          allocate(historyTime(int(historyCountMaximum)))
-          if (self%presetSubhaloIndices                             ) then
-             allocate(historyIndex(int(historyCountMaximum)))
-          else
-             allocate(historyIndex(0 ))
-          end if
-          if (self%presetSubhaloMasses                              ) then
-             allocate(historyMass (int(historyCountMaximum)))
-          else
-             allocate(historyMass (0 ))
-          end if
-          if (self%presetPositions    .or.self%presetOrbits) then
-             allocate(position    (3,int(historyCountMaximum)))
-             allocate(velocity    (3,int(historyCountMaximum)))
-          else
-             allocate(position    (0,                      0 ))
-             allocate(velocity    (0,                      0 ))
-          end if
-          ! Build subhalo mass histories if required.
-          call self%buildSubhaloMassHistories(nodes,nodeList,historyCountMaximum,historyTime,historyIndex,historyMass,position,velocity)
-          ! Assign new uniqueIDs to any cloned nodes inserted into the trees.
-          call readAssignUniqueIDsToClones(nodeList)
-          ! Deallocate history building arrays.
-          deallocate(historyTime )
-          deallocate(historyIndex)
-          deallocate(historyMass )
-          deallocate(position    )
-          deallocate(velocity    )
-          ! Deallocate the temporary arrays.
-          deallocate(nodeList)
-          ! Destroy sorted node indices.
-          call self%destroyNodeIndices()
-       class default
-          call Error_Report('nodes arrays is of wrong class'//{introspection:location})
-       end select
-       ! Deallocate nodes.
-       deallocate(nodes)
-       ! Indicate that we are not finished.
-       exit
     end do
-    finished=.not.associated(tree)
     return
-  end function readConstruct
+  end subroutine readFindNextForest
+
+  subroutine readAddSubhaloContributions(self,nodes)
+    !!{RST
+    Add the masses, and angular momenta, of subhalos to their host halos where these are not already included in the data read
+    from file.
+
+    For the ``scale`` angular momenta method the angular momenta of isolated halos are first converted to specific angular
+    momenta (i.e. divided by the halo mass), host masses are then updated to include the masses of their subhalos, and, finally,
+    specific angular momenta are converted back to angular momenta using the updated masses. The net effect is to scale each
+    isolated halo's angular momentum by the ratio of its subhalo-inclusive to subhalo-exclusive mass - the ordering of the three
+    loops below is therefore essential.
+
+    For the ``summation`` method the internal plus orbital angular momenta of subhalos are instead summed directly into the 3D
+    angular momenta of their hosts, with the scalar angular momentum of each isolated halo then recomputed as the magnitude of
+    the summed vector.
+    !!}
+    use :: Error                     , only : Error_Report
+    use :: Merger_Tree_Read_Importers, only : nodeData
+    use :: Vectors                   , only : Vector_Magnitude, Vector_Product
+    implicit none
+    class           (mergerTreeConstructorRead)              , intent(inout)         :: self
+    class           (nodeData                 ), dimension(:), intent(inout), target :: nodes
+    double precision                           , dimension(3)                        :: relativePosition      , relativeVelocity, &
+         &                                                                              orbitalAngularMomentum
+    integer         (c_size_t                 )                                      :: iNode
+
+    if (.not.self%mergerTreeImporter_%angularMomentaIncludeSubhalos().and.self%subhaloAngularMomentaMethod == subhaloAngularMomentaMethodScale) then
+       ! This method requires angular momenta to be available.
+       if (.not.self%mergerTreeImporter_%angularMomentaAvailable()) call Error_Report('scaling parent angular momentum for subhalo masses requires angular momenta availability'//{introspection:location})
+       do iNode=1,size(nodes)
+          if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) then
+             if (self%presetAngularMomenta  )            &
+                  & nodes      (iNode)%angularMomentum   &
+                  &      =nodes(iNode)%angularMomentum   &
+                  &      /nodes(iNode)%nodeMass
+             if (self%presetAngularMomenta3D)            &
+                  & nodes      (iNode)%angularMomentum3D &
+                  &      =nodes(iNode)%angularMomentum3D &
+                  &      /nodes(iNode)%nodeMass
+          end if
+       end do
+    end if
+    if (.not.self%mergerTreeImporter_%massesIncludeSubhalos()) then
+       do iNode=1,size(nodes)
+          if (nodes(iNode)%host%nodeIndex /= nodes(iNode)%nodeIndex) nodes  (iNode)%host%nodeMass &
+               &                                                      =nodes(iNode)%host%nodeMass &
+               &                                                      +nodes(iNode)%nodeMass
+       end do
+    end if
+    if (.not.self%mergerTreeImporter_%angularMomentaIncludeSubhalos().and.self%subhaloAngularMomentaMethod == subhaloAngularMomentaMethodScale) then
+       do iNode=1,size(nodes)
+          if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) then
+             if (self%presetAngularMomenta  )            &
+                  & nodes      (iNode)%angularMomentum   &
+                  &      =nodes(iNode)%angularMomentum   &
+                  &      *nodes(iNode)%nodeMass
+             if (self%presetAngularMomenta3D)            &
+                  & nodes      (iNode)%angularMomentum3D &
+                  &      =nodes(iNode)%angularMomentum3D &
+                  &      *nodes(iNode)%nodeMass
+          end if
+       end do
+    end if
+    if     (                                                                          &
+         &  (                                                                         &
+         &    self%presetAngularMomenta3D                                             &
+         &   .or.                                                                     &
+         &    self%presetAngularMomenta                                               &
+         &  )                                                                         &
+         &  .and.                                                                     &
+         &   .not.self%mergerTreeImporter_%angularMomentaIncludeSubhalos()            &
+         &  .and.                                                                     &
+         &   self%subhaloAngularMomentaMethod == subhaloAngularMomentaMethodSummation &
+         & ) then
+       ! This method requires 3D angular momenta to be available.
+       if (.not.self%mergerTreeImporter_%angularMomenta3DAvailable())                                                                  &
+            & call Error_Report(                                                                                                       &
+            &                   'adding subhalo angular momenta to parent angular momentum requires 3D angular momenta availability'// &
+            &                   {introspection:location}                                                                               &
+            &                  )
+       do iNode=1,size(nodes)
+          if (nodes(iNode)%host%nodeIndex /= nodes(iNode)%nodeIndex) then
+             ! Find relative position and velocity.
+             relativePosition=nodes(iNode)%position-nodes(iNode)%host%position
+             relativeVelocity=nodes(iNode)%velocity-nodes(iNode)%host%velocity
+             ! Update position/velocity for periodicity and Hubble flow.
+             call self%phaseSpacePositionRealize(nodes(iNode)%nodeTime,relativePosition,relativeVelocity)
+             ! Compute orbital angular momentum of subhalo.
+             orbitalAngularMomentum=+nodes(iNode)%nodeMass                             &
+                  &                 *Vector_Product(relativePosition,relativeVelocity)
+             ! Sum orbital and internal angular momenta.
+             nodes        (iNode)%host%angularMomentum3D &
+                  & =nodes(iNode)%host%angularMomentum3D &
+                  & +nodes(iNode)     %angularMomentum3D &
+                  & +orbitalAngularMomentum
+          end if
+       end do
+       ! Update scalar angular momenta.
+       do iNode=1,size(nodes)
+          if (nodes(iNode)%host%nodeIndex == nodes(iNode)%nodeIndex) &
+               & nodes(iNode)%angularMomentum=Vector_Magnitude(nodes(iNode)%angularMomentum3D)
+       end do
+    end if
+    return
+  end subroutine readAddSubhaloContributions
+
+  subroutine readValidatePresetComponents(self)
+    !!{RST
+    Validate that the default node components support setting of all properties which are to be preset. The requirements depend
+    only on the ``preset*`` options of this object, not on the tree being processed.
+    !!}
+    use :: Array_Utilities , only : operator(.intersection.)
+    use :: Error           , only : Component_List                   , Error_Report
+    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent, defaultPositionComponent, defaultSatelliteComponent, defaultSpinComponent
+    implicit none
+    class(mergerTreeConstructorRead), intent(inout) :: self
+
+    if (self%presetPositions.or.self%presetOrbits) then
+       ! Position and velocity methods are required.
+       if     (                                                                                                                                                &
+            &  .not.(                                                                                                                                          &
+            &         defaultPositionComponent%positionIsSettable()                                                                                            &
+            &        .and.                                                                                                                                     &
+            &         defaultPositionComponent%velocityIsSettable()                                                                                            &
+            &       )                                                                                                                                          &
+            & )                                                                                                                                                &
+            & call Error_Report                                                                                                                                &
+            &      (                                                                                                                                           &
+            &       'presetting positions or orbits requires a component that supports position and velocity setting (e.g. set [componentPosition]=preset);'// &
+            &       Component_List(                                                                                                                            &
+            &                      'position'                                                                                                                , &
+            &                       defaultPositionComponent        %             positionAttributeMatch(requireSettable=.true.)                               &
+            &                      .intersection.                                                                                                              &
+            &                       defaultPositionComponent        %             velocityAttributeMatch(requireSettable=.true.)                               &
+            &                     )                                                                                                                         // &
+            &       char(10)                                                                                                                                // &
+            &       'alternatively setting [presetPositions]=false and [presetOrbits]=false will remove the need to store positions and velocities'         // &
+            &       {introspection:location}                                                                                                                   &
+            & )
+    end if
+    if (self%presetMergerTimes     ) then
+       ! Time of merging property is required.
+       if (.not.defaultSatelliteComponent%timeOfMergingIsSettable                ())                                                                           &
+            & call Error_Report                                                                                                                                &
+            &      (                                                                                                                                           &
+            &       'presetting merging times requires a component that supports setting of merging times.'                                                 // &
+            &       Component_List(                                                                                                                            &
+            &                      'satellite'                                                                                                               , &
+            &                       defaultSatelliteComponent       %        timeOfMergingAttributeMatch(requireSettable=.true.)                               &
+            &                      )                                                                                                                        // &
+            &       {introspection:location}                                                                                                                   &
+            &      )
+    end if
+    if (self%presetScaleRadii      ) then
+       ! Scale radius property is required.
+       if (.not.defaultDarkMatterProfileComponent%scaleIsSettable                ())                                                                           &
+            & call Error_Report                                                                                                                                &
+            &      (                                                                                                                                           &
+            &       'presetting scale radii requires a component that supports setting of scale radii.'                                                     // &
+            &       Component_List(                                                                                                                            &
+            &                      'darkMatterProfile'                                                                                                       , &
+            &                      defaultDarkMatterProfileComponent%                scaleAttributeMatch(requireSettable=.true.)                               &
+            &                     )                                                                                                                         // &
+            &       {introspection:location}                                                                                                                   &
+            &      )
+    end if
+    if (self%presetAngularMomenta  ) then
+       ! Angular momentum property is required.
+       if (.not.defaultSpinComponent             %angularMomentumIsSettable      ())                                                                           &
+            & call Error_Report                                                                                                                                &
+            &      (                                                                                                                                           &
+            &       'presetting angular momenta requires a component that supports setting of angular momenta.'                                             // &
+            &       Component_List(                                                                                                                            &
+            &                      'spin'                                                                                                                    , &
+            &                      defaultSpinComponent             %      angularMomentumAttributeMatch(requireSettable=.true.)                               &
+            &                     )                                                                                                                         // &
+            &       {introspection:location}                                                                                                                   &
+            &      )
+    end if
+    if (self%presetAngularMomenta3D) then
+       ! Spin property is required.
+       if (.not.defaultSpinComponent             %angularMomentumVectorIsSettable())                                                                           &
+            & call Error_Report                                                                                                                                &
+            &      (                                                                                                                                           &
+            &       'presetting angular momentum vectors requires a component that supports setting of angular momentum vectors.'                           // &
+            &       Component_List(                                                                                                                            &
+            &                      'spinVector'                                                                                                              , &
+            &                      defaultSpinComponent             %angularMomentumVectorAttributeMatch(requireSettable=.true.)                               &
+            &                     )                                                                                                                         // &
+            &       {introspection:location}                                                                                                                   &
+            &      )
+    end if
+    if (self%presetOrbits     ) then
+       ! Orbit property is required.
+       if (.not.defaultSatelliteComponent        %virialOrbitIsSettable())                                                                                     &
+            & call Error_Report                                                                                                                                &
+            &      (                                                                                                                                           &
+            &       'presetting orbits requires a component that supports setting of orbits (e.g. [componentSatellite]=preset);'                            // &
+            &       Component_List(                                                                                                                            &
+            &                      'satellite'                                                                                                               , &
+            &                      defaultSatelliteComponent        %          virialOrbitAttributeMatch(requireSettable=.true.)                               &
+            &                     )                                                                                                                         // &
+            &       char(10)                                                                                                                                // &
+            &       'Alternatively, set [presetOrbits]=false to prevent attempts to set orbits)'                                                            // &
+            &       {introspection:location}                                                                                                                   &
+            &      )
+    end if
+    return
+  end subroutine readValidatePresetComponents
 
   subroutine readCreateNodeIndices(self,nodes)
     !!{RST
