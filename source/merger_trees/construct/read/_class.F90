@@ -202,6 +202,7 @@
        <method description="Locate the next forest to process, advancing through files as necessary, and skipping forests until that specified by ``[beginAt]`` is found." method="findNextForest" />
        <method description="Add the masses and angular momenta of subhalos to their host halos where these are not already included in the data read from file." method="addSubhaloContributions" />
        <method description="Validate that the default node components support setting of all properties which are to be preset." method="validatePresetComponents" />
+       <method description="Survey the progenitors of a node, reporting whether any exist, whether any is isolated, and, optionally, whether a given node is the most senior progenitor." method="progenitorSurvey" />
        <method description="Ensure that any node which was once a subhalo remains a subhalo." method="enforceSubhaloStatus" />
        <method description="Scan for cases where a subhalo stops being a subhalo and so must be promoted." method="scanForSubhaloPromotions" />
        <method description="Create a sorted list of node indices with an index into the original array." method="createNodeIndices" />
@@ -229,6 +230,7 @@
      procedure :: findNextForest                => readFindNextForest
      procedure :: addSubhaloContributions       => readAddSubhaloContributions
      procedure :: validatePresetComponents      => readValidatePresetComponents
+     procedure :: progenitorSurvey              => readProgenitorSurvey
      procedure :: enforceSubhaloStatus          => readEnforceSubhaloStatus
      procedure :: scanForSubhaloPromotions      => readScanForSubhaloPromotions
      procedure :: createNodeIndices             => readCreateNodeIndices
@@ -1520,11 +1522,11 @@ contains
     implicit none
     class  (mergerTreeConstructorRead), intent(inout)                        :: self
     class  (nodeData                 ), dimension(:) , intent(inout), target :: nodes
-    class  (nodeData                 ), pointer                              :: descendantNode, progenitorNode
+    class  (nodeData                 ), pointer                              :: descendantNode
     integer(c_size_t                 )                                       :: iNode
-    logical                                                                  :: failed        , isolatedProgenitorExists
+    logical                                                                  :: failed          , isolatedProgenitorExists, &
+         &                                                                      progenitorsExist
     type   (varying_string           )                                       :: message
-    type   (progenitorIterator       )                                       :: progenitors
 
     ! Return immediately if subhalo promotions are allowed.
     if (self%allowSubhaloPromotions) return
@@ -1536,13 +1538,8 @@ contains
              ! Is this node isolated?
              if (.not.descendantNode%isSubhalo) then
                 ! Check if there is any isolated node which descends into this node.
-                isolatedProgenitorExists=.false.
-                call progenitors%descendantSet(self,descendantNode,nodes)
-                do while (progenitors%next(nodes) .and. .not.isolatedProgenitorExists)
-                   progenitorNode => progenitors%current(nodes)
-                   isolatedProgenitorExists=(progenitorNode%nodeIndex == progenitorNode%hostIndex)
-                end do
-                if (.not.progenitors%exist() .or. .not.isolatedProgenitorExists) then
+                call self%progenitorSurvey(descendantNode,nodes,progenitorsExist,isolatedProgenitorExists)
+                if (.not.progenitorsExist .or. .not.isolatedProgenitorExists) then
                    ! Node is isolated, has no isolated node that descends into it. Therefore, our current node is not allowed to
                    ! be a subhalo.
                    nodes(iNode)%isSubhalo=.false.
@@ -1558,13 +1555,8 @@ contains
     failed=.false.
     do iNode=1,size(nodes)
        ! Find nodes which have no isolated node descending into them.
-       isolatedProgenitorExists=.false.
-       call progenitors%descendantSet(self,nodes(iNode),nodes)
-       do while (progenitors%next(nodes) .and. .not.isolatedProgenitorExists)
-          progenitorNode => progenitors%current(nodes)
-          isolatedProgenitorExists=(progenitorNode%nodeIndex == progenitorNode%hostIndex)
-       end do
-       if (progenitors%exist() .and. .not.isolatedProgenitorExists) then
+       call self%progenitorSurvey(nodes(iNode),nodes,progenitorsExist,isolatedProgenitorExists)
+       if (progenitorsExist .and. .not.isolatedProgenitorExists) then
           ! Such nodes must be subhalos. If they are not, report an error
           if (.not.nodes(iNode)%isSubhalo) then
              if (failed) then
@@ -1597,7 +1589,7 @@ contains
     class           (mergerTreeConstructorRead), intent(inout)                              :: self
     class           (nodeData                 ), target       , dimension(:), intent(inout) :: nodes
     type            (treeNodeList             )               , dimension(:), intent(inout) :: nodeList
-    class           (nodeData                 ), pointer                                    :: descendantNode          , progenitorNode
+    class           (nodeData                 ), pointer                                    :: descendantNode
     class           (nodeEvent                ), pointer                                    :: newEvent                , pairEvent
     type            (treeNode                 ), pointer                                    :: promotionNode           , node             , &
          &                                                                                     nodeNew
@@ -1605,8 +1597,7 @@ contains
     class           (nodeComponentSatellite   ), pointer                                    :: satellite
     integer         (c_size_t                 )                                             :: iNode
     logical                                                                                 :: isolatedProgenitorExists, nodeIsMostMassive, &
-         &                                                                                     progenitorIsIsolated
-    type            (progenitorIterator       )                                             :: progenitors
+         &                                                                                     progenitorsExist
     double precision                                                                        :: timeSubhaloPromotion
 
     ! Return immediately if subhalo promotion is not allowed.
@@ -1617,34 +1608,14 @@ contains
           descendantNode => nodes(iNode)%descendant
           ! Is this node isolated?
           if (.not.descendantNode%isSubhalo) then
-             ! Check if there is any isolated node which descends into this node, and also whether this is the most massive
-             ! subhalo which descends into the descendant.
-             isolatedProgenitorExists=.false.
-             nodeIsMostMassive       =.true.
-             call progenitors%descendantSet(self,descendantNode,nodes)
-             do while (progenitors%next(nodes))
-                progenitorNode       => progenitors   %current  (nodes)
-                progenitorIsIsolated =  progenitorNode%nodeIndex        == progenitorNode%hostIndex
-                if (progenitorIsIsolated) isolatedProgenitorExists=.true.
-                if (self%alwaysPromoteMostMassive) then
-                   ! Find the most massive progenitor. We treat isolated and non-isolated nodes differently, such that if there
-                   ! are two nodes of precisely equal mass (which can happen due to the discrete nature of masses in N-body
-                   ! simulations for example), one isolated and one not isolated, we treat the isolated one as the primary
-                   ! progenitor.
-                   if     (                                                                                    &
-                        &   (.not.progenitorIsIsolated .and. progenitorNode%nodeMass >  nodes(iNode)%nodeMass) &
-                        &  .or.                                                                                &
-                        &   (     progenitorIsIsolated .and. progenitorNode%nodeMass >= nodes(iNode)%nodeMass) &
-                        & ) nodeIsMostMassive=.false.
-                else
-                   if     (                                                                                    &
-                        &    .not.progenitorIsIsolated .and. progenitorNode%nodeMass >  nodes(iNode)%nodeMass  &
-                        & ) nodeIsMostMassive=.false.
-                end if
-             end do
+             ! Check if there is any isolated node which descends into this node, and also whether our node is the most senior
+             ! progenitor of the descendant. (In the seniority ordering, isolated nodes outrank subhalos of precisely equal mass
+             ! - as can happen due to the discrete nature of masses in N-body simulations - such that an isolated progenitor is
+             ! always preferred as the primary progenitor over an equal-mass subhalo.)
+             call self%progenitorSurvey(descendantNode,nodes,progenitorsExist,isolatedProgenitorExists,nodes(iNode),nodeIsMostMassive)
              ! Determine if we must promote the subhalo.
              if     (                                                                                  &
-                  &   .not.progenitors%exist                   () .or.  .not.isolatedProgenitorExists  & ! Only promote a subhalo if no isolated halo exists.
+                  &   .not.progenitorsExist                       .or.  .not.isolatedProgenitorExists  & ! Only promote a subhalo if no isolated halo exists.
                   &  .or.                                                                              &
                   &   (    self       %alwaysPromoteMostMassive   .and.      nodeIsMostMassive       ) & ! Always promote the most massive halo - isolated or not.
                   & ) then
@@ -2367,11 +2338,11 @@ contains
     class           (nodeComponentPosition    ), pointer                                :: position                    , positionChild
     integer                                                                             :: iNode                       , pass_
     integer         (c_size_t                 )                                         :: historyCount                , iIsolatedNode
-    integer         (kind_int8                )                                         :: progenitorMassMaximumIndex
     logical                                                                             :: branchMerges                , branchTipReached          , &
          &                                                                                 endOfBranch                 , isolatedProgenitorExists  , &
-         &                                                                                 nodeWillMerge               , nodeIsMostMassive
-    double precision                                                                    :: timeSubhaloMerges           , progenitorMassMaximum
+         &                                                                                 nodeWillMerge               , nodeIsMostMassive         , &
+         &                                                                                 nodeIsMostSenior            , progenitorsExist
+    double precision                                                                    :: timeSubhaloMerges
     type            (progenitorIterator       )                                         :: progenitors
 
     ! Initialize.
@@ -2384,15 +2355,10 @@ contains
              iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
              ! Find the subset with descendants.
              if (associated(nodes(iNode)%descendant)) then
+                ! Determine if this is the most senior progenitor.
                 nodeIsMostMassive=.true.
-                ! Determine if this is the most massive progenitor.
-                if (self%alwaysPromoteMostMassive) then
-                   call progenitors%descendantSet(self,nodes(iNode)%descendant,nodes)
-                   do while (progenitors%next(nodes))
-                      progenitorNode => progenitors%current(nodes)
-                      if (progenitorNode%nodeMass > nodes(iNode)%nodeMass) nodeIsMostMassive=.false.
-                   end do
-                end if
+                if (self%alwaysPromoteMostMassive) &
+                     & call self%progenitorSurvey(nodes(iNode)%descendant,nodes,progenitorsExist,isolatedProgenitorExists,nodes(iNode),nodeIsMostMassive)
                 ! Flag indicating if this is a node for which a merging time should be set.
                 nodeWillMerge=.false.
                 ! Select the subset which have a subhalo descendant, or which are an initial subhalo.
@@ -2430,22 +2396,12 @@ contains
                          ! Descendant is not a subhalo, treat as a merging event or a subhalo promotion.
                          endOfBranch                 =.true.
                          historyCount                =historyCount+max(0_kind_int8,self%mergerTreeImporter_%subhaloTraceCount(node))
-                         ! Search for any isolated progenitors of the node's descendant.
-                         isolatedProgenitorExists=.false.
-                         call progenitors%descendantSet(self,node%descendant,nodes)
-                         progenitorMassMaximum=-1.0d0
-                         progenitorMassMaximumIndex=-1_kind_int8
-                         do while (progenitors%next(nodes) .and. .not.isolatedProgenitorExists)
-                            progenitorNode => progenitors%current(nodes)
-                            isolatedProgenitorExists=(progenitorNode%nodeIndex == progenitorNode%hostIndex)
-                            if (progenitorNode%nodeMass > progenitorMassMaximum) then
-                               progenitorMassMaximum     =progenitorNode%nodeMass
-                               progenitorMassMaximumIndex=progenitorNode%nodeIndex
-                            end if
-                         end do
-                         ! If an isolated progenitor exists, or this is not the most massive subhalo progenitor, this is a merger
+                         ! Search for any isolated progenitors of the node's descendant, and determine if our node is the most
+                         ! senior progenitor.
+                         call self%progenitorSurvey(node%descendant,nodes,progenitorsExist,isolatedProgenitorExists,node,nodeIsMostSenior)
+                         ! If an isolated progenitor exists, or this is not the most senior subhalo progenitor, this is a merger
                          ! event. If not, it is a subhalo promotion (which will be handled elsewhere).
-                         if (isolatedProgenitorExists .or. progenitorMassMaximumIndex /= node%nodeIndex) then
+                         if (isolatedProgenitorExists .or. .not.nodeIsMostSenior) then
                             branchMerges                =.true.
                             nodes(iNode)%mergesWithIndex=node%descendant%nodeIndex
                             lastSeenNode                => node
@@ -2561,15 +2517,10 @@ contains
        do iNode=1,size(nodes)
           if (nodes(iNode)%primaryIsolatedNodeIndex /= nodeReachabilityUnreachable%ID) then
              iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
-             ! Find the most massive progenitor.
+             ! Determine if this is the most senior progenitor.
              nodeIsMostMassive=.true.
-             if (self%alwaysPromoteMostMassive.and.associated(nodes(iNode)%descendant)) then
-                call progenitors%descendantSet(self,nodes(iNode)%descendant,nodes)
-                do while (progenitors%next(nodes))
-                   progenitorNode => progenitors%current(nodes)
-                   if (progenitorNode%nodeMass > nodes(iNode)%nodeMass) nodeIsMostMassive=.false.
-                end do
-             end if
+             if (self%alwaysPromoteMostMassive.and.associated(nodes(iNode)%descendant)) &
+                  & call self%progenitorSurvey(nodes(iNode)%descendant,nodes,progenitorsExist,isolatedProgenitorExists,nodes(iNode),nodeIsMostMassive)
              ! Set the orbit for this halo if required. For this to be required we must first have a parent node. Then, we must be
              ! either not the primary progenitor, or there must be a more massive subhalo which will be promoted.
              satelliteNode => nodeList(iIsolatedNode)%node
@@ -2698,6 +2649,67 @@ contains
          &         )
     return
   end function massIsGreater
+
+  logical function readProgenitorIsSenior(node1,node2)
+    !!{RST
+    Return true if ``node1`` outranks ``node2`` in the primary progenitor ordering: descending mass, with mass ties broken in
+    favor of isolated halos over subhalos (as can matter for the discrete masses of N-body simulations), and any remaining tie
+    broken by descending node index. This makes the ordering strict and deterministic, so a unique most-senior progenitor always
+    exists. (Note that this differs from ``massIsGreater`` - used for subhalo-subhalo merger seniority - which ignores isolation
+    status.)
+    !!}
+    use :: Merger_Tree_Read_Importers, only : nodeData
+    implicit none
+    class  (nodeData), intent(in   ) :: node1    , node2
+    logical                          :: isolated1, isolated2
+
+    isolated1=node1%nodeIndex == node1%hostIndex
+    isolated2=node2%nodeIndex == node2%hostIndex
+    if      (node1%nodeMass /= node2%nodeMass) then
+       readProgenitorIsSenior=node1%nodeMass  > node2%nodeMass
+    else if (isolated1      .neqv. isolated2 ) then
+       readProgenitorIsSenior=isolated1
+    else
+       readProgenitorIsSenior=node1%nodeIndex > node2%nodeIndex
+    end if
+    return
+  end function readProgenitorIsSenior
+
+  subroutine readProgenitorSurvey(self,descendant,nodes,progenitorsExist,isolatedProgenitorExists,node,nodeIsMostSenior)
+    !!{RST
+    Survey the progenitors of ``descendant``, reporting whether any progenitors exist, and whether any of them is an isolated
+    halo. If ``node`` is given, additionally report whether ``node`` is the most senior of the progenitors under the primary
+    progenitor ordering (descending mass, isolated halos outranking subhalos of equal mass, remaining ties broken by descending
+    node index).
+    !!}
+    use :: Merger_Tree_Read_Importers, only : nodeData
+    implicit none
+    class  (mergerTreeConstructorRead)              , intent(inout)           :: self
+    class  (nodeData                 )              , intent(in   )           :: descendant
+    class  (nodeData                 ), dimension(:), intent(in   )           :: nodes
+    logical                                         , intent(  out)           :: progenitorsExist        , isolatedProgenitorExists
+    class  (nodeData                 )              , intent(in   ), optional :: node
+    logical                                         , intent(  out), optional :: nodeIsMostSenior
+    class  (nodeData                 ), pointer                               :: progenitorNode
+    type   (progenitorIterator       )                                        :: progenitors
+
+    isolatedProgenitorExists=.false.
+    if (present(nodeIsMostSenior)) nodeIsMostSenior=.true.
+    call progenitors%descendantSet(self,descendant,nodes)
+    progenitorsExist=progenitors%exist()
+    do while (progenitors%next(nodes))
+       progenitorNode => progenitors%current(nodes)
+       if (progenitorNode%nodeIndex == progenitorNode%hostIndex) isolatedProgenitorExists=.true.
+       if (present(node).and.present(nodeIsMostSenior)) then
+          if     (                                                  &
+               &   progenitorNode%nodeIndex /= node%nodeIndex       &
+               &  .and.                                             &
+               &   readProgenitorIsSenior(progenitorNode,node)      &
+               & ) nodeIsMostSenior=.false.
+       end if
+    end do
+    return
+  end subroutine readProgenitorSurvey
 
   subroutine readAssignMergers(self,nodes,nodeList)
     !!{RST
