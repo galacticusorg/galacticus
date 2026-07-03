@@ -36,6 +36,10 @@ from Galacticus.Build.ParallelScan import scan as parallel_scan
 from Galacticus.Build.SourceTree   import parse_file, walk_tree
 from List.ExtraUtils              import as_array
 from XML.Utils                    import xml_to_dict
+from Galacticus.Build.ScanCache import (
+    file_identifier as _file_identifier,
+    load_cache      as _load_cache,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -60,25 +64,6 @@ _SUBMODULE_LINE_RE = re.compile(
 # ---------------------------------------------------------------------------
 # Cache / helpers
 # ---------------------------------------------------------------------------
-
-def _file_identifier(path):
-    """Perl `(my $id = $path) =~ s/\\//_/g; $id =~ s/^\\._??//;`."""
-    return re.sub(r'^\._?', '', path.replace('/', '_'))
-
-
-def _load_cache(blob_path):
-    if not os.path.exists(blob_path):
-        return {}, None
-    try:
-        with open(blob_path, 'rb') as fh:
-            cache = pickle.load(fh)
-    except (pickle.UnpicklingError, EOFError, AttributeError, ValueError,
-            ImportError, ModuleNotFoundError):
-        return {}, None
-    if not isinstance(cache, dict):
-        return {}, None
-    return cache, os.stat(blob_path).st_mtime
-
 
 def _load_directive_locations(path):
     if not os.path.exists(path):

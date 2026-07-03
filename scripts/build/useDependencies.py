@@ -25,6 +25,10 @@ from Galacticus.Build.Directives   import extract_directives
 from Galacticus.Build.ParallelScan import scan as parallel_scan
 from List.ExtraUtils              import as_array, hash_list, smart_push
 from XML.Utils                    import xml_to_dict
+from Galacticus.Build.ScanCache import (
+    file_identifier as _file_identifier,
+    load_cache      as _load_cache,
+)
 
 
 # Directives consulted per source file (module-level so the parallel worker can
@@ -123,25 +127,6 @@ INCLUDE_LIBRARIES = {
 # ---------------------------------------------------------------------------
 # Cache helpers
 # ---------------------------------------------------------------------------
-
-def _file_identifier(path):
-    """Perl `(my $id = $path) =~ s/\\//_/g; $id =~ s/^\\._??//;`."""
-    return re.sub(r'^\._?', '', path.replace('/', '_'))
-
-
-def _load_cache(blob_path):
-    if not os.path.exists(blob_path):
-        return {}, None
-    try:
-        with open(blob_path, 'rb') as fh:
-            cache = pickle.load(fh)
-    except (pickle.UnpicklingError, EOFError, AttributeError, ValueError,
-            ImportError, ModuleNotFoundError):
-        return {}, None
-    if not isinstance(cache, dict):
-        return {}, None
-    return cache, os.stat(blob_path).st_mtime
-
 
 def _load_xml(path):
     if not os.path.exists(path):
