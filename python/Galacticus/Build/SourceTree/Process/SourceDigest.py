@@ -143,7 +143,8 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
     ----------
     file_names : list of str
         The roots whose composite hash is sought (paths relative to the
-        top-level build directory, e.g. `"source/foo.F90"`).
+        `source/` directory, e.g. `"objects/function_class.F90"` — the same
+        layout their sidecars have under `$BUILDPATH`).
     use_locks : bool, default True
         If True, take an exclusive flock on each `<file>.md5*.lock` sidecar
         to serialise concurrent builds.

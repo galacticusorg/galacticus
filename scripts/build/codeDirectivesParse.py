@@ -396,8 +396,13 @@ def main(argv):
     # -----------------------------------------------------------------------
     # Makefile_Directives plus per-directive XML files.
     # -----------------------------------------------------------------------
+    # Written to a temporary file and moved into place only if the content
+    # changed, so Makefile_Directives' mtime is stable across no-op
+    # regenerations (make re-executes itself whenever an included makefile's
+    # mtime advances).
     makefile_path = os.path.join(build_path, 'Makefile_Directives')
-    with open(makefile_path, 'w') as mk:
+    makefile_tmp  = makefile_path + '.tmp'
+    with open(makefile_tmp, 'w') as mk:
         for directive in sorted(include_directives):
             info      = include_directives[directive]
             file_name = re.sub(r'\.inc$', '.Inc', info['fileName'])
@@ -437,10 +442,16 @@ def main(argv):
                 extra_deps.extend(sorted(python_sources))
 
             directive_xml = os.path.join(build_path, directive + '.xml')
+            # stateStorables.xml / deepCopyActions.xml are prerequisites
+            # because buildCode.py runs the full source-tree process pipeline,
+            # whose hooks read both catalogs (mirrors the `%.p.F90.up` rule in
+            # the main Makefile).
             mk.write(
                 f"{file_name}.up: {directive_xml} {' '.join(extra_deps)}"
                 " $(BUILDPATH)/hdf5FCInterop.dat"
-                " $(BUILDPATH)/openMPCriticalSections.xml\n"
+                " $(BUILDPATH)/openMPCriticalSections.xml"
+                " $(BUILDPATH)/stateStorables.xml"
+                " $(BUILDPATH)/deepCopyActions.xml\n"
             )
             mk.write(
                 f"\t./scripts/build/buildCode.py {install_directory}"
@@ -485,6 +496,7 @@ def main(argv):
             + os.path.join(build_path, 'objects.nodes.components.Inc')
             + "\n\n"
         )
+    file_changes_update(makefile_path, makefile_tmp)
 
     # -----------------------------------------------------------------------
     # Persist per-file cache.
