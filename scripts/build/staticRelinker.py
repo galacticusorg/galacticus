@@ -24,22 +24,24 @@ if executable is None:
 
 print(f"Executable is '{executable}'")
 
-# Split arguments into compile command and optional post-process command (after '2>&1').
-compile_parts      = []
-post_process_parts = []
-post_processing    = False
+# Shell operators that begin the plumbing appended to the link recipe in the
+# build log this line was grepped from: output redirection, pipes, command
+# terminators, and a trailing line-continuation backslash. None of it is part
+# of the link command this script must re-run (it reconstructs its own
+# invocation and lets its output flow to the console), so parsing stops at the
+# first such token and the remainder is discarded. This handles both the older
+# recipe shape ('... 2>&1 | ./scripts/build/postprocessLinker.py') and the
+# current one ('... > <stem>.link.diag 2>&1; \'), which redirects diagnostics
+# to a file for exit-status capture.
+_SHELL_PLUMBING = {'2>&1', '&>', '1>', '2>', '|', '||', '&&', ';', '&', '\\'}
+
+# Assemble the link command, expanding backtick-quoted sub-expressions.
+compile_parts = []
 i = 0
 while i < len(arguments):
     arg = arguments[i]
-    if arg == '2>&1':
-        post_processing = True
-        post_process_parts.append(arg)
-        i += 1
-        continue
-    if post_processing:
-        post_process_parts.append(arg)
-        i += 1
-        continue
+    if arg in _SHELL_PLUMBING or arg.startswith('>') or arg.startswith('<'):
+        break
     # Expand backtick-quoted shell expressions.
     if arg.startswith('`'):
         to_expand = arg
@@ -136,8 +138,8 @@ for line in otool_out.splitlines():
     elif os.path.exists(static_name):
         print(f" -> Found static library at '{static_name}'")
         escaped = re.escape(library_name_original)
-        if re.search(r'-l' + escaped + '(\s|$)', compile_command):
-            compile_command = re.sub(r'-l' + escaped + '(\s|$)', static_name + ' ', compile_command)
+        if re.search(r'-l' + escaped + r'(\s|$)', compile_command):
+            compile_command = re.sub(r'-l' + escaped + r'(\s|$)', static_name + ' ', compile_command)
         else:
             compile_command += ' ' + static_name
             if library_name in hide_dylib_libraries:
@@ -189,10 +191,6 @@ if is_gcc:
     compile_command += ' -static-libgcc'
 if is_gpp:
     compile_command += ' -static-libstdc++'
-
-# Append post-process command if present.
-if post_process_parts:
-    compile_command += ' ' + ' '.join(post_process_parts)
 
 # Temporarily move aside any dynamic libraries that would otherwise be preferred over the static
 # archives being linked, forcing the linker to use the static versions. They are restored below.
