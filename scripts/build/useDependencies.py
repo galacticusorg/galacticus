@@ -571,9 +571,8 @@ _INCLUDE_LINE_RE    = re.compile(
 
 def _update_conditional_compile(stack, preprocessor_directives):
     """Mirrors the foreach loop at useDependencies.pl:374-383."""
-    preprocessor_directives_set = preprocessor_directives
     for entry in stack:
-        name_defined = entry['name'] in preprocessor_directives_set
+        name_defined = entry['name'] in preprocessor_directives
         active = entry['state'] if name_defined else 1 - entry['state']
         if active == 0:
             return False
@@ -588,10 +587,6 @@ def _scan_source_file(sources_entry, file_names_to_process, source_file,
     """
     while file_names_to_process:
         full_path = file_names_to_process.pop()
-        if not os.path.exists(full_path):
-            leaf_m = re.search(r'/([\w.]+?)$', full_path)
-            leaf = leaf_m.group(1) if leaf_m else full_path
-            subprocess.run(['make', leaf], check=False)
 
         if re.search(r'\.cpp$', full_path, re.IGNORECASE):
             sources_entry['libraryDependencies']['stdc++'] = True

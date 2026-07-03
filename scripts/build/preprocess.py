@@ -6,6 +6,10 @@ runs every registered process hook, optionally analyzes the tree, and writes
 the resulting source — together with a `.lmap` line-number mapping file — to
 the requested output path.
 
+Setting `GALACTICUS_PREPROCESSOR_ANALYZE=yes` in the environment runs the
+tree analyzer after processing. This is a manual debugging hook only — no
+Makefile rule or CI workflow sets it.
+
 Mirrors scripts/build/preprocess.pl.
 Andrew Benson (ported to Python 2026).
 """

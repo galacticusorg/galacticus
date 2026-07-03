@@ -73,15 +73,18 @@ def _scan_one(file_name):
         with open(file_full, 'r', errors='replace') as fh:
             for line in fh:
                 m = re.match(
-                    r'''^\s*#??include\s*[<'"]((.+)\.(inc|h)\d*)['">](\s*!\s*NO_USES)?''',
+                    r'''^\s*#??include\s*[<'"](.+\.(inc|h)\d*)['">](\s*!\s*NO_USES)?''',
                     line
                 )
                 if not m:
                     continue
                 inc_name  = m.group(1)
-                ext       = m.group(3)
-                no_uses   = m.group(4) is not None
+                ext       = m.group(2)
+                no_uses   = m.group(3) is not None
                 if ext == 'inc':
+                    # The `automatic` flag records a `! NO_USES` marker, which
+                    # opts a generated include out of the auto-generated
+                    # dependency chain fed to Makefile_Use_Dependencies below.
                     included_files.append({'fileName': inc_name, 'automatic': not no_uses})
                 elif ext == 'h':
                     # Only include .h files not already present in source or system dirs.
@@ -90,7 +93,7 @@ def _scan_one(file_name):
                         os.path.exists(os.path.join(d, inc_name)) for d in c_include_dirs
                     )
                     if not in_source and not in_system:
-                        included_files.append({'fileName': inc_name, 'automatic': not no_uses})
+                        included_files.append({'fileName': inc_name})
     except OSError:
         return "", []
 
@@ -108,7 +111,7 @@ def _scan_one(file_name):
     # Collect auto-generated .inc dependencies for Makefile_Use_Dependencies.
     dependency_file_names = []
     for inc in included_files:
-        if inc['fileName'].endswith('.inc') and inc['automatic']:
+        if inc['fileName'].endswith('.inc') and inc.get('automatic'):
             unpp = re.sub(r'\.inc$', '.Inc', inc['fileName'])
             if os.path.exists(os.path.join(source_directory, unpp)):
                 dependency_file_names.append(unpp)

@@ -86,7 +86,7 @@ def _scan_one(file_name):
     # name (e.g. `tests.nodes`) used for the user-facing executable so that
     # `make tests.nodes.exe`, CI matrices, and test harnesses keep working
     # unchanged after the source tree was made hierarchical.
-    obj_root = re.sub(r'\.[fF](90)?t?$', '', file_name)
+    obj_root = re.sub(r'\.[fF](90)?$', '', file_name)
     exe_root = obj_root.replace('/', '.')
 
     exe_name = None if exclude_from_all else exe_root + '.exe'
@@ -97,7 +97,7 @@ def _scan_one(file_name):
     # successful build of the executable. Capturing and testing both statuses makes link failures
     # fail the recipe immediately.
     rule = f"""\
-{exe_root}.exe: {work_dir}{obj_root}.o {work_dir}{obj_root}.d $(MAKE_DEPS) $(UPDATE_DEPS)
+{exe_root}.exe: {work_dir}{obj_root}.o {work_dir}{obj_root}.d $(MAKE_DEPS)
 \t./scripts/build/parameterDependencies.py `pwd` {obj_root}.exe
 \t$(FCCOMPILER) -c {work_dir}{obj_root}.parameters.F90 -o {work_dir}{obj_root}.parameters.o $(FCFLAGS)
 \t@if echo "$(MAKEFLAGS)" | grep -q -E -- ' -j1( |$$)'; then \\

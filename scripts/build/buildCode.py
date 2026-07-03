@@ -2,12 +2,12 @@
 # Scan source code for "!![…!!]" XML directives and dispatch the matching
 # generator.  Andrew Benson (ported to Python 2026)
 #
-# Mirrors scripts/build/buildCode.pl: the top-level driver that the build
-# system invokes once per `<directive>.xml` control file (see
-# codeDirectivesParse.py:327, where each include directive's Makefile rule
-# expands to `./scripts/build/buildCode.pl <install_dir> <directive_xml>`).
+# The top-level driver that the build system invokes once per
+# `<directive>.xml` control file: each include directive's Makefile rule
+# (written into Makefile_Directives by codeDirectivesParse.py) expands to
+# `./scripts/build/buildCode.py <install_dir> <directive_xml>`.
 #
-# The Perl driver scans every Fortran source file containing the named
+# The driver scans every Fortran source file containing the named
 # directive, accumulates each `<directive>` block's parsed XML body together
 # with the surrounding module name and source-file metadata, then dispatches
 # a `validate → parse → generate` pipeline registered by
@@ -228,29 +228,26 @@ def _xml_load(path):
 # ---------------------------------------------------------------------------
 
 def _scan_targets(directive, locations, source_directory):
-    """Return the list of files to scan for a given directive name.
+    """Return the list of files to scan for a given directive name, from the
+    pre-computed `directiveLocations.xml` map.
 
-    If the build cache `directiveLocations.xml` is available, take its
-    pre-computed list; otherwise fall back to every Fortran source file in
-    `source_directory`.
+    The map is required: the Makefile rules that invoke this script are
+    themselves written by codeDirectivesParse.py, which generates
+    `directiveLocations.xml` in the same run, so the file always exists in a
+    build. A missing map means this script was invoked out of sequence.
     """
-    if locations is not None and directive in locations:
-        files = locations[directive].get('file')
-        if files is None:
-            return []
-        return files if isinstance(files, list) else [files]
-
-    # Match `*.f`, `*.F`, `*.f90`, `*.F90`, `*.ft`, `*.Ft`, …
-    pattern = re.compile(r'\.[fF](90)?t?$')
-    out = []
-    for dirpath, dirnames, filenames in os.walk(source_directory):
-        dirnames[:] = sorted(d for d in dirnames if not d.startswith('.'))
-        for entry in filenames:
-            if entry.startswith('.#'):
-                continue
-            if pattern.search(entry):
-                out.append(os.path.join(dirpath, entry))
-    return out
+    if locations is None:
+        sys.exit(
+            "buildCode.py: directiveLocations.xml not found — run "
+            "./scripts/build/codeDirectivesParse.py first (in a build this "
+            "is done by the $(BUILDPATH)/directiveCatalogs.stamp rule)."
+        )
+    if directive not in locations:
+        return []
+    files = locations[directive].get('file')
+    if files is None:
+        return []
+    return files if isinstance(files, list) else [files]
 
 
 # ---------------------------------------------------------------------------
@@ -326,12 +323,9 @@ def _process_until_include_or_eof(fh, frame, build, source_directory,
     we exhausted the file.
     """
     while True:
-        try:
-            raw_line, processed_line, _ = get_fortran_line(fh) \
-                if build['codeType'] == 'fortran' \
-                else (fh.readline(), fh.readline(), '')
-        except StopIteration:
-            break
+        raw_line, processed_line, _ = get_fortran_line(fh) \
+            if build['codeType'] == 'fortran' \
+            else (fh.readline(), fh.readline(), '')
         if not raw_line and not processed_line:
             return None
 
@@ -397,8 +391,6 @@ def _process_until_include_or_eof(fh, frame, build, source_directory,
         if include_file is not None and os.path.exists(include_file):
             frame['position'] = fh.tell()
             return include_file, frame
-
-    return None
 
 
 def _consume_until_close(fh, build, xml_tag, frame, source_directory,

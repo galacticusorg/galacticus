@@ -3,16 +3,14 @@
 Makefile rules that tell the Galacticus build system how to produce `.mod`
 and `.smod` files from their owning object files.
 
-For every `.f` / `.f90` source file under `<installDir>/source/` (one level
-deep), this script:
+For every `.f` / `.f90` source file under `<installDir>/source/` (recursing
+into subdirectories to any depth), this script:
 
 * Extracts every `module <name>` and `submodule (<parent>[:<grand>]) <name>`
   declaration (skipping text inside `!!{…!!}` LaTeX and `!![…!!]` XML blocks).
 * For every `functionClass` directive in the file, walks each instance file
   listed in `directiveLocations.xml` to discover the concrete derived types
   and synthesises one functionClass-submodule entry per derived type.
-* Follows `include '<leaf>'` statements that reference files under the
-  top-level `source/` directory, scanning them for the same constructs.
 * Emits Makefile rules for each discovered module / submodule target: the
   `<mod>.mod`, `<mod>@<sub>.smod`, `<src>.o`, `<src>.p.F90`, `<mod>.mod.d`,
   `<mod>.mod.gv`, `<src>.m`, `<src>.smod` dependencies the main build
@@ -57,7 +55,6 @@ _SUBMODULE_LINE_RE = re.compile(
     r'\s*([a-zA-Z0-9_]+)$',
     re.IGNORECASE,
 )
-_INCLUDE_LINE_RE   = re.compile(r"""include\s+'(\w+)'""", re.IGNORECASE)
 
 
 # ---------------------------------------------------------------------------
@@ -128,7 +125,7 @@ def _list_source_files(directory):
 # ---------------------------------------------------------------------------
 
 def _find_function_class_submodules(directive_name, function_class_file,
-                                    locations, source_root):
+                                    source_root):
     """Return the list of submodule records produced by one `functionClass`
     directive.  Mirrors moduleDependencies.pl:97-133.
     """
@@ -188,70 +185,68 @@ def _find_function_class_submodules(directive_name, function_class_file,
 # Per-file Fortran scan
 # ---------------------------------------------------------------------------
 
-def _scan_file(stack, entry, source_root):
-    """Drive the include stack rooted at `stack`, populating `entry` (which
-    may be a plain dict; expected keys populated: `files`, `modulesProvided`,
-    `submodulesProvided`).
+def _scan_file(file_path, entry, source_root):
+    """Scan one source file, populating `entry` (a plain dict; keys
+    populated: `modulesProvided`, `submodulesProvided`).
+
+    `include`d files are not followed: a Fortran `include` cannot introduce
+    a `module`/`submodule` statement in this codebase (module declarations
+    are never placed in include files), and the include-following the Perl
+    original attempted was inert anyway — its `include\\s+'(\\w+)'` regex
+    could not match any real include in the tree (all include file names
+    contain a `.`, which `\\w` excludes).
     """
-    while stack:
-        file_path = stack.pop()
-        in_xml   = False
-        in_latex = False
-        try:
-            fh = open(file_path, 'r', errors='replace')
-        except OSError:
-            sys.exit("moduleDependencies.py: can not open input file: "
-                     + file_path)
-        try:
-            for line in fh:
-                # Leave XML/LaTeX blocks on their closing markers.
-                if _XML_CLOSE_RE.match(line):
-                    in_xml = False
-                if _LATEX_CLOSE_RE.match(line):
-                    in_latex = False
-                if in_xml or in_latex:
-                    continue
+    in_xml   = False
+    in_latex = False
+    try:
+        fh = open(file_path, 'r', errors='replace')
+    except OSError:
+        sys.exit("moduleDependencies.py: can not open input file: "
+                 + file_path)
+    try:
+        for line in fh:
+            # Leave XML/LaTeX blocks on their closing markers.
+            if _XML_CLOSE_RE.match(line):
+                in_xml = False
+            if _LATEX_CLOSE_RE.match(line):
+                in_latex = False
+            if in_xml or in_latex:
+                continue
 
-                stripped = _STRIP_COMMENT_RE.sub('', line)
+            stripped = _STRIP_COMMENT_RE.sub('', line)
 
-                m = _MODULE_LINE_RE.match(stripped)
-                if m:
-                    entry.setdefault('modulesProvided', []).append(
-                        m.group(1).lower() + '.mod',
-                    )
+            m = _MODULE_LINE_RE.match(stripped)
+            if m:
+                entry.setdefault('modulesProvided', []).append(
+                    m.group(1).lower() + '.mod',
+                )
 
-                m = _SUBMODULE_LINE_RE.match(stripped)
-                if m:
-                    parent_mod = m.group(1).lower() + '.mod'
-                    submodule_name = m.group(3).lower()
-                    leaf = re.sub(r'\.[fF]90$', '',
-                                  os.path.relpath(file_path, source_root))
-                    entry.setdefault('submodulesProvided', []).append({
-                        'moduleName': parent_mod,
-                        'submodule':  {
-                            'name':          submodule_name,
-                            'fileName':      leaf,
-                            'source':        file_path,
-                            'extends':       None,
-                            'functionClass': False,
-                        },
-                    })
+            m = _SUBMODULE_LINE_RE.match(stripped)
+            if m:
+                parent_mod = m.group(1).lower() + '.mod'
+                submodule_name = m.group(3).lower()
+                leaf = re.sub(r'\.[fF]90$', '',
+                              os.path.relpath(file_path, source_root))
+                entry.setdefault('submodulesProvided', []).append({
+                    'moduleName': parent_mod,
+                    'submodule':  {
+                        'name':          submodule_name,
+                        'fileName':      leaf,
+                        'source':        file_path,
+                        'extends':       None,
+                        'functionClass': False,
+                    },
+                })
 
-                m = _INCLUDE_LINE_RE.search(stripped)
-                if m:
-                    include_path = os.path.join(source_root, m.group(1))
-                    stack.append(include_path)
-                    entry.setdefault('files', []).append(include_path)
-
-                # Enter XML/LaTeX blocks on their opening markers (check
-                # AFTER processing the line so `!![` itself is not mistaken
-                # for code).
-                if _XML_OPEN_RE.match(line):
-                    in_xml = True
-                if _LATEX_OPEN_RE.match(line):
-                    in_latex = True
-        finally:
-            fh.close()
+            # Enter XML/LaTeX blocks on their opening markers (check
+            # AFTER processing the line so `!![` itself is not mistaken
+            # for code).
+            if _XML_OPEN_RE.match(line):
+                in_xml = True
+            if _LATEX_OPEN_RE.match(line):
+                in_latex = True
+    finally:
+        fh.close()
 
 
 # ---------------------------------------------------------------------------
@@ -290,7 +285,7 @@ def _scan_one(task):
         for fc_file in as_array((locations.get(fc['name']) or {}).get('file')):
             submodules_for_file.extend(
                 _find_function_class_submodules(
-                    fc['name'], fc_file, locations, source_root,
+                    fc['name'], fc_file, source_root,
                 )
             )
 
@@ -302,7 +297,7 @@ def _scan_one(task):
     entry['sourceDirectoryDescriptor'] = desc
     entry.setdefault('modulesProvided', [])
 
-    _scan_file([file_path], entry, source_root)
+    _scan_file(file_path, entry, source_root)
     return file_identifier, name, desc, entry
 
 

@@ -44,10 +44,16 @@ be built first.  It does need the rest of the python/ tree on PYTHONPATH
 (or installed via ``pip install -e .``) so SourceTree.parse_file is
 available; the Makefile already exports PYTHONPATH for build commands.
 
+**This is a manual developer tool**: nothing in the Makefile or CI invokes
+it — run it by hand when planning library-interface coverage work.  Because
+it is not exercised automatically, its copies of the generator's
+classification regexes and predicates (marked "MUST stay in sync" below)
+can drift from libraryInterfaces.py without anything noticing; check them
+against the generator before trusting a READY report.
+
 Andrew Benson (drafted with assistance from Claude 2026)
 """
 
-import os
 import re
 import sys
 from collections import defaultdict
