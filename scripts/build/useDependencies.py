@@ -36,6 +36,10 @@ from Galacticus.Build.ScanCache import (
 )
 
 
+# Version stamp for the Makefile_Use_Dependencies.blob cache. Bump when the
+# scan rules change so stale-rule entries are discarded.
+_BLOB_VERSION = 2
+
 # Directives consulted per source file (module-level so the parallel worker can
 # see it). Order matters only in that it is fixed.
 _DIRECTIVE_NAMES = (
@@ -112,11 +116,13 @@ def _load_xml(path):
 # Preprocessor directive collection
 # ---------------------------------------------------------------------------
 
-_IFDEF_RE   = re.compile(r'^ifdef\s+([A-Z]+)')
-_IFEQ_RE    = re.compile(r'^ifeq\s')
-_ENDIF_RE   = re.compile(r'^endif')
+_IFDEF_RE   = re.compile(r'^\s*ifdef\s+([A-Za-z_][A-Za-z0-9_]*)')
+_IFNDEF_RE  = re.compile(r'^\s*ifndef\s+([A-Za-z_][A-Za-z0-9_]*)')
+_IFEQ_RE    = re.compile(r'^\s*if(?:n?)eq\s')
+_ELSE_RE    = re.compile(r'^\s*else\b(.*)$')
+_ENDIF_RE   = re.compile(r'^\s*endif\b')
 _FCFLAGS_RE = re.compile(r'^\s*FCFLAGS\s*\+??=')
-_DASH_D_RE  = re.compile(r'-D([0-9A-Z]+)')
+_DASH_D_RE  = re.compile(r'-D([0-9A-Za-z_]+)')
 
 
 def _collect_preprocessor_directives(build_path):
@@ -141,21 +147,51 @@ def _collect_preprocessor_directives(build_path):
     for makefile in makefiles:
         if not os.path.exists(makefile):
             continue
-        conditions_stack = [1]
+        # Stack entries: True (branch known active), False (known
+        # inactive), None (unevaluable — `ifeq`/`ifneq` conditions over make
+        # variables, and any `else <condition>` chain). A -D flag is
+        # collected unless a *definitely false* branch encloses it: for
+        # unevaluable conditions every branch is collected, deliberately
+        # over-approximating the macro set (over-depending is benign;
+        # under-depending silently drops dependencies). `ifdef`/`ifndef` are
+        # approximated against the environment. Every opener pushes and
+        # every `endif` pops, so an unrecognized condition can no longer
+        # desynchronize the stack (previously `ifneq` did not push but its
+        # `endif` still popped, deactivating or reactivating outer branches
+        # at random).
+        conditions_stack = [True]
         with open(makefile, 'r', errors='replace') as fh:
             for line in fh:
                 m = _IFDEF_RE.match(line)
                 if m:
-                    conditions_stack.append(1 if m.group(1) in os.environ else 0)
+                    conditions_stack.append(m.group(1) in os.environ)
+                    continue
+                m = _IFNDEF_RE.match(line)
+                if m:
+                    conditions_stack.append(m.group(1) not in os.environ)
                     continue
                 if _IFEQ_RE.match(line):
-                    conditions_stack.append(1)
+                    conditions_stack.append(None)
+                    continue
+                m = _ELSE_RE.match(line)
+                if m:
+                    if len(conditions_stack) > 1:
+                        taken = conditions_stack.pop()
+                        if m.group(1).strip():
+                            # `else if…`: a chained condition — unevaluable
+                            # in general, so collect from it.
+                            conditions_stack.append(None)
+                        elif taken is None:
+                            conditions_stack.append(None)
+                        else:
+                            conditions_stack.append(not taken)
                     continue
                 if _ENDIF_RE.match(line):
                     if len(conditions_stack) > 1:
                         conditions_stack.pop()
                     continue
-                if _FCFLAGS_RE.match(line) and all(conditions_stack):
+                if (_FCFLAGS_RE.match(line)
+                        and all(c is not False for c in conditions_stack)):
                     for tok in line.split():
                         m = _DASH_D_RE.match(tok)
                         if m:
@@ -528,8 +564,9 @@ _LATEX_CLOSE_RE = re.compile(r'^\s*!!\}')
 _LIB_HINT_RE        = re.compile(r'^\s*!;\s*([a-zA-Z0-9_]+)\s*$')
 _C_INCLUDE_RE       = re.compile(r'^\s*#include\s+<([a-zA-Z0-9_]+)\.h>')
 _PP_IFDEF_RE        = re.compile(r'^#ifdef\s+([0-9A-Za-z_]+)\s*$')
-_PP_IFNDEF_RE       = re.compile(r'^#ifndef\s+([0-9A-Z_]+)\s*$')
+_PP_IFNDEF_RE       = re.compile(r'^#ifndef\s+([0-9A-Za-z_]+)\s*$')
 _PP_IF_RE           = re.compile(r'^#if\s')
+_PP_ELIF_RE         = re.compile(r'^#elif\s')
 _PP_ENDIF_RE        = re.compile(r'^#endif\s*$')
 _PP_ELSE_RE         = re.compile(r'^#else\s*$')
 _USE_LINE_RE        = re.compile(
@@ -560,8 +597,16 @@ _INCLUDE_LINE_RE    = re.compile(
 
 
 def _update_conditional_compile(stack, preprocessor_directives):
-    """Mirrors the foreach loop at useDependencies.pl:374-383."""
+    """Return True when every conditional block on `stack` is active.
+
+    Entries flagged `unknown` (a `#if <expression>` or a chain containing
+    `#elif`) are treated as active regardless of `#else` flips — every
+    branch of an unevaluable conditional is scanned. Mirrors the foreach
+    loop at useDependencies.pl:374-383, with the unknown-entry extension.
+    """
     for entry in stack:
+        if entry.get('unknown'):
+            continue
         name_defined = entry['name'] in preprocessor_directives
         active = entry['state'] if name_defined else 1 - entry['state']
         if active == 0:
@@ -620,8 +665,13 @@ def _scan_source_file(sources_entry, file_names_to_process, source_file,
                             'name': m.group(1), 'state': 1,
                         })
                     elif _PP_IF_RE.match(line):
+                        # A general `#if <expression>` cannot be evaluated
+                        # here; treat every branch of it as active so its
+                        # `use` statements are still recorded (over-depending
+                        # is benign; the previous behavior treated the block
+                        # as inactive and silently dropped dependencies).
                         preprocessor_stack.append({
-                            'name': 'conditional', 'state': 1,
+                            'name': None, 'state': 1, 'unknown': True,
                         })
                     else:
                         m = _PP_IFNDEF_RE.match(line)
@@ -632,6 +682,13 @@ def _scan_source_file(sources_entry, file_names_to_process, source_file,
                         elif _PP_ENDIF_RE.match(line):
                             if preprocessor_stack:
                                 preprocessor_stack.pop()
+                        elif _PP_ELIF_RE.match(line):
+                            # A chain containing `#elif` can no longer be
+                            # tracked by defined-ness flips — degrade the
+                            # whole chain to unevaluable (all branches
+                            # active).
+                            if preprocessor_stack:
+                                preprocessor_stack[-1]['unknown'] = True
                         elif _PP_ELSE_RE.match(line):
                             if preprocessor_stack:
                                 preprocessor_stack[-1]['state'] = (
@@ -1000,6 +1057,11 @@ def main(argv):
     uses_per_file, cache_mtime = _load_cache(
         work_dir + 'Makefile_Use_Dependencies.blob',
     )
+    # Discard caches written under older scan rules (the conditional-
+    # compilation handling changed what a scan records); a mismatch costs
+    # one full rescan.
+    if uses_per_file.pop('blobVersion', None) != _BLOB_VERSION:
+        uses_per_file, cache_mtime = {}, None
     have_per_file = cache_mtime is not None
 
     source_files = _source_files_to_process(root_source_dir, build_path)
@@ -1066,6 +1128,7 @@ def main(argv):
     )
 
     with open(work_dir + 'Makefile_Use_Dependencies.blob', 'wb') as fh:
+        uses_per_file['blobVersion'] = _BLOB_VERSION
         pickle.dump(uses_per_file, fh, protocol=pickle.HIGHEST_PROTOCOL)
 
 
