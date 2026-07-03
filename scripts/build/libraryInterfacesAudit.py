@@ -45,11 +45,10 @@ be built first.  It does need the rest of the python/ tree on PYTHONPATH
 available; the Makefile already exports PYTHONPATH for build commands.
 
 **This is a manual developer tool**: nothing in the Makefile or CI invokes
-it — run it by hand when planning library-interface coverage work.  Because
-it is not exercised automatically, its copies of the generator's
-classification regexes and predicates (marked "MUST stay in sync" below)
-can drift from libraryInterfaces.py without anything noticing; check them
-against the generator before trusting a READY report.
+it — run it by hand when planning library-interface coverage work.  The
+classification rules are imported from LibraryInterfaces.Classification —
+the same module the generator uses — so the audit's notion of "supported"
+tracks the generator by construction.
 
 Andrew Benson (drafted with assistance from Claude 2026)
 """
@@ -71,110 +70,24 @@ import xml.etree.ElementTree as ET                     # noqa: E402
 
 from Galacticus.Build import SourceTree                # noqa: E402
 from Galacticus.Build.SourceTree.Parse import Declarations  # noqa: E402
-from LibraryInterfaces.Pipeline import _SHARED_TYPE_MODULES  # noqa: E402
-from LibraryInterfaces.Hierarchy import (                # noqa: E402
-    build_type_hierarchy, resolve_function_class_base,
+from LibraryInterfaces.Hierarchy import build_type_hierarchy  # noqa: E402
+
+
+# The classification rules (regexes, return-type tables, and the argument
+# predicate) are shared with the generator via
+# LibraryInterfaces.Classification — the audit's verdicts follow the
+# generator's by construction rather than by hand-synced copies.
+from LibraryInterfaces.Classification import (   # noqa: E402
+    ENUM_RETURN_RX               as _ENUM_RETURN_RX,
+    ARRAY_RETURN_RX              as _ARRAY_RETURN_RX,
+    CLASS_RETURN_RX              as _CLASS_RETURN_RX,
+    DYNAMIC_ARRAY_RETURN_RX      as _DYNAMIC_ARRAY_RETURN_RX,
+    DYNAMIC_ARRAY_RETURN_2D_RX   as _DYNAMIC_ARRAY_RETURN_2D_RX,
+    RETURN_TYPE_ALIASES          as _RETURN_TYPE_ALIASES,
+    SCALAR_RETURN_OK             as _SCALAR_RETURN_OK,
+    classify_arg,
+    is_internal_constructor_name as _is_internal_constructor_name,
 )
-
-
-# Method return-type recognisers — mirror libraryInterfaces._ENUM_RETURN_RX /
-# _CLASS_RETURN_RX / _ARRAY_RETURN_RX so the audit's verdict matches the
-# generator without having to import from libraryInterfaces.py.
-_ENUM_RETURN_RX = re.compile(
-    r'^type\s*\(\s*(enumeration[a-z0-9_]+type)\s*\)$',
-    re.IGNORECASE,
-)
-_CLASS_RETURN_RX = re.compile(
-    r'^class\s*\(\s*([a-z][a-zA-Z0-9_]*Class)\s*\)$',
-    re.IGNORECASE,
-)
-_ARRAY_RETURN_RX = re.compile(
-    r'^(double\s+precision|integer)\s*,\s*dimension\s*\(\s*\d+\s*\)\s*$',
-    re.IGNORECASE,
-)
-
-# Mirror of libraryInterfaces._DYNAMIC_ARRAY_RETURN_RX — covers
-# 1D allocatable returns (`double precision, allocatable, dimension(:)`)
-# and dynamic-size returns (`double precision, dimension(self%X)` etc.).
-# Same template handles both: a save-target allocatable + c_ptr/c_size_t
-# out-companions.  Excludes literal-integer extents (those are
-# `_ARRAY_RETURN_RX`'s territory).
-_DYNAMIC_ARRAY_RETURN_RX = re.compile(
-    r'^(double\s+precision|integer)'
-    r'(?:\s*,\s*allocatable)?'
-    r'\s*,\s*dimension\s*\(\s*'
-    r'(?!\s*\d+\s*\))'
-    r'([^,]+)\s*\)\s*$',                  # forbid top-level commas — 1D
-                                          # only — but allow internal parens
-                                          # so `dimension(size(X))` etc.
-                                          # match.
-    re.IGNORECASE,
-)
-
-# 2D variant of the dynamic/allocatable array return — same save-buffer
-# codegen plus a second size companion; see the matching regex in
-# libraryInterfaces.py for the rationale.
-_DYNAMIC_ARRAY_RETURN_2D_RX = re.compile(
-    r'^(double\s+precision|integer)'
-    r'(?:\s*,\s*allocatable)?'
-    r'\s*,\s*dimension\s*\(\s*'
-    r'([^,]+)\s*,\s*([^,]+)'
-    r'\s*\)\s*$',
-    re.IGNORECASE,
-)
-
-# Scalar return types the generator handles outright (no per-type plumbing
-# beyond the ISO_C_Binding kind selection).  Kept as a literal set so any
-# trivial new alias added to the generator's switch must also be mirrored
-# here — otherwise the audit and the generator disagree on what compiles.
-_SCALAR_RETURN_OK = frozenset({
-    'void', 'double precision', 'integer', 'integer(c_long)',
-    'integer(c_size_t)', 'logical', 'type(varying_string)',
-})
-
-# Mirror of libraryInterfaces._RETURN_TYPE_ALIASES — accepted spellings the
-# generator normalises before its return-type switch.  Duplicated here for
-# the same reason the rest of the predicate is duplicated (audit stays
-# usable standalone); both tables MUST stay in sync.
-_RETURN_TYPE_ALIASES = {
-    'integer(kind=c_size_t)' : 'integer(c_size_t)',
-    'integer(kind=c_long)'   : 'integer(c_long)',
-    'integer(kind=kind_int8)': 'integer(c_long)',
-    'integer(kind_int8)'     : 'integer(c_long)',
-}
-
-
-# Match a fixed-size dimension(N) attribute (N a positive integer literal).
-# Same predicate the generator uses; duplicated here so the audit doesn't
-# have to import from libraryInterfaces.py (which would also drag in the
-# generator's unrelated emitter machinery).
-_DIM_FIXED_RX = re.compile(
-    r'^dimension\s*\(\s*'
-    r'(?:\d+\s*:\s*)?\d+'
-    r'(?:\s*,\s*(?:\d+\s*:\s*)?\d+)*'
-    r'\s*\)$'
-)
-
-# Match `len=N` in a character type-spec.  Used to recognise fixed-length
-# character arrays (`character(len=N), dimension(:)`), which the pipeline
-# now plumbs through; variable-length forms (`len=*`, `len=:`) are still
-# unsupported because they have no fixed stride at the byte boundary.
-_CHAR_LEN_RX = re.compile(r'^len\s*=\s*(\d+)$')
-
-# Recognise an Internal-suffixed module-procedure name following the
-# Galacticus convention <short>Constructor[Internal[Suffix]] OR the
-# alternative <short>Internal form (used by the merger-tree walkers,
-# e.g. allAndFormationNodesInternal).  We accept either:
-#   • a name ending in "internal" (catches both `<short>ConstructorInternal`
-#     and `<short>Internal`), or
-#   • a name containing "constructorinternal" (catches the rarer
-#     ConstructorInternalType / ConstructorInternalDefined variants
-#     used to disambiguate multiple internal constructors).
-# `<name>ConstructorParameters` and similar do not satisfy either rule
-# and are correctly rejected.
-def _is_internal_constructor_name(name):
-    lower = name.lower()
-    return lower.endswith('internal') or 'constructorinternal' in lower
 
 
 # ---------------------------------------------------------------------------
@@ -190,13 +103,15 @@ def discover_function_classes(source_dir):
     all_fcs  = set()
     fc_files = defaultdict(set)
 
-    paths = sorted(source_dir.glob('*.F90'))
+    # rglob: the source tree is hierarchical — a flat glob finds only the
+    # handful of top-level files and silently discovers nothing.
+    paths = sorted(source_dir.rglob('*.F90'))
 
     # Pass 1: collect every functionClass directive's name.
     for path in paths:
         text = path.read_text(errors='replace')
         for m in re.finditer(
-                r'<functionClass>(?:[^<]|<(?!/functionClass>))*?'
+                r'<functionClass(?:\s[^>]*)?>(?:[^<]|<(?!/functionClass>))*?'
                 r'<name>([^<]+)</name>',
                 text, re.DOTALL):
             all_fcs.add(m.group(1))
@@ -351,159 +266,38 @@ def classify_constructor(args, all_fcs, registered, overridden_args=frozenset(),
 
     *overridden_args* is the set of constructor argument names for which
     libraryClasses.xml supplies a ``<constructor><argument …/></constructor>``
-    type hint.  Those args bypass the ``class(*)`` blocker.
+    type hint (bypassing the ``class(*)`` blocker); *null_filled_args* /
+    *absent_filled_args* are the names carrying ``value='null'`` /
+    ``value='absent'`` overrides.
+
+    Delegates per-argument classification to the generator-shared
+    :func:`LibraryInterfaces.Classification.classify_arg` (audit mode), so
+    the audit's notion of "supported" is the generator's by construction.
     """
+    # Express the audit's name-set override parameters in the override-dict
+    # form the shared predicate consumes.
+    overrides = (
+        [{'name': n, 'value': 'null'}   for n in null_filled_args]
+        + [{'name': n, 'value': 'absent'} for n in absent_filled_args]
+        + [{'name': n} for n in overridden_args
+           if n not in null_filled_args and n not in absent_filled_args]
+    )
     missing_deps     = set()
     pipeline_reasons = []
-
     for arg in args:
-        name      = arg.get('name', '?')
-        intrinsic = arg.get('intrinsic')
-        attrs     = list(arg.get('attributes', []))
-        type_spec = (arg.get('type') or '').strip()
-
-        # `<argument name="..." value="null"/>` overrides drop the arg
-        # entirely (the wrapper passes a local null pointer to the
-        # inner constructor).  Skip every per-intrinsic blocker for
-        # these names — they don't appear in the bind(c) signature.
-        # Mirrors the generator's _unsupported_arg short-circuit.
-        if name in null_filled_args:
-            if intrinsic == 'procedure' \
-                    or (intrinsic == 'class' and type_spec == '*'):
-                continue
-            pipeline_reasons.append(
-                f"value='null' override on unsupported intrinsic "
-                f"'{intrinsic}' ({name})")
+        verdict = classify_arg(
+            arg, registered,
+            constructor_overrides=overrides,
+            class_hierarchy=class_hierarchy,
+            known_function_classes=set(all_fcs),
+        )
+        if verdict is None:
             continue
-
-        # `<argument name="..." value="absent"/>` drops an *optional*
-        # arg entirely — from Python, from bind(c), and from the inner
-        # call.  Accept any intrinsic so long as `optional` is set on
-        # the source decl.
-        if name in absent_filled_args:
-            if 'optional' in attrs:
-                continue
-            pipeline_reasons.append(
-                f"value='absent' override on non-optional argument "
-                f"({name})")
-            continue
-
-        if intrinsic in ('complex', 'double complex'):
-            pipeline_reasons.append(
-                f"complex arg ({name}: {intrinsic}({type_spec}))")
-            continue
-
-        if intrinsic == 'class':
-            if type_spec == '*':
-                # class(*) needs an explicit override in libraryClasses.xml.
-                # If a matching <argument> hint is supplied there, treat the
-                # arg as resolved; otherwise flag it as a pipeline blocker.
-                if name in overridden_args:
-                    continue
-                pipeline_reasons.append(
-                    f"class(*) without override ({name})")
-                continue
-            if type_spec.endswith('Class'):
-                stem = type_spec[:-5]
-                if stem in all_fcs:
-                    if stem not in registered:
-                        missing_deps.add(stem)
-                    continue   # fc — registered or just missing-dep
-            # Abstract-intermediate: `class(<X>)` where <X>'s extends-chain
-            # reaches a registered <base>Class.  Mirrors the generator's
-            # handling — the pipeline routes through <base>GetPtr and
-            # narrows to <X> at runtime via `select type`.  Depend on the
-            # root <base>, propagating it as a missing-dep if needed.
-            if class_hierarchy:
-                base, _ = resolve_function_class_base(
-                    type_spec, class_hierarchy, set(all_fcs))
-                if base is not None:
-                    if base not in registered:
-                        missing_deps.add(base)
-                    continue
-            # class(SomethingElse) — not a functionClass at all.
-            pipeline_reasons.append(
-                f"class({type_spec}) — not a functionClass ({name})")
-            continue
-
-        # Dimension shape checks.
-        dim_attr = next((a for a in attrs if a.startswith('dimension')), None)
-        if dim_attr:
-            # Fixed-length character arrays at deferred shape, plus 2D
-            # deferred-shape numeric arrays, are now supported alongside
-            # the 1D numeric cases — see the analogous extensions in
-            # libraryInterfaces._unsupported_arg.
-            # `type(<class>List), dimension(:)` — supported when the
-            # stripped-`List` stem is a registered functionClass; the
-            # generator ships parallel c_ptr + classID buffers and
-            # rebuilds the wrapper-list via `<class>GetPtr`.  The check
-            # against `registered` matches the scalar class-arg case
-            # below (an unregistered stem gets reported as a missing
-            # dependency rather than a hard pipeline blocker, so the
-            # closure pass can still pull the class in once the dep
-            # is added).
-            # Match the gating in Pipeline.py / libraryInterfaces.py:
-            # the wrapper type itself must be registered in
-            # `_SHARED_TYPE_MODULES`, otherwise it's a locally-defined
-            # struct (likely with extra members beyond the polymorphic
-            # pointer — see `virialDensityContrastList` in
-            # tasks.halo_mass_function.F90) and falls through to the
-            # generic unsupported-arg rejection path.
-            is_list_array = (
-                intrinsic == 'type'
-                and dim_attr == 'dimension(:)'
-                and type_spec.endswith('List')
-                and type_spec[:-4] in all_fcs
-                and type_spec in _SHARED_TYPE_MODULES
-            )
-            if is_list_array:
-                stem = type_spec[:-4]
-                if stem not in registered:
-                    missing_deps.add(stem)
-                continue
-            is_supported_shape = (
-                (intrinsic in ('double precision', 'integer')
-                 and (dim_attr == 'dimension(:)'
-                      or dim_attr == 'dimension(:,:)'
-                      or _DIM_FIXED_RX.match(dim_attr)))
-                or
-                # 1D deferred-shape logical arrays piggyback on the
-                # numeric array path: the bind(c) side is a
-                # `logical(c_bool), dimension(*)` buffer plus a count
-                # companion; the wrapper repacks into a default-kind
-                # `logical, dimension(:)` local before the inner call
-                # (see build_fortran_reassignments).  Fixed-size /
-                # 2D logical aren't needed by any registered impl
-                # today, so they're deliberately not accepted.
-                (intrinsic == 'logical'
-                 and dim_attr == 'dimension(:)')
-                or
-                (intrinsic == 'character'
-                 and dim_attr == 'dimension(:)'
-                 and _CHAR_LEN_RX.match(type_spec))
-                or
-                (intrinsic == 'type'
-                 and type_spec == 'varying_string'
-                 and dim_attr == 'dimension(:)')
-            )
-            if not is_supported_shape:
-                pipeline_reasons.append(
-                    f"unsupported array shape "
-                    f"({name}: {intrinsic} {dim_attr})")
-            elif 'allocatable' in attrs:
-                pipeline_reasons.append(
-                    f"allocatable array ({name})")
-            # Non-allocatable `intent(inout)` / `intent(out)` arrays are
-            # accepted now — the in-place-mutable-buffer path passes the
-            # caller's numpy buffer straight through and the inner
-            # Galacticus method mutates it in place.  See the matching
-            # branch in libraryInterfaces._unsupported_arg.
-            continue
-
-        if intrinsic == 'procedure':
-            pipeline_reasons.append(f"procedure-pointer arg ({name})")
-            continue
-
+        kind, payload = verdict
+        if kind == 'missing-dep':
+            missing_deps |= payload
+        else:
+            pipeline_reasons.append(f"{payload} ({arg.get('name', '?')})")
     return missing_deps, pipeline_reasons
 
 
@@ -620,7 +414,7 @@ def discover_methods(source_dir, all_fcs):
     signature, not the surrounding Fortran.
     """
     methods = defaultdict(list)
-    for path in sorted(source_dir.glob('*.F90')):
+    for path in sorted(source_dir.rglob('*.F90')):
         text = path.read_text(errors='replace')
         for fc_match in _FC_BLOCK_RX.finditer(text):
             body    = fc_match.group('body')
