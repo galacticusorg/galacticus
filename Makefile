@@ -790,22 +790,27 @@ $(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.py $(BUI
 
 # The three directive-catalog scripts run in a single recipe, in this order, because
 # stateStorables.py and deepCopyActions.py both read the directiveLocations.xml written by
-# codeDirectivesParse.py. All of their outputs (Makefile_Directives, directiveLocations.xml,
-# stateStorables.xml, deepCopyActions.xml, and the per-directive XML files) are products of this
-# one recipe, so a stamp file records when the scripts last ran, and each output that other rules
-# name as a prerequisite gets an empty-recipe rule on the stamp — giving make a rule for every such
-# file. The scripts write their outputs only-if-changed (mtime preserved when content is
-# identical), so downstream targets that depend on the real outputs rebuild only when catalog
-# content actually changes, while the stamp's own mtime stops the scripts re-running when nothing
-# is out of date.
-$(BUILDPATH)/Makefile_Directives $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml: $(BUILDPATH)/directiveCatalogs.stamp
-	@true
-$(BUILDPATH)/directiveCatalogs.stamp: ./scripts/build/codeDirectivesParse.py ./scripts/build/stateStorables.py ./scripts/build/deepCopyActions.py $(ALLSOURCES)
+# codeDirectivesParse.py. All three are prerequisites (previously only codeDirectivesParse.py was,
+# so edits to the other two did not regenerate their catalogs). The scripts' other outputs
+# (directiveLocations.xml, stateStorables.xml, deepCopyActions.xml, the per-directive XML files)
+# are byproducts of this recipe; they are not given rules of their own.
+#
+# Makefile_Directives MUST be a direct target with this recipe, and codeDirectivesParse.py MUST
+# write it unconditionally (not only-if-changed). It is `-include`d, and make only RE-EXECUTES
+# itself — the restart that re-reads a regenerated included makefile — when that makefile is remade
+# BY ITS OWN RULE running and updating it. On a clean build the re-read Makefile_Directives is what
+# tells make how to build the generated `include`-directive files (e.g. the node-component include)
+# and adds the ordering line making Makefile_Use_Dependencies depend on them. An earlier
+# formulation put the real work on a `directiveCatalogs.stamp` prerequisite with an `@true` recipe
+# here, and wrote Makefile_Directives only-if-changed: make then never saw Makefile_Directives as
+# "remade by its rule", never restarted, and so ran useDependencies.py once — before those includes
+# existed — missing every `use` they contribute and producing link-time "undefined reference"
+# failures for node-component data modules, etc.
+$(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.py ./scripts/build/stateStorables.py ./scripts/build/deepCopyActions.py $(ALLSOURCES)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/codeDirectivesParse.py `pwd`
 	./scripts/build/stateStorables.py `pwd`
 	./scripts/build/deepCopyActions.py `pwd`
-	@touch $(BUILDPATH)/directiveCatalogs.stamp
 
 $(BUILDPATH)/Makefile_Include_Dependencies: ./scripts/build/includeDependencies.py $(ALLSOURCES)
 	@mkdir -p $(BUILDPATH)

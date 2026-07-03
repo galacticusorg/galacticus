@@ -396,13 +396,16 @@ def main(argv):
     # -----------------------------------------------------------------------
     # Makefile_Directives plus per-directive XML files.
     # -----------------------------------------------------------------------
-    # Written to a temporary file and moved into place only if the content
-    # changed, so Makefile_Directives' mtime is stable across no-op
-    # regenerations (make re-executes itself whenever an included makefile's
-    # mtime advances).
+    # Written UNCONDITIONALLY (fresh mtime on every run), NOT only-if-changed.
+    # Makefile_Directives is `-include`d by the main Makefile, whose rule for
+    # it runs this script; make re-executes itself (re-reading the regenerated
+    # Makefile_Directives) only when the file is updated by that rule. A stable
+    # mtime would suppress that restart on a clean build, so make would never
+    # re-read the rules for the generated `include`-directive files nor the
+    # ordering line making Makefile_Use_Dependencies depend on them — see the
+    # Makefile_Directives rule comment in the main Makefile.
     makefile_path = os.path.join(build_path, 'Makefile_Directives')
-    makefile_tmp  = makefile_path + '.tmp'
-    with open(makefile_tmp, 'w') as mk:
+    with open(makefile_path, 'w') as mk:
         for directive in sorted(include_directives):
             info      = include_directives[directive]
             file_name = re.sub(r'\.inc$', '.Inc', info['fileName'])
@@ -496,7 +499,6 @@ def main(argv):
             + os.path.join(build_path, 'objects.nodes.components.Inc')
             + "\n\n"
         )
-    file_changes_update(makefile_path, makefile_tmp)
 
     # -----------------------------------------------------------------------
     # Persist per-file cache.
