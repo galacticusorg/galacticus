@@ -1948,15 +1948,27 @@ contains
                 descendsToSubhalo=nodes(iNode)%descendantIndex /= nodeList(iIsolatedNode)%node%parent%index()
                 ! It does, so set the child pointer of the parent appropriately.
                 if (associated(nodeList(iIsolatedNode)%node%parent%firstChild)) then
-                   ! A child is already associated. Check if current node does not descend to a subhalo and is more massive.
+                   ! A child is already associated. Check if current node does not descend to a subhalo and is the more senior
+                   ! progenitor. Seniority here (both candidates being isolated nodes) is by descending mass, with mass ties
+                   ! broken by descending node index - matching the ordering used by `readProgenitorIsSenior` so that the primary
+                   ! progenitor selected here is consistent with the merger/promotion decisions made from the progenitor surveys
+                   ! (which classify a node as merging unless it is the most senior progenitor). Without this consistency, an
+                   ! equal-mass tie can leave a node that is both the primary progenitor of its parent and flagged to merge,
+                   ! producing multiple satellite components on a branch during evolution.
                    basic        => nodeList(iIsolatedNode)%node                  %basic()
                    basicPrimary => nodeList(iIsolatedNode)%node%parent%firstChild%basic()
-                   if (.not.descendsToSubhalo                                          &
-                        & .and. (                                                      &
-                        &        childIsSubhalo(nodes(iNode)%parent%isolatedNodeIndex) &
-                        &         .or.                                                 &
-                        &        basic%mass() > basicPrimary%mass()                    &
-                        &       )                                                      &
+                   if (.not.descendsToSubhalo                                                                                          &
+                        & .and. (                                                                                                      &
+                        &        childIsSubhalo(nodes(iNode)%parent%isolatedNodeIndex)                                                 &
+                        &         .or.                                                                                                 &
+                        &        basic%mass() >  basicPrimary%mass()                                                                   &
+                        &         .or.                                                                                                 &
+                        &        (                                                                                                     &
+                        &          basic%mass() == basicPrimary%mass()                                                                 &
+                        &         .and.                                                                                                &
+                        &          nodeList(iIsolatedNode)%node%index() > nodeList(iIsolatedNode)%node%parent%firstChild%index()       &
+                        &        )                                                                                                     &
+                        &       )                                                                                                      &
                         & ) then
                       ! It is, so make this the main progenitor.
                       nodeList(iIsolatedNode)%node%sibling           => nodeList(iIsolatedNode)%node%parent%firstChild
