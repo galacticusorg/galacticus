@@ -398,20 +398,29 @@ $(BUILDPATH)/Makefile_Config_OFD: source/system/flock_config.c
 $(BUILDPATH)/Makefile_Config_FFTW3: source/external/FFTW/fftw3_config.F90
 	$(call CONFIG_PROBE,FFTW3,FCCOMPILER,source/external/FFTW/fftw3_config.F90,FCFLAGS,FCFLAGS,FFTW3)
 
+# The ANN, qhull, and libmatheval probes compile against only the system/user headers
+# (GALACTICUS_CPPFLAGS), *not* the full CPPFLAGS. The latter adds `-I$(BUILDPATH)/`, which can
+# contain zero-byte header stubs left by an earlier UNAVAIL build (created by the generic `%.h`
+# rule for headers that were preprocessed out — e.g. `Qhull.h`). Such a stub satisfies the probe's
+# `#include`, making it spuriously report AVAIL even though the real headers are absent, and the
+# subsequent real compile then fails (or the availability flip-flops between builds). This mirrors
+# the libgit2 probe below, which hit the identical trap first. None of these probe sources need
+# vendored or generated headers, so the restricted include path loses nothing.
+
 # Configuration for availability of ANN.
 -include $(BUILDPATH)/Makefile_Config_ANN
 $(BUILDPATH)/Makefile_Config_ANN: source/external/ANN/ann_config.cpp
-	$(call CONFIG_PROBE,ANN,CPPCOMPILER,source/external/ANN/ann_config.cpp,CPPFLAGS,FCFLAGS CPPFLAGS,ANN)
+	$(call CONFIG_PROBE,ANN,CPPCOMPILER,source/external/ANN/ann_config.cpp,GALACTICUS_CPPFLAGS,FCFLAGS CPPFLAGS,ANN)
 
 # Configuration for availability of qhull.
 -include $(BUILDPATH)/Makefile_Config_QHull
 $(BUILDPATH)/Makefile_Config_QHull: source/external/Qhull/qhull_config.cpp
-	$(call CONFIG_PROBE,QHull,CPPCOMPILER,source/external/Qhull/qhull_config.cpp,CPPFLAGS,FCFLAGS CPPFLAGS,QHULL)
+	$(call CONFIG_PROBE,QHull,CPPCOMPILER,source/external/Qhull/qhull_config.cpp,GALACTICUS_CPPFLAGS,FCFLAGS CPPFLAGS,QHULL)
 
 # Configuration for availability of libmatheval.
 -include $(BUILDPATH)/Makefile_Config_MathEval
 $(BUILDPATH)/Makefile_Config_MathEval: source/system/libmatheval_config.cpp
-	$(call CONFIG_PROBE,MathEval,CPPCOMPILER,source/system/libmatheval_config.cpp,CPPFLAGS,FCFLAGS CPPFLAGS,MATHEVAL)
+	$(call CONFIG_PROBE,MathEval,CPPCOMPILER,source/system/libmatheval_config.cpp,GALACTICUS_CPPFLAGS,FCFLAGS CPPFLAGS,MATHEVAL)
 
 # Configuration for availability of libgit2. For static builds, we
 # make libgit2 unavailable, as typically the `gssapi_krb5` library
