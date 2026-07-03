@@ -6,6 +6,12 @@ import subprocess
 import sys
 from graphlib import CycleError, TopologicalSorter
 
+from Galacticus.Build.Libraries import (
+    CONDITIONAL_FLAGS,
+    DEPENDENCIES,
+    STATIC_LINK_DEPENDENCIES,
+)
+
 # Output linker options to link required libraries for building an executable.
 # Andrew Benson (ported to Python 2026)
 
@@ -16,32 +22,12 @@ if len(sys.argv) < 2:
 executable       = sys.argv[1]
 compiler_options = sys.argv[2:]
 
-# Library dependency graph: key depends on values.
-dependencies = {
-    'hdf5hl_fortran': ['hdf5_hl'],
-    'hdf5_hl'       : ['hdf5'],
-    'hdf5_fortran'  : ['hdf5'],
-    'hdf5'          : ['z'],
-    'gsl'           : ['gslcblas'],
-    'FoX_dom'       : ['FoX_fsys', 'FoX_utils', 'FoX_sax'],
-    'FoX_sax'       : ['FoX_common'],
-    'FoX_utils'     : ['FoX_wxml'],
-    'qhullcpp'      : ['qhull_r', 'stdc++'],
-}
+# Library dependency graph: key depends on values. Work on a copy since the
+# static-build case below adds an edge.
+dependencies = {lib: list(deps) for lib, deps in DEPENDENCIES.items()}
 
 # Static-link ordering: key must appear before values.
-static_link_dependencies = {
-    'hdf5'          : ['z', 'dl'],
-    'hdf5_hl'       : ['hdf5'],
-    'hdf5_fortran'  : ['hdf5'],
-    'hdf5hl_fortran': ['hdf5_hl'],
-    'gsl'           : ['gslcblas'],
-    'FoX_dom'       : ['FoX_fsys', 'FoX_utils', 'FoX_sax', 'FoX_wxml'],
-    'FoX_sax'       : ['FoX_common'],
-    'FoX_wxml'      : ['FoX_utils'],
-    'FoX_common'    : ['FoX_fsys'],
-    'qhullcpp'      : ['stdc++'],
-}
+static_link_dependencies = STATIC_LINK_DEPENDENCIES
 
 # Detect compiler preprocessor defines.
 c_compiler = os.environ.get('CCOMPILER', 'gcc')
@@ -106,15 +92,7 @@ while len(libraries) != lib_count:
             libraries[dep] = libraries.get(dep, 0) + 1
 
 # Remove conditionally compiled libraries if the corresponding flag is absent.
-conditional = {
-    'fftw3'   : '-DFFTW3AVAIL',
-    'ANN'     : '-DANNAVAIL',
-    'qhullcpp': '-DQHULLAVAIL',
-    'qhull_r' : '-DQHULLAVAIL',
-    'matheval': '-DMATHEVALAVAIL',
-    'git2'    : '-DGIT2AVAIL',
-}
-for lib, flag in conditional.items():
+for lib, flag in CONDITIONAL_FLAGS.items():
     if lib in libraries and flag not in compiler_options:
         del libraries[lib]
 
