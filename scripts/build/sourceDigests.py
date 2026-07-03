@@ -32,9 +32,10 @@ import xml.etree.ElementTree as ET
 
 
 from Galacticus.Build.Directives                             import extract_directives
+from Galacticus.Build.ParallelScan                           import scan as parallel_scan, resolve_jobs
 from Galacticus.Build.SourceTree                             import parse_file, walk_tree
 from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import class_dependencies
-from Galacticus.Build.SourceTree.Process.SourceDigest        import find_hash
+from Galacticus.Build.SourceTree.Process.SourceDigest        import find_hash, ensure_file_digest
 from Galacticus._logging                                     import configure_default as _configure_default
 from List.ExtraUtils                                         import as_array
 from XML.Utils                                               import xml_to_dict
@@ -129,6 +130,143 @@ def _b64digest_no_pad(hasher):
     return base64.b64encode(hasher.digest()).rstrip(b'=').decode('ascii')
 
 
+# ---------------------------------------------------------------------------
+# Parallel pre-warm of the per-file `.md5` sidecars.
+# ---------------------------------------------------------------------------
+# The per-source-file digests are shared across every type's composite and
+# dominate a cold run (all of it is single-threaded MD5 hashing of file
+# contents and their includes). They are pre-computed in parallel below, one
+# task per unique source file, BEFORE the serial per-type loop calls
+# `find_hash` (which then just reads the warm sidecars). Read-only inputs are
+# published to `_WORKER` so forked workers inherit them via copy-on-write.
+_WORKER = {}
+
+
+def _prewarm_worker(task):
+    """Compute (and write the `.md5` sidecar for) one source file. The return
+    value is unused — the parent re-reads each sidecar through `find_hash`."""
+    source_file_name, suffix = task
+    ensure_file_digest(
+        source_file_name, suffix, _WORKER['build_path'],
+        use_locks=_WORKER['use_locks'],
+        include_files_excluded=_EXCLUDED_INCLUDES,
+    )
+    return None
+
+
+def _prewarm_file_digests(object_files, build_path, use_locks):
+    """Pre-compute, in parallel, the per-file `.md5` digest of every source in
+    the target's dependency set.
+
+    Each source file is a single task with a single writer, so the parallel
+    pass needs no intra-run lock (the `flock` inside `ensure_file_digest`,
+    taken when `use_locks`, still serialises concurrent *external* builds).
+    This is a pure warm-up: any file it skips — including one that is stale
+    only via a data-file dependency the cheap filter below ignores — is still
+    computed, correctly and serially, by `find_hash`.
+    """
+    tasks = []
+    seen  = set()
+    for obj in sorted(object_files):
+        source_prefix = 'source/' + re.sub(r'\.o$', '', obj)
+        for suffix in ('F90', 'c', 'h', 'Inc', 'cpp'):
+            source_file_name = source_prefix + '.' + suffix
+            if source_file_name in seen or not os.path.exists(source_file_name):
+                continue
+            seen.add(source_file_name)
+            # Cheap staleness pre-filter so a warm run does not fork a worker
+            # pool for no-op tasks: skip files whose `.md5` sidecar is already
+            # newer than the source. Over-selection is harmless
+            # (`ensure_file_digest` re-checks precisely and returns fast).
+            md5_file_name = (build_path
+                             + re.sub(r'^source', '', source_file_name)
+                             + '.md5')
+            try:
+                if os.stat(md5_file_name).st_mtime \
+                        > os.stat(source_file_name).st_mtime:
+                    continue
+            except FileNotFoundError:
+                pass
+            tasks.append((source_file_name, suffix))
+
+    if not tasks:
+        return
+    _WORKER['build_path'] = build_path
+    _WORKER['use_locks']  = use_locks
+    parallel_scan(tasks, _prewarm_worker, 'sourceDigests.py')
+
+
+def _scan_file_worker(task):
+    """Process one source file: collect its tracked files and the per-type
+    source-MD5 records for its sourceDigest / functionClass / functionClass-
+    instance directives.  Returns `(file_identifier, entry, type_records)`
+    where `type_records` is an ordered list of `(hash_name, record)`.
+
+    Runs in a forked worker (see `_WORKER`). The `find_hash` calls only READ
+    the per-file `.md5` sidecars pre-warmed by `_prewarm_file_digests`, and
+    each worker writes only its own file's `.md5c` composite — so distinct
+    workers never write the same sidecar.
+    """
+    file_name, file_to_process, file_identifier = task
+    build_path              = _WORKER['build_path']
+    source_root             = _WORKER['source_root']
+    use_locks               = _WORKER['use_locks']
+    sd_files                = _WORKER['sd_files']
+    fc_files                = _WORKER['fc_files']
+    function_class_file_set = _WORKER['function_class_file_set']
+    function_class_names    = _WORKER['function_class_names']
+
+    entry = {'files': [file_to_process], 'typesProvided': []}
+    _append_dep_files(entry['files'], file_name, build_path, source_root)
+    type_records = []
+
+    def _source_md5():
+        return find_hash([file_name],
+                         include_files_excluded=_EXCLUDED_INCLUDES,
+                         use_locks=use_locks)
+
+    # sourceDigest directives -> per-type source MD5 (no dependencies).
+    if file_to_process in sd_files:
+        for sd in extract_directives(file_to_process, 'sourceDigest'):
+            hash_name = sd['name']
+            type_records.append((hash_name,
+                                 {'sourceMD5': _source_md5(),
+                                  'dependencies': []}))
+            entry['typesProvided'].append(hash_name)
+
+    # functionClass directives -> per-type source MD5 + explicit base.
+    if file_to_process in fc_files:
+        for fc in extract_directives(file_to_process, 'functionClass'):
+            hash_name = fc['name'] + 'Class'
+            type_records.append((hash_name,
+                                 {'sourceMD5': _source_md5(),
+                                  'dependencies':
+                                      [fc['extends']] if 'extends' in fc
+                                      else ['functionClass']}))
+            entry['typesProvided'].append(hash_name)
+
+    # functionClass instance files: walk the AST and record a per-derived-
+    # class hash + its inheritance dependencies.
+    if file_to_process in function_class_file_set:
+        tree = parse_file(file_to_process)
+        for node in walk_tree(tree):
+            ntype = node.get('type')
+            if ntype not in function_class_names:
+                continue
+            hash_name = (node.get('directive') or {}).get('name')
+            if not hash_name:
+                continue
+            class_record, deps = class_dependencies(node, ntype)
+            class_type = (class_record or {}).get('type')
+            deps = [d for d in deps if d != class_type]
+            type_records.append((hash_name,
+                                 {'sourceMD5': _source_md5(),
+                                  'dependencies': list(deps)}))
+            entry['typesProvided'].append(hash_name)
+
+    return file_identifier, entry, type_records
+
+
 def main(argv):
     if len(argv) != 4:
         print("Usage: sourceDigests.py <sourceDirectory> <target> <useLocks>",
@@ -195,6 +333,16 @@ def main(argv):
                 os.path.relpath(os.path.join(dirpath, f), source_root))
     source_names.sort()
 
+    # Warm the per-file `.md5` sidecars in parallel before the serial per-type
+    # loop below reads them through `find_hash` (see `_prewarm_file_digests`).
+    _prewarm_file_digests(object_files, build_path, use_locks)
+
+    # Select the files to (re)scan, preserving the deterministic source_names
+    # order so the parallel merge below reproduces the serial run's
+    # last-writer-wins semantics for any shared type name. `seen_identifiers`
+    # tracks every participating file (for stale-entry pruning), independent
+    # of whether it needs a rescan.
+    files_to_scan = []
     for file_name in source_names:
         if os.path.basename(file_name).startswith('.#'):
             continue
@@ -218,72 +366,31 @@ def main(argv):
             rescan = bool(stale)
         if not rescan:
             continue
+        files_to_scan.append((file_name, file_to_process, file_identifier))
 
+    # Compute the per-type source digests concurrently (one task per file).
+    # `find_hash` inside each worker only reads the pre-warmed `.md5` sidecars
+    # and writes its own file's `.md5c`, so distinct workers never contend on
+    # a sidecar; locks are forced on when the scan actually runs in parallel
+    # to guard the rare dependency `.md5` the pre-warm pass did not cover
+    # (and any concurrent external build).
+    _WORKER['build_path']              = build_path
+    _WORKER['source_root']             = source_root
+    _WORKER['use_locks']               = use_locks or resolve_jobs(len(files_to_scan)) > 1
+    _WORKER['sd_files']                = set(
+        as_array((locations.get('sourceDigest') or {}).get('file')))
+    _WORKER['fc_files']                = set(
+        as_array((locations.get('functionClass') or {}).get('file')))
+    _WORKER['function_class_file_set'] = function_class_file_set
+    _WORKER['function_class_names']    = function_class_names
+
+    for file_identifier, entry, type_records in parallel_scan(
+            files_to_scan, _scan_file_worker, 'sourceDigests.py'):
         digests_per_file.pop(file_identifier, None)
-        entry = digests_per_file.setdefault(
-            file_identifier,
-            {'files': [file_to_process], 'typesProvided': []},
-        )
-        _append_dep_files(entry['files'], file_name, build_path, source_root)
-
-        # sourceDigest directives -> per-type source MD5 (no dependencies).
-        sd_files = as_array((locations.get('sourceDigest') or {}).get('file'))
-        if file_to_process in sd_files:
-            for sd in extract_directives(file_to_process, 'sourceDigest'):
-                hash_name = sd['name']
-                digests_per_file['types'][hash_name] = {
-                    'sourceMD5': find_hash(
-                        [file_name],
-                        include_files_excluded=_EXCLUDED_INCLUDES,
-                        use_locks=use_locks,
-                    ),
-                    'dependencies': [],
-                }
-                entry['typesProvided'].append(hash_name)
-                updated_types[hash_name] = 1
-
-        # functionClass directives -> per-type source MD5 + explicit base.
-        fc_files = as_array((locations.get('functionClass') or {}).get('file'))
-        if file_to_process in fc_files:
-            for fc in extract_directives(file_to_process, 'functionClass'):
-                hash_name = fc['name'] + 'Class'
-                digests_per_file['types'][hash_name] = {
-                    'sourceMD5': find_hash(
-                        [file_name],
-                        include_files_excluded=_EXCLUDED_INCLUDES,
-                        use_locks=use_locks,
-                    ),
-                    'dependencies':
-                        [fc['extends']] if 'extends' in fc else
-                        ['functionClass'],
-                }
-                entry['typesProvided'].append(hash_name)
-                updated_types[hash_name] = 1
-
-        # For functionClass instance files: walk the AST and record a
-        # per-derived-class hash + its inheritance dependencies.
-        if file_to_process in function_class_file_set:
-            tree = parse_file(file_to_process)
-            for node in walk_tree(tree):
-                ntype = node.get('type')
-                if ntype not in function_class_names:
-                    continue
-                hash_name = (node.get('directive') or {}).get('name')
-                if not hash_name:
-                    continue
-                class_record, deps = class_dependencies(node, ntype)
-                class_type = (class_record or {}).get('type')
-                deps = [d for d in deps if d != class_type]
-                digests_per_file['types'][hash_name] = {
-                    'sourceMD5': find_hash(
-                        [file_name],
-                        include_files_excluded=_EXCLUDED_INCLUDES,
-                        use_locks=use_locks,
-                    ),
-                    'dependencies': list(deps),
-                }
-                entry['typesProvided'].append(hash_name)
-                updated_types[hash_name] = 1
+        digests_per_file[file_identifier] = entry
+        for hash_name, record in type_records:
+            digests_per_file['types'][hash_name] = record
+            updated_types[hash_name] = 1
 
     # Manually add the base `functionClass` type (no dependencies).
     fc_base = 'objects/function_class.F90'
