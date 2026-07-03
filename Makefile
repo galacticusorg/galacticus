@@ -463,8 +463,11 @@ $(BUILDPATH)/%.o : %.cpp $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	$(CPPCOMPILER) -c $< -o $(BUILDPATH)/$*.o $(CPPFLAGS)
 
 # Rules for the QHull library. Use the C++17 standard for these files since they are not compatible with later C++ standards
-# (triggering 'template-id not allowed for constructor' errors)
-$(BUILDPATH)/external/Qhull/qhull.o : source/external/Qhull/qhull.cpp
+# (triggering 'template-id not allowed for constructor' errors). `Makefile` is a prerequisite, matching the generic `%.o`
+# rules: qhull.cpp preprocesses to an empty translation unit under -DQHULLUNAVAIL, so a stale object compiled under a
+# different availability result must be rebuilt when the flags change — otherwise the link fails with an undefined
+# reference to `convexHullVolumeC` (or silently links a stub).
+$(BUILDPATH)/external/Qhull/qhull.o : source/external/Qhull/qhull.cpp Makefile
 	@mkdir -p $(BUILDPATH)/external/Qhull
 	$(CPPCOMPILER) -c source/external/Qhull/qhull.cpp -o $(BUILDPATH)/external/Qhull/qhull.o $(CPPFLAGS) -std=gnu++17
 
