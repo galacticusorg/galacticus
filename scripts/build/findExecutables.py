@@ -91,32 +91,12 @@ def _scan_one(file_name):
 
     exe_name = None if exclude_from_all else exe_root + '.exe'
 
-    # The link step writes diagnostics to a file rather than piping them directly into
-    # postprocessLinker.py: in a pipeline the linker's exit status would be discarded, so a failed
-    # link (`undefined reference`, `ld returned 1 exit status`) would be recorded by make as a
-    # successful build of the executable. Capturing and testing both statuses makes link failures
-    # fail the recipe immediately.
+    # The link procedure itself lives in the main Makefile's LINK_EXECUTABLE canned recipe (which
+    # has a single owner there); each generated rule contributes only the target's dependency line
+    # and a $(call) to that recipe.
     rule = f"""\
 {exe_root}.exe: {work_dir}{obj_root}.o {work_dir}{obj_root}.d $(MAKE_DEPS)
-\t./scripts/build/parameterDependencies.py `pwd` {obj_root}.exe
-\t$(FCCOMPILER) -c {work_dir}{obj_root}.parameters.F90 -o {work_dir}{obj_root}.parameters.o $(FCFLAGS)
-\t@if echo "$(MAKEFLAGS)" | grep -q -E -- ' -j1( |$$)'; then \\
-\t useLocks=no; \\
-\telif echo "$(MAKEFLAGS)" | grep -q -E -- ' -j( |$$)'; then \\
-\t useLocks=$(LOCKMD5); \\
-\telif echo "$(MAKEFLAGS)" | grep -q -E -- ' -j[0-9]+( |$$)'; then \\
-\t useLocks=$(LOCKMD5); \\
-\telse \\
-\t useLocks=no; \\
-\tfi; \\
-\t./scripts/build/sourceDigests.py `pwd` {obj_root}.exe $$useLocks
-\t$(CCOMPILER) -c {work_dir}{obj_root}.md5s.c -o {work_dir}{obj_root}.md5s.o $(CFLAGS)
-\t+$(FCCOMPILER) `cat {work_dir}{obj_root}.d` {work_dir}{obj_root}.parameters.o {work_dir}{obj_root}.md5s.o -o {exe_root}.exe$(SUFFIX) $(FCFLAGS) $(FCFLAGS_LINK) `./scripts/build/libraryDependencies.py {obj_root}.exe $(FCFLAGS)` > {work_dir}{obj_root}.link.diag 2>&1; \\
-\tlinkStatus=$$?; \\
-\t./scripts/build/postprocessLinker.py < {work_dir}{obj_root}.link.diag; \\
-\tpostprocessStatus=$$?; \\
-\trm -f {work_dir}{obj_root}.link.diag; \\
-\t[ $$linkStatus -eq 0 ] && [ $$postprocessStatus -eq 0 ]
+\t$(call LINK_EXECUTABLE,{exe_root},{obj_root})
 
 """
     return rule, exe_name

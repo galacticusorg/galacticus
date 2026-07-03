@@ -353,6 +353,26 @@ $(BUILDPATH)/hdf5FCInterop.exe  : source/system/hdf5FCInterop.F90
 $(BUILDPATH)/hdf5FCInteropC.exe : source/system/hdf5FCInteropC.c
 	+$(CCOMPILER) source/system/hdf5FCInteropC.c -o $(BUILDPATH)/hdf5FCInteropC.exe $(CFLAGS)
 
+# Canned recipe for feature-availability probes:
+#   $(call CONFIG_PROBE,<name>,<compiler-var>,<source>,<flags-var>,<flag-vars>,<symbol>)
+# Attempts to compile the probe source $(3) with the compiler named by $(2) (using the flags
+# variable named by $(4)), then writes $(BUILDPATH)/Makefile_Config_$(1) appending -D$(6)AVAIL (on
+# success) or -D$(6)UNAVAIL (on failure) to each flags variable listed in $(5). Compiler and flags
+# are passed by NAME (dereferenced via the computed variable reference `$($(2))`) because flag
+# values may contain commas, which would break $(call) argument splitting. To add a new probe, add
+# a `-include` line, a rule with the probe source as prerequisite, and one $(call) line — see the
+# probes below. Probes with a different shape (Proc runs the compiled binary; Git2 has static/opt-
+# out variants and a restricted include path) remain hand-written.
+define CONFIG_PROBE
+@mkdir -p $(BUILDPATH) $(BUILDPATH)/moduleBuild
+$($(2)) -c $(3) -o $(BUILDPATH)/$(1)_config.o $($(4)) > /dev/null 2>&1 ; \
+if [ $$? -eq 0 ] ; then availability=AVAIL ; else availability=UNAVAIL ; fi ; \
+rm -f $(BUILDPATH)/Makefile_Config_$(1) ; \
+for flagVariable in $(5) ; do \
+ echo "$$flagVariable += -D$(6)$$availability" >> $(BUILDPATH)/Makefile_Config_$(1) ; \
+done
+endef
+
 # Configuration of proc filesystem.
 -include $(BUILDPATH)/Makefile_Config_Proc
 $(BUILDPATH)/Makefile_Config_Proc: source/system/proc_config.c
@@ -371,68 +391,27 @@ $(BUILDPATH)/Makefile_Config_Proc: source/system/proc_config.c
 # Configuration of file locking implementation.
 -include $(BUILDPATH)/Makefile_Config_OFD
 $(BUILDPATH)/Makefile_Config_OFD: source/system/flock_config.c
-	@mkdir -p $(BUILDPATH)
-	$(CCOMPILER) -c source/system/flock_config.c -o $(BUILDPATH)/flock_config.o $(CFLAGS) > /dev/null 2>&1 ; \
-	if [ $$? -eq 0 ] ; then \
-	 echo "FCFLAGS  += -DOFDAVAIL"   >  $(BUILDPATH)/Makefile_Config_OFD ; \
-	 echo "CFLAGS   += -DOFDAVAIL"   >> $(BUILDPATH)/Makefile_Config_OFD ; \
-	 echo "CPPFLAGS += -DOFDAVAIL"   >> $(BUILDPATH)/Makefile_Config_OFD ; \
-	else \
-	 echo "FCFLAGS  += -DOFDUNAVAIL" >  $(BUILDPATH)/Makefile_Config_OFD ; \
-	 echo "CFLAGS   += -DOFDUNAVAIL" >> $(BUILDPATH)/Makefile_Config_OFD ; \
-	 echo "CPPFLAGS += -DOFDUNAVAIL" >> $(BUILDPATH)/Makefile_Config_OFD ; \
-	fi
+	$(call CONFIG_PROBE,OFD,CCOMPILER,source/system/flock_config.c,CFLAGS,FCFLAGS CFLAGS CPPFLAGS,OFD)
 
 # Configuration for availability of FFTW3.
 -include $(BUILDPATH)/Makefile_Config_FFTW3
 $(BUILDPATH)/Makefile_Config_FFTW3: source/external/FFTW/fftw3_config.F90
-	@mkdir -p $(BUILDPATH)
-	@mkdir -p $(BUILDPATH)/moduleBuild
-	$(FCCOMPILER) -c source/external/FFTW/fftw3_config.F90 -o $(BUILDPATH)/fftw3_config.o $(FCFLAGS) > /dev/null 2>&1 ; \
-	if [ $$? -eq 0 ] ; then \
-	 echo "FCFLAGS += -DFFTW3AVAIL"   > $(BUILDPATH)/Makefile_Config_FFTW3 ; \
-	else \
-	 echo "FCFLAGS += -DFFTW3UNAVAIL" > $(BUILDPATH)/Makefile_Config_FFTW3 ; \
-	fi
+	$(call CONFIG_PROBE,FFTW3,FCCOMPILER,source/external/FFTW/fftw3_config.F90,FCFLAGS,FCFLAGS,FFTW3)
 
 # Configuration for availability of ANN.
 -include $(BUILDPATH)/Makefile_Config_ANN
 $(BUILDPATH)/Makefile_Config_ANN: source/external/ANN/ann_config.cpp
-	@mkdir -p $(BUILDPATH)
-	$(CPPCOMPILER) -c source/external/ANN/ann_config.cpp -o $(BUILDPATH)/ann_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
-	if [ $$? -eq 0 ] ; then \
-	 echo "FCFLAGS  += -DANNAVAIL"   >  $(BUILDPATH)/Makefile_Config_ANN ; \
-	 echo "CPPFLAGS += -DANNAVAIL"   >> $(BUILDPATH)/Makefile_Config_ANN ; \
-	else \
-	 echo "FCFLAGS  += -DANNUNAVAIL" >  $(BUILDPATH)/Makefile_Config_ANN ; \
-	 echo "CPPFLAGS += -DANNUNAVAIL" >> $(BUILDPATH)/Makefile_Config_ANN ; \
-	fi
+	$(call CONFIG_PROBE,ANN,CPPCOMPILER,source/external/ANN/ann_config.cpp,CPPFLAGS,FCFLAGS CPPFLAGS,ANN)
 
 # Configuration for availability of qhull.
 -include $(BUILDPATH)/Makefile_Config_QHull
 $(BUILDPATH)/Makefile_Config_QHull: source/external/Qhull/qhull_config.cpp
-	@mkdir -p $(BUILDPATH)
-	$(CPPCOMPILER) -c source/external/Qhull/qhull_config.cpp -o $(BUILDPATH)/qhull_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
-	if [ $$? -eq 0 ] ; then \
-	 echo "FCFLAGS  += -DQHULLAVAIL"   >  $(BUILDPATH)/Makefile_Config_QHull ; \
-	 echo "CPPFLAGS += -DQHULLAVAIL"   >> $(BUILDPATH)/Makefile_Config_QHull ; \
-	else \
-	 echo "FCFLAGS  += -DQHULLUNAVAIL" >  $(BUILDPATH)/Makefile_Config_QHull ; \
-	 echo "CPPFLAGS += -DQHULLUNAVAIL" >> $(BUILDPATH)/Makefile_Config_QHull ; \
-	fi
+	$(call CONFIG_PROBE,QHull,CPPCOMPILER,source/external/Qhull/qhull_config.cpp,CPPFLAGS,FCFLAGS CPPFLAGS,QHULL)
 
 # Configuration for availability of libmatheval.
 -include $(BUILDPATH)/Makefile_Config_MathEval
 $(BUILDPATH)/Makefile_Config_MathEval: source/system/libmatheval_config.cpp
-	@mkdir -p $(BUILDPATH)
-	$(CPPCOMPILER) -c source/system/libmatheval_config.cpp -o $(BUILDPATH)/libmatheval_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
-	if [ $$? -eq 0 ] ; then \
-	 echo "FCFLAGS  += -DMATHEVALAVAIL"   >  $(BUILDPATH)/Makefile_Config_MathEval ; \
-	 echo "CPPFLAGS += -DMATHEVALAVAIL"   >> $(BUILDPATH)/Makefile_Config_MathEval ; \
-	else \
-	 echo "FCFLAGS  += -DMATHEVALUNAVAIL" >  $(BUILDPATH)/Makefile_Config_MathEval ; \
-	 echo "CPPFLAGS += -DMATHEVALUNAVAIL" >> $(BUILDPATH)/Makefile_Config_MathEval ; \
-	fi
+	$(call CONFIG_PROBE,MathEval,CPPCOMPILER,source/system/libmatheval_config.cpp,CPPFLAGS,FCFLAGS CPPFLAGS,MATHEVAL)
 
 # Configuration for availability of libgit2. For static builds, we
 # make libgit2 unavailable, as typically the `gssapi_krb5` library
@@ -644,7 +623,47 @@ $(BUILDPATH)/%.m : ./source/%.F90
 # Executables (*.exe) are built by linking together all of the object files (*.o) specified in the
 # associated dependency (*.d) file. There is no generic `%.exe` pattern rule: findExecutables.py
 # discovers every program in the source tree and writes an explicit rule for each into
-# $(BUILDPATH)/Makefile_All_Execs (included below).
+# $(BUILDPATH)/Makefile_All_Execs (included below). Those generated rules invoke the canned recipes
+# defined here, so the link procedure has a single owner: change it here, not in the generator.
+
+# Canned recipe: prepare link-time metadata objects for target $(1) (the name passed to the
+# metadata scripts, e.g. `tests.foo.exe` or `libgalacticus.o`) with build-artifact stem $(2) (the
+# path under $(BUILDPATH), e.g. `tests/foo` or `libgalacticus`). Enumerates every input parameter
+# the target can accept (compiled into $(2).parameters.o) and computes per-type source digests
+# (compiled into $(2).md5s.o). MD5 sidecar locking is enabled only under parallel make (see
+# LOCKMD5); the `if` chain and the sourceDigests invocation must remain one logical shell line so
+# the `useLocks` shell variable survives.
+define LINK_METADATA
+./scripts/build/parameterDependencies.py `pwd` $(1)
+$(FCCOMPILER) -c $(BUILDPATH)/$(2).parameters.F90 -o $(BUILDPATH)/$(2).parameters.o $(FCFLAGS)
+@if echo "$(MAKEFLAGS)" | grep -q -E -- ' -j1( |$$)'; then \
+ useLocks=no; \
+elif echo "$(MAKEFLAGS)" | grep -q -E -- ' -j( |$$)'; then \
+ useLocks=$(LOCKMD5); \
+elif echo "$(MAKEFLAGS)" | grep -q -E -- ' -j[0-9]+( |$$)'; then \
+ useLocks=$(LOCKMD5); \
+else \
+ useLocks=no; \
+fi; \
+./scripts/build/sourceDigests.py `pwd` $(1) $$useLocks
+$(CCOMPILER) -c $(BUILDPATH)/$(2).md5s.c -o $(BUILDPATH)/$(2).md5s.o $(CFLAGS)
+endef
+
+# Canned recipe: link executable $(1).exe$(SUFFIX) from build-artifact stem $(2). The link step
+# writes diagnostics to a file rather than piping them directly into postprocessLinker.py: in a
+# pipeline the linker's exit status would be discarded, so a failed link (`undefined reference`,
+# `ld returned 1 exit status`) would be recorded by make as a successful build. Capturing and
+# testing both statuses makes link failures fail the recipe immediately. The `+` prefix exposes
+# make's jobserver to the compiler so `-flto=jobserver` can parallelize the LTO link.
+define LINK_EXECUTABLE
+$(call LINK_METADATA,$(2).exe,$(2))
++$(FCCOMPILER) `cat $(BUILDPATH)/$(2).d` $(BUILDPATH)/$(2).parameters.o $(BUILDPATH)/$(2).md5s.o -o $(1).exe$(SUFFIX) $(FCFLAGS) $(FCFLAGS_LINK) `./scripts/build/libraryDependencies.py $(2).exe $(FCFLAGS)` > $(BUILDPATH)/$(2).link.diag 2>&1; \
+linkStatus=$$?; \
+./scripts/build/postprocessLinker.py < $(BUILDPATH)/$(2).link.diag; \
+postprocessStatus=$$?; \
+rm -f $(BUILDPATH)/$(2).link.diag; \
+[ $$linkStatus -eq 0 ] && [ $$postprocessStatus -eq 0 ]
+endef
 
 # Library. These rules generate Fortran interface wrappers and their dependencies for the shared library build; the generator
 # scripts (libraryInterfaces.py, libraryInterfacesDependencies.py) are slow, so we only activate them when actually performing
@@ -663,19 +682,7 @@ $(BUILDPATH)/libgalacticus.inc : $(BUILDPATH)/libgalacticus.p.Inc Makefile
 	sed -E s/'^([[:space:]]*)!(.*)'/'\1\/\*\2\*\/'/ $(BUILDPATH)/libgalacticus.p.Inc | cpp -nostdinc -C | sed -E s/'^([[:space:]]*)\/\*(.*)\*\/'/'\1!\2'/ > $(BUILDPATH)/libgalacticus.tmp
 	mv -f $(BUILDPATH)/libgalacticus.tmp $(BUILDPATH)/libgalacticus.inc
 libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classes.d
-	./scripts/build/parameterDependencies.py `pwd` libgalacticus.o
-	$(FCCOMPILER) -c $(BUILDPATH)/libgalacticus.parameters.F90 -o $(BUILDPATH)/libgalacticus.parameters.o $(FCFLAGS)
-	@if echo "$(MAKEFLAGS)" | grep -q -E -- ' -j1( |$$)'; then \
-	 useLocks=no; \
-	elif echo "$(MAKEFLAGS)" | grep -q -E -- ' -j( |$$)'; then \
-	 useLocks=$(LOCKMD5); \
-	elif echo "$(MAKEFLAGS)" | grep -q -E -- ' -j[0-9]+( |$$)'; then \
-	 useLocks=$(LOCKMD5); \
-	else \
-	 useLocks=no; \
-	fi; \
-	./scripts/build/sourceDigests.py `pwd` libgalacticus.o $$useLocks
-	$(CCOMPILER) -c $(BUILDPATH)/libgalacticus.md5s.c -o $(BUILDPATH)/libgalacticus.md5s.o $(CFLAGS)
+	$(call LINK_METADATA,libgalacticus.o,libgalacticus)
 # Link with a non-executable stack (`-z noexecstack`). Without this the shared library can be marked as
 # requiring an executable stack (e.g. because an input object lacks a `.note.GNU-stack` section, or because
 # GNU Fortran emits stack-based trampolines). Newer kernels/loaders refuse to `dlopen()` such a library,
