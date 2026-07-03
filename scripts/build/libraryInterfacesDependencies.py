@@ -34,7 +34,10 @@ if not os.path.isdir(out_dir):
 # and avoids spurious git diffs in the generated Makefile fragment).
 units = sorted(f[:-len('.F90')]
                for f in os.listdir(out_dir)
-               if f.endswith('.F90'))
+               # Exclude preprocessed `<unit>.p.F90` files, which live in the
+               # same directory: they are build products of the units, not
+               # units themselves.
+               if f.endswith('.F90') and not f.endswith('.p.F90'))
 
 rules = []
 for name in units:
