@@ -305,9 +305,22 @@ FCFLAGS_AARCH64_ICE_OBJECTS = \
 $(FCFLAGS_AARCH64_ICE_OBJECTS): FCFLAGS += -O0
 endif
 
+# The compiler writes diagnostics to a file which is then fed to postprocess.py, rather than piping
+# compiler output directly into postprocess.py. In a pipeline the compiler's exit status would be
+# discarded (the recipe's status would be postprocess.py's, and /bin/sh has no pipefail), so a hard
+# compiler failure that emits no "Error:" line — an internal compiler error, a segfault, an OOM
+# kill — would be reported as success, leaving a missing or stale object file that only surfaces
+# later as a confusing link error. Capturing and testing both statuses makes such failures fail the
+# recipe immediately. (libraryInterfacesDependencies.py emits a mirror of this recipe for the
+# library wrapper units — keep the two in sync.)
 $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	@mkdir -p $(BUILDPATH)/moduleBuild
-	$(FCCOMPILER) -c $(BUILDPATH)/$*.p.F90 -o $(BUILDPATH)/$*.o $(FCFLAGS) 2>&1 | ./scripts/build/postprocess.py $(BUILDPATH)/$*.p.F90
+	$(FCCOMPILER) -c $(BUILDPATH)/$*.p.F90 -o $(BUILDPATH)/$*.o $(FCFLAGS) > $(BUILDPATH)/$*.o.diag 2>&1; \
+	compileStatus=$$?; \
+	./scripts/build/postprocess.py $(BUILDPATH)/$*.p.F90 < $(BUILDPATH)/$*.o.diag; \
+	postprocessStatus=$$?; \
+	rm -f $(BUILDPATH)/$*.o.diag; \
+	[ $$compileStatus -eq 0 ] && [ $$postprocessStatus -eq 0 ]
 	@mlist=`cat $(BUILDPATH)/$*.m` ; \
 	for mod in $$mlist ; \
 	do \
