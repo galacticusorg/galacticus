@@ -262,7 +262,7 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
         if (a_intr in ('double precision', 'integer')
                 and 'allocatable' in a_attrs
                 and 'dimension(:)' in a_attrs
-                and 'intent(out)' in a_attrs):
+                and ('intent(out)' in a_attrs or 'intent(inout)' in a_attrs)):
             has_output_array = True
             break
 
@@ -309,7 +309,9 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
             new_list.insert(0, arg)
             continue
 
-        # Output-array arg: `intent(out), allocatable, dimension(:)` numeric.
+        # Output-array arg: 1D `allocatable, dimension(:)` numeric, either
+        # `intent(out)` or `intent(inout)` (the latter is Galacticus's
+        # allocation-reuse idiom — see Classification.is_output_array_arg).
         # The inner method allocates and fills it, and its data + size flow
         # *back* to Python via a `(c_ptr, c_size_t)` companion pair that the
         # generator appends to the bind(c) signature (see interfaces_methods).
@@ -324,7 +326,8 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
         if (arg.intrinsic in ('double precision', 'integer')
                 and 'allocatable' in arg.attributes
                 and 'dimension(:)' in arg.attributes
-                and 'intent(out)' in arg.attributes):
+                and ('intent(out)' in arg.attributes
+                     or 'intent(inout)' in arg.attributes)):
             if arg.intrinsic == 'double precision':
                 elem_ctype, elem_fort, elem_dtype = (
                     'c_double', 'real(c_double)', 'float64')

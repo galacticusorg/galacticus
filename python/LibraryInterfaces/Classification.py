@@ -411,22 +411,28 @@ def unsupported_arg(arg, lib_function_classes, *,
 # ---------------------------------------------------------------------------
 
 def is_output_array_arg(arg):
-    """True if *arg* is a 1D ``intent(out), allocatable, dimension(:)``
-    numeric (``double precision`` / ``integer``) OUTPUT-array argument — the
-    shape the generator lowers to a ``save, target`` buffer with a
-    ``(c_ptr, c_size_t)`` intent(out) companion pair (see
-    :attr:`ArgSpec.is_output_array`).
+    """True if *arg* is a 1D ``allocatable, dimension(:)`` numeric
+    (``double precision`` / ``integer``) OUTPUT-array argument — either
+    ``intent(out)`` or ``intent(inout)`` — the shape the generator lowers to
+    a ``save, target`` buffer with a ``(c_ptr, c_size_t)`` intent(out)
+    companion pair (see :attr:`ArgSpec.is_output_array`).
 
-    ``intent(inout)`` allocatable arrays are deliberately excluded: from the
-    wrapper's side a fresh, pre-deallocated local behaves the same, but
-    ``inout`` signals the inner method may *read* an incoming allocation the
-    Python caller has no way to supply, so those stay blocked for now.
+    ``intent(inout)`` is accepted because the Galacticus idiom for such args
+    is allocation-*reuse*, not input: the inner method checks ``allocated()``
+    / ``size()`` and reallocates as needed, then overwrites the contents
+    (e.g. ``computationalDomain.indicesFromPosition``), so it never reads an
+    incoming value. The wrapper deallocates its ``save`` buffer before each
+    call, so the inner always sees an unallocated array and allocates a fresh
+    one — identical to the ``intent(out)`` path. (A hypothetical method that
+    genuinely read an ``intent(inout)`` allocatable before allocating it
+    could not be driven output-only, but that is not the convention and such
+    a method would already be ill-defined for an unallocated actual.)
     """
     attrs = arg.get('attributes', [])
     return (arg.get('intrinsic') in ('double precision', 'integer')
             and 'allocatable' in attrs
             and 'dimension(:)' in attrs
-            and 'intent(out)' in attrs)
+            and ('intent(out)' in attrs or 'intent(inout)' in attrs))
 
 
 def is_output_scalar_arg(arg):

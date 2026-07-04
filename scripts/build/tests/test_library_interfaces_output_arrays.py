@@ -187,12 +187,25 @@ def test_optional_arg_blocks_output_array_method():
     assert _method_deleted(fc, 'f', {'x': {}})
 
 
-def test_inout_allocatable_is_not_an_output_array():
-    # intent(inout) allocatable stays blocked (per-arg), method dropped.
+def test_inout_allocatable_is_an_output_array():
+    # intent(inout) allocatable (Galacticus's allocation-reuse idiom) is
+    # treated as an output array, same as intent(out): the method is
+    # generated and returns the array.
     fc = _method_fc(
-        'x', 'M', 'f', 'void',
-        ['double precision, intent(inout), allocatable, dimension(:) :: y'])
-    assert _method_deleted(fc, 'f', {'x': {}})
+        'computationalDomain', 'M', 'indicesFromPosition', 'void',
+        ['double precision, dimension(3), intent(in   ) :: position',
+         'integer(c_size_t), allocatable, dimension(:), intent(inout)'
+         ' :: indices'])
+    fort, c_lib, py = _generate(fc, {'computationalDomain': {}})
+    assert 'indicesFromPosition' in fc['methods']            # not deleted
+    # Same save/target buffer machinery as intent(out); c_size_t element.
+    assert ('integer(c_size_t), dimension(:), allocatable, save, target'
+            ' :: glcOut_indices_' in fort)
+    assert 'indices=glcOut_indices_' in fort
+    # position (fixed-size input) is a Python parameter; indices is returned.
+    assert 'def indicesFromPosition(self,position):' in py
+    assert 'return _indicesArr_' in py
+    assert 'np.empty(0, dtype=np.uint64)' in py             # c_size_t → uint64
 
 
 def test_plain_method_still_generated():

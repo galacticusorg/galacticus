@@ -208,12 +208,22 @@ def test_output_array_numeric_kinds(intrinsic):
              attributes=['intent(out)', 'allocatable', 'dimension(:)']))
 
 
-def test_inout_allocatable_is_not_output_array_and_blocked():
+def test_inout_allocatable_is_output_array():
+    # intent(inout) allocatable is Galacticus's allocation-reuse idiom —
+    # treated as an output array (contents never read), same as intent(out).
     io = _arg('integer', type_spec='c_size_t',
               attributes=['allocatable', 'dimension(:)', 'intent(inout)'],
               name='indices')
+    assert is_output_array_arg(io)
+    assert classify_arg(io, REGISTERED) is None
+
+
+def test_inout_non_allocatable_array_not_output():
+    # A non-allocatable intent(inout) dimension(:) array is the in-place
+    # mutable-buffer input path, not an output array.
+    io = _arg('double precision',
+              attributes=['intent(inout)', 'dimension(:)'], name='buf')
     assert not is_output_array_arg(io)
-    assert classify_arg(io, REGISTERED)[0] == 'blocked'
 
 
 def test_non_numeric_allocatable_not_output_array():
@@ -247,14 +257,28 @@ def test_output_array_method_gate_blocks():
               name='y')
     optional_in = _arg('double precision',
                        attributes=['intent(in)', 'optional'], name='z')
-    inout_alloc = _arg('double precision',
-                       attributes=['intent(inout)', 'allocatable',
-                                   'dimension(:)'], name='w')
-    # Non-void return, optional args, and non-scalar-out non-input args all
-    # keep the method blocked.
+    inout_class = _arg('class', type_spec='fooClass',
+                       attributes=['intent(inout)'], name='obj')
+    # Non-void return, optional args, and non-scalar-out non-input args
+    # (here an intent(inout) class arg) all keep the method blocked.
     assert unsupported_output_array_method([oa], 'double precision')
     assert unsupported_output_array_method([optional_in, oa], 'void')
-    assert unsupported_output_array_method([inout_alloc, oa], 'void')
+    assert unsupported_output_array_method([inout_class, oa], 'void')
+
+
+def test_output_array_method_gate_allows_inout_allocatable():
+    # An intent(inout) allocatable array is itself an output array, so a
+    # method carrying only inputs + such arrays is allowed.
+    oa_out   = _arg('double precision',
+                    attributes=['intent(out)', 'allocatable', 'dimension(:)'],
+                    name='y')
+    oa_inout = _arg('integer', type_spec='c_size_t',
+                    attributes=['intent(inout)', 'allocatable',
+                                'dimension(:)'], name='indices')
+    inp = _arg('double precision',
+               attributes=['intent(in)', 'dimension(3)'], name='position')
+    assert unsupported_output_array_method([inp, oa_inout], 'void') is None
+    assert unsupported_output_array_method([oa_out, oa_inout], 'void') is None
 
 
 def test_output_scalar_excludes_derived_and_character():
