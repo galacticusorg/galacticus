@@ -85,6 +85,14 @@ with safe_section("darkMatterParticleCDM"):
 with safe_section("transferFunctionCAMB"):
     transferFunction = galacticus.transferFunctionCAMB(darkMatterParticle,cosmologyParameters,cosmologyFunctions,0,0.0,0)
     check("T(k=2 Mpc⁻¹)", transferFunction.value(2.0), 14637.776794245852)
+    # Output-array method (`intent(out), allocatable, dimension(:)`): CAMB
+    # inherits the base default `allocate(wavenumbers(0))`, so this
+    # exercises the wrapper's zero-size/null-pointer guard — the caller
+    # must get back an empty float64 array, not a crash or a stale view.
+    wavenumbers = transferFunction.wavenumbersLocalMinima()
+    check_eq("wavenumbersLocalMinima() type" , type(wavenumbers).__name__, 'ndarray')
+    check_eq("wavenumbersLocalMinima() size" , wavenumbers.size          , 0)
+    check_eq("wavenumbersLocalMinima() dtype", str(wavenumbers.dtype)    , 'float64')
 
 # Linear growth.
 with safe_section("linearGrowthCollisionlessMatter"):
@@ -284,14 +292,25 @@ with safe_section("supernovaeTypeIaPowerLawDTDDifferential"):
     check_eq("'yield' not exposed"   , hasattr(sn1a, 'yield' ), False)
 
 # Spherical computational-domain volume integrator — exercises the
-# procedure-pointer-arg skip.  The class's `integrate(integrand)`
-# method takes `procedure(...)` which the pipeline can't translate, so
-# the wrapper drops just that method while keeping the rest of the
-# class.  `volume()` is a plain double-precision return so it survives.
+# Python-callback (procedure-arg) path.  The class's
+# `integrate(integrand)` method takes
+# `procedure(computationalDomainVolumeIntegrand)`, which is registered
+# in Pipeline._CALLBACK_PROCEDURE_INTERFACES: the wrapper adapts a
+# Python callable via CFUNCTYPE → c_funptr → a Fortran shim that
+# converts the `class(coordinate)` argument to its Cartesian 3-array.
+# Integrating 1 over the domain must recover the shell volume;
+# integrating r² = |pos|² over the shell has the closed form
+# 4π(r₂⁵ − r₁⁵)/5.
 with safe_section("computationalDomainVolumeIntegratorSpherical"):
     cdom = galacticus.computationalDomainVolumeIntegratorSpherical([1.0, 5.0])
-    check   ("volume()"               , cdom.volume(), (4.0/3.0)*np.pi*(5.0**3 - 1.0**3))
-    check_eq("integrate() not exposed", hasattr(cdom, 'integrate'), False)
+    shellVolume = (4.0/3.0)*np.pi*(5.0**3 - 1.0**3)
+    check   ("volume()"          , cdom.volume(), shellVolume)
+    check_eq("integrate exposed" , hasattr(cdom, 'integrate'), True)
+    check   ("∫ 1 dV = V"        , cdom.integrate(lambda pos: 1.0),
+             shellVolume, rtol=1.0e-4)
+    check   ("∫ r² dV"           ,
+             cdom.integrate(lambda pos: float(np.sum(pos**2))),
+             4.0*np.pi*(5.0**5 - 1.0**5)/5.0, rtol=1.0e-4)
 
 # Empirical UniverseMachine node operator — exercises the
 # continuation-character strip in the Internal-constructor arg-name
