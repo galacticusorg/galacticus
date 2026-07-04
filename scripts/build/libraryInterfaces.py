@@ -23,6 +23,7 @@ from LibraryInterfaces.Classification import (
     DYNAMIC_ARRAY_RETURN_2D_RX as _DYNAMIC_ARRAY_RETURN_2D_RX,
     normalize_method_return_type as _normalize_method_return_type,
     unsupported_arg            as _unsupported_arg,
+    unsupported_output_array_method as _unsupported_output_array_method,
 )
 from LibraryInterfaces.Pipeline import (
     assign_c_types,
@@ -1046,6 +1047,27 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
             methods_to_delete.append(method_name)
             continue
 
+        # Whole-method gate for output-array args (`intent(out),
+        # allocatable, dimension(:)`).  A per-arg check accepts each output
+        # array, but the current codegen only handles them on void-returning
+        # methods with no optionals whose other args are supported inputs;
+        # anything else (scalar intent(out) companion, inout allocatable,
+        # non-void return) would have an output the wrapper silently drops.
+        # Shared with the audit so their verdicts can't drift.
+        output_array_block = _unsupported_output_array_method(
+            [{'name': a['name'], 'intrinsic': a['intrinsic'],
+              'type': a['type'], 'attributes': a['attributes']}
+             for a in arg_list[1:]],
+            method_type)
+        if output_array_block:
+            sys.stderr.write(
+                f"libraryInterfaces.py: caution: method '{method_name}' in"
+                f" class '{class_name}': {output_array_block} — skipping"
+                f" method\n"
+            )
+            methods_to_delete.append(method_name)
+            continue
+
         # Process arguments
         arg_list = assign_c_types(arg_list, lib_function_classes or {},
                                   class_hierarchy=_CLASS_HIERARCHY)
@@ -1054,6 +1076,55 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
         arg_list = build_fortran_reassignments(arg_list, func_class, None,
                                               extensions, module_uses_impls,
                                               lib_function_classes)
+
+        # Output-array args (`intent(out), allocatable, dimension(:)`): each
+        # is a wrapper-local `save, target` allocatable (declared + pre-call
+        # deallocated by assign_c_types) that the inner call fills.  Append a
+        # `(c_ptr, c_size_t)` intent(out) companion pair per output array to
+        # the bind(c) signature and set them, after the call, to
+        # `c_loc(buffer)` and `size(buffer)`.  The Python wrapper (bespoke
+        # branch below) wraps each pair into a numpy array.  Companions are
+        # appended at the end of the signature; the Python call passes them
+        # in this same order, so ctypes/bind(c) stay aligned.  Mirrors the
+        # single-slot dynamic-array *return* path (the _DYNAMIC_ARRAY_RETURN
+        # branch), generalised to N per-argument outputs.
+        output_arrays = [a for a in arg_list if a.is_output_array]
+        for a in output_arrays:
+            local     = f'glcOut_{a.name}_'
+            ptr_name  = f'{a.name}DataPtr_'
+            size_name = f'{a.name}Size_'
+            result_extra_declarations += (
+                f'  type(c_ptr),       intent(out) :: {ptr_name}\n'
+                f'  integer(c_size_t), intent(out) :: {size_name}\n'
+            )
+            # Guard c_loc: it is non-conforming on a zero-size or unallocated
+            # array (F2008 requires a contiguous, nonzero-size target), and
+            # an intent(out) allocatable may be left unallocated (or
+            # allocated to length 0 — e.g. transferFunction's default
+            # `allocate(wavenumbers(0))`) by the inner method.  In those
+            # cases report size 0 and a null pointer; the Python wrapper
+            # returns an empty array without dereferencing it.
+            result_post_call_code += (
+                f'  if (allocated({local})) then\n'
+                f'    {size_name} = size({local}, kind=c_size_t)\n'
+                f'    if ({size_name} > 0_c_size_t) then\n'
+                f'      {ptr_name} = c_loc({local})\n'
+                f'    else\n'
+                f'      {ptr_name} = c_null_ptr\n'
+                f'    end if\n'
+                f'  else\n'
+                f'    {size_name} = 0_c_size_t\n'
+                f'    {ptr_name} = c_null_ptr\n'
+                f'  end if\n'
+            )
+            result_extra_fort_args     += [ptr_name, size_name]
+            result_extra_clib_argtypes += ['POINTER(c_void_p)',
+                                           'POINTER(c_size_t)']
+            isoImports['c_ptr']            = 1
+            isoImports['c_size_t']         = 1
+            isoImports['c_loc']            = 1
+            isoImports['c_null_ptr']       = 1
+            isoImports[a.output_elem_ctype] = 1   # kind for the local buffer
 
         # Generate Fortran method.  An array-return method is lowered to a
         # subroutine with an extra intent(out) array arg (see the
@@ -1209,6 +1280,63 @@ end {procedure} {method_name_c}
                 + f'    return np.ctypeslib.as_array(\n'
                 + f'        ({elem_ctype} * _glcSize_.value).from_address(_glcDataPtr_.value)\n'
                 + f'    ).copy()\n'
+            )
+        elif output_arrays:
+            # Output-array method: one or more `intent(out), allocatable,
+            # dimension(:)` args, each filled by the inner call into a
+            # save-target buffer and conveyed back as a (c_ptr, c_size_t)
+            # companion pair appended to the bind(c) signature above.  Create
+            # a c_void_p / c_size_t local per output array, pass them by
+            # reference in signature order (input args first, then the
+            # companion pairs — matching result_extra_fort_args), and after
+            # the call wrap each pair into a fresh numpy array (`.copy()`
+            # because the save buffer is overwritten on the next call).  A
+            # null pointer / zero size (see the Fortran guard) yields an
+            # empty array without dereferencing.  Return a single array for
+            # one output, else a tuple in declaration order.  The gate
+            # guarantees a void return and no optional args, so no
+            # optional-arg branching is needed.
+            py_call_args = []
+            for a in arg_list:
+                if not a.fort_is_present:
+                    continue
+                py_call_args.append(a.py_pass_as if a.py_pass_as
+                                    else python_safe_name(a.name))
+            setup_lines   = ''
+            collect_lines = ''
+            result_names  = []
+            for a in output_arrays:
+                pv         = python_safe_name(a.name)
+                ptr_local  = f'_{pv}Ptr_'
+                size_local = f'_{pv}Size_'
+                arr_local  = f'_{pv}Arr_'
+                py_call_args.append(f'byref({ptr_local})')
+                py_call_args.append(f'byref({size_local})')
+                setup_lines += (
+                    f'    {ptr_local}  = c_void_p()\n'
+                    f'    {size_local} = c_size_t()\n'
+                )
+                collect_lines += (
+                    f'    if {size_local}.value:\n'
+                    f'        {arr_local} = np.ctypeslib.as_array(\n'
+                    f'            ({a.output_elem_ctype} * {size_local}.value)'
+                    f'.from_address({ptr_local}.value)\n'
+                    f'        ).copy()\n'
+                    f'    else:\n'
+                    f'        {arr_local} = np.empty(0, dtype=np.{a.output_elem_dtype})\n'
+                )
+                result_names.append(arr_local)
+            reassignments_block = ''.join(a.py_reassignment for a in arg_list)
+            if len(result_names) == 1:
+                return_stmt = f'    return {result_names[0]}\n'
+            else:
+                return_stmt = f'    return ({", ".join(result_names)})\n'
+            py_call = (
+                reassignments_block
+                + setup_lines
+                + f'    c_lib.{method_name_c}({",".join(py_call_args)})\n'
+                + collect_lines
+                + return_stmt
             )
         else:
             # Reassignments (numpy conversion, optional-arg unpacking, …)

@@ -33,6 +33,7 @@ __all__ = [
     'RETURN_TYPE_ALIASES', 'SCALAR_RETURN_OK',
     'normalize_method_return_type', 'is_internal_constructor_name',
     'classify_arg', 'unsupported_arg',
+    'is_output_array_arg', 'unsupported_output_array_method',
 ]
 
 
@@ -358,6 +359,19 @@ def classify_arg(arg, registered_classes, *, constructor_overrides=(),
                     or is_supported_char_array
                     or is_supported_vstring_array or is_supported_list_array):
                 if 'allocatable' in attrs:
+                    # 1D `intent(out), allocatable, dimension(:)` numeric
+                    # args are supported as OUTPUT arrays: the inner method
+                    # allocates and fills them, and the data + size flow
+                    # back to Python (see ArgSpec.is_output_array). The
+                    # surrounding method must additionally satisfy
+                    # `unsupported_output_array_method` — a whole-method
+                    # property (void return, no optionals, other args are
+                    # inputs) that the generator and audit enforce, not a
+                    # per-arg one. Every other allocatable shape
+                    # (intent(in)/inout, non-numeric, multi-dim) stays
+                    # blocked.
+                    if is_output_array_arg(arg):
+                        continue
                     return ('blocked',
                             '1D allocatable array argument'
                             ' (output arrays not yet supported)')
@@ -389,3 +403,68 @@ def unsupported_arg(arg, lib_function_classes, *,
     if verdict is None:
         return None
     return verdict[1]
+
+
+# ---------------------------------------------------------------------------
+# Output-array arguments (`intent(out), allocatable, dimension(:)`)
+# ---------------------------------------------------------------------------
+
+def is_output_array_arg(arg):
+    """True if *arg* is a 1D ``intent(out), allocatable, dimension(:)``
+    numeric (``double precision`` / ``integer``) OUTPUT-array argument — the
+    shape the generator lowers to a ``save, target`` buffer with a
+    ``(c_ptr, c_size_t)`` intent(out) companion pair (see
+    :attr:`ArgSpec.is_output_array`).
+
+    ``intent(inout)`` allocatable arrays are deliberately excluded: from the
+    wrapper's side a fresh, pre-deallocated local behaves the same, but
+    ``inout`` signals the inner method may *read* an incoming allocation the
+    Python caller has no way to supply, so those stay blocked for now.
+    """
+    attrs = arg.get('attributes', [])
+    return (arg.get('intrinsic') in ('double precision', 'integer')
+            and 'allocatable' in attrs
+            and 'dimension(:)' in attrs
+            and 'intent(out)' in attrs)
+
+
+def unsupported_output_array_method(args, return_type):
+    """Whole-method gate for the output-array feature.
+
+    Returns a human-readable reason when *args* contains at least one
+    output-array argument (see :func:`is_output_array_arg`) but the
+    surrounding method has a feature the current output-array codegen can't
+    handle; otherwise ``None`` — including when there are no output arrays at
+    all, which is the normal (non-output-array) path.
+
+    Increment-1 restriction: an output-array method must return ``void``,
+    have no optional arguments, and every non-``self`` argument must be
+    either a supported input or itself an output array. A scalar
+    ``intent(out)`` / ``intent(inout)`` companion, an ``intent(inout)``
+    allocatable, or a non-void return would each have an output the wrapper
+    silently drops, so such methods stay blocked.
+
+    Shared by the generator (:mod:`libraryInterfaces`) and the audit
+    (:mod:`libraryInterfacesAudit`) so their verdicts can't drift.
+
+    *args* are the raw declaration dicts for the method's arguments
+    EXCLUDING ``self``. *return_type* is the method's normalized return-type
+    string (``'void'`` for subroutines).
+    """
+    if not any(is_output_array_arg(a) for a in args):
+        return None
+    if (return_type or 'void').strip() != 'void':
+        return (f"output-array method with non-void return type "
+                f"({return_type}) — not yet supported")
+    for a in args:
+        if is_output_array_arg(a):
+            continue
+        attrs = a.get('attributes', [])
+        if 'optional' in attrs:
+            return (f"output-array method with optional argument "
+                    f"'{a.get('name', '?')}' — not yet supported")
+        if 'intent(out)' in attrs or 'intent(inout)' in attrs:
+            return (f"output-array method with non-input argument "
+                    f"'{a.get('name', '?')}' — only supported inputs may "
+                    f"accompany output arrays")
+    return None

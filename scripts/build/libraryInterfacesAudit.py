@@ -87,6 +87,7 @@ from LibraryInterfaces.Classification import (   # noqa: E402
     SCALAR_RETURN_OK             as _SCALAR_RETURN_OK,
     classify_arg,
     is_internal_constructor_name as _is_internal_constructor_name,
+    unsupported_output_array_method as _unsupported_output_array_method,
 )
 
 
@@ -581,10 +582,21 @@ def aggregate_methods(methods_by_fc, all_fcs, registered,
                 m['args'], all_fcs, registered,
                 overridden_args=frozenset(),
                 class_hierarchy=class_hierarchy)
+            reasons = list(ret_reasons) + list(arg_reasons)
+            # Whole-method gate for output-array args: classify_constructor
+            # accepts each `intent(out), allocatable, dimension(:)` arg
+            # per-arg, but the generator only emits output-array methods that
+            # are void-returning, optional-free, and whose other args are
+            # supported inputs.  Mirror that gate so the audit's readiness
+            # tracks the generator (shared predicate — can't drift).
+            output_block = _unsupported_output_array_method(
+                m['args'], m['return'])
+            if output_block:
+                reasons.append(output_block)
             rows.append({
                 'method' : m,
                 'deps'   : ret_deps | arg_deps,
-                'reasons': list(ret_reasons) + list(arg_reasons),
+                'reasons': reasons,
             })
         out[fc] = rows
     return out

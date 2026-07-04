@@ -106,6 +106,22 @@ class ArgSpec:
     # when no narrowing is needed (the plain `class(<base>Class)` case).
     narrowing_type: str = ''
 
+    # Marker for `intent(out), allocatable, dimension(:)` numeric OUTPUT-array
+    # arguments — the inner method allocates and fills the array, and its
+    # data + size flow *back* to Python (it is not supplied by the caller).
+    # Handled like the dynamic-array *return* path: the arg itself is dropped
+    # from the bind(c) and Python signatures (fort/py_is_present=False) and
+    # replaced by a function-local `save, target` allocatable
+    # (`glcOut_<name>_`, named via fort_pass_as) that the inner call fills;
+    # the generator appends a `(c_ptr, c_size_t)` intent(out) companion pair
+    # to the bind(c) signature and the Python wrapper wraps them into a numpy
+    # array (copied, since the save buffer is overwritten on the next call).
+    # galacticus_is_present stays True so the inner call still receives it.
+    is_output_array:    bool = False
+    output_elem_ctype:  str  = ''   # 'c_double' / 'c_int'
+    output_elem_fort:   str  = ''   # 'real(c_double)' / 'integer(c_int)'
+    output_elem_dtype:  str  = ''   # numpy dtype: 'float64' / 'int32'
+
     # Marker for constructor args that libraryClasses.xml asks the
     # wrapper to fill with a null pointer rather than expose to Python
     # (`<argument name="..." value="null"/>`).  Used for callback-

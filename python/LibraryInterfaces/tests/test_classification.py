@@ -11,8 +11,10 @@ import pytest
 from LibraryInterfaces.Classification import (
     classify_arg,
     is_internal_constructor_name,
+    is_output_array_arg,
     normalize_method_return_type,
     unsupported_arg,
+    unsupported_output_array_method,
 )
 
 REGISTERED = {'cosmologyFunctions': {}, 'darkMatterHaloScale': {}}
@@ -183,3 +185,61 @@ def test_internal_constructor_names():
     assert is_internal_constructor_name('allAndFormationNodesInternal')
     assert is_internal_constructor_name('fooConstructorInternalType')
     assert not is_internal_constructor_name('fooConstructorParameters')
+
+
+# ---------------------------------------------------------------------------
+# Output-array arguments (`intent(out), allocatable, dimension(:)`)
+# ---------------------------------------------------------------------------
+
+def test_output_array_arg_recognised_and_accepted():
+    oa = _arg('double precision',
+              attributes=['intent(out)', 'allocatable', 'dimension(:)'],
+              name='wavenumbers')
+    assert is_output_array_arg(oa)
+    # A per-arg classify accepts it (the method-level gate handles the rest).
+    assert classify_arg(oa, REGISTERED) is None
+
+
+@pytest.mark.parametrize('intrinsic', ['double precision', 'integer'])
+def test_output_array_numeric_kinds(intrinsic):
+    assert is_output_array_arg(
+        _arg(intrinsic,
+             attributes=['intent(out)', 'allocatable', 'dimension(:)']))
+
+
+def test_inout_allocatable_is_not_output_array_and_blocked():
+    io = _arg('integer', type_spec='c_size_t',
+              attributes=['allocatable', 'dimension(:)', 'intent(inout)'],
+              name='indices')
+    assert not is_output_array_arg(io)
+    assert classify_arg(io, REGISTERED)[0] == 'blocked'
+
+
+def test_non_numeric_allocatable_not_output_array():
+    lg = _arg('logical',
+              attributes=['intent(out)', 'allocatable', 'dimension(:)'])
+    assert not is_output_array_arg(lg)
+
+
+def test_output_array_method_gate_clean_cases():
+    oa = _arg('double precision',
+              attributes=['intent(out)', 'allocatable', 'dimension(:)'],
+              name='y')
+    inp = _arg('double precision', attributes=['intent(in)'], name='time')
+    # Void return, only inputs alongside the output → allowed.
+    assert unsupported_output_array_method([oa], 'void') is None
+    assert unsupported_output_array_method([inp, oa], 'void') is None
+    # No output array at all → gate is a no-op.
+    assert unsupported_output_array_method([inp], 'void') is None
+
+
+def test_output_array_method_gate_blocks():
+    oa = _arg('double precision',
+              attributes=['intent(out)', 'allocatable', 'dimension(:)'],
+              name='y')
+    scalar_out = _arg('integer', attributes=['intent(out)'], name='count')
+    optional_in = _arg('double precision',
+                       attributes=['intent(in)', 'optional'], name='z')
+    assert unsupported_output_array_method([oa], 'double precision')
+    assert unsupported_output_array_method([scalar_out, oa], 'void')
+    assert unsupported_output_array_method([optional_in, oa], 'void')

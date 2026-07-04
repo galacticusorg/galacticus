@@ -127,3 +127,16 @@ def test_procedure_pointer_arg_is_in_scope():
 def test_complex_arg_is_in_scope():
     assert audit._is_out_of_scope_reason(
         'complex(c_double_complex) (windowFunction1)') is False
+
+
+def test_output_array_gate_reasons_are_in_scope():
+    # The whole-method output-array gate emits these; they are deferred
+    # increments of an in-scope feature, not the deferred non-fc backlog.
+    for reason in (
+        "output-array method with non-void return type (double precision)"
+        " — not yet supported",
+        "output-array method with non-input argument 'wavelengthsCount'"
+        " — only supported inputs may accompany output arrays",
+        "output-array method with optional argument 'z' — not yet supported",
+    ):
+        assert audit._is_out_of_scope_reason(reason) is False

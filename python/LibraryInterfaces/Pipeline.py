@@ -285,6 +285,56 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
             arg.is_optional           = False
             new_list.insert(0, arg)
             continue
+
+        # Output-array arg: `intent(out), allocatable, dimension(:)` numeric.
+        # The inner method allocates and fills it, and its data + size flow
+        # *back* to Python via a `(c_ptr, c_size_t)` companion pair that the
+        # generator appends to the bind(c) signature (see interfaces_methods).
+        # Short-circuit the per-intrinsic dispatch below, and in particular
+        # the deferred-shape *input*-array block that would otherwise treat
+        # this like an incoming numpy buffer and add a count companion: the
+        # arg is a wrapper-local `save, target` allocatable, not a bind(c) or
+        # Python formal, so it carries no ctype. Only galacticus_is_present
+        # stays True, so the inner call still receives the local buffer.
+        # (Predicate inlined rather than imported from Classification, which
+        # already imports from this module.)
+        if (arg.intrinsic in ('double precision', 'integer')
+                and 'allocatable' in arg.attributes
+                and 'dimension(:)' in arg.attributes
+                and 'intent(out)' in arg.attributes):
+            if arg.intrinsic == 'double precision':
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_double', 'real(c_double)', 'float64')
+            elif arg.type_spec in ('c_long', 'kind_int8'):
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_long', 'integer(c_long)', 'int64')
+            elif arg.type_spec == 'c_size_t':
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_size_t', 'integer(c_size_t)', 'uint64')
+            else:
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_int', 'integer(c_int)', 'int32')
+            local = f'glcOut_{arg.name}_'
+            arg.is_output_array       = True
+            arg.output_elem_ctype     = elem_ctype
+            arg.output_elem_fort      = elem_fort
+            arg.output_elem_dtype     = elem_dtype
+            arg.fort_is_present       = False
+            arg.py_is_present         = False
+            arg.galacticus_is_present = True
+            arg.is_optional           = False
+            arg.fort_pass_as          = local
+            arg.fort_declarations     = (
+                f'  {elem_fort}, dimension(:), allocatable, save, target'
+                f' :: {local}\n')
+            # Pre-call hygiene: free any allocation the previous call left
+            # (Python has already copied it) so the inner method's
+            # allocate-on-assignment starts from a clean deallocated state.
+            arg.fort_reassignment     = (
+                f'  if (allocated({local})) deallocate({local})\n')
+            new_list.insert(0, arg)
+            continue
+
         arg.is_function_class     = False
         arg.is_optional           = bool('optional' in arg.attributes)
 

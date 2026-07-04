@@ -684,7 +684,7 @@ ifneq ($(IS_LIB_BUILD),)
 -include $(BUILDPATH)/Makefile_Library_Dependencies
 $(BUILDPATH)/Makefile_Library_Dependencies: $(BUILDPATH)/libgalacticus.Inc ./scripts/build/libraryInterfacesDependencies.py
 	./scripts/build/libraryInterfacesDependencies.py
-$(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml ./source/libraryClasses.xml ./scripts/build/libraryInterfaces.py ./python/LibraryInterfaces/Pipeline.py ./python/LibraryInterfaces/Emitters.py ./python/LibraryInterfaces/ArgSpec.py ./python/LibraryInterfaces/Hierarchy.py
+$(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml ./source/libraryClasses.xml ./scripts/build/libraryInterfaces.py ./python/LibraryInterfaces/Pipeline.py ./python/LibraryInterfaces/Emitters.py ./python/LibraryInterfaces/ArgSpec.py ./python/LibraryInterfaces/Hierarchy.py ./python/LibraryInterfaces/Classification.py
 	./scripts/build/libraryInterfaces.py
 $(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
 	./scripts/build/preprocess.py $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
