@@ -289,6 +289,36 @@ def classify_arg(arg, registered_classes, *, constructor_overrides=(),
         return ('blocked',
                 f"procedure({type_spec}) — procedure-pointer args "
                 f"are not supported")
+    # Object-pointer dummies with intent(out|inout): the callee may (re)point
+    # the pointer, and the wrapper's local-pointer passing loses that
+    # repointing silently — e.g. a tree-walker's `next(node)` would return
+    # success but never advance the caller's node.  Two flavours:
+    #
+    # * `class(...), pointer` outputs (only `class(*)` exists in the tree:
+    #   timeEvolveTo's taskSelf) — an unlimited-polymorphic pointer handed
+    #   back to the caller is unsupportable in principle; the "pointer
+    #   output" wording routes it to the audit's out-of-scope bucket.
+    # * `type(X), pointer` in/outs (mergerTreeWalker.next, nodeEvolver's
+    #   promote, buildController.control, …) — supportable via a pointer
+    #   write-back protocol (bind(c) takes the c_ptr by reference and
+    #   writes back c_loc of the repointed target); until that exists the
+    #   wrapper is silently broken, so reject.  The wording deliberately
+    #   avoids the literal "type(" so the audit's internal-derived-type
+    #   rule doesn't misfile this *actionable* blocker as deferred.
+    pointer_attrs = arg.get('attributes', [])
+    if intrinsic in ('class', 'type') and 'pointer' in pointer_attrs \
+            and ('intent(out)' in pointer_attrs
+                 or 'intent(inout)' in pointer_attrs):
+        type_spec = (arg.get('type') or '').strip()
+        if intrinsic == 'class':
+            return ('blocked',
+                    f"class({type_spec}) pointer output — a Fortran object "
+                    f"pointer returned to the caller cannot be exposed to "
+                    f"Python")
+        return ('blocked',
+                f"pointer dummy of derived {intrinsic} '{type_spec}' — "
+                f"repointing by the method would be silently lost by the "
+                f"wrapper (needs a pointer write-back protocol)")
     if intrinsic == 'integer' \
             and (arg.get('type') or '').strip() == 'omp_lock_kind' \
             and 'optional' not in arg.get('attributes', []):
@@ -419,8 +449,25 @@ def classify_arg(arg, registered_classes, *, constructor_overrides=(),
                 # inner Galacticus method mutates the caller's contiguous
                 # numpy buffer in place.
                 continue
+            # Arrays of polymorphic objects (`class(...), dimension(:)`)
+            # cannot be assembled from the per-object pointers a Python
+            # caller holds: a polymorphic array has ONE dynamic type, and
+            # intrinsic assignment into polymorphic array elements is not
+            # permitted.  Distinct message so the audit defers these
+            # rather than listing them as actionable.
+            if intrinsic == 'class':
+                return ('blocked',
+                        f"class({type_spec}) array argument — arrays of "
+                        f"polymorphic objects cannot be assembled from "
+                        f"Python-held object pointers")
+            # Name the element type in the generic reject so the audit's
+            # bucketing can tell `type(nBodyData)` (an internal derived
+            # type — deferred) apart from numeric shapes that are merely
+            # not-yet-supported (actionable).
+            subject = (f"{intrinsic}({type_spec})" if type_spec
+                       else f"{intrinsic}")
             return ('blocked',
-                    'dimensioned argument'
+                    f'dimensioned argument of {subject}'
                     ' (only 1D deferred-shape or fixed-size numeric input,'
                     ' 2D deferred-shape numeric input, or 1D deferred-shape'
                     ' fixed-length character arrays, are supported)')

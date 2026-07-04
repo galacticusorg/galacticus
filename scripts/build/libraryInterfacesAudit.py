@@ -547,14 +547,23 @@ def _is_out_of_scope_reason(reason):
         return True
     if 'class(non-fc) return' in reason:
         return True
-    # `procedure(...), pointer, intent(out|inout)` — a Fortran procedure
-    # pointer handed back to the caller.  Unsupportable in principle (a
-    # Python caller can do nothing with one), so it belongs with the
-    # deferred backlog, not the actionable worklist.  Inbound callback
-    # blockers ("procedure(...) — procedure-pointer args are not
-    # supported") stay in-scope: those are candidates for registration in
-    # Pipeline._CALLBACK_PROCEDURE_INTERFACES.
-    if 'procedure(' in reason and 'pointer output' in reason:
+    # `procedure(...)` / `class(...)` pointers with intent(out|inout) — a
+    # Fortran procedure or object pointer handed back to the caller.
+    # Unsupportable in principle (a Python caller can do nothing with one),
+    # so they belong with the deferred backlog, not the actionable
+    # worklist.  Inbound callback blockers ("procedure(...) —
+    # procedure-pointer args are not supported") stay in-scope (candidates
+    # for Pipeline._CALLBACK_PROCEDURE_INTERFACES), as do `type(X),
+    # pointer` in/outs ("pointer dummy of derived type …" — fixable via a
+    # pointer write-back protocol; that wording deliberately avoids
+    # matching here or the derived-type rule below).
+    if ') pointer output' in reason:
+        return True
+    # `class(<X>), dimension(:)` args — arrays of polymorphic objects
+    # cannot be assembled from Python-held per-object pointers (one
+    # dynamic type per array; no intrinsic assignment into polymorphic
+    # elements), so these are deferred, not actionable.
+    if re.match(r'\s*class\s*\(', reason) and 'array argument' in reason:
         return True
     # Scalar `type(<X>)` returns/args where X isn't varying_string or an
     # enumeration*Type — those are the internal-derived-type cases.

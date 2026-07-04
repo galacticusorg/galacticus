@@ -159,13 +159,56 @@ def test_allocatable_array_rejected():
 @pytest.mark.parametrize('intrinsic,type_spec,dim', [
     ('character', 'len=*', 'dimension(:)'),   # no fixed byte stride
     ('logical',   '',      'dimension(3)'),   # fixed-size logical unsupported
-    ('class',     'cosmologyFunctionsClass', 'dimension(:)'),
 ])
 def test_unsupported_array_shapes(intrinsic, type_spec, dim):
     arg = _arg(intrinsic, type_spec, attributes=[dim])
     verdict = classify_arg(arg, REGISTERED)
     assert verdict[0] == 'blocked'
     assert 'dimensioned argument' in verdict[1]
+
+
+def test_class_array_argument_gets_specific_reject():
+    # Arrays of polymorphic objects get a distinct, deferrable message
+    # (one dynamic type per array; no intrinsic assignment into
+    # polymorphic elements) rather than the generic dimensioned reject.
+    arg = _arg('class', 'cosmologyFunctionsClass',
+               attributes=['dimension(:)'])
+    verdict = classify_arg(arg, REGISTERED)
+    assert verdict[0] == 'blocked'
+    assert 'array argument' in verdict[1]
+    assert verdict[1].startswith('class(cosmologyFunctionsClass)')
+
+
+def test_derived_type_array_reject_names_the_type():
+    # `type(nBodyData), dimension(:)` — the reject must name the element
+    # type so the audit's internal-derived-type rule can defer it.
+    arg = _arg('type', 'nBodyData',
+               attributes=['intent(inout)', 'dimension(:)'])
+    verdict = classify_arg(arg, REGISTERED)
+    assert verdict[0] == 'blocked'
+    assert 'type(nBodyData)' in verdict[1]
+
+
+def test_object_pointer_dummies_rejected():
+    # class(*) pointer output — unsupportable in principle (deferred).
+    star = _arg('class', '*', attributes=['intent(out)', 'pointer'],
+                name='taskSelf')
+    verdict = classify_arg(star, REGISTERED)
+    assert verdict[0] == 'blocked'
+    assert 'pointer output' in verdict[1]
+    # type(treeNode) pointer inout — repointing would be silently lost;
+    # actionable via a write-back protocol, so the wording must NOT
+    # contain "type(" (which would misfile it as a deferred derived type).
+    node = _arg('type', 'treeNode', attributes=['intent(inout)', 'pointer'],
+                name='node')
+    verdict = classify_arg(node, REGISTERED)
+    assert verdict[0] == 'blocked'
+    assert 'write-back' in verdict[1]
+    assert 'type(' not in verdict[1]
+    # A plain (non-pointer) treeNode scalar stays supported.
+    plain = _arg('type', 'treeNode', attributes=['intent(inout)'],
+                 name='node')
+    assert classify_arg(plain, REGISTERED) is None
 
 
 # ---------------------------------------------------------------------------

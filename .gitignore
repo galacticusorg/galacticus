@@ -6,6 +6,8 @@
 *.exe
 galacticusConfig.xml
 galacticus.py
+libgalacticus.so
+galacticus/
 parameters.catalog.json
 work
 testSuite/*.log

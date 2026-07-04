@@ -145,6 +145,45 @@ def test_inbound_procedure_blocker_stays_in_scope():
     assert audit._is_out_of_scope_reason(reason) is False
 
 
+def test_class_pointer_output_is_out_of_scope():
+    reason = ("class(*) pointer output — a Fortran object pointer returned "
+              "to the caller cannot be exposed to Python (taskSelf)")
+    assert audit._is_out_of_scope_reason(reason) is True
+
+
+def test_pointer_write_back_blocker_stays_in_scope():
+    # type(X) pointer in/outs are actionable (write-back protocol).
+    reason = ("pointer dummy of derived type 'treeNode' — repointing by "
+              "the method would be silently lost by the wrapper (needs a "
+              "pointer write-back protocol) (node)")
+    assert audit._is_out_of_scope_reason(reason) is False
+
+
+def test_polymorphic_array_argument_is_out_of_scope():
+    reason = ("class(posteriorSampleStateClass) array argument — arrays of "
+              "polymorphic objects cannot be assembled from Python-held "
+              "object pointers (temperedStates)")
+    assert audit._is_out_of_scope_reason(reason) is True
+
+
+def test_derived_type_array_is_out_of_scope():
+    # The typed dimensioned reject triggers the internal-derived-type rule.
+    reason = ("dimensioned argument of type(nBodyData) (only 1D "
+              "deferred-shape or fixed-size numeric input, 2D deferred-shape "
+              "numeric input, or 1D deferred-shape fixed-length character "
+              "arrays, are supported) (simulations)")
+    assert audit._is_out_of_scope_reason(reason) is True
+
+
+def test_numeric_dimensioned_reject_stays_in_scope():
+    # windowFunctions-style runtime-extent numeric arrays stay actionable.
+    reason = ("dimensioned argument of double precision (only 1D "
+              "deferred-shape or fixed-size numeric input, 2D deferred-shape "
+              "numeric input, or 1D deferred-shape fixed-length character "
+              "arrays, are supported) (windowFunction1)")
+    assert audit._is_out_of_scope_reason(reason) is False
+
+
 def test_output_array_gate_reasons_are_in_scope():
     # The whole-method output-array gate emits these; they are deferred
     # increments of an in-scope feature, not the deferred non-fc backlog.
