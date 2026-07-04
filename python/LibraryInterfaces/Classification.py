@@ -188,7 +188,8 @@ def is_internal_constructor_name(name):
 # ---------------------------------------------------------------------------
 
 def classify_arg(arg, registered_classes, *, constructor_overrides=(),
-                 class_hierarchy=None, known_function_classes=None):
+                 class_hierarchy=None, known_function_classes=None,
+                 allow_pointer_writeback=False):
     """Classify one constructor/method argument.
 
     Returns ``None`` when the pipeline supports the argument;
@@ -311,12 +312,20 @@ def classify_arg(arg, registered_classes, *, constructor_overrides=(),
     #   back to the caller is unsupportable in principle; the "pointer
     #   output" wording routes it to the audit's out-of-scope bucket.
     # * `type(X), pointer` in/outs (mergerTreeWalker.next, nodeEvolver's
-    #   promote, buildController.control, …) — supportable via a pointer
-    #   write-back protocol (bind(c) takes the c_ptr by reference and
-    #   writes back c_loc of the repointed target); until that exists the
-    #   wrapper is silently broken, so reject.  The wording deliberately
-    #   avoids the literal "type(" so the audit's internal-derived-type
-    #   rule doesn't misfile this *actionable* blocker as deferred.
+    #   promote, buildController.control, …) — supported on METHODS via the
+    #   pointer write-back protocol when X is a known shared type: the
+    #   bind(c) wrapper takes the c_ptr BY REFERENCE, converts a
+    #   c_associated handle to a local Fortran pointer (null handle →
+    #   disassociated — the tree-walker start-of-iteration idiom), and
+    #   after the call writes back c_loc of the (re)pointed target (or
+    #   c_null_ptr).  Python passes a ctypes.c_void_p by reference and the
+    #   handle is updated in place, so `while walker.next(node): …`
+    #   iterates.  *allow_pointer_writeback* gates this to method args:
+    #   the constructor codegen has no post-call write-back hook, so
+    #   constructor args with this shape (e.g. cole2000's nodeTip) stay
+    #   rejected.  The reject wording deliberately avoids the literal
+    #   "type(" so the audit's internal-derived-type rule doesn't misfile
+    #   this *actionable* blocker as deferred.
     pointer_attrs = arg.get('attributes', [])
     if intrinsic in ('class', 'type') and 'pointer' in pointer_attrs \
             and ('intent(out)' in pointer_attrs
@@ -327,6 +336,10 @@ def classify_arg(arg, registered_classes, *, constructor_overrides=(),
                     f"class({type_spec}) pointer output — a Fortran object "
                     f"pointer returned to the caller cannot be exposed to "
                     f"Python")
+        if (allow_pointer_writeback
+                and type_spec in _SHARED_TYPE_MODULES
+                and 'optional' not in pointer_attrs):
+            return None
         return ('blocked',
                 f"pointer dummy of derived {intrinsic} '{type_spec}' — "
                 f"repointing by the method would be silently lost by the "
@@ -489,7 +502,8 @@ def classify_arg(arg, registered_classes, *, constructor_overrides=(),
 
 
 def unsupported_arg(arg, lib_function_classes, *,
-                    constructor_overrides=(), class_hierarchy=None):
+                    constructor_overrides=(), class_hierarchy=None,
+                    allow_pointer_writeback=False):
     """Generator-mode wrapper around :func:`classify_arg`: return a
     human-readable reason if ``arg`` has a type the pipeline can't
     translate, otherwise ``None``."""
@@ -497,6 +511,7 @@ def unsupported_arg(arg, lib_function_classes, *,
         arg, lib_function_classes,
         constructor_overrides=constructor_overrides,
         class_hierarchy=class_hierarchy,
+        allow_pointer_writeback=allow_pointer_writeback,
     )
     if verdict is None:
         return None

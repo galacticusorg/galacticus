@@ -538,6 +538,51 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
             new_list.insert(0, arg)
             continue
 
+        # Pointer write-back arg: `type(X), pointer, intent(out|inout)` with
+        # X a shared type (methods only — the generator's method gate is the
+        # sole caller that lets such an arg through classify; constructor
+        # impls with this shape are rejected before assign_c_types runs).
+        # The handle crosses bind(c) as `type(c_ptr), intent(inout)` BY
+        # REFERENCE; the wrapper converts to a local Fortran pointer before
+        # the call (guarded — a null handle means a disassociated pointer)
+        # and the generator writes the repointed target's c_loc back after
+        # the call.  Python passes byref of a ctypes.c_void_p, updated in
+        # place.
+        if (arg.intrinsic == 'type'
+                and 'pointer' in arg.attributes
+                and ('intent(out)' in arg.attributes
+                     or 'intent(inout)' in arg.attributes)
+                and 'optional' not in arg.attributes
+                and arg.type_spec in _SHARED_TYPE_MODULES):
+            local = f'{arg.name}_'
+            pv    = python_safe_name(arg.name)
+            arg.is_pointer_writeback = True
+            arg.ctype                = 'c_void_p'
+            arg.fort_type            = 'type(c_ptr)'
+            arg.is_optional          = False
+            arg.fort_pass_as         = local
+            arg.fort_declarations    = (
+                f'  type({arg.type_spec}), pointer :: {local}\n')
+            arg.fort_modules         = {
+                _SHARED_TYPE_MODULES[arg.type_spec]: {arg.type_spec: 1}}
+            arg.fort_iso_c_symbols   = ['c_associated', 'c_f_pointer',
+                                        'c_loc', 'c_null_ptr']
+            arg.fort_reassignment    = (
+                f'  if (c_associated({arg.name})) then\n'
+                f'    call c_f_pointer({arg.name}, {local})\n'
+                f'  else\n'
+                f'    {local} => null()\n'
+                f'  end if\n')
+            # Python: the handle must be a real ctypes.c_void_p so the
+            # write-back lands in the caller's object.
+            arg.py_pass_as       = f'byref({pv})'
+            arg.py_reassignment  = (
+                f'    if not isinstance({pv}, c_void_p):\n'
+                f'        raise TypeError("{pv} must be a ctypes.c_void_p'
+                f' handle (it is updated in place)")\n')
+            new_list.insert(0, arg)
+            continue
+
         # Sized output buffer: `intent(out), dimension(<argName>,…)` numeric
         # or complex(c_double_complex).  The dummy stays in the bind(c)
         # signature (assign_c_attributes rewrites the shape to
@@ -910,6 +955,16 @@ def assign_c_attributes(argument_list):
     """Assign C attributes to arguments."""
     for arg in argument_list:
         arg.fort_attributes = []
+
+        # Pointer write-back handles cross bind(c) BY REFERENCE with
+        # intent(inout) — the wrapper writes the repointed target's address
+        # back through them.  The generic rule below would pass any *_p
+        # ctype by value, which silently discards the write-back.
+        if arg.is_pointer_writeback:
+            arg.fort_attributes.append('intent(inout)')
+            arg.pass_by       = 'reference'
+            arg.ctype_pointer = True
+            continue
 
         if arg.is_optional:
             arg.fort_attributes.append('optional')
@@ -1349,7 +1404,8 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
             new_list.insert(0, arg)
             continue
 
-        if arg.is_output_array or arg.is_output_sized or arg.is_callback:
+        if (arg.is_output_array or arg.is_output_sized or arg.is_callback
+                or arg.is_pointer_writeback):
             # Output arrays and callbacks were fully wired in
             # assign_c_types / the generator: fort_pass_as points at the
             # wrapper-local buffer (or shim), fort_declarations declares

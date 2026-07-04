@@ -254,7 +254,8 @@ def parse_impls_in_file(impl_file, fc_name, internal_selectors=None):
 
 def classify_constructor(args, all_fcs, registered, overridden_args=frozenset(),
                          class_hierarchy=None, null_filled_args=frozenset(),
-                         absent_filled_args=frozenset()):
+                         absent_filled_args=frozenset(),
+                         allow_pointer_writeback=False):
     """Return ``(missing_deps, pipeline_reasons)``.
 
     *missing_deps* is the set of functionClass names this constructor depends
@@ -291,6 +292,7 @@ def classify_constructor(args, all_fcs, registered, overridden_args=frozenset(),
             constructor_overrides=overrides,
             class_hierarchy=class_hierarchy,
             known_function_classes=set(all_fcs),
+            allow_pointer_writeback=allow_pointer_writeback,
         )
         if verdict is None:
             continue
@@ -599,7 +601,11 @@ def aggregate_methods(methods_by_fc, all_fcs, registered,
             arg_deps, arg_reasons = classify_constructor(
                 m['args'], all_fcs, registered,
                 overridden_args=frozenset(),
-                class_hierarchy=class_hierarchy)
+                class_hierarchy=class_hierarchy,
+                # Method args, not constructor args: the pointer
+                # write-back protocol is available (mirrors
+                # _unsupported_method_arg in the generator).
+                allow_pointer_writeback=True)
             reasons = list(ret_reasons) + list(arg_reasons)
             # Whole-method gate for output-array args: classify_constructor
             # accepts each `intent(out), allocatable, dimension(:)` arg

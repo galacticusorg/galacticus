@@ -233,12 +233,15 @@ def _unsupported_method_arg(args, lib_function_classes, class_hierarchy=None):
     """If any method argument is unsupported, return ``(name, reason)``;
     otherwise ``None``.  Methods don't have constructor-style overrides for
     ``class(*)``, so the override list is empty and any ``class(*)`` arg is
-    rejected."""
+    rejected.  `allow_pointer_writeback` is method-only: the method wrapper
+    has a post-call hook for the pointer write-back protocol, the
+    constructor wrapper does not."""
     if class_hierarchy is None:
         class_hierarchy = _CLASS_HIERARCHY
     for arg in args:
         reason = _unsupported_arg(arg, lib_function_classes,
-                                  class_hierarchy=class_hierarchy)
+                                  class_hierarchy=class_hierarchy,
+                                  allow_pointer_writeback=True)
         if reason:
             return arg['name'], reason
     return None
@@ -1090,6 +1093,22 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
         # in this same order, so ctypes/bind(c) stay aligned.  Mirrors the
         # single-slot dynamic-array *return* path (the _DYNAMIC_ARRAY_RETURN
         # branch), generalised to N per-argument outputs.
+        # Pointer write-back args: after the inner call, write the local
+        # Fortran pointer's (possibly repointed) target address back
+        # through the by-reference c_ptr handle — c_null_ptr when the
+        # method left it disassociated (end-of-iteration for a tree
+        # walker).  The pre-call guarded c_f_pointer lives in the arg's
+        # fort_reassignment (see assign_c_types).
+        for a in (x for x in arg_list if x.is_pointer_writeback):
+            local = f'{a.name}_'
+            result_post_call_code += (
+                f'  if (associated({local})) then\n'
+                f'    {a.name} = c_loc({local})\n'
+                f'  else\n'
+                f'    {a.name} = c_null_ptr\n'
+                f'  end if\n'
+            )
+
         output_arrays = [a for a in arg_list if a.is_output_array]
         sized_outputs = [a for a in arg_list if a.is_output_sized]
         for a in output_arrays:

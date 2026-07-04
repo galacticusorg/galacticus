@@ -122,6 +122,20 @@ class ArgSpec:
     output_elem_fort:   str  = ''   # 'real(c_double)' / 'integer(c_int)'
     output_elem_dtype:  str  = ''   # numpy dtype: 'float64' / 'int32'
 
+    # Marker for a pointer write-back argument: `type(X), pointer,
+    # intent(out|inout)` on a METHOD, with X a shared type
+    # (_SHARED_TYPE_MODULES — e.g. treeNode).  The bind(c) wrapper takes
+    # the handle as `type(c_ptr), intent(inout)` BY REFERENCE, converts a
+    # c_associated handle to a local Fortran pointer (null handle →
+    # disassociated, the tree-walker start-of-iteration idiom), passes the
+    # local to the inner method, and after the call writes c_loc of the
+    # (re)pointed target (or c_null_ptr) back through the reference.  The
+    # Python caller passes a ctypes.c_void_p, which is updated in place —
+    # `while walker.next(node): …` iterates.  Constructor args never take
+    # this path (the constructor wrapper has no post-call hook; the
+    # classify predicate gates on allow_pointer_writeback).
+    is_pointer_writeback: bool = False
+
     # Marker for a "sized output buffer": an `intent(out)` explicit-shape
     # array whose extents are identifiers naming integer intent(in) args of
     # the same method (`dimension(gridCount,…)`), with numeric or
