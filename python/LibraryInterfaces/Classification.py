@@ -522,12 +522,23 @@ def is_output_array_arg(arg):
     and always fills it — the Python caller unconditionally receives the
     array, which is the only sensible contract for a Python API (there is
     no way to "omit" a return value).
+
+    Shapes: 1D and 2D numeric (``dimension(:)`` / ``dimension(:,:)``; 2D
+    gets a second size companion and a column-major reshape on the Python
+    side), and 1D ``logical`` (the wrapper copies the inner method's
+    default-kind result into a ``logical(c_bool)`` export buffer, mirroring
+    the kind-narrowing the logical *input* path already does).
     """
     attrs = arg.get('attributes', [])
-    return (arg.get('intrinsic') in ('double precision', 'integer')
-            and 'allocatable' in attrs
-            and 'dimension(:)' in attrs
-            and ('intent(out)' in attrs or 'intent(inout)' in attrs))
+    if 'allocatable' not in attrs:
+        return False
+    if not ('intent(out)' in attrs or 'intent(inout)' in attrs):
+        return False
+    if arg.get('intrinsic') in ('double precision', 'integer'):
+        return 'dimension(:)' in attrs or 'dimension(:,:)' in attrs
+    if arg.get('intrinsic') == 'logical':
+        return 'dimension(:)' in attrs
+    return False
 
 
 def is_output_scalar_arg(arg):
@@ -593,10 +604,17 @@ def unsupported_output_array_method(args, return_type):
     if not any(is_output_array_arg(a) for a in args):
         return None
     ret = normalize_method_return_type(return_type or 'void')
-    if ret not in OUTPUT_ARRAY_RETURN_OK:
+    # Dynamic-array returns (1D/2D allocatable or runtime-extent) lower the
+    # wrapper to a subroutine whose own (c_ptr, size…) companions are
+    # appended BEFORE the per-argument output-array companions, so the two
+    # protocols compose mechanically; the Python wrapper leads the returned
+    # tuple with the reshaped result array.
+    if (ret not in OUTPUT_ARRAY_RETURN_OK
+            and not DYNAMIC_ARRAY_RETURN_RX.match(ret)
+            and not DYNAMIC_ARRAY_RETURN_2D_RX.match(ret)):
         return (f"output-array method with non-scalar return type "
-                f"({return_type}) — only void or direct-scalar returns may "
-                f"accompany output arrays")
+                f"({return_type}) — only void, direct-scalar, or "
+                f"dynamic-array returns may accompany output arrays")
     for a in args:
         if is_output_array_arg(a) or is_output_scalar_arg(a):
             continue

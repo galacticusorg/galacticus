@@ -1094,11 +1094,21 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
         for a in output_arrays:
             local     = f'glcOut_{a.name}_'
             ptr_name  = f'{a.name}DataPtr_'
-            size_name = f'{a.name}Size_'
             result_extra_declarations += (
                 f'  type(c_ptr),       intent(out) :: {ptr_name}\n'
-                f'  integer(c_size_t), intent(out) :: {size_name}\n'
             )
+            # Logical output arrays: the inner method filled the
+            # default-kind `glcOutInner_` local (see assign_c_types);
+            # kind-narrow it into the c_bool export buffer before taking
+            # its address (auto-realloc sizes the LHS — both buffers were
+            # deallocated pre-call).
+            if a.intrinsic == 'logical':
+                inner = f'glcOutInner_{a.name}_'
+                result_post_call_code += (
+                    f'  if (allocated({inner})) then\n'
+                    f'    {local} = logical({inner}, c_bool)\n'
+                    f'  end if\n'
+                )
             # Guard c_loc: it is non-conforming on a zero-size or unallocated
             # array (F2008 requires a contiguous, nonzero-size target), and
             # an intent(out) allocatable may be left unallocated (or
@@ -1106,22 +1116,55 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
             # `allocate(wavenumbers(0))`) by the inner method.  In those
             # cases report size 0 and a null pointer; the Python wrapper
             # returns an empty array without dereferencing it.
-            result_post_call_code += (
-                f'  if (allocated({local})) then\n'
-                f'    {size_name} = size({local}, kind=c_size_t)\n'
-                f'    if ({size_name} > 0_c_size_t) then\n'
-                f'      {ptr_name} = c_loc({local})\n'
-                f'    else\n'
-                f'      {ptr_name} = c_null_ptr\n'
-                f'    end if\n'
-                f'  else\n'
-                f'    {size_name} = 0_c_size_t\n'
-                f'    {ptr_name} = c_null_ptr\n'
-                f'  end if\n'
-            )
-            result_extra_fort_args     += [ptr_name, size_name]
-            result_extra_clib_argtypes += ['POINTER(c_void_p)',
-                                           'POINTER(c_size_t)']
+            if a.array_rank == 2:
+                # 2D: one size companion per axis; the Python wrapper
+                # reshapes the flat buffer column-major (order='F').
+                s1 = f'{a.name}Size1_'
+                s2 = f'{a.name}Size2_'
+                result_extra_declarations += (
+                    f'  integer(c_size_t), intent(out) :: {s1}\n'
+                    f'  integer(c_size_t), intent(out) :: {s2}\n'
+                )
+                result_post_call_code += (
+                    f'  if (allocated({local})) then\n'
+                    f'    {s1} = size({local}, dim=1, kind=c_size_t)\n'
+                    f'    {s2} = size({local}, dim=2, kind=c_size_t)\n'
+                    f'    if ({s1}*{s2} > 0_c_size_t) then\n'
+                    f'      {ptr_name} = c_loc({local})\n'
+                    f'    else\n'
+                    f'      {ptr_name} = c_null_ptr\n'
+                    f'    end if\n'
+                    f'  else\n'
+                    f'    {s1} = 0_c_size_t\n'
+                    f'    {s2} = 0_c_size_t\n'
+                    f'    {ptr_name} = c_null_ptr\n'
+                    f'  end if\n'
+                )
+                result_extra_fort_args     += [ptr_name, s1, s2]
+                result_extra_clib_argtypes += ['POINTER(c_void_p)',
+                                               'POINTER(c_size_t)',
+                                               'POINTER(c_size_t)']
+            else:
+                size_name = f'{a.name}Size_'
+                result_extra_declarations += (
+                    f'  integer(c_size_t), intent(out) :: {size_name}\n'
+                )
+                result_post_call_code += (
+                    f'  if (allocated({local})) then\n'
+                    f'    {size_name} = size({local}, kind=c_size_t)\n'
+                    f'    if ({size_name} > 0_c_size_t) then\n'
+                    f'      {ptr_name} = c_loc({local})\n'
+                    f'    else\n'
+                    f'      {ptr_name} = c_null_ptr\n'
+                    f'    end if\n'
+                    f'  else\n'
+                    f'    {size_name} = 0_c_size_t\n'
+                    f'    {ptr_name} = c_null_ptr\n'
+                    f'  end if\n'
+                )
+                result_extra_fort_args     += [ptr_name, size_name]
+                result_extra_clib_argtypes += ['POINTER(c_void_p)',
+                                               'POINTER(c_size_t)']
             isoImports['c_ptr']            = 1
             isoImports['c_size_t']         = 1
             isoImports['c_loc']            = 1
@@ -1306,12 +1349,14 @@ end {procedure} {method_name_c}
                 + f'    c_lib.{method_name_c}({",".join(py_call_args)})\n'
                 + f'    return _glcArr_\n'
             )
-        elif result_python_dyn_array_2d_wrap:
+        elif result_python_dyn_array_2d_wrap and not output_arrays:
             # 2D allocatable / dynamic-size array return.  Same shape as
             # the 1D path below, with one extra size companion and a
             # `reshape((s1, s2), order='F')` on the Python side so the
             # column-major Fortran storage maps to the right numpy
-            # indexing.
+            # indexing.  (When output arrays are also present, the
+            # output-array branch below handles the return's companions
+            # too — they precede the per-argument ones in the signature.)
             elem_ctype, elem_dtype = result_python_dyn_array_2d_wrap
             py_call_args = []
             for a in arg_list:
@@ -1338,7 +1383,7 @@ end {procedure} {method_name_c}
                 + f'.from_address(_glcDataPtr_.value)\n'
                 + f'    ).reshape((_glcSize1_.value, _glcSize2_.value), order="F").copy()\n'
             )
-        elif result_python_dyn_array_wrap:
+        elif result_python_dyn_array_wrap and not output_arrays:
             # Allocatable / dynamic-size 1D array return.  The Fortran
             # wrapper writes the buffer's c_loc into a c_void_p out-param
             # and the element count into a c_size_t out-param; we wrap
@@ -1408,34 +1453,95 @@ end {procedure} {method_name_c}
                 else:
                     py_call_args.append(a.py_pass_as if a.py_pass_as
                                         else python_safe_name(a.name))
-            for a in output_arrays:
-                pv         = python_safe_name(a.name)
-                ptr_local  = f'_{pv}Ptr_'
-                size_local = f'_{pv}Size_'
-                arr_local  = f'_{pv}Arr_'
-                py_call_args.append(f'byref({ptr_local})')
-                py_call_args.append(f'byref({size_local})')
+            # A dynamic-array RETURN's companions were appended to
+            # result_extra_fort_args by the return-type switch, BEFORE the
+            # per-argument companions below — mirror that order here.
+            ret_token = None
+            if result_python_dyn_array_2d_wrap:
+                elem_ctype, elem_dtype = result_python_dyn_array_2d_wrap
+                py_call_args += ['byref(_glcDataPtr_)', 'byref(_glcSize1_)',
+                                 'byref(_glcSize2_)']
                 setup_lines += (
-                    f'    {ptr_local}  = c_void_p()\n'
-                    f'    {size_local} = c_size_t()\n'
+                    '    _glcDataPtr_ = c_void_p()\n'
+                    '    _glcSize1_   = c_size_t()\n'
+                    '    _glcSize2_   = c_size_t()\n'
                 )
                 collect_lines += (
-                    f'    if {size_local}.value:\n'
-                    f'        {arr_local} = np.ctypeslib.as_array(\n'
-                    f'            ({a.output_elem_ctype} * {size_local}.value)'
-                    f'.from_address({ptr_local}.value)\n'
+                    f'    if _glcSize1_.value and _glcSize2_.value:\n'
+                    f'        _glcRetArr_ = np.ctypeslib.as_array(\n'
+                    f'            ({elem_ctype} * (_glcSize1_.value *'
+                    f' _glcSize2_.value)).from_address(_glcDataPtr_.value)\n'
+                    f'        ).reshape((_glcSize1_.value, _glcSize2_.value),'
+                    f' order="F").copy()\n'
+                    f'    else:\n'
+                    f'        _glcRetArr_ = np.empty((_glcSize1_.value,'
+                    f' _glcSize2_.value), dtype=np.{elem_dtype})\n'
+                )
+                ret_token = '_glcRetArr_'
+            elif result_python_dyn_array_wrap:
+                elem_ctype, elem_dtype = result_python_dyn_array_wrap
+                py_call_args += ['byref(_glcDataPtr_)', 'byref(_glcSize_)']
+                setup_lines += (
+                    '    _glcDataPtr_ = c_void_p()\n'
+                    '    _glcSize_    = c_size_t()\n'
+                )
+                collect_lines += (
+                    f'    if _glcSize_.value:\n'
+                    f'        _glcRetArr_ = np.ctypeslib.as_array(\n'
+                    f'            ({elem_ctype} * _glcSize_.value)'
+                    f'.from_address(_glcDataPtr_.value)\n'
                     f'        ).copy()\n'
                     f'    else:\n'
-                    f'        {arr_local} = np.empty(0, dtype=np.{a.output_elem_dtype})\n'
+                    f'        _glcRetArr_ = np.empty(0,'
+                    f' dtype=np.{elem_dtype})\n'
                 )
+                ret_token = '_glcRetArr_'
+            elif method_type != 'void' and not result_is_subroutine:
+                # Direct-scalar function result; ctypes converts the
+                # restype to a plain Python scalar, so no .value.
+                ret_token = '_glcRet_'
+            for a in output_arrays:
+                pv        = python_safe_name(a.name)
+                ptr_local = f'_{pv}Ptr_'
+                arr_local = f'_{pv}Arr_'
+                setup_lines += f'    {ptr_local}  = c_void_p()\n'
+                py_call_args.append(f'byref({ptr_local})')
+                if a.array_rank == 2:
+                    s1 = f'_{pv}Size1_'
+                    s2 = f'_{pv}Size2_'
+                    setup_lines += (f'    {s1} = c_size_t()\n'
+                                    f'    {s2} = c_size_t()\n')
+                    py_call_args += [f'byref({s1})', f'byref({s2})']
+                    collect_lines += (
+                        f'    if {s1}.value and {s2}.value:\n'
+                        f'        {arr_local} = np.ctypeslib.as_array(\n'
+                        f'            ({a.output_elem_ctype} * ({s1}.value *'
+                        f' {s2}.value)).from_address({ptr_local}.value)\n'
+                        f'        ).reshape(({s1}.value, {s2}.value),'
+                        f' order="F").copy()\n'
+                        f'    else:\n'
+                        f'        {arr_local} = np.empty(({s1}.value,'
+                        f' {s2}.value), dtype=np.{a.output_elem_dtype})\n'
+                    )
+                else:
+                    size_local = f'_{pv}Size_'
+                    setup_lines += f'    {size_local} = c_size_t()\n'
+                    py_call_args.append(f'byref({size_local})')
+                    collect_lines += (
+                        f'    if {size_local}.value:\n'
+                        f'        {arr_local} = np.ctypeslib.as_array(\n'
+                        f'            ({a.output_elem_ctype} *'
+                        f' {size_local}.value)'
+                        f'.from_address({ptr_local}.value)\n'
+                        f'        ).copy()\n'
+                        f'    else:\n'
+                        f'        {arr_local} = np.empty(0,'
+                        f' dtype=np.{a.output_elem_dtype})\n'
+                    )
             # Return tokens in declaration (arg_list) order so the tuple
-            # matches the method's signature left-to-right; a direct-scalar
-            # function result (the gate admits only those alongside output
-            # arrays) leads the tuple.  ctypes converts the restype to a
-            # plain Python scalar, so _glcRet_ needs no .value.
-            result_tokens = []
-            if method_type != 'void':
-                result_tokens.append('_glcRet_')
+            # matches the method's signature left-to-right; the function
+            # result (scalar or dynamic-array) leads the tuple.
+            result_tokens = [ret_token] if ret_token else []
             for a in arg_list:
                 pv = python_safe_name(a.name)
                 if a.is_output_scalar:
@@ -1443,7 +1549,7 @@ end {procedure} {method_name_c}
                 elif a.is_output_array:
                     result_tokens.append(f'_{pv}Arr_')
             reassignments_block = ''.join(a.py_reassignment for a in arg_list)
-            call_lhs_py = '_glcRet_ = ' if method_type != 'void' else ''
+            call_lhs_py = '_glcRet_ = ' if ret_token == '_glcRet_' else ''
             if len(result_tokens) == 1:
                 return_stmt = f'    return {result_tokens[0]}\n'
             else:

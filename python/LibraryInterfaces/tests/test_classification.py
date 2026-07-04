@@ -269,10 +269,24 @@ def test_inout_non_allocatable_array_not_output():
     assert not is_output_array_arg(io)
 
 
-def test_non_numeric_allocatable_not_output_array():
+def test_logical_and_2d_output_arrays_accepted():
+    # 1D logical (kind-narrowing copy into a c_bool export buffer) and 2D
+    # numeric (second size companion + column-major reshape) both qualify.
     lg = _arg('logical',
               attributes=['intent(out)', 'allocatable', 'dimension(:)'])
-    assert not is_output_array_arg(lg)
+    assert is_output_array_arg(lg)
+    assert classify_arg(lg, REGISTERED) is None
+    d2 = _arg('double precision',
+              attributes=['intent(out)', 'allocatable', 'dimension(:,:)'])
+    assert is_output_array_arg(d2)
+    assert classify_arg(d2, REGISTERED) is None
+    # 2D logical and character allocatables stay out.
+    lg2 = _arg('logical',
+               attributes=['intent(out)', 'allocatable', 'dimension(:,:)'])
+    assert not is_output_array_arg(lg2)
+    ch = _arg('character', type_spec='len=8',
+              attributes=['intent(out)', 'allocatable', 'dimension(:)'])
+    assert not is_output_array_arg(ch)
 
 
 def test_output_array_method_gate_clean_cases():
@@ -316,11 +330,14 @@ def test_output_array_method_gate_allows_scalar_returns():
               attributes=['intent(out)', 'allocatable', 'dimension(:)'],
               name='y')
     for ret in ('double precision', 'integer', 'integer(c_size_t)',
-                'logical', 'integer(kind=c_size_t)'):   # alias normalized
+                'logical', 'integer(kind=c_size_t)',    # alias normalized
+                # Dynamic-array returns compose with the output-array
+                # companions (their own companions come first).
+                'double precision, allocatable, dimension(:)',
+                'double precision, allocatable, dimension(:,:)'):
         assert unsupported_output_array_method([oa], ret) is None, ret
-    # Subroutine-lowered returns stay blocked.
-    for ret in ('type(varying_string)', 'class(fooClass)',
-                'double precision, allocatable, dimension(:)'):
+    # Conversion-buffer returns stay blocked.
+    for ret in ('type(varying_string)', 'class(fooClass)'):
         assert unsupported_output_array_method([oa], ret), ret
 
 

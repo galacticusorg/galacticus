@@ -224,6 +224,73 @@ def test_inout_allocatable_is_an_output_array():
     assert 'np.empty(0, dtype=np.uint64)' in py             # c_size_t → uint64
 
 
+def test_2d_output_array_two_size_companions():
+    # `intent(out), allocatable, dimension(:,:)`: per-axis size companions
+    # and a column-major reshape on the Python side.
+    fc = _method_fc(
+        'stellarPopulationBroadBandLuminosities', 'M', 'luminosityTracks',
+        'void',
+        ['double precision, intent(in   ), dimension(:) :: redshift',
+         'double precision, intent(  out), dimension(:  ), allocatable'
+         ' :: ages',
+         'double precision, intent(  out), dimension(:,:), allocatable'
+         ' :: luminosities'])
+    fort, c_lib, py = _generate(
+        fc, {'stellarPopulationBroadBandLuminosities': {}})
+    assert 'luminosityTracks' in fc['methods']
+    assert ('real(c_double), dimension(:,:), allocatable, save, target'
+            ' :: glcOut_luminosities_' in fort)
+    assert 'luminositiesSize1_' in fort and 'luminositiesSize2_' in fort
+    assert 'size(glcOut_luminosities_, dim=2, kind=c_size_t)' in fort
+    assert 'reshape((_luminositiesSize1_.value, _luminositiesSize2_.value),'\
+        ' order="F")' in py
+    assert 'return (_agesArr_, _luminositiesArr_)' in py
+
+
+def test_logical_output_array_kind_copy():
+    # 1D logical output: inner fills a default-kind local; the wrapper
+    # kind-narrows into the c_bool export buffer before c_loc.
+    fc = _method_fc(
+        'x', 'M', 'f', 'void',
+        ['logical, intent(inout), allocatable, dimension(:) :: flags'])
+    fort, _, py = _generate(fc, {'x': {}})
+    assert 'f' in fc['methods']
+    assert ('logical(c_bool), dimension(:), allocatable, save, target'
+            ' :: glcOut_flags_' in fort)
+    assert 'logical, dimension(:), allocatable :: glcOutInner_flags_' in fort
+    assert 'flags=glcOutInner_flags_' in fort
+    assert 'glcOut_flags_ = logical(glcOutInner_flags_, c_bool)' in fort
+    assert 'np.empty(0, dtype=np.bool_)' in py
+
+
+def test_dynamic_array_return_composes_with_output_arrays():
+    # intervals' shape: a 2D allocatable RETURN plus output-array args —
+    # the return's companions precede the per-argument ones, and the
+    # Python tuple leads with the reshaped return.
+    fc = _method_fc(
+        'starFormationRateSurfaceDensityDisks', 'M', 'intervals',
+        'double precision, allocatable, dimension(:,:)',
+        ['double precision, intent(in   ) :: radiusInner',
+         'logical, intent(inout), allocatable, dimension(:)'
+         ' :: intervalIsAnalytic',
+         'double precision, intent(inout), allocatable, dimension(:)'
+         ' :: integralsAnalytic'])
+    fort, c_lib, py = _generate(
+        fc, {'starFormationRateSurfaceDensityDisks': {}})
+    assert 'intervals' in fc['methods']
+    # Subroutine lowering: the return's save buffer plus its companions.
+    assert 'subroutine starFormationRateSurfaceDensityDisksIntervalsL' in fort
+    assert 'glcResult_' in fort and 'glcDataPtr_' in fort
+    spec = next(s for s in c_lib
+                if s['name'] == 'starFormationRateSurfaceDensityDisksIntervalsL')
+    # Return companions (ptr+2 sizes) come before per-arg pairs in argtypes.
+    ptrs = [i for i, t in enumerate(spec['argtypes'])
+            if t == 'POINTER(c_void_p)']
+    assert len(ptrs) == 3          # return + 2 output arrays
+    assert ('return (_glcRetArr_, _intervalIsAnalyticArr_,'
+            ' _integralsAnalyticArr_)' in py)
+
+
 def test_plain_method_still_generated():
     # A method with no output array is unaffected and still emitted.
     fc = _method_fc(

@@ -374,10 +374,13 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
     has_output_array = False
     for r in argument_list:
         a_attrs, a_intr = _attrs_intr(r)
-        if (a_intr in ('double precision', 'integer')
-                and 'allocatable' in a_attrs
-                and 'dimension(:)' in a_attrs
-                and ('intent(out)' in a_attrs or 'intent(inout)' in a_attrs)):
+        if ('allocatable' in a_attrs
+                and ('intent(out)' in a_attrs or 'intent(inout)' in a_attrs)
+                and ((a_intr in ('double precision', 'integer')
+                      and ('dimension(:)' in a_attrs
+                           or 'dimension(:,:)' in a_attrs))
+                     or (a_intr == 'logical'
+                         and 'dimension(:)' in a_attrs))):
             has_output_array = True
             break
 
@@ -438,14 +441,20 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
         # stays True, so the inner call still receives the local buffer.
         # (Predicate inlined rather than imported from Classification, which
         # already imports from this module.)
-        if (arg.intrinsic in ('double precision', 'integer')
-                and 'allocatable' in arg.attributes
-                and 'dimension(:)' in arg.attributes
+        if ('allocatable' in arg.attributes
                 and ('intent(out)' in arg.attributes
-                     or 'intent(inout)' in arg.attributes)):
+                     or 'intent(inout)' in arg.attributes)
+                and ((arg.intrinsic in ('double precision', 'integer')
+                      and ('dimension(:)' in arg.attributes
+                           or 'dimension(:,:)' in arg.attributes))
+                     or (arg.intrinsic == 'logical'
+                         and 'dimension(:)' in arg.attributes))):
             if arg.intrinsic == 'double precision':
                 elem_ctype, elem_fort, elem_dtype = (
                     'c_double', 'real(c_double)', 'float64')
+            elif arg.intrinsic == 'logical':
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_bool', 'logical(c_bool)', 'bool_')
             elif arg.type_spec in ('c_long', 'kind_int8'):
                 elem_ctype, elem_fort, elem_dtype = (
                     'c_long', 'integer(c_long)', 'int64')
@@ -455,8 +464,11 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
             else:
                 elem_ctype, elem_fort, elem_dtype = (
                     'c_int', 'integer(c_int)', 'int32')
+            rank  = 2 if 'dimension(:,:)' in arg.attributes else 1
+            dims  = ':,:' if rank == 2 else ':'
             local = f'glcOut_{arg.name}_'
             arg.is_output_array       = True
+            arg.array_rank            = rank
             arg.output_elem_ctype     = elem_ctype
             arg.output_elem_fort      = elem_fort
             arg.output_elem_dtype     = elem_dtype
@@ -464,15 +476,35 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
             arg.py_is_present         = False
             arg.galacticus_is_present = True
             arg.is_optional           = False
-            arg.fort_pass_as          = local
-            arg.fort_declarations     = (
-                f'  {elem_fort}, dimension(:), allocatable, save, target'
-                f' :: {local}\n')
-            # Pre-call hygiene: free any allocation the previous call left
-            # (Python has already copied it) so the inner method's
-            # allocate-on-assignment starts from a clean deallocated state.
-            arg.fort_reassignment     = (
-                f'  if (allocated({local})) deallocate({local})\n')
+            if arg.intrinsic == 'logical':
+                # The inner dummy is default-kind `logical`, whose storage
+                # width differs from c_bool (4 bytes vs 1 on gfortran), so
+                # the export buffer can't be filled directly: the inner
+                # method fills a default-kind local, and the generator
+                # emits a kind-narrowing copy into the c_bool save buffer
+                # after the call (the reverse of the logical *input*
+                # path's widening copy).
+                inner = f'glcOutInner_{arg.name}_'
+                arg.fort_pass_as      = inner
+                arg.fort_declarations = (
+                    f'  {elem_fort}, dimension({dims}), allocatable, save,'
+                    f' target :: {local}\n'
+                    f'  logical, dimension({dims}), allocatable'
+                    f' :: {inner}\n')
+                arg.fort_reassignment = (
+                    f'  if (allocated({local})) deallocate({local})\n'
+                    f'  if (allocated({inner})) deallocate({inner})\n')
+            else:
+                arg.fort_pass_as      = local
+                arg.fort_declarations = (
+                    f'  {elem_fort}, dimension({dims}), allocatable, save,'
+                    f' target :: {local}\n')
+                # Pre-call hygiene: free any allocation the previous call
+                # left (Python has already copied it) so the inner method's
+                # allocate-on-assignment starts from a clean deallocated
+                # state.
+                arg.fort_reassignment = (
+                    f'  if (allocated({local})) deallocate({local})\n')
             new_list.insert(0, arg)
             continue
 
@@ -1228,6 +1260,19 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
             # spurious `use :: <fc_module>, only : <type>` for a type
             # the wrapper neither declares nor passes (e.g. `vector` /
             # `matrix` for the Gaussian-ellipsoid `axes` / `rotation`).
+            new_list.insert(0, arg)
+            continue
+
+        if arg.is_output_array or arg.is_callback:
+            # Output arrays and callbacks were fully wired in
+            # assign_c_types / the generator: fort_pass_as points at the
+            # wrapper-local buffer (or shim), fort_declarations declares
+            # it, and fort_reassignment carries the pre-call dealloc (or
+            # funptr store).  The per-intrinsic branches below must not
+            # re-dispatch on the arg's declared type — the *logical*
+            # branch in particular would overwrite the wiring with the
+            # input path's c_bool→logical widening copy, leaving the
+            # wrapper referencing undeclared buffer names.
             new_list.insert(0, arg)
             continue
 
