@@ -31,7 +31,7 @@ __all__ = [
     'ENUM_RETURN_RX', 'CLASS_RETURN_RX', 'ARRAY_RETURN_RX',
     'DYNAMIC_ARRAY_RETURN_RX', 'DYNAMIC_ARRAY_RETURN_2D_RX',
     'DIM_FIXED_RX', 'CHAR_LEN_RX',
-    'RETURN_TYPE_ALIASES', 'SCALAR_RETURN_OK',
+    'RETURN_TYPE_ALIASES', 'SCALAR_RETURN_OK', 'OUTPUT_ARRAY_RETURN_OK',
     'normalize_method_return_type', 'is_internal_constructor_name',
     'classify_arg', 'unsupported_arg',
     'is_output_array_arg', 'is_output_scalar_arg',
@@ -140,6 +140,18 @@ RETURN_TYPE_ALIASES = {
 SCALAR_RETURN_OK = frozenset({
     'void', 'double precision', 'integer', 'integer(c_long)',
     'integer(c_size_t)', 'logical', 'type(varying_string)',
+})
+
+# Return types permitted on a method that also has output-array arguments:
+# the direct-restype scalars — those the bind(c) wrapper returns as a plain
+# function result with a matching ctypes restype, no subroutine lowering or
+# conversion buffer. Return types that lower the wrapper to a subroutine
+# with synthetic out-args (varying_string, class(...), array returns) would
+# collide with the output-array companion protocol, so they stay blocked
+# alongside output arrays until a method needs the combination.
+OUTPUT_ARRAY_RETURN_OK = frozenset({
+    'void', 'double precision', 'integer', 'integer(c_long)',
+    'integer(c_size_t)', 'logical',
 })
 
 
@@ -453,6 +465,13 @@ def is_output_array_arg(arg):
     genuinely read an ``intent(inout)`` allocatable before allocating it
     could not be driven output-only, but that is not the convention and such
     a method would already be ill-defined for an unallocated actual.)
+
+    An ``optional`` output array (e.g. ``timeLightconeCrossing``'s
+    ``timesCrossing``) also qualifies: the wrapper passes its buffer
+    unconditionally, so the inner method always sees the dummy as present
+    and always fills it — the Python caller unconditionally receives the
+    array, which is the only sensible contract for a Python API (there is
+    no way to "omit" a return value).
     """
     attrs = arg.get('attributes', [])
     return (arg.get('intrinsic') in ('double precision', 'integer')
@@ -495,13 +514,24 @@ def unsupported_output_array_method(args, return_type):
     handle; otherwise ``None`` — including when there are no output arrays at
     all, which is the normal (non-output-array) path.
 
-    Restriction: an output-array method must return ``void``, have no
-    optional arguments, and every non-``self`` argument must be a supported
-    input, an output array, or a scalar ``intent(out)`` numeric/logical
-    companion (:func:`is_output_scalar_arg`). An ``intent(inout)``
-    allocatable, an ``intent(out)`` derived-type / ``class`` / ``character``
-    argument, or a non-void return would each have an output the wrapper
-    silently drops, so such methods stay blocked.
+    Restriction: an output-array method must return a direct-restype scalar
+    (:data:`OUTPUT_ARRAY_RETURN_OK` — ``void`` or a plain numeric/logical
+    the wrapper returns as an ordinary bind(c) function result), have no
+    optional arguments, and every non-``self`` argument must be one of:
+
+    * a supported input,
+    * an output array or scalar ``intent(out)`` companion (returned),
+    * an ``intent(out|inout)`` *dimensioned non-allocatable* array — the
+      in-place mutable-buffer path: the Python caller supplies a numpy
+      buffer the method fills, exactly as on non-output-array methods,
+    * an ``intent(inout)`` ``class``/``type`` argument — pointer-passed;
+      mutation happens on the heap object the caller already holds.
+
+    What stays blocked: return types that lower the wrapper to a subroutine
+    (varying_string / class / array returns — they collide with the
+    companion protocol), optional args, and scalar ``intent(inout)``
+    numeric/logical or ``intent(out|inout)`` character args (outputs the
+    wrapper would silently drop).
 
     Shared by the generator (:mod:`libraryInterfaces`) and the audit
     (:mod:`libraryInterfacesAudit`) so their verdicts can't drift.
@@ -512,9 +542,11 @@ def unsupported_output_array_method(args, return_type):
     """
     if not any(is_output_array_arg(a) for a in args):
         return None
-    if (return_type or 'void').strip() != 'void':
-        return (f"output-array method with non-void return type "
-                f"({return_type}) — not yet supported")
+    ret = normalize_method_return_type(return_type or 'void')
+    if ret not in OUTPUT_ARRAY_RETURN_OK:
+        return (f"output-array method with non-scalar return type "
+                f"({return_type}) — only void or direct-scalar returns may "
+                f"accompany output arrays")
     for a in args:
         if is_output_array_arg(a) or is_output_scalar_arg(a):
             continue
@@ -523,8 +555,18 @@ def unsupported_output_array_method(args, return_type):
             return (f"output-array method with optional argument "
                     f"'{a.get('name', '?')}' — not yet supported")
         if 'intent(out)' in attrs or 'intent(inout)' in attrs:
+            # Dimensioned non-allocatable → the in-place mutable-buffer
+            # path (allocatable dimensioned args were caught by
+            # is_output_array_arg or, for non-numeric elements, are
+            # rejected per-arg by classify_arg before this gate runs).
+            if any(at.startswith('dimension') for at in attrs):
+                continue
+            # class/type scalars are pointer-passed; in-place mutation is
+            # visible to the caller through the pointer it already holds.
+            if a.get('intrinsic') in ('class', 'type'):
+                continue
             return (f"output-array method with non-input argument "
-                    f"'{a.get('name', '?')}' — only supported inputs and "
-                    f"scalar intent(out) companions may accompany output "
-                    f"arrays")
+                    f"'{a.get('name', '?')}' — only supported inputs, "
+                    f"in-place buffers, and scalar intent(out) companions "
+                    f"may accompany output arrays")
     return None

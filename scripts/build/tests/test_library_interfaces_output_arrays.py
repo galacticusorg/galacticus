@@ -172,9 +172,25 @@ def test_scalar_and_array_outputs_declaration_order():
     assert 'return (_f_.value, _dfdCArr_)' in py
 
 
-def test_non_void_return_blocks_output_array_method():
+def test_scalar_return_alongside_output_array_supported():
+    # A direct-restype scalar return leads the returned tuple.
     fc = _method_fc(
         'x', 'M', 'f', 'double precision',
+        ['double precision, intent(  out), allocatable, dimension(:) :: y'])
+    fort, c_lib, py = _generate(fc, {'x': {}})
+    assert 'f' in fc['methods']                        # not deleted
+    # Fortran wrapper is a function; companions are its intent(out) args.
+    assert 'function xFL' in fort and 'subroutine xFL' not in fort
+    assert 'real(c_double) :: xFL' in fort
+    spec = next(s for s in c_lib if s['name'] == 'xFL')
+    assert spec['restype'] == 'c_double'
+    assert '_glcRet_ = c_lib.xFL' in py
+    assert 'return (_glcRet_, _yArr_)' in py
+
+
+def test_subroutine_lowered_return_still_blocks_output_array_method():
+    fc = _method_fc(
+        'x', 'M', 'f', 'type(varying_string)',
         ['double precision, intent(  out), allocatable, dimension(:) :: y'])
     assert _method_deleted(fc, 'f', {'x': {}})
 

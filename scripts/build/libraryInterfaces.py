@@ -1408,8 +1408,13 @@ end {procedure} {method_name_c}
                     f'        {arr_local} = np.empty(0, dtype=np.{a.output_elem_dtype})\n'
                 )
             # Return tokens in declaration (arg_list) order so the tuple
-            # matches the method's signature left-to-right.
+            # matches the method's signature left-to-right; a direct-scalar
+            # function result (the gate admits only those alongside output
+            # arrays) leads the tuple.  ctypes converts the restype to a
+            # plain Python scalar, so _glcRet_ needs no .value.
             result_tokens = []
+            if method_type != 'void':
+                result_tokens.append('_glcRet_')
             for a in arg_list:
                 pv = python_safe_name(a.name)
                 if a.is_output_scalar:
@@ -1417,6 +1422,7 @@ end {procedure} {method_name_c}
                 elif a.is_output_array:
                     result_tokens.append(f'_{pv}Arr_')
             reassignments_block = ''.join(a.py_reassignment for a in arg_list)
+            call_lhs_py = '_glcRet_ = ' if method_type != 'void' else ''
             if len(result_tokens) == 1:
                 return_stmt = f'    return {result_tokens[0]}\n'
             else:
@@ -1424,7 +1430,8 @@ end {procedure} {method_name_c}
             py_call = (
                 reassignments_block
                 + setup_lines
-                + f'    c_lib.{method_name_c}({",".join(py_call_args)})\n'
+                + f'    {call_lhs_py}c_lib.{method_name_c}'
+                + f'({",".join(py_call_args)})\n'
                 + collect_lines
                 + return_stmt
             )

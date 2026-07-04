@@ -257,13 +257,41 @@ def test_output_array_method_gate_blocks():
               name='y')
     optional_in = _arg('double precision',
                        attributes=['intent(in)', 'optional'], name='z')
-    inout_class = _arg('class', type_spec='fooClass',
-                       attributes=['intent(inout)'], name='obj')
-    # Non-void return, optional args, and non-scalar-out non-input args
-    # (here an intent(inout) class arg) all keep the method blocked.
-    assert unsupported_output_array_method([oa], 'double precision')
+    inout_scalar = _arg('double precision',
+                        attributes=['intent(inout)'], name='x')
+    # Subroutine-lowered returns, optional args, and scalar intent(inout)
+    # numerics (an output the wrapper would silently drop) stay blocked.
+    assert unsupported_output_array_method([oa], 'type(varying_string)')
     assert unsupported_output_array_method([optional_in, oa], 'void')
-    assert unsupported_output_array_method([inout_class, oa], 'void')
+    assert unsupported_output_array_method([inout_scalar, oa], 'void')
+
+
+def test_output_array_method_gate_allows_scalar_returns():
+    # Direct-restype scalar returns may accompany output arrays; the
+    # wrapper stays a bind(c) function and Python leads the tuple with it.
+    oa = _arg('double precision',
+              attributes=['intent(out)', 'allocatable', 'dimension(:)'],
+              name='y')
+    for ret in ('double precision', 'integer', 'integer(c_size_t)',
+                'logical', 'integer(kind=c_size_t)'):   # alias normalized
+        assert unsupported_output_array_method([oa], ret) is None, ret
+    # Subroutine-lowered returns stay blocked.
+    for ret in ('type(varying_string)', 'class(fooClass)',
+                'double precision, allocatable, dimension(:)'):
+        assert unsupported_output_array_method([oa], ret), ret
+
+
+def test_output_array_method_gate_allows_in_place_and_class_args():
+    # lengthToCellBoundary's shape: class intent(inout) (pointer-passed),
+    # fixed-size intent(out) array (in-place buffer) — both allowed.
+    oa = _arg('integer', type_spec='c_size_t', name='indicesNeighbor',
+              attributes=['allocatable', 'dimension(:)', 'intent(inout)'])
+    photon = _arg('class', type_spec='radiativeTransferPhotonPacketClass',
+                  attributes=['intent(inout)'], name='photonPacket')
+    pos_out = _arg('double precision', name='positionBoundary',
+                   attributes=['dimension(3)', 'intent(out)'])
+    assert unsupported_output_array_method(
+        [photon, pos_out, oa], 'double precision') is None
 
 
 def test_output_array_method_gate_allows_inout_allocatable():
