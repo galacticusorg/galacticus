@@ -312,6 +312,25 @@ with safe_section("computationalDomainVolumeIntegratorSpherical"):
              cdom.integrate(lambda pos: float(np.sum(pos**2))),
              4.0*np.pi*(5.0**5 - 1.0**5)/5.0, rtol=1.0e-4)
 
+# Black-body radiation field — exercises the *pointer-dummy* callback
+# path.  `integrateOverCrossSection(wavelengthRange, crossSectionFunction,
+# node)` takes `procedure(crossSectionFunctionTemplate), pointer`, so the
+# wrapper passes the shim module's procedure-pointer slot (re-aimed at the
+# shim before every call).  A zero cross-section must integrate to exactly
+# zero, and the integral is linear in the cross-section; blackBody's flux
+# ignores `node`, so a null handle is safe here.
+with safe_section("radiationFieldBlackBody (Python-callback cross-section)"):
+    radiation = galacticus.radiationFieldBlackBody(1.0e4)
+    nodeNull  = ctypes.c_void_p(0)
+    wRange    = np.array([100.0, 1000.0])
+    check("∫ flux·0 dλ"     ,
+          radiation.integrateOverCrossSection(wRange, lambda w: 0.0,     nodeNull), 0.0,
+          rtol=0.0, fmt=".1f")
+    rate1 = radiation.integrateOverCrossSection(wRange, lambda w: 1.0e-18, nodeNull)
+    rate2 = radiation.integrateOverCrossSection(wRange, lambda w: 2.0e-18, nodeNull)
+    check_eq("∫ flux·σ dλ > 0"   , rate1 > 0.0    , True)
+    check   ("linearity in σ"    , rate2 / rate1  , 2.0, rtol=1.0e-9)
+
 # Empirical UniverseMachine node operator — exercises the
 # continuation-character strip in the Internal-constructor arg-name
 # capture: the source declares the constructor across many
