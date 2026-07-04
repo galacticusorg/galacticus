@@ -122,6 +122,19 @@ class ArgSpec:
     output_elem_fort:   str  = ''   # 'real(c_double)' / 'integer(c_int)'
     output_elem_dtype:  str  = ''   # numpy dtype: 'float64' / 'int32'
 
+    # Marker for a scalar `intent(out)` numeric/logical companion argument
+    # (e.g. `integer, intent(out) :: count` or `double precision,
+    # intent(out) :: f`) on an output-array method.  Unlike an output array
+    # it stays in the bind(c) signature — as an ordinary by-reference
+    # intent(out) scalar (ctype_pointer=True) passed straight to the inner
+    # method — but it is dropped from the Python input signature
+    # (py_is_present=False) and its filled value is instead appended to the
+    # Python return, interleaved with the array outputs in declaration
+    # order.  Only recognised on methods that also have an output array (see
+    # unsupported_output_array_method); elsewhere scalar intent(out) args
+    # keep their existing handling.
+    is_output_scalar:   bool = False
+
     # Marker for constructor args that libraryClasses.xml asks the
     # wrapper to fill with a null pointer rather than expose to Python
     # (`<argument name="..." value="null"/>`).  Used for callback-

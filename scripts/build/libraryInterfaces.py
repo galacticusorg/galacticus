@@ -1285,26 +1285,37 @@ end {procedure} {method_name_c}
             # Output-array method: one or more `intent(out), allocatable,
             # dimension(:)` args, each filled by the inner call into a
             # save-target buffer and conveyed back as a (c_ptr, c_size_t)
-            # companion pair appended to the bind(c) signature above.  Create
-            # a c_void_p / c_size_t local per output array, pass them by
-            # reference in signature order (input args first, then the
-            # companion pairs — matching result_extra_fort_args), and after
-            # the call wrap each pair into a fresh numpy array (`.copy()`
-            # because the save buffer is overwritten on the next call).  A
-            # null pointer / zero size (see the Fortran guard) yields an
-            # empty array without dereferencing.  Return a single array for
-            # one output, else a tuple in declaration order.  The gate
-            # guarantees a void return and no optional args, so no
-            # optional-arg branching is needed.
-            py_call_args = []
+            # companion pair appended to the bind(c) signature above.  The
+            # method may also carry scalar `intent(out)` numeric/logical
+            # companions (is_output_scalar) — ordinary by-reference dummies
+            # in the signature whose filled values are returned too.
+            #
+            # ctypes call order matches the bind(c) signature: fort_is_present
+            # args first (regular inputs pass their value/pointer expr; scalar
+            # outputs pass byref of a fresh ctype local), then the array
+            # (c_ptr, c_size_t) companion pairs — mirroring
+            # result_extra_fort_args.  After the call each array pair is
+            # wrapped into a fresh numpy array (`.copy()`, since the save
+            # buffer is overwritten on the next call; a null pointer / zero
+            # size from the Fortran guard yields an empty array without
+            # dereferencing).  The return interleaves scalar (.value) and
+            # array outputs in declaration order — a single value bare, more
+            # than one as a tuple.  The gate guarantees a void return and no
+            # optional args, so no optional-arg branching is needed.
+            setup_lines   = ''
+            collect_lines = ''
+            py_call_args  = []
             for a in arg_list:
                 if not a.fort_is_present:
                     continue
-                py_call_args.append(a.py_pass_as if a.py_pass_as
-                                    else python_safe_name(a.name))
-            setup_lines   = ''
-            collect_lines = ''
-            result_names  = []
+                if a.is_output_scalar:
+                    pv    = python_safe_name(a.name)
+                    local = f'_{pv}_'
+                    setup_lines += f'    {local} = {a.ctype or "c_int"}()\n'
+                    py_call_args.append(f'byref({local})')
+                else:
+                    py_call_args.append(a.py_pass_as if a.py_pass_as
+                                        else python_safe_name(a.name))
             for a in output_arrays:
                 pv         = python_safe_name(a.name)
                 ptr_local  = f'_{pv}Ptr_'
@@ -1325,12 +1336,20 @@ end {procedure} {method_name_c}
                     f'    else:\n'
                     f'        {arr_local} = np.empty(0, dtype=np.{a.output_elem_dtype})\n'
                 )
-                result_names.append(arr_local)
+            # Return tokens in declaration (arg_list) order so the tuple
+            # matches the method's signature left-to-right.
+            result_tokens = []
+            for a in arg_list:
+                pv = python_safe_name(a.name)
+                if a.is_output_scalar:
+                    result_tokens.append(f'_{pv}_.value')
+                elif a.is_output_array:
+                    result_tokens.append(f'_{pv}Arr_')
             reassignments_block = ''.join(a.py_reassignment for a in arg_list)
-            if len(result_names) == 1:
-                return_stmt = f'    return {result_names[0]}\n'
+            if len(result_tokens) == 1:
+                return_stmt = f'    return {result_tokens[0]}\n'
             else:
-                return_stmt = f'    return ({", ".join(result_names)})\n'
+                return_stmt = f'    return ({", ".join(result_tokens)})\n'
             py_call = (
                 reassignments_block
                 + setup_lines

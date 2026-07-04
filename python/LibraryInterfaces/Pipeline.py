@@ -243,6 +243,29 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
         o.get('name') for o in constructor_overrides
         if isinstance(o, dict) and o.get('value') == 'absent' and o.get('name')
     }
+
+    # Does this argument list contain a 1D `intent(out), allocatable,
+    # dimension(:)` numeric output array?  If so, scalar `intent(out)`
+    # numeric/logical companions on the same method are also treated as
+    # outputs (dropped from the Python input signature, filled value
+    # returned) — see is_output_scalar handling near the end of the loop.
+    # The whole-method gate (unsupported_output_array_method) guarantees
+    # such methods are void-returning and optional-free, so this only ever
+    # fires where the bespoke output-array Python emission handles it.
+    def _attrs_intr(r):
+        if isinstance(r, dict):
+            return r.get('attributes', []), r.get('intrinsic')
+        return getattr(r, 'attributes', []), getattr(r, 'intrinsic', '')
+    has_output_array = False
+    for r in argument_list:
+        a_attrs, a_intr = _attrs_intr(r)
+        if (a_intr in ('double precision', 'integer')
+                and 'allocatable' in a_attrs
+                and 'dimension(:)' in a_attrs
+                and 'intent(out)' in a_attrs):
+            has_output_array = True
+            break
+
     new_list = []
     for raw in reversed(argument_list):
         arg = ArgSpec.from_raw(raw) if isinstance(raw, dict) else raw
@@ -600,6 +623,29 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
                             arg.array_shape = shape
                             arg.array_rank  = len(shape)
                         break
+
+        # Scalar `intent(out)` numeric/logical companion on an output-array
+        # method: keep it in the bind(c) signature as an ordinary
+        # by-reference intent(out) scalar (assign_c_attributes already picks
+        # reference pass-by for it) passed straight to the inner method, but
+        # drop it from the Python input signature and mark it so the bespoke
+        # output-array Python emission returns its filled value.  Guarded by
+        # has_output_array so non-output-array methods keep their existing
+        # scalar-arg handling unchanged.  (Predicate inlined — Classification
+        # imports from this module — but kept in lock-step with
+        # Classification.is_output_scalar_arg.)
+        if (has_output_array
+                and not arg.is_output_array
+                and not arg.is_array
+                and arg.intrinsic in ('double precision', 'real',
+                                      'integer', 'logical')
+                and 'intent(out)' in arg.attributes
+                and 'allocatable' not in arg.attributes
+                and not any(a.startswith('dimension') for a in arg.attributes)):
+            arg.is_output_scalar = True
+            arg.py_is_present     = False
+            # fort_is_present / galacticus_is_present stay True: the arg is a
+            # real by-reference intent(out) dummy the inner method fills.
 
         new_list.insert(0, arg)
 

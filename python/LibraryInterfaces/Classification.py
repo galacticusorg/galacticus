@@ -33,7 +33,8 @@ __all__ = [
     'RETURN_TYPE_ALIASES', 'SCALAR_RETURN_OK',
     'normalize_method_return_type', 'is_internal_constructor_name',
     'classify_arg', 'unsupported_arg',
-    'is_output_array_arg', 'unsupported_output_array_method',
+    'is_output_array_arg', 'is_output_scalar_arg',
+    'unsupported_output_array_method',
 ]
 
 
@@ -428,6 +429,31 @@ def is_output_array_arg(arg):
             and 'intent(out)' in attrs)
 
 
+def is_output_scalar_arg(arg):
+    """True if *arg* is a scalar ``intent(out)`` numeric/logical companion —
+    an ``intent(out)`` argument that is not allocatable and has no
+    ``dimension`` (e.g. ``integer, intent(out) :: count`` or ``double
+    precision, intent(out) :: f``).
+
+    These accompany output arrays on methods like
+    ``accretionDiskSpectra.wavelengths`` (a count beside the array) or
+    ``variogram.modelFDF`` (a scalar residual beside the gradient array).
+    The generator passes them straight through as by-reference intent(out)
+    scalars and appends their filled values to the Python return. Derived
+    types, ``class(...)``, and ``character`` scalars are excluded — those
+    need their own handling.
+    """
+    attrs = arg.get('attributes', [])
+    if 'intent(out)' not in attrs:
+        return False
+    if 'allocatable' in attrs:
+        return False
+    if any(a.startswith('dimension') for a in attrs):
+        return False
+    return arg.get('intrinsic') in (
+        'double precision', 'real', 'integer', 'logical')
+
+
 def unsupported_output_array_method(args, return_type):
     """Whole-method gate for the output-array feature.
 
@@ -437,11 +463,12 @@ def unsupported_output_array_method(args, return_type):
     handle; otherwise ``None`` — including when there are no output arrays at
     all, which is the normal (non-output-array) path.
 
-    Increment-1 restriction: an output-array method must return ``void``,
-    have no optional arguments, and every non-``self`` argument must be
-    either a supported input or itself an output array. A scalar
-    ``intent(out)`` / ``intent(inout)`` companion, an ``intent(inout)``
-    allocatable, or a non-void return would each have an output the wrapper
+    Restriction: an output-array method must return ``void``, have no
+    optional arguments, and every non-``self`` argument must be a supported
+    input, an output array, or a scalar ``intent(out)`` numeric/logical
+    companion (:func:`is_output_scalar_arg`). An ``intent(inout)``
+    allocatable, an ``intent(out)`` derived-type / ``class`` / ``character``
+    argument, or a non-void return would each have an output the wrapper
     silently drops, so such methods stay blocked.
 
     Shared by the generator (:mod:`libraryInterfaces`) and the audit
@@ -457,7 +484,7 @@ def unsupported_output_array_method(args, return_type):
         return (f"output-array method with non-void return type "
                 f"({return_type}) — not yet supported")
     for a in args:
-        if is_output_array_arg(a):
+        if is_output_array_arg(a) or is_output_scalar_arg(a):
             continue
         attrs = a.get('attributes', [])
         if 'optional' in attrs:
@@ -465,6 +492,7 @@ def unsupported_output_array_method(args, return_type):
                     f"'{a.get('name', '?')}' — not yet supported")
         if 'intent(out)' in attrs or 'intent(inout)' in attrs:
             return (f"output-array method with non-input argument "
-                    f"'{a.get('name', '?')}' — only supported inputs may "
-                    f"accompany output arrays")
+                    f"'{a.get('name', '?')}' — only supported inputs and "
+                    f"scalar intent(out) companions may accompany output "
+                    f"arrays")
     return None

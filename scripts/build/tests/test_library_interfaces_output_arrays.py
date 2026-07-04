@@ -132,14 +132,44 @@ def _method_deleted(fc, method_name, lib_function_classes):
     return method_name not in fc['methods']
 
 
-def test_scalar_out_companion_blocks_method():
-    # accretionDiskSpectra.wavelengths: scalar intent(out) count + array.
+def test_scalar_out_companion_supported():
+    # accretionDiskSpectra.wavelengths: scalar intent(out) count + array —
+    # the scalar is returned alongside the array, not a Python input.
     fc = _method_fc(
         'accretionDiskSpectra', 'M', 'wavelengths', 'void',
         ['integer, intent(  out) :: wavelengthsCount',
          'double precision, allocatable, dimension(:), intent(  out)'
          ' :: wavelengths'])
-    assert _method_deleted(fc, 'wavelengths', {'accretionDiskSpectra': {}})
+    fort, c_lib, py = _generate(fc, {'accretionDiskSpectra': {}})
+    assert 'wavelengths' in fc['methods']          # not deleted
+    # Scalar out is a by-reference intent(out) dummy passed straight through.
+    assert 'integer(c_int) :: wavelengthsCount' in fort
+    assert 'wavelengthsCount=wavelengthsCount' in fort
+    # No Python input parameter for the outputs; both returned in order.
+    assert 'def wavelengths(self):' in py
+    assert '_wavelengthsCount_ = c_int()' in py
+    assert 'byref(_wavelengthsCount_)' in py
+    assert 'return (_wavelengthsCount_.value, _wavelengthsArr_)' in py
+    spec = next(s for s in c_lib if s['name'] == 'accretionDiskSpectraWavelengthsL')
+    # self, self_ID, POINTER(c_int) scalar-out, then the array companion pair.
+    assert spec['argtypes'] == [
+        'c_void_p', 'c_int', 'POINTER(c_int)',
+        'POINTER(c_void_p)', 'POINTER(c_size_t)']
+
+
+def test_scalar_and_array_outputs_declaration_order():
+    # variogram.modelFDF: input arrays + scalar out `f` + output array `dfdC`.
+    fc = _method_fc(
+        'variogram', 'M', 'modelFDF', 'void',
+        ['double precision, intent(in   ), dimension(:) :: C, separations,'
+         ' semivariances',
+         'double precision, intent(  out) :: f',
+         'double precision, intent(  out), allocatable, dimension(:) :: dfdC'])
+    _, _, py = _generate(fc, {'variogram': {}})
+    assert 'def modelFDF(self,C,separations,semivariances):' in py
+    assert '_f_ = c_double()' in py
+    # Scalar output precedes the array output in declaration order.
+    assert 'return (_f_.value, _dfdCArr_)' in py
 
 
 def test_non_void_return_blocks_output_array_method():

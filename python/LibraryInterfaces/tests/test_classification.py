@@ -12,6 +12,7 @@ from LibraryInterfaces.Classification import (
     classify_arg,
     is_internal_constructor_name,
     is_output_array_arg,
+    is_output_scalar_arg,
     normalize_method_return_type,
     unsupported_arg,
     unsupported_output_array_method,
@@ -226,20 +227,43 @@ def test_output_array_method_gate_clean_cases():
               attributes=['intent(out)', 'allocatable', 'dimension(:)'],
               name='y')
     inp = _arg('double precision', attributes=['intent(in)'], name='time')
+    scalar_out = _arg('integer', attributes=['intent(out)'], name='count')
+    dbl_out = _arg('double precision', attributes=['intent(out)'], name='f')
     # Void return, only inputs alongside the output → allowed.
     assert unsupported_output_array_method([oa], 'void') is None
     assert unsupported_output_array_method([inp, oa], 'void') is None
     # No output array at all → gate is a no-op.
     assert unsupported_output_array_method([inp], 'void') is None
+    # Scalar intent(out) numeric companions are allowed alongside an array.
+    assert is_output_scalar_arg(scalar_out)
+    assert is_output_scalar_arg(dbl_out)
+    assert unsupported_output_array_method([scalar_out, oa], 'void') is None
+    assert unsupported_output_array_method([dbl_out, oa], 'void') is None
 
 
 def test_output_array_method_gate_blocks():
     oa = _arg('double precision',
               attributes=['intent(out)', 'allocatable', 'dimension(:)'],
               name='y')
-    scalar_out = _arg('integer', attributes=['intent(out)'], name='count')
     optional_in = _arg('double precision',
                        attributes=['intent(in)', 'optional'], name='z')
+    inout_alloc = _arg('double precision',
+                       attributes=['intent(inout)', 'allocatable',
+                                   'dimension(:)'], name='w')
+    # Non-void return, optional args, and non-scalar-out non-input args all
+    # keep the method blocked.
     assert unsupported_output_array_method([oa], 'double precision')
-    assert unsupported_output_array_method([scalar_out, oa], 'void')
     assert unsupported_output_array_method([optional_in, oa], 'void')
+    assert unsupported_output_array_method([inout_alloc, oa], 'void')
+
+
+def test_output_scalar_excludes_derived_and_character():
+    # Only numeric/logical scalars are output companions; derived types,
+    # class, and character intent(out) scalars are not.
+    assert not is_output_scalar_arg(
+        _arg('type', type_spec='abundances', attributes=['intent(out)']))
+    assert not is_output_scalar_arg(
+        _arg('character', type_spec='len=32', attributes=['intent(out)']))
+    assert not is_output_scalar_arg(
+        _arg('double precision',
+             attributes=['intent(out)', 'dimension(3)']))  # fixed array
