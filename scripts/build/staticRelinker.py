@@ -204,9 +204,23 @@ if dylibs_to_hide:
     subprocess.run(mv_cmd, shell=True)
 
 print(f"Relinking with: {compile_command}")
-status = subprocess.run(compile_command, shell=True)
+# Record the current executable's timestamp so we can later tell whether the relink
+# actually (re)wrote it. -1 stands in for "does not exist yet".
+executable_mtime_before = os.path.getmtime(executable) if os.path.exists(executable) else -1
 
-# Restore any temporarily moved dynamic libraries.
+# Run the relink, capturing combined stdout+stderr so the diagnostics can be screened
+# for a genuine link failure. On macOS gfortran can exit non-zero for benign reasons
+# (e.g. deprecated linker-flag warnings emitted by the modern ld) even when it produces
+# a valid static executable. The historical build recipe absorbed this by piping the
+# relink through postprocessLinker.py and taking the pipe's exit status; parsing that
+# tail off the grepped link line (above) dropped that behavior, so a cosmetic non-zero
+# exit now fails the CI job. Re-apply the screening explicitly (below).
+relink = subprocess.run(
+    compile_command, shell=True,
+    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+)
+
+# Restore any temporarily moved dynamic libraries before exiting.
 if dylibs_to_hide:
     print("Must restore temporarily moved dylibs (requires sudo):")
     mv_cmd = "sudo -- sh -c '" + '; '.join(
@@ -214,5 +228,36 @@ if dylibs_to_hide:
     ) + "'"
     subprocess.run(mv_cmd, shell=True)
 
-# Exit with status.
-sys.exit(status.returncode)
+# Screen the linker diagnostics: postprocessLinker.py re-emits them (dropping the
+# known-benign warnings) and exits non-zero only on a message that indicates the link
+# genuinely failed ('error:', 'undefined reference', 'ld returned N exit status').
+postprocess = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'postprocessLinker.py')
+screen = subprocess.run([sys.executable, postprocess], input=relink.stdout, text=True)
+
+# Decide the relink's fate:
+#  * a genuine-failure diagnostic always fails the relink;
+#  * otherwise a clean gfortran exit succeeds;
+#  * a non-zero gfortran exit with no such diagnostic is treated as benign ONLY if the
+#    executable was actually (re)written -- this tolerates the cosmetic macOS non-zero
+#    exit while still failing on silent breakage that produces no matching diagnostic
+#    (compiler not found, killed by a signal/OOM, disk full, etc.), where the executable
+#    is never updated.
+if screen.returncode != 0:
+    sys.exit(screen.returncode)
+if relink.returncode == 0:
+    sys.exit(0)
+executable_written = (
+    os.path.exists(executable) and os.path.getmtime(executable) > executable_mtime_before
+)
+if executable_written:
+    print(
+        f"Warning: relink command exited with status {relink.returncode} but emitted no "
+        f"failure diagnostic and (re)wrote '{executable}'; treating as success.",
+        file=sys.stderr,
+    )
+    sys.exit(0)
+print(
+    f"Error: relink failed (exit {relink.returncode}) and '{executable}' was not updated.",
+    file=sys.stderr,
+)
+sys.exit(relink.returncode)
