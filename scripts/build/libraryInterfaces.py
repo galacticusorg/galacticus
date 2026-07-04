@@ -1164,10 +1164,31 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
                                                     var=var)
                 for mod, symbols in spec['shim_uses'].items():
                     shim_uses.setdefault(mod, set()).update(symbols)
-                # Wrapper-side wiring: store the funptr, pass the shim.
-                a.fort_reassignment = f'  {var} = {a.name}\n'
-                a.fort_pass_as      = shim
-                a.fort_modules      = {module_name: {var: 1, shim: 1}}
+                if 'pointer' in a.attributes:
+                    # `procedure(...), pointer` dummy: the actual must
+                    # itself be a procedure pointer, so the module also
+                    # carries a slot declared with the registry's
+                    # Galacticus-side abstract interface (a module
+                    # procedure from the same contains part can't serve as
+                    # the interface-name in the specification part).  The
+                    # wrapper re-aims it at the shim before every call, so
+                    # a callee that repoints it does no lasting harm.
+                    giface = f'glcCBGIface_{a.name}_'
+                    pp     = f'glcCBPP_{a.name}_'
+                    iface_blocks += spec['g_iface'].format(giface=giface)
+                    var_decls    += (f'  procedure({giface}), pointer ::'
+                                     f' {pp} => null()\n')
+                    a.fort_reassignment = (f'  {var} = {a.name}\n'
+                                           f'  {pp} => {shim}\n')
+                    a.fort_pass_as      = pp
+                    a.fort_modules      = {module_name:
+                                           {var: 1, shim: 1, pp: 1}}
+                else:
+                    # Plain procedure dummy: pass the shim directly (module
+                    # procedures have explicit interfaces).
+                    a.fort_reassignment = f'  {var} = {a.name}\n'
+                    a.fort_pass_as      = shim
+                    a.fort_modules      = {module_name: {var: 1, shim: 1}}
                 # Python-side wiring: adapt the user callable, wrap in the
                 # CFUNCTYPE, pass as a void pointer.
                 pv        = python_safe_name(a.name)

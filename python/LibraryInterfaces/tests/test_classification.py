@@ -365,19 +365,30 @@ def test_registered_callback_accepted():
 
 
 def test_unregistered_procedure_blocked_in_scope():
-    cb = _arg('procedure', type_spec='crossSectionFunctionTemplate',
-              attributes=['pointer'], name='crossSectionFunction')
+    cb = _arg('procedure', type_spec='someUnregisteredTemplate',
+              attributes=['pointer'], name='fn')
     verdict = classify_arg(cb, REGISTERED)
     assert verdict[0] == 'blocked'
     assert 'procedure-pointer args are not supported' in verdict[1]
 
 
-def test_registered_callback_with_pointer_still_blocked():
-    # A pointer dummy may be reassigned by the callee — the shim actual
-    # can't satisfy that, registered interface or not.
-    cb = _arg('procedure', type_spec='computationalDomainVolumeIntegrand',
-              attributes=['pointer'], name='integrand')
-    assert classify_arg(cb, REGISTERED)[0] == 'blocked'
+def test_registered_callback_pointer_dummy_accepted():
+    # A `procedure(...), pointer` dummy (no intent) is accepted for a
+    # registered interface: the wrapper passes the shim module's
+    # procedure-pointer slot (a pointer actual for a pointer dummy).
+    cb = _arg('procedure', type_spec='crossSectionFunctionTemplate',
+              attributes=['pointer'], name='crossSectionFunction')
+    assert classify_arg(cb, REGISTERED) is None
+
+
+def test_registered_callback_pointer_output_still_blocked():
+    # intent(out|inout) pointer procedures are outputs — blocked even for
+    # a registered interface.
+    cb = _arg('procedure', type_spec='crossSectionFunctionTemplate',
+              attributes=['pointer', 'intent(out)'], name='fn')
+    verdict = classify_arg(cb, REGISTERED)
+    assert verdict[0] == 'blocked'
+    assert 'pointer output' in verdict[1]
 
 
 @pytest.mark.parametrize('intent', ['intent(out)', 'intent(inout)'])

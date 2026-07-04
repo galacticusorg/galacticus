@@ -110,6 +110,48 @@ _SHARED_TYPE_MODULES = {
 # inline accept in assign_c_types below, and the emission code in
 # libraryInterfaces.interfaces_methods.
 _CALLBACK_PROCEDURE_INTERFACES = {
+    # double precision function crossSectionFunction(wavelength)
+    #   double precision, intent(in) :: wavelength
+    # (source/radiation/_class.F90).  The method dummy is
+    # `procedure(...), pointer`, so the wrapper passes the module's
+    # procedure-pointer slot aimed at the shim (a pointer actual for a
+    # pointer dummy) — the generator keys that off the arg's own
+    # `pointer` attribute.
+    'crossSectionFunctionTemplate': {
+        'cfunctype' : 'CFUNCTYPE(c_double, c_double)',
+        'py_adapter': '(lambda _wavelength_: float({fn}(_wavelength_)))',
+        'c_iface'   : (
+            '  abstract interface\n'
+            '     function {iface}(wavelength) bind(c)\n'
+            '       import c_double\n'
+            '       real(c_double), value :: wavelength\n'
+            '       real(c_double)        :: {iface}\n'
+            '     end function {iface}\n'
+            '  end interface\n'
+        ),
+        'shim'      : (
+            '  double precision function {shim}(wavelength)\n'
+            '    double precision, intent(in   ) :: wavelength\n'
+            '    procedure({iface}), pointer     :: fn_\n'
+            '    call c_f_procpointer({var}, fn_)\n'
+            '    {shim} = fn_(real(wavelength, c_double))\n'
+            '  end function {shim}\n'
+        ),
+        # Galacticus-side abstract interface, used to declare the module's
+        # procedure-pointer slot when the method dummy is
+        # `procedure(...), pointer` (gfortran cannot use a module procedure
+        # from the same module's contains part as an interface-name in the
+        # specification part, so the slot needs its own abstract interface
+        # with characteristics matching the shim).
+        'g_iface'   : (
+            '  abstract interface\n'
+            '     double precision function {giface}(wavelength)\n'
+            '       double precision, intent(in   ) :: wavelength\n'
+            '     end function {giface}\n'
+            '  end interface\n'
+        ),
+        'shim_uses' : {},
+    },
     # double precision function integrand(coordinates)
     #   class(coordinate), intent(in) :: coordinates
     # (source/computational_domains/volume_integrators/_class.F90).  The
@@ -137,6 +179,14 @@ _CALLBACK_PROCEDURE_INTERFACES = {
             '    call c_f_procpointer({var}, fn_)\n'
             '    {shim} = fn_(position_)\n'
             '  end function {shim}\n'
+        ),
+        'g_iface'   : (
+            '  abstract interface\n'
+            '     double precision function {giface}(coordinates)\n'
+            '       import :: coordinate\n'
+            '       class(coordinate), intent(in   ) :: coordinates\n'
+            '     end function {giface}\n'
+            '  end interface\n'
         ),
         'shim_uses' : {'Coordinates': ('coordinate',)},
     },
@@ -431,14 +481,19 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
         # a C funptr by value; everything else (module emission, shim
         # pass-through, funptr storage, CFUNCTYPE adaptation) is wired by the
         # generator, which knows the class/method names the module and shim
-        # are named after.  `pointer` procedure dummies are excluded — with
-        # intent(out)/(inout) they are Fortran-procedure *outputs* (rejected
-        # by classify_arg), and without intent the callee may reassign them,
-        # which a shim actual can't satisfy.
+        # are named after.  `pointer` dummies are accepted too — the
+        # generator passes the shim module's procedure-pointer slot instead
+        # of the shim itself (keyed off the arg's `pointer` attribute) —
+        # EXCEPT with intent(out|inout), where the pointer is an output
+        # (classify_arg rejects the surrounding method, so the generator
+        # never reaches here for those; the attribute check keeps this
+        # predicate self-contained anyway).
         if (arg.intrinsic == 'procedure'
                 and arg.type_spec in _CALLBACK_PROCEDURE_INTERFACES
-                and 'pointer' not in arg.attributes
-                and 'optional' not in arg.attributes):
+                and 'optional' not in arg.attributes
+                and not ('pointer' in arg.attributes
+                         and ('intent(out)' in arg.attributes
+                              or 'intent(inout)' in arg.attributes))):
             arg.is_callback = True
             arg.ctype       = 'c_void_p'
             arg.fort_type   = 'type(c_funptr)'

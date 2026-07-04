@@ -98,11 +98,45 @@ def test_unregistered_procedure_method_still_dropped():
     fc = {
         'name'   : 'radiationField',
         'module' : 'M',
-        'methods': {'integrateOverCrossSection': {
+        'methods': {'someMethod': {
             'type'    : 'double precision',
-            'argument': ['procedure(crossSectionFunctionTemplate), pointer'
-                         ' :: crossSectionFunction'],
+            'argument': ['procedure(someUnregisteredTemplate), pointer'
+                         ' :: fn'],
         }},
     }
     _generate(fc)
-    assert 'integrateOverCrossSection' not in fc['methods']
+    assert 'someMethod' not in fc['methods']
+
+
+def test_pointer_dummy_callback_uses_procedure_pointer_slot():
+    # crossSectionFunctionTemplate's method dummy is
+    # `procedure(...), pointer`: the module must carry a procedure-pointer
+    # slot declared with the Galacticus-side abstract interface, re-aimed
+    # at the shim before the call, and passed as the actual.
+    fc = {
+        'name'   : 'radiationField',
+        'module' : 'M',
+        'methods': {'integrateOverCrossSection': {
+            'type'    : 'double precision',
+            'argument': [
+                'double precision, dimension(2), intent(in   )'
+                ' :: wavelengthRange',
+                'procedure(crossSectionFunctionTemplate), pointer'
+                ' :: crossSectionFunction',
+                'type(treeNode), intent(inout) :: node',
+            ],
+        }},
+    }
+    fort, c_lib, py = _generate(fc)
+    assert 'integrateOverCrossSection' in fc['methods']    # generated
+    # Galacticus-side abstract interface + procedure-pointer slot.
+    assert 'function glcCBGIface_crossSectionFunction_(wavelength)' in fort
+    assert ('procedure(glcCBGIface_crossSectionFunction_), pointer ::'
+            ' glcCBPP_crossSectionFunction_ => null()' in fort)
+    # Wrapper stores the funptr, re-aims the slot, passes the slot.
+    assert 'glcCBPtr_crossSectionFunction_ = crossSectionFunction' in fort
+    assert 'glcCBPP_crossSectionFunction_ => glcCBShim_crossSectionFunction_' \
+        in fort
+    assert 'crossSectionFunction=glcCBPP_crossSectionFunction_' in fort
+    # Python adapts the callable with the scalar CFUNCTYPE.
+    assert 'CFUNCTYPE(c_double, c_double)' in py

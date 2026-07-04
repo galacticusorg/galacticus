@@ -279,11 +279,14 @@ def classify_arg(arg, registered_classes, *, constructor_overrides=(),
         # Inbound callback with a registered, hand-checked marshalling
         # recipe (see Pipeline._CALLBACK_PROCEDURE_INTERFACES): the wrapper
         # accepts a Python callable via CFUNCTYPE → c_funptr → a Fortran
-        # shim adapting the Galacticus-side interface.  Plain (non-pointer,
-        # non-optional) dummies only: a pointer dummy may be reassigned by
-        # the callee, which a shim actual can't satisfy.
+        # shim adapting the Galacticus-side interface.  Both plain and
+        # `pointer` dummies qualify — for a pointer dummy the wrapper
+        # passes the shim module's procedure-pointer slot aimed at the shim
+        # (a pointer actual for a pointer dummy; if the callee repoints it,
+        # the slot is re-aimed on the next call).  Pointer dummies with
+        # intent(out|inout) were already rejected above as outputs;
+        # optional callbacks are not yet supported.
         if (type_spec in _CALLBACK_PROCEDURE_INTERFACES
-                and 'pointer' not in attrs
                 and 'optional' not in attrs):
             return None
         return ('blocked',
