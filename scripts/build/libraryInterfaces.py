@@ -1091,6 +1091,7 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
         # single-slot dynamic-array *return* path (the _DYNAMIC_ARRAY_RETURN
         # branch), generalised to N per-argument outputs.
         output_arrays = [a for a in arg_list if a.is_output_array]
+        sized_outputs = [a for a in arg_list if a.is_output_sized]
         for a in output_arrays:
             local     = f'glcOut_{a.name}_'
             ptr_name  = f'{a.name}DataPtr_'
@@ -1418,7 +1419,7 @@ end {procedure} {method_name_c}
                 + f'        ({elem_ctype} * _glcSize_.value).from_address(_glcDataPtr_.value)\n'
                 + f'    ).copy()\n'
             )
-        elif output_arrays:
+        elif output_arrays or sized_outputs:
             # Output-array method: one or more `intent(out), allocatable,
             # dimension(:)` args, each filled by the inner call into a
             # save-target buffer and conveyed back as a (c_ptr, c_size_t)
@@ -1450,6 +1451,33 @@ end {procedure} {method_name_c}
                     local = f'_{pv}_'
                     setup_lines += f'    {local} = {a.ctype or "c_int"}()\n'
                     py_call_args.append(f'byref({local})')
+                elif a.is_output_sized:
+                    # Sized output buffer: pre-allocate a flat numpy array
+                    # of the product of the extent args (they're this
+                    # function's own parameters) and pass its data pointer;
+                    # the reshape-to-declared-shape happens in the collect
+                    # block below.  No copy is needed — Python owns the
+                    # buffer.  Extents were lowercased by the declaration
+                    # parser; resolve them to the actual (case-preserved)
+                    # parameter names case-insensitively.
+                    name_map  = {x.name.lower(): python_safe_name(x.name)
+                                 for x in arg_list}
+                    extents   = [name_map.get(e.lower(), e)
+                                 for e in a.output_extents]
+                    pv        = python_safe_name(a.name)
+                    arr_local = f'_{pv}Arr_'
+                    size_expr = '*'.join(extents)
+                    setup_lines += (
+                        f'    {arr_local} = np.zeros(({size_expr},),'
+                        f' dtype=np.{a.output_elem_dtype})\n')
+                    py_call_args.append(
+                        f'{arr_local}.ctypes.data_as('
+                        f'POINTER({a.output_elem_ctype}))')
+                    if len(extents) > 1:
+                        shape = ', '.join(extents)
+                        collect_lines += (
+                            f'    {arr_local} = {arr_local}.reshape('
+                            f'({shape}), order="F")\n')
                 else:
                     py_call_args.append(a.py_pass_as if a.py_pass_as
                                         else python_safe_name(a.name))
@@ -1546,7 +1574,7 @@ end {procedure} {method_name_c}
                 pv = python_safe_name(a.name)
                 if a.is_output_scalar:
                     result_tokens.append(f'_{pv}_.value')
-                elif a.is_output_array:
+                elif a.is_output_array or a.is_output_sized:
                     result_tokens.append(f'_{pv}Arr_')
             reassignments_block = ''.join(a.py_reassignment for a in arg_list)
             call_lhs_py = '_glcRet_ = ' if ret_token == '_glcRet_' else ''

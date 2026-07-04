@@ -122,6 +122,19 @@ class ArgSpec:
     output_elem_fort:   str  = ''   # 'real(c_double)' / 'integer(c_int)'
     output_elem_dtype:  str  = ''   # numpy dtype: 'float64' / 'int32'
 
+    # Marker for a "sized output buffer": an `intent(out)` explicit-shape
+    # array whose extents are identifiers naming integer intent(in) args of
+    # the same method (`dimension(gridCount,…)`), with numeric or
+    # complex(c_double_complex) elements.  The dummy stays in the bind(c)
+    # signature (rewritten to `dimension(*)`; the inner call sequence-
+    # associates it to the explicit-shape inner dummy); the Python wrapper
+    # pre-allocates a flat numpy buffer of the product size (it knows the
+    # extents — they're its own parameters), passes its data pointer,
+    # drops the arg from the Python signature, and returns the buffer
+    # reshaped column-major.  No companions are needed.
+    is_output_sized: bool = False
+    output_extents:  list = field(default_factory=list)  # extent arg names
+
     # Marker for an inbound `procedure(<iface>)` callback argument whose
     # abstract interface is registered in
     # Pipeline._CALLBACK_PROCEDURE_INTERFACES.  The bind(c) wrapper receives

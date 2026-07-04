@@ -77,6 +77,20 @@ _SHARED_TYPE_MODULES = {
     'enumerationOutputAnalysisCovarianceModelType': 'Output_Analyses_Options',
 }
 
+# Match a `dimension(<name>[,<name>...])` attribute whose every extent is a
+# plain identifier — the arg-extent explicit-shape used by output buffers
+# like surveyGeometry.windowFunctions' `dimension(gridCount,gridCount,
+# gridCount)`.  The named extents must be integer intent(in) args of the
+# same method (validated by unsupported_output_array_method); the Python
+# wrapper pre-allocates a buffer of the product size and returns it
+# reshaped column-major.
+_DIM_IDENT_EXTENTS_RX = re.compile(
+    r'^dimension\s*\(\s*'
+    r'([a-zA-Z_][a-zA-Z0-9_]*(?:\s*,\s*[a-zA-Z_][a-zA-Z0-9_]*)*)'
+    r'\s*\)$'
+)
+
+
 # Inbound procedure (callback) arguments the pipeline can marshal.  Keyed by
 # the abstract-interface name appearing in `procedure(<name>) :: arg`; each
 # entry describes how to bridge a Python callable to the Fortran interface:
@@ -371,16 +385,32 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
         if isinstance(r, dict):
             return r.get('attributes', []), r.get('intrinsic')
         return getattr(r, 'attributes', []), getattr(r, 'intrinsic', '')
+    def _sized_out(a_attrs, a_intr, a_type):
+        # Sized output buffer: intent(out) explicit-shape with identifier
+        # extents, numeric or complex(c_double_complex) elements (kept in
+        # lock-step with Classification.is_output_sized_array_arg).
+        return ('intent(out)' in a_attrs
+                and 'allocatable' not in a_attrs
+                and 'pointer' not in a_attrs
+                and (a_intr in ('double precision', 'integer')
+                     or (a_intr == 'complex'
+                         and (a_type or '').strip() == 'c_double_complex'))
+                and any(_DIM_IDENT_EXTENTS_RX.match(x) for x in a_attrs
+                        if x.startswith('dimension')))
+
     has_output_array = False
     for r in argument_list:
         a_attrs, a_intr = _attrs_intr(r)
-        if ('allocatable' in a_attrs
-                and ('intent(out)' in a_attrs or 'intent(inout)' in a_attrs)
-                and ((a_intr in ('double precision', 'integer')
-                      and ('dimension(:)' in a_attrs
-                           or 'dimension(:,:)' in a_attrs))
-                     or (a_intr == 'logical'
-                         and 'dimension(:)' in a_attrs))):
+        a_type = (r.get('type') if isinstance(r, dict)
+                  else getattr(r, 'type_spec', ''))
+        if (('allocatable' in a_attrs
+             and ('intent(out)' in a_attrs or 'intent(inout)' in a_attrs)
+             and ((a_intr in ('double precision', 'integer')
+                   and ('dimension(:)' in a_attrs
+                        or 'dimension(:,:)' in a_attrs))
+                  or (a_intr == 'logical'
+                      and 'dimension(:)' in a_attrs)))
+                or _sized_out(a_attrs, a_intr, a_type)):
             has_output_array = True
             break
 
@@ -505,6 +535,55 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
                 # state.
                 arg.fort_reassignment = (
                     f'  if (allocated({local})) deallocate({local})\n')
+            new_list.insert(0, arg)
+            continue
+
+        # Sized output buffer: `intent(out), dimension(<argName>,…)` numeric
+        # or complex(c_double_complex).  The dummy stays in the bind(c)
+        # signature (assign_c_attributes rewrites the shape to
+        # `dimension(*)`; the inner call sequence-associates it to the
+        # inner method's explicit-shape dummy), but is dropped from the
+        # Python signature: the wrapper pre-allocates a flat numpy buffer
+        # of the product of the extent args (its own parameters), passes
+        # its data pointer, and returns it reshaped column-major.  Without
+        # this short-circuit a complex-element arg would fall through the
+        # per-intrinsic dispatch with no ctype at all.
+        if (arg.intrinsic in ('double precision', 'integer', 'complex')
+                and _sized_out(arg.attributes, arg.intrinsic,
+                               arg.type_spec)):
+            if arg.intrinsic == 'complex':
+                # ctypes has no complex type: the pointer is typed as
+                # POINTER(c_double) and numpy's complex128 provides the
+                # bit-compatible (re, im) storage.
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_double', 'complex(c_double_complex)', 'complex128')
+            elif arg.intrinsic == 'double precision':
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_double', 'real(c_double)', 'float64')
+            elif arg.type_spec in ('c_long', 'kind_int8'):
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_long', 'integer(c_long)', 'int64')
+            elif arg.type_spec == 'c_size_t':
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_size_t', 'integer(c_size_t)', 'uint64')
+            else:
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_int', 'integer(c_int)', 'int32')
+            extents = []
+            for a_attr in arg.attributes:
+                m = (_DIM_IDENT_EXTENTS_RX.match(a_attr)
+                     if a_attr.startswith('dimension') else None)
+                if m:
+                    extents = [e.strip() for e in m.group(1).split(',')]
+                    break
+            arg.is_output_sized      = True
+            arg.output_extents       = extents
+            arg.ctype                = elem_ctype
+            arg.fort_type            = elem_fort
+            arg.output_elem_ctype    = elem_ctype
+            arg.output_elem_dtype    = elem_dtype
+            arg.py_is_present        = False
+            arg.is_optional          = False
             new_list.insert(0, arg)
             continue
 
@@ -848,6 +927,13 @@ def assign_c_attributes(argument_list):
         attr_filters = []
         for a in arg.attributes:
             if a in ('dimension(:)', 'dimension(:,:)'):
+                attr_filters.append('dimension(*)')
+            elif arg.is_output_sized and a.startswith('dimension'):
+                # Sized output buffer: the identifier-extent shape
+                # (`dimension(gridCount,…)`) collapses to assumed-size in
+                # the bind(c) wrapper; the inner call sequence-associates
+                # the flat buffer to the inner method's explicit-shape
+                # dummy.
                 attr_filters.append('dimension(*)')
             elif a.startswith('dimension') or a == 'allocatable':
                 attr_filters.append(a)
@@ -1263,7 +1349,7 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
             new_list.insert(0, arg)
             continue
 
-        if arg.is_output_array or arg.is_callback:
+        if arg.is_output_array or arg.is_output_sized or arg.is_callback:
             # Output arrays and callbacks were fully wired in
             # assign_c_types / the generator: fort_pass_as points at the
             # wrapper-local buffer (or shim), fort_declarations declares

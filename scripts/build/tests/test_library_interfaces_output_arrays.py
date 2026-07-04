@@ -291,6 +291,50 @@ def test_dynamic_array_return_composes_with_output_arrays():
             ' _integralsAnalyticArr_)' in py)
 
 
+def test_complex_sized_output_buffers():
+    # windowFunctions' shape: complex(c_double_complex) intent(out) arrays
+    # with identifier extents (dimension(gridCount,…)).  The wrapper takes
+    # them as sequence-associated dimension(*) dummies; Python
+    # pre-allocates complex128 buffers of the product size and returns
+    # them reshaped column-major, alongside the scalar-out boxLength.
+    fc = _method_fc(
+        'surveyGeometry', 'M', 'windowFunctions', 'void',
+        ['double precision , intent(in   ) :: mass1 , mass2',
+         'integer , intent(in   ) :: gridCount',
+         'double precision , intent(  out) :: boxLength',
+         'complex (c_double_complex), intent(  out),'
+         ' dimension(gridCount,gridCount,gridCount)'
+         ' :: windowFunction1, windowFunction2'])
+    fort, c_lib, py = _generate(fc, {'surveyGeometry': {}})
+    assert 'windowFunctions' in fc['methods']
+    # bind(c): assumed-size complex dummies, no companions.
+    assert 'complex(c_double_complex), dimension(*) :: windowFunction1' \
+        in fort
+    assert 'DataPtr_' not in fort
+    spec = next(s for s in c_lib
+                if s['name'] == 'surveyGeometryWindowFunctionsL')
+    assert spec['argtypes'][-2:] == ['POINTER(c_double)',
+                                     'POINTER(c_double)']
+    # Python: outputs are not parameters; buffers pre-allocated from the
+    # extent arg and returned reshaped column-major.
+    assert 'def windowFunctions(self,mass1,mass2,gridCount):' in py
+    assert ('np.zeros((gridCount*gridCount*gridCount,),'
+            ' dtype=np.complex128)' in py)
+    assert '.reshape((gridCount, gridCount, gridCount), order="F")' in py
+    assert ('return (_boxLength_.value, _windowFunction1Arr_,'
+            ' _windowFunction2Arr_)' in py)
+
+
+def test_sized_output_with_bad_extent_dropped():
+    # An extent that names a non-integer (or missing) arg keeps the method
+    # blocked — Python couldn't size the buffer.
+    fc = _method_fc(
+        'x', 'M', 'f', 'void',
+        ['double precision, intent(in   ) :: scale',
+         'double precision, intent(  out), dimension(n) :: values'])
+    assert _method_deleted(fc, 'f', {'x': {}})
+
+
 def test_plain_method_still_generated():
     # A method with no output array is unaffected and still emitted.
     fc = _method_fc(

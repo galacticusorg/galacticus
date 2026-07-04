@@ -25,7 +25,8 @@ import re
 
 from LibraryInterfaces.Hierarchy import resolve_function_class_base
 from LibraryInterfaces.Pipeline import (_SHARED_TYPE_MODULES,
-                                        _CALLBACK_PROCEDURE_INTERFACES)
+                                        _CALLBACK_PROCEDURE_INTERFACES,
+                                        _DIM_IDENT_EXTENTS_RX)
 
 __all__ = [
     'ENUM_RETURN_RX', 'CLASS_RETURN_RX', 'ARRAY_RETURN_RX',
@@ -35,6 +36,7 @@ __all__ = [
     'normalize_method_return_type', 'is_internal_constructor_name',
     'classify_arg', 'unsupported_arg',
     'is_output_array_arg', 'is_output_scalar_arg',
+    'is_output_sized_array_arg', 'output_sized_extents',
     'unsupported_output_array_method',
 ]
 
@@ -258,6 +260,13 @@ def classify_arg(arg, registered_classes, *, constructor_overrides=(),
         return ('blocked',
                 f"value='absent' override on non-optional argument — only "
                 f"optional args may be dropped")
+    # Sized output buffers (`intent(out), dimension(<argName>,…)`) are
+    # accepted — including complex(c_double_complex) elements — BEFORE the
+    # blanket complex reject below; see is_output_sized_array_arg.  Their
+    # whole-method requirements (extents name integer intent(in) args,
+    # etc.) are enforced by unsupported_output_array_method.
+    if is_output_sized_array_arg(arg):
+        return None
     if intrinsic in ('complex', 'double complex'):
         return ('blocked', f"{intrinsic}({arg.get('type','')})")
     if intrinsic == 'procedure':
@@ -566,6 +575,45 @@ def is_output_scalar_arg(arg):
         'double precision', 'real', 'integer', 'logical')
 
 
+def is_output_sized_array_arg(arg):
+    """True if *arg* is an ``intent(out)`` explicit-shape array whose every
+    extent is a plain identifier (``dimension(gridCount,…)``) — a "sized
+    output buffer".  Because the extents are other (integer, intent(in))
+    arguments of the same method, the Python wrapper can pre-allocate a
+    buffer of the right size, pass it in place (no companions needed), and
+    return it reshaped column-major.  Elements may be numeric or
+    ``complex(c_double_complex)`` (bit-compatible with numpy complex128;
+    the canonical case is surveyGeometry.windowFunctions' FFT grids).
+
+    Extent-name validity (each names an integer ``intent(in)`` arg) is a
+    whole-method property checked by
+    :func:`unsupported_output_array_method`.
+    """
+    attrs = arg.get('attributes', [])
+    if 'intent(out)' not in attrs:
+        return False
+    if 'allocatable' in attrs or 'pointer' in attrs:
+        return False
+    intr = arg.get('intrinsic')
+    ts   = (arg.get('type') or '').strip()
+    if not (intr in ('double precision', 'integer')
+            or (intr == 'complex' and ts == 'c_double_complex')):
+        return False
+    return any(_DIM_IDENT_EXTENTS_RX.match(a) for a in attrs
+               if a.startswith('dimension'))
+
+
+def output_sized_extents(arg):
+    """Return the list of extent identifiers of a sized output buffer's
+    ``dimension(...)`` attribute (see :func:`is_output_sized_array_arg`)."""
+    for a in arg.get('attributes', []):
+        m = _DIM_IDENT_EXTENTS_RX.match(a) if a.startswith('dimension') \
+            else None
+        if m:
+            return [e.strip() for e in m.group(1).split(',')]
+    return []
+
+
 def unsupported_output_array_method(args, return_type):
     """Whole-method gate for the output-array feature.
 
@@ -601,8 +649,26 @@ def unsupported_output_array_method(args, return_type):
     EXCLUDING ``self``. *return_type* is the method's normalized return-type
     string (``'void'`` for subroutines).
     """
-    if not any(is_output_array_arg(a) for a in args):
+    if not any(is_output_array_arg(a) or is_output_sized_array_arg(a)
+               for a in args):
         return None
+    # Sized output buffers: every extent identifier must name an integer
+    # intent(in) argument of the same method — that's what lets the Python
+    # wrapper compute the allocation size before the call.  Compared
+    # case-insensitively: Fortran names are case-insensitive and the
+    # declaration parser lowercases attribute text (extents) while
+    # variableNames preserve source case.
+    int_inputs = {(a.get('name') or '').lower() for a in args
+                  if a.get('intrinsic') == 'integer'
+                  and 'intent(in)' in a.get('attributes', [])}
+    for a in args:
+        if not is_output_sized_array_arg(a):
+            continue
+        for extent in output_sized_extents(a):
+            if extent.lower() not in int_inputs:
+                return (f"sized output buffer '{a.get('name', '?')}' has "
+                        f"extent '{extent}' that is not an integer "
+                        f"intent(in) argument of the method")
     ret = normalize_method_return_type(return_type or 'void')
     # Dynamic-array returns (1D/2D allocatable or runtime-extent) lower the
     # wrapper to a subroutine whose own (c_ptr, size…) companions are
@@ -616,7 +682,8 @@ def unsupported_output_array_method(args, return_type):
                 f"({return_type}) — only void, direct-scalar, or "
                 f"dynamic-array returns may accompany output arrays")
     for a in args:
-        if is_output_array_arg(a) or is_output_scalar_arg(a):
+        if (is_output_array_arg(a) or is_output_scalar_arg(a)
+                or is_output_sized_array_arg(a)):
             continue
         attrs = a.get('attributes', [])
         if 'optional' in attrs:
