@@ -281,6 +281,46 @@ def test_output_array_method_gate_allows_inout_allocatable():
     assert unsupported_output_array_method([oa_out, oa_inout], 'void') is None
 
 
+# ---------------------------------------------------------------------------
+# Procedure (callback) arguments
+# ---------------------------------------------------------------------------
+
+def test_registered_callback_accepted():
+    # procedure(<iface>) with <iface> in _CALLBACK_PROCEDURE_INTERFACES:
+    # marshalled as a Python callable via CFUNCTYPE → c_funptr → shim.
+    cb = _arg('procedure', type_spec='computationalDomainVolumeIntegrand',
+              name='integrand')
+    assert classify_arg(cb, REGISTERED) is None
+
+
+def test_unregistered_procedure_blocked_in_scope():
+    cb = _arg('procedure', type_spec='crossSectionFunctionTemplate',
+              attributes=['pointer'], name='crossSectionFunction')
+    verdict = classify_arg(cb, REGISTERED)
+    assert verdict[0] == 'blocked'
+    assert 'procedure-pointer args are not supported' in verdict[1]
+
+
+def test_registered_callback_with_pointer_still_blocked():
+    # A pointer dummy may be reassigned by the callee — the shim actual
+    # can't satisfy that, registered interface or not.
+    cb = _arg('procedure', type_spec='computationalDomainVolumeIntegrand',
+              attributes=['pointer'], name='integrand')
+    assert classify_arg(cb, REGISTERED)[0] == 'blocked'
+
+
+@pytest.mark.parametrize('intent', ['intent(out)', 'intent(inout)'])
+def test_procedure_pointer_output_blocked_distinctly(intent):
+    # procedure(...), pointer, intent(out|inout): a Fortran procedure
+    # pointer handed back to the caller — unsupportable in principle; the
+    # message is distinct so the audit buckets it out-of-scope.
+    cb = _arg('procedure', type_spec='interruptTask',
+              attributes=[intent, 'pointer'], name='functionInterrupt')
+    verdict = classify_arg(cb, REGISTERED)
+    assert verdict[0] == 'blocked'
+    assert 'pointer output' in verdict[1]
+
+
 def test_output_scalar_excludes_derived_and_character():
     # Only numeric/logical scalars are output companions; derived types,
     # class, and character intent(out) scalars are not.

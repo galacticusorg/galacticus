@@ -122,6 +122,19 @@ class ArgSpec:
     output_elem_fort:   str  = ''   # 'real(c_double)' / 'integer(c_int)'
     output_elem_dtype:  str  = ''   # numpy dtype: 'float64' / 'int32'
 
+    # Marker for an inbound `procedure(<iface>)` callback argument whose
+    # abstract interface is registered in
+    # Pipeline._CALLBACK_PROCEDURE_INTERFACES.  The bind(c) wrapper receives
+    # a C function pointer (`type(c_funptr), value`; ctypes passes a
+    # CFUNCTYPE-wrapped Python callable), stores it in a per-method module
+    # slot, and hands the module's shim function — which adapts the
+    # Galacticus-side arguments and invokes the stored pointer — to the
+    # inner method.  All wiring (fort_pass_as/fort_reassignment/
+    # fort_modules/py_*) is filled in by the generator, which also emits
+    # the storage+shim module; assign_c_types only sets the marker and the
+    # c_funptr type mapping.
+    is_callback: bool = False
+
     # Marker for a scalar `intent(out)` numeric/logical companion argument
     # (e.g. `integer, intent(out) :: count` or `double precision,
     # intent(out) :: f`) on an output-array method.  Unlike an output array

@@ -24,7 +24,8 @@ that class of drift impossible.
 import re
 
 from LibraryInterfaces.Hierarchy import resolve_function_class_base
-from LibraryInterfaces.Pipeline import _SHARED_TYPE_MODULES
+from LibraryInterfaces.Pipeline import (_SHARED_TYPE_MODULES,
+                                        _CALLBACK_PROCEDURE_INTERFACES)
 
 __all__ = [
     'ENUM_RETURN_RX', 'CLASS_RETURN_RX', 'ARRAY_RETURN_RX',
@@ -248,8 +249,33 @@ def classify_arg(arg, registered_classes, *, constructor_overrides=(),
     if intrinsic in ('complex', 'double complex'):
         return ('blocked', f"{intrinsic}({arg.get('type','')})")
     if intrinsic == 'procedure':
+        type_spec = (arg.get('type') or '').strip()
+        attrs     = arg.get('attributes', [])
+        # `procedure(...), pointer, intent(out|inout)` — the method hands a
+        # *Fortran procedure pointer* back to the caller.  There is nothing
+        # a Python caller could do with one, so this is unsupportable in
+        # principle (not merely unimplemented); the audit buckets this
+        # message as out-of-scope so it doesn't sit in the actionable
+        # worklist.  (These methods — timeEvolveTo, evolve,
+        # differentialEvolution — also all take treeNode/mergerTree args.)
+        if 'pointer' in attrs and ('intent(out)' in attrs
+                                   or 'intent(inout)' in attrs):
+            return ('blocked',
+                    f"procedure({type_spec}) pointer output — a Fortran "
+                    f"procedure pointer returned to the caller cannot be "
+                    f"exposed to Python")
+        # Inbound callback with a registered, hand-checked marshalling
+        # recipe (see Pipeline._CALLBACK_PROCEDURE_INTERFACES): the wrapper
+        # accepts a Python callable via CFUNCTYPE → c_funptr → a Fortran
+        # shim adapting the Galacticus-side interface.  Plain (non-pointer,
+        # non-optional) dummies only: a pointer dummy may be reassigned by
+        # the callee, which a shim actual can't satisfy.
+        if (type_spec in _CALLBACK_PROCEDURE_INTERFACES
+                and 'pointer' not in attrs
+                and 'optional' not in attrs):
+            return None
         return ('blocked',
-                f"procedure({arg.get('type','')}) — procedure-pointer args "
+                f"procedure({type_spec}) — procedure-pointer args "
                 f"are not supported")
     if intrinsic == 'integer' \
             and (arg.get('type') or '').strip() == 'omp_lock_kind' \

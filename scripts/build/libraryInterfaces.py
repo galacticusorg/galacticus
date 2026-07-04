@@ -6,6 +6,7 @@ import sys
 import os
 import re
 import keyword
+import hashlib
 
 import xml.etree.ElementTree as ET
 from Galacticus.Build import SourceTree
@@ -31,6 +32,7 @@ from LibraryInterfaces.Pipeline import (
     build_python_reassignments,
     build_fortran_reassignments,
     _SHARED_TYPE_MODULES,
+    _CALLBACK_PROCEDURE_INTERFACES,
 )
 from LibraryInterfaces.Emitters import (
     ctypes_arg_types,
@@ -1125,6 +1127,75 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
             isoImports['c_loc']            = 1
             isoImports['c_null_ptr']       = 1
             isoImports[a.output_elem_ctype] = 1   # kind for the local buffer
+
+        # Inbound callback args (`procedure(<iface>)` with <iface> registered
+        # in _CALLBACK_PROCEDURE_INTERFACES; marked is_callback by
+        # assign_c_types).  Fortran has no closures, so per callback-taking
+        # method we emit a small module holding a `type(c_funptr)` slot and a
+        # shim function matching the Galacticus-side interface; the bind(c)
+        # wrapper stores the incoming funptr in the slot (fort_reassignment)
+        # and passes the shim to the inner method (fort_pass_as).  The slot
+        # is process-global: the callback is valid for the duration of the
+        # wrapped call only, matching the save-buffer conventions.  On the
+        # Python side the user's callable is adapted (py_adapter) and wrapped
+        # in the registry's CFUNCTYPE; the local reference keeps it alive for
+        # the duration of the call.
+        callback_args = [a for a in arg_list if a.is_callback]
+        if callback_args:
+            module_name = f'glcCB_{class_name}_{method_name}'
+            if len(module_name) > 63:
+                # Fortran caps identifiers at 63 chars; hash-truncate the
+                # tail deterministically (same scheme the interface names
+                # would need — nothing hits this today).
+                digest      = hashlib.md5(module_name.encode()).hexdigest()[:8]
+                module_name = module_name[:55] + digest
+            iface_blocks = ''
+            var_decls    = ''
+            shim_blocks  = ''
+            shim_uses    = {}
+            for a in callback_args:
+                spec  = _CALLBACK_PROCEDURE_INTERFACES[a.type_spec]
+                var   = f'glcCBPtr_{a.name}_'
+                shim  = f'glcCBShim_{a.name}_'
+                iface = f'glcCBIface_{a.name}_'
+                iface_blocks += spec['c_iface'].format(iface=iface)
+                var_decls    += f'  type(c_funptr) :: {var} = c_null_funptr\n'
+                shim_blocks  += spec['shim'].format(shim=shim, iface=iface,
+                                                    var=var)
+                for mod, symbols in spec['shim_uses'].items():
+                    shim_uses.setdefault(mod, set()).update(symbols)
+                # Wrapper-side wiring: store the funptr, pass the shim.
+                a.fort_reassignment = f'  {var} = {a.name}\n'
+                a.fort_pass_as      = shim
+                a.fort_modules      = {module_name: {var: 1, shim: 1}}
+                # Python-side wiring: adapt the user callable, wrap in the
+                # CFUNCTYPE, pass as a void pointer.
+                pv        = python_safe_name(a.name)
+                adapted   = spec['py_adapter'].format(fn=pv)
+                a.py_reassignment = (
+                    f'    _glcCBType_{pv}_ = {spec["cfunctype"]}\n'
+                    f'    _glcCB_{pv}_ = _glcCBType_{pv}_({adapted})\n'
+                )
+                a.py_pass_as = f'cast(_glcCB_{pv}_, c_void_p)'
+            use_lines = ''.join(
+                f'  use :: {mod}, only : {", ".join(sorted(syms))}\n'
+                for mod, syms in sorted(shim_uses.items()))
+            callback_module = (
+                f'module {module_name}\n'
+                f'  use, intrinsic :: ISO_C_Binding, only : c_double,'
+                f' c_f_procpointer, c_funptr, c_null_funptr\n'
+                f'{use_lines}'
+                f'  implicit none\n'
+                f'  public\n'
+                f'{iface_blocks}'
+                f'{var_decls}'
+                f'contains\n'
+                f'{shim_blocks}'
+                f'end module {module_name}\n'
+            )
+            # The module must precede the wrapper subroutine (appended
+            # below) in the class's compilation unit.
+            _shared_bucket(code, class_name).append(callback_module)
 
         # Generate Fortran method.  An array-return method is lowered to a
         # subroutine with an extra intent(out) array arg (see the

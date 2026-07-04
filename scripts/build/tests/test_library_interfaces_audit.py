@@ -129,6 +129,22 @@ def test_complex_arg_is_in_scope():
         'complex(c_double_complex) (windowFunction1)') is False
 
 
+def test_procedure_pointer_output_is_out_of_scope():
+    # A Fortran procedure pointer handed back to the caller is
+    # unsupportable in principle — deferred backlog, not the worklist.
+    reason = ("procedure(interruptTask) pointer output — a Fortran "
+              "procedure pointer returned to the caller cannot be exposed "
+              "to Python (functionInterrupt)")
+    assert audit._is_out_of_scope_reason(reason) is True
+
+
+def test_inbound_procedure_blocker_stays_in_scope():
+    # Inbound callbacks are candidates for the callback registry.
+    reason = ("procedure(crossSectionFunctionTemplate) — procedure-pointer "
+              "args are not supported (crossSectionFunction)")
+    assert audit._is_out_of_scope_reason(reason) is False
+
+
 def test_output_array_gate_reasons_are_in_scope():
     # The whole-method output-array gate emits these; they are deferred
     # increments of an in-scope feature, not the deferred non-fc backlog.

@@ -77,6 +77,71 @@ _SHARED_TYPE_MODULES = {
     'enumerationOutputAnalysisCovarianceModelType': 'Output_Analyses_Options',
 }
 
+# Inbound procedure (callback) arguments the pipeline can marshal.  Keyed by
+# the abstract-interface name appearing in `procedure(<name>) :: arg`; each
+# entry describes how to bridge a Python callable to the Fortran interface:
+#
+#   cfunctype  — the ctypes callback factory for the C-side signature.
+#   py_adapter — format template (placeholder {fn} = the user's Python
+#                callable) producing the function handed to `cfunctype`;
+#                adapts raw ctypes pointers to friendly numpy/scalar views.
+#   c_iface    — format template ({iface}) for the Fortran abstract
+#                interface matching the C-side signature.
+#   shim       — format template ({shim}, {iface}, {var}) for a Fortran
+#                function matching the *Galacticus* interface; it converts
+#                the Fortran-side arguments to C-representable values,
+#                retrieves the stored Python callback via c_f_procpointer,
+#                and invokes it.
+#   shim_uses  — {module: (symbols,…)} needed by the shim (beyond
+#                ISO_C_Binding, which is always imported).
+#
+# The generator emits, per callback-taking method, a small module holding a
+# `type(c_funptr)` slot ({var}) plus the shim; the bind(c) wrapper stores
+# the incoming funptr in the slot and passes the shim to the inner method.
+# Like the save-buffer array returns, the slot is process-global state: the
+# callback is valid for the duration of the wrapped call, and concurrent
+# calls to the same method from multiple threads would race — matching the
+# existing library-interface conventions.
+#
+# Registry gating (rather than parsing arbitrary abstract interfaces from
+# source) keeps this explicit: an entry is a promise that the C signature,
+# the adapter, and the shim's argument conversion have been checked by hand.
+# Consulted by Classification.classify_arg (membership ⇒ supported), the
+# inline accept in assign_c_types below, and the emission code in
+# libraryInterfaces.interfaces_methods.
+_CALLBACK_PROCEDURE_INTERFACES = {
+    # double precision function integrand(coordinates)
+    #   class(coordinate), intent(in) :: coordinates
+    # (source/computational_domains/volume_integrators/_class.F90).  The
+    # coordinate is delivered to Python as its 3-element Cartesian array
+    # via coordinate%toCartesian().
+    'computationalDomainVolumeIntegrand': {
+        'cfunctype' : 'CFUNCTYPE(c_double, POINTER(c_double))',
+        'py_adapter': ('(lambda _pos_: float({fn}('
+                       'np.ctypeslib.as_array(_pos_, (3,)))))'),
+        'c_iface'   : (
+            '  abstract interface\n'
+            '     function {iface}(position) bind(c)\n'
+            '       import c_double\n'
+            '       real(c_double), dimension(3), intent(in   ) :: position\n'
+            '       real(c_double)                              :: {iface}\n'
+            '     end function {iface}\n'
+            '  end interface\n'
+        ),
+        'shim'      : (
+            '  double precision function {shim}(coordinates)\n'
+            '    class(coordinate), intent(in   ) :: coordinates\n'
+            '    procedure({iface}), pointer      :: fn_\n'
+            '    real(c_double), dimension(3)     :: position_\n'
+            '    position_ = coordinates%toCartesian()\n'
+            '    call c_f_procpointer({var}, fn_)\n'
+            '    {shim} = fn_(position_)\n'
+            '  end function {shim}\n'
+        ),
+        'shim_uses' : {'Coordinates': ('coordinate',)},
+    },
+}
+
 
 def _module_for_symbol(use_blocks, symbol):
     """Return the name of the module whose `use ..., only :` list includes
@@ -358,6 +423,26 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
             # allocate-on-assignment starts from a clean deallocated state.
             arg.fort_reassignment     = (
                 f'  if (allocated({local})) deallocate({local})\n')
+            new_list.insert(0, arg)
+            continue
+
+        # Inbound callback arg: `procedure(<iface>) :: fn` with <iface>
+        # registered in _CALLBACK_PROCEDURE_INTERFACES.  The wrapper receives
+        # a C funptr by value; everything else (module emission, shim
+        # pass-through, funptr storage, CFUNCTYPE adaptation) is wired by the
+        # generator, which knows the class/method names the module and shim
+        # are named after.  `pointer` procedure dummies are excluded — with
+        # intent(out)/(inout) they are Fortran-procedure *outputs* (rejected
+        # by classify_arg), and without intent the callee may reassign them,
+        # which a shim actual can't satisfy.
+        if (arg.intrinsic == 'procedure'
+                and arg.type_spec in _CALLBACK_PROCEDURE_INTERFACES
+                and 'pointer' not in arg.attributes
+                and 'optional' not in arg.attributes):
+            arg.is_callback = True
+            arg.ctype       = 'c_void_p'
+            arg.fort_type   = 'type(c_funptr)'
+            arg.is_optional = False
             new_list.insert(0, arg)
             continue
 

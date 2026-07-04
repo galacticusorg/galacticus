@@ -547,6 +547,15 @@ def _is_out_of_scope_reason(reason):
         return True
     if 'class(non-fc) return' in reason:
         return True
+    # `procedure(...), pointer, intent(out|inout)` — a Fortran procedure
+    # pointer handed back to the caller.  Unsupportable in principle (a
+    # Python caller can do nothing with one), so it belongs with the
+    # deferred backlog, not the actionable worklist.  Inbound callback
+    # blockers ("procedure(...) — procedure-pointer args are not
+    # supported") stay in-scope: those are candidates for registration in
+    # Pipeline._CALLBACK_PROCEDURE_INTERFACES.
+    if 'procedure(' in reason and 'pointer output' in reason:
+        return True
     # Scalar `type(<X>)` returns/args where X isn't varying_string or an
     # enumeration*Type — those are the internal-derived-type cases.
     # `unsupported return type (type(<X>))` and `class(<X>List) …` array
