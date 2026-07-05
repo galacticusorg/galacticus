@@ -86,21 +86,24 @@ contains
     type (surveyGeometryBaldry2012GAMA)                :: self
     type (inputParameters             ), intent(inout) :: parameters
     class(cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
+    class(randomNumberGeneratorClass), pointer       :: randomNumberGenerator_
 
     ! Check and read parameters.
     !![
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
     ! Build the object.
-    self=surveyGeometryBaldry2012GAMA(cosmologyFunctions_)
+    self=surveyGeometryBaldry2012GAMA(cosmologyFunctions_,randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
+    <objectDestructor name="randomNumberGenerator_"/>
     !!]
     return
   end function baldry2012GAMAConstructorParameters
 
-  function baldry2012GAMAConstructorInternal(cosmologyFunctions_) result (self)
+  function baldry2012GAMAConstructorInternal(cosmologyFunctions_,randomNumberGenerator_) result (self)
     !!{RST
     Internal constructor for the :cite:t:`baldry_galaxy_2012` conditional mass function class.
     !!}
@@ -108,9 +111,10 @@ contains
     implicit none
     type            (surveyGeometryBaldry2012GAMA)                        :: self
     class           (cosmologyFunctionsClass     ), intent(in   ), target :: cosmologyFunctions_
+    class           (randomNumberGeneratorClass  ), intent(in   ), target, optional :: randomNumberGenerator_
     double precision                              , parameter             :: redshiftMaximum    =0.06d0
     !![
-    <constructorAssign variables="*cosmologyFunctions_"/>
+    <constructorAssign variables="*cosmologyFunctions_, *randomNumberGenerator_"/>
     !!]
 
     call self%initialize()
@@ -127,6 +131,7 @@ contains
 
     !![
     <objectDestructor name="self%cosmologyFunctions_"/>
+    <objectDestructor name="self%randomNumberGenerator_"/>
     !!]
     return
   end subroutine baldry2012GAMADestructor

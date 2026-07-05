@@ -33,6 +33,7 @@ Implements a geometry corresponding to the detectability of classical Local Grou
      private
      double precision :: distanceMaximumSurvey, massThreshold
    contains
+     final     ::                              localGroupClassicalDestructor
      procedure :: fieldCount                => localGroupClassicalFieldCount
      procedure :: distanceMaximum           => localGroupClassicalDistanceMaximum
      procedure :: angularPowerMaximumDegree => localGroupClassicalAngularPowerMaximumDegree
@@ -65,6 +66,7 @@ contains
     type            (surveyGeometryLocalGroupClassical)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
     double precision                                                   :: distanceMaximumSurvey, massThreshold
+    class           (randomNumberGeneratorClass)       , pointer       :: randomNumberGenerator_
 
     !![
     <inputParameter docformat="rst">
@@ -84,27 +86,45 @@ contains
       </description>
     </inputParameter>
     !!]
-    self=surveyGeometryLocalGroupClassical(distanceMaximumSurvey,massThreshold)
+    !![
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
+    self=surveyGeometryLocalGroupClassical(distanceMaximumSurvey,massThreshold,randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
     !!]
     return
   end function localGroupClassicalConstructorParameters
 
-  function localGroupClassicalConstructorInternal(distanceMaximumSurvey,massThreshold) result (self)
+  function localGroupClassicalConstructorInternal(distanceMaximumSurvey,massThreshold,randomNumberGenerator_) result (self)
     !!{RST
     Internal constructor for the :cite:t:`baldry_galaxy_2012` conditional mass function class.
     !!}
     implicit none
     type            (surveyGeometryLocalGroupClassical)                :: self
     double precision                                   , intent(in   ) :: distanceMaximumSurvey, massThreshold
+    class           (randomNumberGeneratorClass       ), intent(in   ), target, optional :: randomNumberGenerator_
     !![
-    <constructorAssign variables="distanceMaximumSurvey, massThreshold"/>
+    <constructorAssign variables="distanceMaximumSurvey, massThreshold, *randomNumberGenerator_"/>
     !!]
 
     call self%initialize()
    return
   end function localGroupClassicalConstructorInternal
+
+  subroutine localGroupClassicalDestructor(self)
+    !!{RST
+    Destructor for the :galacticus-class:`surveyGeometryLocalGroupClassical` survey geometry class.
+    !!}
+    implicit none
+    type(surveyGeometryLocalGroupClassical), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
+    return
+  end subroutine localGroupClassicalDestructor
 
   integer function localGroupClassicalFieldCount(self)
     !!{RST

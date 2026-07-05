@@ -92,11 +92,13 @@ contains
     type   (surveyGeometryMoustakas2013PRIMUS)                :: self
     type   (inputParameters                  ), intent(inout) :: parameters
     class  (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
+    class(randomNumberGeneratorClass), pointer       :: randomNumberGenerator_
     integer                                                   :: redshiftBin
 
     ! Check and read parameters.
     !![
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     <inputParameter docformat="rst">
       <name>redshiftBin</name>
       <source>parameters</source>
@@ -105,15 +107,16 @@ contains
       </description>
     </inputParameter>
     !!]
-    self=surveyGeometryMoustakas2013PRIMUS(redshiftBin,cosmologyFunctions_)
+    self=surveyGeometryMoustakas2013PRIMUS(redshiftBin,cosmologyFunctions_,randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
+    <objectDestructor name="randomNumberGenerator_"/>
     !!]
     return
   end function moustakas2013PRIMUSConstructorParameters
 
-  function moustakas2013PRIMUSConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
+  function moustakas2013PRIMUSConstructorInternal(redshiftBin,cosmologyFunctions_,randomNumberGenerator_) result(self)
     !!{RST
     Internal constructor for the :cite:t:`moustakas_primus:_2013` mass function class.
     !!}
@@ -124,8 +127,9 @@ contains
     type   (surveyGeometryMoustakas2013PRIMUS)                        :: self
     integer                                   , intent(in   )         :: redshiftBin
     class  (cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
+    class           (randomNumberGeneratorClass  ), intent(in   ), target, optional :: randomNumberGenerator_
     !![
-    <constructorAssign variables="redshiftBin, *cosmologyFunctions_"/>
+    <constructorAssign variables="redshiftBin, *cosmologyFunctions_, *randomNumberGenerator_"/>
     !!]
 
     ! Find distance limits for this redshift bin.
@@ -177,6 +181,7 @@ contains
 
     !![
     <objectDestructor name="self%cosmologyFunctions_"/>
+    <objectDestructor name="self%randomNumberGenerator_"/>
     !!]
     return
   end subroutine moustakas2013PRIMUSDestructor

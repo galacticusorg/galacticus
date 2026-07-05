@@ -340,18 +340,27 @@ with safe_section("computationalDomainVolumeIntegratorSpherical"):
              cdom.integrate(lambda pos: float(np.sum(pos**2))),
              4.0*np.pi*(5.0**5 - 1.0**5)/5.0, rtol=1.0e-4)
 
-# Mangle-based survey geometry — window-function availability is gated on
+# Mangle-based survey geometries — window-function availability is gated on
 # whether a random number generator was supplied to the constructor (the
 # windows are Monte-Carlo sampled from the polygon mask).  The window
 # computation itself is exercised by the survey-geometry tutorial; here we
-# pin only the constructor plumbing (optional functionClass argument) and
-# the availability gate, which are cheap.
-with safe_section("surveyGeometryBernardi2013SDSS (window-function gating)"):
-    sdssNoRNG = galacticus.surveyGeometryBernardi2013SDSS()
-    check_eq("windowFunctionAvailable (no RNG)"  , sdssNoRNG.windowFunctionAvailable(), False)
+# pin only the constructor plumbing (the optional functionClass argument on
+# every mangle survey) and the availability gate, which are cheap.
+with safe_section("mangle survey geometries (window-function gating)"):
     rngSurvey = galacticus.randomNumberGeneratorGSL(seed_=42,ompThreadOffset=False,mpiRankOffset=False)
-    sdssRNG   = galacticus.surveyGeometryBernardi2013SDSS(randomNumberGenerator_=rngSurvey)
-    check_eq("windowFunctionAvailable (with RNG)", sdssRNG.windowFunctionAvailable()  , True)
+    mangleSurveys = [
+        ("Bernardi2013SDSS"    , lambda **kw: galacticus.surveyGeometryBernardi2013SDSS   (                          **kw)),
+        ("Baldry2012GAMA"      , lambda **kw: galacticus.surveyGeometryBaldry2012GAMA     (   cosmologyFunctions,    **kw)),
+        ("Davidzon2013VIPERS"  , lambda **kw: galacticus.surveyGeometryDavidzon2013VIPERS (1, cosmologyFunctions,    **kw)),
+        ("Muzzin2013ULTRAVISTA", lambda **kw: galacticus.surveyGeometryMuzzin2013ULTRAVISTA(1, cosmologyFunctions,   **kw)),
+        ("Moustakas2013PRIMUS" , lambda **kw: galacticus.surveyGeometryMoustakas2013PRIMUS(1, cosmologyFunctions,    **kw)),
+        ("Tomczak2014ZFOURGE"  , lambda **kw: galacticus.surveyGeometryTomczak2014ZFOURGE (1, cosmologyFunctions,    **kw)),
+        ("LocalGroupDES"       , lambda **kw: galacticus.surveyGeometryLocalGroupDES      (0.3,                      **kw)),
+        ("LocalGroupClassical" , lambda **kw: galacticus.surveyGeometryLocalGroupClassical(0.3, 1.0e5,               **kw)),
+    ]
+    for surveyName, makeSurvey in mangleSurveys:
+        check_eq(f"{surveyName} available (no RNG)"  , makeSurvey(                                 ).windowFunctionAvailable(), False)
+        check_eq(f"{surveyName} available (with RNG)", makeSurvey(randomNumberGenerator_=rngSurvey).windowFunctionAvailable(), True )
 
 # Black-body radiation field — exercises the *pointer-dummy* callback
 # path.  `integrateOverCrossSection(wavelengthRange, crossSectionFunction,
