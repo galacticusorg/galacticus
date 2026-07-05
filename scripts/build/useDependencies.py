@@ -22,6 +22,7 @@ import xml.etree.ElementTree as ET
 
 
 from Galacticus.Build.Directives   import extract_directives
+from Galacticus.Build.FileChanges  import update as file_changes_update
 from Galacticus.Build.ParallelScan import scan as parallel_scan
 from List.ExtraUtils              import as_array, hash_list, smart_push
 from XML.Utils                    import xml_to_dict
@@ -935,10 +936,25 @@ def _write_makefile(path, uses_per_file, source_files, submodules,
             sub_dir  = sf['subDirectoryName']
             work_sub = work_dir + (sub_dir + '/' if sub_dir else '')
 
-            # Library file rule (.fl) -- one echo per library dependency.
+            # Library sidecar (.fl): write its content directly, only-if-changed
+            # (preserving the mtime -- and so sparing dependent .o targets -- when
+            # the library set is unchanged), and also emit the traditional echo
+            # rule. The emitted rules have no prerequisites, so once a .fl exists
+            # its recipe can never run again: without the direct write here, a
+            # change in a source file's library dependencies (or any corruption of
+            # an existing .fl) would never be repaired short of a clean build. The
+            # echo rule is kept as the recovery path for a manually-deleted .fl.
             if not object_file_name.endswith('.Inc'):
                 library_file_name = re.sub(r'\.o$', '.fl', object_file_name)
                 fl_path = work_sub + library_file_name
+                fl_dir = os.path.dirname(fl_path)
+                if fl_dir:
+                    os.makedirs(fl_dir, exist_ok=True)
+                fl_tmp = fl_path + '.tmp'
+                with open(fl_tmp, 'w') as fl:
+                    for lib in sorted((entry.get('libraryDependencies') or {}).keys()):
+                        fl.write(lib + '\n')
+                file_changes_update(fl_path, fl_tmp)
                 mk.write(f"{fl_path}:\n")
                 redirect = '>'
                 for lib in sorted((entry.get('libraryDependencies') or {}).keys()):
