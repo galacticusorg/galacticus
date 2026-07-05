@@ -19,3 +19,4 @@ how to obtain the library.
    04-python-callbacks
    05-merger-tree-building-blocks
    06-stellar-populations
+   07-survey-geometries

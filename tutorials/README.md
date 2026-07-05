@@ -14,6 +14,7 @@ output, so you can read the results without running anything.
 | [04 — Python callbacks](04-python-callbacks.ipynb) | Galacticus calling *your* Python functions: quadrature of Python integrands over computational domains, and Python cross-sections in radiation fields. |
 | [05 — Merger-tree building blocks](05-merger-tree-building-blocks.ipynb) | The characteristic collapsing mass $M_*(z)$, Parkinson–Cole–Helly branching rates, tree-build costs, and sampling root halo masses for tree suites. |
 | [06 — Stellar populations](06-stellar-populations.ipynb) | Initial mass functions, stellar lifetimes/remnants/yields from the standard compilation, and Type Ia supernova delay-time distributions. Requires the datasets repository (`GALACTICUS_DATA_PATH`). |
+| [07 — Survey geometries](07-survey-geometries.ipynb) | The SDSS angular mask from mangle polygons (footprint reconstruction, solid angles), $V_\mathrm{max}$, and FFTW-computed 3D window functions validated against numpy and the analytic top-hat. Requires the datasets repository. |
 
 ## Getting the library
 
