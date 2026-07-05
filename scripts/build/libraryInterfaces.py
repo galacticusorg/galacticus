@@ -1711,6 +1711,21 @@ def _append_init_code(code):
   call ioHDF5AccessInitialize()
 end subroutine libGalacticusInitL
 
+subroutine libGalacticusVerbositySetL(verbosity) bind(c,name='libGalacticusVerbositySetL')
+  ! Set the display verbosity level from a C string naming the level
+  ! ("silent", "standard", "working", "warn", "info", "debug").  Exposed so
+  ! library users can quiet Galacticus's progress bars and messages (which
+  ! write directly to the process's stdout, bypassing Python-level stream
+  ! redirection).
+  use :: Display        , only : displayVerbositySet   , enumerationVerbosityLevelEncode
+  use :: String_Handling, only : String_C_to_Fortran
+  use :: ISO_Varying_String, only : char
+  use, intrinsic :: ISO_C_Binding, only : c_char
+  character(c_char), dimension(*), intent(in   ) :: verbosity
+
+  call displayVerbositySet(enumerationVerbosityLevelEncode(char(String_C_to_Fortran(verbosity)),includesPrefix=.false.))
+end subroutine libGalacticusVerbositySetL
+
 program libGalacticusInit
 end program libGalacticusInit
 '''
@@ -1800,6 +1815,14 @@ cwd = os.getcwd()
 libname = os.path.join(cwd, "galacticus/lib/libgalacticus.so")
 c_lib = CDLL(libname)
 c_lib.libGalacticusInitL()
+c_lib.libGalacticusVerbositySetL.argtypes = [c_char_p]
+
+def verbositySet(level):
+    """Set Galacticus's display verbosity: one of 'silent', 'standard',
+    'working', 'warn', 'info', or 'debug'.  Useful to quiet progress bars
+    and messages, which Galacticus writes directly to the process's stdout
+    (bypassing Python-level stream redirection)."""
+    c_lib.libGalacticusVerbositySetL(level.encode('ascii'))
 '''
 
     # Add c_lib restype/argtypes

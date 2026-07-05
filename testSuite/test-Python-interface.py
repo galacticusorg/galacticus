@@ -52,6 +52,15 @@ def safe_section(name):
         print(f'   FAIL: section raised {type(exc).__name__}: {exc}')
 
 
+# Library-level utilities.
+with safe_section("verbositySet"):
+    # The library exposes Galacticus's display-verbosity control (progress
+    # bars and messages write directly to the process's stdout, so this is
+    # the only way for Python callers to quiet them).
+    galacticus.verbositySet("silent")
+    galacticus.verbositySet("standard")
+    check_eq("verbositySet callable", True, True)
+
 # Cosmological parameters.
 with safe_section("cosmologyParametersSimple"):
     cosmologyParameters = galacticus.cosmologyParametersSimple(0.3,0.045,0.7,2.78,70.0)
