@@ -114,7 +114,11 @@ def _scan_one(file_name):
         if inc['fileName'].endswith('.inc') and inc.get('automatic'):
             unpp = re.sub(r'\.inc$', '.Inc', inc['fileName'])
             if os.path.exists(os.path.join(source_directory, unpp)):
-                dependency_file_names.append(unpp)
+                # The preprocessed intermediate under BUILDPATH is named
+                # `<base>.p.Inc` (the raw `<base>.Inc` name would differ from
+                # the processed `<base>.inc` only by case, colliding on
+                # case-insensitive filesystems).
+                dependency_file_names.append(re.sub(r'\.inc$', '.p.Inc', inc['fileName']))
             else:
                 dependency_file_names.append(inc['fileName'])
 

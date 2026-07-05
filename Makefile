@@ -520,15 +520,22 @@ $(BUILDPATH)/external/pFq/pfq.new.o : ./source/external/pFq/pfq.new.f Makefile
 
 # Rule for running *.Inc files through the preprocessor. We strip out single quote characters in comment lines to avoid spurious
 # complaints from the preprocessor.
-$(BUILDPATH)/%.Inc.up : ./source/%.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
-	./scripts/build/preprocess.py ./source/$*.Inc $(BUILDPATH)/$*.Inc
-$(BUILDPATH)/%.Inc : $(BUILDPATH)/%.Inc.up
+#
+# The preprocessed intermediate under $(BUILDPATH) is named `%.p.Inc` (matching the libgalacticus
+# chain), NOT `%.Inc`: an intermediate named `%.Inc` differs from the final processed `%.inc` only
+# by case, so on case-insensitive filesystems (macOS APFS) the `mv` in the `%.inc` recipe below
+# overwrote the intermediate in place, and every incremental build re-preprocessed its own cpp
+# output under a perpetually-bumped timestamp.
+$(BUILDPATH)/%.p.Inc.up : ./source/%.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
+	./scripts/build/preprocess.py ./source/$*.Inc $(BUILDPATH)/$*.p.Inc
+$(BUILDPATH)/%.p.Inc : $(BUILDPATH)/%.p.Inc.up
 	@true
-$(BUILDPATH)/%.inc : $(BUILDPATH)/%.Inc Makefile
+$(BUILDPATH)/%.inc : $(BUILDPATH)/%.p.Inc Makefile
 # Guard against a missing input: `sed` is not the last command in the pipeline, so its failure
 # would otherwise be masked and an empty husk of cpp boilerplate written in place of the real
-# processed include. A phantom `%.Inc` can arise here because the `%.Inc <- %.Inc.up` sentinel
-# above "makes" its target without creating a file when the `.up` came from a fallback rule.
+# processed include. A phantom `%.p.Inc` can arise here because the `%.p.Inc <- %.p.Inc.up`
+# sentinel above "makes" its target without creating a file when the `.up` came from a fallback
+# rule.
 	@test -f $< || { echo "Makefile: cannot preprocess $@: input $< does not exist" >&2 ; exit 1 ; }
 	sed -E s/'^([[:space:]]*)!(.*)'/'\1\/\*\2\*\/'/ $< | cpp -nostdinc -C | sed -E s/'^([[:space:]]*)\/\*(.*)\*\/'/'\1!\2'/ > $(BUILDPATH)/$*.tmp
 	mv -f $(BUILDPATH)/$*.tmp $(BUILDPATH)/$*.inc

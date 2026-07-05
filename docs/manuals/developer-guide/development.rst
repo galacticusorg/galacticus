@@ -67,7 +67,7 @@ The following make variables (settable on the command line or from the environme
    Appended to executable names (set automatically by the profiling build options, e.g. ``Galacticus.exe_gprof``).
 
 ``PREPROCESSOR``
-   Name of the C preprocessor, recorded in the build metadata (the ``.Inc``\ →\ ``.inc`` rule currently invokes ``cpp`` directly).
+   Name of the C preprocessor, recorded in the build metadata (the ``.p.Inc``\ →\ ``.inc`` rule currently invokes ``cpp`` directly).
 
 .. _manual-sec-buildConfigProbes:
 
@@ -458,8 +458,8 @@ Generated files (all under ``$(BUILDPATH)`` unless noted):
 ``*.gv``
    Lists of source files upon which each file depends, used in the construction of :term:`GraphViz` representations of file dependencies;
 
-``*.Inc`` / ``*.inc``
-   Unpreprocessed / preprocessed include files generated from ``include`` directives;
+``*.p.Inc`` / ``*.inc``
+   Preprocessor-intermediate / fully-processed include files generated from ``include`` directives or from ``source/*.Inc`` files. The intermediate is deliberately named ``.p.Inc`` rather than ``.Inc``: the latter would differ from the processed ``.inc`` only by case and the two collide on case-insensitive filesystems (macOS APFS);
 
 ``*.p.F90``
    Preprocessed Fortran source files;
