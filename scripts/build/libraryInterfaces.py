@@ -1141,6 +1141,13 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
                 f'  end if\n'
             )
 
+        # Per-argument copy-back code (e.g. kind-narrowing an
+        # intent(out) logical's default-kind local back into the c_bool
+        # bind(c) dummy) — set by build_fortran_reassignments.
+        for a in arg_list:
+            if a.fort_postcall:
+                result_post_call_code += f'  {a.fort_postcall}'
+
         output_arrays = [a for a in arg_list if a.is_output_array]
         sized_outputs = [a for a in arg_list if a.is_output_sized]
         for a in output_arrays:
