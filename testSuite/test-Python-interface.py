@@ -340,6 +340,19 @@ with safe_section("computationalDomainVolumeIntegratorSpherical"):
              cdom.integrate(lambda pos: float(np.sum(pos**2))),
              4.0*np.pi*(5.0**5 - 1.0**5)/5.0, rtol=1.0e-4)
 
+# Mangle-based survey geometry — window-function availability is gated on
+# whether a random number generator was supplied to the constructor (the
+# windows are Monte-Carlo sampled from the polygon mask).  The window
+# computation itself is exercised by the survey-geometry tutorial; here we
+# pin only the constructor plumbing (optional functionClass argument) and
+# the availability gate, which are cheap.
+with safe_section("surveyGeometryBernardi2013SDSS (window-function gating)"):
+    sdssNoRNG = galacticus.surveyGeometryBernardi2013SDSS()
+    check_eq("windowFunctionAvailable (no RNG)"  , sdssNoRNG.windowFunctionAvailable(), False)
+    rngSurvey = galacticus.randomNumberGeneratorGSL(seed_=42,ompThreadOffset=False,mpiRankOffset=False)
+    sdssRNG   = galacticus.surveyGeometryBernardi2013SDSS(randomNumberGenerator_=rngSurvey)
+    check_eq("windowFunctionAvailable (with RNG)", sdssRNG.windowFunctionAvailable()  , True)
+
 # Black-body radiation field — exercises the *pointer-dummy* callback
 # path.  `integrateOverCrossSection(wavelengthRange, crossSectionFunction,
 # node)` takes `procedure(crossSectionFunctionTemplate), pointer`, so the
