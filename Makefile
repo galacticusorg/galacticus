@@ -525,6 +525,11 @@ $(BUILDPATH)/%.Inc.up : ./source/%.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPAT
 $(BUILDPATH)/%.Inc : $(BUILDPATH)/%.Inc.up
 	@true
 $(BUILDPATH)/%.inc : $(BUILDPATH)/%.Inc Makefile
+# Guard against a missing input: `sed` is not the last command in the pipeline, so its failure
+# would otherwise be masked and an empty husk of cpp boilerplate written in place of the real
+# processed include. A phantom `%.Inc` can arise here because the `%.Inc <- %.Inc.up` sentinel
+# above "makes" its target without creating a file when the `.up` came from a fallback rule.
+	@test -f $< || { echo "Makefile: cannot preprocess $@: input $< does not exist" >&2 ; exit 1 ; }
 	sed -E s/'^([[:space:]]*)!(.*)'/'\1\/\*\2\*\/'/ $< | cpp -nostdinc -C | sed -E s/'^([[:space:]]*)\/\*(.*)\*\/'/'\1!\2'/ > $(BUILDPATH)/$*.tmp
 	mv -f $(BUILDPATH)/$*.tmp $(BUILDPATH)/$*.inc
 
@@ -690,9 +695,16 @@ $(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH
 	./scripts/build/preprocess.py $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
 $(BUILDPATH)/libgalacticus.p.Inc : $(BUILDPATH)/libgalacticus.p.Inc.up
 	@true
-$(BUILDPATH)/libgalacticus.inc : $(BUILDPATH)/libgalacticus.p.Inc Makefile
+# The processed include is named `libgalacticus.preprocessed.inc`, NOT `libgalacticus.inc`: the
+# latter differs from the generated `libgalacticus.Inc` only by case, and on case-insensitive
+# filesystems (macOS APFS) the two are the same file. That collision let a stale or placeholder
+# processed include masquerade as an up-to-date `libgalacticus.Inc` (silently skipping
+# libraryInterfaces.py in mixed executable-then-library build trees), and made the `mv` below
+# overwrite `libgalacticus.Inc` in place on macOS, so every incremental library rebuild
+# reprocessed its own cpp output under a perpetually-bumped timestamp.
+$(BUILDPATH)/libgalacticus.preprocessed.inc : $(BUILDPATH)/libgalacticus.p.Inc Makefile
 	sed -E s/'^([[:space:]]*)!(.*)'/'\1\/\*\2\*\/'/ $(BUILDPATH)/libgalacticus.p.Inc | cpp -nostdinc -C | sed -E s/'^([[:space:]]*)\/\*(.*)\*\/'/'\1!\2'/ > $(BUILDPATH)/libgalacticus.tmp
-	mv -f $(BUILDPATH)/libgalacticus.tmp $(BUILDPATH)/libgalacticus.inc
+	mv -f $(BUILDPATH)/libgalacticus.tmp $(BUILDPATH)/libgalacticus.preprocessed.inc
 libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classes.d
 	$(call LINK_METADATA,libgalacticus.o,libgalacticus)
 # Link with a non-executable stack (`-z noexecstack`). Without this the shared library can be marked as
@@ -701,6 +713,16 @@ libgalacticus.so: $(BUILDPATH)/libgalacticus.o $(BUILDPATH)/libgalacticus_classe
 # causing the Python interface to fail with "cannot enable executable stack as shared object requires:
 # Invalid argument". This flag is applied only to the library link, leaving executable builds unchanged.
 	+$(FCCOMPILER) -shared $(LINKNOEXECSTACK) `sort -u $(BUILDPATH)/libgalacticus.d $(BUILDPATH)/libgalacticus_classes.d` $(BUILDPATH)/libgalacticus.parameters.o $(BUILDPATH)/libgalacticus.md5s.o -o libgalacticus.so $(FCFLAGS) $(FCFLAGS_LINK) `scripts/build/libraryDependencies.py libgalacticus.o $(FCFLAGS)`
+else
+# Non-library builds never compile source/libgalacticus.F90, but includeDependencies.py still scans
+# it and so orders Makefile_Use_Dependencies after its processed include. The interface generators
+# (libraryInterfaces.py etc.) are slow and deliberately skipped here, so satisfy that ordering
+# prerequisite with an explicit empty placeholder. Previously no rule existed in this branch and
+# make fell back to the generic `%.inc <- %.Inc <- %.Inc.up` pattern chain, which manufactured a
+# husk by running `sed` on a nonexistent file with its failure masked mid-pipeline -- the same
+# silent-failure shape this build system's status-propagation work exists to eliminate.
+$(BUILDPATH)/libgalacticus.preprocessed.inc :
+	@touch $(BUILDPATH)/libgalacticus.preprocessed.inc
 endif
 
 # Ensure that we don't delete object files which make considers to be intermediate
