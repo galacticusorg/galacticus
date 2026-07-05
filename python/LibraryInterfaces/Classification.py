@@ -31,6 +31,7 @@ from LibraryInterfaces.Pipeline import (_SHARED_TYPE_MODULES,
 __all__ = [
     'ENUM_RETURN_RX', 'CLASS_RETURN_RX', 'ARRAY_RETURN_RX',
     'DYNAMIC_ARRAY_RETURN_RX', 'DYNAMIC_ARRAY_RETURN_2D_RX',
+    'TYPE_POINTER_RETURN_RX',
     'DIM_FIXED_RX', 'CHAR_LEN_RX',
     'RETURN_TYPE_ALIASES', 'SCALAR_RETURN_OK', 'OUTPUT_ARRAY_RETURN_OK',
     'normalize_method_return_type', 'is_internal_constructor_name',
@@ -104,6 +105,19 @@ DYNAMIC_ARRAY_RETURN_2D_RX = re.compile(
     r'\s*,\s*dimension\s*\(\s*'
     r'([^,]+)\s*,\s*([^,]+)'
     r'\s*\)\s*$',
+    re.IGNORECASE,
+)
+
+# Match a `type(<X>), pointer` method RETURN — an object pointer handed back
+# to the caller. Supported (as an opaque handle) when <X> is a shared type
+# the pipeline knows the defining module for (_SHARED_TYPE_MODULES): the
+# wrapper captures the result in a local pointer and returns c_loc of its
+# target (c_null_ptr when disassociated); Python receives the address as an
+# opaque handle it can pass back into any `type(<X>)` argument (e.g. a
+# mergerTree handle into the tree-walker constructors). Captures the type
+# name.
+TYPE_POINTER_RETURN_RX = re.compile(
+    r'^type\s*\(\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\)\s*,\s*pointer$',
     re.IGNORECASE,
 )
 
