@@ -11,6 +11,20 @@ import shlex
 
 arguments = list(sys.argv[1:])
 
+# Environment for backtick sub-expression expansion. The link line grepped from the
+# build log invokes helper scripts (notably libraryDependencies.py) that import from
+# the repository's python/ tree. Inside `make` that works because the Makefile exports
+# PYTHONPATH, but this script runs as a bare workflow step where PYTHONPATH is unset --
+# there the import dies with ModuleNotFoundError and, if the failure were swallowed,
+# the relink would silently run with no -l flags at all (undefined symbols for every
+# statically-linked library). Derive the python/ path from this script's own location
+# and prepend it, preserving any PYTHONPATH already present.
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_EXPANSION_ENV = dict(os.environ)
+_EXPANSION_ENV['PYTHONPATH'] = os.path.join(_REPO_ROOT, 'python') + (
+    os.pathsep + _EXPANSION_ENV['PYTHONPATH'] if _EXPANSION_ENV.get('PYTHONPATH') else ''
+)
+
 # Find the output executable name from the -o flag.
 executable = None
 for i, arg in enumerate(arguments):
@@ -55,10 +69,22 @@ while i < len(arguments):
             i += 1
             to_expand += ' ' + arguments[i]
         to_expand = to_expand.strip('`')
-        expanded = subprocess.run(
-            to_expand, shell=True, capture_output=True, text=True
-        ).stdout.replace('\n', ' ')
-        compile_parts.append(expanded.strip())
+        expansion = subprocess.run(
+            to_expand, shell=True, capture_output=True, text=True,
+            env=_EXPANSION_ENV,
+        )
+        # A failed expansion must be fatal, not silently empty: an empty expansion of
+        # the libraryDependencies.py sub-expression would relink with no -l flags and
+        # fail with undefined symbols for every statically-linked library.
+        if expansion.returncode != 0:
+            sys.stderr.write(expansion.stderr)
+            print(
+                f"Error: expansion of backtick sub-expression failed "
+                f"(exit {expansion.returncode}): {to_expand}",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        compile_parts.append(expansion.stdout.replace('\n', ' ').strip())
     else:
         compile_parts.append(arg)
     i += 1
