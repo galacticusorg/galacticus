@@ -1734,9 +1734,17 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: Check out repository datasets
+        # The stellar-populations tutorial reads static datasets (the
+        # stellar-properties compilation) through GALACTICUS_DATA_PATH.
+        uses: actions/checkout@v7
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Install Python
@@ -1752,6 +1760,17 @@ jobs:
           tar xvfj libgalacticus.tar.bz2
           python3 testSuite/test-Python-interface.py 2>&1 | tee pythonTest.log
           ! grep -q -e FAIL pythonTest.log
+      - name: Execute tutorial notebooks
+        # Keeps the committed tutorials (tutorials/*.ipynb) green against
+        # each freshly built library: every notebook is executed end-to-end
+        # (the setup cell resolves the unpacked galacticus/ folder exactly
+        # as a binary-distribution user would) and any cell error fails the
+        # job. ReadTheDocs renders the committed outputs without executing,
+        # so this step is what guarantees those outputs stay truthful.
+        run: |
+          apt -y install python3-matplotlib python3-nbformat python3-nbclient python3-ipykernel
+          cd $GALACTICUS_EXEC_PATH
+          python3 tutorials/executeNotebooks.py
       - run: echo "This job's status is ${{ job.status }}."
   ## MacOS
   ### Test Codes

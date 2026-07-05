@@ -8,6 +8,7 @@ galacticusConfig.xml
 galacticus.py
 libgalacticus.so
 galacticus/
+docs/tutorials/*.ipynb
 parameters.catalog.json
 work
 testSuite/*.log

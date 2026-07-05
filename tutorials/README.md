@@ -12,6 +12,8 @@ output, so you can read the results without running anything.
 | [02 — Matter power spectrum](02-matter-power-spectrum.ipynb) | Primordial spectrum → transfer function → growth factor → $P(k,z)$ and $\sigma(M)$; warm dark matter free-streaming and half-mode masses. |
 | [03 — Halo mass function](03-halo-mass-function.ipynb) | Spherical-collapse thresholds $\delta_\mathrm{c}(z)$ and $\Delta_\mathrm{vir}(z)$; Sheth–Tormen vs. Tinker et al. mass functions across cosmic time; collapsed mass fractions. |
 | [04 — Python callbacks](04-python-callbacks.ipynb) | Galacticus calling *your* Python functions: quadrature of Python integrands over computational domains, and Python cross-sections in radiation fields. |
+| [05 — Merger-tree building blocks](05-merger-tree-building-blocks.ipynb) | The characteristic collapsing mass $M_*(z)$, Parkinson–Cole–Helly branching rates, tree-build costs, and sampling root halo masses for tree suites. |
+| [06 — Stellar populations](06-stellar-populations.ipynb) | Initial mass functions, stellar lifetimes/remnants/yields from the standard compilation, and Type Ia supernova delay-time distributions. Requires the datasets repository (`GALACTICUS_DATA_PATH`). |
 
 ## Getting the library
 
