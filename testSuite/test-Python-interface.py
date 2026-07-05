@@ -118,7 +118,12 @@ with safe_section("criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt"
 # Virial density contrast.
 with safe_section("virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt"):
     virialDensityContrast = galacticus.virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(True,cosmologyFunctions)
-    check("Δ_vir(a=1)", virialDensityContrast.densityContrast(mass=1.0e12,time=13.8), 350.506868239381)
+    # rtol loosened from the default 1e-6: this class tabulates the
+    # spherical-collapse solution (tableStore=True), and the interpolated
+    # value shifts at the ~1e-6 level with the tabulation's grid layout,
+    # which depends on the history of queries that built any cached table
+    # (e.g. the tutorial notebooks query a wider redshift range).
+    check("Δ_vir(a=1)", virialDensityContrast.densityContrast(mass=1.0e12,time=13.8), 350.506868239381, rtol=1.0e-5)
 
 # Halo mass function.
 with safe_section("haloMassFunctionShethTormen"):
@@ -177,7 +182,8 @@ with safe_section("darkMatterProfileConcentrationFixed"):
     check_eq("class(...) return _owned" , getattr(vdcReturned, '_owned', True) , False)
     # And the wrapped object should be usable for further method calls; the
     # value should match the original instance (same Galacticus object).
-    check   ("Δ_vir(via returned)"      , vdcReturned.densityContrast(mass=1.0e12,time=13.8), 350.506868239381)
+    # rtol 1e-5: tabulation-layout sensitivity — see the Δ_vir check above.
+    check   ("Δ_vir(via returned)"      , vdcReturned.densityContrast(mass=1.0e12,time=13.8), 350.506868239381, rtol=1.0e-5)
 
 # Node property extractor — exercises `type(enumerationXxxType)` return path
 # (the inner method gives a derived enum type, the wrapper lifts the %ID
@@ -227,12 +233,25 @@ with safe_section("galacticFilterHighPass (abstract-intermediate arg)"):
 # (Fortran-side static c_char buffer + Python-side .decode("utf-8")).
 with safe_section("initialMassFunctionSalpeter1955"):
     imf = galacticus.initialMassFunctionSalpeter1955()
-    # TODO: replace dummy expectations below with golden values from a real run.
     check_eq("label"      , imf.label()                            ,    "Salpeter1955")  # varying_string return
     check   ("massMinimum", imf.massMinimum()                      ,    0.1)
     check   ("massMaximum", imf.massMaximum()                      ,  125.0)
     check   ("phi(M=1)"   , imf.phi(massInitial=1.0)               ,    0.170384)
     check   ("N(0.1..125)", imf.numberCumulative(massLower=0.1,massUpper=125.0), 2.82531)
+
+# Chabrier (2001) IMF — regression for the sign error in the analytic
+# cumulative integral's power-law piece (the two limits were summed rather
+# than differenced, making every cumulative count above the transition
+# mass negative). Pin the count of core-collapse SN progenitors against
+# the value from direct numerical integration of phi(m).
+with safe_section("initialMassFunctionChabrier2001 (cumulative integral sign)"):
+    imf = galacticus.initialMassFunctionChabrier2001(0.1, 1.0, 125.0, -2.3, 0.08, 0.69)
+    numberSNII = imf.numberCumulative(massLower=8.0, massUpper=125.0)
+    check_eq("N(8..125) positive", numberSNII > 0.0, True)
+    check   ("N(8..125)"         , numberSNII, 0.011786, rtol=1.0e-4)
+    massGrid  = np.logspace(np.log10(8.0), np.log10(125.0), 4001)
+    numerical = np.trapezoid([imf.phi(massInitial=m) for m in massGrid], massGrid)
+    check   ("N(8..125) vs direct integration of phi", numberSNII, numerical, rtol=1.0e-3)
 
 # Radiative transfer photon packet — exercises both fixed-size dimensional
 # shapes in one round-trip: positionSet/directionSet take a `dimension(3)`
