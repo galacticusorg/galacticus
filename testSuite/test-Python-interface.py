@@ -122,7 +122,11 @@ with safe_section("cosmologicalMassVarianceFilteredPower"):
 # Critical overdensity.
 with safe_section("criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt"):
     criticalOverdensity = galacticus.criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(linearGrowth,cosmologyFunctions,cosmologicalMassVariance,darkMatterParticle,True)
-    check("δ_c(a=1)", criticalOverdensity.value(time=13.8), 1.6750993420127407)
+    # rtol loosened (see the Δ_vir check below for the rationale): a cached
+    # tabulation spanning a wide redshift range (the merger-tree tutorial
+    # tabulates δ_c down to z=10⁵) shifts the interpolated value at t≈13.8
+    # by ~4e-5 relative to a fresh narrow-range tabulation.
+    check("δ_c(a=1)", criticalOverdensity.value(time=13.8), 1.6750993420127407, rtol=1.0e-4)
 
 # Virial density contrast.
 with safe_section("virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt"):
@@ -138,7 +142,8 @@ with safe_section("virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstn
 with safe_section("haloMassFunctionShethTormen"):
     haloMassFunction = galacticus.haloMassFunctionShethTormen(cosmologyParameters,cosmologicalMassVariance,criticalOverdensity,0.707,0.3,0.322183)
     haloMass = 1.0e10
-    check("dn/dlnM(M=10¹⁰M☉,a=1)", haloMassFunction.differential(13.8,haloMass)*haloMass, 0.1040973175348119, fmt=".4f")
+    # rtol loosened: inherits the δ_c tabulation-grid sensitivity above.
+    check("dn/dlnM(M=10¹⁰M☉,a=1)", haloMassFunction.differential(13.8,haloMass)*haloMass, 0.1040973175348119, fmt=".4f", rtol=1.0e-4)
 
 # Random number generator.  Exercises method returns of `integer` (poisson),
 # `integer(c_long)` (range/sample/seed), and the `integer(c_long)` argument
@@ -901,6 +906,72 @@ with safe_section("outputAnalysisDistributionNormalizerUnitarity (in-place inout
     check("dist[0] after normalize", float(dist[0]), 2.0 / 12.0)
     check("dist[1] after normalize", float(dist[1]), 4.0 / 12.0)
     check("dist[2] after normalize", float(dist[2]), 6.0 / 12.0)
+
+# Merger-tree construction, walking, and per-node property extraction —
+# pins several library capabilities at once:
+#  * `nodesInitialize()` — boots the node-component class system (default
+#    component selections); required before any tree node exists;
+#  * opaque shared-type pointer returns — `construct` returns a
+#    `type(mergerTree), pointer` as a c_void_p handle (None once the tree
+#    suite is exhausted);
+#  * scalar `intent(out)` logical write-back — the `finished` flag pins
+#    the kind-narrowing copy-back from the wrapper's default-kind local
+#    into the c_bool bind(c) dummy (initially missing: the flag stayed
+#    False forever);
+#  * the pointer write-back protocol — `walker.next(node)` repoints the
+#    caller's node handle each call;
+#  * `extractScalar` dispatch on the `nodePropertyExtractor` base class.
+with safe_section("merger-tree build/walk/extract"):
+    galacticus.nodesInitialize()
+    branchingProbability = galacticus.mergerTreeBranchingProbabilityParkinsonColeHelly(
+        0.57, 0.38, -0.01, 0.1, 1.0e-6, True, True, False,
+        cosmologicalMassVariance, criticalOverdensity)
+    rngTree         = galacticus.randomNumberGeneratorGSL(
+        seed_=8675309, ompThreadOffset=False, mpiRankOffset=False)
+    massResolution  = galacticus.mergerTreeMassResolutionFixed(1.0e10)
+    buildController = galacticus.mergerTreeBuildControllerUncontrolled(branchingProbability)
+    ageToday        = cosmologyFunctions.cosmicTime(1.0)
+    timeEarliest    = cosmologyFunctions.cosmicTime(
+        cosmologyFunctions.expansionFactorFromRedshift(1.0e5))
+    treeBuilder     = galacticus.mergerTreeBuilderCole2000(
+        0.1, 0.1, timeEarliest, 2.0e-6, True, 1.0e-6, 1.0e-3, False, False,
+        branchingProbability, massResolution, cosmologyFunctions,
+        criticalOverdensity, cosmologicalMassVariance, buildController)
+    treeSeeds        = galacticus.mergerTreeSeedsRandom(rngTree)
+    massDistribution = galacticus.mergerTreeBuildMassDistributionPowerLaw(0.0)
+    buildMasses      = galacticus.mergerTreeBuildMassesSampledDistributionUniform(
+        1.0e12, 1.0e13, 2.0, massDistribution)
+    outputTimesTree  = galacticus.outputTimesList([ageToday], cosmologyFunctions)
+    treeConstructor  = galacticus.mergerTreeConstructorBuild(
+        ageToday, 1.0e-6, 0, True,
+        cosmologyParameters, cosmologyFunctions, buildMasses, treeBuilder,
+        treeSeeds, haloMassFunction, outputTimesTree, rngTree)
+    finished = ctypes.c_bool(False)
+    tree     = treeConstructor.construct(1, finished)
+    check_eq("construct(1) returns a handle", bool(tree), True)
+    check_eq("finished False after tree 1"  , finished.value, False)
+    extractorMass = galacticus.nodePropertyExtractorMassBasic()
+    extractorTime = galacticus.nodePropertyExtractorTime()
+    walker = galacticus.mergerTreeWalkerIsolatedNodes(tree)
+    node   = ctypes.c_void_p(None)
+    masses, times = [], []
+    while walker.next(node):
+        masses.append(extractorMass.extractScalar(node))
+        times .append(extractorTime.extractScalar(node))
+    check_eq("walker visited nodes"          , len(masses) > 10, True)
+    # The root node: mass within the sampled range, time at the base epoch.
+    check_eq("root mass within sampled range", 1.0e12 <= max(masses) <= 1.0e13, True)
+    check   ("root time"                     , max(times), ageToday, fmt=".4f", unit="Gyr")
+    # Terminal nodes may undershoot the resolution mass by at most the
+    # accretionLimit fraction (a branch halts once it drops below
+    # resolution) — so the true floor is resolution*(1-accretionLimit).
+    check_eq("resolution floor respected"    , min(masses) >= 0.999*0.9e10, True)
+    # Exhaust the suite: requesting a tree beyond the last returns a null
+    # handle (None) and flips `finished` — this pins the intent(out)
+    # logical copy-back.
+    treeBeyond = treeConstructor.construct(3, finished)
+    check_eq("construct beyond suite returns None", treeBeyond, None)
+    check_eq("finished True beyond suite"         , finished.value, True)
 
 # Final summary and exit code.
 print(f"--- {_failures} failure(s) ---")
