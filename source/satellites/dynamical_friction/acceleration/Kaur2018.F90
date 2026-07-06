@@ -24,6 +24,7 @@
   !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Mass_Distributions      , only : massDistributionClass
   use :: Numerical_Interpolation , only : interpolator
 
   !![
@@ -65,7 +66,9 @@
 
   ! Submodule-scope variables used in root finding.
   class(satelliteDynamicalFrictionKaur2018), pointer :: self_
-  !$omp threadprivate(self_)
+  class           (massDistributionClass), pointer   :: massDistribution__
+  double precision :: massSatellite_              , densityHostCentral_
+  !$omp threadprivate(self_,massDistribution__,massSatellite_, densityHostCentral_)
   
 contains
 
@@ -211,16 +214,17 @@ contains
     ! Check if the density profile has a finite density at the center. We do this by considering the logarithmic slope of the
     ! density profile. For cusped density profiles, we assume no stalling.
     coordinates                          =  [0.0d0,0.0d0,0.0d0]
-    massDistribution_                    => self             %darkMatterProfileDMO_%get                  (nodeHost                      )
+    ! massDistribution_                    => self             %darkMatterProfileDMO_%get                  (nodeHost                      )
+    massDistribution_  => nodeHost         %massDistribution(           )
     logSlopeDensityProfileDarkMatterHost =  massDistribution_                      %densityGradientRadial(coordinates,logarithmic=.true.)
-    !![
-    <objectDestructor name="massDistribution_"/>
-    !!]
     if (logSlopeDensityProfileDarkMatterHost < 0.0d0) return
     ! Find the stalling radius.
     self_              => self
-    massDistribution_  => nodeHost         %massDistribution(           )
     densityHostCentral =  massDistribution_%density         (coordinates)
+    massDistribution__ => massDistribution_
+
+    densityHostCentral_= densityHostCentral
+    massSatellite_     = massSatellite
     if (.not.finderConstructed) then 
        finder           =rootFinder(                                                             &
             &                       rootFunction                 =radiusStallingRoot           , &
@@ -234,7 +238,7 @@ contains
             &                      )
        finderConstructed=.true.
     end if
-     radiusStalling=finder%find(rootGuess=radiusOrbital)
+    radiusStalling=finder%find(rootGuess=radiusOrbital)
     !![
     <objectDestructor name="massDistribution_"/>
     !!]
@@ -251,10 +255,9 @@ contains
     kaur2018Acceleration=+kaur2018Acceleration &
          &               *factorSuppression
     return
+  end function kaur2018Acceleration
     
-  contains
-    
-    double precision function radiusStallingRoot(radiusStalling)
+  double precision function radiusStallingRoot(radiusStalling)
       !!{RST
       Root function used in finding the stalling radius.
       !!}
@@ -265,11 +268,11 @@ contains
       radiusStallingRoot=+4.0d0                                                  &
            &             *Pi                                                     &
            &             /3.0d0                                                  &
-           &             *densityHostCentral                                     &
+           &             *densityHostCentral_                                     &
            &             *radiusStalling    **3                                  &
-           &             -massDistribution_%massEnclosedBySphere(radiusStalling) &
-           &             -massSatellite
+           &             -massDistribution__%massEnclosedBySphere(radiusStalling) &
+           &             -massSatellite_
       return
-    end function radiusStallingRoot
+  end function radiusStallingRoot
     
-  end function kaur2018Acceleration
+  
