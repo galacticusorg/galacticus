@@ -732,5 +732,4 @@ and thereby allow a position to be passed to it in any coordinate system.
 
 .. [#] Data objects in components can be real, integer, boolean or of derived type. For derived types, currently ``history``, ``abundances``, ``chemicals``, and ``keplerOrbit`` are supported. Adding additional derived types is possible, providing that the type supports the required methods for output, serialization, etc. Data objects can currently be scalar or rank-1 arrays.
 .. [#] Or some other value if a ``classDefault`` has been specified (see Section :galacticus-ref:`ComponentImplement`).
-.. [#] For dimensionless quantities, the units may be set to zero. In such cases, the ``unitsInSI`` attribute for the dataset will not be written to the Galacticus output file.
 .. [#] The ``keplerOrbit`` object works by trying to convert to the combination radius, radial and tangential velocities. Once these are defined, all other parameters can be computed. However, for orbits defined in terms of other parameters, the ``keplerOrbit`` object does not know how to convert from every such combination of parameters.
