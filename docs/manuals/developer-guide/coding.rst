@@ -389,6 +389,25 @@ Galacticus supports storing its internal state to file to allow :ref:`restarts <
 
 This specifies that the ``table`` class (and all child classes) can and should be stored to file as part of the representation of the internal state. Code to store and restore all data associated with any object of this class (as well as restoring polymorphic objects to the correct type) will be generated. If certain variables of the class or subclass should be restored to specific values this can be specified through a ``restoreTo`` element placed within an element with the name of the class or subclass (e.g. the ``table1DGeneric`` in the above example). The ``restoreTo`` element should specify a comma-separated list of one or more variables to set in its ``variables`` attribute, and the state to which they should be restored in its ``state`` attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a ``exclude`` element---a list of variables to exclude should be given as a comma-separated list in its ``variables`` attribute.
 
+In hand-written state store/restore subroutines (for example, those of node component classes, which are not generated via the ``functionClass`` machinery), the ``stateStore`` and ``stateRestore`` directives emit the necessary per-object serialization code. Each takes a ``variables`` attribute giving a space-separated list of pointers to ``functionClass`` objects. For example:
+
+.. code-block:: none
+
+     subroutine Node_Component_Spin_Vector_State_Store(stateFile,gslStateFile,stateOperationID)
+       use, intrinsic :: ISO_C_Binding, only : c_ptr, c_size_t
+       implicit none
+       integer          , intent(in   ) :: stateFile
+       integer(c_size_t), intent(in   ) :: stateOperationID
+       type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+       !![
+       <stateStore variables="darkMatterHaloScale_"/>
+       !!]
+       return
+     end subroutine Node_Component_Spin_Vector_State_Store
+
+For each listed variable, the ``stateStore`` directive writes the association status of the pointer to the state file and, if associated, calls the object's ``stateStore`` method. The ``stateRestore`` directive generates the matching code for restoration: it reads the stored association status and, if the object was stored, calls its ``stateRestore`` method (reporting an error if the pointer is unexpectedly not associated on restore). These directives must be used within subroutines having the standard state store/restore interface, i.e. accepting the ``stateFile``, ``gslStateFile``, and ``stateOperationID`` arguments shown above.
+
 .. _manual-sec-eventHooks:
 
 Event Hooks
@@ -420,6 +439,8 @@ The ``name`` attribute gives the name of the event hook. The ``interface`` eleme
 When the preprocessor encounters this directive, it generates code to call all functions that have been attached to this event hook. The event hook infrastructure (defined in ``Events_Hooks``) handles the list of attached functions and ensures each is called in the correct order (respecting any dependencies specified at attachment time), and with the correct OpenMP thread binding.
 
 A simpler variant, ``eventHookStatic``, is available for cases where the set of hooked functions is fixed at compile time (i.e.\ the functions are known statically and do not change at runtime). In this case, the directive takes only a ``name`` attribute, and the hooked functions are identified by a matching directive of the same name, which specifies the function to call via a ``function`` attribute.
+
+The supporting infrastructure for all event hooks---a typed event class for each ``eventHook`` directive with a declared ``interface``, together with its ``attach``, ``detach``, and ``isAttached`` methods---is synthesized by the ``eventHookManager`` directive. This directive appears exactly once, in the ``Events_Hooks`` module (``source/events/hooks.F90``), and is internal build infrastructure: developers defining or attaching to event hooks never need to use it.
 
 .. _manual-sec-autoHook:
 
@@ -884,6 +905,31 @@ In addition to the deep copy functionality generated within ``functionClass`` ob
        !!]
 
 These three directives are typically used in sequence when manually deep-copying a ``functionClass`` member: first ``deepCopyReset`` to prepare the source, then ``deepCopy`` to perform the copy, then ``deepCopyFinalize`` to clean up.
+
+Deep Copy Actions
+^^^^^^^^^^^^^^^^^
+
+Some types which are *not* ``functionClass`` objects nevertheless require special actions to be performed on any copy of an object made during a deep copy---for example, resetting an "initialized" flag, or reallocating an external (e.g. GSL) resource that must not be shared between copies. The ``deepCopyActions`` directive, placed in the declaration section of the module defining such a type, declares these actions. For example, the ``rootFinder`` class uses:
+
+.. code-block:: none
+
+    !![
+    <deepCopyActions class="rootFinder">
+     <rootFinder>
+      <setTo variables="functionInitialized" state=".false."/>
+     </rootFinder>
+    </deepCopyActions>
+    !!]
+
+The ``class`` attribute names the base class to which the actions apply. The directive then contains one element per type in the class hierarchy (named for that type), each of which may contain:
+
+``setTo``
+   Sets each member variable in the comma-separated ``variables`` attribute to the value given by the ``state`` attribute.
+
+``methodCall``
+   Calls the type-bound method named by the ``method`` attribute (with any arguments given via an ``arguments`` attribute)---used, for example, by the ``interpolator`` class to reallocate its GSL interpolator objects in the copy.
+
+The preprocessor generates a type-bound ``deepCopyActions`` method for the class (with a ``select type`` branch for each non-abstract type descended from it, applying the actions declared at each level of the inheritance chain). The deep-copy code generated for ``functionClass`` objects automatically calls this method on any member object of such a class after it is copied.
 
 Generic Programming
 ~~~~~~~~~~~~~~~~~~~
