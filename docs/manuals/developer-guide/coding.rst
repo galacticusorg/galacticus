@@ -296,6 +296,63 @@ This directive can (and should) be used to destroy objects built by the ``object
       return
      end subroutine simpleDestructor
 
+.. _manual-sec-referenceCounting:
+
+Reference Counting
+~~~~~~~~~~~~~~~~~~
+
+Every ``functionClass`` object carries an internal reference counter which tracks how many references to the object are held. The ``objectBuilder`` directive increments this counter automatically when it retrieves or builds an object, and the ``objectDestructor`` directive decrements it, deallocating the object only when the count reaches zero. When objects are constructed directly (i.e. not via ``objectBuilder``), or when additional references to an existing object are taken, the reference count must still be kept accurate so that ``objectDestructor`` behaves correctly. Three directives automate this.
+
+The ``referenceConstruct`` directive constructs an object via an explicit constructor, increments its reference count, and calls its ``autoHook`` method (see Section :galacticus-ref:`autoHook`). For example:
+
+.. code-block:: none
+
+    class(kinematicsDistributionClass), pointer :: kinematicDistribution_
+
+    allocate(kinematicDistribution_)
+    !![
+    <referenceConstruct object="kinematicDistribution_" constructor="kinematicsDistributionLocal(alpha=1.0d0/sqrt(2.0d0))"/>
+    !!]
+
+which expands to an assignment of the constructor result to the object, followed by calls to ``referenceCountIncrement`` and ``autoHook`` on that object. The directive accepts the following attributes:
+
+``object``
+   The name of the variable to which the constructed object is assigned.
+
+``constructor``
+   The constructor expression to use. For long constructor expressions this may instead be given as a ``constructor`` element contained within the directive.
+
+``owner``
+   *(optional)* The name of an object owning ``object``---the assignment target is then ``{owner}%{object}``.
+
+``nameAssociated``
+   *(optional)* An alternative name by which the object is accessible at the point of the directive (e.g.\ inside an ``associate`` block). If given, this name is used in the generated code in place of ``{owner}%{object}``.
+
+``isResult``
+   *(optional)* If set to ``yes``, annotates that the reference being created is the result of the enclosing function, so ownership of the reference passes to the caller. This attribute does not change the generated code---it exists to allow static analysis of reference counting.
+
+The ``referenceAcquire`` directive takes a new reference to an *existing* object, pointer-associating a target with a source and incrementing the reference count:
+
+.. code-block:: none
+
+    !![
+    <referenceAcquire target="kinematicsDistribution_" source="self%kinematicsDistribution_"/>
+    !!]
+
+The ``target`` and ``source`` attributes are required; ``owner`` and ``isResult`` attributes are also accepted with the same meanings as for ``referenceConstruct`` (with ``owner`` applying to the target).
+
+Finally, the ``referenceCountIncrement`` directive simply increments the reference count of an existing object, for cases where a new reference has been created by other means (e.g. an explicit pointer assignment):
+
+.. code-block:: none
+
+    !![
+    <referenceCountIncrement owner="filter_" object="filter_"/>
+    !!]
+
+It accepts ``object`` (required), plus optional ``owner`` and ``isResult`` attributes as above.
+
+Every reference created via these directives should be balanced by a matching ``objectDestructor`` directive when the reference is released.
+
 Constructor Assignments
 ~~~~~~~~~~~~~~~~~~~~~~~
 
