@@ -629,6 +629,44 @@ Input Parameter Lists
 
 The ``inputParameterList`` directive will construct a ``varying_string`` array containing the names of all input parameters which are defined in the unit in which the directive appears. The name of the array is specified by the ``label`` attribute of the ``inputParameterList`` directive. If a ``source`` attribute is specified in the directive then only parameters being read from the named variable will be included in the list, otherwise any parameters read will be included. Such a list can be used to validate the names of parameters passed to a function for example.
 
+.. _manual-sec-inputParametersValidate:
+
+Input Parameter Validation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``inputParametersValidate`` directive checks that every parameter supplied to an object under construction is recognized, catching mis-spelled or misplaced parameter names in input files. It should be placed in the parameter-based constructor of every ``functionClass`` implementation, *after* all ``inputParameter`` and ``objectBuilder`` directives (so that the full set of allowed names is known). For example:
+
+.. code-block:: none
+
+     function stellarMassConstructorParameters(parameters) result(self)
+       implicit none
+       type            (galacticFilterStellarMass)                :: self
+       type            (inputParameters          ), intent(inout) :: parameters
+       double precision                                           :: massThreshold
+
+       !![
+       <inputParameter>
+         <name>massThreshold</name>
+         <source>parameters</source>
+         <description>The threshold stellar mass.</description>
+       </inputParameter>
+       <inputParametersValidate source="parameters"/>
+       !!]
+       self=galacticFilterStellarMass(massThreshold)
+       return
+     end function stellarMassConstructorParameters
+
+The generated code gathers the names of all parameters that the object (including any sub-objects it built) is allowed to accept, and then checks the parameter set named in the ``source`` attribute against this list, reporting an error for any unrecognized parameter. The directive accepts the following attributes:
+
+``source``
+   The name of the ``inputParameters`` object to validate.
+
+``multiParameters``
+   *(optional)* A comma-separated list of parameter names which are permitted to appear multiple times in the parameter set. This is used by classes which accept lists of objects (e.g. the ``multi`` implementations of various classes, which read multiple instances of a parameter such as ``galacticFilter``).
+
+``extraAllowedNames``
+   *(optional)* A space-separated list of additional parameter names which should be considered valid even though no ``inputParameter`` or ``objectBuilder`` directive reads them (e.g. parameters read indirectly by other means).
+
 Function Classes
 ~~~~~~~~~~~~~~~~
 
