@@ -11,12 +11,12 @@ Galacticus is designed to be flexible and extensible, allowing you to add new cl
 .. code-block:: none
 
     !![
-    <accretionDisks>
-      <unitName>Accretion_Disks_Shakura_Sunyaev_Initialize</unitName>
+    <accretionDisks name="accretionDisksADAF">
+      <description>An accretion disk class for ADAF (advection-dominated accretion flow) disks.</description>
     </accretionDisks>
     !!]
 
-This directive would typically appear just prior to a subroutine which initializes the Shakura-Sunyaev accretion disk module (it could appear anywhere throughout that module, but it makes sense to keep it close to the subroutine that it references). The ``accretionDisks`` tag explains to the Galacticus build system that this module contains an implementation of black hole accretion disks. The ``unitName`` tag specifies the name of a program unit which (in this case) should be called to initialize this accretion disk implementation. The build system will then insert appropriate ``use`` and ``call`` statements into the Galacticus code such that this routine will be called if and when accretion disks are required by Galacticus.
+This directive appears just prior to the definition of a type which implements an advection-dominated accretion flow (ADAF) accretion disk. The ``accretionDisks`` tag explains to the Galacticus build system that this file contains an implementation of the black hole accretion disks class. The build system will then merge this implementation into the ``accretionDisks`` function class (see Section :galacticus-ref:`functionClass`), making it selectable at run time. A complete reference of the general-purpose preprocessor directives is given in Section :galacticus-ref:`sourceTreePreprocessor`; this chapter describes the directives used to define node components and to register task functions.
 
 .. _manual-sec-ComponentMassTypes:
 
@@ -311,7 +311,22 @@ Component Initialization
 
 Initialization of a component module (if necessary, for example, to read parameters or allocate workspace) can occur at a number of different points in the execution of Galacticus. Providing initialization occurs in advance of any calculations then any point is acceptable. One possibility is simply to call an initialization function at the head of all functions defined in the component module. This initialization function should return immediately if it has already been called (to avoid duplicate initialization). Another option is to use a :galacticus-class:`mergerTreeOperator` to perform initialization just before merger trees are constructed (the initialization function must again return immediately if it has been previously called).
 
-Optionally, a component may include a ``mergerTreeEvolveThreadInitialize`` directive, which gives the name of a subroutine in its ``unitName`` element. The routine specified by ``mergerTreeEvolveThreadInitialize`` is called by all threads prior to merger tree evolution, and can therefore be used to perform any "per thread" initialization. Note that this routine will be called many times during a given Galacticus run---it is the responsibility of the routine to ensure that it performs any initialization only once.
+Alternatively, a component may register initialization (and uninitialization) functions using the following directives. Each is placed immediately before the subroutine that it registers, and names that subroutine in a ``function`` attribute (these directives, like all of the task directives described in this chapter, attach their function to a static event hook point---see Section :galacticus-ref:`eventHooks`). For example:
+
+.. code-block:: none
+
+    !![
+    <nodeComponentThreadInitializationTask function="Node_Component_Black_Hole_Standard_Thread_Initialize"/>
+    !!]
+
+``nodeComponentInitializationTask``
+   The function is called once when node components are first initialized. It receives a single argument, ``parameters``, of type ``type(inputParameters), intent(inout)``, from which any required parameters can be read.
+
+``nodeComponentThreadInitializationTask``
+   The function is called by each thread prior to merger tree evolution (with the same interface as above), and can therefore be used to perform any "per thread" initialization---for example, constructing threadprivate objects, or attaching functions to event hooks.
+
+``nodeComponentThreadUninitializationTask``
+   The function (which takes no arguments) is called by each thread once merger tree evolution is complete, and should undo any per-thread initialization (e.g. detaching functions from event hooks, and releasing objects).
 
 Component Access, Creation and Destruction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -388,17 +403,15 @@ where :math:`epsilon_\mathrm{abs}=`\ ``[odeToleranceAbsolute]``, :math:`epsilon_
 .. code-block:: none
 
      !![
-     <scaleSetTask>
-       <unitName>Node_Component_Disk_Exponential_Scale_Set</unitName>
-     </scaleSetTask>
+     <scaleSetTask function="Node_Component_Disk_Exponential_Scale_Set"/>
      !!]
-     subroutine Node_Component_Disk_Exponential_Scale_Set(thisNode)
+     subroutine Node_Component_Disk_Exponential_Scale_Set(node)
        implicit none
-       type (treeNode         ), pointer, intent(inout) :: thisNode
+       type (treeNode         ), pointer, intent(inout) :: node
        class(nodeComponentDisk), pointer                :: disk
 
        ! Get the disk component.
-       disk => thisNode%disk()
+       disk => node%disk()
        ! Check if an exponential disk component exists.
        select type (disk)
        class is (nodeComponentDiskExponential)
@@ -410,6 +423,20 @@ where :math:`epsilon_\mathrm{abs}=`\ ``[odeToleranceAbsolute]``, :math:`epsilon_
      end subroutine Node_Component_Disk_Exponential_Scale_Set
 
 Sensible choices for the :math:`s_i` factors can significantly speed-up execution of Galacticus.
+
+Other Component Task Directives
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Several further task directives allow a component to hook into specific points of the evolution cycle. Each takes the same form as ``scaleSetTask`` above---the directive is placed immediately before the subroutine to be registered, and names it in a ``function`` attribute:
+
+``preEvolveTask``
+   The function is called for each node before differential evolution of that node begins. The interface is ``(node)`` with ``node`` of type ``type(treeNode), intent(inout), pointer``. This is useful, for example, to ensure a component has been initialized before evolution starts.
+
+``inactiveSetTask``
+   The function is called (when an ODE solver making use of inactive-property optimizations is in use) before evolution of each node, and should mark as inactive any properties of the component which are known to not affect the evolution of other (active) properties, by calling their ``JacobianZero`` methods. The interface is the same as for ``preEvolveTask``.
+
+``stateStoreTask`` and ``stateRetrieveTask``
+   The functions are called when the internal state is written to (or restored from) file to allow :ref:`restarts <manual-sec-restarting>`, and should store (or restore) any state held by the component (typically making use of the ``stateStore``/``stateRestore`` directives---see Section :galacticus-ref:`stateStorable`). The interface is ``(stateFile,gslStateFile,stateOperationID)`` where ``stateFile`` is an ``integer``, ``gslStateFile`` is a ``type(c_ptr)``, and ``stateOperationID`` is an ``integer(c_size_t)``, all ``intent(in)``.
 
 Evolution Interrupts
 ^^^^^^^^^^^^^^^^^^^^
@@ -450,40 +477,142 @@ where ``MyImplementation`` is an appropriate name for the implementation. This f
 Events
 ~~~~~~
 
-Events are triggered during merger tree evolution. Examples are when a node needs to be promoted to its parent node, or when a minor node merges with its parent.
+Events are triggered during merger tree evolution. Examples are when a node needs to be promoted to its parent node, or when a minor node merges with its parent. Code responds to such events by attaching functions to the corresponding event hooks (see Section :galacticus-ref:`eventHooks`)---for example, the ``nodePromotion`` event (triggered when a primary progenitor reaches the time of its parent halo), the ``haloFormation`` event (triggered when a halo is deemed to have formed, or reformed), the ``satelliteHostChange`` event (triggered when a satellite node moves to a new host), and the ``mergerTreeExtraOutput`` event (triggered for each node at each output time, allowing extra, non-standard output to be written). Attachment is done at run time via the event's ``attach`` method (typically from a ``functionClass`` object's ``autoHook`` method, or from a node component's thread initialization task).
 
-Node Promotion Events
-^^^^^^^^^^^^^^^^^^^^^
-
-Additional methods for node promotion (i.e. when a primary progenitor reaches its parent halo) can be added using the ``nodePromotionTask`` directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the ``basic`` tree node method uses this directive as follows:
-
-.. code-block:: none
-
-     !![
-     <nodePromotionTask>
-      <unitName>Tree_Node_Basic_Promote</unitName>
-     </nodePromotionTask>
-     !!]
-
-Here, ``Tree_Node_Basic_Promote`` is the name of a subroutine which will be called to perform whatever tasks are required prior to the promotion. The subroutine must have the following form:
-
-.. code-block:: none
-
-      subroutine Node_Promotion_Task(thisNode)
-       implicit none
-       type(treeNode), pointer, intent(inout) :: thisNode
-       .
-       .
-       .
-       return
-     end subroutine Node_Promotion_Task
-
-where ``thisNode`` is the node about to be promoted.
+.. note::
+   In older versions of Galacticus these events were handled by dedicated directives (``nodePromotionTask``, ``haloFormationTask``, ``satelliteHostChangeTask``, ``mergerTreeExtraOutputTask``, ``hdfPreCloseTask``, and the ``mergerTreeOutputPropertyCount``/``mergerTreeOutputNames``/``mergerTreeOutputTask`` family). These directives no longer exist---use the event hooks described above instead (for output tasks, use a :galacticus-class:`nodePropertyExtractorClass` implementation, or attach to the ``mergerTreeExtraOutput`` or ``outputFileClose`` events).
 
 Tasks
 ~~~~~
 
-Tasks are any processing which must be performed on a node as a result of some specific event (such as a merger).
+Tasks are any processing which must be performed at some specific point in the execution of Galacticus (e.g. before or after evolving a node, or when the output file is opened or closed). A function is registered as a task by a directive placed immediately before it, naming it in a ``function`` attribute. Each such directive corresponds to a static event hook point (an ``eventHookStatic`` directive of the same name---see Section :galacticus-ref:`eventHooks`) at which all registered functions are called. An optional ``after`` attribute (naming another registered function) may be used to constrain the order in which the registered functions are called.
+
+The component-related task directives (``nodeComponentInitializationTask``, ``nodeComponentThreadInitializationTask``, ``nodeComponentThreadUninitializationTask``, ``scaleSetTask``, ``preEvolveTask``, ``inactiveSetTask``, ``postStepTask``, ``stateStoreTask``, and ``stateRetrieveTask``) are described in Section :galacticus-ref:`ComponentImplement`. In addition, the following global task directives are available:
+
+``outputFileOpen``
+   The function is called immediately after the Galacticus output HDF5 file is opened (useful for writing one-time datasets, e.g. version or build information). The function takes no arguments.
+
+``outputFileClose``
+   The function is called immediately prior to closing the Galacticus output HDF5 file (typically to write accumulated data to that file). The function takes no arguments.
+
+``universePostEvolveTask``
+   The function is called once evolution of all merger trees is complete. The function takes no arguments.
+
+Merger Tree Initialization Tasks
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Additional tasks to be performed during merger tree initialization can be added using the ``mergerTreeInitializeTask`` directive. For example, the ``standard`` basic component uses this directive as follows:
+
+.. code-block:: none
+
+     !![
+     <mergerTreeInitializeTask function="Halo_Mass_Accretion_Rate"/>
+     !!]
+
+Here, ``Halo_Mass_Accretion_Rate`` is the name of a subroutine which will be called to perform whatever initialization is required. The subroutine must have the following form:
+
+.. code-block:: none
+
+      subroutine Merger_Tree_Initialize_Task(node)
+       implicit none
+       type(treeNode), pointer, intent(inout) :: node
+       .
+       .
+       .
+       return
+     end subroutine Merger_Tree_Initialize_Task
+
+where ``node`` is the node to be initialized. The subroutine will be called once for each node in the tree.
+
+Post-step Tasks
+^^^^^^^^^^^^^^^
+
+Additional methods for post-step tasks (i.e. things that should be done after each ODE solver step when evolving a node differentially) can be added using the ``postStepTask`` directive. For example, the standard hot halo component adds a task as follows:
+
+.. code-block:: none
+
+     !![
+     <postStepTask function="Node_Component_Hot_Halo_Standard_Post_Step"/>
+     !!]
+
+Here, ``Node_Component_Hot_Halo_Standard_Post_Step`` is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
+
+.. code-block:: none
+
+      subroutine Post_Step_Task(node,status)
+       implicit none
+       type   (treeNode), intent(inout), pointer :: node
+       integer          , intent(inout)          :: status
+       .
+       .
+       .
+       return
+     end subroutine Post_Step_Task
+
+where ``node`` is the node for which tasks should be performed. If any change is made to the state of the node then ``status`` should be set equal to ``GSL_Failure``. Tasks typically involve cleaning up after differential evolution.
+
+.. _manual-sec-radius-solver:
+
+Radius Solver Tasks
+^^^^^^^^^^^^^^^^^^^
+
+Galactic radii solver functions (see :galacticus-class:`galacticStructureSolver`) need to be able to interact with the components of a tree node to
+
+#. Determine whether the node is physically plausible (and hence whether radii should be solved for at all);
+#. Determine which components want a radius to be solved for, and get and set the properties of those components.
+
+The ``radiusSolverPlausibility`` and ``radiusSolverTask`` directives facilitate this. A component which has a radius to be solved for should include directives of the form:
+
+.. code-block:: none
+
+    !![
+    <radiusSolverPlausibility function="Component_Radius_Solver_Plausibility"/>
+    !!]
+
+and
+
+.. code-block:: none
+
+    !![
+    <radiusSolverTask function="Component_Radius_Solver"/>
+    !!]
+
+where ``Component_Radius_Solver_Plausibility`` is the name of a subroutine which will specify whether or not the component is physically plausible for radius solving (e.g. has non-negative mass) and should have the following form:
+
+.. code-block:: none
+
+    subroutine Component_Radius_Solver_Plausibility(node)
+       implicit none
+       type(treeNode), intent(inout) :: node
+       .
+       .
+       .
+       return
+    end subroutine Component_Radius_Solver_Plausibility
+
+which should set ``node%isPhysicallyPlausible`` (and/or ``node%isSolvable``) to false if the component is not physically plausible, but should otherwise leave them unchanged. Additionally, ``Component_Radius_Solver`` is the name of a subroutine which will supply the necessary information about the node, and which should have the following form:
+
+.. code-block:: none
+
+    subroutine Component_Radius_Solver(node,componentActive,component,specificAngularMomentumRequired,specificAngularMomentum, &
+         &                             Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
+       implicit none
+       type            (treeNode                    ), intent(inout)          :: node
+       logical                                       , intent(  out)          :: componentActive
+       type            (enumerationComponentTypeType), intent(  out)          :: component
+       logical                                       , intent(in   )          :: specificAngularMomentumRequired
+       double precision                              , intent(  out)          :: specificAngularMomentum
+       procedure       (...                         ), intent(  out), pointer :: Radius_Get,Velocity_Get
+       procedure       (...                         ), intent(  out), pointer :: Radius_Set,Velocity_Set
+       .
+       .
+       .
+       return
+    end subroutine Component_Radius_Solver
+
+When called, the subroutine should set ``componentActive`` to indicate whether or not this node contains an active component of the type, and ``component`` to the corresponding component type (e.g. ``componentTypeDisk``; see Section :galacticus-ref:`ComponentMassTypes`). If the component is active, it should also set ``specificAngularMomentum`` to reflect the specific angular momentum (in km s\ :math:`^{-1}` Mpc) of the component (at whatever point in its profile the radius is required; this is required only if ``specificAngularMomentumRequired`` is true) and should point the four procedure pointers to routines which get and set the radius and circular velocity properties of the component (which should have the standard form for component get and set methods). It is acceptable for the set procedures to point to dummy routines.
+
+The galactic structure radii solver routines will use this information to determine (and set) the radius and circular velocity of the component. An advantage of this approach is that different radii solver methods can all use this same system, ensuring that just a single interface is needed in each component.
 
 Analytic Solvers
 ----------------
@@ -502,279 +631,6 @@ This solver, which can be activated by setting ``[diskVerySimpleUseAnalyticSolve
 * Disk star formation and outflow rates must scale as :math:`M_\mathrm{gas}/\tau` where :math:`M_\mathrm{gas}` is the instantaneous mass of gas in the galaxy disk, and :math:`\tau` is a fixed timescale for any given satellite galaxy.
 
 Under these conditions, the flow of mass between gas, stellar, and outflowed phases is analytically solvable.
-
-.. _manual-sec-HaloFormationEvents:
-
-Halo Formation Events
-^^^^^^^^^^^^^^^^^^^^^
-
-Tasks to be performed when a halo is deemed to have "formed" (or reformed) can be registered using the ``haloFormationTask`` directive. For example, the ``Tree_Node_Methods_Hot_Halo`` module registers a task using
-
-.. code-block:: none
-
-    !![
-    <haloFormationTask>
-      <unitName>Hot_Halo_Formation_Task</unitName>
-    </haloFormationTask>
-    !!]
-
-The contents of ``<unitName>`` should give the name of the subroutine to be called on halo formation. The subroutine should have a single argument, ``thisNode``, which is the node that has (re)formed.
-
-.. _manual-sec-HDFFileClose:
-
-HDF5 File Close
-^^^^^^^^^^^^^^^
-
-Tasks to be performed just prior to closing the Galacticus output HDF5 file (typically involving writing accumulated data to that file) can be registered using the ``hdfPreCloseTask`` directive. For example, the ``Merger_Tree_Timesteps_History`` module registers a task using
-
-.. code-block:: none
-
-    !![
-    <hdfPreCloseTask>
-      <unitName>Merger_Tree_History_Write</unitName>
-    </hdfPreCloseTask>
-    !!]
-
-The contents of ``<unitName>`` should give the name of the subroutine to be called prior to HDF5 file closure. The subroutine should have no arguments.
-
-Merger Tree Extra Output Tasks
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Extra outputs for merger trees (i.e. those which do not involve output of a fixed number of properties for every node---examples might be star formation histories for a subset of galaxies) can be added using the directive: ``mergerTreeExtraOutputTask``. The directive should give the name of the subroutine to be called to perform the task. A template for this task is:
-
-.. code-block:: none
-
-     !![
-     <mergerTreeExtraOutputTask>
-      <unitName>Galacticus_Extra_Output_Example</unitName>
-     </mergerTreeExtraOutputTask>
-     !!]
-     subroutine Galacticus_Extra_Output_Example(thisNode,iOutput,treeIndex,nodePassesFilter)
-       implicit none
-       type(treeNode),          intent(inout), pointer :: thisNode
-       integer,                 intent(in)             :: iOutput
-       integer(kind=kind_int8), intent(in)             :: treeIndex
-       logical,                 intent(in)             :: nodePassesFilter
-       .
-       .
-       .
-       return
-     end subroutine Galacticus_Extra_Output_Example
-
-The subroutine will be called for each node in each merger tree at each output, and should perform whatever extra output related to ``thisNode``. The index of the output and tree are provided as ``iOutput`` and ``treeIndex`` for reference, and may be used in organizing output. The ``nodePassesFilter`` flag will be set to ``true`` if ``thisNode`` passed all active output filters (see :galacticus-class:`galacticFilter`). If it is ``false`` then typically no output should occur (although other tasks may still be undertaken).
-
-Merger Tree Output Tasks
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Additional outputs for merger trees can be added using three directives: ``mergerTreeOutputPropertyCount``, ``mergerTreeOutputNames`` and ``mergerTreeOutputTask``. Each directive should give the name of the subroutine to be called to perform the task and, additionally, a name for sorting (this should be the same for all three directives and ensures that output tasks are always called in the correct order). Templates for these tasks are:
-
-.. code-block:: none
-
-     !![
-     <mergerTreeOutputNames>
-      <unitName>Galacticus_Output_Tree_Example_Names</unitName>
-      <sortName>Galacticus_Output_Tree_Example</sortName>
-     </mergerTreeOutputNames>
-     !!]
-     subroutine Galacticus_Output_Tree_Example_Names(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI &
-          &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
-       implicit none
-       double precision, intent(in)                  :: time
-       integer,          intent(inout)               :: integerProperty,doubleProperty
-       character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
-            &,doublePropertyComments
-       double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
-       .
-       .
-       .
-       return
-     end subroutine Galacticus_Output_Tree_Example_Names
-
-     !![
-     <mergerTreeOutputPropertyCount>
-      <unitName>Galacticus_Output_Tree_Example_Property_Count</unitName>
-      <sortName>Galacticus_Output_Tree_Example</sortName>
-     </mergerTreeOutputPropertyCount>
-     !!]
-     subroutine Galacticus_Output_Tree_Example_Property_Count(integerPropertyCount,doublePropertyCount)
-       implicit none
-       integer, intent(inout) :: integerPropertyCount,doublePropertyCount
-       .
-       .
-       .
-       return
-     end subroutine Galacticus_Output_Tree_Example_Property_Count
-
-     !![
-     <mergerTreeOutputTask>
-      <unitName>Galacticus_Output_Tree_Example</unitName>
-      <sortName>Galacticus_Output_Tree_Example</sortName>
-     </mergerTreeOutputTask>
-     !!]
-     subroutine Galacticus_Output_Tree_Example(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-          &,doubleBufferCount,doubleBuffer)
-       implicit none
-       type(treeNode),          intent(inout), pointer :: thisNode
-       integer,                 intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
-       integer(kind=kind_int8), intent(inout)          :: integerBuffer(:,:)
-       double precision,        intent(inout)          :: doubleBuffer(:,:)
-       .
-       .
-       .
-       return
-     end subroutine Galacticus_Output_Tree_Example
-
-The ``mergerTreeOutputPropertyCount`` subroutine must simply increment ``integerPropertyCount`` and ``doublePropertyCount`` by the number of integer and double precision properties that will be output respectively. The ``mergerTreeOutputNames`` subroutine must store the dataset names, comments and units in the SI system\ [#]_ for each integer and double precision property in the supplied arrays. The value of ``integerProperty`` and ``doubleProperty`` should be incremented by 1 before each property name/comment is set---these then supply the position within the input arrays in which to store the name. The ``mergerTreeOutputTask`` subroutine must similarly place the desired property values for ``thisNode`` into the supplied arrays. The value of ``integerProperty`` and ``doubleProperty`` should be incremented by 1 before each property value is set. The value can then be stored in, for example, ``integerBuffer(integerBufferCount,integerProperty)``.
-
-Merger Tree Initialization Tasks
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Additional tasks to be performed during merger tree initialization can be added using the ``mergerTreeInitializeTask`` directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the ``standard`` basic component method uses this directive as follows:
-
-.. code-block:: none
-
-     !![
-     <mergerTreeInitializeTask>
-      <unitName>Halo_Mass_Accretion_Rate</unitName>
-     </mergerTreeInitializeTask>
-     !!]
-
-Here, ``Halo_Mass_Accretion_Rate`` is the name of a subroutine which will be called to perform whatever tasks are required as a result of the merger. The subroutine must have the following form:
-
-.. code-block:: none
-
-      subroutine Merger_Tree_Initialize_Task(thisNode)
-       implicit none
-       type(treeNode), pointer, intent(inout) :: thisNode
-       .
-       .
-       .
-       return
-     end subroutine Merger_Tree_Initialize_Task
-
-where ``thisNode`` is the node to be initialized. The subroutine will be called once for each node in the tree.
-
-Post-step Tasks
-^^^^^^^^^^^^^^^
-
-Additional methods for post-step tasks (i.e. things that should be done after each ODE solver step when evolving a node differentially) can be added using the ``postStepTask`` directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:
-
-.. code-block:: none
-
-     !![
-     <postStepTask>
-      <unitName>Tree_Node_Hot_Halo_Poststep_Standard</unitName>
-     </postStepTask>
-     !!]
-
-Here, ``Tree_Node_Hot_Halo_Poststep_Standard`` is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
-
-.. code-block:: none
-
-      subroutine Post_Step_Task(node,status)
-       implicit none
-       type   (treeNode), intent(inout) :: node
-       integer          , intent(inout) :: status
-       .
-       .
-       .
-       return
-     end subroutine Post_Step_Task
-
-where ``node`` is the node for which tasks should be performed. If any change is made to the state of the node then ``status`` should be set equal to ``GSL_Failure``. Tasks typically involve cleaning up after differential evolution.
-
-.. _manual-sec-radius-solver:
-
-Radius Solver Tasks
-^^^^^^^^^^^^^^^^^^^
-
-Galactic radii solver functions (see :galacticus-class:`galacticStructureSolver`) need to be able to interact with the components of a tree node to
-
-#. Determine which components want a radius to be solved for;
-#. Get and set the properties of those components.
-
-The  ``radiusSolverPlausibility`` and ``radiusSolverTask`` directives facilitate this. A component which has a radius to be solved for should include directives of the form:
-
-.. code-block:: none
-
-    !![
-    <radiusSolverTask>
-     <unitName>Component_Radius_Solver_Plausibility</unitName>
-    </radiusSolverTask>
-     !!]
-
-and
-
-.. code-block:: none
-
-    !![
-    <radiusSolverTask>
-     <unitName>Component_Radius_Solver</unitName>
-    </radiusSolverTask>
-     !!]
-
-where ``Component_Radius_Solver_Plausibility`` is the name of a subroutine which will specify whether or not the component is physically plausible for radius solving (e.g. has non-negative mass) and should have the following form:
-
-.. code-block:: none
-
-    subroutine Component_Radius_Solver_Plausibility(thisNode,galaxyIsPhysicallyPlausible)
-       implicit none
-       type(treeNode), pointer, intent(inout) :: thisNode
-       logical,                 intent(inout) :: galaxyIsPhysicallyPlausible
-       .
-       .
-       .
-       return
-    end subroutine Component_Radius_Solver_Plausibility
-
-which should set ``galaxyIsPhysicallyPlausible`` to false if the component is not physically plausible, but should otherwise leave ``galaxyIsPhysicallyPlausible`` unchanged. Additionally, ``Component_Radius_Solver`` is the name of a subroutine which will supply the necessary information about the node, and which should have the following form:
-
-.. code-block:: none
-
-    subroutine Component_Radius_Solver(thisNode,componentActive,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
-       implicit none
-       type(treeNode),   pointer, intent(inout) :: thisNode
-       logical,                   intent(out)   :: componentActive
-       double precision,          intent(out)   :: specificAngularMomentum
-       procedure(),      pointer, intent(out)   :: Radius_Get,Velocity_Get
-       procedure(),      pointer, intent(out)   :: Radius_Set,Velocity_Set
-       .
-       .
-       .
-       return
-    end subroutine Component_Radius_Solver
-
-When called, the subroutine should set ``componentActive`` to indicate whether or not this nod contains an active component of the type. If it does, it should also set ``specificAngularMomentum`` to reflect the specific angular momentum (in km s\ :math:`^{-1}` Mpc) of the component (at whatever point in its profile the radius is required) and should point the four procedure pointers to routines which get and set the radius and circular velocity properties of the component (which should have the standard form for component get and set methods). It is acceptable for the set procedures to point to dummy routines.
-
-The galactic structure radii solver routines will use this information to determine (and set) the radius and circular velocity of the component. An advantage of this approach is that different radii solver methods can all use this same system, ensuring that just a single interface is needed in each component.
-
-Satellite Host Change Tasks
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Additional methods for satellite host change events (i.e. when a satellite node moves to a new host) can be added using the ``satelliteHostChangeTask`` directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the ``simple`` satellite orbits components uses this directive as follows:
-
-.. code-block:: none
-
-     !![
-     <satelliteHostChangeTask>
-      <unitName>Satellite_Orbit_New_Host</unitName>
-     </satelliteHostChangeTask>
-     !!]
-
-Here, ``Satellite_Orbit_New_Host`` is the name of a subroutine which will be called to perform whatever tasks are required as a result of the host change. The subroutine must have the following form:
-
-.. code-block:: none
-
-      subroutine New_Host_Task(thisNode)
-       implicit none
-       type(treeNode), pointer, intent(inout) :: thisNode
-       .
-       .
-       .
-       return
-     end subroutine New_Host_Task
-
-where ``thisNode`` is the node which has changed host (the new host halo is ``thisNode%parentNode``).
 
 Subsystems
 ----------

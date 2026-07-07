@@ -415,6 +415,8 @@ This expands to a call which registers a meta-property named ``nodeFormationTime
 
 The error reporting described under ``isCreator`` is supported by the ``metaPropertyDatabase`` directive, which appears exactly once (in ``source/objects/nodes/_class.F90``) and synthesizes a database mapping each known meta-property name to the ``functionClass`` implementations that create it. It is internal build infrastructure, and never needs to be used when defining or using meta-properties.
 
+.. _manual-sec-stateStorable:
+
 State Storing
 ~~~~~~~~~~~~~
 
@@ -732,6 +734,8 @@ The generated code gathers the names of all parameters that the object (includin
 
 ``extraAllowedNames``
    *(optional)* A space-separated list of additional parameter names which should be considered valid even though no ``inputParameter`` or ``objectBuilder`` directive reads them (e.g. parameters read indirectly by other means).
+
+.. _manual-sec-functionClass:
 
 Function Classes
 ~~~~~~~~~~~~~~~~
