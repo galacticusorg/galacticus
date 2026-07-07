@@ -1118,6 +1118,23 @@ Each implementation of a ``functionClass`` is generated into its own submodule (
     !!]
     integer, parameter :: outputRootMassesBufferSize=1000
 
+Internal Infrastructure Directives
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A few directives are internal build infrastructure, each appearing at exactly one point in the source. They are listed here for completeness---developers will not normally need to use them.
+
+``parameterMigration``
+   Used in the input parameter reading code (``source/utility/input_parameters.F90``). Expands to an array of the commit hashes listed in ``scripts/aux/migrations.xml``, used to decide which parameter migrations must be applied to bring an input parameter file up to date. (New migrations are added to ``migrations.xml``, not via this directive.)
+
+``dependenciesInitialize``
+   Used in the ``Dependencies`` module (``source/utility/dependencies.F90``). Expands to code populating the registry of dependency versions (from the ``aux/dependencies.yml`` manifest) so that the versions of libraries used in the build can be queried at run time.
+
+``expiry``
+   An annotation marking code that supports a deprecated feature and is scheduled for removal. The ``version`` attribute gives the Galacticus version at which the code is expected to be removed.
+
+``interTreePositionInsert``
+   A legacy annotation (in the Cartesian position component) marking the function which transfers position histories when a satellite node is moved between trees. New code should instead attach to the inter-tree event hooks (e.g. ``interTreeSatelliteInsertEvent``; see Section :galacticus-ref:`eventHooks`).
+
 Numerical Tools
 ---------------
 
