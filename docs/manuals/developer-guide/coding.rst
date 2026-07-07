@@ -1028,6 +1028,96 @@ When a generic instance attribute begins with ``regEx``, matching generic tags a
 
 Finally, the special generic tag ``match`` acts as a ternary operator. If the regular expression specified in the third element matches the ``label`` attribute of a specific instance, the generic tag is replaced with its fourth element, otherwise it is replaced with its fifth element.
 
+Allocations
+~~~~~~~~~~~
+
+The ``allocate`` directive emits an ``allocate()`` statement for an array whose rank is not known when the code is written---for example, in code templated over types of different rank via the generic programming infrastructure. The rank is inferred from the variable's declaration (after any generic expansion), and the shape is drawn from a second array or a size variable. For example:
+
+.. code-block:: none
+
+    !![
+    <allocate variable="luminosities" shape="shapeLines"/>
+    !!]
+
+expands, for a rank-2 ``luminosities``, to ``allocate(luminosities(shapeLines(1),shapeLines(2)))``. The directive accepts the following attributes:
+
+``variable``
+   The name of the allocatable variable to allocate.
+
+``shape``
+   *(optional)* The name of an array whose elements give the size of the allocated variable along each dimension.
+
+``size``
+   *(optional)* The name of an array whose extent along each dimension (i.e. ``size({array},dim=i)``) gives the size of the allocated variable along that dimension---used to allocate one array to match the shape of another.
+
+``rank``
+   *(optional)* Explicitly specifies the rank, overriding the rank inferred from the variable's declaration.
+
+Iterating Over Array Elements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``forEach`` directive wraps the code it contains in a set of loops over every element of a named array, for cases where the rank of the array is not known when the code is written (e.g. in code templated via the generic programming infrastructure). The ``variable`` attribute names the array, and the rank of the generated loop nest is inferred from that variable's declaration. Within the contained code, the placeholder ``{index}`` is replaced by the indexing expression for the current element (e.g. ``(foreach__1,foreach__2)``; empty for a scalar), ``{{index}}`` is replaced by the comma-separated list of index variables, and ``%index%`` is replaced by a suitable format specifier for writing those indices. This directive is used only in highly-generic infrastructure code (currently the unit testing framework)---most code knows the rank of its arrays and can use ordinary loops.
+
+Method Descriptions
+~~~~~~~~~~~~~~~~~~~
+
+The ``methods`` directive attaches documentation to the type-bound procedures of a derived type. It is placed inside the type definition, alongside the procedure bindings it describes, and contains one ``method`` element per method, with ``method`` and ``description`` attributes giving the method's name and a description of what it does. For example, from the ``rootFinder`` class:
+
+.. code-block:: none
+
+     type :: rootFinder
+        ...
+      contains
+        !![
+        <methods docformat="rst">
+          <method description="Set the function that evaluates :math:`f(x)` to use in a ``rootFinder`` object." method="rootFunction"/>
+          <method description="Set the type of algorithm to use in a ``rootFinder`` object."                    method="type"        />
+          <method description="Set the tolerance to use in a ``rootFinder`` object."                            method="tolerance"   />
+        </methods>
+        !!]
+        procedure :: rootFunction => rootFunctionSet
+        procedure :: type         => typeSet
+        procedure :: tolerance    => toleranceSet
+        ...
+     end type rootFinder
+
+The optional ``docformat="rst"`` attribute marks the descriptions as being written in reStructuredText (descriptions without it are treated as the older LaTeX dialect). These descriptions are extracted into this documentation, so should be provided for every type-bound procedure of a hand-written type. Note that for the *standard* methods of a ``functionClass`` implementation, descriptions are instead given via the ``description`` element of each ``method`` in the ``functionClass`` directive---explicit ``methods`` directives are needed only for methods unique to an implementation, and for types built outside of the ``functionClass`` system.
+
+Workarounds
+~~~~~~~~~~~
+
+The ``workaround`` directive annotates code that exists only to work around a bug in a compiler or other tool. It takes no action in the build---it exists to document the workaround (a list of all current workarounds, generated from these directives, appears in this documentation), and to make workarounds easy to find and remove once the underlying bug is fixed. Wrap the workaround code in the directive:
+
+.. code-block:: none
+
+    !![
+    <workaround type="gfortran" PR="105807" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105807">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
+    !!]
+    dummyPointer_      => self%vector_
+    self%vectorManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
+
+The ``type`` attribute (required) names the tool containing the bug (e.g. ``gfortran``), while the optional ``PR`` and ``url`` attributes identify the relevant bug report. A ``description`` element should explain the bug being worked around. Optional ``seeAlso`` elements (with the same ``type``/``PR``/``url`` attributes) can reference related bug reports.
+
+Module Scoping
+~~~~~~~~~~~~~~
+
+Each implementation of a ``functionClass`` is generated into its own submodule (see Section :galacticus-ref:`functionClass`). By default, private module-scope variables declared in an implementation's source file are moved into that submodule. The ``scoping`` directive overrides this for variables that must remain at *module* scope---for example, a ``parameter`` used in the declaration of a type component, which must be visible where the type itself is defined. It is placed in the declaration section of the file, and contains a ``module`` element whose ``variables`` attribute lists (comma-separated) the variables to keep at module scope:
+
+.. code-block:: none
+
+    !![
+    <scoping>
+     <module variables="outputRootMassesBufferSize"/>
+    </scoping>
+    !!]
+    integer, parameter :: outputRootMassesBufferSize=1000
+
 Numerical Tools
 ---------------
 
@@ -1133,6 +1223,8 @@ Galacticus provides for global functions which facilitate this---specifically, i
 
 Here, ``myFunction`` is the name of the function to make global, while the ``type`` and ``arguments`` (of which there may be more than one) elements are used to generate a suitable interface for the function. At run-time, a pointer to this function is then available from the ``Functions_Global`` module, named ``myFunction_``. Note that ``Functions_Global_Set`` provided by the ``Functions_Global_Utilities`` module must be called once to initialize these global function pointers prior to their use.
 
+The supporting code is synthesized by the ``functionsGlobal`` directive, which appears exactly twice: ``<functionsGlobal type="pointers"/>`` (in the ``Functions_Global`` module) expands to the procedure pointer declarations for every ``functionGlobal`` directive in the source, while ``<functionsGlobal type="establish"/>`` (in ``Functions_Global_Utilities``) expands to the code which associates each pointer with its target function. This is internal build infrastructure---to make a function globally callable only the ``functionGlobal`` directive above is needed.
+
 Galacticus Metadata
 -------------------
 
@@ -1170,6 +1262,43 @@ after which you can use this constant, e.g.:
 .. code-block:: none
 
       volumeSphere=4.0d0*Pi/3.0d0*radiusSphere**3
+
+Defining New Constants
+~~~~~~~~~~~~~~~~~~~~~~
+
+New constants are defined using the ``constant`` directive, placed in the declaration section of a module (most constants live in the modules under ``source/numerical/constants/``). The directive expands to a Fortran ``parameter`` declaration, and additionally provides the metadata (description, units, reference) from which the tables of constants in this documentation are generated. For example:
+
+.. code-block:: none
+
+    !![
+    <constant variable="atomicMassHydrogen" value="1.0078250322d0" symbol="A_{^1\mathrm{H}}" units="amu" unitsInSI="1.66053906892e-27" description="Atomic mass of the $^1$H isotope of hydrogen." reference="Commission on Isotopic Abundances and Atomic Weights" referenceURL="https://www.ciaaw.org/hydrogen.htm" group="atomic"/>
+    !!]
+
+The directive accepts the following attributes:
+
+``variable``
+   *(required)* The name of the constant.
+
+``value``
+   The value of the constant. Alternatively, the value may be extracted automatically from a GSL header by giving ``gslSymbol`` and ``gslHeader`` attributes (or from a Linux kernel header via ``kernelSymbol`` and ``kernelHeader``)---at build time a small C program is compiled and run to extract the value, ensuring it stays synchronized with the library. For GSL enumerations, use ``type="enum"`` together with a ``members`` attribute listing the enumeration members.
+
+``description``
+   *(required)* A description of the constant, used in this documentation.
+
+``reference``, ``referenceURL``
+   *(required/optional)* The source of the value of the constant, and a URL for it.
+
+``symbol``
+   *(optional)* The mathematical symbol for the constant (in LaTeX math syntax).
+
+``units``, ``unitsInSI``
+   *(optional)* The units of the constant, and the value of those units in the SI system.
+
+``group``
+   *(optional)* One or more (comma-separated) groups into which the constant should be collected in the documentation.
+
+``externalDescription``
+   *(optional)* A URL giving an external description of the constant.
 
 Indicating Units of Defined Constants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
