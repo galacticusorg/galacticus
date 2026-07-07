@@ -370,6 +370,51 @@ A common requirement in object constructors is to assign the values of arguments
 
 will cause the value of the ``massThreshold`` argument to ``stellarMassConstructorInternal%massThreshold``. If an argument name is prefixed with ``*`` in the variables list, pointer assignment is used instead of standard assignment.
 
+.. _manual-sec-metaProperties:
+
+Meta-Properties
+~~~~~~~~~~~~~~~
+
+Node components define their properties statically via ``component`` directives. Sometimes, however, a class needs to attach additional per-node data without defining a new component---for example, a ``nodeOperator`` recording some quantity that a ``galacticFilter`` will later read. Such data can be attached as a *meta-property* of an existing component class, registered at runtime using the ``addMetaProperty`` directive:
+
+.. code-block:: none
+
+    !![
+    <addMetaProperty component="basic" name="nodeFormationTime" id="self%nodeFormationTimeID" isEvolvable="no" isCreator="no"/>
+    !!]
+
+This expands to a call which registers a meta-property named ``nodeFormationTime`` in the ``basic`` component class, and stores the resulting integer identifier in ``self%nodeFormationTimeID``. That identifier is then used to access the meta-property via the component's type-bound accessors, e.g.:
+
+.. code-block:: none
+
+    time=basic%floatRank0MetaPropertyGet(self%nodeFormationTimeID     )
+    call basic%floatRank0MetaPropertySet(self%nodeFormationTimeID,time)
+
+(with the accessor names following the pattern ``{type}Rank{rank}MetaPropertyGet``/``Set``). Registering the same name from multiple classes yields the same identifier, so meta-properties can be shared between classes. The directive accepts the following attributes:
+
+``component``
+   The name of the component class to which the meta-property is attached (e.g. ``basic``).
+
+``name``
+   The name of the meta-property. This may also be a Fortran ``character`` variable or expression, allowing names to be constructed at runtime (e.g. one meta-property per element of a list).
+
+``id``
+   The integer variable in which to store the identifier of the registered meta-property.
+
+``type``
+   *(optional)* The type of the meta-property: ``float`` (default), ``integer``, or ``longInteger``.
+
+``rank``
+   *(optional)* The rank of the meta-property: 0 (default) or 1.
+
+``isEvolvable``
+   *(optional)* If ``yes``, the meta-property behaves as an evolvable property of the component (i.e. it is included in ODE evolution, with the usual rate accessors). Only rank-0, ``float`` meta-properties can be evolvable. Default is ``no``.
+
+``isCreator``
+   *(optional)* Set to ``yes`` in the class which is responsible for *setting* the meta-property, and ``no`` in classes which merely read it. This allows a meaningful error message (naming the class that should have been included in the model) to be reported if the meta-property is read but was never created. Default is ``no``.
+
+The error reporting described under ``isCreator`` is supported by the ``metaPropertyDatabase`` directive, which appears exactly once (in ``source/objects/nodes/_class.F90``) and synthesizes a database mapping each known meta-property name to the ``functionClass`` implementations that create it. It is internal build infrastructure, and never needs to be used when defining or using meta-properties.
+
 State Storing
 ~~~~~~~~~~~~~
 
