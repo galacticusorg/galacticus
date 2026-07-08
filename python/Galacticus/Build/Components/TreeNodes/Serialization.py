@@ -300,6 +300,11 @@ def Tree_Node_Deserialize_Raw(build):
             # and a bare allocate. So: use the polymorphic `mold=default...` for
             # the default-implementation branch, and a bare allocate (which
             # allocates the declared base type) for the base-type/null branches.
+            #
+            # (Note: the gfortran bug is fixed in GCC commit
+            # 9decb8a07ac764f2a39885b2a5905515f188da06, but the workaround must
+            # be maintained here until that fix makes it into actual GCC
+            # releases that Galacticus uses.)
             f"  if (isAllocated) then\n"
             f"    allocate(self%component{cap}(componentCount),"
             f"mold=default{cap}Component)\n"
