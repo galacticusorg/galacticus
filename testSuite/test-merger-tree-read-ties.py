@@ -89,6 +89,10 @@ status = "SUCCESS"
 for name, case in cases.items():
     print(f"Running case: {name}")
     # Build the input tree file.
+    try:
+        os.mkdir("outputs")
+    except FileExistsError:
+        pass
     treeWrite(f"outputs/{name}_in.hdf5", case['nodes'])
     # Run the model.
     with open(f"outputs/{name}.log", "w") as log:
