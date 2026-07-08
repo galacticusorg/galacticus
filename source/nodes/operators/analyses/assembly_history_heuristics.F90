@@ -26,7 +26,7 @@
   !![
   <nodeOperator name="nodeOperatorAssemblyHistoryHeuristics" docformat="rst">
   <description>
-  A node operator class that applies heuristics to look for unphysical behavior in merger trees. Specifically, rapid changes in the halo mass from a node to its parent\footnote{This is only considered for primary progenitors (the jump in mass from a non-primary progenitor to its parent can, of course, be very large), including cases of subhalo promotions, and for the bound mass history of subhalos.} are flagged as unphysical.
+  A node operator class that applies heuristics to look for unphysical behavior in merger trees. Specifically, rapid changes in the halo mass from a node to its parent\ [#]_ are flagged as unphysical.
 
   Halos for which the change in mass is less than ``[sigmaThreshold]`` times the uncertainty in the difference of the halo mass between child and parent are treated as being physical. For other halos, the unphysicalness is judged by the heuristic:
 
@@ -35,6 +35,8 @@
      \left| \log \frac{M_2}{M_1} \right| &gt; \alpha \left| \log \frac{t_2}{t_1} \right|,
 
   where :math:`\alpha=`\ ``[exponentGrowth]``, :math:`M_1` is the mass of a primary progenitor halo, :math:`M_2` is the mass of its parent *minus any mass resolved in non-primary progenitors*. Essentially, this says that we expect masses to grow (or shrink) no faster that a power-law in cosmic time, with exponent :math:`\alpha`.
+
+  .. [#] This is only considered for primary progenitors (the jump in mass from a non-primary progenitor to its parent can, of course, be very large), including cases of subhalo promotions, and for the bound mass history of subhalos.
   </description>
   </nodeOperator>
   !!]

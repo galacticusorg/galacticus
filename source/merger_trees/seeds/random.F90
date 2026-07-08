@@ -29,9 +29,11 @@ Implements a merger tree random number seed in which the seed is chosen at rando
     <description>
     A merger tree random number seed in which the seed is chosen at random (without repetition) from the available range. Specifically, a list of random numbers are selected in the range :math:`1` to :math:`2^{31}` without repetition. For a tree with index ``i``, the ``i``\ :math:`^\mathrm{th}` entry from that list is used as its seed. The list is extended as needed given the tree index.
 
-    Changing the seed of the :galacticus-class:`randomNumberGeneratorClass` object specified in the parameter file will ensure a completely different random set of seeds being chosen, such that there will be no correlation between sets of trees produced by different random seeds\footnote{Of course, it is possible that two different seeds for the :galacticus-class:`randomNumberGeneratorClass` object in the parameter file will happen to generate the same seed for one or more merger trees. However, this is unlikely unless the number of trees is a significant fraction of :math:`2^{31}` and, in any case, these identical seeds would likely be assigned to trees of very different masses, making any correlation minor.}.
+    Changing the seed of the :galacticus-class:`randomNumberGeneratorClass` object specified in the parameter file will ensure a completely different random set of seeds being chosen, such that there will be no correlation between sets of trees produced by different random seeds\ [#]_.
 
     Note that this is intended for cases where tree indices increment from 1. If used, for example, for trees from N-body simulations where the index may be a very large number, this approach will likely be extremely inefficient in both memory and time.
+
+    .. [#] Of course, it is possible that two different seeds for the :galacticus-class:`randomNumberGeneratorClass` object in the parameter file will happen to generate the same seed for one or more merger trees. However, this is unlikely unless the number of trees is a significant fraction of :math:`2^{31}` and, in any case, these identical seeds would likely be assigned to trees of very different masses, making any correlation minor.
     </description>
   </mergerTreeSeeds>
   !!]

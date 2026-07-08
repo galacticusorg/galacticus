@@ -54,7 +54,7 @@
    ``simulatorLikelihood``
       Contains another likelihood function definition which will be used to construct the simulator.
 
-   In detail, this likelihood function first collects ``emulatorRebuildCount`` likelihood evaluations from the simulator. It then fits a polynomial of order ``polynomialOrder`` and of dimension equal to the dimension of the state vector to the simulated likelihoods. Gaussian regression is performed on the residuals of the simulated likelihoods after this polynomial fit is removed. Once the emulator has been built in this way every second simulated state is discarded, and accumulation of new simulated states continues. Once ``emulatorRebuildCount`` simulated states have once again been accumulated a new simulator is built. This ensures that the emulator does not lose all information used in building the previous emulator\footnote{This would be unfortunate as the second emulator to be built would then contain information on only those regions of the state space that were poorly emulated before.}, instead information from older emulators decays exponentially.
+   In detail, this likelihood function first collects ``emulatorRebuildCount`` likelihood evaluations from the simulator. It then fits a polynomial of order ``polynomialOrder`` and of dimension equal to the dimension of the state vector to the simulated likelihoods. Gaussian regression is performed on the residuals of the simulated likelihoods after this polynomial fit is removed. Once the emulator has been built in this way every second simulated state is discarded, and accumulation of new simulated states continues. Once ``emulatorRebuildCount`` simulated states have once again been accumulated a new simulator is built. This ensures that the emulator does not lose all information used in building the previous emulator\ [#]_, instead information from older emulators decays exponentially.
 
    Once an emulator has been built, on each successive likelihood evaluation the emulated log-likelihood :math:`\log\mathcal{L}_\mathrm{e}` and its error estimate :math:`\sigma_{\log\mathcal{L}_\mathrm{e}}` are computed. The emulated likelihood is then returned if:
 
@@ -71,6 +71,8 @@
    where :math:`\sigma_{\log\mathcal{L}}=`\ ``logLikelihoodErrorTolerance``, otherwise the simulator is used to compute the exact likelihood. In this way, the emulated likelihood is used if it is sufficiently below the current likelihood that, even accounting for the emulation error, transition to the new state is highly unlikely, or if the error on the likelihood emulation is sufficiently small that it will not have a significant effect on the transition probability to the proposed state.
 
    If verbosity is set to ``info`` or greater than a report will be issued every ``reportCount`` evaluations. The report will give the proportions of simulated vs. emulated evaluations. Additionally, during the evaluation where the report is issued, both the emulated and simulated log-likelihoods are evaluated and are tested to see if they lie within :math:`3 \sigma_{\log\mathcal{L}_\mathrm{e}}` of each other. The rate of failures (i.e. where the two differ by more than this amount) is then reported.
+
+   .. [#] This would be unfortunate as the second emulator to be built would then contain information on only those regions of the state space that were poorly emulated before.
    </description>
   </posteriorSampleLikelihood>
   !!]

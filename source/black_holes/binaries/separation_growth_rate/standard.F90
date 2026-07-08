@@ -44,7 +44,7 @@
       \dot{v}_\mathrm{DF}=- {2 \pi \mathrm{G}^2 M_\bullet \over V_\mathrm{C}^2} \sum_{i} \rho_i \log(1+\Lambda_i^2) \left[
       \hbox{erf}(X_i)-\left\{ {2 X_i \over \sqrt{\pi}} \exp\left(-X_i^2\right) \right\} \right],
 
-   where the sum is taken over the spheroid (gaseous plus stellar mass) and dark matter halo components\footnote{The disk is ignored as the black hole is assumed to be orbiting in a circular orbit in the disk.}. Here,
+   where the sum is taken over the spheroid (gaseous plus stellar mass) and dark matter halo components\ [#]_. Here,
 
    .. math::
 
@@ -66,6 +66,8 @@
       \log\left({\mathrm{G} M_{\bullet, 2} \over 4 \sigma_\mathrm{spheroid}^2 a }\right) \right]^2 , 1 \right\},
 
    if ``[stellarDensityChangeBinaryMotion]``\ :math:`=`\ ``true`` to account for the ejection of stars from the loss cone.
+
+   .. [#] The disk is ignored as the black hole is assumed to be orbiting in a circular orbit in the disk.
    </description>
   </blackHoleBinarySeparationGrowthRate>
   !!]

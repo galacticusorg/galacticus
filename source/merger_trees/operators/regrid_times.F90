@@ -26,7 +26,9 @@
   !![
   <mergerTreeOperator name="mergerTreeOperatorRegridTimes" docformat="rst">
    <description>
-   A merger tree operator class which will interpolate the merger tree structure onto a new array of timesteps. The timestep array is specified via an :galacticus-class:`outputTimesClass` object. Along each branch of the tree, new halos are inserted at times corresponding to the times in the resulting array. The masses of these nodes are linearly interpolated between the existing nodes on the branch. Once these new nodes have been added, all other nodes are removed from the tree\footnote{The base node of the tree is never removed, even if it does not lie on one of the times in the constructed array.}. The processing is useful to construct representations of trees as they would be if only sparse time sampling were available. As such, it is useful for exploring how the number of snapshots in merger trees extracted from N-body simulations affects the properties of galaxies that form in them.
+   A merger tree operator class which will interpolate the merger tree structure onto a new array of timesteps. The timestep array is specified via an :galacticus-class:`outputTimesClass` object. Along each branch of the tree, new halos are inserted at times corresponding to the times in the resulting array. The masses of these nodes are linearly interpolated between the existing nodes on the branch. Once these new nodes have been added, all other nodes are removed from the tree\ [#]_. The processing is useful to construct representations of trees as they would be if only sparse time sampling were available. As such, it is useful for exploring how the number of snapshots in merger trees extracted from N-body simulations affects the properties of galaxies that form in them.
+
+   .. [#] The base node of the tree is never removed, even if it does not lie on one of the times in the constructed array.
    </description>
   </mergerTreeOperator>
   !!]
