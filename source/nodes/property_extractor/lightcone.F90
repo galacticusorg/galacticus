@@ -56,7 +56,7 @@
       Velocity of the galaxy (in km/s) along the 2\ :math:`^\mathrm{nd}` angular direction of the lightcone;
 
    ``lightconeRedshiftCosmological``
-      Redshift of the galaxy in the lightcone\footnote{Note that this will not, in general, be precisely the same as the redshift corresponding to the output time.;
+      Redshift of the galaxy in the lightcone\footnote{Note that this will not, in general, be precisely the same as the redshift corresponding to the output time.};
 
    ``lightconeRedshiftObserved``
       Observed redshift of the galaxy, accounting for the effects of line-of-sight peculiar velocity (included only if ``[includeObservedRedshift]``\ =\ ``true``);

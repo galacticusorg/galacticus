@@ -68,7 +68,7 @@
         &lt;conversionFactor value="1.0e0"       /&gt;
        &lt;/property&gt;
 
-   where ``[name]`` is the property name (see below), ``[column]`` is the column number (starting from 1) from which to read the property, and the optional ``[conversionFactor]`` specifies an additional factor by which the property should be multiplied to place it into the correct internal units for Galacticus\footnote{The units for masses, lengths, and velocities in the input file are specified in their own parameter sub-sections. Conversion from these units to Galacticus's internal units is performed automatically. However, sometimes the input data may have inconsistent units between columns (e.g. positions in units of Mpc, but scale radii in units of kpc). In such cases this additional conversion factor can be applied to bring all quantities into a consistent unit system..
+   where ``[name]`` is the property name (see below), ``[column]`` is the column number (starting from 1) from which to read the property, and the optional ``[conversionFactor]`` specifies an additional factor by which the property should be multiplied to place it into the correct internal units for Galacticus\footnote{The units for masses, lengths, and velocities in the input file are specified in their own parameter sub-sections. Conversion from these units to Galacticus's internal units is performed automatically. However, sometimes the input data may have inconsistent units between columns (e.g. positions in units of Mpc, but scale radii in units of kpc). In such cases this additional conversion factor can be applied to bring all quantities into a consistent unit system.}.
 
    Recognized property names are
 
