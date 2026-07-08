@@ -127,7 +127,7 @@
    ``power law``
       The electron density is extrapolated assuming a power-law dependence beyond the relevant limit. This option is only allowed if the electron density is everywhere positive.
 
-   If the electron density is everywhere positive the interpolation will be done in the logarithmic of temperature, metallicity\footnoteThe exception is if the first electron density is tabulated for zero metallicity. In that case, a linear interpolation in metallicity is always used between zero and the first non-zero tabulated metallicity. and electron density. Otherwise, interpolation is linear in these quantities. The electron density is scaled assuming a linear dependence on hydrogen density.
+   If the electron density is everywhere positive the interpolation will be done in the logarithmic of temperature, metallicity\footnote{The exception is if the first electron density is tabulated for zero metallicity. In that case, a linear interpolation in metallicity is always used between zero and the first non-zero tabulated metallicity. and electron density. Otherwise, interpolation is linear in these quantities. The electron density is scaled assuming a linear dependence on hydrogen density.
    </description>
    <runTimeFileDependencies paths="fileName"/>
   </chemicalState>

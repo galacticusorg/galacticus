@@ -27,7 +27,7 @@ Implements a property extractor for basic node indices.
    A node property extract which extracts various indices related to the merger tree structure:
 
    ``nodeIndex``
-      A unique\footnoteNode indices are typically unique, but there is no actual requirement within Galacticus that this must be the case. A merger tree construction method could create nodes with non-unique indices. (within a tree) integer index identifying the node;
+      A unique\footnote{Node indices are typically unique, but there is no actual requirement within Galacticus that this must be the case. A merger tree construction method could create nodes with non-unique indices. (within a tree) integer index identifying the node;
 
    ``parentIndex``
       The index of this node's parent node (or :math:`-1` if it has no parent);

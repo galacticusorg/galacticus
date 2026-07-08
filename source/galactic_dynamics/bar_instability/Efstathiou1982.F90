@@ -30,7 +30,7 @@
 
       \epsilon \left( \equiv {V_\mathrm{peak} \over \sqrt{\G M_\mathrm{disk}/r_\mathrm{disk}}} \right) &lt; \epsilon_\mathrm{c},
 
-   for stability, where :math:`V_\mathrm{peak}` is the peak velocity in the rotation curve\footnoteIn practice, the velocity is evaluated at the disk scale radius and multiplied by the factor :math:`1.1800237580` which relates this velocity to the peak rotation velocity for an isolated, thin exponential disk., :math:`M_\mathrm{disk}` is the mass of the disk and :math:`r_\mathrm{disk}` is its scale length (assuming an exponential disk). The value of :math:`\epsilon_\mathrm{c}` is linearly interpolated in the disk gas fraction between values for purely gaseous and stellar disks as specified by ``[stabilityThresholdStellar]`` and ``[stabilityThresholdGaseous]`` respectively. For disks which are judged to be unstable, the timescale for bar formation is estimated to be
+   for stability, where :math:`V_\mathrm{peak}` is the peak velocity in the rotation curve\footnote{In practice, the velocity is evaluated at the disk scale radius and multiplied by the factor :math:`1.1800237580` which relates this velocity to the peak rotation velocity for an isolated, thin exponential disk., :math:`M_\mathrm{disk}` is the mass of the disk and :math:`r_\mathrm{disk}` is its scale length (assuming an exponential disk). The value of :math:`\epsilon_\mathrm{c}` is linearly interpolated in the disk gas fraction between values for purely gaseous and stellar disks as specified by ``[stabilityThresholdStellar]`` and ``[stabilityThresholdGaseous]`` respectively. For disks which are judged to be unstable, the timescale for bar formation is estimated to be
 
    .. math::
 

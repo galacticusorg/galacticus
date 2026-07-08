@@ -27,7 +27,7 @@ Implements the geometry of the SDSS survey used by :cite:t:`bernardi_massive_201
    <description>
    A survey geometry class that describes the survey geometry of :cite:t:`bernardi_massive_2013`.
 
-   For the angular mask, we make use of the :term:`mangle` polygon file provided by the :term:`mangle` project\footnoteSpecifically, `https://zenodo.org/records/10998446/files/sdss_dr72safe0_res6d.pol.gz &lt;https://zenodo.org/records/10998446/files/sdss_dr72safe0_res6d.pol.gz&gt;`_. The solid angle of this mask, computed using the :term:`mangle` ``harmonize`` command is 2.232262776405 sr.
+   For the angular mask, we make use of the :term:`mangle` polygon file provided by the :term:`mangle` project\footnote{Specifically, `https://zenodo.org/records/10998446/files/sdss_dr72safe0_res6d.pol.gz &lt;https://zenodo.org/records/10998446/files/sdss_dr72safe0_res6d.pol.gz&gt;`_. The solid angle of this mask, computed using the :term:`mangle` ``harmonize`` command is 2.232262776405 sr.
 
    To determine the depth as a function of stellar mass, we make use of results provided by M. Bernardi (private communication), giving the mean maximum volume, :math:`V_\mathrm{max}`, as a function of stellar mass for galaxies in this sample. These maximum volumes are converted to maximum distances using the solid angle quoted above. The results mass vs. distance relation is fit with a :math:`5^\mathrm{th}`-order polynomial. Figure :numref:`{number} &lt;fig-BernardiSDSSDepthFit&gt;` shows the resulting relation between stellar mass and the maximum distance at which such a galaxy would be included in the sample. Points indicate results from Bernardi, while the line shows a polynomial fit:
 

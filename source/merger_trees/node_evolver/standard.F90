@@ -65,7 +65,7 @@
     <description>
     The standard merger tree node evolver.
 
-    If the parameter ``[enforceNonNegativity] = true`` then properties which are marked as being non-negative (e.g. masses) are evolved in such a way to ensure that they remain non-negative. This typically requires smaller time step size and so longer run times. In some cases it may be impossible to ensure non-negativity even for arbitrarily small timesteps\footnoteThis can occur if a property as a non-zero, negative derivative as the property approaches zero. Such cases are quite likely unphysical, but are tolerated here.. In such cases, if a property remains negative with the smallest possible time step, it will be zeroed and evolution continues.
+    If the parameter ``[enforceNonNegativity] = true`` then properties which are marked as being non-negative (e.g. masses) are evolved in such a way to ensure that they remain non-negative. This typically requires smaller time step size and so longer run times. In some cases it may be impossible to ensure non-negativity even for arbitrarily small timesteps\footnote{This can occur if a property as a non-zero, negative derivative as the property approaches zero. Such cases are quite likely unphysical, but are tolerated here.. In such cases, if a property remains negative with the smallest possible time step, it will be zeroed and evolution continues.
     </description>
    <deepCopy>
     <ignore variables="galacticStructureSolver_"/>

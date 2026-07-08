@@ -26,7 +26,7 @@
   !![
   <nodeOperator name="nodeOperatorAssemblyHistoryHeuristics" docformat="rst">
   <description>
-  A node operator class that applies heuristics to look for unphysical behavior in merger trees. Specifically, rapid changes in the halo mass from a node to its parent\footnoteThis is only considered for primary progenitors (the jump in mass from a non-primary progenitor to its parent can, of course, be very large), including cases of subhalo promotions, and for the bound mass history of subhalos. are flagged as unphysical.
+  A node operator class that applies heuristics to look for unphysical behavior in merger trees. Specifically, rapid changes in the halo mass from a node to its parent\footnote{This is only considered for primary progenitors (the jump in mass from a non-primary progenitor to its parent can, of course, be very large), including cases of subhalo promotions, and for the bound mass history of subhalos. are flagged as unphysical.
 
   Halos for which the change in mass is less than ``[sigmaThreshold]`` times the uncertainty in the difference of the halo mass between child and parent are treated as being physical. For other halos, the unphysicalness is judged by the heuristic:
 

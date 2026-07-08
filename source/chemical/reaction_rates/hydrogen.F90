@@ -1367,7 +1367,7 @@ contains
 
   double precision function crossSection_Hminus_Gamma_to_H_Electron(wavelength)
     !!{RST
-    Compute the cross-section (in units of cm\ :math:`^{2}`) for the reaction :math:`\hbox{H}^- + \gamma \rightarrow \hbox{H} + \hbox{e}^-` using the fitting function given by :cite:t:`shapiro_hydrogen_1987`, renormalized\footnoteIt seems unclear what units were used in :cite:t:`shapiro_hydrogen_1987`, hence the recalibration. to match the results of :cite:t:`nascimento_photodetachment_1977`.
+    Compute the cross-section (in units of cm\ :math:`^{2}`) for the reaction :math:`\hbox{H}^- + \gamma \rightarrow \hbox{H} + \hbox{e}^-` using the fitting function given by :cite:t:`shapiro_hydrogen_1987`, renormalized\footnote{It seems unclear what units were used in :cite:t:`shapiro_hydrogen_1987`, hence the recalibration. to match the results of :cite:t:`nascimento_photodetachment_1977`.
     !!}
     use :: Numerical_Constants_Physical, only : plancksConstant         , speedLight
     use :: Numerical_Constants_Units   , only : metersToAngstroms       , electronVolt
