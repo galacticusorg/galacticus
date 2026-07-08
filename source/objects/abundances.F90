@@ -331,8 +331,15 @@ contains
     class  (abundances    ), intent(in   ) :: self
     integer                , intent(in   ) :: fileHandle
 
+    ! Dump in a self-describing form (independent of the global elementsCount,
+    ! which can differ between the storing and restoring runs) so that the raw
+    ! stream never desynchronizes on restore.
     write (fileHandle) self%metallicityValue
-    if (elementsCount > 0) write (fileHandle) self%elementalValue
+    write (fileHandle) allocated(self%elementalValue)
+    if (allocated(self%elementalValue)) then
+       write (fileHandle) size(self%elementalValue)
+       write (fileHandle) self%elementalValue
+    end if
     return
   end subroutine Abundances_Dump_Raw
 
@@ -343,14 +350,22 @@ contains
     implicit none
     class  (abundances    ), intent(inout) :: self
     integer                , intent(in   ) :: fileHandle
+    logical                                :: isAllocated
+    integer                                :: elementalCount
 
     read (fileHandle) self%metallicityValue
-    ! If no individual elements are tracked, our work is done.
-    if (elementsCount == 0) return
-    ! Ensure elemental values array exists.
-    call Abundances_Allocate_Elemental_Values(self)
-    ! Read values from file.
-    read (fileHandle) self%elementalValue    
+    ! Read the elemental values in the self-describing form written by
+    ! Abundances_Dump_Raw. The stored count is used (rather than the current
+    ! global elementsCount) so the stream stays synchronized even when the
+    ! restoring run tracks a different number of elements than the run that
+    ! stored the state.
+    read (fileHandle) isAllocated
+    if (isAllocated) then
+       read (fileHandle) elementalCount
+       if (allocated(self%elementalValue)) deallocate(self%elementalValue)
+       allocate(self%elementalValue(elementalCount))
+       read (fileHandle) self%elementalValue
+    end if
     return
   end subroutine Abundances_Read_Raw
 

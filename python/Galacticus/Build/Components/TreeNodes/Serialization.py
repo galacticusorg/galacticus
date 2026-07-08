@@ -18,6 +18,11 @@ _TREE_NODE_POINTERS = (
 )
 _TREE_NODE_STATES = ('isPhysicallyPlausible', 'isSolvable')
 
+# Magic marker written to the raw stream after each component class, and checked
+# on restore to detect desynchronization (see Tree_Node_Serialize_Raw /
+# Tree_Node_Deserialize_Raw).
+_RAW_SENTINEL = 987654321
+
 
 def Tree_Node_Serialize_ASCII(build):
     """Generate `treeNodeSerializeASCII`.  Mirrors `Tree_Node_Serialize_ASCII`."""
@@ -229,6 +234,12 @@ def Tree_Node_Serialize_Raw(build):
             f"    call self%component{cap}(i)%serializeRaw(fileHandle)\n"
             f"  end do\n"
             f"end if\n"
+            # Sentinel written after each component class. On restore this is
+            # checked to detect (and report, rather than silently corrupting a
+            # later read) any desynchronization of the raw stream — e.g. from a
+            # component property whose stored size depends on globally-registered
+            # state that differs between the storing and restoring runs.
+            f"write (fileHandle) {_RAW_SENTINEL}\n"
         )
 
     function['content'] = content
@@ -241,6 +252,7 @@ def Tree_Node_Deserialize_Raw(build):
         'type':        'void',
         'name':        'treeNodeDeserializeRaw',
         'description': "Deserialize a tree node object from a raw (binary) file.",
+        'modules':     ['Error'],
         'variables':   [
             {
                 'intrinsic':  'class',
@@ -255,7 +267,7 @@ def Tree_Node_Deserialize_Raw(build):
             },
             {
                 'intrinsic':  'integer',
-                'variables':  ['i', 'componentCount'],
+                'variables':  ['i', 'componentCount', 'nodeSentinel'],
             },
             {
                 'intrinsic':  'logical',
@@ -274,12 +286,25 @@ def Tree_Node_Deserialize_Raw(build):
             f"  read (fileHandle) componentCount\n"
             f"  if (allocated(self%component{cap})) "
             f"deallocate(self%component{cap})\n"
+            # gfortran bug workaround (array-descriptor `dtype`/`rank` not set):
+            # `allocate(class_array(n), mold=/source=<non-polymorphic type
+            # scalar>)` sets the descriptor's data/bounds/span but does NOT write
+            # its `dtype` (which holds the rank). For these `class(...),
+            # allocatable, dimension(:)` component arrays the descriptor then
+            # keeps whatever garbage was in the (heap-allocated) node's memory,
+            # and when the array is finalized during tree destruction the
+            # compiler-generated finalizer reads a bogus (possibly negative)
+            # rank, under-allocates an internal temporary (malloc of 1 byte) and
+            # overflows it — corrupting the heap and hanging. Allocation forms
+            # that DO set `dtype`: a polymorphic `mold=`, a type-spec allocate,
+            # and a bare allocate. So: use the polymorphic `mold=default...` for
+            # the default-implementation branch, and a bare allocate (which
+            # allocates the declared base type) for the base-type/null branches.
             f"  if (isAllocated) then\n"
             f"    allocate(self%component{cap}(componentCount),"
-            f"source=default{cap}Component)\n"
+            f"mold=default{cap}Component)\n"
             f"  else\n"
-            f"    allocate(self%component{cap}(componentCount),"
-            f"source={cap}Class)\n"
+            f"    allocate(self%component{cap}(componentCount))\n"
             f"  end if\n"
             f"  do i=1,componentCount\n"
             f"    self%component{cap}(i)%hostNode => self\n"
@@ -290,8 +315,23 @@ def Tree_Node_Deserialize_Raw(build):
             f"else\n"
             f"   if (allocated(self%component{cap})) "
             f"deallocate(self%component{cap})\n"
+            # Bare allocate of the size-1 "null" placeholder: allocates the
+            # declared base type AND sets the descriptor `dtype`/rank (see the
+            # gfortran-bug note above; `mold=<base type scalar>` would leave the
+            # rank as garbage and hang on finalization during tree destruction).
             f"   allocate(self%component{cap}(1))\n"
             f"end if\n"
+            # Verify the sentinel written after this component class. A mismatch
+            # means the raw stream desynchronized while reading this component,
+            # so fail loudly (with the offending component named) rather than
+            # letting a corrupted array descriptor cause an eventual hang in
+            # tree destruction.
+            f"read (fileHandle) nodeSentinel\n"
+            f"if (nodeSentinel /= {_RAW_SENTINEL}) call Error_Report("
+            f"'raw tree-node deserialization desynchronized while reading the "
+            f"\"{class_dict['name']}\" component (stored file is incompatible "
+            f"with the currently-registered component/property configuration)'"
+            f"//char(10)//'   file:objects.nodes.components.Inc')\n"
         )
 
     function['content'] = content
