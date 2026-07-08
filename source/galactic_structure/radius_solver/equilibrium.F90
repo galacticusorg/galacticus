@@ -124,7 +124,7 @@ contains
     <inputParameter>
       <name>velocityMaximumFactor</name>
       <defaultValue>0.0d0</defaultValue>
-      <description>If positive, the circular velocity of a galactic component returned by the solver is capped at this factor times the halo virial velocity (equivalently, the solved radius is prevented from collapsing to an unphysically small value). A value of zero (the default) disables the cap, recovering the original behavior. This regularizes pathological, numerically-driven disk collapses (radius :math:`\rightarrow 0`, velocity math:`\rightarrow \infty`) that can occur for very low specific angular momentum or during ODE overshoot states.</description>
+      <description>If positive, the circular velocity of a galactic component returned by the solver is capped at this factor times the halo virial velocity (equivalently, the solved radius is prevented from collapsing to an unphysically small value). A value of zero (the default) disables the cap, recovering the original behavior. This regularizes pathological, numerically-driven disk collapses (radius :math:`\rightarrow 0`, velocity :math:`\rightarrow \infty`) that can occur for very low specific angular momentum or during ODE overshoot states.</description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
