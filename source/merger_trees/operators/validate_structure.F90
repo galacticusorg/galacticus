@@ -17,9 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{RST
-Implements a merger tree operator which validates the structural invariants of merger trees.
-!!}
+  !!{RST
+  Implements a merger tree operator which validates the structural invariants of merger trees.
+  !!}
 
   !![
   <mergerTreeOperator name="mergerTreeOperatorValidateStructure" docformat="rst">
@@ -96,15 +96,15 @@ contains
     class  (mergerTreeOperatorValidateStructure), intent(inout), target  :: self
     type   (mergerTree                         ), intent(inout), target  :: tree
     type   (mergerTree                         )               , pointer :: treeCurrent
-    type   (treeNode                           )               , pointer :: node          , nodeChild, &
+    type   (treeNode                           )               , pointer :: node                           , nodeChild  , &
          &                                                                  nodeWork
-    class  (nodeComponentBasic                 )               , pointer :: basic         , basicParent
-    class  (nodeEvent                          )               , pointer :: event         , eventPaired
+    class  (nodeComponentBasic                 )               , pointer :: basic                          , basicParent
+    class  (nodeEvent                          )               , pointer :: event                          , eventPaired
     type   (mergerTreeWalkerAllNodes           )                         :: treeWalker
-    integer(c_size_t                           )                         :: countNodes    , countSteps
+    integer(c_size_t                           )                         :: countNodes                     , countSteps
     integer                                                              :: countViolations
     integer                                     , parameter              :: countViolationsReportMaximum=20
-    logical                                                              :: found         , isChild  , &
+    logical                                                              :: found                          , isChild    , &
          &                                                                  isSatellite
     type   (varying_string                     )                         :: message
     !$GLC attributes unused :: self
@@ -270,11 +270,11 @@ contains
       nodes in the forest.
       !!}
       implicit none
-      logical                                        :: contained
-      type   (treeNode), pointer     , intent(in   ) :: chainFirst
-      type   (treeNode), pointer     , intent(in   ) :: nodeSought
-      type   (treeNode), pointer                     :: nodeChain
-      integer(c_size_t)                              :: countStepsChain
+      logical                                   :: contained
+      type   (treeNode), pointer, intent(in   ) :: chainFirst
+      type   (treeNode), pointer, intent(in   ) :: nodeSought
+      type   (treeNode), pointer                :: nodeChain
+      integer(c_size_t)                         :: countStepsChain
 
       contained       =  .false.
       nodeChain       => chainFirst

@@ -153,7 +153,7 @@
    * The cosmological parameters (:math:`\Omega_\mathrm{M}`, :math:`\Omega_\Lambda`, :math:`\Omega_\mathrm{b}`, :math:`H_0`, :math:`\sigma_8`), if defined in the file, must be set identically in the Galacticus input file unless you set ``[mismatchIsFatal]``\ :math:`=`\ ``false`` in which case you'll just be warned about any mismatch;
    * Galacticus assumes by default that all merger trees exist at the final output time---if this is not the case set ``[allTreesExistAtFinalTime]``\ :math:`=`\ ``false``.
 
-   **Dark Matter Scale Radii**:  If ``[presetScaleRadii]``\ :math:`=`\ ``true`` and the ``halfMassRadius`` dataset is available within the ``haloTrees`` group (see `here &lt;https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group&gt;`_) then the half-mass radii of nodes will be used to compute the corresponding scale length of the dark matter halo profile\footnoteThe scale radius is found by seeking a value which gives the correct half mass radius. It is therefore important that the definition of halo mass (specifically the virial overdensity) in Galacticus be the same as was used in computing the input half mass radii.. This requires a dark matter profile scale component which supports setting of the scale length (see :ref:`here &lt;manual-sec-darkmatterprofilescale&gt;`).
+   **Dark Matter Scale Radii**:  If ``[presetScaleRadii]``\ :math:`=`\ ``true`` and the ``halfMassRadius`` dataset is available within the ``haloTrees`` group (see `here &lt;https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group&gt;`_) then the half-mass radii of nodes will be used to compute the corresponding scale length of the dark matter halo profile\footnote{The scale radius is found by seeking a value which gives the correct half mass radius. It is therefore important that the definition of halo mass (specifically the virial overdensity) in Galacticus be the same as was used in computing the input half mass radii.. This requires a dark matter profile scale component which supports setting of the scale length (see :ref:`here &lt;manual-sec-darkmatterprofilescale&gt;`).
 
    **Satellite Merger Times:** If ``[presetMergerTimes]``\ :math:`=`\ ``true`` then merger times for satellites will be computed directly from the merger tree data read from file. When a subhalo has an isolated halo as a descendant it is assumed to undergo a merger with that isolated halo at that time. Note that this requires a satellite orbit component method which supports setting of merger times (e.g. ``[componentSatellite]``\ :math:`=`\ ``preset``).
 
@@ -941,10 +941,10 @@ contains
     Construct a merger tree by reading its definition from file.
     !!}
     use :: Arrays_Search             , only : searchArrayClosest
-    use :: Functions_Global          , only : State_Retrieve_       , State_Store_
+    use :: Functions_Global          , only : State_Retrieve_         , State_Store_
     use :: Error                     , only : Error_Report
-    use :: Galacticus_Nodes          , only : mergerTree            , treeNodeList
-    use :: Merger_Tree_Read_Importers, only : nodeData              , nodeDataMinimal
+    use :: Galacticus_Nodes          , only : mergerTree              , treeNodeList
+    use :: Merger_Tree_Read_Importers, only : nodeData                , nodeDataMinimal
     use :: Merger_Tree_State_Store   , only : treeStateStoreSequence
     use :: Merger_Tree_Walkers       , only : mergerTreeWalkerAllNodes
     use :: Numerical_Comparison      , only : Values_Agree
@@ -964,7 +964,7 @@ contains
     logical                                    , allocatable, dimension(:  )          :: childIsSubhalo
     integer         (c_size_t                 ), allocatable, dimension(:  )          :: nodeSubset
     integer                                                                           :: isolatedNodeCount
-    integer         (c_size_t                 )                                       :: historyCountMaximum, iNode            , &
+    integer         (c_size_t                 )                                       :: historyCountMaximum, iNode           , &
          &                                                                               iOutput            , treeNumberOffset
     type            (mergerTreeWalkerAllNodes )                                       :: treeWalkerAll
     type            (varying_string           )                                       :: message
@@ -1250,7 +1250,7 @@ contains
        do iNode=1,size(nodes)
           if (nodes(iNode)%host%nodeIndex /= nodes(iNode)%nodeIndex) nodes  (iNode)%host%nodeMass &
                &                                                      =nodes(iNode)%host%nodeMass &
-               &                                                      +nodes(iNode)%nodeMass
+               &                                                      +nodes(iNode)     %nodeMass
        end do
     end if
     if (.not.self%mergerTreeImporter_%angularMomentaIncludeSubhalos().and.self%subhaloAngularMomentaMethod == subhaloAngularMomentaMethodScale) then
@@ -1578,9 +1578,9 @@ contains
                 if (.not.progenitorsExist .or. .not.isolatedProgenitorExists) then
                    ! Node is isolated, has no isolated node that descends into it. Therefore, our current node is not allowed to
                    ! be a subhalo.
-                   nodes(iNode)%isSubhalo=.false.
-                   nodes(iNode)%host => nodes(iNode)
-                   nodes(iNode)%hostIndex=nodes(iNode)%nodeIndex
+                   nodes(iNode)%isSubhalo =  .false.
+                   nodes(iNode)%host      => nodes(iNode)
+                   nodes(iNode)%hostIndex =  nodes(iNode)%nodeIndex
                 end if
              end if
              descendantNode => descendantNode%descendant
@@ -1957,18 +1957,18 @@ contains
                    ! producing multiple satellite components on a branch during evolution.
                    basic        => nodeList(iIsolatedNode)%node                  %basic()
                    basicPrimary => nodeList(iIsolatedNode)%node%parent%firstChild%basic()
-                   if (.not.descendsToSubhalo                                                                                          &
-                        & .and. (                                                                                                      &
-                        &        childIsSubhalo(nodes(iNode)%parent%isolatedNodeIndex)                                                 &
-                        &         .or.                                                                                                 &
-                        &        basic%mass() >  basicPrimary%mass()                                                                   &
-                        &         .or.                                                                                                 &
-                        &        (                                                                                                     &
-                        &          basic%mass() == basicPrimary%mass()                                                                 &
-                        &         .and.                                                                                                &
-                        &          nodeList(iIsolatedNode)%node%index() > nodeList(iIsolatedNode)%node%parent%firstChild%index()       &
-                        &        )                                                                                                     &
-                        &       )                                                                                                      &
+                   if (.not.descendsToSubhalo                                                                                    &
+                        & .and. (                                                                                                &
+                        &        childIsSubhalo(nodes(iNode)%parent%isolatedNodeIndex)                                           &
+                        &         .or.                                                                                           &
+                        &        basic%mass() >  basicPrimary%mass()                                                             &
+                        &         .or.                                                                                           &
+                        &        (                                                                                               &
+                        &          basic%mass() == basicPrimary%mass()                                                           &
+                        &         .and.                                                                                          &
+                        &          nodeList(iIsolatedNode)%node%index() > nodeList(iIsolatedNode)%node%parent%firstChild%index() &
+                        &        )                                                                                               &
+                        &       )                                                                                                &
                         & ) then
                       ! It is, so make this the main progenitor.
                       nodeList(iIsolatedNode)%node%sibling           => nodeList(iIsolatedNode)%node%parent%firstChild
@@ -2376,16 +2376,16 @@ contains
     class           (nodeData                 ), target   , dimension(:), intent(inout) :: nodes
     type            (treeNodeList             )           , dimension(:), intent(inout) :: nodeList
     integer         (c_size_t                 )                         , intent(  out) :: historyCountMaximum
-    class           (nodeData                 ), pointer                                :: lastSeenNode                , node
-    type            (treeNode                 ), pointer                                :: firstProgenitor             , hostNode                  , &
-         &                                                                                 orbitalPartner              , satelliteNode
+    class           (nodeData                 ), pointer                                :: lastSeenNode            , node
+    type            (treeNode                 ), pointer                                :: firstProgenitor         , hostNode        , &
+         &                                                                                 orbitalPartner          , satelliteNode
     class           (nodeComponentBasic       ), pointer                                :: basic
     class           (nodeComponentSatellite   ), pointer                                :: satellite
     integer                                                                             :: iNode
-    integer         (c_size_t                 )                                         :: historyCount                , iIsolatedNode
-    logical                                                                             :: branchMerges                , branchTipReached          , &
-         &                                                                                 isolatedProgenitorExists    , nodeWillMerge             , &
-         &                                                                                 nodeIsMostMassive           , progenitorsExist
+    integer         (c_size_t                 )                                         :: historyCount            , iIsolatedNode
+    logical                                                                             :: branchMerges            , branchTipReached, &
+         &                                                                                 isolatedProgenitorExists, nodeWillMerge   , &
+         &                                                                                 nodeIsMostMassive       , progenitorsExist
     double precision                                                                    :: timeSubhaloMerges
     type            (branchIterator           )                                         :: branch
 
@@ -2712,7 +2712,7 @@ contains
     class  (mergerTreeConstructorRead)              , intent(inout)           :: self
     class  (nodeData                 )              , intent(in   )           :: descendant
     class  (nodeData                 ), dimension(:), intent(in   )           :: nodes
-    logical                                         , intent(  out)           :: progenitorsExist        , isolatedProgenitorExists
+    logical                                         , intent(  out)           :: progenitorsExist, isolatedProgenitorExists
     class  (nodeData                 )              , intent(in   ), optional :: node
     logical                                         , intent(  out), optional :: nodeIsMostSenior
     class  (nodeData                 ), pointer                               :: progenitorNode
@@ -2726,10 +2726,10 @@ contains
        progenitorNode => progenitors%current(nodes)
        if (progenitorNode%nodeIndex == progenitorNode%hostIndex) isolatedProgenitorExists=.true.
        if (present(node).and.present(nodeIsMostSenior)) then
-          if     (                                                  &
-               &   progenitorNode%nodeIndex /= node%nodeIndex       &
-               &  .and.                                             &
-               &   readProgenitorIsSenior(progenitorNode,node)      &
+          if     (                                             &
+               &   progenitorNode%nodeIndex /= node%nodeIndex  &
+               &  .and.                                        &
+               &   readProgenitorIsSenior(progenitorNode,node) &
                & ) nodeIsMostSenior=.false.
        end if
     end do
@@ -3310,8 +3310,8 @@ contains
           if (nodes(iNode)%nodeIndex == branchRootHost) node => nodes(iNode)
        end do
        if (associated(node)) then
-          node => readIsolatedHost(node)
-          branchRootHost=node%nodeIndex
+          node           => readIsolatedHost(node          )
+          branchRootHost =                   node%nodeIndex
        end if
     else
        branchRootHost=-1_kind_int8
@@ -3321,12 +3321,12 @@ contains
     do iNode=1,size(nodes)
        ! Determine if node is in the branch to be output.
        if (present(branchRoot)) then
-          outputNode=.false.
-          node => readIsolatedHost(nodes(iNode))
-          outputNode=node%nodeIndex == branchRootHost
+          outputNode =  .false.
+          node       => readIsolatedHost(nodes(iNode))
+          outputNode =  node%nodeIndex == branchRootHost
           do while (.not.outputNode.and.associated(node%descendant))
-             node => readIsolatedHost(node%descendant)
-             outputNode=node%nodeIndex == branchRootHost
+             node       => readIsolatedHost(node%descendant)
+             outputNode =  node%nodeIndex == branchRootHost
           end do
        else
           outputNode=.true.
@@ -3697,10 +3697,10 @@ contains
     pointing at ``start``.
     !!}
     implicit none
-    class(branchIterator           )              , intent(inout)         :: self
-    type (mergerTreeConstructorRead), target      , intent(inout)         :: constructor
-    class(nodeData                 ), target      , intent(inout)         :: start
-    class(nodeData                 ), dimension(:), intent(inout)         :: nodes
+    class(branchIterator           )              , intent(inout) :: self
+    type (mergerTreeConstructorRead), target      , intent(inout) :: constructor
+    class(nodeData                 ), target      , intent(inout) :: start
+    class(nodeData                 ), dimension(:), intent(inout) :: nodes
 
     self%constructor     => constructor
     self%terminus        =  branchTerminusUndefined
