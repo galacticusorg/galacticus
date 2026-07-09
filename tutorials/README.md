@@ -47,6 +47,59 @@ Two options:
 Python requirements: `numpy` and `matplotlib` (plus `jupyter` to run the
 notebooks).
 
+## Troubleshooting
+
+### `OSError: ... version 'GCC_x.y.0' not found` when importing `galacticus`
+
+`libgalacticus.so` is built against your compiler's C++/GCC runtime
+libraries (`libstdc++.so.6`, `libgcc_s.so.1`). If those are newer than the
+ones your Python environment ships or loads, importing `galacticus` fails
+with, e.g.:
+
+```
+OSError: .../libgcc_s.so.1: version `GCC_14.0.0' not found
+        (required by .../lib/libgalacticus.so)
+```
+
+From a shell you can force the correct runtime in with `LD_PRELOAD` before
+launching Python:
+
+```sh
+LD_PRELOAD=/path/to/compiler/lib64/libstdc++.so.6 python3 your_script.py
+```
+
+**In a Jupyter notebook this does not work from a cell.** The dynamic linker
+reads `LD_PRELOAD`/`LD_LIBRARY_PATH` only at process startup, and by the time
+the first cell runs the kernel (via `zmq`) has already loaded the *old*
+runtime libraries — once a library with a given soname is loaded it is fixed
+for the life of the process, so setting `os.environ` or `ctypes.CDLL(...)`
+from a cell cannot replace it. The fix is to put the correct libraries in the
+environment *before the kernel launches*, using a dedicated kernel whose
+`kernel.json` sets them in its `env` block. Create
+`~/.local/share/jupyter/kernels/galacticus/kernel.json`:
+
+```json
+{
+ "argv": [
+  "/path/to/python",
+  "-m", "ipykernel_launcher",
+  "-f", "{connection_file}"
+ ],
+ "display_name": "Python 3 (Galacticus)",
+ "language": "python",
+ "env": {
+  "LD_PRELOAD": "/path/to/compiler/lib64/libgcc_s.so.1:/path/to/compiler/lib64/libstdc++.so.6"
+ }
+}
+```
+
+Point `argv[0]` at the same interpreter your notebooks already use
+(`python -c 'import sys; print(sys.executable)'`) and the `LD_PRELOAD` paths
+at the `lib64` directory of the compiler that built `libgalacticus.so`. Then
+select **"Python 3 (Galacticus)"** as the notebook's kernel (Kernel → Change
+Kernel) and re-run. Preloading the newer `libgcc_s`/`libstdc++` is
+backward-compatible, so the rest of the environment keeps working.
+
 ## Conventions
 
 Galacticus works in masses of $M_\odot$, times in Gyr, distances in Mpc,
