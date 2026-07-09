@@ -38,6 +38,7 @@ crowd-pleasers to demo live):
 4. Parameter validation via generated schema (**live VSCode demo**)
 5. The parameter `changes`-file resolver
 6. PyPI install (**live/quasi-live demo**)
+7. Call Galacticus from Python — the `libgalacticus` library interface (**live notebook demo**)
 
 ---
 
@@ -56,6 +57,7 @@ crowd-pleasers to demo live):
   4. Parameter files now validate as you type
   5. Compose & migrate parameter files with change-files
   6. `pip install galacticus`
+  7. `import galacticus` — call the physics routines from Python
 
 ---
 
@@ -390,6 +392,88 @@ separate **change-files**, resolved the same way Galacticus resolves them intern
 
 ---
 
+## 8b. Section 7 — Call Galacticus from Python (the `libgalacticus` library interface)
+
+**Placement:** immediately after the PyPI section — the two form a "Python story": PyPI gets you a
+*running model*; this gets you Galacticus's *internal physics routines* callable in Python.
+
+> **Status note for the presenter (not a slide):** this is on the feature branch
+> `feat/library-interface-tree-access`, not yet on `master`. Frame it as "landing now / what's
+> coming," and pitch it as **June–July 2026** (separate from the earlier June items). Scope: ~55
+> commits, +10,083 / −1,688 lines across 79 files.
+
+**Headline:** `libgalacticus.so` now exposes much of Galacticus to Python — `import galacticus`
+and call the real Fortran routines directly. You can build a merger tree, walk its nodes, and read
+halo properties, all from Python. Ships with **8 executed tutorial notebooks**, published on Read
+the Docs.
+
+**Key facts (accurate):**
+- **What you get:** building the shared library (`make GALACTICUS_BUILD_OPTION=lib libgalacticus.so`)
+  *also emits* an auto-generated Python module **`galacticus.py`** at the repo root. Then:
+  ```python
+  import galacticus
+  galacticus.nodesInitialize()        # once, before creating trees/nodes
+  galacticus.verbositySet('silent')   # quiet the Fortran progress bars in a notebook
+  ```
+  Every registered class becomes a Python-callable object; you **construct objects from parameter
+  values and from other objects** — the same dependency-injection object graph Galacticus builds
+  from a parameter file, assembled in Python. numpy arrays marshalled in/out.
+- **How it works (the clever part — bindings are generated, not hand-written):**
+  `source/libraryClasses.xml` registers which `functionClass`es are in the library →
+  `scripts/build/libraryInterfaces.py` reads the Fortran `<method>`/`functionClass` directives and
+  emits **(a)** Fortran `bind(c)` wrappers (`libgalacticus.inc`, included by `source/libgalacticus.F90`)
+  and **(b)** the ctypes glue `galacticus.py`. Generator logic lives in a reusable package
+  `python/LibraryInterfaces/` (`ArgSpec`, `Pipeline`, `Emitters`, `Classification`, `Hierarchy`); a
+  companion **audit tool** reports coverage — readiness rose to **~90%** of methods on this branch
+  (figure from commit messages; can be re-run live).
+- **Why it's a big deal — real Fortran signatures, not just scalar in/out.** The branch teaches the
+  generator to translate the argument patterns Galacticus actually uses:
+  - **Output arrays** (1D/2D/logical `intent(out)`/`inout` allocatables → numpy), with scalar
+    `intent(out)` companions and in-place args alongside.
+  - **Python-callable callbacks** — Galacticus calls *your* Python function (integrands over a 3D
+    domain; cross-sections in radiation fields).
+  - **Opaque handles** for shared-type `pointer` returns — Fortran keeps ownership; this unblocks
+    `mergerTreeConstructor.construct` from Python.
+  - **Pointer write-back protocol** — enables the walker idiom `node = c_void_p(None); while
+    walker.next(node): …`.
+  - **Complex sized-output buffers** — `intent(out)` arrays sized by integer input args (e.g. an
+    N×N×N grid), including first `complex128` support (`surveyGeometry.windowFunctions`).
+- **"Tree access" — the loop is closed.** Opaque handles + write-back walker + a new **`extractScalar`**
+  convenience method on the `nodePropertyExtractor` base (`source/nodes/property_extractor/_class.F90`)
+  mean that from pure Python you can **build a Cole et al. (2000) tree → hold its handle → walk its
+  nodes → read per-node halo properties** (mass, cosmic time, virial radius/velocity). This is the
+  branch's namesake and its best "wow" moment.
+- **8 tutorial notebooks** (`tutorials/*.ipynb`): (1) cosmology calculator, (2) matter power
+  spectrum, (3) halo mass function, (4) Python callbacks, (5) merger-tree building blocks,
+  (6) stellar populations *(needs datasets repo)*, (7) survey geometries *(needs datasets repo)*,
+  (8) merger trees — capstone. They're **executed in CI** (a "Python-Interface" job runs them
+  against the freshly built library; any cell error fails the build) and **published on Read the
+  Docs** under a **"Python library tutorials"** section (nbsphinx renders committed outputs, kept
+  truthful by CI) — so they can't silently rot.
+
+**Slide plan (4–5 slides + demo):**
+- **S7.1 — "Galacticus, from Python."** The three-line snippet as the hook. Contrast: old world
+  (write params → run the whole executable → parse HDF5) vs now (call one routine → get a numpy
+  array).
+- **S7.2 — "The bindings write themselves."** Pipeline diagram: `source/*.F90 directives` +
+  `libraryClasses.xml` → `libraryInterfaces.py` → (`bind(c)` wrappers + ctypes `galacticus.py`) →
+  `import galacticus`. Generated, not hand-maintained; audit tool tracks ~90% coverage.
+- **S7.3 — "It speaks real Fortran signatures."** Compact capability grid (icon + one line):
+  output arrays · scalar companions & in-place · **Python callbacks** · **opaque handles** ·
+  **pointer write-back** walker · **complex** sized-output buffers.
+- **S7.4 — "Closing the loop: merger trees in Python."** Flow: `mergerTreeConstructor.construct` →
+  opaque tree handle → `walker.next(node)` loop → `nodePropertyExtractor.extractScalar(node)`. Show
+  the walker idiom and the properties you can pull.
+- **S7.5 — LIVE NOTEBOOK DEMO.** A "Live demo — Jupyter" slide with speaker cues: open notebook 08
+  (merger trees) or 01 (cosmology calculator); call routines live; walk nodes; plot an assembly
+  history or P(k); mention these run in CI and are published on RTD.
+  > **[PRESENTER: needs `libgalacticus.so` built on your laptop with `galacticus.py` on the path.
+  > Safe fallback: walk through the published RTD version or a pre-built notebook — a cold library
+  > build is slow. Notebooks 06/07 need the datasets repo (`GALACTICUS_DATA_PATH`); 01–05/08 don't.
+  > LINK-OUT: the "Python library tutorials" section on galacticus.readthedocs.io.]**
+
+---
+
 ## 9. Closing
 
 **Slide — "Recap."** Six one-line takeaways, matching the agenda, each with its "why you care":
@@ -399,9 +483,11 @@ separate **change-files**, resolved the same way Galacticus resolves them intern
 - Parameter files validate **as you type** (generated XSD + VSCode).
 - Compose & migrate parameter files with **change-files** / the resolver.
 - **`pip install galacticus`** — a running model in one command.
+- **`import galacticus`** — call the physics routines from Python; build & walk merger trees; 8 published tutorial notebooks.
 
 **Slide — "Links & try it."** A clean link board:
 - Docs: https://galacticus.readthedocs.io/
+- Python tutorials: the "Python library tutorials" section on galacticus.readthedocs.io
 - PyPI: https://pypi.org/project/galacticus/  → `pip install galacticus`
 - Repo: github.com/galacticusorg/galacticus
 - Analysis tools: `pip install dendros`
