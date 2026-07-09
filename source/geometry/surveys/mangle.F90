@@ -33,7 +33,8 @@ Implements an abstract survey geometry using :term:`mangle` polygons.
   !!]
   type, abstract, extends(surveyGeometryClass) :: surveyGeometryMangle
      private
-     logical                                                                 :: solidAnglesInitialized, angularPowerInitialized, windowInitialized
+     logical                                                                   :: solidAnglesInitialized          , angularPowerInitialized, &
+          &                                                                       windowInitialized
      double precision                            , allocatable, dimension(:  ) :: solidAngles
      double precision                            , allocatable, dimension(:,:) :: angularPowerSpectra
      type            (window                    )                              :: mangleWindow

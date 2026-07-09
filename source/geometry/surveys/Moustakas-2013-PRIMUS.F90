@@ -92,12 +92,12 @@ contains
     type   (surveyGeometryMoustakas2013PRIMUS)                :: self
     type   (inputParameters                  ), intent(inout) :: parameters
     class  (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
-    class(randomNumberGeneratorClass), pointer       :: randomNumberGenerator_
+    class  (randomNumberGeneratorClass       ), pointer       :: randomNumberGenerator_
     integer                                                   :: redshiftBin
 
     ! Check and read parameters.
     !![
-    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     <inputParameter docformat="rst">
       <name>redshiftBin</name>
@@ -110,7 +110,7 @@ contains
     self=surveyGeometryMoustakas2013PRIMUS(redshiftBin,cosmologyFunctions_,randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"/>
+    <objectDestructor name="cosmologyFunctions_"   />
     <objectDestructor name="randomNumberGenerator_"/>
     !!]
     return
@@ -124,10 +124,10 @@ contains
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     use :: Error                      , only : Error_Report
     implicit none
-    type   (surveyGeometryMoustakas2013PRIMUS)                        :: self
-    integer                                   , intent(in   )         :: redshiftBin
-    class  (cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
-    class           (randomNumberGeneratorClass  ), intent(in   ), target, optional :: randomNumberGenerator_
+    type   (surveyGeometryMoustakas2013PRIMUS)                                  :: self
+    integer                                   , intent(in   )                   :: redshiftBin
+    class  (cosmologyFunctionsClass          ), intent(in   ), target           :: cosmologyFunctions_
+    class  (randomNumberGeneratorClass       ), intent(in   ), target, optional :: randomNumberGenerator_
     !![
     <constructorAssign variables="redshiftBin, *cosmologyFunctions_, *randomNumberGenerator_"/>
     !!]
@@ -180,7 +180,7 @@ contains
     type(surveyGeometryMoustakas2013PRIMUS), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyFunctions_"/>
+    <objectDestructor name="self%cosmologyFunctions_"   />
     <objectDestructor name="self%randomNumberGenerator_"/>
     !!]
     return

@@ -63,7 +63,7 @@ contains
     type            (surveyGeometryLocalGroupDES)                :: self
     type            (inputParameters            ), intent(inout) :: parameters
     double precision                                             :: distanceMaximumSurvey
-    class           (randomNumberGeneratorClass)       , pointer       :: randomNumberGenerator_
+    class           (randomNumberGeneratorClass ), pointer       :: randomNumberGenerator_
 
     !![
     <inputParameter docformat="rst">
@@ -91,9 +91,9 @@ contains
     Internal constructor for the :galacticus-class:`surveyGeometryLocalGroupDES` survey geometry class.
     !!}
     implicit none
-    type            (surveyGeometryLocalGroupDES)                :: self
-    double precision                             , intent(in   ) :: distanceMaximumSurvey
-    class           (randomNumberGeneratorClass       ), intent(in   ), target, optional :: randomNumberGenerator_
+    type            (surveyGeometryLocalGroupDES)                                  :: self
+    double precision                             , intent(in   )                   :: distanceMaximumSurvey
+    class           (randomNumberGeneratorClass ), intent(in   ), target, optional :: randomNumberGenerator_
     !![
     <constructorAssign variables="distanceMaximumSurvey, *randomNumberGenerator_"/>
     !!]

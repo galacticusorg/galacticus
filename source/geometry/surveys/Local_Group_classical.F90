@@ -65,8 +65,8 @@ contains
     implicit none
     type            (surveyGeometryLocalGroupClassical)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
-    double precision                                                   :: distanceMaximumSurvey, massThreshold
-    class           (randomNumberGeneratorClass)       , pointer       :: randomNumberGenerator_
+    double precision                                                   :: distanceMaximumSurvey , massThreshold
+    class           (randomNumberGeneratorClass       ), pointer       :: randomNumberGenerator_
 
     !![
     <inputParameter docformat="rst">
@@ -102,8 +102,8 @@ contains
     Internal constructor for the :cite:t:`baldry_galaxy_2012` conditional mass function class.
     !!}
     implicit none
-    type            (surveyGeometryLocalGroupClassical)                :: self
-    double precision                                   , intent(in   ) :: distanceMaximumSurvey, massThreshold
+    type            (surveyGeometryLocalGroupClassical)                                  :: self
+    double precision                                   , intent(in   )                   :: distanceMaximumSurvey , massThreshold
     class           (randomNumberGeneratorClass       ), intent(in   ), target, optional :: randomNumberGenerator_
     !![
     <constructorAssign variables="distanceMaximumSurvey, massThreshold, *randomNumberGenerator_"/>

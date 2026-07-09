@@ -65,7 +65,7 @@ module Geometry_Mangle
      !!{RST
      A class to hold :term:`mangle` windows.
      !!}
-     integer                                             :: polygonCount
+     integer                                              :: polygonCount
      type            (polygon), dimension(:), allocatable :: polygons
      integer(kind=c_size_t   ), dimension(:), allocatable :: solidAngleIndex
      logical                                              :: samplingInitialized =.false.
@@ -73,8 +73,8 @@ module Geometry_Mangle
    contains
      !![
      <methods docformat="rst">
-       <method description="Read the specified mangle polygon file."                                       method="read"           />
-       <method description="Return true if the given point lives inside the mangle window."                method="pointIncluded" />
+       <method description="Read the specified mangle polygon file."                                      method="read"           />
+       <method description="Return true if the given point lives inside the mangle window."               method="pointIncluded"  />
        <method description="Return a direction drawn uniformly from within the mangle window's polygons." method="sampleDirection"/>
      </methods>
      !!]
@@ -205,24 +205,24 @@ contains
     ! Per-polygon rejection budget and overall retry budget. Balkanized windows can contain sliver polygons whose area
     ! is a tiny fraction of their smallest bounding cap (they are bounded only by large survey-boundary caps), making
     ! bounding-cap rejection arbitrarily inefficient. When the budget is exhausted a fresh polygon is drawn instead;
-    ! the resulting bias is bounded by the total solid angle of such pathological slivers (typically a ~1e-6 fraction
+    ! the resulting bias is bounded by the total solid angle of such pathological slivers (typically a ~10⁻⁶ fraction
     ! of the window - far below Monte Carlo noise for any practical sample size).
-    integer                                     , parameter     :: iterationMaximum=10000  , attemptMaximum=100
-    double precision                            , dimension(3)  :: axis                    , basisU      , &
+    integer                                     , parameter     :: iterationMaximum=10000, attemptMaximum=100
+    double precision                            , dimension(3)  :: axis                  , basisU            , &
          &                                                         basisV
-    integer                                                     :: i                       , indexPolygon, &
-         &                                                         iteration               , attempt
-    double precision                                            :: capHeight               , cosTheta    , &
-         &                                                         sinTheta                , phi         , &
+    integer                                                     :: i                     , indexPolygon      , &
+         &                                                         iteration             , attempt
+    double precision                                            :: capHeight             , cosTheta          , &
+         &                                                         sinTheta              , phi               , &
          &                                                         uniformDeviate
     ! Initialize the cumulative solid angle distribution over polygons on first use.
     if (.not.self%samplingInitialized) then
        allocate(self%solidAngleCumulative(0:self%polygonCount))
        self%solidAngleCumulative(0)=0.0d0
        do i=1,self%polygonCount
-          self%solidAngleCumulative(i)=+    self%solidAngleCumulative(i-1)             &
-               &                       +max(self%polygons            (i  )%solidAngle, &
-               &                            0.0d0                                      )
+          self%solidAngleCumulative(i)=+    self%solidAngleCumulative(i-1)              &
+               &                       +max(self%polygons            (i  )%solidAngle,  &
+               &                            0.0d0                                     )
        end do
        if (self%solidAngleCumulative(self%polygonCount) <= 0.0d0) &
             & call Error_Report('window has zero total solid angle'//{introspection:location})
@@ -239,10 +239,10 @@ contains
        capHeight=2.0d0
        axis     =[0.0d0,0.0d0,1.0d0]
        do i=1,self%polygons(indexPolygon)%capCount
-          if     (                                                            &
-               &   self%polygons(indexPolygon)%caps(i)%c > 0.0d0              &
-               &  .and.                                                       &
-               &   self%polygons(indexPolygon)%caps(i)%c < capHeight          &
+          if     (                                                   &
+               &   self%polygons(indexPolygon)%caps(i)%c > 0.0d0     &
+               &  .and.                                              &
+               &   self%polygons(indexPolygon)%caps(i)%c < capHeight &
                & ) then
              capHeight=self%polygons(indexPolygon)%caps(i)%c
              axis     =self%polygons(indexPolygon)%caps(i)%x
@@ -263,12 +263,12 @@ contains
        ! Rejection-sample a point uniform on the bounding cap until it lies within the polygon.
        do iteration=1,iterationMaximum
           ! Uniform on the cap: 1-cos(theta) uniform in [0,capHeight].
-          cosTheta =+1.0d0                                    &
-               &    -capHeight                                &
+          cosTheta =+1.0d0                                  &
+               &    -capHeight                              &
                &    *randomNumberGenerator_%uniformSample()
           sinTheta =sqrt(max(1.0d0-cosTheta**2,0.0d0))
-          phi      =+2.0d0                                    &
-               &    *Pi                                       &
+          phi      =+2.0d0                                  &
+               &    *Pi                                     &
                &    *randomNumberGenerator_%uniformSample()
           direction=+sinTheta*cos(phi)*basisU &
                &    +sinTheta*sin(phi)*basisV &
