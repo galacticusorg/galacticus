@@ -19,14 +19,14 @@ compiler_options = sys.argv[2:]
 # Library dependency graph: key depends on values.
 dependencies = {
     'hdf5_hl_fortran': ['hdf5_hl'],
-    'hdf5_hl'       : ['hdf5'],
-    'hdf5_fortran'  : ['hdf5'],
-    'hdf5'          : ['z'],
-    'gsl'           : ['gslcblas'],
-    'FoX_dom'       : ['FoX_fsys', 'FoX_utils', 'FoX_sax'],
-    'FoX_sax'       : ['FoX_common'],
-    'FoX_utils'     : ['FoX_wxml'],
-    'qhullcpp'      : ['qhull_r', 'stdc++'],
+    'hdf5_hl'        : ['hdf5'],
+    'hdf5_fortran'   : ['hdf5'],
+    'hdf5'           : ['z'],
+    'gsl'            : ['gslcblas'],
+    'FoX_dom'        : ['FoX_fsys', 'FoX_utils', 'FoX_sax'],
+    'FoX_sax'        : ['FoX_common'],
+    'FoX_utils'      : ['FoX_wxml'],
+    'qhullcpp'       : ['qhull_r', 'stdc++'],
 }
 
 # Static-link ordering: key must appear before values.
