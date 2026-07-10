@@ -139,6 +139,9 @@ runs:
         # The nonstandard _Float16 feature is disabled: on the Homebrew GCC toolchain HDF5's build-time probe for the FLT16_MAX
         # macro passes but the macro is undeclared when the complex-type conversions in H5Tconv_complex.c are actually compiled,
         # breaking the build. Galacticus does not use half-precision types, so disabling the feature is safe.
+        # HDF5_BUILD_WITH_INSTALL_NAME=ON gives the installed dylibs absolute install_names (/usr/local/lib/...) rather than
+        # CMake's default @rpath, so Galacticus.exe records absolute paths and dyld can load libhdf5*.dylib at run time without an
+        # LC_RPATH entry. This matches the Autotools HDF5 1.14 behaviour Galacticus previously relied on.
         cmake -S . -B build -G "Unix Makefiles" \
            -DCMAKE_INSTALL_PREFIX=/usr/local \
            -DCMAKE_BUILD_TYPE=Release \
@@ -158,6 +161,7 @@ runs:
            -DHDF5_ENABLE_SZIP_SUPPORT=OFF \
            -DHDF5_ENABLE_DEPRECATED_SYMBOLS=OFF \
            -DHDF5_ENABLE_NONSTANDARD_FEATURE_FLOAT16=OFF \
+           -DHDF5_BUILD_WITH_INSTALL_NAME=ON \
            -DHDF5_DEFAULT_API_VERSION=v200 \
            "${linkerFlags[@]}"
         cmake --build build -j3
