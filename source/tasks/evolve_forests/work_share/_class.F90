@@ -34,7 +34,7 @@ module Task_Evolve_Forests_Work_Shares
    <name>evolveForestsWorkShare</name>
    <descriptiveName>Evolve Forests Work Share</descriptiveName>
    <description>
-   Class providing work sharing strategies for the evolve forests task---the algorithm that assigns merger tree forests to individual MPI processes and OpenMP threads for parallel execution. Implementations return the index of the next forest to be processed by the calling worker, a unique worker identifier, and the total worker count. Strategies include first-come-first-served (FCFS) dynamic scheduling and static pre-assignment, with load balancing optionally guided by tree processing time estimates from :galacticus-class:`metaTreeProcessingTimeClass`.
+   Class providing work sharing strategies for the evolve forests task---the algorithm that assigns merger tree forests to individual MPI processes and OpenMP threads for parallel execution. Implementations return the index of the next forest to be processed by the calling worker, a unique worker identifier, and the total worker count. Strategies include first-come-first-served (FCFS) dynamic scheduling and static pre-assignment. Under the default first-come-first-served scheduling, forests built in descending order of mass (the default) are processed most-expensive-first, which is a near-optimal (longest-processing-time-first) load-balancing strategy.
    </description>
    <default>FCFS</default>
    <method name="forestNumber" >
