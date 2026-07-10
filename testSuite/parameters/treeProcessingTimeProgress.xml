@@ -302,11 +302,17 @@
   </mergerTreeNodeEvolver>
 
   <mergerTreeEvolver value="standard">
+    <metaTreeProcessingTime value="totalEvolveTime">
+      <updateInterval value="0.01"/>
+    </metaTreeProcessingTime>
     <timestepHostAbsolute value="1.0"/>
     <timestepHostRelative value="0.1"/>
   </mergerTreeEvolver>
 
   <!-- Output options -->
+  <outputTimes value="list">
+    <redshifts value="0.0 0.5 1.0"/>
+  </outputTimes>
   <outputFileName value="testSuite/outputs/treeProcessingTimeProgress.hdf5"/>
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>

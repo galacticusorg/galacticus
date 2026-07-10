@@ -917,9 +917,12 @@ contains
              else
                 ! Report on memory utilization.
                 call reportMemoryUsage()
-                ! Tree reached an output time, so output it. We can then continue evolving.
+                ! Tree reached an output time, so output it. We can then continue evolving. The "output i of N" marker gives a
+                ! coarse, honest progress indicator within a single tree (useful for the few-large-trees case), though the work per
+                ! output interval is highly non-uniform.
                 write (label,self%outputTimeFormat) evolveToTime
-                message="Output tree data at t="//trim(label)//" Gyr"
+                message="Output tree data at t="//trim(label)//" Gyr (output "
+                message=message//iOutput//" of "//self%outputTimes_%count()//")"
                 call displayMessage(message)
                 if (associated(tree)) then
                    call mergerTreeOutputter_%outputTree(tree,iOutput,evolveToTime,outputGroupTypeSnapshot)

@@ -107,5 +107,11 @@ for label, marker in checks.items():
 if "Run-time estimate:" in progressLog and " trees," in progressLog and "100.0% complete" not in progressLog:
     print("FAILED: progress never reached 100% complete")
     progressSuccess = False
+# The per-output-boundary marker ("output i of N") should appear, as the model has multiple output times.
+if "(output 1 of " in progressLog:
+    print("SUCCESS: per-output-boundary progress marker emitted")
+else:
+    print("FAILED: per-output-boundary progress marker not emitted")
+    progressSuccess = False
 if progressSuccess:
     print("SUCCESS: task-level progress and run-time estimation reporting")
