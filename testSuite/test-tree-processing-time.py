@@ -115,3 +115,24 @@ else:
     progressSuccess = False
 if progressSuccess:
     print("SUCCESS: task-level progress and run-time estimation reporting")
+
+# Run in estimate-only (dry-run) mode: the start-of-run estimate should be reported, and no trees should be evolved.
+status = subprocess.run(
+    "cd ..; ./Galacticus.exe testSuite/parameters/treeProcessingTimeDryRun.xml > testSuite/outputs/treeProcessingTimeDryRun.log 2>&1",
+    shell=True
+)
+if status.returncode != 0:
+    print("FAILED: estimate-only (dry-run) model run")
+    sys.exit(0)
+with open("outputs/treeProcessingTimeDryRun.log") as logFile:
+    dryRunLog = logFile.read()
+dryRunSuccess = True
+if "Run-time estimate:" not in dryRunLog:
+    print("FAILED: dry-run did not report a run-time estimate")
+    dryRunSuccess = False
+# No trees should have been evolved in estimate-only mode.
+if "Evolving tree number" in dryRunLog or "Run-time summary:" in dryRunLog:
+    print("FAILED: dry-run evolved trees (should estimate and exit)")
+    dryRunSuccess = False
+if dryRunSuccess:
+    print("SUCCESS: estimate-only (dry-run) mode reports an estimate and evolves no trees")

@@ -69,6 +69,8 @@
      class           (metaTreeProcessingTimeClass), pointer :: metaTreeProcessingTime_       => null()
      ! Minimum wall-clock interval (in seconds) between progress reports; non-positive disables progress reporting.
      double precision                                       :: timeIntervalReportProgress
+     ! If true, report the start-of-run run-time estimate and then exit without evolving any trees (for job sizing).
+     logical                                                :: estimateRunTimeOnly
      class           (mergerTreeEvolverClass     ), pointer :: mergerTreeEvolver_            => null()
      class           (mergerTreeOutputterClass   ), pointer :: mergerTreeOutputter_          => null()
      class           (mergerTreeInitializorClass ), pointer :: mergerTreeInitializor_        => null()
@@ -149,7 +151,7 @@ contains
     class           (*                          ), pointer               :: dummyPointer_
     type            (inputParameters            ), pointer               :: parametersRoot
     logical                                                              :: evolveForestsInParallel, suspendToRAM          , &
-         &                                                                  tolerateFailures
+         &                                                                  tolerateFailures       , estimateRunTimeOnly
     integer         (kind_int8                  )                        :: walltimeMaximum        , timeIntervalCheckpoint
     integer         (c_size_t                   )                        :: countForestsMaximum
     double precision                                                     :: timeIntervalReportProgress
@@ -190,6 +192,14 @@ contains
       <defaultValue>60.0d0</defaultValue>
       <description>
       The minimum wall-clock interval (in seconds) between whole-run progress and estimated-time-remaining reports during forest evolution. If zero or negative, no progress reports are made.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>estimateRunTimeOnly</name>
+      <defaultValue>.false.</defaultValue>
+      <description>
+      If true, the start-of-run run-time estimate is reported and the task then exits without evolving any trees. This is intended for sizing cluster job requests, and requires a cost model (see :galacticus-class:`metaTreeProcessingTime`) and a tree census to produce a useful estimate.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -265,9 +275,9 @@ contains
     <objectBuilder class="mergerTreeSeeds"        name="mergerTreeSeeds_"        source="parameters"/>
     !!]
     if (associated(parametersRoot)) then
-       self=taskEvolveForests(tolerateFailures,evolveForestsInParallel,countForestsMaximum,walltimeMaximum,timeIntervalReportProgress,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,metaTreeProcessingTime_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parametersRoot)
+       self=taskEvolveForests(tolerateFailures,evolveForestsInParallel,countForestsMaximum,walltimeMaximum,timeIntervalReportProgress,estimateRunTimeOnly,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,metaTreeProcessingTime_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parametersRoot)
     else
-       self=taskEvolveForests(tolerateFailures,evolveForestsInParallel,countForestsMaximum,walltimeMaximum,timeIntervalReportProgress,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,metaTreeProcessingTime_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters    )
+       self=taskEvolveForests(tolerateFailures,evolveForestsInParallel,countForestsMaximum,walltimeMaximum,timeIntervalReportProgress,estimateRunTimeOnly,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,metaTreeProcessingTime_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters    )
     end if
     !![
     <inputParametersValidate source="parameters"/>
@@ -304,7 +314,7 @@ contains
     return
   end function evolveForestsConstructorParameters
 
-  function evolveForestsConstructorInternal(tolerateFailures,evolveForestsInParallel,countForestsMaximum,walltimeMaximum,timeIntervalReportProgress,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,metaTreeProcessingTime_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters) result(self)
+  function evolveForestsConstructorInternal(tolerateFailures,evolveForestsInParallel,countForestsMaximum,walltimeMaximum,timeIntervalReportProgress,estimateRunTimeOnly,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,metaTreeProcessingTime_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`taskEvolveForests` task class.
     !!}
@@ -313,7 +323,7 @@ contains
     implicit none
     type            (taskEvolveForests          )                        :: self
     logical                                      , intent(in   )         :: evolveForestsInParallel, suspendToRAM          , &
-         &                                                                  tolerateFailures
+         &                                                                  tolerateFailures       , estimateRunTimeOnly
     integer         (kind_int8                  ), intent(in   )         :: walltimeMaximum        , timeIntervalCheckpoint
     integer         (c_size_t                   ), intent(in   )         :: countForestsMaximum
     double precision                             , intent(in   )         :: timeIntervalReportProgress
@@ -334,7 +344,7 @@ contains
     integer         (c_size_t                   )                        :: i
     double precision                                                     :: timeStepMinimum
     !![
-    <constructorAssign variables="tolerateFailures, evolveForestsInParallel, countForestsMaximum, walltimeMaximum, timeIntervalReportProgress, suspendToRAM, suspendPath, timeIntervalCheckpoint, fileNameCheckpoint, *mergerTreeConstructor_, *metaTreeProcessingTime_, *mergerTreeOperator_, *nodeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_, *mergerTreeInitializor_, *randomNumberGenerator_, *mergerTreeSeeds_"/>
+    <constructorAssign variables="tolerateFailures, evolveForestsInParallel, countForestsMaximum, walltimeMaximum, timeIntervalReportProgress, estimateRunTimeOnly, suspendToRAM, suspendPath, timeIntervalCheckpoint, fileNameCheckpoint, *mergerTreeConstructor_, *metaTreeProcessingTime_, *mergerTreeOperator_, *nodeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_, *mergerTreeInitializor_, *randomNumberGenerator_, *mergerTreeSeeds_"/>
     !!]
 
     self%parameters  => parameters
@@ -628,8 +638,14 @@ contains
        end if
     end if
     ! Report a start-of-run estimate of the total run time (only when a cost model and census are both available), and warn if it
-    ! exceeds any wall-time budget.
-    if (reportProgress) call evolveForestsProgressStart(self,countTreesTotal,workPredictedTotal,workerCount,haveCostModel)
+    ! exceeds any wall-time budget. The estimate is always reported when running in estimate-only mode.
+    if (reportProgress .or. self%estimateRunTimeOnly) call evolveForestsProgressStart(self,countTreesTotal,workPredictedTotal,workerCount,haveCostModel)
+    ! In estimate-only mode, report the estimate and exit without evolving any trees (used for sizing job requests).
+    if (self%estimateRunTimeOnly) then
+       !$ call OMP_Destroy_Lock(initializationLock)
+       call displayUnindent('Done task: merger tree evolution (run-time estimate only; no trees evolved)')
+       return
+    end if
 
     ! Begin parallel processing of trees until all work is done.
     !$omp parallel copyin(finished) if (self%evolveForestsInParallel)
