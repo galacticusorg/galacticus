@@ -46,6 +46,30 @@ module Merger_Tree_Construction
     <argument>integer(c_size_t), intent(in   ) :: treeNumber</argument>
     <argument>logical          , intent(  out) :: finished</argument>
    </method>
+   <method name="countTrees" >
+    <description>
+    Return the total number of trees that will be constructed, or a negative value if this is not known. The default implementation returns a negative value; implementations that know the total tree count up-front (e.g. the ``build`` constructor) should override this to enable whole-run progress and run-time estimation.
+    </description>
+    <type>integer(c_size_t)</type>
+    <pass>yes</pass>
+    <code>
+      ! By default the total number of trees is not known.
+      !$GLC attributes unused :: self
+      mergerTreeConstructorCountTrees=-1_c_size_t
+    </code>
+   </method>
+   <method name="treeMasses" >
+    <description>
+    Return the root masses (in units of $M_\odot$) of the trees that will be constructed. The output array is left unallocated if the masses are not known up-front. The default implementation leaves the array unallocated; implementations that know the tree masses up-front (e.g. the ``build`` constructor) should override this to enable whole-run run-time estimation.
+    </description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>double precision, allocatable, dimension(:), intent(  out) :: masses</argument>
+    <code>
+      ! By default the tree masses are not known.
+      !$GLC attributes unused :: self, masses
+    </code>
+   </method>
    <method name="randomSequenceNonDeterministicWarn" >
     <description>
     Display a warning if the merger tree random number generator sequence is non-deterministic.
