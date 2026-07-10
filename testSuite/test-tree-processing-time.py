@@ -79,3 +79,33 @@ if status.returncode != 0:
     print("FAILED: consumer model run (reading cost model from HDF5)")
     sys.exit(0)
 print("SUCCESS: consumer model run (cost model read from HDF5)")
+
+# Run a model with task-level progress reporting enabled and a task-scope cost model, and confirm that the start-of-run estimate,
+# the throttled progress reports, and the end-of-run summary are all emitted.
+status = subprocess.run(
+    "cd ..; ./Galacticus.exe testSuite/parameters/treeProcessingTimeProgress.xml > testSuite/outputs/treeProcessingTimeProgress.log 2>&1",
+    shell=True
+)
+if status.returncode != 0:
+    print("FAILED: progress-reporting model run")
+    sys.exit(0)
+with open("outputs/treeProcessingTimeProgress.log") as logFile:
+    progressLog = logFile.read()
+checks = {
+    "start-of-run run-time estimate": "Run-time estimate:",
+    "throttled progress report"     : "Progress:",
+    "end-of-run run-time summary"   : "Run-time summary:",
+}
+progressSuccess = True
+for label, marker in checks.items():
+    if marker in progressLog:
+        print(f"SUCCESS: {label} emitted")
+    else:
+        print(f"FAILED: {label} not emitted (marker '{marker}' absent)")
+        progressSuccess = False
+# The estimate should reference a positive tree count, and the final progress report should reach 100%.
+if "Run-time estimate:" in progressLog and " trees," in progressLog and "100.0% complete" not in progressLog:
+    print("FAILED: progress never reached 100% complete")
+    progressSuccess = False
+if progressSuccess:
+    print("SUCCESS: task-level progress and run-time estimation reporting")

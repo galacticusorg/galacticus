@@ -22,6 +22,7 @@
   use            :: Input_Parameters               , only : inputParameters
   use            :: Kind_Numbers                   , only : kind_int8
   use            :: Merger_Tree_Construction       , only : mergerTreeConstructorClass
+  use            :: Meta_Tree_Compute_Times        , only : metaTreeProcessingTimeClass
   use            :: Merger_Tree_Initialization     , only : mergerTreeInitializorClass
   use            :: Merger_Tree_Operators          , only : mergerTreeOperatorClass
   use            :: Merger_Tree_Outputters         , only : mergerTreeOutputter        , mergerTreeOutputterClass
@@ -64,6 +65,10 @@
      ! Objects used in tree processing.
      class           (mergerTreeConstructorClass ), pointer :: mergerTreeConstructor_        => null()
      class           (mergerTreeOperatorClass    ), pointer :: mergerTreeOperator_           => null()
+     ! Cost model used for whole-run progress and run-time estimation.
+     class           (metaTreeProcessingTimeClass), pointer :: metaTreeProcessingTime_       => null()
+     ! Minimum wall-clock interval (in seconds) between progress reports; non-positive disables progress reporting.
+     double precision                                       :: timeIntervalReportProgress
      class           (mergerTreeEvolverClass     ), pointer :: mergerTreeEvolver_            => null()
      class           (mergerTreeOutputterClass   ), pointer :: mergerTreeOutputter_          => null()
      class           (mergerTreeInitializorClass ), pointer :: mergerTreeInitializor_        => null()
@@ -133,6 +138,7 @@ contains
     class           (nodeOperatorClass          ), pointer               :: nodeOperator_
     class           (evolveForestsWorkShareClass), pointer               :: evolveForestsWorkShare_
     class           (mergerTreeConstructorClass ), pointer               :: mergerTreeConstructor_
+    class           (metaTreeProcessingTimeClass), pointer               :: metaTreeProcessingTime_
     class           (outputTimesClass           ), pointer               :: outputTimes_
     class           (universeOperatorClass      ), pointer               :: universeOperator_
     class           (mergerTreeEvolverClass     ), pointer               :: mergerTreeEvolver_
@@ -146,6 +152,7 @@ contains
          &                                                                  tolerateFailures
     integer         (kind_int8                  )                        :: walltimeMaximum        , timeIntervalCheckpoint
     integer         (c_size_t                   )                        :: countForestsMaximum
+    double precision                                                     :: timeIntervalReportProgress
     type            (varying_string             )                        :: suspendPath            , fileNameCheckpoint
 
     ! Ensure the nodes objects are initialized.
@@ -175,6 +182,14 @@ contains
       <defaultValue>-1_kind_int8</defaultValue>
       <description>
       If set to a positive number, this is the maximum wall time for which forest evolution is allowed to proceed before the task gives up.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>timeIntervalReportProgress</name>
+      <defaultValue>60.0d0</defaultValue>
+      <description>
+      The minimum wall-clock interval (in seconds) between whole-run progress and estimated-time-remaining reports during forest evolution. If zero or negative, no progress reports are made.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -237,6 +252,7 @@ contains
     end if
     !![
     <objectBuilder class="mergerTreeConstructor"  name="mergerTreeConstructor_"  source="parameters"/>
+    <objectBuilder class="metaTreeProcessingTime" name="metaTreeProcessingTime_" source="parameters"/>
     <objectBuilder class="mergerTreeOperator"     name="mergerTreeOperator_"     source="parameters"/>
     <objectBuilder class="nodeOperator"           name="nodeOperator_"           source="parameters"/>
     <objectBuilder class="evolveForestsWorkShare" name="evolveForestsWorkShare_" source="parameters"/>
@@ -249,9 +265,9 @@ contains
     <objectBuilder class="mergerTreeSeeds"        name="mergerTreeSeeds_"        source="parameters"/>
     !!]
     if (associated(parametersRoot)) then
-       self=taskEvolveForests(tolerateFailures,evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parametersRoot)
+       self=taskEvolveForests(tolerateFailures,evolveForestsInParallel,countForestsMaximum,walltimeMaximum,timeIntervalReportProgress,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,metaTreeProcessingTime_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parametersRoot)
     else
-       self=taskEvolveForests(tolerateFailures,evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters    )
+       self=taskEvolveForests(tolerateFailures,evolveForestsInParallel,countForestsMaximum,walltimeMaximum,timeIntervalReportProgress,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,metaTreeProcessingTime_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters    )
     end if
     !![
     <inputParametersValidate source="parameters"/>
@@ -273,6 +289,7 @@ contains
     !!]
     !![
     <objectDestructor name="mergerTreeConstructor_" />
+    <objectDestructor name="metaTreeProcessingTime_"/>
     <objectDestructor name="mergerTreeOperator_"    />
     <objectDestructor name="nodeOperator_"          />
     <objectDestructor name="evolveForestsWorkShare_"/>
@@ -287,7 +304,7 @@ contains
     return
   end function evolveForestsConstructorParameters
 
-  function evolveForestsConstructorInternal(tolerateFailures,evolveForestsInParallel,countForestsMaximum,walltimeMaximum,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters) result(self)
+  function evolveForestsConstructorInternal(tolerateFailures,evolveForestsInParallel,countForestsMaximum,walltimeMaximum,timeIntervalReportProgress,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,metaTreeProcessingTime_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`taskEvolveForests` task class.
     !!}
@@ -299,8 +316,10 @@ contains
          &                                                                  tolerateFailures
     integer         (kind_int8                  ), intent(in   )         :: walltimeMaximum        , timeIntervalCheckpoint
     integer         (c_size_t                   ), intent(in   )         :: countForestsMaximum
+    double precision                             , intent(in   )         :: timeIntervalReportProgress
     type            (varying_string             ), intent(in   )         :: suspendPath            , fileNameCheckpoint
     class           (mergerTreeConstructorClass ), intent(in   ), target :: mergerTreeConstructor_
+    class           (metaTreeProcessingTimeClass), intent(in   ), target :: metaTreeProcessingTime_
     class           (mergerTreeOperatorClass    ), intent(in   ), target :: mergerTreeOperator_
     class           (nodeOperatorClass          ), intent(in   ), target :: nodeOperator_
     class           (evolveForestsWorkShareClass), intent(in   ), target :: evolveForestsWorkShare_
@@ -315,7 +334,7 @@ contains
     integer         (c_size_t                   )                        :: i
     double precision                                                     :: timeStepMinimum
     !![
-    <constructorAssign variables="tolerateFailures, evolveForestsInParallel, countForestsMaximum, walltimeMaximum, suspendToRAM, suspendPath, timeIntervalCheckpoint, fileNameCheckpoint, *mergerTreeConstructor_, *mergerTreeOperator_, *nodeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_, *mergerTreeInitializor_, *randomNumberGenerator_, *mergerTreeSeeds_"/>
+    <constructorAssign variables="tolerateFailures, evolveForestsInParallel, countForestsMaximum, walltimeMaximum, timeIntervalReportProgress, suspendToRAM, suspendPath, timeIntervalCheckpoint, fileNameCheckpoint, *mergerTreeConstructor_, *metaTreeProcessingTime_, *mergerTreeOperator_, *nodeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_, *mergerTreeInitializor_, *randomNumberGenerator_, *mergerTreeSeeds_"/>
     !!]
 
     self%parameters  => parameters
@@ -435,6 +454,7 @@ contains
     if (.not.self%initialized) return
     !![
     <objectDestructor name="self%mergerTreeConstructor_" />
+    <objectDestructor name="self%metaTreeProcessingTime_"/>
     <objectDestructor name="self%mergerTreeOperator_"    />
     <objectDestructor name="self%nodeOperator_"          />
     <objectDestructor name="self%evolveForestsWorkShare_"/>
@@ -466,9 +486,11 @@ contains
     use               :: Merger_Tree_Construction, only : mergerTreeStateFromFile
     use               :: Merger_Tree_Walkers     , only : mergerTreeWalkerAllNodes
     use               :: Merger_Tree_Outputters  , only : outputGroupTypeSnapshot
+    use               :: MPI_Utilities           , only : mpiSelf
     use               :: Node_Components         , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use               :: Node_Events_Inter_Tree  , only : Inter_Tree_Event_Post_Evolve
-    !$ use            :: OMP_Lib                 , only : OMP_Destroy_Lock                 , OMP_Get_Thread_Num                 , OMP_Init_Lock  , omp_lock_kind
+    !$ use            :: OMP_Lib                 , only : OMP_Destroy_Lock                 , OMP_Get_Thread_Num                 , OMP_Init_Lock  , omp_lock_kind    , &
+    !$      &                                            OMP_Get_Max_Threads
     use               :: Sorting                 , only : sortIndex
     use               :: String_Handling         , only : operator(//)
     implicit none
@@ -509,6 +531,24 @@ contains
     !$omp threadprivate(node,basic,treeNumber,treesFinished,parameters,statusForest)
     logical                                                                     :: checkpointRestored   , checkpointing         , &
          &                                                                         universeUpdated      , failed
+    ! Whole-run progress and run-time estimation accumulators. The counts, work sums, and clock references below are shared across
+    ! all OpenMP threads of this process (they are neither "save"d nor "threadprivate") and are updated atomically or within a
+    ! critical section. The per-tree scratch variables (start clock, predicted and actual times, etc.) are threadprivate.
+    integer         (c_size_t                )                                  :: countTreesTotal      , countTreesCompleted
+    double precision                                                           :: workPredictedTotal   , workPredictedCompleted , &
+         &                                                                         timeActualCompleted  , timeTreeActualMaximum  , &
+         &                                                                         timeTreePredicted_
+    integer                                                                    :: workerCount
+    integer         (kind_int8               )                                  :: clockStart           , clockRate             , &
+         &                                                                         clockLastReport
+    logical                                                                     :: haveCostModel        , reportProgress
+    integer         (kind_int8               )                           , save :: clockTreeStart       , clockNow
+    double precision                                                     , save :: timeTreePredicted    , massTree              , &
+         &                                                                         timeTreeActual       , elapsed
+    logical                                                              , save :: treeWasProcessed
+    !$omp threadprivate(clockTreeStart,clockNow,timeTreePredicted,massTree,timeTreeActual,elapsed,treeWasProcessed)
+    double precision                            , allocatable, dimension(:)     :: massesCensus
+    integer         (c_size_t                )                                  :: iCensus
 
     ! The following processes merger trees, one at a time, to each successive output time, then dumps their contents to file. It
     ! allows for the possibility of "universal events" - events which require all merger trees to reach the same cosmic time. If
@@ -547,6 +587,49 @@ contains
     else
        systemClockMaximum=0_kind_int8
     end if
+
+    ! Initialize whole-run progress and run-time-estimation accumulators. These are shared across the OpenMP threads of this process
+    ! and are updated atomically as trees complete. Determine the total number of trees to be processed (the census), the total
+    ! number of workers (across MPI processes and OpenMP threads), and---if a cost model and census are available---the total
+    ! predicted work (in CPU-seconds), which is used to give a start-of-run run-time estimate and to weight the progress estimate.
+    countTreesCompleted   =0_c_size_t
+    workPredictedCompleted=0.0d0
+    timeActualCompleted   =0.0d0
+    timeTreeActualMaximum =0.0d0
+    reportProgress        =self%timeIntervalReportProgress > 0.0d0
+    call System_Clock(clockStart,clockRate)
+    clockLastReport       =clockStart
+    countTreesTotal       =self%mergerTreeConstructor_%countTrees()
+    ! Compute the total number of workers (across MPI processes and OpenMP threads) directly, rather than via the work-share object,
+    ! so as not to populate its worker-ID cache before it is deep-copied to each thread. Heterogeneous per-process thread counts are
+    ! not accounted for here (the estimate assumes a uniform thread count per process).
+    workerCount           =1
+    !$ if (self%evolveForestsInParallel) workerCount=OMP_Get_Max_Threads()
+#ifdef USEMPI
+    workerCount           =workerCount*mpiSelf%count()
+#endif
+    workPredictedTotal    =-1.0d0
+    haveCostModel         =.false.
+    if (countTreesTotal > 0_c_size_t) then
+       call self%mergerTreeConstructor_%treeMasses(massesCensus)
+       if (allocated(massesCensus)) then
+          workPredictedTotal=0.0d0
+          haveCostModel     =.true.
+          do iCensus=1_c_size_t,size(massesCensus,kind=c_size_t)
+             timeTreePredicted_=self%metaTreeProcessingTime_%time(massesCensus(iCensus))
+             if (timeTreePredicted_ <= 0.0d0) then
+                ! No usable cost model (e.g. the null estimator) - fall back to tree-count-based progress only.
+                haveCostModel     =.false.
+                workPredictedTotal=-1.0d0
+                exit
+             end if
+             workPredictedTotal=workPredictedTotal+timeTreePredicted_
+          end do
+       end if
+    end if
+    ! Report a start-of-run estimate of the total run time (only when a cost model and census are both available), and warn if it
+    ! exceeds any wall-time budget.
+    if (reportProgress) call evolveForestsProgressStart(self,countTreesTotal,workPredictedTotal,workerCount,haveCostModel)
 
     ! Begin parallel processing of trees until all work is done.
     !$omp parallel copyin(finished) if (self%evolveForestsInParallel)
@@ -594,6 +677,11 @@ contains
     treeProcess : do while (.not.finished)
        ! Attempt to get a new tree to process. We first try to get a new tree. If no new trees exist, we will look for a tree on
        ! the stack waiting to be processed.
+       ! Record the wall-clock time at the start of processing this tree, and reset the predicted processing time (a negative value
+       ! indicates "not yet computed") and the per-iteration "tree was processed" flag, for whole-run progress accounting.
+       call System_Clock(clockTreeStart)
+       timeTreePredicted=-1.0d0
+       treeWasProcessed =.false.
        ! Perform any pre-tree construction tasks.
        call mergerTreeOperator_%operatePreConstruction()
        ! Get a tree.
@@ -637,11 +725,19 @@ contains
        call reportMemoryUsage()
        ! If we got a tree (i.e. we are not "finished") process it.
        if (.not.finished) then
-          treeIsFinished=.false.
+          treeIsFinished  =.false.
+          treeWasProcessed=.true.
           ! Count trees.
           !$omp atomic
           treeCount=treeCount+1_c_size_t
           if (treeCount > 1_c_size_t .and. self%timeIntervalCheckpoint > 0_kind_int8) call Error_Report('more than 1 tree not permitted when checkpointing is enabled'//{introspection:location})
+          ! Record the cost-model prediction for the processing time of this tree (in CPU-seconds), for whole-run progress
+          ! accounting. A negative value indicates that no prediction is available.
+          if (haveCostModel .and. associated(tree%nodeBase)) then
+             basicNodeBase     => tree%nodeBase%basic()
+             massTree          =  basicNodeBase%mass ()
+             timeTreePredicted =  self%metaTreeProcessingTime_%time(massTree)
+          end if
           ! If this is a new tree, perform any initialization and pre-evolution tasks on it.
           if (treeIsNew) then
              ! Walk over all nodes and perform "node tree" initialization. This typically includes initialization related to
@@ -867,6 +963,33 @@ contains
        end if
        ! Perform any post-evolution operations on the tree.
        if (treeIsFinished) call mergerTreeOperator_%operatePostEvolution()
+       ! Accumulate whole-run progress statistics for a finished tree, and emit a throttled progress and estimated-time-remaining
+       ! report. The "treeWasProcessed" guard avoids a spurious count on the final loop iteration, where no tree is obtained but
+       ! "treeIsFinished" retains its (threadprivate) value from the previously-processed tree.
+       if (treeIsFinished .and. treeWasProcessed) then
+          call System_Clock(clockNow)
+          timeTreeActual=dble(clockNow-clockTreeStart)/dble(clockRate)
+          !$omp atomic
+          countTreesCompleted=countTreesCompleted+1_c_size_t
+          !$omp atomic
+          timeActualCompleted=timeActualCompleted+timeTreeActual
+          if (timeTreePredicted > 0.0d0) then
+             !$omp atomic
+             workPredictedCompleted=workPredictedCompleted+timeTreePredicted
+          end if
+          !$omp critical(evolveForestsProgress)
+          if (timeTreeActual > timeTreeActualMaximum) timeTreeActualMaximum=timeTreeActual
+          if     (                                                                                  &
+               &   reportProgress                                                                   &
+               &  .and.                                                                             &
+               &   dble(clockNow-clockLastReport)/dble(clockRate) >= self%timeIntervalReportProgress &
+               & ) then
+             clockLastReport=clockNow
+             elapsed        =dble(clockNow-clockStart)/dble(clockRate)
+             call evolveForestsProgressReport(self,countTreesCompleted,countTreesTotal,workPredictedCompleted,workPredictedTotal,timeActualCompleted,elapsed,haveCostModel,workerCount)
+          end if
+          !$omp end critical(evolveForestsProgress)
+       end if
        ! If any trees were pushed onto the processed stack, then there must be an event to process.
        if (finished) then
           !$omp barrier
@@ -957,6 +1080,13 @@ contains
     !$omp end masked
     !$omp end parallel
 
+    ! Report an end-of-run timing summary, phrased to be useful for sizing subsequent job submissions.
+    if (reportProgress) then
+       call System_Clock(clockNow)
+       elapsed=dble(clockNow-clockStart)/dble(clockRate)
+       call evolveForestsProgressEnd(countTreesCompleted,elapsed,timeActualCompleted,timeTreeActualMaximum,workerCount)
+    end if
+
     ! Finalize outputs.
     call self%mergerTreeOutputter_%finalize()
 
@@ -971,6 +1101,149 @@ contains
 
     return
   end subroutine evolveForestsPerform
+
+  function evolveForestsFormatDuration(seconds) result(formatted)
+    !!{RST
+    Format a duration (in seconds) as a human-readable string, choosing seconds, minutes, hours, or days as appropriate.
+    !!}
+    use :: ISO_Varying_String, only : varying_string, assignment(=)
+    implicit none
+    type            (varying_string)                :: formatted
+    double precision                , intent(in   ) :: seconds
+    character       (len=32        )                :: label
+
+    if      (seconds <     1.0d0) then
+       write (label,'(f6.3,a2)') seconds            ,' s'
+    else if (seconds <    60.0d0) then
+       write (label,'(f6.1,a2)') seconds            ,' s'
+    else if (seconds <  3600.0d0) then
+       write (label,'(f6.1,a2)') seconds/  60.0d0   ,' m'
+    else if (seconds < 86400.0d0) then
+       write (label,'(f6.2,a2)') seconds/3600.0d0   ,' h'
+    else
+       write (label,'(f6.2,a2)') seconds/86400.0d0  ,' d'
+    end if
+    formatted=trim(adjustl(label))
+    return
+  end function evolveForestsFormatDuration
+
+  subroutine evolveForestsProgressStart(self,countTreesTotal,workPredictedTotal,workerCount,haveCostModel)
+    !!{RST
+    Report a start-of-run estimate of the total run time, when a cost model and tree census are both available. This is intended to
+    help size cluster job requests. The estimate is conditional on the calibration model used for the cost model.
+    !!}
+    use            :: Display          , only : displayMessage , displayMagenta, displayReset
+    use            :: ISO_Varying_String, only : varying_string, operator(//)  , var_str
+    use            :: MPI_Utilities    , only : mpiSelf
+    use            :: String_Handling  , only : operator(//)
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
+    implicit none
+    class           (taskEvolveForests), intent(in   ) :: self
+    integer         (c_size_t         ), intent(in   ) :: countTreesTotal
+    double precision                   , intent(in   ) :: workPredictedTotal
+    integer                            , intent(in   ) :: workerCount
+    logical                            , intent(in   ) :: haveCostModel
+    type            (varying_string   )                :: message
+    double precision                                   :: estimateWallTime
+
+    ! Report only from the master MPI process (all processes share the same census and cost model).
+#ifdef USEMPI
+    if (mpiSelf%rank() /= 0) return
+#endif
+    if (haveCostModel .and. workerCount > 0) then
+       estimateWallTime=workPredictedTotal/dble(workerCount)
+       message=var_str('Run-time estimate: ')//countTreesTotal//' trees, ~'//evolveForestsFormatDuration(workPredictedTotal)//' of predicted core-time; estimated wall time ~'//evolveForestsFormatDuration(estimateWallTime)//' with '//workerCount//' worker(s) [conditional on the calibration cost model].'
+       call displayMessage(message)
+       ! Warn if the estimated wall time exceeds any wall-time budget.
+       if (self%walltimeMaximum > 0_kind_int8 .and. estimateWallTime > dble(self%walltimeMaximum)) &
+            & call displayMessage(displayMagenta()//'WARNING:'//displayReset()//' estimated wall time ~'//evolveForestsFormatDuration(estimateWallTime)//' exceeds the wall-time budget of '//evolveForestsFormatDuration(dble(self%walltimeMaximum))//'.')
+    else if (countTreesTotal > 0_c_size_t) then
+       message=var_str('Processing ')//countTreesTotal//' trees (no cost model available for a start-of-run run-time estimate).'
+       call displayMessage(message)
+    end if
+    return
+  end subroutine evolveForestsProgressStart
+
+  subroutine evolveForestsProgressReport(self,countTreesCompleted,countTreesTotal,workPredictedCompleted,workPredictedTotal,timeActualCompleted,elapsed,haveCostModel,workerCount)
+    !!{RST
+    Report a throttled whole-run progress and estimated-time-remaining message. When a cost model is available the remaining time is
+    estimated by rescaling the predicted total work by the ratio of actual to predicted time measured over the trees completed so
+    far (self-calibration); otherwise a simpler tree-count-based estimate is used. Under MPI the accumulators are per-process, so the
+    message is labelled with the process rank.
+    !!}
+    use            :: Display          , only : displayMessage
+    use            :: ISO_Varying_String, only : varying_string, operator(//)  , var_str
+    use            :: MPI_Utilities    , only : mpiSelf
+    use            :: String_Handling  , only : operator(//)
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
+    implicit none
+    class           (taskEvolveForests), intent(in   ) :: self
+    integer         (c_size_t         ), intent(in   ) :: countTreesCompleted, countTreesTotal
+    double precision                   , intent(in   ) :: workPredictedCompleted, workPredictedTotal, &
+         &                                                timeActualCompleted   , elapsed
+    logical                            , intent(in   ) :: haveCostModel
+    integer                            , intent(in   ) :: workerCount
+    type            (varying_string   )                :: message
+    double precision                                   :: estimateTotalWallTime, estimateRemaining , &
+         &                                                correction           , fractionComplete
+    character       (len=32           )                :: label
+    !$GLC attributes unused :: self
+
+    message=var_str('Progress: ')
+#ifdef USEMPI
+    if (mpiSelf%count() > 1) message=message//'[process '//mpiSelf%rank()//'] '
+#endif
+    message=message//countTreesCompleted
+    if (countTreesTotal > 0_c_size_t) message=message//' of '//countTreesTotal
+    message=message//' trees processed'
+    if     (haveCostModel .and. workPredictedCompleted > 0.0d0 .and. workPredictedTotal > 0.0d0 .and. workerCount > 0) then
+       ! Self-calibrate: rescale the predicted total work by the measured ratio of actual to predicted processing time.
+       correction           =timeActualCompleted  /workPredictedCompleted
+       estimateTotalWallTime=correction*workPredictedTotal/dble(workerCount)
+       estimateRemaining    =max(0.0d0,estimateTotalWallTime-elapsed)
+       fractionComplete     =min(1.0d0,elapsed/estimateTotalWallTime)
+       write (label,'(f5.1)') 100.0d0*fractionComplete
+       message=message//'; ~'//trim(adjustl(label))//'% complete; elapsed '//evolveForestsFormatDuration(elapsed)//', est. remaining '//evolveForestsFormatDuration(estimateRemaining)
+    else if (countTreesTotal > 0_c_size_t .and. countTreesCompleted > 0_c_size_t) then
+       ! No cost model: estimate from the mean time per tree so far.
+       fractionComplete =dble(countTreesCompleted)/dble(countTreesTotal)
+       estimateRemaining=elapsed*(1.0d0-fractionComplete)/fractionComplete
+       write (label,'(f5.1)') 100.0d0*fractionComplete
+       message=message//'; ~'//trim(adjustl(label))//'% complete; elapsed '//evolveForestsFormatDuration(elapsed)//', est. remaining '//evolveForestsFormatDuration(estimateRemaining)
+    else
+       message=message//'; elapsed '//evolveForestsFormatDuration(elapsed)
+    end if
+    call displayMessage(message)
+    return
+  end subroutine evolveForestsProgressReport
+
+  subroutine evolveForestsProgressEnd(countTreesCompleted,elapsed,timeActualCompleted,timeTreeActualMaximum,workerCount)
+    !!{RST
+    Report an end-of-run timing summary, phrased to be useful for sizing subsequent job submissions. Under MPI the summary is
+    per-process.
+    !!}
+    use            :: Display          , only : displayMessage
+    use            :: ISO_Varying_String, only : varying_string, operator(//)  , var_str
+    use            :: MPI_Utilities    , only : mpiSelf
+    use            :: String_Handling  , only : operator(//)
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
+    implicit none
+    integer         (c_size_t         ), intent(in   ) :: countTreesCompleted
+    double precision                   , intent(in   ) :: elapsed            , timeActualCompleted, &
+         &                                                timeTreeActualMaximum
+    integer                            , intent(in   ) :: workerCount
+    type            (varying_string   )                :: message
+    !$GLC attributes unused :: workerCount
+
+    if (countTreesCompleted <= 0_c_size_t) return
+    message=var_str('Run-time summary: ')
+#ifdef USEMPI
+    if (mpiSelf%count() > 1) message=message//'[process '//mpiSelf%rank()//'] '
+#endif
+    message=message//countTreesCompleted//' trees in '//evolveForestsFormatDuration(elapsed)//' wall time ('//evolveForestsFormatDuration(timeActualCompleted)//' core-time); mean '//evolveForestsFormatDuration(timeActualCompleted/dble(countTreesCompleted))//'/tree, max '//evolveForestsFormatDuration(timeTreeActualMaximum)//'/tree.'
+    call displayMessage(message)
+    return
+  end subroutine evolveForestsProgressEnd
 
   subroutine evolveForestsSuspendTree(self,tree)
     !!{RST
