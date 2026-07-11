@@ -293,9 +293,18 @@ def _process_until_include_or_eof(fh, frame, build, source_directory,
     we exhausted the file.
     """
     while True:
-        raw_line, processed_line, _ = get_fortran_line(fh) \
-            if build['codeType'] == 'fortran' \
-            else (fh.readline(), fh.readline(), '')
+        if build['codeType'] == 'fortran':
+            raw_line, processed_line, _ = get_fortran_line(fh)
+        else:
+            # For C/C++ the raw and processed forms are the same single line;
+            # `get_fortran_line`'s continuation-joining does not apply. Read
+            # ONE line and use it for both — mirrors `_consume_until_close`
+            # below and the Perl original. (A previous
+            # `(fh.readline(), fh.readline(), '')` here read two lines per
+            # iteration, so `raw_line`/`processed_line` were different,
+            # consecutive lines and every other line was skipped.)
+            line = fh.readline()
+            raw_line, processed_line = line, line
         if not raw_line and not processed_line:
             return None
 
