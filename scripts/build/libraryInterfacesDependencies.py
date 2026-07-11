@@ -51,13 +51,23 @@ for name in units:
         f"{build_path}libgalacticus/{name}.p.F90 :"
         f" {build_path}libgalacticus/{name}.p.F90.up\n"
         f"\t@true\n"
+        # The compile recipe mirrors the main Makefile's `%.o` pattern rule
+        # (see the comment there): diagnostics go to a file so the compiler's
+        # exit status is preserved rather than being masked by the
+        # postprocess.py pipe. Keep the two recipes in sync.
         f"{build_path}libgalacticus/{name}.o :"
         f" {build_path}libgalacticus/{name}.p.F90"
         f" {build_path}libgalacticus/{name}.d Makefile\n"
         f"\t@mkdir -p {build_path}/moduleBuild\n"
         f"\t$(FCCOMPILER) -c {build_path}libgalacticus/{name}.p.F90"
-        f" -o {build_path}libgalacticus/{name}.o $(FCFLAGS) 2>&1"
-        f" | ./scripts/build/postprocess.py {build_path}libgalacticus/{name}.p.F90\n"
+        f" -o {build_path}libgalacticus/{name}.o $(FCFLAGS)"
+        f" > {build_path}libgalacticus/{name}.o.diag 2>&1; \\\n"
+        f"\tcompileStatus=$$?; \\\n"
+        f"\t./scripts/build/postprocess.py {build_path}libgalacticus/{name}.p.F90"
+        f" < {build_path}libgalacticus/{name}.o.diag; \\\n"
+        f"\tpostprocessStatus=$$?; \\\n"
+        f"\trm -f {build_path}libgalacticus/{name}.o.diag; \\\n"
+        f"\t[ $$compileStatus -eq 0 ] && [ $$postprocessStatus -eq 0 ]\n"
         f"\n"
     )
 
