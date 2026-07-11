@@ -33,6 +33,7 @@ Implements the geometry of the DES survey for Local Group dwarfs.
      private
      double precision :: distanceMaximumSurvey
    contains
+     final     ::                              localGroupDESDestructor
      procedure :: fieldCount                => localGroupDESFieldCount
      procedure :: distanceMaximum           => localGroupDESDistanceMaximum
      procedure :: angularPowerMaximumDegree => localGroupDESAngularPowerMaximumDegree
@@ -62,6 +63,7 @@ contains
     type            (surveyGeometryLocalGroupDES)                :: self
     type            (inputParameters            ), intent(inout) :: parameters
     double precision                                             :: distanceMaximumSurvey
+    class           (randomNumberGeneratorClass ), pointer       :: randomNumberGenerator_
 
     !![
     <inputParameter docformat="rst">
@@ -73,27 +75,45 @@ contains
       </description>
     </inputParameter>
     !!]
-    self=surveyGeometryLocalGroupDES(distanceMaximumSurvey)
+    !![
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
+    self=surveyGeometryLocalGroupDES(distanceMaximumSurvey,randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
     !!]
     return
   end function localGroupDESConstructorParameters
 
-  function localGroupDESConstructorInternal(distanceMaximumSurvey) result (self)
+  function localGroupDESConstructorInternal(distanceMaximumSurvey,randomNumberGenerator_) result (self)
     !!{RST
     Internal constructor for the :galacticus-class:`surveyGeometryLocalGroupDES` survey geometry class.
     !!}
     implicit none
-    type            (surveyGeometryLocalGroupDES)                :: self
-    double precision                             , intent(in   ) :: distanceMaximumSurvey
+    type            (surveyGeometryLocalGroupDES)                                  :: self
+    double precision                             , intent(in   )                   :: distanceMaximumSurvey
+    class           (randomNumberGeneratorClass ), intent(in   ), target, optional :: randomNumberGenerator_
     !![
-    <constructorAssign variables="distanceMaximumSurvey"/>
+    <constructorAssign variables="distanceMaximumSurvey, *randomNumberGenerator_"/>
     !!]
 
     call self%initialize()
     return
   end function localGroupDESConstructorInternal
+
+  subroutine localGroupDESDestructor(self)
+    !!{RST
+    Destructor for the :galacticus-class:`surveyGeometryLocalGroupDES` survey geometry class.
+    !!}
+    implicit none
+    type(surveyGeometryLocalGroupDES), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
+    return
+  end subroutine localGroupDESDestructor
 
   integer function localGroupDESFieldCount(self)
     !!{RST

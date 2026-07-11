@@ -6,6 +6,7 @@ import sys
 import os
 import re
 import keyword
+import hashlib
 
 import xml.etree.ElementTree as ET
 from Galacticus.Build import SourceTree
@@ -23,6 +24,7 @@ from LibraryInterfaces.Classification import (
     DYNAMIC_ARRAY_RETURN_2D_RX as _DYNAMIC_ARRAY_RETURN_2D_RX,
     normalize_method_return_type as _normalize_method_return_type,
     unsupported_arg            as _unsupported_arg,
+    unsupported_output_array_method as _unsupported_output_array_method,
 )
 from LibraryInterfaces.Pipeline import (
     assign_c_types,
@@ -30,6 +32,7 @@ from LibraryInterfaces.Pipeline import (
     build_python_reassignments,
     build_fortran_reassignments,
     _SHARED_TYPE_MODULES,
+    _CALLBACK_PROCEDURE_INTERFACES,
 )
 from LibraryInterfaces.Emitters import (
     ctypes_arg_types,
@@ -230,12 +233,15 @@ def _unsupported_method_arg(args, lib_function_classes, class_hierarchy=None):
     """If any method argument is unsupported, return ``(name, reason)``;
     otherwise ``None``.  Methods don't have constructor-style overrides for
     ``class(*)``, so the override list is empty and any ``class(*)`` arg is
-    rejected."""
+    rejected.  `allow_pointer_writeback` is method-only: the method wrapper
+    has a post-call hook for the pointer write-back protocol, the
+    constructor wrapper does not."""
     if class_hierarchy is None:
         class_hierarchy = _CLASS_HIERARCHY
     for arg in args:
         reason = _unsupported_arg(arg, lib_function_classes,
-                                  class_hierarchy=class_hierarchy)
+                                  class_hierarchy=class_hierarchy,
+                                  allow_pointer_writeback=True)
         if reason:
             return arg['name'], reason
     return None
@@ -1046,6 +1052,27 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
             methods_to_delete.append(method_name)
             continue
 
+        # Whole-method gate for output-array args (`intent(out),
+        # allocatable, dimension(:)`).  A per-arg check accepts each output
+        # array, but the current codegen only handles them on void-returning
+        # methods with no optionals whose other args are supported inputs;
+        # anything else (scalar intent(out) companion, inout allocatable,
+        # non-void return) would have an output the wrapper silently drops.
+        # Shared with the audit so their verdicts can't drift.
+        output_array_block = _unsupported_output_array_method(
+            [{'name': a['name'], 'intrinsic': a['intrinsic'],
+              'type': a['type'], 'attributes': a['attributes']}
+             for a in arg_list[1:]],
+            method_type)
+        if output_array_block:
+            sys.stderr.write(
+                f"libraryInterfaces.py: caution: method '{method_name}' in"
+                f" class '{class_name}': {output_array_block} — skipping"
+                f" method\n"
+            )
+            methods_to_delete.append(method_name)
+            continue
+
         # Process arguments
         arg_list = assign_c_types(arg_list, lib_function_classes or {},
                                   class_hierarchy=_CLASS_HIERARCHY)
@@ -1054,6 +1081,205 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
         arg_list = build_fortran_reassignments(arg_list, func_class, None,
                                               extensions, module_uses_impls,
                                               lib_function_classes)
+
+        # Output-array args (`intent(out), allocatable, dimension(:)`): each
+        # is a wrapper-local `save, target` allocatable (declared + pre-call
+        # deallocated by assign_c_types) that the inner call fills.  Append a
+        # `(c_ptr, c_size_t)` intent(out) companion pair per output array to
+        # the bind(c) signature and set them, after the call, to
+        # `c_loc(buffer)` and `size(buffer)`.  The Python wrapper (bespoke
+        # branch below) wraps each pair into a numpy array.  Companions are
+        # appended at the end of the signature; the Python call passes them
+        # in this same order, so ctypes/bind(c) stay aligned.  Mirrors the
+        # single-slot dynamic-array *return* path (the _DYNAMIC_ARRAY_RETURN
+        # branch), generalised to N per-argument outputs.
+        # Pointer write-back args: after the inner call, write the local
+        # Fortran pointer's (possibly repointed) target address back
+        # through the by-reference c_ptr handle — c_null_ptr when the
+        # method left it disassociated (end-of-iteration for a tree
+        # walker).  The pre-call guarded c_f_pointer lives in the arg's
+        # fort_reassignment (see assign_c_types).
+        for a in (x for x in arg_list if x.is_pointer_writeback):
+            local = f'{a.name}_'
+            result_post_call_code += (
+                f'  if (associated({local})) then\n'
+                f'    {a.name} = c_loc({local})\n'
+                f'  else\n'
+                f'    {a.name} = c_null_ptr\n'
+                f'  end if\n'
+            )
+
+        output_arrays = [a for a in arg_list if a.is_output_array]
+        sized_outputs = [a for a in arg_list if a.is_output_sized]
+        for a in output_arrays:
+            local     = f'glcOut_{a.name}_'
+            ptr_name  = f'{a.name}DataPtr_'
+            result_extra_declarations += (
+                f'  type(c_ptr),       intent(out) :: {ptr_name}\n'
+            )
+            # Logical output arrays: the inner method filled the
+            # default-kind `glcOutInner_` local (see assign_c_types);
+            # kind-narrow it into the c_bool export buffer before taking
+            # its address (auto-realloc sizes the LHS — both buffers were
+            # deallocated pre-call).
+            if a.intrinsic == 'logical':
+                inner = f'glcOutInner_{a.name}_'
+                result_post_call_code += (
+                    f'  if (allocated({inner})) then\n'
+                    f'    {local} = logical({inner}, c_bool)\n'
+                    f'  end if\n'
+                )
+            # Guard c_loc: it is non-conforming on a zero-size or unallocated
+            # array (F2008 requires a contiguous, nonzero-size target), and
+            # an intent(out) allocatable may be left unallocated (or
+            # allocated to length 0 — e.g. transferFunction's default
+            # `allocate(wavenumbers(0))`) by the inner method.  In those
+            # cases report size 0 and a null pointer; the Python wrapper
+            # returns an empty array without dereferencing it.
+            if a.array_rank == 2:
+                # 2D: one size companion per axis; the Python wrapper
+                # reshapes the flat buffer column-major (order='F').
+                s1 = f'{a.name}Size1_'
+                s2 = f'{a.name}Size2_'
+                result_extra_declarations += (
+                    f'  integer(c_size_t), intent(out) :: {s1}\n'
+                    f'  integer(c_size_t), intent(out) :: {s2}\n'
+                )
+                result_post_call_code += (
+                    f'  if (allocated({local})) then\n'
+                    f'    {s1} = size({local}, dim=1, kind=c_size_t)\n'
+                    f'    {s2} = size({local}, dim=2, kind=c_size_t)\n'
+                    f'    if ({s1}*{s2} > 0_c_size_t) then\n'
+                    f'      {ptr_name} = c_loc({local})\n'
+                    f'    else\n'
+                    f'      {ptr_name} = c_null_ptr\n'
+                    f'    end if\n'
+                    f'  else\n'
+                    f'    {s1} = 0_c_size_t\n'
+                    f'    {s2} = 0_c_size_t\n'
+                    f'    {ptr_name} = c_null_ptr\n'
+                    f'  end if\n'
+                )
+                result_extra_fort_args     += [ptr_name, s1, s2]
+                result_extra_clib_argtypes += ['POINTER(c_void_p)',
+                                               'POINTER(c_size_t)',
+                                               'POINTER(c_size_t)']
+            else:
+                size_name = f'{a.name}Size_'
+                result_extra_declarations += (
+                    f'  integer(c_size_t), intent(out) :: {size_name}\n'
+                )
+                result_post_call_code += (
+                    f'  if (allocated({local})) then\n'
+                    f'    {size_name} = size({local}, kind=c_size_t)\n'
+                    f'    if ({size_name} > 0_c_size_t) then\n'
+                    f'      {ptr_name} = c_loc({local})\n'
+                    f'    else\n'
+                    f'      {ptr_name} = c_null_ptr\n'
+                    f'    end if\n'
+                    f'  else\n'
+                    f'    {size_name} = 0_c_size_t\n'
+                    f'    {ptr_name} = c_null_ptr\n'
+                    f'  end if\n'
+                )
+                result_extra_fort_args     += [ptr_name, size_name]
+                result_extra_clib_argtypes += ['POINTER(c_void_p)',
+                                               'POINTER(c_size_t)']
+            isoImports['c_ptr']            = 1
+            isoImports['c_size_t']         = 1
+            isoImports['c_loc']            = 1
+            isoImports['c_null_ptr']       = 1
+            isoImports[a.output_elem_ctype] = 1   # kind for the local buffer
+
+        # Inbound callback args (`procedure(<iface>)` with <iface> registered
+        # in _CALLBACK_PROCEDURE_INTERFACES; marked is_callback by
+        # assign_c_types).  Fortran has no closures, so per callback-taking
+        # method we emit a small module holding a `type(c_funptr)` slot and a
+        # shim function matching the Galacticus-side interface; the bind(c)
+        # wrapper stores the incoming funptr in the slot (fort_reassignment)
+        # and passes the shim to the inner method (fort_pass_as).  The slot
+        # is process-global: the callback is valid for the duration of the
+        # wrapped call only, matching the save-buffer conventions.  On the
+        # Python side the user's callable is adapted (py_adapter) and wrapped
+        # in the registry's CFUNCTYPE; the local reference keeps it alive for
+        # the duration of the call.
+        callback_args = [a for a in arg_list if a.is_callback]
+        if callback_args:
+            module_name = f'glcCB_{class_name}_{method_name}'
+            if len(module_name) > 63:
+                # Fortran caps identifiers at 63 chars; hash-truncate the
+                # tail deterministically (same scheme the interface names
+                # would need — nothing hits this today).
+                digest      = hashlib.md5(module_name.encode()).hexdigest()[:8]
+                module_name = module_name[:55] + digest
+            iface_blocks = ''
+            var_decls    = ''
+            shim_blocks  = ''
+            shim_uses    = {}
+            for a in callback_args:
+                spec  = _CALLBACK_PROCEDURE_INTERFACES[a.type_spec]
+                var   = f'glcCBPtr_{a.name}_'
+                shim  = f'glcCBShim_{a.name}_'
+                iface = f'glcCBIface_{a.name}_'
+                iface_blocks += spec['c_iface'].format(iface=iface)
+                var_decls    += f'  type(c_funptr) :: {var} = c_null_funptr\n'
+                shim_blocks  += spec['shim'].format(shim=shim, iface=iface,
+                                                    var=var)
+                for mod, symbols in spec['shim_uses'].items():
+                    shim_uses.setdefault(mod, set()).update(symbols)
+                if 'pointer' in a.attributes:
+                    # `procedure(...), pointer` dummy: the actual must
+                    # itself be a procedure pointer, so the module also
+                    # carries a slot declared with the registry's
+                    # Galacticus-side abstract interface (a module
+                    # procedure from the same contains part can't serve as
+                    # the interface-name in the specification part).  The
+                    # wrapper re-aims it at the shim before every call, so
+                    # a callee that repoints it does no lasting harm.
+                    giface = f'glcCBGIface_{a.name}_'
+                    pp     = f'glcCBPP_{a.name}_'
+                    iface_blocks += spec['g_iface'].format(giface=giface)
+                    var_decls    += (f'  procedure({giface}), pointer ::'
+                                     f' {pp} => null()\n')
+                    a.fort_reassignment = (f'  {var} = {a.name}\n'
+                                           f'  {pp} => {shim}\n')
+                    a.fort_pass_as      = pp
+                    a.fort_modules      = {module_name:
+                                           {var: 1, shim: 1, pp: 1}}
+                else:
+                    # Plain procedure dummy: pass the shim directly (module
+                    # procedures have explicit interfaces).
+                    a.fort_reassignment = f'  {var} = {a.name}\n'
+                    a.fort_pass_as      = shim
+                    a.fort_modules      = {module_name: {var: 1, shim: 1}}
+                # Python-side wiring: adapt the user callable, wrap in the
+                # CFUNCTYPE, pass as a void pointer.
+                pv        = python_safe_name(a.name)
+                adapted   = spec['py_adapter'].format(fn=pv)
+                a.py_reassignment = (
+                    f'    _glcCBType_{pv}_ = {spec["cfunctype"]}\n'
+                    f'    _glcCB_{pv}_ = _glcCBType_{pv}_({adapted})\n'
+                )
+                a.py_pass_as = f'cast(_glcCB_{pv}_, c_void_p)'
+            use_lines = ''.join(
+                f'  use :: {mod}, only : {", ".join(sorted(syms))}\n'
+                for mod, syms in sorted(shim_uses.items()))
+            callback_module = (
+                f'module {module_name}\n'
+                f'  use, intrinsic :: ISO_C_Binding, only : c_double,'
+                f' c_f_procpointer, c_funptr, c_null_funptr\n'
+                f'{use_lines}'
+                f'  implicit none\n'
+                f'  public\n'
+                f'{iface_blocks}'
+                f'{var_decls}'
+                f'contains\n'
+                f'{shim_blocks}'
+                f'end module {module_name}\n'
+            )
+            # The module must precede the wrapper subroutine (appended
+            # below) in the class's compilation unit.
+            _shared_bucket(code, class_name).append(callback_module)
 
         # Generate Fortran method.  An array-return method is lowered to a
         # subroutine with an extra intent(out) array arg (see the
@@ -1143,12 +1369,14 @@ end {procedure} {method_name_c}
                 + f'    c_lib.{method_name_c}({",".join(py_call_args)})\n'
                 + f'    return _glcArr_\n'
             )
-        elif result_python_dyn_array_2d_wrap:
+        elif result_python_dyn_array_2d_wrap and not output_arrays:
             # 2D allocatable / dynamic-size array return.  Same shape as
             # the 1D path below, with one extra size companion and a
             # `reshape((s1, s2), order='F')` on the Python side so the
             # column-major Fortran storage maps to the right numpy
-            # indexing.
+            # indexing.  (When output arrays are also present, the
+            # output-array branch below handles the return's companions
+            # too — they precede the per-argument ones in the signature.)
             elem_ctype, elem_dtype = result_python_dyn_array_2d_wrap
             py_call_args = []
             for a in arg_list:
@@ -1175,7 +1403,7 @@ end {procedure} {method_name_c}
                 + f'.from_address(_glcDataPtr_.value)\n'
                 + f'    ).reshape((_glcSize1_.value, _glcSize2_.value), order="F").copy()\n'
             )
-        elif result_python_dyn_array_wrap:
+        elif result_python_dyn_array_wrap and not output_arrays:
             # Allocatable / dynamic-size 1D array return.  The Fortran
             # wrapper writes the buffer's c_loc into a c_void_p out-param
             # and the element count into a c_size_t out-param; we wrap
@@ -1209,6 +1437,177 @@ end {procedure} {method_name_c}
                 + f'    return np.ctypeslib.as_array(\n'
                 + f'        ({elem_ctype} * _glcSize_.value).from_address(_glcDataPtr_.value)\n'
                 + f'    ).copy()\n'
+            )
+        elif output_arrays or sized_outputs:
+            # Output-array method: one or more `intent(out), allocatable,
+            # dimension(:)` args, each filled by the inner call into a
+            # save-target buffer and conveyed back as a (c_ptr, c_size_t)
+            # companion pair appended to the bind(c) signature above.  The
+            # method may also carry scalar `intent(out)` numeric/logical
+            # companions (is_output_scalar) — ordinary by-reference dummies
+            # in the signature whose filled values are returned too.
+            #
+            # ctypes call order matches the bind(c) signature: fort_is_present
+            # args first (regular inputs pass their value/pointer expr; scalar
+            # outputs pass byref of a fresh ctype local), then the array
+            # (c_ptr, c_size_t) companion pairs — mirroring
+            # result_extra_fort_args.  After the call each array pair is
+            # wrapped into a fresh numpy array (`.copy()`, since the save
+            # buffer is overwritten on the next call; a null pointer / zero
+            # size from the Fortran guard yields an empty array without
+            # dereferencing).  The return interleaves scalar (.value) and
+            # array outputs in declaration order — a single value bare, more
+            # than one as a tuple.  The gate guarantees a void return and no
+            # optional args, so no optional-arg branching is needed.
+            setup_lines   = ''
+            collect_lines = ''
+            py_call_args  = []
+            for a in arg_list:
+                if not a.fort_is_present:
+                    continue
+                if a.is_output_scalar:
+                    pv    = python_safe_name(a.name)
+                    local = f'_{pv}_'
+                    setup_lines += f'    {local} = {a.ctype or "c_int"}()\n'
+                    py_call_args.append(f'byref({local})')
+                elif a.is_output_sized:
+                    # Sized output buffer: pre-allocate a flat numpy array
+                    # of the product of the extent args (they're this
+                    # function's own parameters) and pass its data pointer;
+                    # the reshape-to-declared-shape happens in the collect
+                    # block below.  No copy is needed — Python owns the
+                    # buffer.  Extents were lowercased by the declaration
+                    # parser; resolve them to the actual (case-preserved)
+                    # parameter names case-insensitively.
+                    name_map  = {x.name.lower(): python_safe_name(x.name)
+                                 for x in arg_list}
+                    extents   = [name_map.get(e.lower(), e)
+                                 for e in a.output_extents]
+                    pv        = python_safe_name(a.name)
+                    arr_local = f'_{pv}Arr_'
+                    size_expr = '*'.join(extents)
+                    setup_lines += (
+                        f'    {arr_local} = np.zeros(({size_expr},),'
+                        f' dtype=np.{a.output_elem_dtype})\n')
+                    py_call_args.append(
+                        f'{arr_local}.ctypes.data_as('
+                        f'POINTER({a.output_elem_ctype}))')
+                    if len(extents) > 1:
+                        shape = ', '.join(extents)
+                        collect_lines += (
+                            f'    {arr_local} = {arr_local}.reshape('
+                            f'({shape}), order="F")\n')
+                else:
+                    py_call_args.append(a.py_pass_as if a.py_pass_as
+                                        else python_safe_name(a.name))
+            # A dynamic-array RETURN's companions were appended to
+            # result_extra_fort_args by the return-type switch, BEFORE the
+            # per-argument companions below — mirror that order here.
+            ret_token = None
+            if result_python_dyn_array_2d_wrap:
+                elem_ctype, elem_dtype = result_python_dyn_array_2d_wrap
+                py_call_args += ['byref(_glcDataPtr_)', 'byref(_glcSize1_)',
+                                 'byref(_glcSize2_)']
+                setup_lines += (
+                    '    _glcDataPtr_ = c_void_p()\n'
+                    '    _glcSize1_   = c_size_t()\n'
+                    '    _glcSize2_   = c_size_t()\n'
+                )
+                collect_lines += (
+                    f'    if _glcSize1_.value and _glcSize2_.value:\n'
+                    f'        _glcRetArr_ = np.ctypeslib.as_array(\n'
+                    f'            ({elem_ctype} * (_glcSize1_.value *'
+                    f' _glcSize2_.value)).from_address(_glcDataPtr_.value)\n'
+                    f'        ).reshape((_glcSize1_.value, _glcSize2_.value),'
+                    f' order="F").copy()\n'
+                    f'    else:\n'
+                    f'        _glcRetArr_ = np.empty((_glcSize1_.value,'
+                    f' _glcSize2_.value), dtype=np.{elem_dtype})\n'
+                )
+                ret_token = '_glcRetArr_'
+            elif result_python_dyn_array_wrap:
+                elem_ctype, elem_dtype = result_python_dyn_array_wrap
+                py_call_args += ['byref(_glcDataPtr_)', 'byref(_glcSize_)']
+                setup_lines += (
+                    '    _glcDataPtr_ = c_void_p()\n'
+                    '    _glcSize_    = c_size_t()\n'
+                )
+                collect_lines += (
+                    f'    if _glcSize_.value:\n'
+                    f'        _glcRetArr_ = np.ctypeslib.as_array(\n'
+                    f'            ({elem_ctype} * _glcSize_.value)'
+                    f'.from_address(_glcDataPtr_.value)\n'
+                    f'        ).copy()\n'
+                    f'    else:\n'
+                    f'        _glcRetArr_ = np.empty(0,'
+                    f' dtype=np.{elem_dtype})\n'
+                )
+                ret_token = '_glcRetArr_'
+            elif method_type != 'void' and not result_is_subroutine:
+                # Direct-scalar function result; ctypes converts the
+                # restype to a plain Python scalar, so no .value.
+                ret_token = '_glcRet_'
+            for a in output_arrays:
+                pv        = python_safe_name(a.name)
+                ptr_local = f'_{pv}Ptr_'
+                arr_local = f'_{pv}Arr_'
+                setup_lines += f'    {ptr_local}  = c_void_p()\n'
+                py_call_args.append(f'byref({ptr_local})')
+                if a.array_rank == 2:
+                    s1 = f'_{pv}Size1_'
+                    s2 = f'_{pv}Size2_'
+                    setup_lines += (f'    {s1} = c_size_t()\n'
+                                    f'    {s2} = c_size_t()\n')
+                    py_call_args += [f'byref({s1})', f'byref({s2})']
+                    collect_lines += (
+                        f'    if {s1}.value and {s2}.value:\n'
+                        f'        {arr_local} = np.ctypeslib.as_array(\n'
+                        f'            ({a.output_elem_ctype} * ({s1}.value *'
+                        f' {s2}.value)).from_address({ptr_local}.value)\n'
+                        f'        ).reshape(({s1}.value, {s2}.value),'
+                        f' order="F").copy()\n'
+                        f'    else:\n'
+                        f'        {arr_local} = np.empty(({s1}.value,'
+                        f' {s2}.value), dtype=np.{a.output_elem_dtype})\n'
+                    )
+                else:
+                    size_local = f'_{pv}Size_'
+                    setup_lines += f'    {size_local} = c_size_t()\n'
+                    py_call_args.append(f'byref({size_local})')
+                    collect_lines += (
+                        f'    if {size_local}.value:\n'
+                        f'        {arr_local} = np.ctypeslib.as_array(\n'
+                        f'            ({a.output_elem_ctype} *'
+                        f' {size_local}.value)'
+                        f'.from_address({ptr_local}.value)\n'
+                        f'        ).copy()\n'
+                        f'    else:\n'
+                        f'        {arr_local} = np.empty(0,'
+                        f' dtype=np.{a.output_elem_dtype})\n'
+                    )
+            # Return tokens in declaration (arg_list) order so the tuple
+            # matches the method's signature left-to-right; the function
+            # result (scalar or dynamic-array) leads the tuple.
+            result_tokens = [ret_token] if ret_token else []
+            for a in arg_list:
+                pv = python_safe_name(a.name)
+                if a.is_output_scalar:
+                    result_tokens.append(f'_{pv}_.value')
+                elif a.is_output_array or a.is_output_sized:
+                    result_tokens.append(f'_{pv}Arr_')
+            reassignments_block = ''.join(a.py_reassignment for a in arg_list)
+            call_lhs_py = '_glcRet_ = ' if ret_token == '_glcRet_' else ''
+            if len(result_tokens) == 1:
+                return_stmt = f'    return {result_tokens[0]}\n'
+            else:
+                return_stmt = f'    return ({", ".join(result_tokens)})\n'
+            py_call = (
+                reassignments_block
+                + setup_lines
+                + f'    {call_lhs_py}c_lib.{method_name_c}'
+                + f'({",".join(py_call_args)})\n'
+                + collect_lines
+                + return_stmt
             )
         else:
             # Reassignments (numpy conversion, optional-arg unpacking, …)
@@ -1312,6 +1711,21 @@ def _append_init_code(code):
   call ioHDF5AccessInitialize()
 end subroutine libGalacticusInitL
 
+subroutine libGalacticusVerbositySetL(verbosity) bind(c,name='libGalacticusVerbositySetL')
+  ! Set the display verbosity level from a C string naming the level
+  ! ("silent", "standard", "working", "warn", "info", "debug").  Exposed so
+  ! library users can quiet Galacticus's progress bars and messages (which
+  ! write directly to the process's stdout, bypassing Python-level stream
+  ! redirection).
+  use :: Display        , only : displayVerbositySet   , enumerationVerbosityLevelEncode
+  use :: String_Handling, only : String_C_to_Fortran
+  use :: ISO_Varying_String, only : char
+  use, intrinsic :: ISO_C_Binding, only : c_char
+  character(c_char), dimension(*), intent(in   ) :: verbosity
+
+  call displayVerbositySet(enumerationVerbosityLevelEncode(char(String_C_to_Fortran(verbosity)),includesPrefix=.false.))
+end subroutine libGalacticusVerbositySetL
+
 program libGalacticusInit
 end program libGalacticusInit
 '''
@@ -1401,6 +1815,14 @@ cwd = os.getcwd()
 libname = os.path.join(cwd, "galacticus/lib/libgalacticus.so")
 c_lib = CDLL(libname)
 c_lib.libGalacticusInitL()
+c_lib.libGalacticusVerbositySetL.argtypes = [c_char_p]
+
+def verbositySet(level):
+    """Set Galacticus's display verbosity: one of 'silent', 'standard',
+    'working', 'warn', 'info', or 'debug'.  Useful to quiet progress bars
+    and messages, which Galacticus writes directly to the process's stdout
+    (bypassing Python-level stream redirection)."""
+    c_lib.libGalacticusVerbositySetL(level.encode('ascii'))
 '''
 
     # Add c_lib restype/argtypes

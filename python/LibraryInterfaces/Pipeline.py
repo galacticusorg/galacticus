@@ -77,6 +77,135 @@ _SHARED_TYPE_MODULES = {
     'enumerationOutputAnalysisCovarianceModelType': 'Output_Analyses_Options',
 }
 
+# Match a `dimension(<name>[,<name>...])` attribute whose every extent is a
+# plain identifier — the arg-extent explicit-shape used by output buffers
+# like surveyGeometry.windowFunctions' `dimension(gridCount,gridCount,
+# gridCount)`.  The named extents must be integer intent(in) args of the
+# same method (validated by unsupported_output_array_method); the Python
+# wrapper pre-allocates a buffer of the product size and returns it
+# reshaped column-major.
+_DIM_IDENT_EXTENTS_RX = re.compile(
+    r'^dimension\s*\(\s*'
+    r'([a-zA-Z_][a-zA-Z0-9_]*(?:\s*,\s*[a-zA-Z_][a-zA-Z0-9_]*)*)'
+    r'\s*\)$'
+)
+
+
+# Inbound procedure (callback) arguments the pipeline can marshal.  Keyed by
+# the abstract-interface name appearing in `procedure(<name>) :: arg`; each
+# entry describes how to bridge a Python callable to the Fortran interface:
+#
+#   cfunctype  — the ctypes callback factory for the C-side signature.
+#   py_adapter — format template (placeholder {fn} = the user's Python
+#                callable) producing the function handed to `cfunctype`;
+#                adapts raw ctypes pointers to friendly numpy/scalar views.
+#   c_iface    — format template ({iface}) for the Fortran abstract
+#                interface matching the C-side signature.
+#   shim       — format template ({shim}, {iface}, {var}) for a Fortran
+#                function matching the *Galacticus* interface; it converts
+#                the Fortran-side arguments to C-representable values,
+#                retrieves the stored Python callback via c_f_procpointer,
+#                and invokes it.
+#   shim_uses  — {module: (symbols,…)} needed by the shim (beyond
+#                ISO_C_Binding, which is always imported).
+#
+# The generator emits, per callback-taking method, a small module holding a
+# `type(c_funptr)` slot ({var}) plus the shim; the bind(c) wrapper stores
+# the incoming funptr in the slot and passes the shim to the inner method.
+# Like the save-buffer array returns, the slot is process-global state: the
+# callback is valid for the duration of the wrapped call, and concurrent
+# calls to the same method from multiple threads would race — matching the
+# existing library-interface conventions.
+#
+# Registry gating (rather than parsing arbitrary abstract interfaces from
+# source) keeps this explicit: an entry is a promise that the C signature,
+# the adapter, and the shim's argument conversion have been checked by hand.
+# Consulted by Classification.classify_arg (membership ⇒ supported), the
+# inline accept in assign_c_types below, and the emission code in
+# libraryInterfaces.interfaces_methods.
+_CALLBACK_PROCEDURE_INTERFACES = {
+    # double precision function crossSectionFunction(wavelength)
+    #   double precision, intent(in) :: wavelength
+    # (source/radiation/_class.F90).  The method dummy is
+    # `procedure(...), pointer`, so the wrapper passes the module's
+    # procedure-pointer slot aimed at the shim (a pointer actual for a
+    # pointer dummy) — the generator keys that off the arg's own
+    # `pointer` attribute.
+    'crossSectionFunctionTemplate': {
+        'cfunctype' : 'CFUNCTYPE(c_double, c_double)',
+        'py_adapter': '(lambda _wavelength_: float({fn}(_wavelength_)))',
+        'c_iface'   : (
+            '  abstract interface\n'
+            '     function {iface}(wavelength) bind(c)\n'
+            '       import c_double\n'
+            '       real(c_double), value :: wavelength\n'
+            '       real(c_double)        :: {iface}\n'
+            '     end function {iface}\n'
+            '  end interface\n'
+        ),
+        'shim'      : (
+            '  double precision function {shim}(wavelength)\n'
+            '    double precision, intent(in   ) :: wavelength\n'
+            '    procedure({iface}), pointer     :: fn_\n'
+            '    call c_f_procpointer({var}, fn_)\n'
+            '    {shim} = fn_(real(wavelength, c_double))\n'
+            '  end function {shim}\n'
+        ),
+        # Galacticus-side abstract interface, used to declare the module's
+        # procedure-pointer slot when the method dummy is
+        # `procedure(...), pointer` (gfortran cannot use a module procedure
+        # from the same module's contains part as an interface-name in the
+        # specification part, so the slot needs its own abstract interface
+        # with characteristics matching the shim).
+        'g_iface'   : (
+            '  abstract interface\n'
+            '     double precision function {giface}(wavelength)\n'
+            '       double precision, intent(in   ) :: wavelength\n'
+            '     end function {giface}\n'
+            '  end interface\n'
+        ),
+        'shim_uses' : {},
+    },
+    # double precision function integrand(coordinates)
+    #   class(coordinate), intent(in) :: coordinates
+    # (source/computational_domains/volume_integrators/_class.F90).  The
+    # coordinate is delivered to Python as its 3-element Cartesian array
+    # via coordinate%toCartesian().
+    'computationalDomainVolumeIntegrand': {
+        'cfunctype' : 'CFUNCTYPE(c_double, POINTER(c_double))',
+        'py_adapter': ('(lambda _pos_: float({fn}('
+                       'np.ctypeslib.as_array(_pos_, (3,)))))'),
+        'c_iface'   : (
+            '  abstract interface\n'
+            '     function {iface}(position) bind(c)\n'
+            '       import c_double\n'
+            '       real(c_double), dimension(3), intent(in   ) :: position\n'
+            '       real(c_double)                              :: {iface}\n'
+            '     end function {iface}\n'
+            '  end interface\n'
+        ),
+        'shim'      : (
+            '  double precision function {shim}(coordinates)\n'
+            '    class(coordinate), intent(in   ) :: coordinates\n'
+            '    procedure({iface}), pointer      :: fn_\n'
+            '    real(c_double), dimension(3)     :: position_\n'
+            '    position_ = coordinates%toCartesian()\n'
+            '    call c_f_procpointer({var}, fn_)\n'
+            '    {shim} = fn_(position_)\n'
+            '  end function {shim}\n'
+        ),
+        'g_iface'   : (
+            '  abstract interface\n'
+            '     double precision function {giface}(coordinates)\n'
+            '       import :: coordinate\n'
+            '       class(coordinate), intent(in   ) :: coordinates\n'
+            '     end function {giface}\n'
+            '  end interface\n'
+        ),
+        'shim_uses' : {'Coordinates': ('coordinate',)},
+    },
+}
+
 
 def _module_for_symbol(use_blocks, symbol):
     """Return the name of the module whose `use ..., only :` list includes
@@ -243,6 +372,48 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
         o.get('name') for o in constructor_overrides
         if isinstance(o, dict) and o.get('value') == 'absent' and o.get('name')
     }
+
+    # Does this argument list contain a 1D `intent(out), allocatable,
+    # dimension(:)` numeric output array?  If so, scalar `intent(out)`
+    # numeric/logical companions on the same method are also treated as
+    # outputs (dropped from the Python input signature, filled value
+    # returned) — see is_output_scalar handling near the end of the loop.
+    # The whole-method gate (unsupported_output_array_method) guarantees
+    # such methods are void-returning and optional-free, so this only ever
+    # fires where the bespoke output-array Python emission handles it.
+    def _attrs_intr(r):
+        if isinstance(r, dict):
+            return r.get('attributes', []), r.get('intrinsic')
+        return getattr(r, 'attributes', []), getattr(r, 'intrinsic', '')
+    def _sized_out(a_attrs, a_intr, a_type):
+        # Sized output buffer: intent(out) explicit-shape with identifier
+        # extents, numeric or complex(c_double_complex) elements (kept in
+        # lock-step with Classification.is_output_sized_array_arg).
+        return ('intent(out)' in a_attrs
+                and 'allocatable' not in a_attrs
+                and 'pointer' not in a_attrs
+                and (a_intr in ('double precision', 'integer')
+                     or (a_intr == 'complex'
+                         and (a_type or '').strip() == 'c_double_complex'))
+                and any(_DIM_IDENT_EXTENTS_RX.match(x) for x in a_attrs
+                        if x.startswith('dimension')))
+
+    has_output_array = False
+    for r in argument_list:
+        a_attrs, a_intr = _attrs_intr(r)
+        a_type = (r.get('type') if isinstance(r, dict)
+                  else getattr(r, 'type_spec', ''))
+        if (('allocatable' in a_attrs
+             and ('intent(out)' in a_attrs or 'intent(inout)' in a_attrs)
+             and ((a_intr in ('double precision', 'integer')
+                   and ('dimension(:)' in a_attrs
+                        or 'dimension(:,:)' in a_attrs))
+                  or (a_intr == 'logical'
+                      and 'dimension(:)' in a_attrs)))
+                or _sized_out(a_attrs, a_intr, a_type)):
+            has_output_array = True
+            break
+
     new_list = []
     for raw in reversed(argument_list):
         arg = ArgSpec.from_raw(raw) if isinstance(raw, dict) else raw
@@ -285,6 +456,207 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
             arg.is_optional           = False
             new_list.insert(0, arg)
             continue
+
+        # Output-array arg: 1D `allocatable, dimension(:)` numeric, either
+        # `intent(out)` or `intent(inout)` (the latter is Galacticus's
+        # allocation-reuse idiom — see Classification.is_output_array_arg).
+        # The inner method allocates and fills it, and its data + size flow
+        # *back* to Python via a `(c_ptr, c_size_t)` companion pair that the
+        # generator appends to the bind(c) signature (see interfaces_methods).
+        # Short-circuit the per-intrinsic dispatch below, and in particular
+        # the deferred-shape *input*-array block that would otherwise treat
+        # this like an incoming numpy buffer and add a count companion: the
+        # arg is a wrapper-local `save, target` allocatable, not a bind(c) or
+        # Python formal, so it carries no ctype. Only galacticus_is_present
+        # stays True, so the inner call still receives the local buffer.
+        # (Predicate inlined rather than imported from Classification, which
+        # already imports from this module.)
+        if ('allocatable' in arg.attributes
+                and ('intent(out)' in arg.attributes
+                     or 'intent(inout)' in arg.attributes)
+                and ((arg.intrinsic in ('double precision', 'integer')
+                      and ('dimension(:)' in arg.attributes
+                           or 'dimension(:,:)' in arg.attributes))
+                     or (arg.intrinsic == 'logical'
+                         and 'dimension(:)' in arg.attributes))):
+            if arg.intrinsic == 'double precision':
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_double', 'real(c_double)', 'float64')
+            elif arg.intrinsic == 'logical':
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_bool', 'logical(c_bool)', 'bool_')
+            elif arg.type_spec in ('c_long', 'kind_int8'):
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_long', 'integer(c_long)', 'int64')
+            elif arg.type_spec == 'c_size_t':
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_size_t', 'integer(c_size_t)', 'uint64')
+            else:
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_int', 'integer(c_int)', 'int32')
+            rank  = 2 if 'dimension(:,:)' in arg.attributes else 1
+            dims  = ':,:' if rank == 2 else ':'
+            local = f'glcOut_{arg.name}_'
+            arg.is_output_array       = True
+            arg.array_rank            = rank
+            arg.output_elem_ctype     = elem_ctype
+            arg.output_elem_fort      = elem_fort
+            arg.output_elem_dtype     = elem_dtype
+            arg.fort_is_present       = False
+            arg.py_is_present         = False
+            arg.galacticus_is_present = True
+            arg.is_optional           = False
+            if arg.intrinsic == 'logical':
+                # The inner dummy is default-kind `logical`, whose storage
+                # width differs from c_bool (4 bytes vs 1 on gfortran), so
+                # the export buffer can't be filled directly: the inner
+                # method fills a default-kind local, and the generator
+                # emits a kind-narrowing copy into the c_bool save buffer
+                # after the call (the reverse of the logical *input*
+                # path's widening copy).
+                inner = f'glcOutInner_{arg.name}_'
+                arg.fort_pass_as      = inner
+                arg.fort_declarations = (
+                    f'  {elem_fort}, dimension({dims}), allocatable, save,'
+                    f' target :: {local}\n'
+                    f'  logical, dimension({dims}), allocatable'
+                    f' :: {inner}\n')
+                arg.fort_reassignment = (
+                    f'  if (allocated({local})) deallocate({local})\n'
+                    f'  if (allocated({inner})) deallocate({inner})\n')
+            else:
+                arg.fort_pass_as      = local
+                arg.fort_declarations = (
+                    f'  {elem_fort}, dimension({dims}), allocatable, save,'
+                    f' target :: {local}\n')
+                # Pre-call hygiene: free any allocation the previous call
+                # left (Python has already copied it) so the inner method's
+                # allocate-on-assignment starts from a clean deallocated
+                # state.
+                arg.fort_reassignment = (
+                    f'  if (allocated({local})) deallocate({local})\n')
+            new_list.insert(0, arg)
+            continue
+
+        # Pointer write-back arg: `type(X), pointer, intent(out|inout)` with
+        # X a shared type (methods only — the generator's method gate is the
+        # sole caller that lets such an arg through classify; constructor
+        # impls with this shape are rejected before assign_c_types runs).
+        # The handle crosses bind(c) as `type(c_ptr), intent(inout)` BY
+        # REFERENCE; the wrapper converts to a local Fortran pointer before
+        # the call (guarded — a null handle means a disassociated pointer)
+        # and the generator writes the repointed target's c_loc back after
+        # the call.  Python passes byref of a ctypes.c_void_p, updated in
+        # place.
+        if (arg.intrinsic == 'type'
+                and 'pointer' in arg.attributes
+                and ('intent(out)' in arg.attributes
+                     or 'intent(inout)' in arg.attributes)
+                and 'optional' not in arg.attributes
+                and arg.type_spec in _SHARED_TYPE_MODULES):
+            local = f'{arg.name}_'
+            pv    = python_safe_name(arg.name)
+            arg.is_pointer_writeback = True
+            arg.ctype                = 'c_void_p'
+            arg.fort_type            = 'type(c_ptr)'
+            arg.is_optional          = False
+            arg.fort_pass_as         = local
+            arg.fort_declarations    = (
+                f'  type({arg.type_spec}), pointer :: {local}\n')
+            arg.fort_modules         = {
+                _SHARED_TYPE_MODULES[arg.type_spec]: {arg.type_spec: 1}}
+            arg.fort_iso_c_symbols   = ['c_associated', 'c_f_pointer',
+                                        'c_loc', 'c_null_ptr']
+            arg.fort_reassignment    = (
+                f'  if (c_associated({arg.name})) then\n'
+                f'    call c_f_pointer({arg.name}, {local})\n'
+                f'  else\n'
+                f'    {local} => null()\n'
+                f'  end if\n')
+            # Python: the handle must be a real ctypes.c_void_p so the
+            # write-back lands in the caller's object.
+            arg.py_pass_as       = f'byref({pv})'
+            arg.py_reassignment  = (
+                f'    if not isinstance({pv}, c_void_p):\n'
+                f'        raise TypeError("{pv} must be a ctypes.c_void_p'
+                f' handle (it is updated in place)")\n')
+            new_list.insert(0, arg)
+            continue
+
+        # Sized output buffer: `intent(out), dimension(<argName>,…)` numeric
+        # or complex(c_double_complex).  The dummy stays in the bind(c)
+        # signature (assign_c_attributes rewrites the shape to
+        # `dimension(*)`; the inner call sequence-associates it to the
+        # inner method's explicit-shape dummy), but is dropped from the
+        # Python signature: the wrapper pre-allocates a flat numpy buffer
+        # of the product of the extent args (its own parameters), passes
+        # its data pointer, and returns it reshaped column-major.  Without
+        # this short-circuit a complex-element arg would fall through the
+        # per-intrinsic dispatch with no ctype at all.
+        if (arg.intrinsic in ('double precision', 'integer', 'complex')
+                and _sized_out(arg.attributes, arg.intrinsic,
+                               arg.type_spec)):
+            if arg.intrinsic == 'complex':
+                # ctypes has no complex type: the pointer is typed as
+                # POINTER(c_double) and numpy's complex128 provides the
+                # bit-compatible (re, im) storage.
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_double', 'complex(c_double_complex)', 'complex128')
+            elif arg.intrinsic == 'double precision':
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_double', 'real(c_double)', 'float64')
+            elif arg.type_spec in ('c_long', 'kind_int8'):
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_long', 'integer(c_long)', 'int64')
+            elif arg.type_spec == 'c_size_t':
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_size_t', 'integer(c_size_t)', 'uint64')
+            else:
+                elem_ctype, elem_fort, elem_dtype = (
+                    'c_int', 'integer(c_int)', 'int32')
+            extents = []
+            for a_attr in arg.attributes:
+                m = (_DIM_IDENT_EXTENTS_RX.match(a_attr)
+                     if a_attr.startswith('dimension') else None)
+                if m:
+                    extents = [e.strip() for e in m.group(1).split(',')]
+                    break
+            arg.is_output_sized      = True
+            arg.output_extents       = extents
+            arg.ctype                = elem_ctype
+            arg.fort_type            = elem_fort
+            arg.output_elem_ctype    = elem_ctype
+            arg.output_elem_dtype    = elem_dtype
+            arg.py_is_present        = False
+            arg.is_optional          = False
+            new_list.insert(0, arg)
+            continue
+
+        # Inbound callback arg: `procedure(<iface>) :: fn` with <iface>
+        # registered in _CALLBACK_PROCEDURE_INTERFACES.  The wrapper receives
+        # a C funptr by value; everything else (module emission, shim
+        # pass-through, funptr storage, CFUNCTYPE adaptation) is wired by the
+        # generator, which knows the class/method names the module and shim
+        # are named after.  `pointer` dummies are accepted too — the
+        # generator passes the shim module's procedure-pointer slot instead
+        # of the shim itself (keyed off the arg's `pointer` attribute) —
+        # EXCEPT with intent(out|inout), where the pointer is an output
+        # (classify_arg rejects the surrounding method, so the generator
+        # never reaches here for those; the attribute check keeps this
+        # predicate self-contained anyway).
+        if (arg.intrinsic == 'procedure'
+                and arg.type_spec in _CALLBACK_PROCEDURE_INTERFACES
+                and 'optional' not in arg.attributes
+                and not ('pointer' in arg.attributes
+                         and ('intent(out)' in arg.attributes
+                              or 'intent(inout)' in arg.attributes))):
+            arg.is_callback = True
+            arg.ctype       = 'c_void_p'
+            arg.fort_type   = 'type(c_funptr)'
+            arg.is_optional = False
+            new_list.insert(0, arg)
+            continue
+
         arg.is_function_class     = False
         arg.is_optional           = bool('optional' in arg.attributes)
 
@@ -551,6 +923,29 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
                             arg.array_rank  = len(shape)
                         break
 
+        # Scalar `intent(out)` numeric/logical companion on an output-array
+        # method: keep it in the bind(c) signature as an ordinary
+        # by-reference intent(out) scalar (assign_c_attributes already picks
+        # reference pass-by for it) passed straight to the inner method, but
+        # drop it from the Python input signature and mark it so the bespoke
+        # output-array Python emission returns its filled value.  Guarded by
+        # has_output_array so non-output-array methods keep their existing
+        # scalar-arg handling unchanged.  (Predicate inlined — Classification
+        # imports from this module — but kept in lock-step with
+        # Classification.is_output_scalar_arg.)
+        if (has_output_array
+                and not arg.is_output_array
+                and not arg.is_array
+                and arg.intrinsic in ('double precision', 'real',
+                                      'integer', 'logical')
+                and 'intent(out)' in arg.attributes
+                and 'allocatable' not in arg.attributes
+                and not any(a.startswith('dimension') for a in arg.attributes)):
+            arg.is_output_scalar = True
+            arg.py_is_present     = False
+            # fort_is_present / galacticus_is_present stay True: the arg is a
+            # real by-reference intent(out) dummy the inner method fills.
+
         new_list.insert(0, arg)
 
     return new_list
@@ -560,6 +955,16 @@ def assign_c_attributes(argument_list):
     """Assign C attributes to arguments."""
     for arg in argument_list:
         arg.fort_attributes = []
+
+        # Pointer write-back handles cross bind(c) BY REFERENCE with
+        # intent(inout) — the wrapper writes the repointed target's address
+        # back through them.  The generic rule below would pass any *_p
+        # ctype by value, which silently discards the write-back.
+        if arg.is_pointer_writeback:
+            arg.fort_attributes.append('intent(inout)')
+            arg.pass_by       = 'reference'
+            arg.ctype_pointer = True
+            continue
 
         if arg.is_optional:
             arg.fort_attributes.append('optional')
@@ -577,6 +982,13 @@ def assign_c_attributes(argument_list):
         attr_filters = []
         for a in arg.attributes:
             if a in ('dimension(:)', 'dimension(:,:)'):
+                attr_filters.append('dimension(*)')
+            elif arg.is_output_sized and a.startswith('dimension'):
+                # Sized output buffer: the identifier-extent shape
+                # (`dimension(gridCount,…)`) collapses to assumed-size in
+                # the bind(c) wrapper; the inner call sequence-associates
+                # the flat buffer to the inner method's explicit-shape
+                # dummy.
                 attr_filters.append('dimension(*)')
             elif a.startswith('dimension') or a == 'allocatable':
                 attr_filters.append(a)
@@ -989,6 +1401,20 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
             # spurious `use :: <fc_module>, only : <type>` for a type
             # the wrapper neither declares nor passes (e.g. `vector` /
             # `matrix` for the Gaussian-ellipsoid `axes` / `rotation`).
+            new_list.insert(0, arg)
+            continue
+
+        if (arg.is_output_array or arg.is_output_sized or arg.is_callback
+                or arg.is_pointer_writeback):
+            # Output arrays and callbacks were fully wired in
+            # assign_c_types / the generator: fort_pass_as points at the
+            # wrapper-local buffer (or shim), fort_declarations declares
+            # it, and fort_reassignment carries the pre-call dealloc (or
+            # funptr store).  The per-intrinsic branches below must not
+            # re-dispatch on the arg's declared type — the *logical*
+            # branch in particular would overwrite the wiring with the
+            # input path's c_bool→logical widening copy, leaving the
+            # wrapper referencing undeclared buffer names.
             new_list.insert(0, arg)
             continue
 

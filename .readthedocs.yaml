@@ -9,6 +9,8 @@ build:
   apt_packages:
     # pdftocairo, used to rasterise the figure PDFs to PNG (extractDocsRST.py).
     - poppler-utils
+    # pandoc, used by nbsphinx to convert the tutorial notebooks' markdown cells.
+    - pandoc
   commands:
     # Install the documentation toolchain.
     - pip install -r docs/requirements.txt

@@ -24,15 +24,20 @@ that class of drift impossible.
 import re
 
 from LibraryInterfaces.Hierarchy import resolve_function_class_base
-from LibraryInterfaces.Pipeline import _SHARED_TYPE_MODULES
+from LibraryInterfaces.Pipeline import (_SHARED_TYPE_MODULES,
+                                        _CALLBACK_PROCEDURE_INTERFACES,
+                                        _DIM_IDENT_EXTENTS_RX)
 
 __all__ = [
     'ENUM_RETURN_RX', 'CLASS_RETURN_RX', 'ARRAY_RETURN_RX',
     'DYNAMIC_ARRAY_RETURN_RX', 'DYNAMIC_ARRAY_RETURN_2D_RX',
     'DIM_FIXED_RX', 'CHAR_LEN_RX',
-    'RETURN_TYPE_ALIASES', 'SCALAR_RETURN_OK',
+    'RETURN_TYPE_ALIASES', 'SCALAR_RETURN_OK', 'OUTPUT_ARRAY_RETURN_OK',
     'normalize_method_return_type', 'is_internal_constructor_name',
     'classify_arg', 'unsupported_arg',
+    'is_output_array_arg', 'is_output_scalar_arg',
+    'is_output_sized_array_arg', 'output_sized_extents',
+    'unsupported_output_array_method',
 ]
 
 
@@ -139,6 +144,18 @@ SCALAR_RETURN_OK = frozenset({
     'integer(c_size_t)', 'logical', 'type(varying_string)',
 })
 
+# Return types permitted on a method that also has output-array arguments:
+# the direct-restype scalars — those the bind(c) wrapper returns as a plain
+# function result with a matching ctypes restype, no subroutine lowering or
+# conversion buffer. Return types that lower the wrapper to a subroutine
+# with synthetic out-args (varying_string, class(...), array returns) would
+# collide with the output-array companion protocol, so they stay blocked
+# alongside output arrays until a method needs the combination.
+OUTPUT_ARRAY_RETURN_OK = frozenset({
+    'void', 'double precision', 'integer', 'integer(c_long)',
+    'integer(c_size_t)', 'logical',
+})
+
 
 def normalize_method_return_type(ret_type):
     """Collapse equivalent return-type spellings to the canonical form the
@@ -171,7 +188,8 @@ def is_internal_constructor_name(name):
 # ---------------------------------------------------------------------------
 
 def classify_arg(arg, registered_classes, *, constructor_overrides=(),
-                 class_hierarchy=None, known_function_classes=None):
+                 class_hierarchy=None, known_function_classes=None,
+                 allow_pointer_writeback=False):
     """Classify one constructor/method argument.
 
     Returns ``None`` when the pipeline supports the argument;
@@ -243,12 +261,89 @@ def classify_arg(arg, registered_classes, *, constructor_overrides=(),
         return ('blocked',
                 f"value='absent' override on non-optional argument — only "
                 f"optional args may be dropped")
+    # Sized output buffers (`intent(out), dimension(<argName>,…)`) are
+    # accepted — including complex(c_double_complex) elements — BEFORE the
+    # blanket complex reject below; see is_output_sized_array_arg.  Their
+    # whole-method requirements (extents name integer intent(in) args,
+    # etc.) are enforced by unsupported_output_array_method.
+    if is_output_sized_array_arg(arg):
+        return None
     if intrinsic in ('complex', 'double complex'):
         return ('blocked', f"{intrinsic}({arg.get('type','')})")
     if intrinsic == 'procedure':
+        type_spec = (arg.get('type') or '').strip()
+        attrs     = arg.get('attributes', [])
+        # `procedure(...), pointer, intent(out|inout)` — the method hands a
+        # *Fortran procedure pointer* back to the caller.  There is nothing
+        # a Python caller could do with one, so this is unsupportable in
+        # principle (not merely unimplemented); the audit buckets this
+        # message as out-of-scope so it doesn't sit in the actionable
+        # worklist.  (These methods — timeEvolveTo, evolve,
+        # differentialEvolution — also all take treeNode/mergerTree args.)
+        if 'pointer' in attrs and ('intent(out)' in attrs
+                                   or 'intent(inout)' in attrs):
+            return ('blocked',
+                    f"procedure({type_spec}) pointer output — a Fortran "
+                    f"procedure pointer returned to the caller cannot be "
+                    f"exposed to Python")
+        # Inbound callback with a registered, hand-checked marshalling
+        # recipe (see Pipeline._CALLBACK_PROCEDURE_INTERFACES): the wrapper
+        # accepts a Python callable via CFUNCTYPE → c_funptr → a Fortran
+        # shim adapting the Galacticus-side interface.  Both plain and
+        # `pointer` dummies qualify — for a pointer dummy the wrapper
+        # passes the shim module's procedure-pointer slot aimed at the shim
+        # (a pointer actual for a pointer dummy; if the callee repoints it,
+        # the slot is re-aimed on the next call).  Pointer dummies with
+        # intent(out|inout) were already rejected above as outputs;
+        # optional callbacks are not yet supported.
+        if (type_spec in _CALLBACK_PROCEDURE_INTERFACES
+                and 'optional' not in attrs):
+            return None
         return ('blocked',
-                f"procedure({arg.get('type','')}) — procedure-pointer args "
+                f"procedure({type_spec}) — procedure-pointer args "
                 f"are not supported")
+    # Object-pointer dummies with intent(out|inout): the callee may (re)point
+    # the pointer, and the wrapper's local-pointer passing loses that
+    # repointing silently — e.g. a tree-walker's `next(node)` would return
+    # success but never advance the caller's node.  Two flavours:
+    #
+    # * `class(...), pointer` outputs (only `class(*)` exists in the tree:
+    #   timeEvolveTo's taskSelf) — an unlimited-polymorphic pointer handed
+    #   back to the caller is unsupportable in principle; the "pointer
+    #   output" wording routes it to the audit's out-of-scope bucket.
+    # * `type(X), pointer` in/outs (mergerTreeWalker.next, nodeEvolver's
+    #   promote, buildController.control, …) — supported on METHODS via the
+    #   pointer write-back protocol when X is a known shared type: the
+    #   bind(c) wrapper takes the c_ptr BY REFERENCE, converts a
+    #   c_associated handle to a local Fortran pointer (null handle →
+    #   disassociated — the tree-walker start-of-iteration idiom), and
+    #   after the call writes back c_loc of the (re)pointed target (or
+    #   c_null_ptr).  Python passes a ctypes.c_void_p by reference and the
+    #   handle is updated in place, so `while walker.next(node): …`
+    #   iterates.  *allow_pointer_writeback* gates this to method args:
+    #   the constructor codegen has no post-call write-back hook, so
+    #   constructor args with this shape (e.g. cole2000's nodeTip) stay
+    #   rejected.  The reject wording deliberately avoids the literal
+    #   "type(" so the audit's internal-derived-type rule doesn't misfile
+    #   this *actionable* blocker as deferred.
+    pointer_attrs = arg.get('attributes', [])
+    if intrinsic in ('class', 'type') and 'pointer' in pointer_attrs \
+            and ('intent(out)' in pointer_attrs
+                 or 'intent(inout)' in pointer_attrs):
+        type_spec = (arg.get('type') or '').strip()
+        if intrinsic == 'class':
+            return ('blocked',
+                    f"class({type_spec}) pointer output — a Fortran object "
+                    f"pointer returned to the caller cannot be exposed to "
+                    f"Python")
+        if (allow_pointer_writeback
+                and type_spec in _SHARED_TYPE_MODULES
+                and 'optional' not in pointer_attrs):
+            return None
+        return ('blocked',
+                f"pointer dummy of derived {intrinsic} '{type_spec}' — "
+                f"repointing by the method would be silently lost by the "
+                f"wrapper (needs a pointer write-back protocol)")
     if intrinsic == 'integer' \
             and (arg.get('type') or '').strip() == 'omp_lock_kind' \
             and 'optional' not in arg.get('attributes', []):
@@ -358,6 +453,19 @@ def classify_arg(arg, registered_classes, *, constructor_overrides=(),
                     or is_supported_char_array
                     or is_supported_vstring_array or is_supported_list_array):
                 if 'allocatable' in attrs:
+                    # 1D `intent(out), allocatable, dimension(:)` numeric
+                    # args are supported as OUTPUT arrays: the inner method
+                    # allocates and fills them, and the data + size flow
+                    # back to Python (see ArgSpec.is_output_array). The
+                    # surrounding method must additionally satisfy
+                    # `unsupported_output_array_method` — a whole-method
+                    # property (void return, no optionals, other args are
+                    # inputs) that the generator and audit enforce, not a
+                    # per-arg one. Every other allocatable shape
+                    # (intent(in)/inout, non-numeric, multi-dim) stays
+                    # blocked.
+                    if is_output_array_arg(arg):
+                        continue
                     return ('blocked',
                             '1D allocatable array argument'
                             ' (output arrays not yet supported)')
@@ -366,8 +474,25 @@ def classify_arg(arg, registered_classes, *, constructor_overrides=(),
                 # inner Galacticus method mutates the caller's contiguous
                 # numpy buffer in place.
                 continue
+            # Arrays of polymorphic objects (`class(...), dimension(:)`)
+            # cannot be assembled from the per-object pointers a Python
+            # caller holds: a polymorphic array has ONE dynamic type, and
+            # intrinsic assignment into polymorphic array elements is not
+            # permitted.  Distinct message so the audit defers these
+            # rather than listing them as actionable.
+            if intrinsic == 'class':
+                return ('blocked',
+                        f"class({type_spec}) array argument — arrays of "
+                        f"polymorphic objects cannot be assembled from "
+                        f"Python-held object pointers")
+            # Name the element type in the generic reject so the audit's
+            # bucketing can tell `type(nBodyData)` (an internal derived
+            # type — deferred) apart from numeric shapes that are merely
+            # not-yet-supported (actionable).
+            subject = (f"{intrinsic}({type_spec})" if type_spec
+                       else f"{intrinsic}")
             return ('blocked',
-                    'dimensioned argument'
+                    f'dimensioned argument of {subject}'
                     ' (only 1D deferred-shape or fixed-size numeric input,'
                     ' 2D deferred-shape numeric input, or 1D deferred-shape'
                     ' fixed-length character arrays, are supported)')
@@ -377,7 +502,8 @@ def classify_arg(arg, registered_classes, *, constructor_overrides=(),
 
 
 def unsupported_arg(arg, lib_function_classes, *,
-                    constructor_overrides=(), class_hierarchy=None):
+                    constructor_overrides=(), class_hierarchy=None,
+                    allow_pointer_writeback=False):
     """Generator-mode wrapper around :func:`classify_arg`: return a
     human-readable reason if ``arg`` has a type the pipeline can't
     translate, otherwise ``None``."""
@@ -385,7 +511,212 @@ def unsupported_arg(arg, lib_function_classes, *,
         arg, lib_function_classes,
         constructor_overrides=constructor_overrides,
         class_hierarchy=class_hierarchy,
+        allow_pointer_writeback=allow_pointer_writeback,
     )
     if verdict is None:
         return None
     return verdict[1]
+
+
+# ---------------------------------------------------------------------------
+# Output-array arguments (`intent(out), allocatable, dimension(:)`)
+# ---------------------------------------------------------------------------
+
+def is_output_array_arg(arg):
+    """True if *arg* is a 1D ``allocatable, dimension(:)`` numeric
+    (``double precision`` / ``integer``) OUTPUT-array argument — either
+    ``intent(out)`` or ``intent(inout)`` — the shape the generator lowers to
+    a ``save, target`` buffer with a ``(c_ptr, c_size_t)`` intent(out)
+    companion pair (see :attr:`ArgSpec.is_output_array`).
+
+    ``intent(inout)`` is accepted because the Galacticus idiom for such args
+    is allocation-*reuse*, not input: the inner method checks ``allocated()``
+    / ``size()`` and reallocates as needed, then overwrites the contents
+    (e.g. ``computationalDomain.indicesFromPosition``), so it never reads an
+    incoming value. The wrapper deallocates its ``save`` buffer before each
+    call, so the inner always sees an unallocated array and allocates a fresh
+    one — identical to the ``intent(out)`` path. (A hypothetical method that
+    genuinely read an ``intent(inout)`` allocatable before allocating it
+    could not be driven output-only, but that is not the convention and such
+    a method would already be ill-defined for an unallocated actual.)
+
+    An ``optional`` output array (e.g. ``timeLightconeCrossing``'s
+    ``timesCrossing``) also qualifies: the wrapper passes its buffer
+    unconditionally, so the inner method always sees the dummy as present
+    and always fills it — the Python caller unconditionally receives the
+    array, which is the only sensible contract for a Python API (there is
+    no way to "omit" a return value).
+
+    Shapes: 1D and 2D numeric (``dimension(:)`` / ``dimension(:,:)``; 2D
+    gets a second size companion and a column-major reshape on the Python
+    side), and 1D ``logical`` (the wrapper copies the inner method's
+    default-kind result into a ``logical(c_bool)`` export buffer, mirroring
+    the kind-narrowing the logical *input* path already does).
+    """
+    attrs = arg.get('attributes', [])
+    if 'allocatable' not in attrs:
+        return False
+    if not ('intent(out)' in attrs or 'intent(inout)' in attrs):
+        return False
+    if arg.get('intrinsic') in ('double precision', 'integer'):
+        return 'dimension(:)' in attrs or 'dimension(:,:)' in attrs
+    if arg.get('intrinsic') == 'logical':
+        return 'dimension(:)' in attrs
+    return False
+
+
+def is_output_scalar_arg(arg):
+    """True if *arg* is a scalar ``intent(out)`` numeric/logical companion —
+    an ``intent(out)`` argument that is not allocatable and has no
+    ``dimension`` (e.g. ``integer, intent(out) :: count`` or ``double
+    precision, intent(out) :: f``).
+
+    These accompany output arrays on methods like
+    ``accretionDiskSpectra.wavelengths`` (a count beside the array) or
+    ``variogram.modelFDF`` (a scalar residual beside the gradient array).
+    The generator passes them straight through as by-reference intent(out)
+    scalars and appends their filled values to the Python return. Derived
+    types, ``class(...)``, and ``character`` scalars are excluded — those
+    need their own handling.
+    """
+    attrs = arg.get('attributes', [])
+    if 'intent(out)' not in attrs:
+        return False
+    if 'allocatable' in attrs:
+        return False
+    if any(a.startswith('dimension') for a in attrs):
+        return False
+    return arg.get('intrinsic') in (
+        'double precision', 'real', 'integer', 'logical')
+
+
+def is_output_sized_array_arg(arg):
+    """True if *arg* is an ``intent(out)`` explicit-shape array whose every
+    extent is a plain identifier (``dimension(gridCount,…)``) — a "sized
+    output buffer".  Because the extents are other (integer, intent(in))
+    arguments of the same method, the Python wrapper can pre-allocate a
+    buffer of the right size, pass it in place (no companions needed), and
+    return it reshaped column-major.  Elements may be numeric or
+    ``complex(c_double_complex)`` (bit-compatible with numpy complex128;
+    the canonical case is surveyGeometry.windowFunctions' FFT grids).
+
+    Extent-name validity (each names an integer ``intent(in)`` arg) is a
+    whole-method property checked by
+    :func:`unsupported_output_array_method`.
+    """
+    attrs = arg.get('attributes', [])
+    if 'intent(out)' not in attrs:
+        return False
+    if 'allocatable' in attrs or 'pointer' in attrs:
+        return False
+    intr = arg.get('intrinsic')
+    ts   = (arg.get('type') or '').strip()
+    if not (intr in ('double precision', 'integer')
+            or (intr == 'complex' and ts == 'c_double_complex')):
+        return False
+    return any(_DIM_IDENT_EXTENTS_RX.match(a) for a in attrs
+               if a.startswith('dimension'))
+
+
+def output_sized_extents(arg):
+    """Return the list of extent identifiers of a sized output buffer's
+    ``dimension(...)`` attribute (see :func:`is_output_sized_array_arg`)."""
+    for a in arg.get('attributes', []):
+        m = _DIM_IDENT_EXTENTS_RX.match(a) if a.startswith('dimension') \
+            else None
+        if m:
+            return [e.strip() for e in m.group(1).split(',')]
+    return []
+
+
+def unsupported_output_array_method(args, return_type):
+    """Whole-method gate for the output-array feature.
+
+    Returns a human-readable reason when *args* contains at least one
+    output-array argument (see :func:`is_output_array_arg`) but the
+    surrounding method has a feature the current output-array codegen can't
+    handle; otherwise ``None`` — including when there are no output arrays at
+    all, which is the normal (non-output-array) path.
+
+    Restriction: an output-array method must return a direct-restype scalar
+    (:data:`OUTPUT_ARRAY_RETURN_OK` — ``void`` or a plain numeric/logical
+    the wrapper returns as an ordinary bind(c) function result), have no
+    optional arguments, and every non-``self`` argument must be one of:
+
+    * a supported input,
+    * an output array or scalar ``intent(out)`` companion (returned),
+    * an ``intent(out|inout)`` *dimensioned non-allocatable* array — the
+      in-place mutable-buffer path: the Python caller supplies a numpy
+      buffer the method fills, exactly as on non-output-array methods,
+    * an ``intent(inout)`` ``class``/``type`` argument — pointer-passed;
+      mutation happens on the heap object the caller already holds.
+
+    What stays blocked: return types that lower the wrapper to a subroutine
+    (varying_string / class / array returns — they collide with the
+    companion protocol), optional args, and scalar ``intent(inout)``
+    numeric/logical or ``intent(out|inout)`` character args (outputs the
+    wrapper would silently drop).
+
+    Shared by the generator (:mod:`libraryInterfaces`) and the audit
+    (:mod:`libraryInterfacesAudit`) so their verdicts can't drift.
+
+    *args* are the raw declaration dicts for the method's arguments
+    EXCLUDING ``self``. *return_type* is the method's normalized return-type
+    string (``'void'`` for subroutines).
+    """
+    if not any(is_output_array_arg(a) or is_output_sized_array_arg(a)
+               for a in args):
+        return None
+    # Sized output buffers: every extent identifier must name an integer
+    # intent(in) argument of the same method — that's what lets the Python
+    # wrapper compute the allocation size before the call.  Compared
+    # case-insensitively: Fortran names are case-insensitive and the
+    # declaration parser lowercases attribute text (extents) while
+    # variableNames preserve source case.
+    int_inputs = {(a.get('name') or '').lower() for a in args
+                  if a.get('intrinsic') == 'integer'
+                  and 'intent(in)' in a.get('attributes', [])}
+    for a in args:
+        if not is_output_sized_array_arg(a):
+            continue
+        for extent in output_sized_extents(a):
+            if extent.lower() not in int_inputs:
+                return (f"sized output buffer '{a.get('name', '?')}' has "
+                        f"extent '{extent}' that is not an integer "
+                        f"intent(in) argument of the method")
+    ret = normalize_method_return_type(return_type or 'void')
+    # Dynamic-array returns (1D/2D allocatable or runtime-extent) lower the
+    # wrapper to a subroutine whose own (c_ptr, size…) companions are
+    # appended BEFORE the per-argument output-array companions, so the two
+    # protocols compose mechanically; the Python wrapper leads the returned
+    # tuple with the reshaped result array.
+    if (ret not in OUTPUT_ARRAY_RETURN_OK
+            and not DYNAMIC_ARRAY_RETURN_RX.match(ret)
+            and not DYNAMIC_ARRAY_RETURN_2D_RX.match(ret)):
+        return (f"output-array method with non-scalar return type "
+                f"({return_type}) — only void, direct-scalar, or "
+                f"dynamic-array returns may accompany output arrays")
+    for a in args:
+        if (is_output_array_arg(a) or is_output_scalar_arg(a)
+                or is_output_sized_array_arg(a)):
+            continue
+        attrs = a.get('attributes', [])
+        if 'optional' in attrs:
+            return (f"output-array method with optional argument "
+                    f"'{a.get('name', '?')}' — not yet supported")
+        if 'intent(out)' in attrs or 'intent(inout)' in attrs:
+            # Dimensioned non-allocatable → the in-place mutable-buffer
+            # path (allocatable dimensioned args were caught by
+            # is_output_array_arg or, for non-numeric elements, are
+            # rejected per-arg by classify_arg before this gate runs).
+            if any(at.startswith('dimension') for at in attrs):
+                continue
+            # class/type scalars are pointer-passed; in-place mutation is
+            # visible to the caller through the pointer it already holds.
+            if a.get('intrinsic') in ('class', 'type'):
+                continue
+            return (f"output-array method with non-input argument "
+                    f"'{a.get('name', '?')}' — only supported inputs, "
+                    f"in-place buffers, and scalar intent(out) companions "
+                    f"may accompany output arrays")
+    return None

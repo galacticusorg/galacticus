@@ -106,6 +106,75 @@ class ArgSpec:
     # when no narrowing is needed (the plain `class(<base>Class)` case).
     narrowing_type: str = ''
 
+    # Marker for `intent(out), allocatable, dimension(:)` numeric OUTPUT-array
+    # arguments — the inner method allocates and fills the array, and its
+    # data + size flow *back* to Python (it is not supplied by the caller).
+    # Handled like the dynamic-array *return* path: the arg itself is dropped
+    # from the bind(c) and Python signatures (fort/py_is_present=False) and
+    # replaced by a function-local `save, target` allocatable
+    # (`glcOut_<name>_`, named via fort_pass_as) that the inner call fills;
+    # the generator appends a `(c_ptr, c_size_t)` intent(out) companion pair
+    # to the bind(c) signature and the Python wrapper wraps them into a numpy
+    # array (copied, since the save buffer is overwritten on the next call).
+    # galacticus_is_present stays True so the inner call still receives it.
+    is_output_array:    bool = False
+    output_elem_ctype:  str  = ''   # 'c_double' / 'c_int'
+    output_elem_fort:   str  = ''   # 'real(c_double)' / 'integer(c_int)'
+    output_elem_dtype:  str  = ''   # numpy dtype: 'float64' / 'int32'
+
+    # Marker for a pointer write-back argument: `type(X), pointer,
+    # intent(out|inout)` on a METHOD, with X a shared type
+    # (_SHARED_TYPE_MODULES — e.g. treeNode).  The bind(c) wrapper takes
+    # the handle as `type(c_ptr), intent(inout)` BY REFERENCE, converts a
+    # c_associated handle to a local Fortran pointer (null handle →
+    # disassociated, the tree-walker start-of-iteration idiom), passes the
+    # local to the inner method, and after the call writes c_loc of the
+    # (re)pointed target (or c_null_ptr) back through the reference.  The
+    # Python caller passes a ctypes.c_void_p, which is updated in place —
+    # `while walker.next(node): …` iterates.  Constructor args never take
+    # this path (the constructor wrapper has no post-call hook; the
+    # classify predicate gates on allow_pointer_writeback).
+    is_pointer_writeback: bool = False
+
+    # Marker for a "sized output buffer": an `intent(out)` explicit-shape
+    # array whose extents are identifiers naming integer intent(in) args of
+    # the same method (`dimension(gridCount,…)`), with numeric or
+    # complex(c_double_complex) elements.  The dummy stays in the bind(c)
+    # signature (rewritten to `dimension(*)`; the inner call sequence-
+    # associates it to the explicit-shape inner dummy); the Python wrapper
+    # pre-allocates a flat numpy buffer of the product size (it knows the
+    # extents — they're its own parameters), passes its data pointer,
+    # drops the arg from the Python signature, and returns the buffer
+    # reshaped column-major.  No companions are needed.
+    is_output_sized: bool = False
+    output_extents:  list = field(default_factory=list)  # extent arg names
+
+    # Marker for an inbound `procedure(<iface>)` callback argument whose
+    # abstract interface is registered in
+    # Pipeline._CALLBACK_PROCEDURE_INTERFACES.  The bind(c) wrapper receives
+    # a C function pointer (`type(c_funptr), value`; ctypes passes a
+    # CFUNCTYPE-wrapped Python callable), stores it in a per-method module
+    # slot, and hands the module's shim function — which adapts the
+    # Galacticus-side arguments and invokes the stored pointer — to the
+    # inner method.  All wiring (fort_pass_as/fort_reassignment/
+    # fort_modules/py_*) is filled in by the generator, which also emits
+    # the storage+shim module; assign_c_types only sets the marker and the
+    # c_funptr type mapping.
+    is_callback: bool = False
+
+    # Marker for a scalar `intent(out)` numeric/logical companion argument
+    # (e.g. `integer, intent(out) :: count` or `double precision,
+    # intent(out) :: f`) on an output-array method.  Unlike an output array
+    # it stays in the bind(c) signature — as an ordinary by-reference
+    # intent(out) scalar (ctype_pointer=True) passed straight to the inner
+    # method — but it is dropped from the Python input signature
+    # (py_is_present=False) and its filled value is instead appended to the
+    # Python return, interleaved with the array outputs in declaration
+    # order.  Only recognised on methods that also have an output array (see
+    # unsupported_output_array_method); elsewhere scalar intent(out) args
+    # keep their existing handling.
+    is_output_scalar:   bool = False
+
     # Marker for constructor args that libraryClasses.xml asks the
     # wrapper to fill with a null pointer rather than expose to Python
     # (`<argument name="..." value="null"/>`).  Used for callback-

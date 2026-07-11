@@ -87,6 +87,7 @@ from LibraryInterfaces.Classification import (   # noqa: E402
     SCALAR_RETURN_OK             as _SCALAR_RETURN_OK,
     classify_arg,
     is_internal_constructor_name as _is_internal_constructor_name,
+    unsupported_output_array_method as _unsupported_output_array_method,
 )
 
 
@@ -253,7 +254,8 @@ def parse_impls_in_file(impl_file, fc_name, internal_selectors=None):
 
 def classify_constructor(args, all_fcs, registered, overridden_args=frozenset(),
                          class_hierarchy=None, null_filled_args=frozenset(),
-                         absent_filled_args=frozenset()):
+                         absent_filled_args=frozenset(),
+                         allow_pointer_writeback=False):
     """Return ``(missing_deps, pipeline_reasons)``.
 
     *missing_deps* is the set of functionClass names this constructor depends
@@ -290,6 +292,7 @@ def classify_constructor(args, all_fcs, registered, overridden_args=frozenset(),
             constructor_overrides=overrides,
             class_hierarchy=class_hierarchy,
             known_function_classes=set(all_fcs),
+            allow_pointer_writeback=allow_pointer_writeback,
         )
         if verdict is None:
             continue
@@ -394,8 +397,12 @@ _METHOD_RX   = re.compile(
 )
 _M_TYPE_RX   = re.compile(r'<type>([^<]+)</type>')
 _M_ARG_RX    = re.compile(r'<argument>([^<]+)</argument>')
+# The `(?:\s[^>]*)?` allows the optional attributes real directives carry
+# (`<functionClass docformat="rst">`, …); a bare `<functionClass>` form
+# does not occur in the source tree, so without it this block matches
+# nothing and the whole methods pass silently reports zero methods.
 _FC_BLOCK_RX = re.compile(
-    r'<functionClass>(?P<body>[\s\S]*?)</functionClass>'
+    r'<functionClass(?:\s[^>]*)?>(?P<body>[\s\S]*?)</functionClass>'
 )
 _FC_NAME_RX  = re.compile(r'<name>([^<]+)</name>')
 
@@ -525,16 +532,40 @@ def _is_out_of_scope_reason(reason):
     is still available to callers."""
     # class(<X>) where X isn't a registered fc (incl. the abstract-
     # intermediate-failed variant emitted by classify_constructor /
-    # classify_method_return).  Catches "class(non-fc) return …",
-    # "class(<X>) — not a functionClass …", and "class(<X>) — only
-    # registered functionClasses and class(*) (with override) are
-    # supported".
-    if re.search(r'class\s*\([^)]*\)\s*(?:—|--)', reason):
-        # …but not class(*), which is in-scope (it just needs a method-
-        # side override hook).
-        if not re.search(r'class\s*\(\s*\*\s*\)', reason):
-            return True
+    # classify_method_return).  Catches "class(<X>) — not a functionClass
+    # …" and "class(<X>) — only registered functionClasses and class(*)
+    # (with override) are supported".
+    #
+    # Anchor on the blocker's *subject* — the leading `class(...)` — rather
+    # than searching the whole reason.  The explanatory tail of every
+    # concrete-class blocker literally reads "…and class(*) (with override)
+    # are supported", so a whole-string search for `class(*)` misfires on
+    # that tail and mis-buckets every non-fc class hierarchy as in-scope.
+    # The genuinely in-scope `class(*)` blocker reads "class(*) without a
+    # libraryClasses.xml override (…)" — its subject is `*` and it carries
+    # no em-dash, so the match below correctly leaves it in-scope.
+    m_cls = re.match(r'\s*class\s*\(([^)]*)\)\s*(?:—|--)', reason)
+    if m_cls and m_cls.group(1).strip() != '*':
+        return True
     if 'class(non-fc) return' in reason:
+        return True
+    # `procedure(...)` / `class(...)` pointers with intent(out|inout) — a
+    # Fortran procedure or object pointer handed back to the caller.
+    # Unsupportable in principle (a Python caller can do nothing with one),
+    # so they belong with the deferred backlog, not the actionable
+    # worklist.  Inbound callback blockers ("procedure(...) —
+    # procedure-pointer args are not supported") stay in-scope (candidates
+    # for Pipeline._CALLBACK_PROCEDURE_INTERFACES), as do `type(X),
+    # pointer` in/outs ("pointer dummy of derived type …" — fixable via a
+    # pointer write-back protocol; that wording deliberately avoids
+    # matching here or the derived-type rule below).
+    if ') pointer output' in reason:
+        return True
+    # `class(<X>), dimension(:)` args — arrays of polymorphic objects
+    # cannot be assembled from Python-held per-object pointers (one
+    # dynamic type per array; no intrinsic assignment into polymorphic
+    # elements), so these are deferred, not actionable.
+    if re.match(r'\s*class\s*\(', reason) and 'array argument' in reason:
         return True
     # Scalar `type(<X>)` returns/args where X isn't varying_string or an
     # enumeration*Type — those are the internal-derived-type cases.
@@ -570,11 +601,26 @@ def aggregate_methods(methods_by_fc, all_fcs, registered,
             arg_deps, arg_reasons = classify_constructor(
                 m['args'], all_fcs, registered,
                 overridden_args=frozenset(),
-                class_hierarchy=class_hierarchy)
+                class_hierarchy=class_hierarchy,
+                # Method args, not constructor args: the pointer
+                # write-back protocol is available (mirrors
+                # _unsupported_method_arg in the generator).
+                allow_pointer_writeback=True)
+            reasons = list(ret_reasons) + list(arg_reasons)
+            # Whole-method gate for output-array args: classify_constructor
+            # accepts each `intent(out), allocatable, dimension(:)` arg
+            # per-arg, but the generator only emits output-array methods that
+            # are void-returning, optional-free, and whose other args are
+            # supported inputs.  Mirror that gate so the audit's readiness
+            # tracks the generator (shared predicate — can't drift).
+            output_block = _unsupported_output_array_method(
+                m['args'], m['return'])
+            if output_block:
+                reasons.append(output_block)
             rows.append({
                 'method' : m,
                 'deps'   : ret_deps | arg_deps,
-                'reasons': list(ret_reasons) + list(arg_reasons),
+                'reasons': reasons,
             })
         out[fc] = rows
     return out
