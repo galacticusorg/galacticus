@@ -235,9 +235,19 @@ def main(argv):
                 p2_tasks.append(
                     (instance_identifier, instance_file, function_class_name)
                 )
+    # The cache entry for a freshly-scanned instance file is popped ONCE (to
+    # discard any stale instances left from a previous run), then every task's
+    # names are appended. A single instance file that implements instances of
+    # more than one functionClass yields one task per class; popping only on
+    # the first of them lets those tasks accumulate, instead of a later task's
+    # pop discarding an earlier one's names (which silently dropped that file's
+    # instances of every class but the last).
+    popped = set()
     for instance_identifier, names in parallel_scan(
             p2_tasks, _scan_instance, 'stateStorables.py'):
-        storables_per_file.pop(instance_identifier, None)
+        if instance_identifier not in popped:
+            storables_per_file.pop(instance_identifier, None)
+            popped.add(instance_identifier)
         instance_entry = storables_per_file.setdefault(instance_identifier, {})
         for name in names:
             instance_entry.setdefault('functionClassInstances', []).append(name)
