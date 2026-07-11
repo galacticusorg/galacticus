@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+
+  <!-- Best-fit parameters of the halo mass function model of Benson et al. (2026;                                            -->
+  <!-- https://ui.adsabs.harvard.edu/abs/2026arXiv260612137B), as used by the halo mass function validation models.           -->
+  <!--                                                                                                                        -->
+  <!-- Note that the calibration of this model was performed using the original parameterization of the `artificialHalos`     -->
+  <!-- cosmological mass variance class, in which the artificial variance was                                                 -->
+  <!--   S_artificial = S_0 (M/M_0)^alpha D^2(t),   with M_0 = artificialCountParticles * massParticle.                       -->
+  <!-- The current parameterization has no normalization S_0 (it is degenerate with M_0), i.e.                                -->
+  <!--   S_artificial = (M/M_0)^alphaM D^2beta(t).                                                                            -->
+  <!-- The best-fit values (artificialCountParticles=3.91472212965412, artificialNormalization=2.99326650103751,              -->
+  <!-- artificialExponent=-0.606650168611276) are therefore mapped to the current parameterization via                        -->
+  <!--   artificialCountParticles   -> 3.91472212965412 * 2.99326650103751^(-1/-0.606650168611276) = 23.854884384745247,      -->
+  <!--   artificialExponentMass     -> artificialExponent,                                                                     -->
+  <!--   artificialExponentGrowthFactor -> 1 (fixed in the original parameterization),                                        -->
+  <!-- which yields an identical artificial variance.                                                                         -->
+
+  <!-- Controllable parameters of the halo mass function -->
+  <haloMassFunctionParameters value="" ignoreWarnings="true">
+    <!-- Halo mass function -->
+    <a                                value=" 0.923949342759564"   />
+    <b                                value=" 1.07331413749036"    />
+    <c                                value=" 0.995718290848196"   />
+    <p                                value="-0.385622130146661"   />
+    <q                                value=" 0.359231703891799"   />
+    <normalization                    value=" 0.294858264710485"   />
+    <!-- Artificial halo variance -->
+    <artificialExponentMass           value="-0.606650168611276"   />
+    <artificialExponentGrowthFactor   value="+1.0"                 />
+    <artificialCountParticles         value="23.854884384745247"   />
+    <!-- ETHOS window function -->
+    <cW0                              value=" 3.56799180384041"    />
+    <beta0                            value=" 4.49189155442942"    />
+    <cW1                              value=" 0.787876613523237"   />
+    <beta1                            value=" 1.37532244957232"    />
+    <wavenumberScaledMinimum          value=" 0.000625389301867094"/>
+    <powerSpectrumSmoothingWidth      value=" 0.683928132279564"   />
+    <!-- Perturbation model parameters -->
+    <perturbationCubeBigMDPL          value=" 0.757787025663369"   />
+    <perturbationCubeHugeMDPL         value=" 0.0737148801784552"  />
+    <perturbationCubeMDPL2            value="-0.357671641756935"   />
+    <perturbationCubeSMDPL            value=" 2.63319225682655"    />
+    <perturbationCubeVSMDPL           value=" 1.80396661103008"    />
+    <!-- Isolation bias model parameters -->
+    <isolationBiasSymphonyGroup             value=" 1.12971538138099"  />
+    <isolationBiasExponentSymphonyGroup     value="-1.27835075290761"  />
+    <isolationBiasSymphonyLMC               value=" 1.17928454734571"  />
+    <isolationBiasExponentSymphonyLMC       value="-0.787214218106714" />
+    <isolationBiasSymphonyMW                value=" 1.21944925518569"  />
+    <isolationBiasExponentSymphonyMW        value="-0.635292309392493" />
+    <!-- Detection efficiency model parameters -->
+    <massMinimumParticleCountMDPL1    value=" 9.93563034994935"    />
+    <efficiencyAtMassMinimumMDPL1     value=" 0.890600708983649"   />
+    <exponentMassDetectionMDPL1       value="-0.00859570330295088" />
+    <exponentRedshiftDetectionMDPL1   value=" 1.36482973243874"    />
+    <massMinimumParticleCountMDPL2    value=" 3.65971304455594"    />
+    <efficiencyAtMassMinimumMDPL2     value=" 0.953789074070035"   />
+    <exponentMassDetectionMDPL2       value="-0.0711076028184249"  />
+    <exponentRedshiftDetectionMDPL2   value=" 1.80787528793095"    />
+    <massMinimumParticleCountMDPL3    value=" 9.15397066212228"    />
+    <efficiencyAtMassMinimumMDPL3     value=" 0.594204780989145"   />
+    <exponentMassDetectionMDPL3       value="-2.02329073067042"    />
+    <exponentRedshiftDetectionMDPL3   value="-1.01497640306914"    />
+    <massMinimumParticleCountMDPL4    value="93.2374810098156"     />
+    <efficiencyAtMassMinimumMDPL4     value=" 0.418416525459009"   />
+    <exponentMassDetectionMDPL4       value="-1.26054031208468"    />
+    <exponentRedshiftDetectionMDPL4   value="-0.582097960676718"   />
+    <massMinimumParticleCountSymphony   value=" 3.84636282339804"   />
+    <efficiencyAtMassMinimumSymphony    value=" 0.334594842467377"  />
+    <exponentMassDetectionSymphony      value="-0.302866238671062"  />
+    <exponentRedshiftDetectionSymphony  value="-0.0394544345614464" />
+  </haloMassFunctionParameters>
+
+  <!-- Parameter controlling the fractional variance due to model discrepancy -->
+  <varianceFractionalModelDiscrepancy value="0.0152882886259737"/>
+
+</parameters>
