@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782941617712,
+  "lastUpdate": 1783804737201,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=20 km/s)": [
@@ -5853,6 +5853,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": 5.892511361008792,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0a7a57deed7d7a8999b3dc4a5d8dd678afb3b548",
+          "message": "Merge pull request #1242 from galacticusorg/docsFixFootnoteSyntax\n\nFix footnote syntax by adding missing opening brace in RST blocks",
+          "timestamp": "2026-07-11T15:25:41Z",
+          "tree_id": "c6a27c582f391472b7ce74131744832316c171dd",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0a7a57deed7d7a8999b3dc4a5d8dd678afb3b548"
+        },
+        "date": 1783804736285,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": 2.8047129474731443,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": 5.61503639643509,
             "unit": "-logℒ"
           }
         ]
