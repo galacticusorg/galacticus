@@ -168,8 +168,6 @@ The build scripts key on a number of special comment markers in the source. None
 
 Two ordinary Fortran constructs also carry hard-wired dependency implications in ``useDependencies.py``: a named ``!$omp critical(<name>)`` section implies a dependency on ``openmp_utilities_data.mod`` (the section enumeration — see :galacticus-ref:`buildOpenMPCritical`), a ``!$omp parallel`` construct implies ``events_filters.mod``, and a ``program`` unit implies ``iso_varying_string.mod``.
 
-Additionally, embedded input-parameter definitions in comment lines beginning ``!@`` (Fortran) or ``//@`` (C++) are read by ``parameterDependencies.py`` (see Section :galacticus-ref:`parameterDependencies`).
-
 .. _manual-sec-buildDiscovery:
 
 Automatic Discovery
@@ -270,7 +268,7 @@ All Fortran and C/C++ source files in the ``source`` directory are parsed. Files
 Parameter Dependencies
 ^^^^^^^^^^^^^^^^^^^^^^
 
-All runtime parameters upon which a given executable may depend are discovered by the ``scripts/build/parameterDependencies.py`` script, which runs at link time (from ``LINK_METADATA``). It reads the target's ``.d`` file to find the participating objects, scans each corresponding source (preferring the preprocessed ``.p.F90``, and including the per-functionClass ``<stem>.p`` parameter listings dropped by the preprocessor) for ``inputParameter`` and ``objectBuilder`` directives and embedded parameter definitions (comment lines beginning ``!@`` for Fortran or ``//@`` for C++), and writes ``$(BUILDPATH)/<stem>.parameters.F90`` — a ``knownParameterNames`` subroutine enumerating the de-duplicated, sorted parameter names, which the executable uses to detect unrecognized input parameters. Per-file results are cached in ``<stem>.blob``, and entries for files that leave the target are pruned.
+All runtime parameters upon which a given executable may depend are discovered by the ``scripts/build/parameterDependencies.py`` script, which runs at link time (from ``LINK_METADATA``). It reads the target's ``.d`` file to find the participating objects, scans each corresponding source (preferring the preprocessed ``.p.F90``, and including the per-functionClass ``<stem>.p`` parameter listings dropped by the preprocessor) for ``inputParameter`` and ``objectBuilder`` directives, and writes ``$(BUILDPATH)/<stem>.parameters.F90`` — a ``knownParameterNames`` subroutine enumerating the de-duplicated, sorted parameter names, which the executable uses to detect unrecognized input parameters. Per-file results are cached in ``<stem>.blob``, and entries for files that leave the target are pruned.
 
 .. _manual-sec-buildSourceDigests:
 
