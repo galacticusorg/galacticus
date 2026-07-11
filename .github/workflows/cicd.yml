@@ -1008,6 +1008,24 @@ jobs:
       uploadFile: ./testSuite/outputs/*.json
       uploadName: validate-darkMatterOnlySubhalosCOZMIC${{ matrix.simulation }}MilkyWay${{ matrix.resolution }}
     secrets: inherit
+  Validate-Halo-Mass-Function:
+    needs: Build-Executable-DMO-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        group: [ "MDPL", "SymphonyLMC", "SymphonyGroup", "SymphonyMilkyWayZ0", "SymphonyMilkyWayZ1", "SymphonyMilkyWayZ4", "COZMIC" ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-haloMassFunction.py
+      options: "${{ matrix.group }}"
+      artifact: galacticus-exec-dmo
+      runPath: ./testSuite
+      cacheData: 1
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validate-haloMassFunction${{ matrix.group }}
+    secrets: inherit
   Validate-Milky-Way-Model:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
@@ -1771,7 +1789,7 @@ jobs:
   # Validate, deploy and update
   Validate:
     runs-on: ubuntu-latest
-    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Dark-Matter-Only-Subhalos-Symphony, Validate-Dark-Matter-Only-Subhalos-Symphony-X64, Validate-Dark-Matter-Only-Subhalos-COZMICWDM, Validate-Milky-Way-Model, Validate-PonosV, Validate-Baryonic-Suppression, Validate-Idealized-Subhalo-Simulations, Validate-Decaying-Dark-Matter-Only-Subhalos ]
+    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Dark-Matter-Only-Subhalos-Symphony, Validate-Dark-Matter-Only-Subhalos-Symphony-X64, Validate-Dark-Matter-Only-Subhalos-COZMICWDM, Validate-Halo-Mass-Function, Validate-Milky-Way-Model, Validate-PonosV, Validate-Baryonic-Suppression, Validate-Idealized-Subhalo-Simulations, Validate-Decaying-Dark-Matter-Only-Subhalos ]
     steps:
       - name: Check out repository code
         uses: actions/checkout@v7
@@ -2053,6 +2071,73 @@ jobs:
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime80.0_velocityKick40.0'
           threshold: '250%'
           token: ${{ secrets.GITHUB_TOKEN }}
+      # Halo mass function validations. These models are deterministic (unlike
+      # the tree-based validations above) so a tight alert threshold is used.
+      - name: 'Halo mass function validation (MDPL)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (MDPL)'
+          type: 'validate'
+          suffix: 'haloMassFunctionMDPL'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (Symphony LMC)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (Symphony LMC)'
+          type: 'validate'
+          suffix: 'haloMassFunctionSymphonyLMC'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (Symphony Group)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (Symphony Group)'
+          type: 'validate'
+          suffix: 'haloMassFunctionSymphonyGroup'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (Symphony Milky Way z=0)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (Symphony Milky Way z=0)'
+          type: 'validate'
+          suffix: 'haloMassFunctionSymphonyMilkyWayZ0'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (Symphony Milky Way z=1)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (Symphony Milky Way z=1)'
+          type: 'validate'
+          suffix: 'haloMassFunctionSymphonyMilkyWayZ1'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (Symphony Milky Way z=4)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (Symphony Milky Way z=4)'
+          type: 'validate'
+          suffix: 'haloMassFunctionSymphonyMilkyWayZ4'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (Symphony Milky Way environments)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (Symphony Milky Way environments)'
+          type: 'validate'
+          artifact: 'validate-haloMassFunctionSymphonyMilkyWayZ0'
+          suffix: 'haloMassFunctionSymphonyMilkyWayEnvironments'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (COZMIC)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (COZMIC)'
+          type: 'validate'
+          suffix: 'haloMassFunctionCOZMIC'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifacts (validate-PonosV)
         uses: actions/download-artifact@v8
         with:
@@ -2086,6 +2171,10 @@ jobs:
           mkdir -p dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8
           mkdir -p dev/valid/milkyWayModel
           mkdir -p dev/valid/strongLensing
+          for group in MDPL SymphonyLMC SymphonyGroup SymphonyMilkyWayZ0 SymphonyMilkyWayZ1 SymphonyMilkyWayZ4 SymphonyMilkyWayEnvironments COZMIC; do
+            mkdir -p "dev/valid/haloMassFunction$group"
+            mv "results_haloMassFunction$group.json" "dev/valid/haloMassFunction$group/results.json"
+          done
           mv results_darkMatterOnlySubhalos.json                          dev/valid/darkMatterOnlySubhalos/results.json
           mv results_darkMatterOnlySubhalosSymphonyCDMMilkyWayX1.json     dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1/results.json
           mv results_darkMatterOnlySubhalosSymphonyCDMMilkyWayX8.json     dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8/results.json
@@ -2117,7 +2206,7 @@ jobs:
           done
           git config --local user.email "github@users.noreply.github.com"
           git config --local user.name "github-action-validate"
-          git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX64/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8/results.json dev/valid/milkyWayModel/results.json dev/valid/strongLensing/results_PonosV.json dev/valid/baryonicSuppression/results_baryonicSuppression.json dev/valid/idealizedSubhaloSimulation_*/results.json dev/valid/darkMatterOnlySubhalos_decayingDarkMatter_*/results.json
+          git add dev/valid/haloMassFunction*/results.json dev/valid/darkMatterOnlySubhalos/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX64/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8/results.json dev/valid/milkyWayModel/results.json dev/valid/strongLensing/results_PonosV.json dev/valid/baryonicSuppression/results_baryonicSuppression.json dev/valid/idealizedSubhaloSimulation_*/results.json dev/valid/darkMatterOnlySubhalos_decayingDarkMatter_*/results.json
           git commit -m "Update validation results"
           git push --set-upstream origin gh-pages
           git checkout -
