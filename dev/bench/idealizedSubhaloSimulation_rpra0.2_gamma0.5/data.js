@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782941598987,
+  "lastUpdate": 1783804717225,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.5)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "c33e36f272f58a5d357a59fec647d4a310b1a7ca",
-          "message": "fix: Limit when event-based operations are applied",
-          "timestamp": "2024-07-17T15:44:32-07:00",
-          "tree_id": "20bd7e8f8057fa1d6bfbfbc37cddd4e92bfba9cb",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c33e36f272f58a5d357a59fec647d4a310b1a7ca"
-        },
-        "date": 1721289944049,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteBoundMass",
-            "value": 40.968096778357,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": 22.3962458005683,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteVelocityMaximum",
-            "value": 20.3906768426422,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9900,6 +9861,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/1cdc7ffbe77c9cfed5ac63f4d9294933109531f4"
         },
         "date": 1782941598171,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": 40.84984017835755,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 22.39818529582424,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": 20.39086331323446,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0a7a57deed7d7a8999b3dc4a5d8dd678afb3b548",
+          "message": "Merge pull request #1242 from galacticusorg/docsFixFootnoteSyntax\n\nFix footnote syntax by adding missing opening brace in RST blocks",
+          "timestamp": "2026-07-11T15:25:41Z",
+          "tree_id": "c6a27c582f391472b7ce74131744832316c171dd",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0a7a57deed7d7a8999b3dc4a5d8dd678afb3b548"
+        },
+        "date": 1783804716316,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
