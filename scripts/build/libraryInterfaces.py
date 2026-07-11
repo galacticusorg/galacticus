@@ -6,18 +6,14 @@ import sys
 import os
 import re
 import keyword
-from pathlib import Path
-
-# Set up path for imports from python/
 
 import xml.etree.ElementTree as ET
 from Galacticus.Build import SourceTree
 from Galacticus.Build.SourceTree.Parse import Declarations
-from List.ExtraUtils import as_array, hash_list, sorted_keys
+from List.ExtraUtils import as_array
 from Sort.Topo import sort as topo_sort
 from XML.Utils import xml_to_dict
 
-from LibraryInterfaces.ArgSpec import ArgSpec
 from LibraryInterfaces.Pipeline import (
     assign_c_types,
     assign_c_attributes,
@@ -61,9 +57,9 @@ def main():
     _CLASS_HIERARCHY = build_type_hierarchy(
         os.path.join(exec_path, 'source'))
 
-    directive_locations = _load_xml(os.path.join(build_path, 'directiveLocations.xml'), required=True)
-    state_storables = _load_xml(os.path.join(build_path, 'stateStorables.xml'), required=True)
-    library_classes = _load_xml(os.path.join(exec_path, 'source', 'libraryClasses.xml'), required=True)
+    directive_locations = _load_xml(os.path.join(build_path, 'directiveLocations.xml'))
+    state_storables = _load_xml(os.path.join(build_path, 'stateStorables.xml'))
+    library_classes = _load_xml(os.path.join(exec_path, 'source', 'libraryClasses.xml'))
 
     # stateStorables.xml stores functionClasses as a flat list of elements each
     # carrying name= and module= attributes.  XML::Simple re-keys these by name
@@ -108,26 +104,20 @@ def main():
     _write_python_interface(python)
 
 
-def _load_xml(path, required=False):
-    """Load and parse XML file into nested dict structure.
-
-    If *required* is True, exits with a descriptive message when the file is
-    missing or cannot be parsed rather than silently returning an empty dict.
+def _load_xml(path):
+    """Load and parse an XML file into a nested dict structure, exiting with
+    a descriptive message when the file is missing or cannot be parsed.
     """
     if not os.path.exists(path):
-        if required:
-            sys.exit(f"libraryInterfaces.py: required XML file not found: {path}")
-        return {}
+        sys.exit(f"libraryInterfaces.py: required XML file not found: {path}")
     try:
         root = ET.parse(path).getroot()
         return xml_to_dict(root)
     except ET.ParseError as exc:
-        if required:
-            sys.exit(
-                f"libraryInterfaces.py: failed to parse required XML file"
-                f" '{path}': {exc}"
-            )
-        return {}
+        sys.exit(
+            f"libraryInterfaces.py: failed to parse required XML file"
+            f" '{path}': {exc}"
+        )
 
 
 

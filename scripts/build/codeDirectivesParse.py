@@ -287,9 +287,11 @@ def main(argv):
     build_path        = os.environ['BUILDPATH']
     blob_path         = os.path.join(build_path, 'codeDirectives.blob')
 
-    # Load per-file cache and capture its mtime for freshness checks.
+    # Load per-file cache and capture its mtime for freshness checks. (A
+    # non-empty cache implies the blob file exists, since _load_cache returns
+    # `{}` when it is missing or unreadable.)
     directives_per_file = _load_cache(blob_path)
-    have_per_file       = bool(directives_per_file) and os.path.exists(blob_path)
+    have_per_file       = bool(directives_per_file)
     cache_mtime         = os.stat(blob_path).st_mtime if have_per_file else None
 
     # List source files under `<installDir>/source/`, recursing into
@@ -410,7 +412,12 @@ def main(argv):
             info      = include_directives[directive]
             file_name = re.sub(r'\.inc$', '.Inc', info['fileName'])
 
-            # Extra dependencies per directive-key suffix.
+            # Extra dependencies per directive-key suffix. NOTE: no directive
+            # of these kinds (`<base>.function`, `<base>.moduleUse`,
+            # `<base>.functionCall`) currently exists in the source tree — the
+            # only include directive is `type="component"` — so these branches
+            # are retained as future-proofing for directive types the
+            # generator machinery supports.
             extra_deps = []
             m = re.match(r'^([a-zA-Z0-9_]+)\.function$', directive)
             if m:

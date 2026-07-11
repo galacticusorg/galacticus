@@ -94,14 +94,6 @@ with open(args.buildLogFile) as f:
         elif len(elements) > 2 and elements[0] == "./scripts/build/buildCode.py":
             elements[2] = elements[2].replace("./work/build/", "").replace("'", "")
             command = elements[2] + " (build)"
-        elif len(elements) > 8 and elements[1] == "-MRegexp::Common":
-            elements[8] = elements[8].replace("work/build/", "")
-            command = elements[8] + " (cpp)"
-        else:
-            if elements:
-                mb = re.match(r'\./scripts/build/(.*)\.pl', elements[0])
-                if mb:
-                    command = mb.group(1)
         tasks.append({
             'description': command,
             'startTime':   start_time,

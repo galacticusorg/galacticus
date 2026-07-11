@@ -92,10 +92,6 @@ else
 CPPCOMPILER ?= g++
 endif
 
-# Linker for Condor standard universe executables. Uncomment the second line to link for submission to the Condor standard universe.
-CONDORLINKER = 
-#CONDORLINKER = condor_compile
-
 # Fortran compiler flags:
 FCFLAGS += -ffree-line-length-none -frecursive -DBUILDPATH=\'$(BUILDPATH)\' -J$(BUILDPATH)/moduleBuild/ -I$(BUILDPATH)/ ${GALACTICUS_FCFLAGS} -pthread
 # Fortran77 compiler flags:
@@ -104,7 +100,9 @@ F77FLAGS = ${GALACTICUS_F77FLAGS} -DBUILDPATH=\'$(BUILDPATH)\'
 FCFLAGS += -Wall -fbacktrace -ffpe-trap=invalid,zero,overflow -fdump-core
 # Add bounds checking.
 #FCFLAGS += -fbounds-check
-# A copy of the flags prior to any optimizations.
+# A copy of the flags prior to any optimizations. No longer used to compile anything: it is
+# recorded in output.build.environment.inc and reported as build provenance metadata by
+# source/output/build.F90.
 FCFLAGS_NOOPT := $(FCFLAGS)
 # Optimization flags.
 FCFLAGS += -O3 -ffinite-math-only -fno-math-errno
@@ -643,23 +641,10 @@ $(BUILDPATH)/%.cpp.gv : ./source/%.cpp
 $(BUILDPATH)/%.m : ./source/%.F90
 	@touch $(BUILDPATH)/$*.m
 
-# Executables (*.exe) are built by linking together all of the object files (*.o) specified in the associated dependency (*.d)
-# file.
-%.exe: $(BUILDPATH)/%.o $(BUILDPATH)/%.d `cat $(BUILDPATH)/$*.d` $(MAKE_DEPS)
-	./scripts/build/parameterDependencies.py `pwd` $*.exe
-	$(FCCOMPILER) -c $(BUILDPATH)/$*.parameters.F90 -o $(BUILDPATH)/$*.parameters.o $(FCFLAGS)
-	@if echo "$(MAKEFLAGS)" | grep -q -E -- ' -j1( |$$)'; then \
-	 useLocks=no; \
-	elif echo "$(MAKEFLAGS)" | grep -q -E -- ' -j( |$$)'; then \
-	 useLocks=$(LOCKMD5); \
-	elif echo "$(MAKEFLAGS)" | grep -q -E -- ' -j[0-9]+( |$$)'; then \
-	 useLocks=$(LOCKMD5); \
-	else \
-	 useLocks=no; \
-	fi; \
-	./scripts/build/sourceDigests.py `pwd` $*.exe $$useLocks
-	$(CCOMPILER) -c $(BUILDPATH)/$*.md5s.c -o $(BUILDPATH)/$*.md5s.o $(CFLAGS)
-	+$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o $(BUILDPATH)/$*.md5s.o -o $*.exe$(SUFFIX) $(FCFLAGS) $(FCFLAGS_LINK) `scripts/build/libraryDependencies.py $*.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
+# Executables (*.exe) are built by linking together all of the object files (*.o) specified in the
+# associated dependency (*.d) file. There is no generic `%.exe` pattern rule: findExecutables.py
+# discovers every program in the source tree and writes an explicit rule for each into
+# $(BUILDPATH)/Makefile_All_Execs (included below).
 
 # Library. These rules generate Fortran interface wrappers and their dependencies for the shared library build; the generator
 # scripts (libraryInterfaces.py, libraryInterfacesDependencies.py) are slow, so we only activate them when actually performing
@@ -839,7 +824,3 @@ parameters-catalog: $(BUILDPATH)/parameters.catalog.json
 # up to date.
 parameters-schema:
 	./scripts/build/parameterSchema.py `pwd` schema/parameters.xsd
-
-# Rules for XSpec code.
-aux/XSpec/%.o: ./aux/XSpec/%.f Makefile
-	$(FCCOMPILER) -c $< -o aux/XSpec/$*.o $(FCFLAGS)

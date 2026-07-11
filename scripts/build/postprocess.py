@@ -13,17 +13,13 @@ if len(sys.argv) != 2:
 preprocessed_source = sys.argv[1]
 
 # Detect whether stdout is a terminal (for colour output).
-try:
-    import sys as _sys
-    _have_color = _sys.stdout.isatty()
-    if _have_color:
-        # ANSI colour codes.
-        _BRIGHT_MAGENTA_BOLD = '\033[1;35m'
-        _BRIGHT_GREEN_BOLD   = '\033[1;32m'
-        _BOLD                = '\033[1m'
-        _RESET               = '\033[0m'
-except Exception:
-    _have_color = False
+_have_color = sys.stdout.isatty()
+if _have_color:
+    # ANSI colour codes.
+    _BRIGHT_MAGENTA_BOLD = '\033[1;35m'
+    _BRIGHT_GREEN_BOLD   = '\033[1;32m'
+    _BOLD                = '\033[1m'
+    _RESET               = '\033[0m'
 
 # --- Parse the line-number map (.lmap file) ---
 _map = [
