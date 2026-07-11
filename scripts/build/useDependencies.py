@@ -25,6 +25,15 @@ from Galacticus.Build.Directives   import extract_directives
 from Galacticus.Build.ParallelScan import scan as parallel_scan
 from List.ExtraUtils              import as_array, hash_list, smart_push
 from XML.Utils                    import xml_to_dict
+from Galacticus.Build.Libraries import (
+    EXTERNAL_MODULES,
+    MODULE_LIBRARIES,
+    INCLUDE_LIBRARIES,
+)
+from Galacticus.Build.ScanCache import (
+    file_identifier as _file_identifier,
+    load_cache      as _load_cache,
+)
 
 
 # Directives consulted per source file (module-level so the parallel worker can
@@ -86,62 +95,8 @@ def _scan_one(task):
 
 
 # ---------------------------------------------------------------------------
-# Hardcoded module / library tables
-# ---------------------------------------------------------------------------
-
-# Modules that are provided by the toolchain; the scanner must not try to
-# build them from Galacticus source.
-EXTERNAL_MODULES = frozenset({
-    'omp_lib', 'hdf5', 'h5tb', 'h5lt', 'h5global', 'h5fortran_types',
-    'fox_common', 'fox_dom', 'fox_wxml', 'fox_utils', 'mpi', 'mpi_f08',
-})
-
-# Modules whose `use` triggers a link-time library dependency.
-MODULE_LIBRARIES = {
-    'nearest_neighbors':  'ANN',
-    'points_convex_hull': 'qhullcpp',
-    'fftw3':              'fftw3',
-    'fox_common':         'FoX_common',
-    'fox_dom':            'FoX_dom',
-    'fox_wxml':           'FoX_wxml',
-    'fox_utils':          'FoX_utils',
-    'hdf5':               'hdf5_fortran',
-    'h5tb':               'hdf5_hl_fortran',
-    'vectors':            'blas',
-    'models_likelihoods': 'matheval',
-    'input_parameters':   'matheval',
-    'interface_gsl':      'gsl',
-    'output_versioning':  'git2',
-}
-
-# C `#include <name.h>` header → link-time library.
-INCLUDE_LIBRARIES = {
-    'crypt': 'crypt',
-}
-
-
-# ---------------------------------------------------------------------------
 # Cache helpers
 # ---------------------------------------------------------------------------
-
-def _file_identifier(path):
-    """Perl `(my $id = $path) =~ s/\\//_/g; $id =~ s/^\\._??//;`."""
-    return re.sub(r'^\._?', '', path.replace('/', '_'))
-
-
-def _load_cache(blob_path):
-    if not os.path.exists(blob_path):
-        return {}, None
-    try:
-        with open(blob_path, 'rb') as fh:
-            cache = pickle.load(fh)
-    except (pickle.UnpicklingError, EOFError, AttributeError, ValueError,
-            ImportError, ModuleNotFoundError):
-        return {}, None
-    if not isinstance(cache, dict):
-        return {}, None
-    return cache, os.stat(blob_path).st_mtime
-
 
 def _load_xml(path):
     if not os.path.exists(path):

@@ -23,6 +23,10 @@ import sys
 
 
 from Galacticus.Build.FileChanges               import update as file_changes_update
+from Galacticus.Build.ScanCache                 import (
+    file_identifier as _file_identifier,
+    load_cache      as _load_cache,
+)
 from Galacticus.Build.Directives      import extract_directives
 from Galacticus.Build.ParallelScan    import scan as parallel_scan
 from XML.Utils                        import dict_to_xml_string
@@ -40,24 +44,6 @@ def _usage():
 # ---------------------------------------------------------------------------
 # Pickle cache helpers
 # ---------------------------------------------------------------------------
-
-def _load_cache(blob_path):
-    """Return the per-file cache dict, or `{}` if no readable cache exists.
-
-    A pre-existing Perl Storable blob at `blob_path` will fail to unpickle;
-    we catch that and return an empty cache, forcing a full rescan.  Matches
-    the `$havePerFile` logic in the Perl script.
-    """
-    if not os.path.exists(blob_path):
-        return {}
-    try:
-        with open(blob_path, 'rb') as fh:
-            cache = pickle.load(fh)
-    except (pickle.UnpicklingError, EOFError, AttributeError, ValueError,
-            ImportError, ModuleNotFoundError):
-        return {}
-    return cache if isinstance(cache, dict) else {}
-
 
 def _save_cache(blob_path, cache):
     """Write `cache` to `blob_path` via a temp file + atomic replace (only when
@@ -287,12 +273,9 @@ def main(argv):
     build_path        = os.environ['BUILDPATH']
     blob_path         = os.path.join(build_path, 'codeDirectives.blob')
 
-    # Load per-file cache and capture its mtime for freshness checks. (A
-    # non-empty cache implies the blob file exists, since _load_cache returns
-    # `{}` when it is missing or unreadable.)
-    directives_per_file = _load_cache(blob_path)
-    have_per_file       = bool(directives_per_file)
-    cache_mtime         = os.stat(blob_path).st_mtime if have_per_file else None
+    # Load per-file cache and capture its mtime for freshness checks.
+    directives_per_file, cache_mtime = _load_cache(blob_path)
+    have_per_file = bool(directives_per_file)
 
     # List source files under `<installDir>/source/`, recursing into
     # subdirectories.  Names are kept relative to `source/`.
@@ -328,10 +311,7 @@ def main(argv):
     scan_list = []
     for source_file_name in source_file_names:
         file_path       = source_directory + '/' + source_file_name
-        file_identifier = file_path.replace('/', '_')
-        # Strip leading `.` (optionally followed by `_`) -- mirrors the
-        # Perl `s/^\._??//`.  A no-op for absolute install paths.
-        file_identifier = re.sub(r'^\._?', '', file_identifier)
+        file_identifier = _file_identifier(file_path)
 
         # Decide whether this file needs a rescan.
         rescan = True
