@@ -330,6 +330,21 @@ program Tests_IO_HDF5
        call Assert("re-read part of referenced 1-D array integer dataset to allocatable array",integerValueArray(4:4),integerValueArrayReread(1:1))
        deallocate(integerValueArrayReread)
 
+       ! Write zero-sized 1-D array datasets to the file (unchunked, as chunked datasets require chunk sizes of at least 1),
+       ! and read them back.
+       block
+         double precision, dimension(0)                            :: doubleValueArrayEmpty
+         double precision, allocatable  , dimension(:)             :: doubleValueArrayEmptyReread
+         integer         , dimension(0)                            :: integerValueArrayEmpty
+         integer         , allocatable  , dimension(:)             :: integerValueArrayEmptyReread
+         call fileObject%writeDataset(doubleValueArrayEmpty ,"doubleDatasetEmpty" ,"An empty dataset",chunkSize=-1_hsize_t)
+         call fileObject%readDataset ("doubleDatasetEmpty" ,doubleValueArrayEmptyReread )
+         call Assert("re-read zero-sized 1-D array double dataset" ,size(doubleValueArrayEmptyReread ),0)
+         call fileObject%writeDataset(integerValueArrayEmpty,"integerDatasetEmpty","An empty dataset",chunkSize=-1_hsize_t)
+         call fileObject%readDataset ("integerDatasetEmpty",integerValueArrayEmptyReread)
+         call Assert("re-read zero-sized 1-D array integer dataset",size(integerValueArrayEmptyReread),0)
+       end block
+
        ! Write an integer 2-D array dataset to the group.
        integerValueArray2d=reshape([(3*i-7,i=1,size(integerValueArray2d))],shape(integerValueArray2d))
        call groupObject%writeDataset(integerValueArray2d,"integerDataset2dArray","This is an example dataset")
