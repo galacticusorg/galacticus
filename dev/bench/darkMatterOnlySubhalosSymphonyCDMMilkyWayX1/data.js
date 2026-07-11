@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782941504603,
+  "lastUpdate": 1783804610821,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX1)": [
@@ -4347,6 +4347,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 52.75332737585425,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0a7a57deed7d7a8999b3dc4a5d8dd678afb3b548",
+          "message": "Merge pull request #1242 from galacticusorg/docsFixFootnoteSyntax\n\nFix footnote syntax by adding missing opening brace in RST blocks",
+          "timestamp": "2026-07-11T15:25:41Z",
+          "tree_id": "c6a27c582f391472b7ce74131744832316c171dd",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0a7a57deed7d7a8999b3dc4a5d8dd678afb3b548"
+        },
+        "date": 1783804609614,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 2.1607735848337795,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 1.2093165449741154,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 52.881587781133874,
             "unit": "-logℒ"
           }
         ]
