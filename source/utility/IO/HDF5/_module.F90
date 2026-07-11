@@ -1064,7 +1064,7 @@ contains
     use :: File_Utilities    , only : File_Exists        , File_Name_Expand
     use :: Error             , only : Error_Report
     use :: HDF5              , only : H5F_ACC_RDONLY_F   , H5F_ACC_RDWR_F        , H5F_ACC_TRUNC_F       , H5F_CLOSE_SEMI_F       , &
-         &                            H5F_LIBVER_V18_F   , H5F_LIBVER_LATEST_F   , H5P_FILE_ACCESS_F     , h5fcreate_f            , &
+         &                            H5F_LIBVER_V18_F   , H5F_LIBVER_V114_F     , H5P_FILE_ACCESS_F     , h5fcreate_f            , &
          &                            h5fopen_f          , h5pclose_f            , h5pcreate_f           , h5pset_cache_f         , &
          &                            h5pset_fapl_stdio_f, h5pset_fclose_degree_f, h5pset_libver_bounds_f, h5pset_sieve_buf_size_f, &
          &                            hid_t              , hsize_t               , size_t
@@ -1129,19 +1129,22 @@ contains
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
-    ! Set file format.
+    ! Set file format. The upper bound is capped at the HDF5 1.14 format (H5F_LIBVER_V114_F) rather than H5F_LIBVER_LATEST_F:
+    ! under HDF5 2.x, H5F_LIBVER_LATEST_F maps to the 2.0 ("V200") format, which cannot be read by HDF5 1.14. Galacticus uses no
+    ! 2.0-only format features, so capping at V114 keeps output readable by HDF5 1.14 regardless of the library version used to write
+    ! it. Revisit this if Galacticus ever needs a format feature introduced in HDF5 2.0 or later.
     if (present(useLatestFormat)) then
        if (useLatestFormat) then
-          call h5pset_libver_bounds_f(accessList,H5F_LIBVER_LATEST_F,H5F_LIBVER_LATEST_F,errorCode)
+          call h5pset_libver_bounds_f(accessList,H5F_LIBVER_V114_F  ,H5F_LIBVER_V114_F  ,errorCode)
        else
-          call h5pset_libver_bounds_f(accessList,H5F_LIBVER_V18_F   ,H5F_LIBVER_LATEST_F,errorCode)
+          call h5pset_libver_bounds_f(accessList,H5F_LIBVER_V18_F   ,H5F_LIBVER_V114_F  ,errorCode)
        end if
        if (errorCode /= 0) then
           message="failed to set file format for HDF5 file '"//self%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else
-       call    h5pset_libver_bounds_f(accessList,H5F_LIBVER_V18_F   ,H5F_LIBVER_LATEST_F,errorCode)
+       call    h5pset_libver_bounds_f(accessList,H5F_LIBVER_V18_F   ,H5F_LIBVER_V114_F  ,errorCode)
     end if
     if (errorCode /= 0) then
        message="failed to set file format for HDF5 file '"//self%objectName//"'"
