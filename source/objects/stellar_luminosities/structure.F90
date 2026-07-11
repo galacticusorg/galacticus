@@ -330,7 +330,9 @@ contains
             Compute luminosity in the galaxy rest frame;
 
          observed
-            Compute luminosity in the observer frame\footnoteThe luminosity computed in this way is that in the galaxy rest frame using a filter blueshifted to the galaxy's redshift. This means that to compute an apparent magnitude you must add not only the distance modulus, but a factor of :math:`-2.5\log_{10}(1+z)` to account for compression of photon frequencies..
+            Compute luminosity in the observer frame\ [#]_.
+
+         .. [#] The luminosity computed in this way is that in the galaxy rest frame using a filter blueshifted to the galaxy's redshift. This means that to compute an apparent magnitude you must add not only the distance modulus, but a factor of :math:`-2.5\log_{10}(1+z)` to account for compression of photon frequencies.
          </description>
          <source>parameters</source>
        </inputParameter>
