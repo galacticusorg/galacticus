@@ -53,10 +53,12 @@ Implements a merger tree processing time estimator using a polynomial relation r
      A merger tree processing time estimator using a polynomial relation read from file.
      !!}
      private
-     double precision                , dimension(0:2) :: fitCoefficient
+     double precision                , dimension(0:2) :: fitCoefficient          , fitCoefficientCountNodes
+     logical                                          :: haveCountNodesFit=.false.
      type            (varying_string)                 :: fileName
    contains
-     procedure :: time => fileTime
+     procedure :: time            => fileTime
+     procedure :: timeByCountNodes => fileTimeByCountNodes
   end type metaTreeProcessingTimeFile
 
   interface metaTreeProcessingTimeFile
@@ -135,6 +137,14 @@ contains
        call timingDataGroup%readDataset('fitCoefficientMass',coefficients)
        if (size(coefficients) /= 3) call Error_Report('expected 3 fit coefficients in tree timing file "'//char(fileName)//'"'//{introspection:location})
        self%fitCoefficient=coefficients
+       ! Also read the node-count-based fit if present (used for the read path, where node counts are known but masses are not).
+       if (timingDataGroup%hasDataset('fitCoefficientCountNodes')) then
+          call timingDataGroup%readDataset('fitCoefficientCountNodes',coefficients)
+          if (size(coefficients) == 3) then
+             self%fitCoefficientCountNodes=coefficients
+             self%haveCountNodesFit       =.true.
+          end if
+       end if
        !$ call hdf5Access%unset()
     else
        ! Parse the fit file as an XML document.
@@ -166,4 +176,30 @@ contains
     fileTime=10.0d0**fileTime
     return
   end function fileTime
+
+  double precision function fileTimeByCountNodes(self,countNodes)
+    !!{RST
+    Return an estimate of the time needed to process a tree with the given number of nodes, using the node-count-based fit read from
+    file. Returns a negative value if no node-count-based fit is available (e.g. the file was supplied in the legacy XML format,
+    which contains only the mass-based fit).
+    !!}
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    implicit none
+    class           (metaTreeProcessingTimeFile), intent(inout) :: self
+    integer         (c_size_t                  ), intent(in   ) :: countNodes
+    integer                                                     :: i
+    double precision                                            :: countNodesLogarithmic
+
+    if (.not.self%haveCountNodesFit .or. countNodes <= 0_c_size_t) then
+       fileTimeByCountNodes=-1.0d0
+       return
+    end if
+    countNodesLogarithmic=log10(dble(countNodes))
+    fileTimeByCountNodes=0.0d0
+    do i=0,2
+       fileTimeByCountNodes=fileTimeByCountNodes+self%fitCoefficientCountNodes(i)*countNodesLogarithmic**i
+    end do
+    fileTimeByCountNodes=10.0d0**fileTimeByCountNodes
+    return
+  end function fileTimeByCountNodes
 

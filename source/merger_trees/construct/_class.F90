@@ -70,6 +70,18 @@ module Merger_Tree_Construction
       !$GLC attributes unused :: self, masses
     </code>
    </method>
+   <method name="treeCountsNodes" >
+    <description>
+    Return the number of nodes in each of the trees that will be constructed. The output array is left unallocated if the node counts are not known up-front. The default implementation leaves the array unallocated; implementations for which the node count of each tree is known before it is evolved (e.g. the ``read`` constructor) should override this to enable node-count-based whole-run run-time estimation, which is useful where root masses are not known up-front.
+    </description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>integer(c_size_t), allocatable, dimension(:), intent(  out) :: countsNodes</argument>
+    <code>
+      ! By default the tree node counts are not known.
+      !$GLC attributes unused :: self, countsNodes
+    </code>
+   </method>
    <method name="randomSequenceNonDeterministicWarn" >
     <description>
     Display a warning if the merger tree random number generator sequence is non-deterministic.

@@ -136,3 +136,33 @@ if "Evolving tree number" in dryRunLog or "Run-time summary:" in dryRunLog:
     dryRunSuccess = False
 if dryRunSuccess:
     print("SUCCESS: estimate-only (dry-run) mode reports an estimate and evolves no trees")
+
+# Read path: export a set of trees, then read them back with a node-count-based cost model, and confirm that a run-time estimate
+# is produced (the read path does not know root masses up-front, so this exercises the node-count census and predictor).
+status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/treeProcessingTimeExport.xml", shell=True)
+if status.returncode != 0:
+    print("FAILED: tree export model run")
+    sys.exit(0)
+if not os.path.exists("outputs/treeProcessingTimeExported.hdf5"):
+    print("FAILED: exported tree file not produced")
+    sys.exit(0)
+print("SUCCESS: tree export model run")
+status = subprocess.run(
+    "cd ..; ./Galacticus.exe testSuite/parameters/treeProcessingTimeRead.xml > testSuite/outputs/treeProcessingTimeRead.log 2>&1",
+    shell=True
+)
+if status.returncode != 0:
+    print("FAILED: read-path model run")
+    sys.exit(0)
+with open("outputs/treeProcessingTimeRead.log") as logFile:
+    readLog = logFile.read()
+readSuccess = True
+# A node-count-based start-of-run estimate should be produced, and progress should reach 100%.
+if "Run-time estimate:" not in readLog:
+    print("FAILED: read path did not produce a run-time estimate (node-count census/predictor)")
+    readSuccess = False
+if " of " not in readLog or "100.0% complete" not in readLog:
+    print("FAILED: read path progress did not report a total tree count / reach 100%")
+    readSuccess = False
+if readSuccess:
+    print("SUCCESS: read-path node-count-based run-time estimation")

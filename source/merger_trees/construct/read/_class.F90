@@ -178,6 +178,11 @@
      class           (nodeOperatorClass                         ), pointer                   :: nodeOperator_                         => null()
      class           (mergerTreeSeedsClass                      ), pointer                   :: mergerTreeSeeds_                      => null()
      integer                                                                                 :: fileCurrent
+     ! Cached total tree count across all files, computed on demand for run-time estimation. (Per-tree node counts are not cached
+     ! here, to avoid copying a potentially-large array to every thread when this constructor is deep-copied; they are instead
+     ! collected on demand into a caller-provided array.)
+     logical                                                                                 :: censusComputed                        =  .false.
+     integer         (c_size_t                                  )                            :: censusTreeCount
      type            (varying_string                            ), allocatable, dimension(:) :: fileNames                                       , presetNamedReals                    , &
           &                                                                                     presetNamedIntegers
      integer                                                     , allocatable, dimension(:) :: indexNamedReals                                 , indexNamedIntegers
@@ -224,6 +229,7 @@
    contains
      !![
      <methods docformat="rst">
+       <method description="Compute (and cache) the tree census---the total number of trees, and the node count of each tree---across all files." method="census" />
        <method description="Ensure that any node which was once a subhalo remains a subhalo." method="enforceSubhaloStatus" />
        <method description="Scan for cases where a subhalo stops being a subhalo and so must be promoted." method="scanForSubhaloPromotions" />
        <method description="Create a sorted list of node indices with an index into the original array." method="createNodeIndices" />
@@ -257,6 +263,9 @@
      !!]
      final     ::                                  readDestructor
      procedure :: construct                     => readConstruct
+     procedure :: countTrees                    => readCountTrees
+     procedure :: treeCountsNodes               => readTreeCountsNodes
+     procedure :: census                        => readCensus
      procedure :: enforceSubhaloStatus          => readEnforceSubhaloStatus
      procedure :: scanForSubhaloPromotions      => readScanForSubhaloPromotions
      procedure :: createNodeIndices             => readCreateNodeIndices
@@ -1415,6 +1424,71 @@ contains
     finished=.not.associated(tree)
     return
   end function readConstruct
+
+  subroutine readCensus(self,countsNodes)
+    !!{RST
+    Compute the tree census: the total number of trees, and the number of nodes in each tree, across all input files. The importer
+    is opened on each file in turn (the node counts are available from file metadata, before any tree is imported), and is then
+    restored to the first file so that subsequent sequential reading is unaffected. The total tree count is cached; the per-tree
+    node counts are returned in ``countsNodes`` (they are not cached, to avoid copying a potentially-large array when this
+    constructor is deep-copied to each thread).
+    !!}
+    implicit none
+    class  (mergerTreeConstructorRead), intent(inout)                            :: self
+    integer(c_size_t                 ), intent(  out), allocatable, dimension(:) :: countsNodes
+    integer(c_size_t                 )               , allocatable, dimension(:) :: countsNodesTemporary
+    integer(c_size_t                 )                                           :: countTreesFile      , iTree, offset
+    integer                                                                      :: iFile
+
+    allocate(countsNodes(0))
+    self%censusTreeCount=0_c_size_t
+    do iFile=1,size(self%fileNames)
+       call self%mergerTreeImporter_%open(self%fileNames(iFile))
+       countTreesFile=self%mergerTreeImporter_%treeCount()
+       if (countTreesFile > 0_c_size_t) then
+          offset=size(countsNodes,kind=c_size_t)
+          call Move_Alloc(countsNodes,countsNodesTemporary)
+          allocate(countsNodes(offset+countTreesFile))
+          if (offset > 0_c_size_t) countsNodes(1:offset)=countsNodesTemporary
+          deallocate(countsNodesTemporary)
+          do iTree=1,countTreesFile
+             countsNodes(offset+iTree)=self%mergerTreeImporter_%nodeCount(int(iTree))
+          end do
+          self%censusTreeCount=self%censusTreeCount+countTreesFile
+       end if
+    end do
+    ! Restore the importer to the first file so that sequential reading proceeds from the beginning.
+    self%fileCurrent=1
+    call self%mergerTreeImporter_%open(self%fileNames(1))
+    self%censusComputed=.true.
+    return
+  end subroutine readCensus
+
+  function readCountTrees(self) result(countTrees)
+    !!{RST
+    Return the total number of trees to be read, across all input files.
+    !!}
+    implicit none
+    integer(c_size_t                 )                            :: countTrees
+    class  (mergerTreeConstructorRead), intent(inout)             :: self
+    integer(c_size_t                 ), allocatable, dimension(:) :: countsNodes
+
+    if (.not.self%censusComputed) call self%census(countsNodes)
+    countTrees=self%censusTreeCount
+    return
+  end function readCountTrees
+
+  subroutine readTreeCountsNodes(self,countsNodes)
+    !!{RST
+    Return the number of nodes in each of the trees to be read.
+    !!}
+    implicit none
+    class  (mergerTreeConstructorRead), intent(inout)                            :: self
+    integer(c_size_t                 ), intent(  out), allocatable, dimension(:) :: countsNodes
+
+    call self%census(countsNodes)
+    return
+  end subroutine readTreeCountsNodes
 
   subroutine readCreateNodeIndices(self,nodes)
     !!{RST

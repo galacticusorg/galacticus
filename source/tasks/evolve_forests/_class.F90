@@ -551,13 +551,16 @@ contains
     integer                                                                    :: workerCount
     integer         (kind_int8               )                                  :: clockStart           , clockRate             , &
          &                                                                         clockLastReport
-    logical                                                                     :: haveCostModel        , reportProgress
+    logical                                                                     :: haveCostModel        , reportProgress        , &
+         &                                                                         costModelByNodeCount
     integer         (kind_int8               )                           , save :: clockTreeStart       , clockNow
     double precision                                                     , save :: timeTreePredicted    , massTree              , &
          &                                                                         timeTreeActual       , elapsed
+    integer         (c_size_t                )                           , save :: countNodesTree
     logical                                                              , save :: treeWasProcessed
-    !$omp threadprivate(clockTreeStart,clockNow,timeTreePredicted,massTree,timeTreeActual,elapsed,treeWasProcessed)
+    !$omp threadprivate(clockTreeStart,clockNow,timeTreePredicted,massTree,timeTreeActual,elapsed,treeWasProcessed,countNodesTree)
     double precision                            , allocatable, dimension(:)     :: massesCensus
+    integer         (c_size_t                ), allocatable, dimension(:)     :: countsNodesCensus
     integer         (c_size_t                )                                  :: iCensus
 
     ! The following processes merger trees, one at a time, to each successive output time, then dumps their contents to file. It
@@ -609,7 +612,10 @@ contains
     reportProgress        =self%timeIntervalReportProgress > 0.0d0
     call System_Clock(clockStart,clockRate)
     clockLastReport       =clockStart
-    countTreesTotal       =self%mergerTreeConstructor_%countTrees()
+    ! Obtain the tree census (total tree count), but only when it will actually be used, since for some constructors (e.g. the read
+    ! path) this can be moderately expensive (it opens every input file to read metadata).
+    countTreesTotal       =-1_c_size_t
+    if (reportProgress .or. self%estimateRunTimeOnly) countTreesTotal=self%mergerTreeConstructor_%countTrees()
     ! Compute the total number of workers (across MPI processes and OpenMP threads) directly, rather than via the work-share object,
     ! so as not to populate its worker-ID cache before it is deep-copied to each thread. Heterogeneous per-process thread counts are
     ! not accounted for here (the estimate assumes a uniform thread count per process).
@@ -620,9 +626,11 @@ contains
 #endif
     workPredictedTotal    =-1.0d0
     haveCostModel         =.false.
+    costModelByNodeCount  =.false.
     if (countTreesTotal > 0_c_size_t) then
        call self%mergerTreeConstructor_%treeMasses(massesCensus)
        if (allocated(massesCensus)) then
+          ! Root masses are known up-front (e.g. the build path): use the mass-based cost model.
           workPredictedTotal=0.0d0
           haveCostModel     =.true.
           do iCensus=1_c_size_t,size(massesCensus,kind=c_size_t)
@@ -635,6 +643,24 @@ contains
              end if
              workPredictedTotal=workPredictedTotal+timeTreePredicted_
           end do
+       else
+          ! Root masses are not known up-front (e.g. the read path), but node counts may be: try a node-count-based cost model.
+          call self%mergerTreeConstructor_%treeCountsNodes(countsNodesCensus)
+          if (allocated(countsNodesCensus)) then
+             workPredictedTotal  =0.0d0
+             haveCostModel       =.true.
+             costModelByNodeCount=.true.
+             do iCensus=1_c_size_t,size(countsNodesCensus,kind=c_size_t)
+                timeTreePredicted_=self%metaTreeProcessingTime_%timeByCountNodes(countsNodesCensus(iCensus))
+                if (timeTreePredicted_ <= 0.0d0) then
+                   haveCostModel       =.false.
+                   costModelByNodeCount=.false.
+                   workPredictedTotal  =-1.0d0
+                   exit
+                end if
+                workPredictedTotal=workPredictedTotal+timeTreePredicted_
+             end do
+          end if
        end if
     end if
     ! Report a start-of-run estimate of the total run time (only when a cost model and census are both available), and warn if it
@@ -748,11 +774,22 @@ contains
           treeCount=treeCount+1_c_size_t
           if (treeCount > 1_c_size_t .and. self%timeIntervalCheckpoint > 0_kind_int8) call Error_Report('more than 1 tree not permitted when checkpointing is enabled'//{introspection:location})
           ! Record the cost-model prediction for the processing time of this tree (in CPU-seconds), for whole-run progress
-          ! accounting. A negative value indicates that no prediction is available.
+          ! accounting. A negative value indicates that no prediction is available. The predictor (tree mass, or node count for the
+          ! read path) matches the one used for the start-of-run total, so that the actual-to-predicted ratio is consistent.
           if (haveCostModel .and. associated(tree%nodeBase)) then
-             basicNodeBase     => tree%nodeBase%basic()
-             massTree          =  basicNodeBase%mass ()
-             timeTreePredicted =  self%metaTreeProcessingTime_%time(massTree)
+             if (costModelByNodeCount) then
+                ! Count the nodes in this tree and use the node-count-based cost model.
+                countNodesTree=0_c_size_t
+                treeWalkerAll =mergerTreeWalkerAllNodes(tree,spanForest=.true.)
+                do while (treeWalkerAll%next(node))
+                   countNodesTree=countNodesTree+1_c_size_t
+                end do
+                timeTreePredicted=self%metaTreeProcessingTime_%timeByCountNodes(countNodesTree)
+             else
+                basicNodeBase    => tree%nodeBase%basic()
+                massTree         =  basicNodeBase%mass ()
+                timeTreePredicted=  self%metaTreeProcessingTime_%time(massTree)
+             end if
           end if
           ! If this is a new tree, perform any initialization and pre-evolution tasks on it.
           if (treeIsNew) then
