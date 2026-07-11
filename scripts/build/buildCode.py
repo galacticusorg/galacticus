@@ -400,7 +400,7 @@ def _consume_until_close(fh, build, xml_tag, frame, source_directory,
             m = _INCLUDE_RE.match(processed)
             if m and include_file is None:
                 include_file = re.sub(
-                    r'\.inc$', '.Inc',
+                    r'\.inc$', '.p.Inc',
                     os.path.join(source_directory, build_path, m.group(1)),
                 )
 
