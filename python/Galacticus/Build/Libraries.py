@@ -38,7 +38,7 @@ MODULE_LIBRARIES = {
     'fox_wxml':           'FoX_wxml',
     'fox_utils':          'FoX_utils',
     'hdf5':               'hdf5_fortran',
-    'h5tb':               'hdf5hl_fortran',
+    'h5tb':               'hdf5_hl_fortran',
     'vectors':            'blas',
     'models_likelihoods': 'matheval',
     'input_parameters':   'matheval',
@@ -55,29 +55,29 @@ INCLUDE_LIBRARIES = {
 # expand the set of libraries to link. (For static builds
 # libraryDependencies.py adds an extra `hdf5 -> dl` edge to its own copy.)
 DEPENDENCIES = {
-    'hdf5hl_fortran': ['hdf5_hl'],
-    'hdf5_hl'       : ['hdf5'],
-    'hdf5_fortran'  : ['hdf5'],
-    'hdf5'          : ['z'],
-    'gsl'           : ['gslcblas'],
-    'FoX_dom'       : ['FoX_fsys', 'FoX_utils', 'FoX_sax'],
-    'FoX_sax'       : ['FoX_common'],
-    'FoX_utils'     : ['FoX_wxml'],
-    'qhullcpp'      : ['qhull_r', 'stdc++'],
+    'hdf5_hl_fortran': ['hdf5_hl'],
+    'hdf5_hl'        : ['hdf5'],
+    'hdf5_fortran'   : ['hdf5'],
+    'hdf5'           : ['z'],
+    'gsl'            : ['gslcblas'],
+    'FoX_dom'        : ['FoX_fsys', 'FoX_utils', 'FoX_sax'],
+    'FoX_sax'        : ['FoX_common'],
+    'FoX_utils'      : ['FoX_wxml'],
+    'qhullcpp'       : ['qhull_r', 'stdc++'],
 }
 
 # Static-link ordering: key must appear before values on the link line.
 STATIC_LINK_DEPENDENCIES = {
-    'hdf5'          : ['z', 'dl'],
-    'hdf5_hl'       : ['hdf5'],
-    'hdf5_fortran'  : ['hdf5'],
-    'hdf5hl_fortran': ['hdf5_hl'],
-    'gsl'           : ['gslcblas'],
-    'FoX_dom'       : ['FoX_fsys', 'FoX_utils', 'FoX_sax', 'FoX_wxml'],
-    'FoX_sax'       : ['FoX_common'],
-    'FoX_wxml'      : ['FoX_utils'],
-    'FoX_common'    : ['FoX_fsys'],
-    'qhullcpp'      : ['stdc++'],
+    'hdf5'           : ['z', 'dl'],
+    'hdf5_hl'        : ['hdf5'],
+    'hdf5_fortran'   : ['hdf5'],
+    'hdf5_hl_fortran': ['hdf5_hl'],
+    'gsl'            : ['gslcblas'],
+    'FoX_dom'        : ['FoX_fsys', 'FoX_utils', 'FoX_sax', 'FoX_wxml'],
+    'FoX_sax'        : ['FoX_common'],
+    'FoX_wxml'       : ['FoX_utils'],
+    'FoX_common'     : ['FoX_fsys'],
+    'qhullcpp'       : ['stdc++'],
 }
 
 # Conditionally compiled libraries: linked only when the corresponding

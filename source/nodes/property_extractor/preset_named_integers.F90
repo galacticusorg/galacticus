@@ -142,10 +142,16 @@ contains
     class           (nodePropertyExtractorPresetNamedIntegers), intent(inout)                             :: self
     double precision                                          , intent(in   )                             :: time
     type            (varying_string                          ), intent(inout), dimension(:) , allocatable :: names
+    integer                                                                                               :: i
     !$GLC attributes unused :: time
 
     allocate(names(size(self%presetNames)))
-    names='preset:'//self%presetNames
+    ! Note: an explicit loop is used here (rather than a whole-array elemental assignment) as the elemental concatenation is
+    ! miscompiled under link-time optimization (observed with gfortran 16), resulting in a double-free of the temporary - see
+    ! https://github.com/galacticusorg/galacticus/issues/1216.
+    do i=1,size(self%presetNames)
+       names(i)='preset:'//self%presetNames(i)
+    end do
     return
   end subroutine presetNamedIntegersNames
 
