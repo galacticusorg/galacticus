@@ -11,6 +11,20 @@ import shlex
 
 arguments = list(sys.argv[1:])
 
+# Environment for backtick sub-expression expansion. The link line grepped from the
+# build log invokes helper scripts (notably libraryDependencies.py) that import from
+# the repository's python/ tree. Inside `make` that works because the Makefile exports
+# PYTHONPATH, but this script runs as a bare workflow step where PYTHONPATH is unset --
+# there the import dies with ModuleNotFoundError and, if the failure were swallowed,
+# the relink would silently run with no -l flags at all (undefined symbols for every
+# statically-linked library). Derive the python/ path from this script's own location
+# and prepend it, preserving any PYTHONPATH already present.
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_EXPANSION_ENV = dict(os.environ)
+_EXPANSION_ENV['PYTHONPATH'] = os.path.join(_REPO_ROOT, 'python') + (
+    os.pathsep + _EXPANSION_ENV['PYTHONPATH'] if _EXPANSION_ENV.get('PYTHONPATH') else ''
+)
+
 # Find the output executable name from the -o flag.
 executable = None
 for i, arg in enumerate(arguments):
@@ -24,22 +38,24 @@ if executable is None:
 
 print(f"Executable is '{executable}'")
 
-# Split arguments into compile command and optional post-process command (after '2>&1').
-compile_parts      = []
-post_process_parts = []
-post_processing    = False
+# Shell operators that begin the plumbing appended to the link recipe in the
+# build log this line was grepped from: output redirection, pipes, command
+# terminators, and a trailing line-continuation backslash. None of it is part
+# of the link command this script must re-run (it reconstructs its own
+# invocation and lets its output flow to the console), so parsing stops at the
+# first such token and the remainder is discarded. This handles both the older
+# recipe shape ('... 2>&1 | ./scripts/build/postprocessLinker.py') and the
+# current one ('... > <stem>.link.diag 2>&1; \'), which redirects diagnostics
+# to a file for exit-status capture.
+_SHELL_PLUMBING = {'2>&1', '&>', '1>', '2>', '|', '||', '&&', ';', '&', '\\'}
+
+# Assemble the link command, expanding backtick-quoted sub-expressions.
+compile_parts = []
 i = 0
 while i < len(arguments):
     arg = arguments[i]
-    if arg == '2>&1':
-        post_processing = True
-        post_process_parts.append(arg)
-        i += 1
-        continue
-    if post_processing:
-        post_process_parts.append(arg)
-        i += 1
-        continue
+    if arg in _SHELL_PLUMBING or arg.startswith('>') or arg.startswith('<'):
+        break
     # Expand backtick-quoted shell expressions.
     if arg.startswith('`'):
         to_expand = arg
@@ -53,10 +69,22 @@ while i < len(arguments):
             i += 1
             to_expand += ' ' + arguments[i]
         to_expand = to_expand.strip('`')
-        expanded = subprocess.run(
-            to_expand, shell=True, capture_output=True, text=True
-        ).stdout.replace('\n', ' ')
-        compile_parts.append(expanded.strip())
+        expansion = subprocess.run(
+            to_expand, shell=True, capture_output=True, text=True,
+            env=_EXPANSION_ENV,
+        )
+        # A failed expansion must be fatal, not silently empty: an empty expansion of
+        # the libraryDependencies.py sub-expression would relink with no -l flags and
+        # fail with undefined symbols for every statically-linked library.
+        if expansion.returncode != 0:
+            sys.stderr.write(expansion.stderr)
+            print(
+                f"Error: expansion of backtick sub-expression failed "
+                f"(exit {expansion.returncode}): {to_expand}",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        compile_parts.append(expansion.stdout.replace('\n', ' ').strip())
     else:
         compile_parts.append(arg)
     i += 1
@@ -136,8 +164,8 @@ for line in otool_out.splitlines():
     elif os.path.exists(static_name):
         print(f" -> Found static library at '{static_name}'")
         escaped = re.escape(library_name_original)
-        if re.search(r'-l' + escaped + '(\s|$)', compile_command):
-            compile_command = re.sub(r'-l' + escaped + '(\s|$)', static_name + ' ', compile_command)
+        if re.search(r'-l' + escaped + r'(\s|$)', compile_command):
+            compile_command = re.sub(r'-l' + escaped + r'(\s|$)', static_name + ' ', compile_command)
         else:
             compile_command += ' ' + static_name
             if library_name in hide_dylib_libraries:
@@ -190,10 +218,6 @@ if is_gcc:
 if is_gpp:
     compile_command += ' -static-libstdc++'
 
-# Append post-process command if present.
-if post_process_parts:
-    compile_command += ' ' + ' '.join(post_process_parts)
-
 # Temporarily move aside any dynamic libraries that would otherwise be preferred over the static
 # archives being linked, forcing the linker to use the static versions. They are restored below.
 if dylibs_to_hide:
@@ -206,9 +230,23 @@ if dylibs_to_hide:
     subprocess.run(mv_cmd, shell=True)
 
 print(f"Relinking with: {compile_command}")
-status = subprocess.run(compile_command, shell=True)
+# Record the current executable's timestamp so we can later tell whether the relink
+# actually (re)wrote it. -1 stands in for "does not exist yet".
+executable_mtime_before = os.path.getmtime(executable) if os.path.exists(executable) else -1
 
-# Restore any temporarily moved dynamic libraries.
+# Run the relink, capturing combined stdout+stderr so the diagnostics can be screened
+# for a genuine link failure. On macOS gfortran can exit non-zero for benign reasons
+# (e.g. deprecated linker-flag warnings emitted by the modern ld) even when it produces
+# a valid static executable. The historical build recipe absorbed this by piping the
+# relink through postprocessLinker.py and taking the pipe's exit status; parsing that
+# tail off the grepped link line (above) dropped that behavior, so a cosmetic non-zero
+# exit now fails the CI job. Re-apply the screening explicitly (below).
+relink = subprocess.run(
+    compile_command, shell=True,
+    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+)
+
+# Restore any temporarily moved dynamic libraries before exiting.
 if dylibs_to_hide:
     print("Must restore temporarily moved dylibs (requires sudo):")
     mv_cmd = "sudo -- sh -c '" + '; '.join(
@@ -216,5 +254,36 @@ if dylibs_to_hide:
     ) + "'"
     subprocess.run(mv_cmd, shell=True)
 
-# Exit with status.
-sys.exit(status.returncode)
+# Screen the linker diagnostics: postprocessLinker.py re-emits them (dropping the
+# known-benign warnings) and exits non-zero only on a message that indicates the link
+# genuinely failed ('error:', 'undefined reference', 'ld returned N exit status').
+postprocess = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'postprocessLinker.py')
+screen = subprocess.run([sys.executable, postprocess], input=relink.stdout, text=True)
+
+# Decide the relink's fate:
+#  * a genuine-failure diagnostic always fails the relink;
+#  * otherwise a clean gfortran exit succeeds;
+#  * a non-zero gfortran exit with no such diagnostic is treated as benign ONLY if the
+#    executable was actually (re)written -- this tolerates the cosmetic macOS non-zero
+#    exit while still failing on silent breakage that produces no matching diagnostic
+#    (compiler not found, killed by a signal/OOM, disk full, etc.), where the executable
+#    is never updated.
+if screen.returncode != 0:
+    sys.exit(screen.returncode)
+if relink.returncode == 0:
+    sys.exit(0)
+executable_written = (
+    os.path.exists(executable) and os.path.getmtime(executable) > executable_mtime_before
+)
+if executable_written:
+    print(
+        f"Warning: relink command exited with status {relink.returncode} but emitted no "
+        f"failure diagnostic and (re)wrote '{executable}'; treating as success.",
+        file=sys.stderr,
+    )
+    sys.exit(0)
+print(
+    f"Error: relink failed (exit {relink.returncode}) and '{executable}' was not updated.",
+    file=sys.stderr,
+)
+sys.exit(relink.returncode)

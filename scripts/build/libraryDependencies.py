@@ -6,6 +6,12 @@ import subprocess
 import sys
 from graphlib import CycleError, TopologicalSorter
 
+from Galacticus.Build.Libraries import (
+    CONDITIONAL_FLAGS,
+    DEPENDENCIES,
+    STATIC_LINK_DEPENDENCIES,
+)
+
 # Output linker options to link required libraries for building an executable.
 # Andrew Benson (ported to Python 2026)
 
@@ -16,32 +22,12 @@ if len(sys.argv) < 2:
 executable       = sys.argv[1]
 compiler_options = sys.argv[2:]
 
-# Library dependency graph: key depends on values.
-dependencies = {
-    'hdf5hl_fortran': ['hdf5_hl'],
-    'hdf5_hl'       : ['hdf5'],
-    'hdf5_fortran'  : ['hdf5'],
-    'hdf5'          : ['z'],
-    'gsl'           : ['gslcblas'],
-    'FoX_dom'       : ['FoX_fsys', 'FoX_utils', 'FoX_sax'],
-    'FoX_sax'       : ['FoX_common'],
-    'FoX_utils'     : ['FoX_wxml'],
-    'qhullcpp'      : ['qhull_r', 'stdc++'],
-}
+# Library dependency graph: key depends on values. Work on a copy since the
+# static-build case below adds an edge.
+dependencies = {lib: list(deps) for lib, deps in DEPENDENCIES.items()}
 
 # Static-link ordering: key must appear before values.
-static_link_dependencies = {
-    'hdf5'          : ['z', 'dl'],
-    'hdf5_hl'       : ['hdf5'],
-    'hdf5_fortran'  : ['hdf5'],
-    'hdf5hl_fortran': ['hdf5_hl'],
-    'gsl'           : ['gslcblas'],
-    'FoX_dom'       : ['FoX_fsys', 'FoX_utils', 'FoX_sax', 'FoX_wxml'],
-    'FoX_sax'       : ['FoX_common'],
-    'FoX_wxml'      : ['FoX_utils'],
-    'FoX_common'    : ['FoX_fsys'],
-    'qhullcpp'      : ['stdc++'],
-}
+static_link_dependencies = STATIC_LINK_DEPENDENCIES
 
 # Detect compiler preprocessor defines.
 c_compiler = os.environ.get('CCOMPILER', 'gcc')
@@ -65,6 +51,29 @@ if is_static:
     dependencies.setdefault('hdf5', []).append('dl')
 
 pthread_included = '-lpthread' in compiler_options
+
+# Library search directories: '-L' options plus the compiler's own defaults.
+# Used to detect whether optional libraries are actually installed.
+lib_search_dirs = [opt[2:] for opt in compiler_options if opt.startswith('-L') and len(opt) > 2]
+try:
+    search_dirs_out = subprocess.run(
+        [c_compiler, '-print-search-dirs'], capture_output=True, text=True
+    ).stdout
+    for line in search_dirs_out.splitlines():
+        if line.startswith('libraries:'):
+            lib_search_dirs.extend(
+                p for p in line.split('=', 1)[-1].split(os.pathsep) if p
+            )
+except FileNotFoundError:
+    pass
+
+def library_available(name):
+    """Return True if lib<name>.{so,a} exists in any library search directory."""
+    return any(
+        os.path.exists(os.path.join(directory, f'lib{name}{ext}'))
+        for directory in lib_search_dirs
+        for ext in ('.so', '.a')
+    )
 
 build_path = os.environ.get('BUILDPATH')
 if not build_path:
@@ -105,16 +114,29 @@ while len(libraries) != lib_count:
         for dep in dependencies.get(lib, []):
             libraries[dep] = libraries.get(dep, 0) + 1
 
+# HDF5 2.x (built with CMake) places the Fortran/C interface stubs in separate
+# libraries (libhdf5_f90cstub, libhdf5_hl_f90cstub). When the Fortran archives
+# are linked statically the stub libraries must be named explicitly: the static
+# Fortran archives reference the stub symbols but do not contain them. This
+# applies both to '-static' builds and to macOS builds, which are relinked
+# against the static archives by scripts/build/staticRelinker.py (the same
+# reason qhull_r becomes qhullstatic_r below). Autotools HDF5 1.14 instead
+# bundled the stubs into the Fortran archive itself and ships no separate stub
+# libraries, so add the stub libraries only when they are actually installed —
+# leaving HDF5 1.14 links unchanged. Purely shared links are unaffected: the
+# shared Fortran library already records its dependency on the shared stub.
+if is_static or is_macos:
+    for fortran_lib, cstub_lib, c_lib in (
+        ('hdf5_hl_fortran', 'hdf5_hl_f90cstub', 'hdf5_hl'),
+        ('hdf5_fortran',    'hdf5_f90cstub',    'hdf5'   ),
+    ):
+        if fortran_lib in libraries and library_available(cstub_lib):
+            libraries[cstub_lib] = libraries.get(cstub_lib, 0) + 1
+            static_link_dependencies.setdefault(fortran_lib, []).append(cstub_lib)
+            static_link_dependencies.setdefault(cstub_lib, []).append(c_lib)
+
 # Remove conditionally compiled libraries if the corresponding flag is absent.
-conditional = {
-    'fftw3'   : '-DFFTW3AVAIL',
-    'ANN'     : '-DANNAVAIL',
-    'qhullcpp': '-DQHULLAVAIL',
-    'qhull_r' : '-DQHULLAVAIL',
-    'matheval': '-DMATHEVALAVAIL',
-    'git2'    : '-DGIT2AVAIL',
-}
-for lib, flag in conditional.items():
+for lib, flag in CONDITIONAL_FLAGS.items():
     if lib in libraries and flag not in compiler_options:
         del libraries[lib]
 

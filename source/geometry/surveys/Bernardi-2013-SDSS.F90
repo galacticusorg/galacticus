@@ -51,6 +51,7 @@ Implements the geometry of the SDSS survey used by :cite:t:`bernardi_massive_201
   type, extends(surveyGeometryMangle) :: surveyGeometryBernardi2013SDSS
      private
    contains
+     final     ::                              bernardi2013SDSSDestructor
      procedure :: fieldCount                => bernardi2013SDSSFieldCount
      procedure :: distanceMaximum           => bernardi2013SDSSDistanceMaximum
      procedure :: angularPowerMaximumDegree => bernardi2013SDSSAngularPowerMaximumDegree
@@ -78,26 +79,50 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(surveyGeometryBernardi2013SDSS)                :: self
-    type(inputParameters               ), intent(inout) :: parameters
+    type (surveyGeometryBernardi2013SDSS)                :: self
+    type (inputParameters               ), intent(inout) :: parameters
+    class(randomNumberGeneratorClass    ), pointer       :: randomNumberGenerator_
 
-    self=surveyGeometryBernardi2013SDSS()
+    !![
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
+    self=surveyGeometryBernardi2013SDSS(randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
     !!]
     return
   end function bernardi2013SDSSConstructorParameters
 
-  function bernardi2013SDSSConstructorInternal() result (self)
+  function bernardi2013SDSSConstructorInternal(randomNumberGenerator_) result (self)
     !!{RST
-    Default constructor for the :cite:t:`bernardi_massive_2013` conditional mass function class.
+    Default constructor for the :cite:t:`bernardi_massive_2013` conditional mass function class. The optional random
+    number generator is required only if window functions are to be constructed (they are Monte Carlo sampled from the
+    :term:`mangle` mask).
     !!}
     implicit none
-    type(surveyGeometryBernardi2013SDSS) :: self
+    type (surveyGeometryBernardi2013SDSS)                                  :: self
+    class(randomNumberGeneratorClass    ), intent(in   ), target, optional :: randomNumberGenerator_
+    !![
+    <constructorAssign variables="*randomNumberGenerator_"/>
+    !!]
 
     call self%initialize()
     return
   end function bernardi2013SDSSConstructorInternal
+
+  subroutine bernardi2013SDSSDestructor(self)
+    !!{RST
+    Destructor for the :galacticus-class:`surveyGeometryBernardi2013SDSS` survey geometry class.
+    !!}
+    implicit none
+    type(surveyGeometryBernardi2013SDSS), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
+    return
+  end subroutine bernardi2013SDSSDestructor
 
   integer function bernardi2013SDSSFieldCount(self)
     !!{RST

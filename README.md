@@ -102,3 +102,9 @@ Analysis and visualization of Galacticus outputs - including plotting of on-the-
 ```bash
 python3 -m pip install dendros
 ```
+
+## Publications
+
+The [Galacticus Publications](https://github.com/galacticusorg/galacticusPublications) repository collects the parameter files and the exact Galacticus commit hash used to run the models in published papers, so that those results are easy to find and reproduce. The commit behind each paper is also tagged in this repository (e.g. `publication/arXiv/XXXX.XXXXX`), letting you check out the precise version of the code used.
+
+Written a paper that uses Galacticus? We'd welcome your contribution — see the [contribution guidelines](https://github.com/galacticusorg/galacticusPublications/blob/master/Contributing.md) for how to add it.

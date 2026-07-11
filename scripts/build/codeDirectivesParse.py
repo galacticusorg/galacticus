@@ -23,6 +23,10 @@ import sys
 
 
 from Galacticus.Build.FileChanges               import update as file_changes_update
+from Galacticus.Build.ScanCache                 import (
+    file_identifier as _file_identifier,
+    load_cache      as _load_cache,
+)
 from Galacticus.Build.Directives      import extract_directives
 from Galacticus.Build.ParallelScan    import scan as parallel_scan
 from XML.Utils                        import dict_to_xml_string
@@ -40,24 +44,6 @@ def _usage():
 # ---------------------------------------------------------------------------
 # Pickle cache helpers
 # ---------------------------------------------------------------------------
-
-def _load_cache(blob_path):
-    """Return the per-file cache dict, or `{}` if no readable cache exists.
-
-    A pre-existing Perl Storable blob at `blob_path` will fail to unpickle;
-    we catch that and return an empty cache, forcing a full rescan.  Matches
-    the `$havePerFile` logic in the Perl script.
-    """
-    if not os.path.exists(blob_path):
-        return {}
-    try:
-        with open(blob_path, 'rb') as fh:
-            cache = pickle.load(fh)
-    except (pickle.UnpicklingError, EOFError, AttributeError, ValueError,
-            ImportError, ModuleNotFoundError):
-        return {}
-    return cache if isinstance(cache, dict) else {}
-
 
 def _save_cache(blob_path, cache):
     """Write `cache` to `blob_path` via a temp file + atomic replace (only when
@@ -181,7 +167,12 @@ def _scan_one(task):
                     m = _INCLUDE_BODY_RE.search(content)
                     if m:
                         include_leaf = m.group(1)
-                        include_leaf = re.sub(r'\.inc$', '.Inc',
+                        # The generated raw include under BUILDPATH is named
+                        # `<base>.p.Inc`, not `<base>.Inc`: the latter differs
+                        # from the processed `<base>.inc` only by case, and on
+                        # case-insensitive filesystems (macOS APFS) the two
+                        # would be the same file.
+                        include_leaf = re.sub(r'\.inc$', '.p.Inc',
                                               include_leaf)
                         directive['fileName'] = os.path.join(
                             build_path, include_leaf,
@@ -288,9 +279,8 @@ def main(argv):
     blob_path         = os.path.join(build_path, 'codeDirectives.blob')
 
     # Load per-file cache and capture its mtime for freshness checks.
-    directives_per_file = _load_cache(blob_path)
-    have_per_file       = bool(directives_per_file) and os.path.exists(blob_path)
-    cache_mtime         = os.stat(blob_path).st_mtime if have_per_file else None
+    directives_per_file, cache_mtime = _load_cache(blob_path)
+    have_per_file = bool(directives_per_file)
 
     # List source files under `<installDir>/source/`, recursing into
     # subdirectories.  Names are kept relative to `source/`.
@@ -326,10 +316,7 @@ def main(argv):
     scan_list = []
     for source_file_name in source_file_names:
         file_path       = source_directory + '/' + source_file_name
-        file_identifier = file_path.replace('/', '_')
-        # Strip leading `.` (optionally followed by `_`) -- mirrors the
-        # Perl `s/^\._??//`.  A no-op for absolute install paths.
-        file_identifier = re.sub(r'^\._?', '', file_identifier)
+        file_identifier = _file_identifier(file_path)
 
         # Decide whether this file needs a rescan.
         rescan = True
@@ -396,13 +383,26 @@ def main(argv):
     # -----------------------------------------------------------------------
     # Makefile_Directives plus per-directive XML files.
     # -----------------------------------------------------------------------
+    # Written UNCONDITIONALLY (fresh mtime on every run), NOT only-if-changed.
+    # Makefile_Directives is `-include`d by the main Makefile, whose rule for
+    # it runs this script; make re-executes itself (re-reading the regenerated
+    # Makefile_Directives) only when the file is updated by that rule. A stable
+    # mtime would suppress that restart on a clean build, so make would never
+    # re-read the rules for the generated `include`-directive files nor the
+    # ordering line making Makefile_Use_Dependencies depend on them — see the
+    # Makefile_Directives rule comment in the main Makefile.
     makefile_path = os.path.join(build_path, 'Makefile_Directives')
     with open(makefile_path, 'w') as mk:
         for directive in sorted(include_directives):
             info      = include_directives[directive]
-            file_name = re.sub(r'\.inc$', '.Inc', info['fileName'])
+            file_name = re.sub(r'\.inc$', '.p.Inc', info['fileName'])
 
-            # Extra dependencies per directive-key suffix.
+            # Extra dependencies per directive-key suffix. NOTE: no directive
+            # of these kinds (`<base>.function`, `<base>.moduleUse`,
+            # `<base>.functionCall`) currently exists in the source tree — the
+            # only include directive is `type="component"` — so these branches
+            # are retained as future-proofing for directive types the
+            # generator machinery supports.
             extra_deps = []
             m = re.match(r'^([a-zA-Z0-9_]+)\.function$', directive)
             if m:
@@ -421,7 +421,7 @@ def main(argv):
             # The component include is generated by buildCode.py via the
             # `Galacticus.Build.Components` package; make its Python sources
             # prerequisites so edits to the generators trigger regeneration.
-            if file_name.endswith('objects.nodes.components.Inc'):
+            if file_name.endswith('objects.nodes.components.p.Inc'):
                 components_root = os.path.join(
                     install_directory,
                     'python', 'Galacticus', 'Build', 'Components',
@@ -437,10 +437,16 @@ def main(argv):
                 extra_deps.extend(sorted(python_sources))
 
             directive_xml = os.path.join(build_path, directive + '.xml')
+            # stateStorables.xml / deepCopyActions.xml are prerequisites
+            # because buildCode.py runs the full source-tree process pipeline,
+            # whose hooks read both catalogs (mirrors the `%.p.F90.up` rule in
+            # the main Makefile).
             mk.write(
                 f"{file_name}.up: {directive_xml} {' '.join(extra_deps)}"
                 " $(BUILDPATH)/hdf5FCInterop.dat"
-                " $(BUILDPATH)/openMPCriticalSections.xml\n"
+                " $(BUILDPATH)/openMPCriticalSections.xml"
+                " $(BUILDPATH)/stateStorables.xml"
+                " $(BUILDPATH)/deepCopyActions.xml\n"
             )
             mk.write(
                 f"\t./scripts/build/buildCode.py {install_directory}"
@@ -466,7 +472,7 @@ def main(argv):
         # Makefile_Use_Dependencies must be rebuilt after the include files
         # have been constructed.
         use_deps = sorted(
-            re.sub(r'\.inc$', '.Inc', info['fileName'])
+            re.sub(r'\.inc$', '.p.Inc', info['fileName'])
             for info in include_directives.values()
         )
         mk.write(
@@ -475,14 +481,14 @@ def main(argv):
         )
 
         # Makefile_Component_Includes include (must live here because it
-        # depends on objects.nodes.components.Inc built via this Makefile).
+        # depends on objects.nodes.components.p.Inc built via this Makefile).
         mk.write(
             f"-include {os.path.join(build_path, 'Makefile_Component_Includes')}\n"
         )
         mk.write(
             os.path.join(build_path, 'Makefile_Component_Includes')
             + ": "
-            + os.path.join(build_path, 'objects.nodes.components.Inc')
+            + os.path.join(build_path, 'objects.nodes.components.p.Inc')
             + "\n\n"
         )
 
