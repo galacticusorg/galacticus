@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782941572280,
+  "lastUpdate": 1783804600519,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c865d2933671663fde7dffc8f1e114a342229ca7",
-          "message": "Merge pull request #839 from galacticusorg/featRandomSeedsInReferenceModels\n\nUse randomly selected seeds for merger trees in reference and tutorial models",
-          "timestamp": "2025-05-08T14:22:44Z",
-          "tree_id": "aadf61924372db0bf4620cf3680da3932b3b868c",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c865d2933671663fde7dffc8f1e114a342229ca7"
-        },
-        "date": 1746737577096,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 84.888,
-            "unit": "seconds",
-            "range": 0.215568086691886
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10704,6 +10674,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 7.673256239756476,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0a7a57deed7d7a8999b3dc4a5d8dd678afb3b548",
+          "message": "Merge pull request #1242 from galacticusorg/docsFixFootnoteSyntax\n\nFix footnote syntax by adding missing opening brace in RST blocks",
+          "timestamp": "2026-07-11T15:25:41Z",
+          "tree_id": "c6a27c582f391472b7ce74131744832316c171dd",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0a7a57deed7d7a8999b3dc4a5d8dd678afb3b548"
+        },
+        "date": 1783804599463,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 55.876999999999995,
+            "range": "0.08539379368548955",
+            "unit": "seconds"
           }
         ]
       }
