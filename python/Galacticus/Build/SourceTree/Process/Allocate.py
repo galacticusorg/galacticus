@@ -45,6 +45,23 @@ def _declaration_has_generic_placeholder(parent, variable):
     return any(isinstance(f, str) and '¦' in f for f in fields)
 
 
+def _inside_generic_template(node):
+    """Return True if `node` is inside a construct whose opener carries an
+    unresolved generic-template placeholder (e.g. a subroutine named
+    `Foo{Type¦label}`) — in which case declarations inside it may not yet be
+    parseable at all (a declaration whose *type* is a placeholder, such as
+    `{Type¦intrinsic} :: x`, is not recognized as a declaration until the
+    placeholder is substituted).
+    """
+    p = node.get('parent')
+    while p is not None:
+        opener = p.get('opener')
+        if opener and '¦' in opener:
+            return True
+        p = p.get('parent')
+    return False
+
+
 def process_allocate(tree, options):
     """Mirrors Process_Allocate() from Allocate.pm."""
     for node in walk_tree(tree):
@@ -66,7 +83,18 @@ def process_allocate(tree, options):
             # its `!![…!!]` markers, and the inner `process_tree` call on
             # each cloned subtree re-invokes us with a fully-resolved
             # declaration.
-            if _declaration_has_generic_placeholder(node['parent'], variable):
+            try:
+                deferred = _declaration_has_generic_placeholder(node['parent'], variable)
+            except RuntimeError:
+                # A declaration whose type is itself a placeholder (e.g.
+                # `{Type¦intrinsic} :: x`) is not recognizable as a declaration
+                # at all until generics expansion; defer if we are inside an
+                # unexpanded generic template, otherwise the declaration is
+                # genuinely missing.
+                deferred = _inside_generic_template(node)
+                if not deferred:
+                    raise
+            if deferred:
                 continue
             rank = _declaration_rank(node['parent'], variable)
 

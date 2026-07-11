@@ -80,6 +80,15 @@ module IO_HDF5
   integer(kind=HID_T  ), dimension(1)           , public :: H5T_VLEN_INTEGER8
   integer(kind=HID_T  )                         , public :: H5T_INTEGER8
 
+  ! Generic type instances used to generate type-specific attribute read/write functions.
+  !![
+  <generic identifier="Type">
+   <instance label="Integer"  intrinsic="integer"            h5Type="H5T_NATIVE_INTEGER" h5TypesWrite="H5T_NATIVE_INTEGERS"   h5TypesRead="H5T_NATIVE_INTEGERS"    dataType="hdf5DataTypeInteger"  typeName="integer"      h5TypeImport="H5T_NATIVE_INTEGER, "/>
+   <instance label="Integer8" intrinsic="integer(kind_int8)" h5Type="H5T_INTEGER8"       h5TypesWrite="H5T_NATIVE_INTEGER_8S" h5TypesRead="H5T_NATIVE_INTEGER_8AS" dataType="hdf5DataTypeInteger8" typeName="long integer" h5TypeImport=""/>
+   <instance label="Double"   intrinsic="double precision"   h5Type="H5T_NATIVE_DOUBLE"  h5TypesWrite="H5T_NATIVE_DOUBLES"    h5TypesRead="H5T_NATIVE_DOUBLES"     dataType="hdf5DataTypeDouble"   typeName="double"       h5TypeImport="H5T_NATIVE_DOUBLE, "/>
+  </generic>
+  !!]
+
   type hdf5Object
      !!{RST
      A structure that holds properties of HDF5 objects.
@@ -154,27 +163,15 @@ module IO_HDF5
      procedure :: openAttribute                           =>IO_HDF5_Open_Attribute
      procedure :: flush                                   =>IO_HDF5_Flush
      procedure :: remove                                  =>IO_HDF5_Remove
-     procedure :: IO_HDF5_Write_Attribute_Integer_Scalar
-     procedure :: IO_HDF5_Write_Attribute_Integer_1D
-     procedure :: IO_HDF5_Write_Attribute_Integer8_Scalar
-     procedure :: IO_HDF5_Write_Attribute_Integer8_1D
-     procedure :: IO_HDF5_Write_Attribute_Double_Scalar
-     procedure :: IO_HDF5_Write_Attribute_Double_1D
-     procedure :: IO_HDF5_Write_Attribute_Double_2D
+     procedure :: IO_HDF5_Write_Attribute_{Type¦label}
      procedure :: IO_HDF5_Write_Attribute_Character_Scalar
      procedure :: IO_HDF5_Write_Attribute_Character_1D
      procedure :: IO_HDF5_Write_Attribute_VarString_Scalar
      procedure :: IO_HDF5_Write_Attribute_VarString_1D
      procedure :: IO_HDF5_Write_Attribute_Logical_Scalar
      procedure :: IO_HDF5_Write_Attribute_Units_Scalar
-     generic   :: writeAttribute      => IO_HDF5_Write_Attribute_Integer_Scalar  , &
-          &                              IO_HDF5_Write_Attribute_Integer_1D      , &
-          &                              IO_HDF5_Write_Attribute_Integer8_Scalar , &
-          &                              IO_HDF5_Write_Attribute_Integer8_1D     , &
-          &                              IO_HDF5_Write_Attribute_Double_Scalar   , &
-          &                              IO_HDF5_Write_Attribute_Double_1D       , &
-          &                              IO_HDF5_Write_Attribute_Double_2D       , &
-          &                              IO_HDF5_Write_Attribute_Character_Scalar, &
+     generic   :: writeAttribute      => IO_HDF5_Write_Attribute_{Type¦label}
+     generic   :: writeAttribute      => IO_HDF5_Write_Attribute_Character_Scalar, &
           &                              IO_HDF5_Write_Attribute_Character_1D    , &
           &                              IO_HDF5_Write_Attribute_VarString_Scalar, &
           &                              IO_HDF5_Write_Attribute_VarString_1D    , &
@@ -218,35 +215,22 @@ module IO_HDF5
           &                              IO_HDF5_Write_Dataset_VarVarDouble_1D   , &
           &                              IO_HDF5_Write_Dataset_VarDouble_2D      , &
           &                              IO_HDF5_Write_Dataset_VarInteger8_2D
-     procedure :: IO_HDF5_Read_Attribute_Integer_Scalar
-     procedure :: IO_HDF5_Read_Attribute_Integer_1D_Array_Allocatable
-     procedure :: IO_HDF5_Read_Attribute_Integer_1D_Array_Static
-     procedure :: IO_HDF5_Read_Attribute_Integer8_Scalar
-     procedure :: IO_HDF5_Read_Attribute_Integer8_1D_Array_Allocatable
-     procedure :: IO_HDF5_Read_Attribute_Integer8_1D_Array_Static
-     procedure :: IO_HDF5_Read_Attribute_Double_Scalar
-     procedure :: IO_HDF5_Read_Attribute_Double_1D_Array_Allocatable
-     procedure :: IO_HDF5_Read_Attribute_Double_1D_Array_Static
+     procedure :: IO_HDF5_Read_Attribute_{Type¦label}_Scalar
+     procedure :: IO_HDF5_Read_Attribute_{Type¦label}_1D_Array_Allocatable
+     procedure :: IO_HDF5_Read_Attribute_{Type¦label}_1D_Array_Static
      procedure :: IO_HDF5_Read_Attribute_Character_Scalar
      procedure :: IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable
      procedure :: IO_HDF5_Read_Attribute_Character_1D_Array_Static
      procedure :: IO_HDF5_Read_Attribute_VarString_Scalar
      procedure :: IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable
      procedure :: IO_HDF5_Read_Attribute_VarString_1D_Array_Static
-     generic   :: readAttribute       => IO_HDF5_Read_Attribute_Integer_Scalar                , &
-          &                              IO_HDF5_Read_Attribute_Integer_1D_Array_Allocatable  , &
-          &                              IO_HDF5_Read_Attribute_Integer8_Scalar               , &
-          &                              IO_HDF5_Read_Attribute_Integer8_1D_Array_Allocatable , &
-          &                              IO_HDF5_Read_Attribute_Double_Scalar                 , &
-          &                              IO_HDF5_Read_Attribute_Double_1D_Array_Allocatable   , &
-          &                              IO_HDF5_Read_Attribute_Character_Scalar              , &
+     generic   :: readAttribute       => IO_HDF5_Read_Attribute_{Type¦label}_Scalar, IO_HDF5_Read_Attribute_{Type¦label}_1D_Array_Allocatable
+     generic   :: readAttribute       => IO_HDF5_Read_Attribute_Character_Scalar              , &
           &                              IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable, &
           &                              IO_HDF5_Read_Attribute_VarString_Scalar              , &
           &                              IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable
-     generic   :: readAttributeStatic => IO_HDF5_Read_Attribute_Integer_1D_Array_Static       , &
-          &                              IO_HDF5_Read_Attribute_Integer8_1D_Array_Static      , &
-          &                              IO_HDF5_Read_Attribute_Double_1D_Array_Static        , &
-          &                              IO_HDF5_Read_Attribute_Character_1D_Array_Static     , &
+     generic   :: readAttributeStatic => IO_HDF5_Read_Attribute_{Type¦label}_1D_Array_Static
+     generic   :: readAttributeStatic => IO_HDF5_Read_Attribute_Character_1D_Array_Static     , &
           &                              IO_HDF5_Read_Attribute_VarString_1D_Array_Static
      procedure :: IO_HDF5_Read_Dataset_Integer_1D_Array_Allocatable
      procedure :: IO_HDF5_Read_Dataset_Integer_1D_Array_Static
@@ -1633,177 +1617,24 @@ contains
     return
   end subroutine IO_HDF5_Write_Attribute_Logical_Scalar
 
-  subroutine IO_HDF5_Write_Attribute_Integer_Scalar(self,attributeValue,attributeName)
+  subroutine IO_HDF5_Write_Attribute_{Type¦label}(self,attributeValue,attributeName)
     !!{RST
-    Open and write an integer scalar attribute in ``self``.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_INTEGER, HSIZE_T     , h5awrite_f
-    use :: ISO_Varying_String, only : assignment(=)     , operator(//), trim
-    implicit none
-    class    (hdf5Object    ), intent(inout)           :: self
-    character(len=*         ), intent(in   ), optional :: attributeName
-    integer                  , intent(in   )           :: attributeValue
-    integer  (kind=HSIZE_T  ), dimension(1)            :: attributeDimensions
-    integer                                            :: errorCode
-    logical                                            :: preExisted
-    type     (hdf5Object    )                          :: attributeObject
-    type     (varying_string)                          :: attributeNameActual, message
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-
-    ! Get the name of the attribute.
-    if (present(attributeName)) then
-       attributeNameActual=attributeName
-    else
-       attributeNameActual=self%objectName
-    end if
-
-    ! Check that the object is already open.
-    if (.not.self%isOpenValue) then
-       message="attempt to write attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-
-    ! Check if the object is an attribute, or something else.
-    if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
-       ! If this attribute if not overwritable, report an error.
-       if (.not.self%isOverwritable) then
-          message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       else
-          ! Check that the object is a scalar integer.
-          call self%assertAttributeType(H5T_NATIVE_INTEGERS,0)
-       end if
-       select type (self)
-       type is (hdf5Object)
-          attributeObject=self
-       end select
-       attributeNameActual=self%objectName
-    else
-       ! Check that an attribute name was supplied.
-       if (.not.present(attributeName)) then
-          message="no name was supplied for attribute in '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Record if attribute already exists.
-       preExisted=self%hasAttribute(attributeName)
-       ! Open the attribute.
-       attributeObject=self%openAttribute(attributeName,hdf5DataTypeInteger)
-       ! Check that pre-existing object is a scalar integer.
-       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_INTEGERS,0)
-       ! If this attribute if not overwritable, report an error.
-       if (preExisted.and..not.attributeObject%isOverwritable) then
-          message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-    end if
-    ! Write the attribute.
-    call h5awrite_f(attributeObject%objectID,H5T_NATIVE_INTEGER,attributeValue,attributeDimensions,errorCode)
-    if (errorCode /= 0) then
-       message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    return
-  end subroutine IO_HDF5_Write_Attribute_Integer_Scalar
-
-  subroutine IO_HDF5_Write_Attribute_Integer_1D(self,attributeValue,attributeName)
-    !!{RST
-    Open and write an integer 1-D array attribute in ``self``.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_INTEGER, HSIZE_T     , h5awrite_f
-    use :: ISO_Varying_String, only : assignment(=)     , operator(//), trim
-    implicit none
-    class    (hdf5Object    )              , intent(inout)           :: self
-    character(len=*         )              , intent(in   ), optional :: attributeName
-    integer                  , dimension(:), intent(in   )           :: attributeValue
-    integer  (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions
-    integer                                                          :: errorCode
-    logical                                                          :: preExisted
-    type     (hdf5Object    )                                        :: attributeObject
-    type     (varying_string)                                        :: attributeNameActual, message
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-
-    ! Get the name of the attribute.
-    if (present(attributeName)) then
-       attributeNameActual=attributeName
-    else
-       attributeNameActual=self%objectName
-    end if
-
-    ! Check that the object is already open.
-    if (.not.self%isOpenValue) then
-       message="attempt to write attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-
-    ! Check if the object is an attribute, or something else.
-    if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
-       ! If this attribute if not overwritable, report an error.
-       if (.not.self%isOverwritable) then
-          message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       else
-          ! Check that the object is a 1D integer.
-          call self%assertAttributeType(H5T_NATIVE_INTEGERS,1)
-       end if
-       select type (self)
-       type is (hdf5Object)
-          attributeObject=self
-       end select
-       attributeNameActual=self%objectName
-    else
-       ! Check that an attribute name was supplied.
-       if (present(attributeName)) then
-          attributeNameActual=trim(attributeName)
-       else
-          message="no name was supplied for attribute in '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Record if attribute already exists.
-       preExisted=self%hasAttribute(attributeName)
-       ! Open the attribute.
-       attributeDimensions=shape(attributeValue)
-       attributeObject=self%openAttribute(attributeName,hdf5DataTypeInteger,attributeDimensions)
-       ! Check that pre-existing object is a 1D integer.
-       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_INTEGERS,1)
-       ! If this attribute if not overwritable, report an error.
-       if (preExisted.and..not.attributeObject%isOverwritable) then
-          message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-    end if
-
-    ! Write the attribute.
-    call h5awrite_f(attributeObject%objectID,H5T_NATIVE_INTEGER,attributeValue,attributeDimensions,errorCode)
-    if (errorCode /= 0) then
-       message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    return
-  end subroutine IO_HDF5_Write_Attribute_Integer_1D
-
-  subroutine IO_HDF5_Write_Attribute_Integer8_Scalar(self,attributeValue,attributeName)
-    !!{RST
-    Open and write a long integer scalar attribute in ``self``.
+    Open and write a {Type¦typeName} attribute of any rank in ``self``.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : h5awrite_f
+    use            :: HDF5              , only : {Type¦h5TypeImport}HSIZE_T, h5awrite_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
-    class    (hdf5Object    ), intent(inout)           :: self
-    character(len=*         ), intent(in   ), optional :: attributeName
-    integer  (kind=kind_int8), intent(in   ), target   :: attributeValue
-    integer                                            :: errorCode
-    logical                                            :: preExisted
-    type     (hdf5Object    )                          :: attributeObject
-    type     (varying_string)                          :: attributeNameActual, message
-    type     (c_ptr         )                          :: dataBuffer
+    class    (hdf5Object    ), intent(inout)                                     :: self
+    character(len=*         ), intent(in   ), optional                           :: attributeName
+    {Type¦intrinsic}, intent(in   ), dimension(..), target, contiguous :: attributeValue
+    integer  (kind=HSIZE_T  ), dimension(max(1,rank(attributeValue)))            :: attributeDimensions
+    integer                                                                      :: errorCode
+    logical                                                                      :: preExisted
+    type     (hdf5Object    )                                                    :: attributeObject
+    type     (varying_string)                                                    :: attributeNameActual, message
+    type     (c_ptr         )                                                    :: dataBuffer
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -1821,6 +1652,16 @@ contains
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
+    ! Validate the rank of the attribute.
+    if (rank(attributeValue) > 7) then
+       message="attribute '"//trim(attributeNameActual)//"' exceeds the maximum rank of 7"
+       call Error_Report(message//self%locationReport()//{introspection:location})
+    end if
+
+    ! Determine the dimensions of the attribute.
+    attributeDimensions=1
+    if (rank(attributeValue) > 0) attributeDimensions=shape(attributeValue)
+
     ! Check if the object is an attribute, or something else.
     if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! If this attribute if not overwritable, report an error.
@@ -1828,12 +1669,12 @@ contains
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
           call Error_Report(message//self%locationReport()//{introspection:location})
        else
-          ! Check that the object is a scalar integer.
-          call self%assertAttributeType(H5T_NATIVE_INTEGER_8S,0)
+          ! Check that the type and rank of the attribute match.
+          call self%assertAttributeType({Type¦h5TypesWrite},rank(attributeValue))
        end if
        select type (self)
        type is (hdf5Object)
-       attributeObject=self
+          attributeObject=self
        end select
        attributeNameActual=self%objectName
     else
@@ -1847,9 +1688,13 @@ contains
        ! Record if attribute already exists.
        preExisted=self%hasAttribute(attributeName)
        ! Open the attribute.
-       attributeObject=self%openAttribute(attributeName,hdf5DataTypeInteger8)
-       ! Check that pre-existing object is a scalar integer.
-       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,0)
+       if (rank(attributeValue) == 0) then
+          attributeObject=self%openAttribute(attributeName,{Type¦dataType})
+       else
+          attributeObject=self%openAttribute(attributeName,{Type¦dataType},attributeDimensions)
+       end if
+       ! Check that the type and rank of any pre-existing attribute match.
+       if (preExisted) call attributeObject%assertAttributeType({Type¦h5TypesWrite},rank(attributeValue))
        ! If this attribute if not overwritable, report an error.
        if (preExisted.and..not.attributeObject%isOverwritable) then
           message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
@@ -1859,337 +1704,13 @@ contains
 
     ! Write the attribute.
     dataBuffer=c_loc(attributeValue)
-    call h5awrite_f(attributeObject%objectID,H5T_INTEGER8,dataBuffer,errorCode)
+    call h5awrite_f(attributeObject%objectID,{Type¦h5Type},dataBuffer,errorCode)
     if (errorCode /= 0) then
        message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     return
-  end subroutine IO_HDF5_Write_Attribute_Integer8_Scalar
-
-  subroutine IO_HDF5_Write_Attribute_Integer8_1D(self,attributeValue,attributeName)
-    !!{RST
-    Open and write an integer 1-D array attribute in ``self``.
-    !!}
-    use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : HSIZE_T      , h5awrite_f
-    use, intrinsic :: ISO_C_Binding     , only : c_loc
-    use            :: ISO_Varying_String, only : assignment(=), operator(//), trim
-    implicit none
-    class    (hdf5Object    )                           , intent(inout)           :: self
-    character(len=*         )                           , intent(in   ), optional :: attributeName
-    integer  (kind=kind_int8)             , dimension(:), intent(in   )           :: attributeValue
-    integer  (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions
-    integer  (kind=kind_int8), allocatable, dimension(:)               , target   :: attributeValueContiguous
-    integer                                                                       :: errorCode
-    logical                                                                       :: preExisted
-    type     (hdf5Object    )                                                     :: attributeObject
-    type     (varying_string)                                                     :: attributeNameActual     , message
-    type     (c_ptr         )                                                     :: dataBuffer
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-
-    ! Get the name of the attribute.
-    if (present(attributeName)) then
-       attributeNameActual=attributeName
-    else
-       attributeNameActual=self%objectName
-    end if
-
-    ! Check that the object is already open.
-    if (.not.self%isOpenValue) then
-       message="attempt to write attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-
-    ! Check if the object is an attribute, or something else.
-    if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
-       ! If this attribute if not overwritable, report an error.
-       if (.not.self%isOverwritable) then
-          message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       else
-          ! Check that the object is a 1D long integer.
-          call self%assertAttributeType(H5T_NATIVE_INTEGER_8S,1)
-       end if
-       select type (self)
-       type is (hdf5Object)
-       attributeObject=self
-       end select
-       attributeNameActual=self%objectName
-    else
-       ! Check that an attribute name was supplied.
-       if (present(attributeName)) then
-          attributeNameActual=trim(attributeName)
-       else
-          message="no name was supplied for attribute in '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Record if attribute already exists.
-       preExisted=self%hasAttribute(attributeName)
-       ! Open the attribute.
-       attributeDimensions=shape(attributeValue)
-       attributeObject=self%openAttribute(attributeName,hdf5DataTypeInteger8,attributeDimensions)
-       ! Check that pre-existing object is a 1D long integer.
-       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,1)
-       ! If this attribute if not overwritable, report an error.
-       if (preExisted.and..not.attributeObject%isOverwritable) then
-          message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-    end if
-
-    ! Write the attribute.
-    ! We're forced to make a copy of attributeValue here because we can't pass attributeValue itself to c_loc()
-    ! since it is of assumed shape.
-    allocate(attributeValueContiguous,mold=attributeValue)
-    attributeValueContiguous=attributeValue
-    dataBuffer=c_loc(attributeValueContiguous)
-    call h5awrite_f(attributeObject%objectID,H5T_INTEGER8,dataBuffer,errorCode)
-    if (errorCode /= 0) then
-       message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    deallocate(attributeValueContiguous)
-    return
-  end subroutine IO_HDF5_Write_Attribute_Integer8_1D
-
-  subroutine IO_HDF5_Write_Attribute_Double_Scalar(self,attributeValue,attributeName)
-    !!{RST
-    Open and write an double scalar attribute in ``self``.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_DOUBLE, HSIZE_T     , h5awrite_f
-    use :: ISO_Varying_String, only : assignment(=)    , operator(//), trim
-    implicit none
-    class           (hdf5Object    ), intent(inout)           :: self
-    character       (len=*         ), intent(in   ), optional :: attributeName
-    double precision                , intent(in   )           :: attributeValue
-    integer         (kind=HSIZE_T  ), dimension(1)            :: attributeDimensions
-    integer                                                   :: errorCode
-    logical                                                   :: preExisted
-    type            (hdf5Object    )                          :: attributeObject
-    type            (varying_string)                          :: attributeNameActual, message
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-
-    ! Get the name of the attribute.
-    if (present(attributeName)) then
-       attributeNameActual=attributeName
-    else
-       attributeNameActual=self%objectName
-    end if
-
-    ! Check that the object is already open.
-    if (.not.self%isOpenValue) then
-       message="attempt to write attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-
-    ! Check if the object is an attribute, or something else.
-    if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
-       ! If this attribute if not overwritable, report an error.
-       if (.not.self%isOverwritable) then
-          message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       else
-          ! Check that the object is a scalar double.
-          call self%assertAttributeType(H5T_NATIVE_DOUBLES,0)
-       end if
-       select type (self)
-       type is (hdf5Object)
-       attributeObject=self
-       end select
-       attributeNameActual=self%objectName
-    else
-       ! Check that an attribute name was supplied.
-       if (present(attributeName)) then
-          attributeNameActual=trim(attributeName)
-       else
-          message="no name was supplied for attribute in '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Record if attribute already exists.
-       preExisted=self%hasAttribute(attributeName)
-       ! Open the attribute.
-       attributeObject=self%openAttribute(attributeName,hdf5DataTypeDouble)
-       ! Check that pre-existing object is a scalar double.
-       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,0)
-       ! If this attribute if not overwritable, report an error.
-       if (preExisted.and..not.attributeObject%isOverwritable) then
-          message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-    end if
-
-    ! Write the attribute.
-    call h5awrite_f(attributeObject%objectID,H5T_NATIVE_DOUBLE,attributeValue,attributeDimensions,errorCode)
-    if (errorCode /= 0) then
-       message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    return
-  end subroutine IO_HDF5_Write_Attribute_Double_Scalar
-
-  subroutine IO_HDF5_Write_Attribute_Double_1D(self,attributeValue,attributeName)
-    !!{RST
-    Open and write an double 1-D array attribute in ``self``.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_DOUBLE, HSIZE_T     , h5awrite_f
-    use :: ISO_Varying_String, only : assignment(=)    , operator(//), trim
-    implicit none
-    class           (hdf5Object    )              , intent(inout)           :: self
-    character       (len=*         )              , intent(in   ), optional :: attributeName
-    double precision                , dimension(:), intent(in   )           :: attributeValue
-    integer         (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions
-    integer                                                                 :: errorCode
-    logical                                                                 :: preExisted
-    type            (hdf5Object    )                                        :: attributeObject
-    type            (varying_string)                                        :: attributeNameActual, message
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-
-    ! Get the name of the attribute.
-    if (present(attributeName)) then
-       attributeNameActual=attributeName
-    else
-       attributeNameActual=self%objectName
-    end if
-
-    ! Check that the object is already open.
-    if (.not.self%isOpenValue) then
-       message="attempt to write attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-
-    ! Check if the object is an attribute, or something else.
-    if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
-       ! If this attribute if not overwritable, report an error.
-       if (.not.self%isOverwritable) then
-          message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       else
-          ! Check that the object is a 1D double.
-          call self%assertAttributeType(H5T_NATIVE_DOUBLES,1)
-       end if
-       select type (self)
-       type is (hdf5Object)
-       attributeObject=self
-       end select
-       attributeNameActual=self%objectName
-    else
-       ! Check that an attribute name was supplied.
-       if (present(attributeName)) then
-          attributeNameActual=trim(attributeName)
-       else
-          message="no name was supplied for attribute in '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Record if attribute already exists.
-       preExisted=self%hasAttribute(attributeName)
-       ! Open the attribute.
-       attributeDimensions=shape(attributeValue)
-       attributeObject=self%openAttribute(attributeName,hdf5DataTypeDouble,attributeDimensions)
-       ! Check that pre-existing object is a 1D double.
-       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,1)
-       ! If this attribute if not overwritable, report an error.
-       if (preExisted.and..not.attributeObject%isOverwritable) then
-          message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-    end if
-
-    ! Write the attribute.
-    call h5awrite_f(attributeObject%objectID,H5T_NATIVE_DOUBLE,attributeValue,attributeDimensions,errorCode)
-    if (errorCode /= 0) then
-       message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    return
-  end subroutine IO_HDF5_Write_Attribute_Double_1D
-
-  subroutine IO_HDF5_Write_Attribute_Double_2D(self,attributeValue,attributeName)
-    !!{RST
-    Open and write an double 2-D array attribute in ``self``.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_DOUBLE, HSIZE_T     , h5awrite_f
-    use :: ISO_Varying_String, only : assignment(=)    , operator(//), trim
-    implicit none
-    class           (hdf5Object    )                , intent(inout)           :: self
-    character       (len=*         )                , intent(in   ), optional :: attributeName
-    double precision                , dimension(:,:), intent(in   )           :: attributeValue
-    integer         (kind=HSIZE_T  ), dimension(2)                            :: attributeDimensions
-    integer                                                                   :: errorCode
-    logical                                                                   :: preExisted
-    type            (hdf5Object    )                                          :: attributeObject
-    type            (varying_string)                                          :: attributeNameActual, message
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-
-    ! Get the name of the attribute.
-    if (present(attributeName)) then
-       attributeNameActual=attributeName
-    else
-       attributeNameActual=self%objectName
-    end if
-
-    ! Check that the object is already open.
-    if (.not.self%isOpenValue) then
-       message="attempt to write attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-
-    ! Check if the object is an attribute, or something else.
-    if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
-       ! If this attribute if not overwritable, report an error.
-       if (.not.self%isOverwritable) then
-          message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       else
-          ! Check that the object is a 2D double.
-          call self%assertAttributeType(H5T_NATIVE_DOUBLES,2)
-       end if
-       select type (self)
-       type is (hdf5Object)
-       attributeObject=self
-       end select
-       attributeNameActual=self%objectName
-    else
-       ! Check that an attribute name was supplied.
-       if (present(attributeName)) then
-          attributeNameActual=trim(attributeName)
-       else
-          message="no name was supplied for attribute in '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Record if attribute already exists.
-       preExisted=self%hasAttribute(attributeName)
-       ! Open the attribute.
-       attributeDimensions=shape(attributeValue)
-       attributeObject=self%openAttribute(attributeName,hdf5DataTypeDouble,attributeDimensions)
-       ! Check that pre-existing object is a 2D double.
-       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,2)
-       ! If this attribute if not overwritable, report an error.
-       if (preExisted.and..not.attributeObject%isOverwritable) then
-          message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-    end if
-
-    ! Write the attribute.
-    call h5awrite_f(attributeObject%objectID,H5T_NATIVE_DOUBLE,attributeValue,attributeDimensions,errorCode)
-    if (errorCode /= 0) then
-       message="unable to write attribute '"//attributeNameActual//"' in object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    return
-  end subroutine IO_HDF5_Write_Attribute_Double_2D
+  end subroutine IO_HDF5_Write_Attribute_{Type¦label}
 
   subroutine IO_HDF5_Write_Attribute_Character_Scalar(self,attributeValue,attributeName)
     !!{RST
@@ -2414,26 +1935,27 @@ contains
     return
   end subroutine IO_HDF5_Write_Attribute_VarString_1D
 
-  subroutine IO_HDF5_Read_Attribute_Integer_Scalar(self,attributeName,attributeValue,allowPseudoScalar)
+  subroutine IO_HDF5_Read_Attribute_{Type¦label}_Scalar(self,attributeName,attributeValue,allowPseudoScalar)
     !!{RST
-    Open and read an integer scalar attribute in ``self``.
+    Open and read a {Type¦typeName} scalar attribute in ``self``.
     !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_INTEGER, HID_T       , HSIZE_T                    , h5aget_space_f, &
-          &                           h5aread_f         , h5sclose_f  , h5sget_simple_extent_dims_f
-    use :: ISO_Varying_String, only : assignment(=)     , operator(//), trim
+    use            :: Error             , only : Error_Report
+    use            :: HDF5              , only : {Type¦h5TypeImport}HID_T, HSIZE_T, h5aget_space_f, h5aread_f, h5sclose_f, h5sget_simple_extent_dims_f
+    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
-    integer                                , intent(  out)           :: attributeValue
+    {Type¦intrinsic}, intent(  out), target :: attributeValue
     class    (hdf5Object    )              , intent(inout)           :: self
     character(len=*         )              , intent(in   ), optional :: attributeName
     logical                                , intent(in   ), optional :: allowPseudoScalar
-    integer                  , dimension(1)                          :: pseudoScalarValue
+    {Type¦intrinsic}, dimension(1) :: pseudoScalarValue
     integer  (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions    , attributeMaximumDimensions
     integer  (kind=HID_T    )                                        :: attributeDataspaceID
     integer                                                          :: errorCode
     type     (hdf5Object    )                                        :: attributeObject
     type     (varying_string)                                        :: attributeNameActual    , message
     logical                                                          :: allowPseudoScalarActual, matches
+    type     (c_ptr         )                                        :: dataBuffer
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -2485,328 +2007,19 @@ contains
        attributeObject=self%openAttribute(attributeName)
     end if
 
-    ! Check that the object is a scalar integer.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGERS,0,matches)
+    ! Check that the object is a scalar of the expected type.
+    call attributeObject%assertAttributeType({Type¦h5TypesRead},0,matches)
     if (matches) then
        ! Read the scalar attribute.
-       call h5aread_f(attributeObject%objectID,H5T_NATIVE_INTEGER,attributeValue,attributeDimensions&
-            &,errorCode)
-       if (errorCode /= 0) then
-          message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-    else if (allowPseudoScalarActual) then
-       ! Attribute is not a scalar. Check if it is a pseudo-scalar.
-       call attributeObject%assertAttributeType(H5T_NATIVE_INTEGERS,1,matches)
-       if (matches) then
-          ! Get the dimensions of the array.
-          call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
-          if (errorCode /= 0) then
-             message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode)
-          if (errorCode < 0) then
-             message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          call h5sclose_f(attributeDataspaceID,errorCode)
-          if (errorCode /= 0) then
-             message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          if (attributeDimensions(1) == 1) then
-             call attributeObject%readAttributeStatic(attributeValue=pseudoScalarValue)
-             attributeValue=pseudoScalarValue(1)
-          else
-             call Error_Report("attribute '"//attributeObject%objectName//"' must be an integer scalar or pseudo-scalar"//self%locationReport()//self%locationReport()//{introspection:location})
-          end if
-       end if
-    else
-       call       Error_Report("attribute '"//attributeObject%objectName//"' must be an integer scalar"                 //self%locationReport()//self%locationReport()//{introspection:location})
-    end if
-    return
-  end subroutine IO_HDF5_Read_Attribute_Integer_Scalar
-
-  subroutine IO_HDF5_Read_Attribute_Integer_1D_Array_Allocatable(self,attributeName,attributeValue)
-    !!{RST
-    Open and read an integer scalar attribute in ``self``.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_INTEGER, HID_T       , HSIZE_T                    , h5aget_space_f, &
-          &                           h5aread_f         , h5sclose_f  , h5sget_simple_extent_dims_f
-    use :: ISO_Varying_String, only : assignment(=)     , operator(//), trim
-    implicit none
-    integer                  , allocatable, dimension(:), intent(  out)           :: attributeValue
-    class    (hdf5Object    )                           , intent(inout)           :: self
-    character(len=*         )                           , intent(in   ), optional :: attributeName
-    integer  (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions , attributeMaximumDimensions
-    integer                                                                       :: errorCode
-    integer  (kind=HID_T    )                                                     :: attributeDataspaceID
-    type     (hdf5Object    )                                                     :: attributeObject
-    type     (varying_string)                                                     :: attributeNameActual , message
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-
-    ! Get the name of the attribute.
-    if (present(attributeName)) then
-       attributeNameActual=attributeName
-    else
-       attributeNameActual=self%objectName
-    end if
-
-    ! Check that the object is already open.
-    if (.not.self%isOpenValue) then
-       message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-
-    ! Check if the object is an attribute, or something else.
-    if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
-       ! Object is the attribute.
-       select type (self)
-       type is (hdf5Object)
-       attributeObject=self
-       end select
-       ! No name should be supplied in this case.
-       if (present(attributeName)) then
-          message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-    else
-       ! Require that an attribute name was supplied.
-       if (.not.present(attributeName)) then
-          message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Check that the attribute exists.
-       if (.not.self%hasAttribute(attributeName)) then
-          message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Open the attribute.
-       attributeObject=self%openAttribute(attributeName)
-    end if
-
-    ! Check that the object is a 1D integer array.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGERS,1)
-
-    ! Get the dimensions of the array.
-    call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode)
-    if (errorCode < 0) then
-       message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    call h5sclose_f(attributeDataspaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-
-    ! Allocate the array to the appropriate size.
-    if (allocated(attributeValue)) deallocate(attributeValue)
-    !![
-    <allocate variable="attributeValue" shape="attributeDimensions"/>
-    !!]
-
-    ! Read the attribute.
-    call h5aread_f(attributeObject%objectID,H5T_NATIVE_INTEGER,attributeValue,attributeDimensions&
-         &,errorCode)
-    if (errorCode /= 0) then
-       message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    return
-  end subroutine IO_HDF5_Read_Attribute_Integer_1D_Array_Allocatable
-
-  subroutine IO_HDF5_Read_Attribute_Integer_1D_Array_Static(self,attributeName,attributeValue)
-    !!{RST
-    Open and read an integer scalar attribute in ``self``.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_INTEGER, HID_T       , HSIZE_T                    , h5aget_space_f, &
-          &                           h5aread_f         , h5sclose_f  , h5sget_simple_extent_dims_f
-    use :: ISO_Varying_String, only : assignment(=)     , operator(//), trim
-    implicit none
-    integer                  , dimension(:), intent(  out)           :: attributeValue
-    class    (hdf5Object    )              , intent(inout)           :: self
-    character(len=*         )              , intent(in   ), optional :: attributeName
-    integer  (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions , attributeMaximumDimensions
-    integer                                                          :: errorCode
-    integer  (kind=HID_T    )                                        :: attributeDataspaceID
-    type     (hdf5Object    )                                        :: attributeObject
-    type     (varying_string)                                        :: attributeNameActual , message
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-
-    ! Get the name of the attribute.
-    if (present(attributeName)) then
-       attributeNameActual=attributeName
-    else
-       attributeNameActual=self%objectName
-    end if
-
-    ! Check that the object is already open.
-    if (.not.self%isOpenValue) then
-       message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    ! Check if the object is an attribute, or something else.
-    if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
-       ! Object is the attribute.
-       select type (self)
-       type is (hdf5Object)
-          attributeObject=self
-       end select
-       ! No name should be supplied in this case.
-       if (present(attributeName)) then
-          message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-    else
-       ! Require that an attribute name was supplied.
-       if (.not.present(attributeName)) then
-          message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Check that the attribute exists.
-       if (.not.self%hasAttribute(attributeName)) then
-          message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Open the attribute.
-       attributeObject=self%openAttribute(attributeName)
-    end if
-
-    ! Check that the object is a 1D integer array.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGERS,1)
-
-    ! Get the dimensions of the array.
-    call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode)
-    if (errorCode < 0) then
-       message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    call h5sclose_f(attributeDataspaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-
-    ! Ensure that the size of the array is large enough to hold the attributes.
-    if (any(shape(attributeValue) < attributeDimensions)) then
-       message="array is not large enough to hold attributes from '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-
-    ! Read the attribute.
-    call h5aread_f(attributeObject%objectID,H5T_NATIVE_INTEGER,attributeValue,attributeDimensions&
-         &,errorCode)
-    if (errorCode /= 0) then
-       message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    return
-  end subroutine IO_HDF5_Read_Attribute_Integer_1D_Array_Static
-
-  subroutine IO_HDF5_Read_Attribute_Integer8_Scalar(self,attributeName,attributeValue,allowPseudoScalar)
-    !!{RST
-    Open and read a long integer scalar attribute in ``self``.
-    !!}
-    use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : h5sget_simple_extent_dims_f, HID_T       , HSIZE_T, h5aget_space_f, &
-          &                                      h5sclose_f                 , h5aread_f
-    use, intrinsic :: ISO_C_Binding     , only : c_loc
-    use            :: ISO_Varying_String, only : assignment(=)              , operator(//), trim
-    implicit none
-    integer  (kind=kind_int8)              , intent(  out)          , target :: attributeValue
-    class    (hdf5Object    )              , intent(inout)                   :: self
-    character(len=*         )              , intent(in   ), optional         :: attributeName
-    logical                                , intent(in   ), optional         :: allowPseudoScalar
-    integer  (kind=kind_int8), dimension(1)                                  :: pseudoScalarValue
-    integer  (kind=HSIZE_T  ), dimension(1)                                  :: attributeDimensions    , attributeMaximumDimensions
-    integer  (kind=HID_T    )                                                :: attributeDataspaceID
-    integer                                                                  :: errorCode
-    type     (hdf5Object    )                                                :: attributeObject
-    type     (varying_string)                                                :: attributeNameActual    , message
-    logical                                                                  :: allowPseudoScalarActual, matches
-    type     (c_ptr         )                                                :: dataBuffer
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-
-    ! Check if pseudo-scalars are allowed.
-    if (present(allowPseudoScalar)) then
-       allowPseudoScalarActual=allowPseudoScalar
-    else
-       allowPseudoScalarActual=.false.
-    end if
-
-    ! Get the name of the attribute.
-    if (present(attributeName)) then
-       attributeNameActual=attributeName
-    else
-       attributeNameActual=self%objectName
-    end if
-
-    ! Check that the object is already open.
-    if (.not.self%isOpenValue) then
-       message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-
-    ! Check if the object is an attribute, or something else.
-    if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
-       ! Object is the attribute.
-       select type (self)
-       type is (hdf5Object)
-          attributeObject=self
-       end select
-       ! No name should be supplied in this case.
-       if (present(attributeName)) then
-          message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-    else
-       ! Require that an attribute name was supplied.
-       if (.not.present(attributeName)) then
-          message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Check that the attribute exists.
-       if (.not.self%hasAttribute(attributeName)) then
-          message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Open the attribute.
-       attributeObject=self%openAttribute(attributeName)
-    end if
-
-    ! Check that the object is a scalar integer.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8AS,0,matches)
-    if (matches) then
-       ! Read the attribute.
        dataBuffer=c_loc(attributeValue)
-       call h5aread_f(attributeObject%objectID,H5T_INTEGER8,dataBuffer,errorCode)
+       call h5aread_f(attributeObject%objectID,{Type¦h5Type},dataBuffer,errorCode)
        if (errorCode /= 0) then
           message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     else if (allowPseudoScalarActual) then
        ! Attribute is not a scalar. Check if it is a pseudo-scalar.
-       call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8AS,1,matches)
+       call attributeObject%assertAttributeType({Type¦h5TypesRead},1,matches)
        if (matches) then
           ! Get the dimensions of the array.
           call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -2828,26 +2041,25 @@ contains
              call attributeObject%readAttributeStatic(attributeValue=pseudoScalarValue)
              attributeValue=pseudoScalarValue(1)
           else
-             call Error_Report("attribute '"//attributeObject%objectName//"' must be a long integer scalar or pseudo-scalar"//self%locationReport()//{introspection:location})
+             call Error_Report("attribute '"//attributeObject%objectName//"' must be a {Type¦typeName} scalar or pseudo-scalar"//self%locationReport()//{introspection:location})
           end if
        end if
     else
-       call       Error_Report("attribute '"//attributeObject%objectName//"' must be a long integer scalar"                 //self%locationReport()//{introspection:location})
+       call    Error_Report("attribute '"//attributeObject%objectName//"' must be a {Type¦typeName} scalar"                 //self%locationReport()//{introspection:location})
     end if
     return
-  end subroutine IO_HDF5_Read_Attribute_Integer8_Scalar
+  end subroutine IO_HDF5_Read_Attribute_{Type¦label}_Scalar
 
-  subroutine IO_HDF5_Read_Attribute_Integer8_1D_Array_Allocatable(self,attributeName,attributeValue)
+  subroutine IO_HDF5_Read_Attribute_{Type¦label}_1D_Array_Allocatable(self,attributeName,attributeValue)
     !!{RST
-    Open and read an integer scalar attribute in ``self``.
+    Open and read a {Type¦typeName} 1-D array attribute in ``self``, into an allocatable array.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : h5sget_simple_extent_dims_f, HID_T      , HSIZE_T, h5aget_space_f, &
-          &                                      h5sclose_f                 , h5aread_f
+    use            :: HDF5              , only : {Type¦h5TypeImport}HID_T, HSIZE_T, h5aget_space_f, h5aread_f, h5sclose_f, h5sget_simple_extent_dims_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
-    use            :: ISO_Varying_String, only : assignment(=)             , operator(//), trim
+    use            :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
-    integer  (kind=kind_int8), allocatable, dimension(:), intent(  out), target   :: attributeValue
+    {Type¦intrinsic}, allocatable, dimension(:), intent(  out), target :: attributeValue
     class    (hdf5Object    )                           , intent(inout)           :: self
     character(len=*         )                           , intent(in   ), optional :: attributeName
     integer  (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions , attributeMaximumDimensions
@@ -2878,7 +2090,7 @@ contains
        ! Object is the attribute.
        select type (self)
        type is (hdf5Object)
-       attributeObject=self
+          attributeObject=self
        end select
        ! No name should be supplied in this case.
        if (present(attributeName)) then
@@ -2900,8 +2112,8 @@ contains
        attributeObject=self%openAttribute(attributeName)
     end if
 
-    ! Check that the object is a 1D long integer array.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8AS,1)
+    ! Check that the object is a 1D array of the expected type.
+    call attributeObject%assertAttributeType({Type¦h5TypesRead},1)
 
     ! Get the dimensions of the array.
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -2928,34 +2140,32 @@ contains
 
     ! Read the attribute.
     dataBuffer=c_loc(attributeValue)
-    call h5aread_f(attributeObject%objectID,H5T_INTEGER8,dataBuffer,errorCode)
+    call h5aread_f(attributeObject%objectID,{Type¦h5Type},dataBuffer,errorCode)
     if (errorCode /= 0) then
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     return
-  end subroutine IO_HDF5_Read_Attribute_Integer8_1D_Array_Allocatable
+  end subroutine IO_HDF5_Read_Attribute_{Type¦label}_1D_Array_Allocatable
 
-  subroutine IO_HDF5_Read_Attribute_Integer8_1D_Array_Static(self,attributeName,attributeValue)
+  subroutine IO_HDF5_Read_Attribute_{Type¦label}_1D_Array_Static(self,attributeName,attributeValue)
     !!{RST
-    Open and read an integer scalar attribute in ``self``.
+    Open and read a {Type¦typeName} 1-D array attribute in ``self``, into a static array.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : h5sget_simple_extent_dims_f, HID_T       , HSIZE_T, h5aget_space_f, &
-          &                                      h5sclose_f                 , h5aread_f
+    use            :: HDF5              , only : {Type¦h5TypeImport}HID_T, HSIZE_T, h5aget_space_f, h5aread_f, h5sclose_f, h5sget_simple_extent_dims_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
-    use            :: ISO_Varying_String, only : assignment(=)              , operator(//), trim
+    use            :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
-    integer  (kind=kind_int8)             , dimension(:), intent(  out)           :: attributeValue
-    class    (hdf5Object    )                           , intent(inout)           :: self
-    character(len=*         )                           , intent(in   ), optional :: attributeName
-    integer  (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions     , attributeMaximumDimensions
-    integer  (kind=kind_int8), allocatable, dimension(:)               , target   :: attributeValueContiguous
-    integer                                                                       :: errorCode
-    integer  (kind=HID_T    )                                                     :: attributeDataspaceID
-    type     (hdf5Object    )                                                     :: attributeObject
-    type     (varying_string)                                                     :: attributeNameActual     , message
-    type     (c_ptr         )                                                     :: dataBuffer
+    {Type¦intrinsic}, dimension(:), intent(  out), target, contiguous :: attributeValue
+    class    (hdf5Object    )              , intent(inout)           :: self
+    character(len=*         )              , intent(in   ), optional :: attributeName
+    integer  (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions , attributeMaximumDimensions
+    integer                                                          :: errorCode
+    integer  (kind=HID_T    )                                        :: attributeDataspaceID
+    type     (hdf5Object    )                                        :: attributeObject
+    type     (varying_string)                                        :: attributeNameActual , message
+    type     (c_ptr         )                                        :: dataBuffer
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -3000,8 +2210,8 @@ contains
        attributeObject=self%openAttribute(attributeName)
     end if
 
-    ! Check that the object is a 1D long integer array.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8AS,1)
+    ! Check that the object is a 1D array of the expected type.
+    call attributeObject%assertAttributeType({Type¦h5TypesRead},1)
 
     ! Get the dimensions of the array.
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -3027,329 +2237,14 @@ contains
     end if
 
     ! Read the attribute.
-    ! We're forced to make a copy of attributeValue here because we can't pass attributeValue itself to c_loc()
-    ! since it is of assumed shape.
-    allocate(attributeValueContiguous,mold=attributeValue)
-    dataBuffer=c_loc(attributeValueContiguous)
-    call h5aread_f(attributeObject%objectID,H5T_INTEGER8,dataBuffer,errorCode)
-    if (errorCode /= 0) then
-       message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    attributeValue=attributeValueContiguous    
-    return
-  end subroutine IO_HDF5_Read_Attribute_Integer8_1D_Array_Static
-
-  subroutine IO_HDF5_Read_Attribute_Double_Scalar(self,attributeName,attributeValue,allowPseudoScalar)
-    !!{RST
-    Open and read an double scalar attribute in ``self``.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_DOUBLE, HID_T       , HSIZE_T                    , h5aget_space_f, &
-          &                           h5aread_f        , h5sclose_f  , h5sget_simple_extent_dims_f
-    use :: ISO_Varying_String, only : assignment(=)    , operator(//), trim
-    implicit none
-    double precision                              , intent(  out)           :: attributeValue
-    class           (hdf5Object    )              , intent(inout)           :: self
-    character       (len=*         )              , intent(in   ), optional :: attributeName
-    logical                                       , intent(in   ), optional :: allowPseudoScalar
-    integer         (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions    , attributeMaximumDimensions
-    double precision                , dimension(1)                          :: pseudoScalarValue
-    integer         (kind=HID_T    )                                        :: attributeDataspaceID
-    integer                                                                 :: errorCode
-    type            (hdf5Object    )                                        :: attributeObject
-    type            (varying_string)                                        :: attributeNameActual    , message
-    logical                                                                 :: allowPseudoScalarActual, matches
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-
-    ! Check if pseudo-scalars are allowed.
-    if (present(allowPseudoScalar)) then
-       allowPseudoScalarActual=allowPseudoScalar
-    else
-       allowPseudoScalarActual=.false.
-    end if
-
-    ! Get the name of the attribute.
-    if (present(attributeName)) then
-       attributeNameActual=attributeName
-    else
-       attributeNameActual=self%objectName
-    end if
-
-    ! Check that the object is already open.
-    if (.not.self%isOpenValue) then
-       message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-
-    ! Check if the object is an attribute, or something else.
-    if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
-       ! Object is the attribute.
-       select type (self)
-       type is (hdf5Object)
-          attributeObject=self
-       end select
-       ! No name should be supplied in this case.
-       if (present(attributeName)) then
-          message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-    else
-       ! Require that an attribute name was supplied.
-       if (.not.present(attributeName)) then
-          message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Check that the attribute exists.
-       if (.not.self%hasAttribute(attributeName)) then
-          message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Open the attribute.
-       attributeObject=self%openAttribute(attributeName)
-    end if
-
-    ! Check that the object is a scalar double.
-    call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,0,matches)
-    if (matches) then
-       ! Read the attribute.
-       call h5aread_f(attributeObject%objectID,H5T_NATIVE_DOUBLE,attributeValue,attributeDimensions&
-            &,errorCode)
-       if (errorCode /= 0) then
-          message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-    else if (allowPseudoScalarActual) then
-       ! Attribute is not a scalar. Check if it is a pseudo-scalar.
-       call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,1,matches)
-       if (matches) then
-          ! Get the dimensions of the array.
-          call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
-          if (errorCode /= 0) then
-             message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode)
-          if (errorCode < 0) then
-             message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          call h5sclose_f(attributeDataspaceID,errorCode)
-          if (errorCode /= 0) then
-             message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-             call Error_Report(message//self%locationReport()//{introspection:location})
-          end if
-          if (attributeDimensions(1) == 1) then
-             call attributeObject%readAttributeStatic(attributeValue=pseudoScalarValue)
-             attributeValue=pseudoScalarValue(1)
-          else
-             call Error_Report("attribute '"//attributeObject%objectName//"' must be a double scalar or pseudo-scalar"//self%locationReport()//{introspection:location})
-          end if
-       else
-          call    Error_Report("attribute '"//attributeObject%objectName//"' must be a double scalar or pseudo-scalar"//self%locationReport()//{introspection:location})
-       end if
-    else
-       call       Error_Report("attribute '"//attributeObject%objectName//"' must be a double scalar"                 //self%locationReport()//{introspection:location})
-    end if
-    return
-  end subroutine IO_HDF5_Read_Attribute_Double_Scalar
-
-  subroutine IO_HDF5_Read_Attribute_Double_1D_Array_Allocatable(self,attributeName,attributeValue)
-    !!{RST
-    Open and read an double scalar attribute in ``self``.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_DOUBLE, HID_T       , HSIZE_T                    , h5aget_space_f, &
-          &                           h5aread_f        , h5sclose_f  , h5sget_simple_extent_dims_f
-    use :: ISO_Varying_String, only : assignment(=)    , operator(//), trim
-    implicit none
-    double precision                , allocatable, dimension(:), intent(  out)           :: attributeValue
-    class           (hdf5Object    )                           , intent(inout)           :: self
-    character       (len=*         )                           , intent(in   ), optional :: attributeName
-    integer         (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions , attributeMaximumDimensions
-    integer                                                                              :: errorCode
-    integer         (kind=HID_T    )                                                     :: attributeDataspaceID
-    type            (hdf5Object    )                                                     :: attributeObject
-    type            (varying_string)                                                     :: attributeNameActual , message
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-
-    ! Get the name of the attribute.
-    if (present(attributeName)) then
-       attributeNameActual=attributeName
-    else
-       attributeNameActual=self%objectName
-    end if
-
-    ! Check that the object is already open.
-    if (.not.self%isOpenValue) then
-       message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-
-    ! Check if the object is an attribute, or something else.
-    if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
-       ! Object is the attribute.
-       select type (self)
-       type is (hdf5Object)
-       attributeObject=self
-       end select
-       ! No name should be supplied in this case.
-       if (present(attributeName)) then
-          message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-    else
-       ! Require that an attribute name was supplied.
-       if (.not.present(attributeName)) then
-          message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Check that the attribute exists.
-       if (.not.self%hasAttribute(attributeName)) then
-          message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Open the attribute.
-       attributeObject=self%openAttribute(attributeName)
-    end if
-
-    ! Check that the object is a 1D double array.
-    call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,1)
-
-    ! Get the dimensions of the array.
-    call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode)
-    if (errorCode < 0) then
-       message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    call h5sclose_f(attributeDataspaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-
-    ! Allocate the array to the appropriate size.
-    if (allocated(attributeValue)) deallocate(attributeValue)
-    !![
-    <allocate variable="attributeValue" shape="attributeDimensions"/>
-    !!]
-
-    ! Read the attribute.
-    call h5aread_f(attributeObject%objectID,H5T_NATIVE_DOUBLE,attributeValue,attributeDimensions&
-         &,errorCode)
+    dataBuffer=c_loc(attributeValue)
+    call h5aread_f(attributeObject%objectID,{Type¦h5Type},dataBuffer,errorCode)
     if (errorCode /= 0) then
        message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     return
-  end subroutine IO_HDF5_Read_Attribute_Double_1D_Array_Allocatable
-
-  subroutine IO_HDF5_Read_Attribute_Double_1D_Array_Static(self,attributeName,attributeValue)
-    !!{RST
-    Open and read an double scalar attribute in ``self``.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_DOUBLE, HID_T       , HSIZE_T                    , h5aget_space_f, &
-          &                           h5aread_f        , h5sclose_f  , h5sget_simple_extent_dims_f
-    use :: ISO_Varying_String, only : assignment(=)    , operator(//), trim
-    use :: ISO_Varying_String, only : char
-    implicit none
-    double precision                , dimension(:), intent(  out)           :: attributeValue
-    class           (hdf5Object    )              , intent(inout)           :: self
-    character       (len=*         )              , intent(in   ), optional :: attributeName
-    integer         (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions , attributeMaximumDimensions
-    integer                                                                 :: errorCode
-    integer         (kind=HID_T    )                                        :: attributeDataspaceID
-    type            (hdf5Object    )                                        :: attributeObject
-    type            (varying_string)                                        :: attributeNameActual , message
-
-    ! Check that this module is initialized.
-    call IO_HDF_Assert_Is_Initialized
-
-    ! Get the name of the attribute.
-    if (present(attributeName)) then
-       attributeNameActual=attributeName
-    else
-       attributeNameActual=self%objectName
-    end if
-
-    ! Check that the object is already open.
-    if (.not.self%isOpenValue) then
-       message="attempt to read attribute '"//trim(attributeNameActual)//"' in unopen object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-
-    ! Check if the object is an attribute, or something else.
-    if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
-       ! Object is the attribute.
-       select type (self)
-       type is (hdf5Object)
-          attributeObject=self
-       end select
-       ! No name should be supplied in this case.
-       if (present(attributeName)) then
-          message="attribute name was supplied for attribute object '"//trim(attributeName)//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-    else
-       ! Require that an attribute name was supplied.
-       if (.not.present(attributeName)) then
-          message="attribute name was not supplied for object '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Check that the attribute exists.
-       if (.not.self%hasAttribute(attributeName)) then
-          message="attribute '"//trim(attributeName)//"' does not exist in '"//self%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Open the attribute.
-       attributeObject=self%openAttribute(attributeName)
-    end if
-
-    ! Check that the object is a 1D double array.
-    call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,1)
-
-    ! Get the dimensions of the array.
-    call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to get dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    call h5sget_simple_extent_dims_f(attributeDataspaceID,attributeDimensions,attributeMaximumDimensions,errorCode)
-    if (errorCode < 0) then
-       message="unable to get dimensions of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    call h5sclose_f(attributeDataspaceID,errorCode)
-    if (errorCode /= 0) then
-       message="unable to close dataspace of attribute '"//attributeObject%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-
-    ! Ensure that the size of the array is large enough to hold the attributes.
-    if (any(shape(attributeValue) < attributeDimensions)) then
-       message="array is not large enough to hold attributes from '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-
-    ! Read the attribute.
-    call h5aread_f(attributeObject%objectID,H5T_NATIVE_DOUBLE,attributeValue,attributeDimensions&
-         &,errorCode)
-    if (errorCode /= 0) then
-       message="unable to read attribute '"//trim(attributeNameActual)//"' in object '"//self%objectName//"'"
-       call Error_Report(message//self%locationReport()//{introspection:location})
-    end if
-    return
-  end subroutine IO_HDF5_Read_Attribute_Double_1D_Array_Static
+  end subroutine IO_HDF5_Read_Attribute_{Type¦label}_1D_Array_Static
 
   subroutine IO_HDF5_Read_Attribute_Character_Scalar(self,attributeName,attributeValue,allowPseudoScalar)
     !!{RST
