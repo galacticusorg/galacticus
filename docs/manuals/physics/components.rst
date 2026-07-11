@@ -512,7 +512,7 @@ Event Evolution
 
 *Node promotion:* Any hot halo properties of the parent :term:`node` are added to those of the :term:`node` prior to promotion.
 
-*Halo formation:* If ``[hotHaloOutflowReturnOnFormation]``\ :math:`=`\ ``true`` then all outflowed gas is returned to the hot gas reservoir on :ref:`halo formation events <manual-sec-haloformationevents>`.
+*Halo formation:* If ``[hotHaloOutflowReturnOnFormation]``\ :math:`=`\ ``true`` then all outflowed gas is returned to the hot gas reservoir on halo formation events (i.e. when the ``haloFormation`` event is triggered; see Section :galacticus-ref:`eventHooks`).
 
 "Outflow Tracking" Implementation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
