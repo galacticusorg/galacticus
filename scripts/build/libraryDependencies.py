@@ -129,14 +129,17 @@ while len(libraries) != lib_count:
             libraries[dep] = libraries.get(dep, 0) + 1
 
 # HDF5 2.x (built with CMake) places the Fortran/C interface stubs in separate
-# libraries (libhdf5_f90cstub, libhdf5_hl_f90cstub). A static link must name
-# these explicitly: the static Fortran archives reference the stub symbols but
-# do not contain them. Autotools HDF5 1.14 instead bundled the stubs into the
-# Fortran archive itself and ships no separate stub libraries, so add the stub
-# libraries only when they are actually installed — leaving HDF5 1.14 links
-# unchanged. Shared links need no change: the shared Fortran library already
-# records its dependency on the shared stub library.
-if is_static:
+# libraries (libhdf5_f90cstub, libhdf5_hl_f90cstub). When the Fortran archives
+# are linked statically the stub libraries must be named explicitly: the static
+# Fortran archives reference the stub symbols but do not contain them. This
+# applies both to '-static' builds and to macOS builds, which are relinked
+# against the static archives by scripts/build/staticRelinker.py (the same
+# reason qhull_r becomes qhullstatic_r below). Autotools HDF5 1.14 instead
+# bundled the stubs into the Fortran archive itself and ships no separate stub
+# libraries, so add the stub libraries only when they are actually installed —
+# leaving HDF5 1.14 links unchanged. Purely shared links are unaffected: the
+# shared Fortran library already records its dependency on the shared stub.
+if is_static or is_macos:
     for fortran_lib, cstub_lib, c_lib in (
         ('hdf5_hl_fortran', 'hdf5_hl_f90cstub', 'hdf5_hl'),
         ('hdf5_fortran',    'hdf5_f90cstub',    'hdf5'   ),
