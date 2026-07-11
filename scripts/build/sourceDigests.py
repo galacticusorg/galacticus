@@ -50,6 +50,10 @@ _EXCLUDED_INCLUDES = [
     'output.version.revision.inc',
 ]
 
+# Version stamp for the `.md5.blob` cache schema. Bump when the per-file entry
+# structure changes; caches with a different (or absent) version are discarded.
+_BLOB_VERSION = 2
+
 
 def _file_identifier(path):
     """Perl `(my $id = $path) =~ s/\\//_/g; $id =~ s/^\\._??//;`."""
@@ -114,30 +118,26 @@ def _functionclass_names_and_modules(state_storables):
     return function_class_names, list(instances)
 
 
-def _append_dep_files(entry_files, file_to_process, build_path):
-    """Read the `.d` sidecar for `file_to_process` and record every
-    source file (`.F90`/`.Inc`/`.cpp`/`.c`/`.h`) those entries reference.
+def _append_dep_files(entry_files, file_name, build_path, source_root):
+    """Read the `.d` sidecar for the source file `file_name` (a path relative
+    to `source_root`) and record every source file
+    (`.F90`/`.Inc`/`.cpp`/`.c`/`.h`) its object entries reference.
 
-    Mirrors sourceDigests.pl:93-105.
+    The source tree is hierarchical, so both the `.d` sidecar
+    (`$BUILDPATH/<subdir>/<name>.d`) and the object entries it lists
+    (`$BUILDPATH/<subdir>/<name>.o`) carry sub-directory components that must
+    be preserved when mapping back to source files.
     """
-    m = re.search(r'/([^/]+)\.F90$', file_to_process)
-    if not m:
+    if not file_name.endswith('.F90'):
         return
-    dep_file = os.path.join(build_path, m.group(1) + '.d')
-    if not os.path.exists(dep_file):
-        return
-    with open(dep_file, 'r') as fh:
-        for dep_line in fh:
-            dep = dep_line.rstrip('\n')
-            m2 = re.search(r'/([^/]+)\.o$', dep)
-            if not m2:
-                continue
-            root = 'source/' + m2.group(1) + '.'
-            for suffix in ('F90', 'Inc', 'cpp', 'c', 'h'):
-                candidate = root + suffix
-                if os.path.exists(candidate):
-                    entry_files.append(candidate)
-                    break
+    dep_file = os.path.join(build_path, file_name[:-len('.F90')] + '.d')
+    for obj in _object_files_from_dep(dep_file, build_path):
+        root = os.path.join(source_root, obj[:-len('.o')]) + '.'
+        for suffix in ('F90', 'Inc', 'cpp', 'c', 'h'):
+            candidate = root + suffix
+            if os.path.exists(candidate):
+                entry_files.append(candidate)
+                break
 
 
 def _b64digest_no_pad(hasher):
@@ -187,10 +187,16 @@ def main(argv):
                                               build_path))
 
     digests_per_file, cache_mtime = _load_cache(blob_path)
-    have_per_file = cache_mtime is not None
+    # Discard caches written by earlier code versions: entries now record the
+    # types they provide (`typesProvided`), which the stale-type pruning below
+    # relies on. A version mismatch costs one full rescan of this target.
+    if digests_per_file.get('blobVersion') != _BLOB_VERSION:
+        digests_per_file, cache_mtime = {}, None
+    digests_per_file['blobVersion'] = _BLOB_VERSION
     digests_per_file.setdefault('types', {})
 
-    updated_types = {}
+    updated_types     = {}
+    seen_identifiers  = set()
 
     source_root = os.path.join(source_directory_name, 'source')
     if not os.path.isdir(source_root):
@@ -215,9 +221,10 @@ def main(argv):
 
         file_to_process = os.path.join(source_root, file_name)
         file_identifier = _file_identifier(file_to_process)
+        seen_identifiers.add(file_identifier)
 
         rescan = True
-        if have_per_file and file_identifier in digests_per_file:
+        if file_identifier in digests_per_file:
             tracked = digests_per_file[file_identifier].get('files') or []
             stale = any(
                 os.path.exists(t) and os.stat(t).st_mtime > cache_mtime
@@ -229,9 +236,10 @@ def main(argv):
 
         digests_per_file.pop(file_identifier, None)
         entry = digests_per_file.setdefault(
-            file_identifier, {'files': [file_to_process]},
+            file_identifier,
+            {'files': [file_to_process], 'typesProvided': []},
         )
-        _append_dep_files(entry['files'], file_to_process, build_path)
+        _append_dep_files(entry['files'], file_name, build_path, source_root)
 
         # sourceDigest directives -> per-type source MD5 (no dependencies).
         sd_files = as_array((locations.get('sourceDigest') or {}).get('file'))
@@ -246,6 +254,7 @@ def main(argv):
                     ),
                     'dependencies': [],
                 }
+                entry['typesProvided'].append(hash_name)
                 updated_types[hash_name] = 1
 
         # functionClass directives -> per-type source MD5 + explicit base.
@@ -263,6 +272,7 @@ def main(argv):
                         [fc['extends']] if 'extends' in fc else
                         ['functionClass'],
                 }
+                entry['typesProvided'].append(hash_name)
                 updated_types[hash_name] = 1
 
         # For functionClass instance files: walk the AST and record a
@@ -287,11 +297,12 @@ def main(argv):
                     ),
                     'dependencies': list(deps),
                 }
+                entry['typesProvided'].append(hash_name)
                 updated_types[hash_name] = 1
 
     # Manually add the base `functionClass` type (no dependencies).
     fc_base = 'objects/function_class.F90'
-    fc_base_path = os.path.join('source', fc_base)
+    fc_base_path = os.path.join(source_root, fc_base)
     if (cache_mtime is None or
             (os.path.exists(fc_base_path)
              and os.stat(fc_base_path).st_mtime > cache_mtime)):
@@ -305,6 +316,25 @@ def main(argv):
         }
         digests_per_file['types']['functionClass'].pop('compositeMD5', None)
         updated_types['functionClass'] = 1
+
+    # Prune stale cache entries. Per-file entries for source files that no
+    # longer participate in this target (deleted, renamed, or dropped from the
+    # `.d` list) would otherwise persist forever, and any types they provided
+    # would keep contributing (stale) digests. Pruned types are queued for
+    # composite invalidation so that types depending on them are re-resolved.
+    _RESERVED_KEYS = {'types', 'blobVersion'}
+    for stale_id in [k for k in digests_per_file
+                     if k not in _RESERVED_KEYS and k not in seen_identifiers]:
+        del digests_per_file[stale_id]
+    valid_types = {'functionClass'}
+    for key, entry in digests_per_file.items():
+        if key in _RESERVED_KEYS:
+            continue
+        valid_types.update(entry.get('typesProvided') or [])
+    for stale_type in [t for t in digests_per_file['types']
+                       if t not in valid_types]:
+        del digests_per_file['types'][stale_type]
+        updated_types[stale_type] = 1
 
     # Invert the dependency graph so we can transitively clear composite
     # hashes for every type depending on an updated one.

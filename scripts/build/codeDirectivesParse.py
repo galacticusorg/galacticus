@@ -396,6 +396,14 @@ def main(argv):
     # -----------------------------------------------------------------------
     # Makefile_Directives plus per-directive XML files.
     # -----------------------------------------------------------------------
+    # Written UNCONDITIONALLY (fresh mtime on every run), NOT only-if-changed.
+    # Makefile_Directives is `-include`d by the main Makefile, whose rule for
+    # it runs this script; make re-executes itself (re-reading the regenerated
+    # Makefile_Directives) only when the file is updated by that rule. A stable
+    # mtime would suppress that restart on a clean build, so make would never
+    # re-read the rules for the generated `include`-directive files nor the
+    # ordering line making Makefile_Use_Dependencies depend on them — see the
+    # Makefile_Directives rule comment in the main Makefile.
     makefile_path = os.path.join(build_path, 'Makefile_Directives')
     with open(makefile_path, 'w') as mk:
         for directive in sorted(include_directives):
@@ -437,10 +445,16 @@ def main(argv):
                 extra_deps.extend(sorted(python_sources))
 
             directive_xml = os.path.join(build_path, directive + '.xml')
+            # stateStorables.xml / deepCopyActions.xml are prerequisites
+            # because buildCode.py runs the full source-tree process pipeline,
+            # whose hooks read both catalogs (mirrors the `%.p.F90.up` rule in
+            # the main Makefile).
             mk.write(
                 f"{file_name}.up: {directive_xml} {' '.join(extra_deps)}"
                 " $(BUILDPATH)/hdf5FCInterop.dat"
-                " $(BUILDPATH)/openMPCriticalSections.xml\n"
+                " $(BUILDPATH)/openMPCriticalSections.xml"
+                " $(BUILDPATH)/stateStorables.xml"
+                " $(BUILDPATH)/deepCopyActions.xml\n"
             )
             mk.write(
                 f"\t./scripts/build/buildCode.py {install_directory}"

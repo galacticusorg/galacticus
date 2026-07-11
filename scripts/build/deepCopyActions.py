@@ -21,6 +21,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 
+from Galacticus.Build.FileChanges  import update as file_changes_update
 from Galacticus.Build.ParallelScan import scan as parallel_scan
 from Galacticus.Build.SourceTree   import parse_file, walk_tree
 from List.ExtraUtils              import as_array
@@ -143,6 +144,12 @@ def main(argv):
     scan_list = []
     for file_name in files:
         file_identifier = _file_identifier(file_name)
+        if not os.path.exists(file_name):
+            # Stale directiveLocations.xml entry (the file was deleted since
+            # the catalog was generated): drop any cached entry and skip it
+            # rather than crashing in os.stat()/parse_file().
+            actions_per_file.pop(file_identifier, None)
+            continue
         if (have_per_file
                 and file_identifier in actions_per_file
                 and os.stat(file_name).st_mtime < cache_mtime):
@@ -163,15 +170,24 @@ def main(argv):
         all_entries.extend(entry.get('deepCopyActions') or [])
     all_entries.sort(key=lambda e: e['type'])
 
+    # Write both outputs atomically and only-if-changed (mtime preserved when
+    # content is identical, matching stateStorables.py). The xml's mtime
+    # stability matters: it is a prerequisite of every preprocessing rule, so
+    # an unconditional rewrite would re-preprocess the entire source tree on
+    # every catalog regeneration.
     out_path = os.path.join(build_path, 'deepCopyActions.xml')
-    with open(out_path, 'w') as fh:
+    xml_tmp  = out_path + '.tmp'
+    with open(xml_tmp, 'w') as fh:
         fh.write(
             dict_to_xml_string('deepCopyActions',
                                {'deepCopyActions': all_entries})
         )
+    file_changes_update(out_path, xml_tmp)
 
-    with open(blob_path, 'wb') as fh:
+    blob_tmp = blob_path + '.tmp'
+    with open(blob_tmp, 'wb') as fh:
         pickle.dump(actions_per_file, fh, protocol=pickle.HIGHEST_PROTOCOL)
+    file_changes_update(blob_path, blob_tmp)
 
 
 if __name__ == '__main__':

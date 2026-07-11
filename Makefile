@@ -281,7 +281,13 @@ SOURCEDIRS := source $(call rsubdirs,source)
 # module - this will lead to circular dependency problems as Make becomes confused about how to
 # build the module file.
 vpath %.F90 $(SOURCEDIRS)
-$(BUILDPATH)/%.p.F90.up : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
+# Preprocessing depends on stateStorables.xml and deepCopyActions.xml because the preprocessor's
+# process hooks (StateStorable, DeepCopyActions, FunctionClass) read them at run time — generated
+# state-store and deep-copy code embeds knowledge of every cataloged type. Both catalogs are
+# written only-if-changed, so this triggers a re-preprocess sweep only when catalog content
+# actually changes (e.g. a stateStorable type is added or removed), and the `.up` sentinel then
+# limits recompilation to files whose preprocessed output really differs.
+$(BUILDPATH)/%.p.F90.up : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
 	./scripts/build/preprocess.py source/$*.F90 $(BUILDPATH)/$*.p.F90
 $(BUILDPATH)/%.p.F90 : $(BUILDPATH)/%.p.F90.up
 	@true
@@ -525,7 +531,7 @@ $(BUILDPATH)/external/pFq/pfq.new.o : ./source/external/pFq/pfq.new.f Makefile
 
 # Rule for running *.Inc files through the preprocessor. We strip out single quote characters in comment lines to avoid spurious
 # complaints from the preprocessor.
-$(BUILDPATH)/%.Inc.up : ./source/%.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
+$(BUILDPATH)/%.Inc.up : ./source/%.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
 	./scripts/build/preprocess.py ./source/$*.Inc $(BUILDPATH)/$*.Inc
 $(BUILDPATH)/%.Inc : $(BUILDPATH)/%.Inc.up
 	@true
@@ -662,9 +668,9 @@ ifneq ($(IS_LIB_BUILD),)
 -include $(BUILDPATH)/Makefile_Library_Dependencies
 $(BUILDPATH)/Makefile_Library_Dependencies: $(BUILDPATH)/libgalacticus.Inc ./scripts/build/libraryInterfacesDependencies.py
 	./scripts/build/libraryInterfacesDependencies.py
-$(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml ./source/libraryClasses.xml ./scripts/build/libraryInterfaces.py ./python/LibraryInterfaces/Pipeline.py ./python/LibraryInterfaces/Emitters.py ./python/LibraryInterfaces/ArgSpec.py
+$(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml ./source/libraryClasses.xml ./scripts/build/libraryInterfaces.py ./python/LibraryInterfaces/Pipeline.py ./python/LibraryInterfaces/Emitters.py ./python/LibraryInterfaces/ArgSpec.py ./python/LibraryInterfaces/Hierarchy.py
 	./scripts/build/libraryInterfaces.py
-$(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
+$(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
 	./scripts/build/preprocess.py $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
 $(BUILDPATH)/libgalacticus.p.Inc : $(BUILDPATH)/libgalacticus.p.Inc.up
 	@true
@@ -714,8 +720,16 @@ endif
 
 $(BUILDPATH)/openMPCriticalSections.count.inc $(BUILDPATH)/openMPCriticalSections.enumerate.inc: $(BUILDPATH)/openMPCriticalSections.xml
 	@touch $(BUILDPATH)/openMPCriticalSections.count.inc $(BUILDPATH)/openMPCriticalSections.enumerate.inc
-$(BUILDPATH)/openMPCriticalSections.xml: ./scripts/build/enumerateOpenMPCriticalSections.py
+# The enumeration must be regenerated whenever a named `!$omp critical` section is added to,
+# removed from, or renamed in any Fortran source — so the rule depends on all Fortran sources. The
+# script touches the `.up` sentinel on every run but rewrites the .xml only when its content
+# changed, so a regeneration that finds no new critical sections does not cascade into
+# re-preprocessing every source file (the `%.p.F90.up` rules depend on the .xml).
+$(BUILDPATH)/openMPCriticalSections.xml.up: ./scripts/build/enumerateOpenMPCriticalSections.py $(call rwildcard,source,*.F90) $(call rwildcard,source,*.f90) $(call rwildcard,source,*.F) $(call rwildcard,source,*.f)
+	@mkdir -p $(BUILDPATH)
 	./scripts/build/enumerateOpenMPCriticalSections.py `pwd`
+$(BUILDPATH)/openMPCriticalSections.xml: $(BUILDPATH)/openMPCriticalSections.xml.up
+	@true
 
 # Dependency on dependencies.
 $(BUILDPATH)/utility.dependencies.p.F90.up : aux/dependencies.yml
@@ -774,7 +788,25 @@ $(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.py $(BUI
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/useDependencies.py `pwd`
 
-$(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.py $(ALLSOURCES)
+# The three directive-catalog scripts run in a single recipe, in this order, because
+# stateStorables.py and deepCopyActions.py both read the directiveLocations.xml written by
+# codeDirectivesParse.py. All three are prerequisites (previously only codeDirectivesParse.py was,
+# so edits to the other two did not regenerate their catalogs). The scripts' other outputs
+# (directiveLocations.xml, stateStorables.xml, deepCopyActions.xml, the per-directive XML files)
+# are byproducts of this recipe; they are not given rules of their own.
+#
+# Makefile_Directives MUST be a direct target with this recipe, and codeDirectivesParse.py MUST
+# write it unconditionally (not only-if-changed). It is `-include`d, and make only RE-EXECUTES
+# itself — the restart that re-reads a regenerated included makefile — when that makefile is remade
+# BY ITS OWN RULE running and updating it. On a clean build the re-read Makefile_Directives is what
+# tells make how to build the generated `include`-directive files (e.g. the node-component include)
+# and adds the ordering line making Makefile_Use_Dependencies depend on them. An earlier
+# formulation put the real work on a `directiveCatalogs.stamp` prerequisite with an `@true` recipe
+# here, and wrote Makefile_Directives only-if-changed: make then never saw Makefile_Directives as
+# "remade by its rule", never restarted, and so ran useDependencies.py once — before those includes
+# existed — missing every `use` they contribute and producing link-time "undefined reference"
+# failures for node-component data modules, etc.
+$(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.py ./scripts/build/stateStorables.py ./scripts/build/deepCopyActions.py $(ALLSOURCES)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/codeDirectivesParse.py `pwd`
 	./scripts/build/stateStorables.py `pwd`
