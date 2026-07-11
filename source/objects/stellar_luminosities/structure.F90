@@ -546,8 +546,12 @@ contains
     class  (stellarLuminosities), intent(in   ) :: self
     integer                     , intent(in   ) :: fileHandle
 
-    ! Dump the content.
-    if (luminosityCount > 0) then
+    ! Dump the content in a self-describing form (i.e. independent of the value
+    ! of the global luminosityCount, which can differ between the run that
+    ! stored the state and the run that restores it). This ensures the raw
+    ! stream never desynchronizes on restore.
+    write (fileHandle) allocated(self%luminosityValue)
+    if (allocated(self%luminosityValue)) then
        write (fileHandle) size(self%luminosityValue)
        write (fileHandle) self%luminosityValue
     end if
@@ -562,13 +566,18 @@ contains
     class  (stellarLuminosities), intent(inout) :: self
     integer                     , intent(in   ) :: fileHandle
     integer                                     :: luminosityActiveCount
+    logical                                     :: isAllocated
 
-    ! Read the content.
-    if (luminosityCount > 0) then
-       call Stellar_Luminosities_Create(self)
+    ! Read the content in the self-describing form written by
+    ! Stellar_Luminosities_Dump_Raw. The stored count is used (rather than the
+    ! current global luminosityCount) so the stream stays synchronized even when
+    ! the restoring run tracks a different number of luminosities than the run
+    ! that stored the state.
+    read (fileHandle) isAllocated
+    if (isAllocated) then
        read (fileHandle) luminosityActiveCount
-       deallocate(self%luminosityValue                       )
-       allocate  (self%luminosityValue(luminosityActiveCount))
+       if (allocated(self%luminosityValue)) deallocate(self%luminosityValue)
+       allocate(self%luminosityValue(luminosityActiveCount))
        read (fileHandle) self%luminosityValue
     end if
     return

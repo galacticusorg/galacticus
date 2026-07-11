@@ -103,8 +103,8 @@ module IO_HDF5
      !!}
      private
      logical                           :: isOpenValue      =  .false.
-     logical                           :: isOverwritable
-     logical                           :: readOnly
+     logical                           :: isOverwritable   =.false.
+     logical                           :: readOnly         =.false.
      logical                           :: isTemporary      =  .false.
      integer(hid_t          ), pointer :: objectID         => null() , fileID             => null()
      type   (resourceManager)          :: objectManager              , fileManager
@@ -114,7 +114,7 @@ module IO_HDF5
      integer                           :: hdf5ObjectType
      integer(hsize_t        )          :: chunkSize
      integer                           :: compressionLevel
-     logical                           :: chunkSizeSet               , compressionLevelSet
+     logical                           :: chunkSizeSet    =.false.    , compressionLevelSet=.false.
      type   (hdf5Object     ), pointer :: parentObject     => null()
    contains
      !![
