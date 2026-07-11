@@ -9,6 +9,7 @@ import keyword
 
 import xml.etree.ElementTree as ET
 from Galacticus.Build import SourceTree
+from Galacticus.Build.FileChanges import update as file_changes_update
 from Galacticus.Build.SourceTree.Parse import Declarations
 from List.ExtraUtils import as_array
 from Sort.Topo import sort as topo_sort
@@ -248,8 +249,13 @@ def _process_implementations(func_class, directive_locations, state_storables,
 
     extensions = {}
     module_uses_impls = {}
+    class_id = 0
+    impls_list = []
 
-    # First pass: collect extensions and module uses per implementation file.
+    # Each implementation file is parsed once and its tree walked twice —
+    # first for extensions/module-uses, then for constructor discovery.
+    # (Previously two sequential passes each re-parsed every file; parsing
+    # dominates this script's cost.)
     for impl_file in as_array(impls):
         tree = SourceTree.parse_file(impl_file)
         impl_name = None
@@ -276,11 +282,7 @@ def _process_implementations(func_class, directive_locations, state_storables,
             if not is_excluded:
                 module_uses_impls[impl_name] = local_module_uses
 
-    # Second pass: find constructors and build the implementations list.
-    class_id = 0
-    impls_list = []
-    for impl_file in as_array(impls):
-        tree = SourceTree.parse_file(impl_file)
+        # Constructor discovery (second walk of the same tree).
         impl_name = None
         is_abstract = False
         name_constructor = None
@@ -1340,23 +1342,37 @@ def _write_fortran_code(code, build_path):
     written = set()
 
     if 'main' in code:
+        # Written unconditionally, NOT only-if-changed: libgalacticus.Inc is
+        # the target of the Makefile rule that runs this script, so its mtime
+        # must advance past the rule's prerequisites or make would re-run the
+        # (slow) generator on every invocation. The downstream re-preprocess
+        # of this single file is cheap.
         main_file = os.path.join(build_path, 'libgalacticus.Inc')
         with open(main_file, 'w') as fh:
             fh.write('\n'.join(code['main']) + '\n')
+
+    # The per-class/per-impl wrapper units are written only-if-changed
+    # (mtime preserved when identical): their generated make rules run this
+    # script only when the file is missing, so a stable mtime is safe here —
+    # and it stops an unrelated catalog change from cascading into a
+    # re-preprocess and recompile of every one of the ~1500 wrapper units.
+    def _write_unit(path, lines):
+        tmp = path + '.tmp'
+        with open(tmp, 'w') as fh:
+            fh.write('\n'.join(lines) + '\n')
+        file_changes_update(path, tmp)
 
     for class_name in sorted(k for k in code if k != 'main'):
         bucket = code[class_name]
         # Shared pieces (GetPtr, GetIdAndPtr, methods, destructor) go to
         # <class>.F90.
-        shared_file = os.path.join(out_dir, f'{class_name}.F90')
-        with open(shared_file, 'w') as fh:
-            fh.write('\n'.join(bucket['shared']) + '\n')
+        _write_unit(os.path.join(out_dir, f'{class_name}.F90'),
+                    bucket['shared'])
         written.add(f'{class_name}.F90')
         # One file per concrete impl's constructor wrapper.
         for impl_name, blocks in sorted(bucket['per_impl'].items()):
-            impl_file = os.path.join(out_dir, f'{class_name}__{impl_name}.F90')
-            with open(impl_file, 'w') as fh:
-                fh.write('\n'.join(blocks) + '\n')
+            _write_unit(os.path.join(out_dir, f'{class_name}__{impl_name}.F90'),
+                        blocks)
             written.add(f'{class_name}__{impl_name}.F90')
 
     # Remove any stale .F90 (and matching .p.F90, .o, .d, .m) files that
@@ -1364,7 +1380,8 @@ def _write_fortran_code(code, build_path):
     # exclude="yes" or whose constructor newly fails the predicate would
     # otherwise leave a dangling object the linker still pulls in.
     for fname in os.listdir(out_dir):
-        if fname.endswith('.F90') and fname not in written:
+        if (fname.endswith('.F90') and not fname.endswith('.p.F90')
+                and fname not in written):
             stem = fname[:-len('.F90')]
             for ext in ('.F90', '.p.F90', '.p.F90.up', '.o', '.d', '.m'):
                 stale = os.path.join(out_dir, stem + ext)

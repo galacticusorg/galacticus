@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import bisect
 import re
 import sys
 
@@ -11,6 +12,15 @@ if len(sys.argv) != 2:
     sys.exit(1)
 
 preprocessed_source = sys.argv[1]
+
+# Fast path: a clean compile produces no diagnostics at all. Read the first
+# input line before anything else — if there is none, skip the (relatively
+# expensive) pre-scan of the preprocessed source and the .lmap parse
+# entirely. Every compile pays this script's cost, and most compiles are
+# clean.
+_first_line = sys.stdin.readline()
+if not _first_line:
+    sys.exit(0)
 
 # Detect whether stdout is a terminal (for colour output).
 _have_color = sys.stdout.isatty()
@@ -41,6 +51,8 @@ try:
                 })
 except OSError:
     pass  # If there's no .lmap file, the map stays minimal.
+
+_map_keys = [entry['lineOriginal'] for entry in _map]
 
 # --- Pre-scan the preprocessed source for compiler directives ---
 unused_functions       = {}   # function name → True
@@ -165,17 +177,18 @@ _opener_re = {
         re.IGNORECASE),
 }
 
-for line in sys.stdin:
+import itertools
+
+for line in itertools.chain([_first_line], sys.stdin):
     # --- Remap preprocessed file:line references ---
     m = re.match(r'^([a-zA-Z0-9_./]+\.p\.F90):(\d+):([\d\-]+):\s*$', line)
     if m:
         line_original = int(m.group(2))
         flag          = m.group(3)
-        source_entry  = _map[0]
-        for entry in _map:
-            if entry['lineOriginal'] > line_original:
-                break
-            source_entry = entry
+        # The .lmap entries are in ascending lineOriginal order; find the
+        # last entry at or before this line.
+        idx = bisect.bisect_right(_map_keys, line_original) - 1
+        source_entry = _map[idx]
         src = source_entry['source']
         if src.endswith('()'):
             line_descriptor = "auto-generated code (no line number)"

@@ -72,10 +72,14 @@ def _scan_one(task):
         'libraryDependencies':  {},
     }
 
-    directives = {
-        name: extract_directives(file_path, name)
-        for name in _DIRECTIVE_NAMES
-    }
+    # One read/parse of the file for all directive names (extract_directives
+    # performs a full file read per call, so per-name calls would cost
+    # len(_DIRECTIVE_NAMES) reads). rootElementType is popped so the per-name
+    # directive dicts are identical to those a single-name call returns.
+    directives = {name: [] for name in _DIRECTIVE_NAMES}
+    for directive in extract_directives(file_path, _DIRECTIVE_NAMES,
+                                        set_root_element_type=True):
+        directives[directive.pop('rootElementType')].append(directive)
 
     file_names_to_process = [file_path]
     event_hook_modules = []
@@ -329,6 +333,50 @@ def _method_module_names(method):
     return []
 
 
+# Per-process memos for _apply_directive_requirements: every file carrying a
+# `functionsGlobal` (or `eventHookStatic`) directive needs the same
+# information about the functionGlobal location files, which previously was
+# re-derived — including full re-reads of those files — once per requesting
+# source file. Workers are forked processes, so each builds these at most
+# once per run.
+_FG_POINTER_MODULES    = None
+_CONTAINING_MODULE_MEMO = {}
+
+
+def _functionglobal_pointer_modules(locations):
+    """Module names imported by `functionsGlobal type="pointers"` users: the
+    (deduplicated-in-order) modules declared by every `functionGlobal`
+    directive, excluding iso_c_binding."""
+    global _FG_POINTER_MODULES
+    if _FG_POINTER_MODULES is None:
+        modules = []
+        for fg_file in as_array(
+            (locations.get('functionGlobal') or {}).get('file')
+            if locations else None,
+        ):
+            for d in extract_directives(fg_file, 'functionGlobal'):
+                module_val = d.get('module')
+                if module_val is None:
+                    continue
+                for module in as_array(module_val):
+                    name = str(module).strip()
+                    m = re.match(r'^([a-zA-Z0-9_]+)', name)
+                    if m and m.group(1).lower() != 'iso_c_binding':
+                        modules.append(m.group(1).lower())
+        _FG_POINTER_MODULES = modules
+    return _FG_POINTER_MODULES
+
+
+def _find_containing_module_memo(file_name, fc_map):
+    """Memoized _find_containing_module (the fc_map is identical across all
+    calls within one run)."""
+    if file_name not in _CONTAINING_MODULE_MEMO:
+        _CONTAINING_MODULE_MEMO[file_name] = _find_containing_module(
+            file_name, {'functionClasses': fc_map},
+        )
+    return _CONTAINING_MODULE_MEMO[file_name]
+
+
 def _apply_directive_requirements(entry, source_file, directives,
                                   locations, state_storables,
                                   work_dir, file_identifier,
@@ -390,28 +438,17 @@ def _apply_directive_requirements(entry, source_file, directives,
         if has_pointers:
             entry['modulesUsed'].append(work_dir + 'error.mod')
             entry['modulesUsed'].append(work_dir + 'input_parameters.mod')
-            for fg_file in as_array(
-                (locations.get('functionGlobal') or {}).get('file')
-                if locations else None,
-            ):
-                for d in extract_directives(fg_file, 'functionGlobal'):
-                    module_val = d.get('module')
-                    if module_val is None:
-                        continue
-                    for module in as_array(module_val):
-                        name = str(module).strip()
-                        m = re.match(r'^([a-zA-Z0-9_]+)', name)
-                        if m and m.group(1).lower() != 'iso_c_binding':
-                            entry['modulesUsed'].append(
-                                work_dir + m.group(1).lower() + '.mod'
-                            )
+            for module_name in _functionglobal_pointer_modules(locations):
+                entry['modulesUsed'].append(
+                    work_dir + module_name + '.mod'
+                )
 
         if has_establish:
             for fg_file in as_array(
                 (locations.get('functionGlobal') or {}).get('file')
                 if locations else None,
             ):
-                module_name = _find_containing_module(fg_file, {'functionClasses': fc_map})
+                module_name = _find_containing_module_memo(fg_file, fc_map)
                 if module_name is None:
                     sys.exit(
                         "useDependencies.py: unable to locate containing "
@@ -429,9 +466,7 @@ def _apply_directive_requirements(entry, source_file, directives,
                 if locations else None,
             )
             for ehs_file in ehs_files:
-                module_name = _find_containing_module(
-                    ehs_file, {'functionClasses': fc_map},
-                )
+                module_name = _find_containing_module_memo(ehs_file, fc_map)
                 if module_name is None:
                     sys.exit(
                         "useDependencies.py: unable to locate containing "
