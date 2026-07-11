@@ -1685,6 +1685,15 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
             arg.fort_reassignment = f'{opt_prefix}{name}_=logical({name})\n'
             arg.fort_declarations = f'logical :: {name}_\n'
             arg.fort_pass_as      = name + '_'
+            # For intent(out)/intent(inout) the inner method (re)sets the
+            # default-kind local; kind-narrow it back into the c_bool
+            # bind(c) dummy after the call so the caller sees the result
+            # (e.g. mergerTreeConstructor.construct's `finished` flag).
+            if any(a in ('intent(out)', 'intent(inout)')
+                   for a in arg.attributes):
+                arg.fort_postcall = (
+                    f'{opt_prefix}{name}=logical({name}_, c_bool)\n'
+                )
 
         elif intrinsic == 'character':
             # c_char_p -> character via String_C_to_Fortran then char()

@@ -22,6 +22,7 @@ from LibraryInterfaces.Classification import (
     ARRAY_RETURN_RX            as _ARRAY_RETURN_RX,
     DYNAMIC_ARRAY_RETURN_RX    as _DYNAMIC_ARRAY_RETURN_RX,
     DYNAMIC_ARRAY_RETURN_2D_RX as _DYNAMIC_ARRAY_RETURN_2D_RX,
+    TYPE_POINTER_RETURN_RX     as _TYPE_POINTER_RETURN_RX,
     normalize_method_return_type as _normalize_method_return_type,
     unsupported_arg            as _unsupported_arg,
     unsupported_output_array_method as _unsupported_output_array_method,
@@ -1012,6 +1013,37 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
                                           'POINTER(c_size_t)']
             result_python_dyn_array_2d_wrap = (elem_ctype, elem_dtype)
             result_is_subroutine       = True
+        elif (_TYPE_POINTER_RETURN_RX.match(method_type)
+              and _TYPE_POINTER_RETURN_RX.match(method_type).group(1)
+                  in _SHARED_TYPE_MODULES):
+            # `type(<X>), pointer` return for a shared type: returned to
+            # Python as an OPAQUE HANDLE. The wrapper captures the result in
+            # a local pointer and returns c_loc of its target (c_null_ptr
+            # when disassociated); Python receives the address as an integer
+            # handle that can be passed back into any `type(<X>)` argument
+            # (e.g. a mergerTree handle into the tree-walker constructors).
+            # Ownership stays with Fortran: the handle does not free the
+            # object.
+            handle_type = _TYPE_POINTER_RETURN_RX.match(method_type).group(1)
+            method_type_c              = 'type(c_ptr)'
+            clib_res_type              = 'c_void_p'
+            result_call_target         = 'glcResult_'
+            result_assign_op           = '=>'
+            result_extra_declarations  = (
+                f'  type({handle_type}), pointer :: glcResult_\n')
+            result_extra_module_uses   = (
+                f'  use :: {_SHARED_TYPE_MODULES[handle_type]}, only :'
+                f' {handle_type}\n')
+            result_post_call_code      = (
+                f'  if (associated(glcResult_)) then\n'
+                f'    {method_name_c} = c_loc(glcResult_)\n'
+                f'  else\n'
+                f'    {method_name_c} = c_null_ptr\n'
+                f'  end if\n'
+            )
+            isoImports['c_ptr']      = 1
+            isoImports['c_loc']      = 1
+            isoImports['c_null_ptr'] = 1
         elif method_type == "void":
             pass
         else:
@@ -1108,6 +1140,13 @@ def interfaces_methods(code, python, func_class, extensions, module_uses_impls,
                 f'    {a.name} = c_null_ptr\n'
                 f'  end if\n'
             )
+
+        # Per-argument copy-back code (e.g. kind-narrowing an
+        # intent(out) logical's default-kind local back into the c_bool
+        # bind(c) dummy) — set by build_fortran_reassignments.
+        for a in arg_list:
+            if a.fort_postcall:
+                result_post_call_code += f'  {a.fort_postcall}'
 
         output_arrays = [a for a in arg_list if a.is_output_array]
         sized_outputs = [a for a in arg_list if a.is_output_sized]
@@ -1704,12 +1743,38 @@ def _append_init_code(code):
     init_code = '''subroutine libGalacticusInitL() bind(c,name='libGalacticusInitL')
   use:: Events_Hooks, only : eventsHooksInitialize
   use :: IO_HDF5, only : ioHDF5AccessInitialize
+  use :: Functions_Global_Utilities, only : Functions_Global_Set
 
   ! Initialize event hooks.
   call eventsHooksInitialize()
   ! Initialize HDF5 library access lock.
   call ioHDF5AccessInitialize()
+  ! Connect global function pointers (mirrors Galacticus.exe startup) -
+  ! required by any code path that crosses the deferred-binding seams
+  ! between modules (e.g. merger-tree construction's state store).
+  call Functions_Global_Set()
 end subroutine libGalacticusInitL
+
+subroutine libGalacticusNodesInitL() bind(c,name='libGalacticusNodesInitL')
+  ! Initialize the node-component class system with default component
+  ! selections - required before any tree nodes or merger trees can be
+  ! created (mirrors the startup sequence of Galacticus.exe and of the
+  ! unit tests). Kept separate from libGalacticusInitL because most
+  ! library use never touches the node system, and this initialization
+  ! selects component implementations. Idempotent.
+  use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
+  use :: Node_Components , only : Node_Components_Initialize, Node_Components_Thread_Initialize
+  use :: Input_Parameters, only : inputParameters
+  type   (inputParameters), save :: parameters
+  logical                 , save :: initialized=.false.
+
+  if (initialized) return
+  parameters=inputParameters()
+  call nodeClassHierarchyInitialize     (parameters)
+  call Node_Components_Initialize       (parameters)
+  call Node_Components_Thread_Initialize(parameters)
+  initialized=.true.
+end subroutine libGalacticusNodesInitL
 
 subroutine libGalacticusVerbositySetL(verbosity) bind(c,name='libGalacticusVerbositySetL')
   ! Set the display verbosity level from a C string naming the level
@@ -1816,6 +1881,12 @@ libname = os.path.join(cwd, "galacticus/lib/libgalacticus.so")
 c_lib = CDLL(libname)
 c_lib.libGalacticusInitL()
 c_lib.libGalacticusVerbositySetL.argtypes = [c_char_p]
+
+def nodesInitialize():
+    """Initialize the node-component class system (default component
+    selections).  Required once before creating tree nodes or merger trees
+    (e.g. before mergerTreeConstructor.construct); idempotent."""
+    c_lib.libGalacticusNodesInitL()
 
 def verbositySet(level):
     """Set Galacticus's display verbosity: one of 'silent', 'standard',

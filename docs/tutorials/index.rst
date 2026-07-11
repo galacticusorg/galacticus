@@ -20,3 +20,4 @@ how to obtain the library.
    05-merger-tree-building-blocks
    06-stellar-populations
    07-survey-geometries
+   08-merger-trees

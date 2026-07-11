@@ -77,7 +77,9 @@ from LibraryInterfaces.Hierarchy import build_type_hierarchy  # noqa: E402
 # predicate) are shared with the generator via
 # LibraryInterfaces.Classification — the audit's verdicts follow the
 # generator's by construction rather than by hand-synced copies.
+from LibraryInterfaces.Pipeline import _SHARED_TYPE_MODULES  # noqa: E402
 from LibraryInterfaces.Classification import (   # noqa: E402
+    TYPE_POINTER_RETURN_RX       as _TYPE_POINTER_RETURN_RX,
     ENUM_RETURN_RX               as _ENUM_RETURN_RX,
     ARRAY_RETURN_RX              as _ARRAY_RETURN_RX,
     CLASS_RETURN_RX              as _CLASS_RETURN_RX,
@@ -484,6 +486,11 @@ def classify_method_return(ret_type, all_fcs, registered,
     if _DYNAMIC_ARRAY_RETURN_RX.match(ret):
         return set(), []
     if _DYNAMIC_ARRAY_RETURN_2D_RX.match(ret):
+        return set(), []
+    # `type(<X>), pointer` returns for shared types: returned to Python as
+    # an opaque handle (c_loc of the result's target).
+    mPointer = _TYPE_POINTER_RETURN_RX.match(ret)
+    if mPointer and mPointer.group(1) in _SHARED_TYPE_MODULES:
         return set(), []
     m = _CLASS_RETURN_RX.match(ret)
     if m:

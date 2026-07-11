@@ -91,6 +91,7 @@ class ArgSpec:
     fort_attributes:     list = field(default_factory=list)  # 'optional', 'value', …
     fort_pass_as:        str  = ''    # expression passed to Galacticus (default: name)
     fort_reassignment:   str  = ''    # Fortran code to run before the call
+    fort_postcall:       str  = ''    # Fortran code to run after the call (copy-back)
     fort_declarations:   str  = ''    # extra Fortran local-variable declarations
     fort_iso_c_symbols:  list = field(default_factory=list)  # extra ISO_C_Binding symbols
     fort_modules:        dict = field(default_factory=dict)  # {module: {symbol: 1}}
