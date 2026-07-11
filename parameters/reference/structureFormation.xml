@@ -18,14 +18,42 @@
     </criticalOverdensity>
   </criticalOverdensity>
   <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
-  <haloMassFunction      value="shethTormen"                               >
-    <a             value="0.791"/> <!-- Best fit values from Benson, Ludlow, & Cole (2019, MNRAS, 485, 5010; https://ui.adsabs.harvard.edu/abs/2019MNRAS.485.5010B). -->
-    <normalization value="0.302"/>
-    <p             value="0.218"/>
+  <haloMassFunction value="bhattacharya2011">
+    <!-- Use the halo mass function fit from Benson et al. (2026; https://ui.adsabs.harvard.edu/abs/2026arXiv260612137B). -->
+    <normalization value=" 0.29485826471048500"/>
+    <a             value=" 0.92394934275956400"/>
+    <b             value=" 1.07331413749036000"/>
+    <c             value=" 0.98966473081361839"/>
+    <p             value="-0.38562213014666100"/>
+    <q             value=" 0.35923170389179900"/>
+    <!-- Provide the mass function with its own cosmological mass variance and window function, consistent with that used in the
+         above paper. Since other aspects of our model are not yet calibrated to this new window function we use it only here (so
+         that it does not influence halo merger rates, concentrations, etc.). -->
+    <cosmologicalMassVariance value="filteredPower">
+      <sigma_8                   value="=[cosmologicalMassVariance/sigma_8]"/>
+      <integrationFailureIsFatal value="true"                               />
+      <monotonicInterpolation    value="true"                               />
+      <nonMonotonicIsFatal       value="false"                              />
+      <tolerance                 value="4.0e-4"                             />
+      <toleranceTopHat           value="2.0e-4"                             />
+    </cosmologicalMassVariance>
+    <powerSpectrumWindowFunction value="ETHOSExtended">
+      <beta0                       value="4.491891554429420000"/>
+      <beta1                       value="1.375322449572320000"/>
+      <cW0                         value="3.567991803840410000"/>
+      <cW1                         value="0.787876613523237000"/>
+      <powerSpectrumSmoothingWidth value="0.683928132279564000"/>
+      <wavenumberScaledMinimum     value="0.000625389301867094"/>
+    </powerSpectrumWindowFunction>
+    <!-- Use a non-environmentally-dependent critical overdensity here. -->
+    <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   </haloMassFunction>
   <haloEnvironment value="normal">
-    <!-- Use environmental overdensities drawn from a normal distribution conditioned upon the fact that the region has not exceeded the threshold for collapse on any larger scale (Mo & White; 1996; MNRAS; 282; 347; eqn. 9; https://ui.adsabs.harvard.edu/abs/1996MNRAS.282..347M)-->
-    <!-- Choose an environment radius of 5 Mpc/h as was used by Benson, Ludlow, & Cole (2019, MNRAS, 485, 5010; https://ui.adsabs.harvard.edu/abs/2019MNRAS.485.5010B). -->
+    <!-- Use environmental overdensities drawn from a normal distribution conditioned upon the fact that the region has not exceeded
+	 the threshold for collapse on any larger scale (Mo & White; 1996; MNRAS; 282; 347; eqn. 9;
+	 https://ui.adsabs.harvard.edu/abs/1996MNRAS.282..347M)-->
+    <!-- Choose an environment radius of 5 Mpc/h as was used by Benson, Ludlow, & Cole (2019, MNRAS, 485, 5010;
+         https://ui.adsabs.harvard.edu/abs/2019MNRAS.485.5010B). -->
     <radiusEnvironment value="=5.0/([cosmologyParameters/HubbleConstant]/100.0)"/>
     <redshift          value=" 0.0"                                              />
     <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt" >
