@@ -70,6 +70,18 @@ module Task_Evolve_Forests_Work_Shares
      evolveForestsWorkShareWorkerCount=self%workerCount_
     </code>
    </method>
+   <method name="forestsClaimed" >
+    <description>
+    Return the number of forests claimed for processing so far, counted globally across all MPI processes, or a negative value if this is not known. For dynamic schedulers backed by a shared counter (e.g. first-come-first-served) this provides a globally-consistent progress count essentially for free---avoiding a collective reduction---and so is used for whole-run progress reporting under MPI.
+    </description>
+    <type>integer(c_size_t)</type>
+    <pass>yes</pass>
+    <code>
+     ! By default the number of forests claimed is not known.
+     !$GLC attributes unused :: self
+     evolveForestsWorkShareForestsClaimed=-1_c_size_t
+    </code>
+   </method>
    <data>integer :: workerIDOffset_=-1, workerCount_=-1</data>
   </functionClass>
   !!]

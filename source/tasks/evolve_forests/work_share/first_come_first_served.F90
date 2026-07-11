@@ -34,8 +34,9 @@
      integer(c_size_t), allocatable, dimension(:) :: activeProcessRanks
      logical                                      :: doPing            =.false., reportWaitTime
    contains
-     final     ::                 fcfsDestructor
-     procedure :: forestNumber => fcfsForestNumber
+     final     ::                  fcfsDestructor
+     procedure :: forestNumber  => fcfsForestNumber
+     procedure :: forestsClaimed => fcfsForestsClaimed
   end type evolveForestsWorkShareFCFS
 
   interface evolveForestsWorkShareFCFS
@@ -194,6 +195,20 @@ contains
 #endif
     return
   end function fcfsForestNumber
+
+  function fcfsForestsClaimed(self) result(forestsClaimed)
+    !!{RST
+    Return the number of forests claimed for processing so far, counted globally across all MPI processes. This is read from the
+    shared work-sharing counter, which is globally consistent by construction and requires only a (non-collective) one-sided read.
+    !!}
+    implicit none
+    integer(c_size_t                  )                :: forestsClaimed
+    class  (evolveForestsWorkShareFCFS), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    forestsClaimed=forestCounter%get()
+    return
+  end function fcfsForestsClaimed
 
   subroutine fcfsPing(self,node,uniqueID)
     !!{RST

@@ -1187,8 +1187,9 @@ contains
     !!{RST
     Report a throttled whole-run progress and estimated-time-remaining message. When a cost model is available the remaining time is
     estimated by rescaling the predicted total work by the ratio of actual to predicted time measured over the trees completed so
-    far (self-calibration); otherwise a simpler tree-count-based estimate is used. Under MPI the accumulators are per-process, so the
-    message is labelled with the process rank.
+    far (self-calibration); otherwise a simpler tree-count-based estimate is used. Under MPI the per-tree accumulators are
+    per-process, so the report is made only by the master process, and the tree count shown is the globally-consistent count of
+    forests *claimed* so far (from the work-share counter) rather than this process's local completed count.
     !!}
     use            :: Display          , only : displayMessage
     use            :: ISO_Varying_String, only : varying_string, operator(//)  , var_str
@@ -1206,15 +1207,31 @@ contains
     double precision                                   :: estimateTotalWallTime, estimateRemaining , &
          &                                                correction           , fractionComplete
     character       (len=32           )                :: label
-    !$GLC attributes unused :: self
-
-    message=var_str('Progress: ')
+    integer         (c_size_t         )                :: countDisplay
+    character       (len=9            )                :: countVerb
 #ifdef USEMPI
-    if (mpiSelf%count() > 1) message=message//'[process '//mpiSelf%rank()//'] '
+    integer         (c_size_t         )                :: forestsClaimed
+#else
+    !$GLC attributes unused :: self
 #endif
-    message=message//countTreesCompleted
+
+    ! By default (single process) report this process's own count of completed trees.
+    countDisplay=countTreesCompleted
+    countVerb   ='processed'
+#ifdef USEMPI
+    ! Under MPI, report from the master process only, using the globally-consistent count of forests claimed so far (read from the
+    ! work-share counter via a cheap non-collective one-sided operation) rather than this process's local completed count.
+    if (mpiSelf%rank() /= 0) return
+    forestsClaimed=self%evolveForestsWorkShare_%forestsClaimed()
+    if (forestsClaimed >= 0_c_size_t) then
+       countDisplay=forestsClaimed
+       if (countTreesTotal > 0_c_size_t .and. countDisplay > countTreesTotal) countDisplay=countTreesTotal
+       countVerb   ='claimed'
+    end if
+#endif
+    message=var_str('Progress: ')//countDisplay
     if (countTreesTotal > 0_c_size_t) message=message//' of '//countTreesTotal
-    message=message//' trees processed'
+    message=message//' trees '//trim(countVerb)
     if     (haveCostModel .and. workPredictedCompleted > 0.0d0 .and. workPredictedTotal > 0.0d0 .and. workerCount > 0) then
        ! Self-calibrate: rescale the predicted total work by the measured ratio of actual to predicted processing time.
        correction           =timeActualCompleted  /workPredictedCompleted
@@ -1223,9 +1240,9 @@ contains
        fractionComplete     =min(1.0d0,elapsed/estimateTotalWallTime)
        write (label,'(f5.1)') 100.0d0*fractionComplete
        message=message//'; ~'//trim(adjustl(label))//'% complete; elapsed '//evolveForestsFormatDuration(elapsed)//', est. remaining '//evolveForestsFormatDuration(estimateRemaining)
-    else if (countTreesTotal > 0_c_size_t .and. countTreesCompleted > 0_c_size_t) then
+    else if (countTreesTotal > 0_c_size_t .and. countDisplay > 0_c_size_t) then
        ! No cost model: estimate from the mean time per tree so far.
-       fractionComplete =dble(countTreesCompleted)/dble(countTreesTotal)
+       fractionComplete =dble(countDisplay)/dble(countTreesTotal)
        estimateRemaining=elapsed*(1.0d0-fractionComplete)/fractionComplete
        write (label,'(f5.1)') 100.0d0*fractionComplete
        message=message//'; ~'//trim(adjustl(label))//'% complete; elapsed '//evolveForestsFormatDuration(elapsed)//', est. remaining '//evolveForestsFormatDuration(estimateRemaining)
