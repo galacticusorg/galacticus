@@ -78,9 +78,6 @@
 
   ! GSL RNG initialization status.
   logical                                         :: rngInitialized=.false.
-  
-  ! RNG types.
-  type   (c_ptr), bind(C, name="gsl_rng_default") :: gsl_rng_default
 
   interface
      function gsl_rng_alloc(T) bind(c,name='gsl_rng_alloc')
@@ -207,6 +204,17 @@
        Template for function used to set up default GSL random number generator.
        !!}
      end subroutine gsl_rng_env_setup
+
+     function GSL_Get_Rng_Default() bind(c,name='GSL_Get_Rng_Default')
+       !!{RST
+       Template for a C function that returns a pointer to the GSL default random number generator type. This accessor is used
+       in preference to binding directly to the `gsl_rng_default` global variable so that the reference is resolved against
+       the definition exported by the GSL shared library (a direct Fortran binding emits a "common" symbol that the modern
+       macOS linker refuses to reconcile with the library's definition).
+       !!}
+       import c_ptr
+       type(c_ptr) :: GSL_Get_Rng_Default
+     end function GSL_Get_Rng_Default
   end interface
   
 contains
@@ -289,7 +297,7 @@ contains
        !$omp end critical(GSL_RNG_Initialize)
     end if
     allocate(self%randomNumberGenerator)
-    self%randomNumberGenerator%rng=GSL_RNG_Alloc(GSL_Rng_Default)
+    self%randomNumberGenerator%rng=GSL_RNG_Alloc(GSL_Get_Rng_Default())
     !![
     <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
       <description>
