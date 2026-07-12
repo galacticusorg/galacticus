@@ -24,6 +24,9 @@
   ! Add dependency on GSL library.
   !; gsl
 
+  ! Specify an explicit dependence on the gsl_rng_default.o object file.
+  !: $(BUILDPATH)/system/gsl_rng_default.o
+
   use, intrinsic :: ISO_C_Binding   , only : c_long         , c_ptr, c_null_ptr
   use            :: Resource_Manager, only : resourceManager
 
