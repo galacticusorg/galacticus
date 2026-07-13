@@ -14,6 +14,7 @@ When adding a new Process submodule, add it here (and nowhere else).
 
 import Galacticus.Build.SourceTree.Process.AddMetaProperty          # noqa: F401
 import Galacticus.Build.SourceTree.Process.Allocate                 # noqa: F401
+import Galacticus.Build.SourceTree.Process.ComponentBuilder         # noqa: F401
 import Galacticus.Build.SourceTree.Process.ConditionalCall          # noqa: F401
 import Galacticus.Build.SourceTree.Process.Constants                # noqa: F401
 import Galacticus.Build.SourceTree.Process.Constructors             # noqa: F401

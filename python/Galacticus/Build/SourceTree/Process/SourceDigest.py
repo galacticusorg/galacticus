@@ -141,6 +141,121 @@ _STATIC_DATA_RE = re.compile(
 )
 
 
+# ---------------------------------------------------------------------------
+# componentBuilder digest coverage
+#
+# The node-component class hierarchy is synthesized from the `<component>`
+# directive files (and their bound-functions sources) by the component
+# generator and grafted into `objects/nodes/_class.p.F90` at preprocess time
+# (Galacticus.Build.SourceTree.Process.ComponentBuilder).  Because the retired
+# `include 'objects.nodes.components.inc'` line no longer exists for
+# `read_file` to follow, `_class.F90`'s digest would otherwise NOT change when a
+# component definition, a bound-functions source, or the generator itself
+# changes — which would let a now-incompatible state file be silently accepted.
+# We therefore fold those inputs into `_class.F90`'s per-file digest (issue #32,
+# digest option 1 plus the generator-source mitigation).
+# ---------------------------------------------------------------------------
+
+_COMPONENT_DIGEST_MAP = None
+
+
+def _component_digest_map():
+    """Return `{componentBuilder-source-path: [extra files ...]}`, cached.
+
+    The key is the componentBuilder-bearing source file as `find_hash` names it
+    (`source/…`); the value lists every file whose content should be folded into
+    that file's digest: the `<component>` directive files, their bound-functions
+    sources, and the component generator's Python modules (excluding the
+    generators' own unit tests).
+    """
+    global _COMPONENT_DIGEST_MAP
+    if _COMPONENT_DIGEST_MAP is not None:
+        return _COMPONENT_DIGEST_MAP
+
+    result = {}
+    build_path     = os.environ.get('BUILDPATH')
+    locations_path = (
+        os.path.join(build_path, 'directiveLocations.xml') if build_path else None
+    )
+    if not (locations_path and os.path.exists(locations_path)):
+        _COMPONENT_DIGEST_MAP = result
+        return result
+
+    import xml.etree.ElementTree as ET
+    from XML.Utils                   import xml_to_dict
+    from List.ExtraUtils             import as_array
+    from Galacticus.Build.Directives import extract_directives
+
+    locations     = xml_to_dict(ET.parse(locations_path).getroot())
+    builder_files = list(as_array(
+        (locations.get('componentBuilder') or {}).get('file')))
+    if not builder_files:
+        _COMPONENT_DIGEST_MAP = result
+        return result
+
+    exec_path       = os.environ.get('GALACTICUS_EXEC_PATH', '.')
+    component_files = list(as_array(
+        (locations.get('component') or {}).get('file')))
+
+    extras = list(component_files)
+    for component_file in component_files:
+        for directive in extract_directives(component_file, 'component'):
+            functions = directive.get('functions')
+            if functions:
+                # `<functions>` names the (cpp-processed) `.inc`; the hand-written
+                # source is the `.Inc` under `source/`.
+                extras.append(os.path.join(
+                    exec_path, 'source',
+                    re.sub(r'\.inc$', '.Inc', functions),
+                ))
+    generator_root = os.path.join(
+        exec_path, 'python', 'Galacticus', 'Build', 'Components',
+    )
+    for root, _, files in os.walk(generator_root):
+        parts = root.split(os.sep)
+        if '__pycache__' in parts or 'tests' in parts:
+            continue
+        extras.extend(
+            os.path.join(root, name) for name in files if name.endswith('.py')
+        )
+    extras = sorted(set(extras))
+
+    for builder_file in builder_files:
+        key = re.sub(r'^.*/source/', 'source/', builder_file)
+        result[key] = extras
+    _COMPONENT_DIGEST_MAP = result
+    return result
+
+
+def _component_digest_extras(source_file_name):
+    """Extra files folded into `source_file_name`'s digest (empty for any file
+    that does not carry the componentBuilder directive)."""
+    return _component_digest_map().get(source_file_name, ())
+
+
+def _component_extras_fresh(md5_file_name, source_file_name):
+    """False when any componentBuilder extra file is newer than `md5_file_name`
+    (so the stored digest must be recomputed); True otherwise."""
+    md5_time = modification_time(md5_file_name)
+    if md5_time is None:
+        return True
+    for extra in _component_digest_extras(source_file_name):
+        extra_time = modification_time(extra)
+        if extra_time is not None and md5_time <= extra_time:
+            return False
+    return True
+
+
+def _hash_component_extras(hasher, source_file_name):
+    """Fold the raw bytes of every componentBuilder extra file into `hasher`."""
+    for extra in _component_digest_extras(source_file_name):
+        try:
+            with open(extra, 'rb') as fh:
+                hasher.update(fh.read())
+        except OSError:
+            pass
+
+
 def ensure_file_digest(source_file_name, suffix, build_path, *, use_locks,
                        include_files_excluded, report=False):
     """Return the per-file MD5 digest of `source_file_name`, reading its
@@ -178,6 +293,10 @@ def ensure_file_digest(source_file_name, suffix, build_path, *, use_locks,
                             > modification_time(data_file_name)
                     ):
                         use_stored = False
+            # A componentBuilder file also depends on the component directive
+            # files, their bound-functions sources, and the generator sources.
+            if not _component_extras_fresh(md5_file_name, source_file_name):
+                use_stored = False
         if use_stored:
             with open(md5_file_name) as md5_fh:
                 digest = md5_fh.readline()
@@ -213,6 +332,10 @@ def ensure_file_digest(source_file_name, suffix, build_path, *, use_locks,
                                                 _STATIC_DATA_RE)
                 ]
                 hash_data_files(file_hasher, extra_files)
+                # For the componentBuilder file, fold in the component directive
+                # files, bound-functions sources, and generator sources (see
+                # `_component_digest_map`); a no-op for every other file.
+                _hash_component_extras(file_hasher, source_file_name)
                 if report:
                     logger.info(
                         f"    => Computed hash from: "
@@ -349,6 +472,8 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
                                         > modification_time(md5_file_name)
                                     and modification_time(md5_file_name)
                                         > modification_time(source_file_name)
+                                    and _component_extras_fresh(
+                                        md5_file_name, source_file_name)
                                 ):
                                     use_stored_composite = False
                                 if report:
