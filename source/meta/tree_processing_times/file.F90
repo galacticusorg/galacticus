@@ -57,7 +57,7 @@ Implements a merger tree processing time estimator using a polynomial relation r
      logical                                          :: haveCountNodesFit=.false.
      type            (varying_string)                 :: fileName
    contains
-     procedure :: time            => fileTime
+     procedure :: time             => fileTime
      procedure :: timeByCountNodes => fileTimeByCountNodes
   end type metaTreeProcessingTimeFile
 
@@ -110,20 +110,21 @@ contains
     implicit none
     type     (metaTreeProcessingTimeFile)                            :: self
     type     (varying_string            ), intent(in   )             :: fileName
-    type     (node                      ), pointer                   :: doc     , fit
-    type     (hdf5Object                )                            :: file    , metaDataGroup, timingDataGroup
+    type     (node                      ), pointer                   :: doc              , fit
+    type     (hdf5Object                )                            :: file             , metaDataGroup, &
+         &                                                              timingDataGroup
     double precision                     , allocatable, dimension(:) :: coefficients
-    integer                                                          :: ioStatus, lengthName
+    integer                                                          :: ioStatus         , lengthName
     character(len=1024                  )                            :: fileNameCharacter
     !![
     <constructorAssign variables="fileName"/>
     !!]
 
-    fileNameCharacter=char(fileName)
+    fileNameCharacter=char    (fileName         )
     lengthName       =len_trim(fileNameCharacter)
-    if     (                                                                                            &
+    if     (                                                                                      &
          &   (lengthName >= 5 .and. fileNameCharacter(max(1,lengthName-4):lengthName) == ".hdf5") &
-         &  .or.                                                                                        &
+         &  .or.                                                                                  &
          &   (lengthName >= 3 .and. fileNameCharacter(max(1,lengthName-2):lengthName) == ".h5"  ) &
          & ) then
        ! The file is a Galacticus HDF5 output file - read the fit coefficients written by the tree processing timer operator.

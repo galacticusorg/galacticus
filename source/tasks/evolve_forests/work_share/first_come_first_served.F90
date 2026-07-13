@@ -34,8 +34,8 @@
      integer(c_size_t), allocatable, dimension(:) :: activeProcessRanks
      logical                                      :: doPing            =.false., reportWaitTime
    contains
-     final     ::                  fcfsDestructor
-     procedure :: forestNumber  => fcfsForestNumber
+     final     ::                   fcfsDestructor
+     procedure :: forestNumber   => fcfsForestNumber
      procedure :: forestsClaimed => fcfsForestsClaimed
   end type evolveForestsWorkShareFCFS
 

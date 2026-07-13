@@ -1437,7 +1437,8 @@ contains
     class  (mergerTreeConstructorRead), intent(inout)                            :: self
     integer(c_size_t                 ), intent(  out), allocatable, dimension(:) :: countsNodes
     integer(c_size_t                 )               , allocatable, dimension(:) :: countsNodesTemporary
-    integer(c_size_t                 )                                           :: countTreesFile      , iTree, offset
+    integer(c_size_t                 )                                           :: countTreesFile      , iTree, &
+         &                                                                          offset
     integer                                                                      :: iFile
 
     allocate(countsNodes(0))

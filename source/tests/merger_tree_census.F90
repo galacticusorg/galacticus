@@ -23,22 +23,22 @@ program Tests_Merger_Tree_Census
   which report the number and root masses of the trees that will be constructed. The ``build`` constructor is tested here as it
   knows this information up-front.
   !!}
-  use            :: Display                , only : displayVerbositySet    , verbosityLevelStandard
-  use            :: Events_Hooks           , only : eventsHooksInitialize
+  use            :: Display                   , only : displayVerbositySet       , verbosityLevelStandard
+  use            :: Events_Hooks              , only : eventsHooksInitialize
   use            :: Functions_Global_Utilities, only : Functions_Global_Set
-  use            :: Galacticus_Nodes       , only : nodeClassHierarchyFinalize, nodeClassHierarchyInitialize
-  use            :: Input_Parameters       , only : inputParameters
-  use            :: ISO_Varying_String     , only : var_str
-  use, intrinsic :: ISO_C_Binding          , only : c_size_t
-  use            :: Merger_Tree_Construction, only : mergerTreeConstructorClass
-  use            :: Node_Components         , only : Node_Components_Initialize, Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use            :: Unit_Tests             , only : Assert                 , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use            :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize, nodeClassHierarchyInitialize
+  use            :: Input_Parameters          , only : inputParameters
+  use            :: ISO_Varying_String        , only : var_str
+  use, intrinsic :: ISO_C_Binding             , only : c_size_t
+  use            :: Merger_Tree_Construction  , only : mergerTreeConstructorClass
+  use            :: Node_Components           , only : Node_Components_Initialize, Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use            :: Unit_Tests                , only : Assert                    , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
-  type            (inputParameters          )               :: parameters
-  class           (mergerTreeConstructorClass), pointer     :: mergerTreeConstructor_
-  integer         (c_size_t                  )              :: countTrees
+  type            (inputParameters           )                            :: parameters
+  class           (mergerTreeConstructorClass), pointer                   :: mergerTreeConstructor_
+  integer         (c_size_t                  )                            :: countTrees
   double precision                            , allocatable, dimension(:) :: masses
-  double precision                            , parameter   :: massTreeMinimum=1.0d10, massTreeMaximum=1.0d13
+  double precision                            , parameter                 :: massTreeMinimum=1.0d10, massTreeMaximum=1.0d13
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -60,11 +60,11 @@ program Tests_Merger_Tree_Census
   call mergerTreeConstructor_%treeMasses(masses)
   ! The build constructor knows the tree count and masses up-front, so the count should be positive, the masses array should be
   ! allocated with a size matching the count, and all masses should lie within the requested mass range.
-  call Assert('tree count is known (positive)'            ,countTrees > 0_c_size_t                     ,.true.)
-  call Assert('tree masses array is allocated'            ,allocated(masses)                           ,.true.)
+  call Assert('tree count is known (positive)'         ,countTrees > 0_c_size_t                     ,.true.)
+  call Assert('tree masses array is allocated'         ,allocated(masses)                           ,.true.)
   if (allocated(masses)) then
-     call Assert('tree masses array size matches count'   ,size(masses,kind=c_size_t) == countTrees    ,.true.)
-     call Assert('all tree masses are within range'       ,all(masses >= massTreeMinimum .and. masses <= massTreeMaximum),.true.)
+     call Assert('tree masses array size matches count',size(masses,kind=c_size_t) == countTrees    ,.true.)
+     call Assert('all tree masses are within range'    ,all(masses >= massTreeMinimum .and. masses <= massTreeMaximum),.true.)
   end if
   ! Clean up.
   !![

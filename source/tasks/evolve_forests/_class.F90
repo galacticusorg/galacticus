@@ -150,12 +150,12 @@ contains
     class           (mergerTreeSeedsClass       ), pointer               :: mergerTreeSeeds_
     class           (*                          ), pointer               :: dummyPointer_
     type            (inputParameters            ), pointer               :: parametersRoot
-    logical                                                              :: evolveForestsInParallel, suspendToRAM          , &
-         &                                                                  tolerateFailures       , estimateRunTimeOnly
-    integer         (kind_int8                  )                        :: walltimeMaximum        , timeIntervalCheckpoint
+    logical                                                              :: evolveForestsInParallel   , suspendToRAM          , &
+         &                                                                  tolerateFailures          , estimateRunTimeOnly
+    integer         (kind_int8                  )                        :: walltimeMaximum           , timeIntervalCheckpoint
     integer         (c_size_t                   )                        :: countForestsMaximum
     double precision                                                     :: timeIntervalReportProgress
-    type            (varying_string             )                        :: suspendPath            , fileNameCheckpoint
+    type            (varying_string             )                        :: suspendPath               , fileNameCheckpoint
 
     ! Ensure the nodes objects are initialized.
     if (associated(parameters%parent)) then
@@ -322,12 +322,12 @@ contains
     use            :: Error        , only : Error_Report
     implicit none
     type            (taskEvolveForests          )                        :: self
-    logical                                      , intent(in   )         :: evolveForestsInParallel, suspendToRAM          , &
-         &                                                                  tolerateFailures       , estimateRunTimeOnly
-    integer         (kind_int8                  ), intent(in   )         :: walltimeMaximum        , timeIntervalCheckpoint
+    logical                                      , intent(in   )         :: evolveForestsInParallel   , suspendToRAM          , &
+         &                                                                  tolerateFailures          , estimateRunTimeOnly
+    integer         (kind_int8                  ), intent(in   )         :: walltimeMaximum           , timeIntervalCheckpoint
     integer         (c_size_t                   ), intent(in   )         :: countForestsMaximum
     double precision                             , intent(in   )         :: timeIntervalReportProgress
-    type            (varying_string             ), intent(in   )         :: suspendPath            , fileNameCheckpoint
+    type            (varying_string             ), intent(in   )         :: suspendPath               , fileNameCheckpoint
     class           (mergerTreeConstructorClass ), intent(in   ), target :: mergerTreeConstructor_
     class           (metaTreeProcessingTimeClass), intent(in   ), target :: metaTreeProcessingTime_
     class           (mergerTreeOperatorClass    ), intent(in   ), target :: mergerTreeOperator_
@@ -500,7 +500,7 @@ contains
     use               :: Node_Components         , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use               :: Node_Events_Inter_Tree  , only : Inter_Tree_Event_Post_Evolve
     !$ use            :: OMP_Lib                 , only : OMP_Destroy_Lock                 , OMP_Get_Thread_Num                 , OMP_Init_Lock  , omp_lock_kind    , &
-    !$      &                                            OMP_Get_Max_Threads
+    !$      &                                             OMP_Get_Max_Threads
     use               :: Sorting                 , only : sortIndex
     use               :: String_Handling         , only : operator(//)
     implicit none
@@ -545,10 +545,10 @@ contains
     ! all OpenMP threads of this process (they are neither "save"d nor "threadprivate") and are updated atomically or within a
     ! critical section. The per-tree scratch variables (start clock, predicted and actual times, etc.) are threadprivate.
     integer         (c_size_t                )                                  :: countTreesTotal      , countTreesCompleted
-    double precision                                                           :: workPredictedTotal   , workPredictedCompleted , &
-         &                                                                         timeActualCompleted  , timeTreeActualMaximum  , &
+    double precision                                                            :: workPredictedTotal   , workPredictedCompleted, &
+         &                                                                         timeActualCompleted  , timeTreeActualMaximum , &
          &                                                                         timeTreePredicted_
-    integer                                                                    :: workerCount
+    integer                                                                     :: workerCount
     integer         (kind_int8               )                                  :: clockStart           , clockRate             , &
          &                                                                         clockLastReport
     logical                                                                     :: haveCostModel        , reportProgress        , &
@@ -559,8 +559,8 @@ contains
     integer         (c_size_t                )                           , save :: countNodesTree
     logical                                                              , save :: treeWasProcessed
     !$omp threadprivate(clockTreeStart,clockNow,timeTreePredicted,massTree,timeTreeActual,elapsed,treeWasProcessed,countNodesTree)
-    double precision                            , allocatable, dimension(:)     :: massesCensus
-    integer         (c_size_t                ), allocatable, dimension(:)     :: countsNodesCensus
+    double precision                          , allocatable, dimension(:)       :: massesCensus
+    integer         (c_size_t                ), allocatable, dimension(:)       :: countsNodesCensus
     integer         (c_size_t                )                                  :: iCensus
 
     ! The following processes merger trees, one at a time, to each successive output time, then dumps their contents to file. It
@@ -786,9 +786,9 @@ contains
                 end do
                 timeTreePredicted=self%metaTreeProcessingTime_%timeByCountNodes(countNodesTree)
              else
-                basicNodeBase    => tree%nodeBase%basic()
-                massTree         =  basicNodeBase%mass ()
-                timeTreePredicted=  self%metaTreeProcessingTime_%time(massTree)
+                basicNodeBase     => tree%nodeBase%basic()
+                massTree          =  basicNodeBase%mass ()
+                timeTreePredicted =  self%metaTreeProcessingTime_%time(massTree)
              end if
           end if
           ! If this is a new tree, perform any initialization and pre-evolution tasks on it.
@@ -1035,9 +1035,9 @@ contains
           end if
           !$omp critical(evolveForestsProgress)
           if (timeTreeActual > timeTreeActualMaximum) timeTreeActualMaximum=timeTreeActual
-          if     (                                                                                  &
-               &   reportProgress                                                                   &
-               &  .and.                                                                             &
+          if     (                                                                                   &
+               &   reportProgress                                                                    &
+               &  .and.                                                                              &
                &   dble(clockNow-clockLastReport)/dble(clockRate) >= self%timeIntervalReportProgress &
                & ) then
              clockLastReport=clockNow
@@ -1169,15 +1169,15 @@ contains
     character       (len=32        )                :: label
 
     if      (seconds <     1.0d0) then
-       write (label,'(f6.3,a2)') seconds            ,' s'
+       write (label,'(f6.3,a2)') seconds          ,' s'
     else if (seconds <    60.0d0) then
-       write (label,'(f6.1,a2)') seconds            ,' s'
+       write (label,'(f6.1,a2)') seconds          ,' s'
     else if (seconds <  3600.0d0) then
-       write (label,'(f6.1,a2)') seconds/  60.0d0   ,' m'
+       write (label,'(f6.1,a2)') seconds/   60.0d0,' m'
     else if (seconds < 86400.0d0) then
-       write (label,'(f6.2,a2)') seconds/3600.0d0   ,' h'
+       write (label,'(f6.2,a2)') seconds/ 3600.0d0,' h'
     else
-       write (label,'(f6.2,a2)') seconds/86400.0d0  ,' d'
+       write (label,'(f6.2,a2)') seconds/86400.0d0,' d'
     end if
     formatted=trim(adjustl(label))
     return
@@ -1188,11 +1188,11 @@ contains
     Report a start-of-run estimate of the total run time, when a cost model and tree census are both available. This is intended to
     help size cluster job requests. The estimate is conditional on the calibration model used for the cost model.
     !!}
-    use            :: Display          , only : displayMessage , displayMagenta, displayReset
+    use            :: Display           , only : displayMessage, displayMagenta, displayReset
     use            :: ISO_Varying_String, only : varying_string, operator(//)  , var_str
-    use            :: MPI_Utilities    , only : mpiSelf
-    use            :: String_Handling  , only : operator(//)
-    use, intrinsic :: ISO_C_Binding    , only : c_size_t
+    use            :: MPI_Utilities     , only : mpiSelf
+    use            :: String_Handling   , only : operator(//)
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
     implicit none
     class           (taskEvolveForests), intent(in   ) :: self
     integer         (c_size_t         ), intent(in   ) :: countTreesTotal
@@ -1228,21 +1228,21 @@ contains
     per-process, so the report is made only by the master process, and the tree count shown is the globally-consistent count of
     forests *claimed* so far (from the work-share counter) rather than this process's local completed count.
     !!}
-    use            :: Display          , only : displayMessage
+    use            :: Display           , only : displayMessage
     use            :: ISO_Varying_String, only : varying_string, operator(//)  , var_str
-    use            :: MPI_Utilities    , only : mpiSelf
-    use            :: String_Handling  , only : operator(//)
-    use, intrinsic :: ISO_C_Binding    , only : c_size_t
+    use            :: MPI_Utilities     , only : mpiSelf
+    use            :: String_Handling   , only : operator(//)
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
     implicit none
     class           (taskEvolveForests), intent(in   ) :: self
-    integer         (c_size_t         ), intent(in   ) :: countTreesCompleted, countTreesTotal
+    integer         (c_size_t         ), intent(in   ) :: countTreesCompleted   , countTreesTotal
     double precision                   , intent(in   ) :: workPredictedCompleted, workPredictedTotal, &
          &                                                timeActualCompleted   , elapsed
     logical                            , intent(in   ) :: haveCostModel
     integer                            , intent(in   ) :: workerCount
     type            (varying_string   )                :: message
-    double precision                                   :: estimateTotalWallTime, estimateRemaining , &
-         &                                                correction           , fractionComplete
+    double precision                                   :: estimateTotalWallTime , estimateRemaining , &
+         &                                                correction            , fractionComplete
     character       (len=32           )                :: label
     integer         (c_size_t         )                :: countDisplay
     character       (len=9            )                :: countVerb
@@ -1271,7 +1271,7 @@ contains
     message=message//' trees '//trim(countVerb)
     if     (haveCostModel .and. workPredictedCompleted > 0.0d0 .and. workPredictedTotal > 0.0d0 .and. workerCount > 0) then
        ! Self-calibrate: rescale the predicted total work by the measured ratio of actual to predicted processing time.
-       correction           =timeActualCompleted  /workPredictedCompleted
+       correction           =timeActualCompleted/workPredictedCompleted
        estimateTotalWallTime=correction*workPredictedTotal/dble(workerCount)
        estimateRemaining    =max(0.0d0,estimateTotalWallTime-elapsed)
        fractionComplete     =min(1.0d0,elapsed/estimateTotalWallTime)
@@ -1295,17 +1295,17 @@ contains
     Report an end-of-run timing summary, phrased to be useful for sizing subsequent job submissions. Under MPI the summary is
     per-process.
     !!}
-    use            :: Display          , only : displayMessage
+    use            :: Display           , only : displayMessage
     use            :: ISO_Varying_String, only : varying_string, operator(//)  , var_str
-    use            :: MPI_Utilities    , only : mpiSelf
-    use            :: String_Handling  , only : operator(//)
-    use, intrinsic :: ISO_C_Binding    , only : c_size_t
+    use            :: MPI_Utilities     , only : mpiSelf
+    use            :: String_Handling   , only : operator(//)
+    use, intrinsic :: ISO_C_Binding     , only : c_size_t
     implicit none
-    integer         (c_size_t         ), intent(in   ) :: countTreesCompleted
-    double precision                   , intent(in   ) :: elapsed            , timeActualCompleted, &
-         &                                                timeTreeActualMaximum
-    integer                            , intent(in   ) :: workerCount
-    type            (varying_string   )                :: message
+    integer         (c_size_t      ), intent(in   ) :: countTreesCompleted
+    double precision                , intent(in   ) :: elapsed              , timeActualCompleted, &
+         &                                             timeTreeActualMaximum
+    integer                         , intent(in   ) :: workerCount
+    type            (varying_string)                :: message
     !$GLC attributes unused :: workerCount
 
     if (countTreesCompleted <= 0_c_size_t) return

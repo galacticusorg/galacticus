@@ -318,11 +318,11 @@ contains
     use :: Numerical_Constants_Astronomical, only : massSolar
     use :: Units_MetaData                  , only : unitType
     implicit none
-    class           (mergerTreeOperatorTreeProcessingTimer), intent(inout) :: self
-    integer         (hsize_t                              ), parameter      :: chunkSize      =100_hsize_t
-    type            (hdf5Object                           )                 :: metaDataDataset            , metaDataGroup, &
-         &                                                                     timingDataGroup
-    logical                                                                 :: preExists
+    class  (mergerTreeOperatorTreeProcessingTimer), intent(inout) :: self
+    integer(hsize_t                              ), parameter     :: chunkSize      =100_hsize_t
+    type   (hdf5Object                           )                :: metaDataDataset            , metaDataGroup, &
+         &                                                           timingDataGroup
+    logical                                                       :: preExists
 
     ! Each (OpenMP-threadprivate) copy of this operator writes the timing data for the trees that it processed, appending to the
     ! shared datasets in the output file. The quadratic log-log fit of the processing time is deliberately *not* performed here, as
@@ -371,14 +371,14 @@ contains
     use :: HDF5_Access, only : hdf5Access
     use :: IO_HDF5    , only : hdf5Object
     implicit none
-    type            (hdf5Object)                              :: metaDataGroup          , timingDataGroup
-    double precision            , allocatable, dimension(:)   :: massRead               , timeConstructRead     , &
-         &                                                       timeEvolveRead         , timesProcess
-    integer         (c_size_t  ), allocatable, dimension(:)   :: countNodesRead
-    double precision                         , dimension(0:2) :: coefficientsMass       , coefficientsCountNodes
-    double precision                         , dimension(  2) :: rangeMass              , rangeCountNodes
-    double precision                                          :: residualMass           , residualCountNodes
-    logical                                                   :: successMass            , successCountNodes
+    type            (hdf5Object)                              :: metaDataGroup   , timingDataGroup
+    double precision            , allocatable, dimension( : ) :: massRead        , timeConstructRead     , &
+         &                                                       timeEvolveRead  , timesProcess
+    integer         (c_size_t  ), allocatable, dimension( : ) :: countNodesRead
+    double precision                         , dimension(0:2) :: coefficientsMass, coefficientsCountNodes
+    double precision                         , dimension(  2) :: rangeMass       , rangeCountNodes
+    double precision                                          :: residualMass    , residualCountNodes
+    logical                                                   :: successMass     , successCountNodes
 
     !$ call hdf5Access%set()
     if (outputFile%hasGroup('metaData')) then
@@ -395,14 +395,14 @@ contains
              call treeProcessingTimerFit(massRead            ,timesProcess,coefficientsMass      ,residualMass      ,rangeMass      ,successMass      )
              call treeProcessingTimerFit(dble(countNodesRead),timesProcess,coefficientsCountNodes,residualCountNodes,rangeCountNodes,successCountNodes)
              if (successMass) then
-                call timingDataGroup%writeDataset(coefficientsMass,"fitCoefficientMass","Coefficients Cᵢ of the fit log₁₀(τ/s) = Σ Cᵢ (log₁₀[M/M⊙])ⁱ")
-                call timingDataGroup%writeDataset([residualMass]  ,"fitResidualMass"   ,"RMS residual of the mass-based fit [dex]"                    )
-                call timingDataGroup%writeDataset(rangeMass       ,"fitRangeMass"      ,"Range of tree masses used in the fit [M⊙]"                   )
+                call timingDataGroup%writeDataset(coefficientsMass      ,"fitCoefficientMass"      ,"Coefficients Cᵢ of the fit log₁₀(τ/s) = Σ Cᵢ (log₁₀[M/M⊙])ⁱ")
+                call timingDataGroup%writeDataset([residualMass]        ,"fitResidualMass"         ,"RMS residual of the mass-based fit [dex]"                  )
+                call timingDataGroup%writeDataset(rangeMass             ,"fitRangeMass"            ,"Range of tree masses used in the fit [M⊙]"                )
              end if
              if (successCountNodes) then
-                call timingDataGroup%writeDataset(coefficientsCountNodes,"fitCoefficientCountNodes","Coefficients Cᵢ of the fit log₁₀(τ/s) = Σ Cᵢ (log₁₀[N])ⁱ")
-                call timingDataGroup%writeDataset([residualCountNodes]  ,"fitResidualCountNodes"   ,"RMS residual of the node-count-based fit [dex]"          )
-                call timingDataGroup%writeDataset(rangeCountNodes       ,"fitRangeCountNodes"      ,"Range of node counts used in the fit"                    )
+                call timingDataGroup%writeDataset(coefficientsCountNodes,"fitCoefficientCountNodes","Coefficients Cᵢ of the fit log₁₀(τ/s) = Σ Cᵢ (log₁₀[N])ⁱ"    )
+                call timingDataGroup%writeDataset([residualCountNodes]  ,"fitResidualCountNodes"   ,"RMS residual of the node-count-based fit [dex]"            )
+                call timingDataGroup%writeDataset(rangeCountNodes       ,"fitRangeCountNodes"      ,"Range of node counts used in the fit"                      )
              end if
           end if
        end if
@@ -419,18 +419,18 @@ contains
     degree is reduced automatically (to linear, or constant) if the data do not support a quadratic fit.
     !!}
     implicit none
-    double precision, intent(in   ), dimension(     :) :: predictor        , times
-    double precision, intent(  out), dimension(0:2   ) :: coefficients
-    double precision, intent(  out)                    :: residual
-    double precision, intent(  out), dimension(  2   ) :: rangePredictor
-    logical         , intent(  out)                    :: success
-    double precision               , allocatable, dimension(:) :: x               , y
-    double precision                              , dimension(0:2,0:2) :: matrixNormal
-    double precision                              , dimension(0:2    ) :: vectorNormal
-    integer                                            :: i                 , j                , &
-         &                                                k                 , countValid        , &
-         &                                                degree
-    double precision                                   :: model             , sumSquares
+    double precision, intent(in   ), dimension(     : ) :: predictor     , times
+    double precision, intent(  out), dimension(0:2    ) :: coefficients
+    double precision, intent(  out)                     :: residual
+    double precision, intent(  out), dimension(  2    ) :: rangePredictor
+    logical         , intent(  out)                     :: success
+    double precision, allocatable  , dimension( :     ) :: x             , y
+    double precision               , dimension(0:2,0:2) :: matrixNormal
+    double precision               , dimension(0:2    ) :: vectorNormal
+    integer                                             :: i             , j         , &
+         &                                                 k             , countValid, &
+         &                                                 degree
+    double precision                                    :: model         , sumSquares
 
     coefficients  =0.0d0
     residual      =0.0d0
@@ -496,16 +496,16 @@ contains
     ``.false.`` if the matrix is (numerically) singular.
     !!}
     implicit none
-    integer         , intent(in   )                      :: n
+    integer         , intent(in   )                         :: n
     double precision, intent(in   ), dimension(0:n-1,0:n-1) :: matrix_
     double precision, intent(in   ), dimension(0:n-1      ) :: vector_
     double precision, intent(  out), dimension(0:n-1      ) :: solution
     double precision               , dimension(0:n-1,0:n-1) :: a
     double precision               , dimension(0:n-1      ) :: b
-    integer                                              :: i          , j        , &
-         &                                                  k          , pivotRow
-    double precision                                     :: pivotValue , factor   , &
-         &                                                  sumOff
+    integer                                                 :: i          , j        , &
+         &                                                     k          , pivotRow
+    double precision                                        :: pivotValue , factor   , &
+         &                                                     sumOff
 
     success=.false.
     a      =matrix_
