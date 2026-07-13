@@ -53,7 +53,7 @@ contains
     use :: Input_Paths       , only : inputPath        , pathTypeTools
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//)     , varying_string
     use :: String_Handling   , only : stringSubstitute
-    use :: System_Command    , only : System_Command_Do
+    use :: System_Command    , only : System_Command_Do, shellEscape
     use :: System_Download   , only : download
     use :: System_Compilers  , only : compiler         , compilerOptions      , languageCPlusPlus, compilerValidate
     implicit none
@@ -90,15 +90,15 @@ contains
           end if
           ! Unpack and patch the code.
           call displayMessage("unpacking and patching Cloudy code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeTools)//" -f "//cloudyPath//".tar.gz",status)
+          call System_Command_Do("tar -x -v -z -C "//shellEscape(inputPath(pathTypeTools))//" -f "//shellEscape(cloudyPath//".tar.gz"),status)
           if (status /= 0 .or. .not.File_Exists(cloudyPath)) call Error_Report("failed to unpack Cloudy code"//{introspection:location})
-          call System_Command_Do('sed -i~ -E s/"^#\!\/bin\/sh"/"#\!\/usr\/bin\/env bash"/ '//cloudyPath//'/source/configure.sh',status)
+          call System_Command_Do('sed -i~ -E s/"^#\!\/bin\/sh"/"#\!\/usr\/bin\/env bash"/ '//shellEscape(cloudyPath//"/source/configure.sh"),status)
           if (status /= 0                                  ) call Error_Report("failed to patch Cloudy code"//{introspection:location})
-          call System_Command_Do('sed -i~ -E s/"^is_repo=(.*)"/"is_repo=\"false\""/ '//cloudyPath//'/source/gitversion.sh',status)
+          call System_Command_Do('sed -i~ -E s/"^is_repo=(.*)"/"is_repo=\"false\""/ '//shellEscape(cloudyPath//"/source/gitversion.sh"),status)
           if (status /= 0                                  ) call Error_Report("failed to patch Cloudy code"//{introspection:location})
-          call System_Command_Do('sed -i~ -E s/"\\\$res[[:space:]]+\.=[[:space:]]+\"native \""/"print \"skip march=native as it breaks the build\\n\""/ '//cloudyPath//'/source/capabilities.pl',status)
+          call System_Command_Do('sed -i~ -E s/"\\\$res[[:space:]]+\.=[[:space:]]+\"native \""/"print \"skip march=native as it breaks the build\\n\""/ '//shellEscape(cloudyPath//"/source/capabilities.pl"),status)
           if (status /= 0                                  ) call Error_Report("failed to patch Cloudy code"//{introspection:location})
-          call System_Command_Do('sed -i~ -E s/"which[[:space:]]+g\+\+"/"which '//stringSubstitute(compiler(languageCPlusPlus),"/","\/")//'"/ '//cloudyPath//'/source/Makefile',status)
+          call System_Command_Do('sed -i~ -E s/"which[[:space:]]+g\+\+"/"which '//stringSubstitute(compiler(languageCPlusPlus),"/","\/")//'"/ '//shellEscape(cloudyPath//"/source/Makefile"),status)
           if (status /= 0                                  ) call Error_Report("failed to patch Cloudy code"//{introspection:location})
        end if
        ! Build the code.
@@ -108,16 +108,16 @@ contains
           if (statusEnvironment <= 0) static_=staticDefault == "yes"
        end if
        if (static_) then
-          call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -E s/'^EXTRA[[:space:]]*=.*'/'EXTRA = -static "//stringSubstitute(stringSubstitute(compilerOptions(languageCPlusPlus),"/","\/"),"-","\-")//"'/g Makefile")
+          call System_Command_Do("cd "//shellEscape(cloudyPath//"/source")//"; sed -i~ -E s/'^EXTRA[[:space:]]*=.*'/'EXTRA = -static "//stringSubstitute(stringSubstitute(compilerOptions(languageCPlusPlus),"/","\/"),"-","\-")//"'/g Makefile")
        else
-          call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -E s/'^EXTRA[[:space:]]*=.*'/'EXTRA = "        //stringSubstitute(stringSubstitute(compilerOptions(languageCPlusPlus),"/","\/"),"-","\-")//"'/g Makefile")
+          call System_Command_Do("cd "//shellEscape(cloudyPath//"/source")//"; sed -i~ -E s/'^EXTRA[[:space:]]*=.*'/'EXTRA = "        //stringSubstitute(stringSubstitute(compilerOptions(languageCPlusPlus),"/","\/"),"-","\-")//"'/g Makefile")
        end if
-       command="cd "//cloudyPath//"/source; chmod u=wrx configure.sh capabilities.pl;"
+       command="cd "//shellEscape(cloudyPath//"/source")//"; chmod u=wrx configure.sh capabilities.pl;"
        call Get_Environment_Variable('CLOUDY_COMPILER_PATH',compilerPath,status=statusPath)
        if      (statusPath == -1) then
           call Error_Report("can not read Cloudy compiler path environment variable"//{introspection:location})
        else if (statusPath ==  0) then
-          command=command//"export PATH="//trim(compilerPath)//":$PATH; "
+          command=command//"export PATH="//shellEscape(trim(compilerPath))//":$PATH; "
        end if
        command=command//" make"
        call System_Command_Do(char(command),status)

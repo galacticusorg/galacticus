@@ -41,7 +41,7 @@ contains
     use :: Input_Paths       , only : inputPath        , pathTypeTools        , pathTypeDataStatic
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//)      , varying_string, &
          &                            var_str
-    use :: System_Command    , only : System_Command_Do
+    use :: System_Command    , only : System_Command_Do, shellEscape
     use :: System_Download   , only : download
     use :: System_Compilers  , only : compiler         , languageFortran      , compilerValidate
     implicit none
@@ -83,14 +83,14 @@ contains
              end block
           end if
           call displayMessage("patching RecFast code....",verbosityLevelWorking)
-          command="cp "//inputPath(pathTypeDataStatic)//"patches/RecFast/recfast.for.patch "//recfastPath//"; cd "//recfastPath//"; patch < recfast.for.patch"
+          command="cp "//shellEscape(inputPath(pathTypeDataStatic)//"patches/RecFast/recfast.for.patch")//" "//shellEscape(recfastPath)//"; cd "//shellEscape(recfastPath)//"; patch < recfast.for.patch"
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch RecFast file 'recfast.for'"//{introspection:location})
-          command="touch "//recfastPath//"patched"
+          command="touch "//shellEscape(recfastPath//"patched")
           call System_Command_Do(command)
        end if
        call displayMessage("compiling RecFast code....",verbosityLevelWorking)
-       command="cd "//recfastPath//"; "//compiler(languageFortran)//" recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none"
+       command="cd "//shellEscape(recfastPath)//"; "//compiler(languageFortran)//" recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none"
        if (static_) command=command//" -static"
        call System_Command_Do(char(command))
        if (.not.File_Exists(pathExe)) &

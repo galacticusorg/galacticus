@@ -70,7 +70,7 @@ contains
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//), replace    , &
           &                           varying_string
     use :: String_Handling   , only : stringSubstitute
-    use :: System_Command    , only : System_Command_Do
+    use :: System_Command    , only : System_Command_Do, shellEscape
     use :: System_Download   , only : download
     use :: System_Compilers  , only : compiler         , compilerOptions      , languageC   , compilerValidate
     implicit none
@@ -100,11 +100,11 @@ contains
              if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeTools)//"class_public-"//char(classVersion)//".tar.gz")) call Error_Report("unable to download CLASS"//{introspection:location})
           end if
           call displayMessage("unpacking CLASS code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeTools)//" -f "//inputPath(pathTypeTools)//"class_public-"//char(classVersion)//".tar.gz",status)
+          call System_Command_Do("tar -x -v -z -C "//shellEscape(inputPath(pathTypeTools))//" -f "//shellEscape(inputPath(pathTypeTools)//"class_public-"//char(classVersion)//".tar.gz"),status)
           if (status /= 0 .or. .not.File_Exists(classPath)) call Error_Report('failed to unpack CLASS code'//{introspection:location})        
        end if
        call displayMessage("compiling CLASS code",verbosityLevelWorking)
-       command='cd '//classPath//'; cp Makefile Makefile.tmp; '
+       command='cd '//shellEscape(classPath)//'; cp Makefile Makefile.tmp; '
        ! Include Galacticus compilation flags here.
        command=command//'sed -E -i~ s/"^CC[[:space:]]+=[[:space:]]+gcc"/"CC='//char(stringSubstitute(compiler(languageC),"/","\/"))//'"/ Makefile.tmp; sed -E -i~ s/"^(CC|LD)FLAG = "/"\1FLAG = '//char(stringSubstitute(compilerOptions(languageC),"/","\/"))
        if (static_) command=command//' -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive'
@@ -722,7 +722,7 @@ contains
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use               :: Sorting                         , only : sortIndex
     use               :: String_Handling                 , only : operator(//)
-    use               :: System_Command                  , only : System_Command_Do
+    use               :: System_Command                  , only : System_Command_Do       , shellEscape
     implicit none
     class           (cosmologyParametersClass), intent(inout)                                          :: cosmologyParameters_
     double precision                          , intent(in   ), optional, dimension(:    )              :: redshifts
@@ -836,7 +836,7 @@ contains
     write (classParameterFile,'(a)') ''
     close(classParameterFile)
     ! Run CLASS.
-    call System_Command_Do(classPath//"class "//parameterFile//" > "//workPath//"/class.log")
+    call System_Command_Do(shellEscape(classPath//"class")//" "//shellEscape(parameterFile)//" > "//shellEscape(workPath//"/class.log"))
     ! Extract the ratio σ₈²/Aₛ.
     if (haveNormalization) then
        found=.false.

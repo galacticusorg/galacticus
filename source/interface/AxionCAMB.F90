@@ -72,7 +72,7 @@ contains
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//), replace       , &
           &                           varying_string
     use :: String_Handling   , only : stringSubstitute
-    use :: System_Command    , only : System_Command_Do
+    use :: System_Command    , only : System_Command_Do, shellEscape
     use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran, compilerValidate
     implicit none
     type   (varying_string), intent(  out)           :: axionCambPath, axionCambVersion
@@ -97,11 +97,11 @@ contains
        if (.not.File_Exists(axionCambPath)) then
           ! Download AxionCAMB if necessary.
           call displayMessage("downloading AxionCAMB code....",verbosityLevelWorking)
-          call System_Command_Do("git clone https://github.com/dgrin1/axionCAMB.git "//axionCambPath,status)
+          call System_Command_Do("git clone https://github.com/dgrin1/axionCAMB.git "//shellEscape(axionCambPath),status)
           if (status /= 0 .or. .not.File_Exists(axionCambPath)) call Error_Report("unable to download AxionCAMB"//{introspection:location})
        end if
        call displayMessage("compiling AxionCAMB code",verbosityLevelWorking)
-       command='cd '//axionCambPath//'; sed -E -i~ s/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)\/\(P%H0\/100\)\*\*2"/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)"/ inidriver_axion.F90; sed -E -i~ s/"^F90C[[:space:]]*=[[:space:]]*[[:alpha:]]+"/"F90C = '//stringSubstitute(compiler(languageFortran),"/","\/")//'\nFFLAGS = -O3 '// &
+       command='cd '//shellEscape(axionCambPath)//'; sed -E -i~ s/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)\/\(P%H0\/100\)\*\*2"/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)"/ inidriver_axion.F90; sed -E -i~ s/"^F90C[[:space:]]*=[[:space:]]*[[:alpha:]]+"/"F90C = '//stringSubstitute(compiler(languageFortran),"/","\/")//'\nFFLAGS = -O3 '// &
             &  stringSubstitute(compilerOptions(languageFortran),"/","\/")
        if (static_) command=command//" -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
        command=command//'"/ Makefile; find . -name "*.f90" | xargs sed -E -i~ s/"error stop"/"error stop "/; make -j1 camb'
@@ -137,7 +137,7 @@ contains
     !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
     use               :: Sorting                         , only : sortIndex
     use               :: String_Handling                 , only : operator(//)                , String_C_To_Fortran
-    use               :: System_Command                  , only : System_Command_Do
+    use               :: System_Command                  , only : System_Command_Do           , shellEscape
     use               :: Table_Labels                    , only : extrapolationTypeExtrapolate, extrapolationTypeFix
     use               :: Tables                          , only : table                       , table1DGeneric
     implicit none
@@ -449,7 +449,7 @@ contains
        write (axionCambParameterFile,'(a,1x,"=",1x,i1   )') 'l_sample_boost               ',1
        close(axionCambParameterFile)
        ! Run AxionCAMB.
-       call System_Command_Do(axionCambPath//"camb "//parameterFile)
+       call System_Command_Do(shellEscape(axionCambPath//"camb")//" "//shellEscape(parameterFile))
        ! Read the AxionCAMB transfer function file.
        if (allocated(wavenumbers      )) deallocate(wavenumbers      )
        if (allocated(transferFunctions)) deallocate(transferFunctions)

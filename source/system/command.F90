@@ -27,14 +27,51 @@ module System_Command
   !!}
   implicit none
   private
-  public :: System_Command_Do
+  public :: System_Command_Do, shellEscape
 
   interface System_Command_Do
      module procedure System_Command_Char
      module procedure System_Command_VarStr
   end interface System_Command_Do
 
+  interface shellEscape
+     module procedure shellEscapeChar
+     module procedure shellEscapeVarStr
+  end interface shellEscape
+
 contains
+
+  function shellEscapeVarStr(token) result(escaped)
+    !!{RST
+    Return the string ``token`` wrapped in single quotes, with any embedded single quotes escaped, such that it can be used
+    safely as a single token (e.g. a file system path) in a shell command even if it contains spaces or other characters
+    that are special to the shell. This should be applied to any path substituted into a command passed to
+    ``System_Command_Do``.
+    !!}
+    use :: ISO_Varying_String, only : varying_string, replace, operator(//)
+    implicit none
+    type(varying_string), intent(in   ) :: token
+    type(varying_string)                :: escaped
+
+    ! Wrap in single quotes, replacing each embedded single quote with the sequence '\'' (close quote, escaped quote, reopen
+    ! quote), which is the standard POSIX-shell-safe encoding.
+    escaped="'"//replace(token,"'","'\''",every=.true.)//"'"
+    return
+  end function shellEscapeVarStr
+
+  function shellEscapeChar(token) result(escaped)
+    !!{RST
+    Return the string ``token`` wrapped in single quotes, with any embedded single quotes escaped. See {\normalfont \ttfamily
+    shellEscapeVarStr}.
+    !!}
+    use :: ISO_Varying_String, only : varying_string, var_str
+    implicit none
+    character(len=*), intent(in   ) :: token
+    type(varying_string)            :: escaped
+
+    escaped=shellEscapeVarStr(var_str(token))
+    return
+  end function shellEscapeChar
 
   subroutine System_Command_VarStr(command,iStatus)
     !!{RST

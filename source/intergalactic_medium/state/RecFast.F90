@@ -89,7 +89,7 @@ contains
     use :: Interfaces_RecFast              , only : Interface_RecFast_Initialize
     use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use :: Units_MetaData                  , only : unitType
-    use :: System_Command                  , only : System_Command_Do
+    use :: System_Command                  , only : System_Command_Do           , shellEscape
     implicit none
     type            (intergalacticMediumStateRecFast)                              :: self
     class           (cosmologyFunctionsClass        ), intent(in   ), target       :: cosmologyFunctions_
@@ -163,7 +163,7 @@ contains
        close(parametersUnit)
        ! Run RecFast.
        call File_Lock(char(recfastPath//"recfast.exe"),fileLock,lockIsShared=.false.)
-       call System_Command_Do(recfastPath//"recfast.exe < "//parameterFile)
+       call System_Command_Do(shellEscape(recfastPath//"recfast.exe")//" < "//shellEscape(parameterFile))
        call File_Unlock(fileLock)
        ! Parse the output file.
        countRedshift=Count_Lines_in_File(recFastFile)-1

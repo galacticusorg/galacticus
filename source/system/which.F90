@@ -55,7 +55,7 @@ contains
     Find the path to the given ``command``, optionally returning status.
     !!}
     use :: Error             , only : Error_Report       , errorStatusFail, errorStatusSuccess
-    use :: System_Command    , only : System_Command_Do
+    use :: System_Command    , only : System_Command_Do  , shellEscape
     use :: File_Utilities    , only : File_Name_Temporary, File_Remove
     use :: ISO_Varying_String, only : varying_string     , char           , trim              , assignment(=)
     implicit none
@@ -68,7 +68,7 @@ contains
     
     if (present(status)) status=errorStatusSuccess
     tempFile=File_Name_Temporary("which")
-    call System_Command_Do('which '//trim(command)//' > '//char(tempFile),status_)
+    call System_Command_Do('which '//trim(command)//' > '//char(shellEscape(tempFile)),status_)
     if (status_ == 0) then
        open(newUnit=commandUnit,file=char(tempFile),status='unknown',form='formatted')
        read (commandUnit,'(a)') commandFull_ 

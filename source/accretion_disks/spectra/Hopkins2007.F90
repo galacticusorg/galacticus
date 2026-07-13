@@ -147,7 +147,7 @@ contains
     use            :: Units_MetaData                  , only : unitType
     use            :: Numerical_Ranges                , only : Make_Range             , rangeTypeLogarithmic
     use            :: String_Handling                 , only : operator(//)
-    use            :: System_Command                  , only : System_Command_Do
+    use            :: System_Command                  , only : System_Command_Do      , shellEscape
     use            :: System_Compilers                , only : languageC              , compilerValidate
     use            :: System_Download                 , only : download
     implicit none
@@ -201,7 +201,7 @@ contains
        ! Compile the AGN SED code.
        if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) then
           call compilerValidate(languageC,'AGN spectrum')
-          call System_Command_Do("cd "//char(inputPath(pathTypeDataStatic))//"aux/AGN_Spectrum; gcc agn_spectrum.c -o agn_spectrum.x -lm");
+          call System_Command_Do("cd "//char(shellEscape(inputPath(pathTypeDataStatic)//"aux/AGN_Spectrum"))//"; gcc agn_spectrum.c -o agn_spectrum.x -lm");
           if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) call Error_Report('failed to compile agn_spectrum.c'//{introspection:location})
        end if
        ! Generate a tabulation of AGN spectra over a sufficiently large range of AGN luminosity.
@@ -211,7 +211,7 @@ contains
        do i=1,luminosityBolometricCount
           call displayCounter(int(100.0*dble(i-1)/dble(luminosityBolometricCount)),isNew=i==1,verbosity=verbosityLevelWorking)
           write (label,'(e12.6)') log10(luminosityBolometric(i))
-          call System_Command_Do(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x "//label//" > "//inputPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt")
+          call System_Command_Do(shellEscape(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")//" "//label//" > "//shellEscape(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt"))
           wavelengthCount=Count_Lines_in_File(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt",";")-4
           if (allocated(wavelength)) then
              if (wavelengthCount /= size(wavelength)) call Error_Report('inconsistent number of wavelengths'//{introspection:location})

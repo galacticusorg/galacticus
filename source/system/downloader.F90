@@ -220,7 +220,7 @@ contains
     use :: Error             , only : Error_Report     , errorStatusFail, errorStatusSuccess
     use :: File_Utilities    , only : File_Exists      , File_Remove
     use :: ISO_Varying_String, only : varying_string   , char           , operator(//)      , assignment(=)
-    use :: System_Command    , only : System_Command_Do
+    use :: System_Command    , only : System_Command_Do, shellEscape
     implicit none
     type     (varying_string), intent(in   ), dimension(:) :: url
     character(len=*         ), intent(in   )               :: outputFileName
@@ -250,12 +250,12 @@ contains
              ! here, so allowing `wget` to also retry internally results in a multiplicative number of attempts (and can cause the
              ! download to far exceed any time limit when each internal attempt hangs until its read-timeout). The `--timeout`
              ! option bounds the time spent on DNS lookup, connection, and reads for the single attempt.
-             call System_Command_Do('wget --no-check-certificate --tries=1 --timeout='//trim(timeoutLabel)//' "'//char(url(i))//'" -O '      //trim(outputFileName),status_)
+             call System_Command_Do('wget --no-check-certificate --tries=1 --timeout='//trim(timeoutLabel)//' "'//char(url(i))//'" -O '       //char(shellEscape(trim(outputFileName))),status_)
           else if (downloadUsingCurl) then
              ! Force `curl` to make only a single attempt (i.e. disable its own retrying) so that retries are handled solely by the
              ! loop here, consistent with the behavior of `wget` above. The `--max-time` option bounds the total time allowed for
              ! the single attempt.
-             call System_Command_Do('curl --insecure --location --retry 0 --max-time '//trim(timeoutLabel)//' "' //char(url(i))//'" --output '//trim(outputFileName),status_)
+             call System_Command_Do('curl --insecure --location --retry 0 --max-time '//trim(timeoutLabel)//' "' //char(url(i))//'" --output '//char(shellEscape(trim(outputFileName))),status_)
           else if (.not.present(status)) then
              call Error_Report('no downloader available'//{introspection:location})
           end if

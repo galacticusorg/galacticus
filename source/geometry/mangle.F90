@@ -331,7 +331,7 @@ contains
     use :: ISO_Varying_String, only : operator(//)     , varying_string       , char           , assignment(=)
     use :: String_Handling   , only : stringSubstitute
     use :: System_Download   , only : download
-    use :: System_Command    , only : System_Command_Do
+    use :: System_Command    , only : System_Command_Do, shellEscape
     use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran, languageC, &
          &                            compilerValidate
     implicit none
@@ -362,12 +362,12 @@ contains
              if (status /= 0 .or. .not.File_Exists(manglePath//".tar.gz")) call Error_Report("unable to download mangle"//{introspection:location})
           end if
           call displayMessage("unpacking mangle code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeTools)//" -f "//manglePath//".tar.gz",status)
+          call System_Command_Do("tar -x -v -z -C "//shellEscape(inputPath(pathTypeTools))//" -f "//shellEscape(manglePath//".tar.gz"),status)
           if (status /= 0 .or. .not.File_Exists(manglePath//"src/Makefile.in")) call Error_Report('failed to unpack mangle code'//{introspection:location})
        end if
        staticOptions=""
        if (static_) staticOptions=" -Wl,--whole-archive -lpthread -ldl -Wl,--no-whole-archive"
-       command=         'cd '//manglePath//'src; ./configure; '
+       command=         'cd '//shellEscape(manglePath//"src")//'; ./configure; '
        command=command//'sed -E -i~ s/"^F77[[:space:]]*=[[:space:]]*[a-zA-Z0-9]+"/"F77 = '//                 compiler       (languageFortran)                         //'"/ Makefile; '
        command=command//'sed -E -i~ s/"^CC[[:space:]]*=[[:space:]]*[a-zA-Z0-9]+"/"CC = '  //                 compiler       (languageC      )                         //'"/ Makefile; '
        command=command//'sed -E -i~ s/"^FFLAGS[[:space:]]*:=(.*)"/"FFLAGS:=\1 '           //stringSubstitute(compilerOptions(languageFortran),"/","\/")//staticOptions//'"/ Makefile; '
@@ -394,7 +394,7 @@ contains
           &                                 operator(==)      , varying_string
     use :: Numerical_Constants_Math, only : Pi
     use :: String_Handling         , only : String_Count_Words, String_Join        , String_Split_Words, char
-    use :: System_Command          , only : System_Command_Do
+    use :: System_Command          , only : System_Command_Do , shellEscape
     implicit none
     type            (varying_string), intent(in   ), dimension(             : ) :: fileNames
     character       (len=*         ), intent(in   ), optional                   :: solidAngleFileName
@@ -437,7 +437,7 @@ contains
              multiplier=-1.0d0
           end if
           fileNameTmp=File_Name_Temporary('geometryMangleSolidAngle')
-          call System_Command_Do(manglePath//"bin/harmonize "//fileName//" "//fileNameTmp,status)
+          call System_Command_Do(shellEscape(manglePath//"bin/harmonize")//" "//shellEscape(fileName)//" "//shellEscape(fileNameTmp),status)
           if (status /= 0) call Error_Report('failed to run mangle harmonize'//{introspection:location})
           open(newUnit=wlmFile,file=char(fileNameTmp),status="old",form="formatted")
           read (wlmFile,*)
@@ -474,7 +474,7 @@ contains
     use :: ISO_Varying_String, only : char              , extract            , len               , operator(//), &
           &                           operator(==)      , var_str            , varying_string
     use :: String_Handling   , only : String_Count_Words, String_Join        , String_Split_Words, operator(//)
-    use :: System_Command    , only : System_Command_Do
+    use :: System_Command    , only : System_Command_Do , shellEscape
     implicit none
     type            (varying_string), intent(in   ), dimension(             :                                                               ) :: fileNames
     integer                         , intent(in   )                                                                                           :: degreeMaximum
@@ -529,7 +529,7 @@ contains
              multiplier=-1.0d0
           end if
           fileNameTmp=File_Name_Temporary('geometryMangleAngularPower')
-          call System_Command_Do(manglePath//"bin/harmonize -l "//degreeMaximum//" "//fileName//" "//fileNameTmp,status)
+          call System_Command_Do(shellEscape(manglePath//"bin/harmonize")//" -l "//degreeMaximum//" "//shellEscape(fileName)//" "//shellEscape(fileNameTmp),status)
           if (status /= 0) call Error_Report('failed to run mangle harmonize'//{introspection:location})
           open(newUnit=wlmFile,file=char(fileNameTmp),status="old",form="formatted")
           read (wlmFile,*)

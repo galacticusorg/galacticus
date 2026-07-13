@@ -60,7 +60,7 @@ contains
     use :: Input_Paths       , only : inputPath        , pathTypeTools        , pathTypeDataStatic
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//)      , varying_string
     use :: String_Handling   , only : operator(//)     , stringSubstitute
-    use :: System_Command    , only : System_Command_Do
+    use :: System_Command    , only : System_Command_Do, shellEscape
     use :: System_Download   , only : download
     use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran   , compilerValidate
     use :: System_Which      , only : which
@@ -96,7 +96,7 @@ contains
              if (.not.File_Exists(tarPath) .or. status /= 0) call Error_Report("failed to download FSPS"//{introspection:location})
           end if
           call displayMessage("unpacking FSPS code....",verbosityLevelWorking)
-          command="tar -x -v -z -C "//inputPath(pathTypeTools)//" -f "//inputPath(pathTypeTools)//"FSPS_"//char(fspsVersion)//".tar.gz"
+          command="tar -x -v -z -C "//shellEscape(inputPath(pathTypeTools))//" -f "//shellEscape(inputPath(pathTypeTools)//"FSPS_"//char(fspsVersion)//".tar.gz")
           call System_Command_Do(command,status)          
           if (status /= 0 .or. .not.File_Exists(fspsPath)) call Error_Report('failed to unpack FSPS code'//{introspection:location})
        end if
@@ -104,22 +104,22 @@ contains
        patchPath=fspsPath//"/src/patched.status"
        if (.not.File_Exists(patchPath)) then
           patch=which('patch')
-          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/galacticus_IMF.f90 "//fspsPath//"/src/"
+          command="cp "//shellEscape(inputPath(pathTypeDataStatic)//"patches/FSPS/galacticus_IMF.f90")//" "//shellEscape(fspsPath//"/src/")
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to copy FSPS patch 'galacticus_IMF.f90'"//{introspection:location})
-          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/imf.f90.patch "     //fspsPath//"/src/; cd "//fspsPath//"/src/; "//patch//" < imf.f90.patch" 
+          command="cp "//shellEscape(inputPath(pathTypeDataStatic)//"patches/FSPS/imf.f90.patch")//" "//shellEscape(fspsPath//"/src/")//"; cd "//shellEscape(fspsPath//"/src/")//"; "//shellEscape(patch)//" < imf.f90.patch" 
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'imf.f90'"           //{introspection:location})
-          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/ssp_gen.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; "//patch//" < ssp_gen.f90.patch"
+          command="cp "//shellEscape(inputPath(pathTypeDataStatic)//"patches/FSPS/ssp_gen.f90.patch")//" "//shellEscape(fspsPath//"/src/")//"; cd "//shellEscape(fspsPath//"/src/")//"; "//shellEscape(patch)//" < ssp_gen.f90.patch"
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'ssp_gen.f90'"       //{introspection:location})
-          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/sps_vars.f90.patch "//fspsPath//"/src/; cd "//fspsPath//"/src/; "//patch//" < sps_vars.f90.patch"
+          command="cp "//shellEscape(inputPath(pathTypeDataStatic)//"patches/FSPS/sps_vars.f90.patch")//" "//shellEscape(fspsPath//"/src/")//"; cd "//shellEscape(fspsPath//"/src/")//"; "//shellEscape(patch)//" < sps_vars.f90.patch"
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'sps_vars.f90'"      //{introspection:location})
-          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/autosps.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; "//patch//" < autosps.f90.patch"
+          command="cp "//shellEscape(inputPath(pathTypeDataStatic)//"patches/FSPS/autosps.f90.patch")//" "//shellEscape(fspsPath//"/src/")//"; cd "//shellEscape(fspsPath//"/src/")//"; "//shellEscape(patch)//" < autosps.f90.patch"
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'autosps.f90'"       //{introspection:location})
-          command="cp "//inputPath(pathTypeDataStatic)//"patches/FSPS/Makefile.patch "    //fspsPath//"/src/; cd "//fspsPath//"/src/; "//patch//" < Makefile.patch"
+          command="cp "//shellEscape(inputPath(pathTypeDataStatic)//"patches/FSPS/Makefile.patch")//" "//shellEscape(fspsPath//"/src/")//"; cd "//shellEscape(fspsPath//"/src/")//"; "//shellEscape(patch)//" < Makefile.patch"
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'Makefile'"          //{introspection:location})
           open(newUnit=statusUnit,file=char(fspsPath//"/src/patched.status"),status='unknown',form='formatted')
@@ -129,13 +129,13 @@ contains
        end if
        call displayMessage("compiling autosps.exe code",verbosityLevelWorking)
        if (static_) then
-          command="cd "//fspsPath//"/src; "                                                    // &
+          command="cd "//shellEscape(fspsPath//"/src")//"; "                                   // &
 #ifndef __APPLE__
                &  "grep -P '^F90FLAGS := ' Makefile && "                                       // &
 #endif
                &  "sed -i~ -E s/'^(F90FLAGS := [^#]*)'/'\1 \-static'/g Makefile"  
        else
-          command="cd "//fspsPath//"/src; "                                                    // &
+          command="cd "//shellEscape(fspsPath//"/src")//"; "                                   // &
 #ifndef __APPLE__
                &  "grep -P '^F90FLAGS := ' Makefile && "                                       // &
 #endif
@@ -143,7 +143,7 @@ contains
        end if
        call System_Command_Do(command,status)
        if (status /= 0) call Error_Report("failed to patch FSPS file 'Makefile' for static/dynamic build"//{introspection:location})
-       command="cd "//fspsPath//"/src; export SPS_HOME="//fspsPath//'; export F90FLAGS="'                                                                   // &
+       command="cd "//shellEscape(fspsPath//"/src")//"; export SPS_HOME="//shellEscape(fspsPath)//'; export F90FLAGS="'                                     // &
 #ifndef __aarch64__
             &  '-mcmodel=medium '                                                                                                                           // & ! Larger memory model required except on Arm64.
 #endif
@@ -171,7 +171,7 @@ contains
     use :: Numerical_Constants_Units       , only : metersToAngstroms
     use :: Units_MetaData                  , only : unitType
     use :: String_Handling                 , only : operator(//)
-    use :: System_Command                  , only : System_Command_Do
+    use :: System_Command                  , only : System_Command_Do      , shellEscape
     use :: Tables                          , only : table1D
     implicit none
     class           (table1D       ), intent(inout)                              :: imf
@@ -220,7 +220,7 @@ contains
              write (outputFile,'(a)' ) "no"                 ! Do not include dust.
              write (outputFile,'(a)' ) char(outputFileName) ! Specify filename.
              close(outputFile)
-             call System_Command_Do("export SPS_HOME="//fspsPath//"; "//fspsPath//"/src/autosps.exe < "//fspsInputFileName)
+             call System_Command_Do("export SPS_HOME="//shellEscape(fspsPath)//"; "//shellEscape(fspsPath//"/src/autosps.exe")//" < "//shellEscape(fspsInputFileName))
              call File_Remove(fspsInputFileName)
           end if
           call File_Unlock(imfLock)
