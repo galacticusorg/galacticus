@@ -11,6 +11,7 @@ import re
 
 __all__ = [
     'extract_variables', 'unformat_variables',
+    'check_no_parameterized_derived_type',
     'LABEL', 'ARGUMENT_LIST',
     'UNIT_OPENERS', 'UNIT_CLOSERS', 'INTRINSIC_DECLARATIONS',
 ]
@@ -129,6 +130,70 @@ UNIT_CLOSERS = {
     'interface':       re.compile(r'^\s*end\s+interface\s*([a-zA-Z0-9_()/+\-*.=]*)', re.IGNORECASE),
     'type':            re.compile(r'^\s*end\s+type\s+('             + LABEL + r')' , re.IGNORECASE),
 }
+
+# ---------------------------------------------------------------------------
+# Parameterized derived types (PDTs)
+#
+# PDTs — derived types carrying `kind`/`len` type parameters, e.g.
+# `type :: foo(k, n)` used as `type(foo(real64, 3)) :: x` — are NOT supported
+# by the Galacticus build system.  The custom Fortran parser and the
+# generators that consume its output (state storage, deep copy, source
+# digests, module/submodule dependencies) have no representation for type
+# parameters.  Crucially, the failure mode is *silent*: the type-definition
+# opener and `type(...)`/`class(...)` declaration regexes simply fail to match
+# PDT syntax, so a PDT would be dropped from the parse tree and quietly omitted
+# from generated code (a wrong-behavior failure, not a build error).
+#
+# To turn that silent trap into a loud, actionable error we detect the two
+# syntactic forms below and raise.  See issue #114 (and the developer-guide
+# design note on PDTs) for the full rationale and the conditions under which
+# PDT support might be revisited.
+# ---------------------------------------------------------------------------
+
+# A PDT *definition* opener: `type`, an optional attribute list, then a type
+# name that is immediately followed by a parenthesized type-parameter list.
+# The `(?!is\b)` guard on the `::`-less form avoids mistaking the select-type
+# guard `type is (...)` for a definition.
+_PDT_DEFINITION_RE = re.compile(
+    r'^\s*type\s*'
+    r'(?:'
+    r',\s*[^:]*?::\s*'      # attribute list, e.g. `, extends(base), public ::`
+    r'|::\s*'              # bare `::`
+    r'|\s+(?!is\b)'        # `::` omitted (but not the `type is` guard)
+    r')'
+    r'(?:' + LABEL + r')\s*\(',
+    re.IGNORECASE,
+)
+
+# A PDT *declaration*: `type(` or `class(` whose type name is itself followed
+# by a parenthesized type-parameter list, e.g. `type(foo(real64, 3)) :: x`.
+_PDT_DECLARATION_RE = re.compile(
+    r'^\s*(?:!\$\s*)?(?:type|class)\s*\(\s*(?:' + LABEL + r')\s*\(',
+    re.IGNORECASE,
+)
+
+
+def check_no_parameterized_derived_type(line):
+    """Raise `ValueError` if `line` uses parameterized-derived-type syntax.
+
+    Detects both the definition form (`type :: name(params)`) and the
+    parameterized declaration form (`type(name(params)) :: var`).  Call this
+    on the comment-stripped, continuation-joined logical line so that PDTs are
+    rejected loudly instead of being silently misparsed and dropped from
+    generated code.  See issue #114.
+
+    Returns the line unchanged when it contains no PDT syntax, so callers may
+    use it inline.
+    """
+    if _PDT_DEFINITION_RE.match(line) or _PDT_DECLARATION_RE.match(line):
+        raise ValueError(
+            "parameterized derived types are not supported by the Galacticus "
+            "build system (offending line: '" + line.strip() + "'). "
+            "See issue #114 for the rationale and alternatives (the "
+            "<instance>/{Type¦label} generics system)."
+        )
+    return line
+
 
 # ---------------------------------------------------------------------------
 # Intrinsic declaration regex patterns

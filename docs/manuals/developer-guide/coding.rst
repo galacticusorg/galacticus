@@ -790,6 +790,8 @@ In addition to the deep copy functionality generated within ``functionClass`` ob
 
 These three directives are typically used in sequence when manually deep-copying a ``functionClass`` member: first ``deepCopyReset`` to prepare the source, then ``deepCopy`` to perform the copy, then ``deepCopyFinalize`` to clean up.
 
+.. _manual-sec-genericProgramming:
+
 Generic Programming
 ~~~~~~~~~~~~~~~~~~~
 
@@ -841,6 +843,32 @@ In this example, the ``exampleType`` class is defined to have a generic ``set`` 
 When a generic instance attribute begins with ``regEx``, matching generic tags are handled differently. In particular, a match-and-replace regular expression is applied to the third element of the generic tag (elements are separated by broken vertical bar characters). The match and replace components of the regular expression are defined in the instance attribute, once again separated by broken vertical bars.
 
 Finally, the special generic tag ``match`` acts as a ternary operator. If the regular expression specified in the third element matches the ``label`` attribute of a specific instance, the generic tag is replaced with its fourth element, otherwise it is replaced with its fifth element.
+
+.. _manual-sec-parameterizedDerivedTypes:
+
+Parameterized Derived Types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Fortran *parameterized derived types* (PDTs)---derived types carrying ``kind`` and/or ``len`` type parameters, for example ``type :: tensor(rank, dimension)`` instantiated as ``type(tensor(2, 3)) :: t``---are **not supported** in the Galacticus source code. The build parser detects both PDT definitions (``type :: name(...)``) and parameterized declarations (``type(name(...)) :: ...``) and aborts the build with an explicit error. This is a deliberate design decision, not an oversight; the reasoning and the (narrow) conditions under which it might be revisited are recorded here so the question has a durable answer.
+
+Why PDTs are not used
+'''''''''''''''''''''
+
+* **The build toolchain cannot represent them.** Every source file is parsed by the in-house preprocessor (:galacticus-ref:`sourceTreePreprocessor`), whose type-definition and declaration recognizers do not understand type-parameter lists. A PDT would fail to be recognized as a type and would be *silently* dropped from the generated state-store, deep-copy, source-digest, and module-dependency code---a wrong-behavior failure rather than a compile error. Rather than leave that trap open, the parser rejects PDT syntax loudly (see issue `#114 <https://github.com/galacticusorg/galacticus/issues/114>`_).
+
+* **The genericity Galacticus actually needs lies along axes PDTs cannot express.** The code's real generic-programming needs vary over *intrinsic type* (e.g. integer vs. double vs. ``varying_string``), *array rank*, and *attribute* (pointer vs. allocatable). PDT ``kind``/``len`` parameters express none of these---they vary only compile-time size/kind within a single intrinsic type, of which Galacticus has essentially no unaddressed duplication. Where genuine genericity is required, the generic-programming preprocessor directives (:galacticus-ref:`genericProgramming`) already provide it, and are strictly more capable than PDTs.
+
+* **Compiler maturity and language direction.** PDTs are among the least-mature features of the supported compiler, and the Fortran standards committee's chosen direction for generic programming is the templates facility of Fortran 2028, not PDTs. Investing in PDTs would be a detour rather than a step along that path; the generic-programming directives are, in effect, a home-grown template mechanism that native templates could eventually replace.
+
+Adding new fixed-size numeric types
+'''''''''''''''''''''''''''''''''''
+
+If a family of fixed-size numeric types is ever needed (for example, tensor shapes beyond the existing rank-2, dimension-3, symmetric tensor used for tidal fields), implement it with the generic-programming preprocessor directives (:galacticus-ref:`genericProgramming`), supplying any per-shape packing or contraction conventions as instance attributes---**not** as a PDT.
+
+When to revisit
+'''''''''''''''
+
+Reconsider PDT support only if *all* of the following hold: (a) a concrete need arises for a family of fixed-size numeric types differing *only* in a compile-time size or kind within a single intrinsic type; (b) the generic-programming directives are a demonstrably poor fit; (c) the supported ``gfortran`` release has carried mature, bug-quiet PDT support for several releases; and (d) the preprocessor's type-definition and declaration parsers (plus the state-store, deep-copy, and dependency generators) have been extended to represent type parameters. Even then, support should be restricted to ``kind`` parameters---``len``-parameterized PDTs should be considered permanently out of scope on performance and portability grounds.
 
 Numerical Tools
 ---------------
