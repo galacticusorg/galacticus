@@ -336,16 +336,16 @@ contains
     use :: Linear_Algebra                  , only : assignment(=)                 , operator(*)        , vector
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
-    double precision                                   , dimension(3)  :: gaussianEllipsoidAcceleration
+    type            (coordinateCartesian              )                :: gaussianEllipsoidAcceleration
     class           (massDistributionGaussianEllipsoid), intent(inout) :: self
     class           (coordinate                       ), intent(in   ) :: coordinates
     type            (coordinateCartesian              )                :: coordinatesCartesian
     double precision                                   , dimension(3)  :: positionCartesian            , positionCartesianScaleFree , &
-         &                                                                accelerationScaleFree
+         &                                                                accelerationScaleFree        , accelerationArray
     integer                                                            :: i
     type            (vector                            )               :: positionVector               , positionVectorUnrotated    , &
          &                                                                accelerationVector           , accelerationVectorUnrotated
-    
+
     ! Ensure that acceleration is tabulated.
     call self%accelerationTabulate()
     ! Construct the scale-free (and rotated) position.
@@ -364,17 +364,18 @@ contains
     accelerationScaleFree=self%accelerationInterpolate(positionCartesianScaleFree)
     ! De-rotate and scale the acceleration.
     do i=1,3
-       gaussianEllipsoidAcceleration(self%axesMapOut(i))=accelerationScaleFree(i)
+       accelerationArray(self%axesMapOut(i))=accelerationScaleFree(i)
     end do
-    accelerationVector           = gaussianEllipsoidAcceleration
-    accelerationVectorUnrotated  = self%rotationOut              &
-         &                        *accelerationVector
-    gaussianEllipsoidAcceleration= accelerationVectorUnrotated
-    if (.not.self%isDimensionless())                                     &
-         & gaussianEllipsoidAcceleration=+gaussianEllipsoidAcceleration  &
-         &                               *gravitationalConstant_internal &
-         &                               *self%mass                      &
-         &                               /self%scaleLengthMaximum**2
+    accelerationVector          = accelerationArray
+    accelerationVectorUnrotated = self%rotationOut              &
+         &                       *accelerationVector
+    accelerationArray           = accelerationVectorUnrotated
+    if (.not.self%isDimensionless())                     &
+         & accelerationArray=+accelerationArray          &
+         &                   *gravitationalConstant_internal &
+         &                   *self%mass                      &
+         &                   /self%scaleLengthMaximum**2
+    gaussianEllipsoidAcceleration=accelerationArray
     return
   end function gaussianEllipsoidAcceleration
   

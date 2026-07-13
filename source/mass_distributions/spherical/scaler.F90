@@ -342,26 +342,28 @@ contains
     !!{RST
     Computes the gravitational acceleration at ``coordinates`` for spherically-symmetric mass distributions.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gigaYear, gravitationalConstant_internal, megaParsec
+    use :: Coordinates                     , only : assignment(=), coordinateCartesian
+    use :: Numerical_Constants_Astronomical, only : gigaYear     , gravitationalConstant_internal, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    double precision                                 , dimension(3)  :: sphericalScalerAcceleration
+    type            (coordinateCartesian            )                :: sphericalScalerAcceleration
     class           (massDistributionSphericalScaler), intent(inout) :: self
     class           (coordinate                     ), intent(in   ) :: coordinates
     class           (coordinate                     ), allocatable   :: coordinatesScaled
+    double precision                                 , dimension(3)  :: accelerationVector
 
     call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
-    sphericalScalerAcceleration=+self%massDistribution_%acceleration         (                  &
-         &                                                                    coordinatesScaled &
-         &                                                                   )                  &
-         &                      *self                  %factorScalingMass                       &
-         &                      /self                  %factorScalingLength**2
-    if (self%massDistribution_%isDimensionless())                      &
-         & sphericalScalerAcceleration=+sphericalScalerAcceleration    &
-         &                             *kilo                           &
-         &                             *gigaYear                       &
-         &                             /megaParsec                     &
-         &                             *gravitationalConstant_internal
+    accelerationVector=self%massDistribution_%acceleration(coordinatesScaled)
+    accelerationVector=+accelerationVector                  &
+         &             *self%factorScalingMass              &
+         &             /self%factorScalingLength**2
+    if (self%massDistribution_%isDimensionless())             &
+         & accelerationVector=+accelerationVector             &
+         &                    *kilo                           &
+         &                    *gigaYear                       &
+         &                    /megaParsec                     &
+         &                    *gravitationalConstant_internal
+    sphericalScalerAcceleration=accelerationVector
     return
   end function sphericalScalerAcceleration
 
@@ -460,13 +462,16 @@ contains
     !!{RST
     Sample a position from a scaled spherical mass distribution.
     !!}
+    use :: Coordinates, only : coordinateCartesian, assignment(=)
     implicit none
-    double precision                                 , dimension(3)  :: sphericalScalerPositionSample
+    type            (coordinateCartesian            )                :: sphericalScalerPositionSample
     class           (massDistributionSphericalScaler), intent(inout) :: self
     class           (randomNumberGeneratorClass     ), intent(inout) :: randomNumberGenerator_
+    double precision                                 , dimension(3)  :: positionArray
 
-    sphericalScalerPositionSample=+self%massDistribution_%positionSample     (randomNumberGenerator_) &
-         &                        *self                  %factorScalingLength
+    positionArray                =self%massDistribution_%positionSample(randomNumberGenerator_)
+    positionArray                =+positionArray*self%factorScalingLength
+    sphericalScalerPositionSample=positionArray
     return
   end function sphericalScalerPositionSample
 

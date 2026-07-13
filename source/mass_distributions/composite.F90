@@ -826,21 +826,24 @@ contains
     !!{RST
     Computes the gravitational acceleration at ``coordinates`` for a composite mass distribution.
     !!}
+    use :: Coordinates, only : coordinateCartesian, assignment(=)
     implicit none
-    double precision                              , dimension(3  ) :: compositeAcceleration
+    type            (coordinateCartesian         )                :: compositeAcceleration
     class           (massDistributionComposite   ), intent(inout)  :: self
     class           (coordinate                  ), intent(in   )  :: coordinates
     type            (massDistributionList        ), pointer        :: massDistribution_
+    double precision                              , dimension(3  ) :: accelerationArray , accelerationComponent
 
-    compositeAcceleration=[0.0d0,0.0d0,0.0d0]
+    accelerationArray=[0.0d0,0.0d0,0.0d0]
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
-          compositeAcceleration  =  +compositeAcceleration                                             &
-               &                    +massDistribution_    %massDistribution_%acceleration(coordinates)
-          massDistribution_      =>  massDistribution_    %next
+          accelerationComponent =  massDistribution_%massDistribution_%acceleration(coordinates)
+          accelerationArray     = +accelerationArray+accelerationComponent
+          massDistribution_     => massDistribution_%next
        end do
-    end if   
+    end if
+    compositeAcceleration=accelerationArray
     return
   end function compositeAcceleration
 
@@ -952,24 +955,28 @@ contains
     !!{RST
     Compute the Chandrasekhar integral at the specified ``coordinates`` in a composite mass distribution.
     !!}
+    use :: Coordinates, only : coordinateCartesian, assignment(=)
     implicit none
-    double precision                              , dimension(3)  :: compositeChandrasekharIntegral
+    type            (coordinateCartesian         )                :: compositeChandrasekharIntegral
     class           (massDistributionComposite   ), intent(inout) :: self
     class           (massDistributionClass       ), intent(inout) :: massDistributionEmbedding     , massDistributionPerturber
     double precision                              , intent(in   ) :: massPerturber
-    class           (coordinate                  ), intent(in   ) :: coordinates                   , velocity
+    class           (coordinate                  ), intent(in   ) :: coordinates
+    type            (coordinateCartesian         ), intent(in   ) :: velocity
     type            (massDistributionList        ), pointer       :: massDistribution_
+    double precision                              , dimension(3)  :: integralArray                 , integralComponent
     !$GLC attributes unused :: massDistributionEmbedding
 
-    compositeChandrasekharIntegral=0.0d0
+    integralArray=[0.0d0,0.0d0,0.0d0]
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
-          compositeChandrasekharIntegral =  +compositeChandrasekharIntegral                                                                                                                              &
-               &                            +massDistribution_%massDistribution_%chandrasekharIntegral(massDistribution_%massDistribution_,massDistributionPerturber,massPerturber,coordinates,velocity)
-          massDistribution_              =>  massDistribution_%next
+          integralComponent =  massDistribution_%massDistribution_%chandrasekharIntegral(massDistribution_%massDistribution_,massDistributionPerturber,massPerturber,coordinates,velocity)
+          integralArray     = +integralArray+integralComponent
+          massDistribution_ => massDistribution_%next
        end do
     end if
+    compositeChandrasekharIntegral=integralArray
     return
   end function compositeChandrasekharIntegral
 
@@ -977,8 +984,9 @@ contains
     !!{RST
     Sample a position from a composite distribution.
     !!}
+    use :: Coordinates, only : coordinateCartesian, assignment(=)
     implicit none
-    double precision                              , dimension(3)  :: compositePositionSample
+    type            (coordinateCartesian         )                :: compositePositionSample
     class           (massDistributionComposite   ), intent(inout) :: self
     class           (randomNumberGeneratorClass  ), intent(inout) :: randomNumberGenerator_
     type            (massDistributionList        ), pointer       :: massDistribution_

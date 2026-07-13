@@ -40,7 +40,10 @@ module Coordinates
      !!{RST
      The base coordinate object class.
      !!}
-     double precision :: position(3)
+     ! The position is default-initialized to zero so that the (component-less) default structure constructor
+     ! `coordinateCartesian()` is valid -- this is relied upon by auto-generated `functionClass` code for methods
+     ! that return a `coordinateCartesian` (e.g. massDistribution acceleration/positionSample/chandrasekharIntegral).
+     double precision :: position(3) = 0.0d0
    contains
      !![
      <methods docformat="rst">
