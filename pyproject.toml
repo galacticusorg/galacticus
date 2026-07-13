@@ -57,6 +57,17 @@ lint = [
     "mypy",
     "pyflakes",
 ]
+# Editor/IDE tooling for developing Galacticus (see the "Editor Setup" page in
+# the developer guide).  Not needed to run or build Galacticus, so kept opt-in:
+#   pip install -e .[editor]
+#   * fortls   -- Fortran language server (used by the VSCode Modern Fortran
+#                 extension for go-to-definition, hover, completion).
+#   * findent  -- Fortran indenter, for hand-indenting selections of *pure*
+#                 Fortran only (it corrupts embedded !![...]/!!{RST...} blocks).
+editor = [
+    "fortls",
+    "findent",
+]
 
 [project.urls]
 Homepage      = "https://github.com/galacticusorg/galacticus"

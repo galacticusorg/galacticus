@@ -1,0 +1,90 @@
+{
+  // ======================================================================
+  // File-type associations
+  // ======================================================================
+  "files.associations": {
+    "*.F90": "FortranFreeForm",
+    "*.Inc": "FortranFreeForm",
+    "*.inc": "FortranFreeForm",
+    "parameters*.xml": "xml",
+    "*.xsd": "xml"
+  },
+
+  // ======================================================================
+  // Fortran
+  // ======================================================================
+  // Language server (fortls) — install once with:  pip install fortls
+  // Directory/preprocessor configuration lives in the repo-root `.fortls`
+  // file, which fortls picks up automatically.
+  "fortran.linter.compiler": "gfortran",
+  "fortran.linter.includePaths": [
+    "${workspaceFolder}/source",
+    "${workspaceFolder}/work/build"
+  ],
+
+  // Whole-file formatting is DISABLED on purpose. Galacticus source embeds
+  // non-Fortran directive blocks (`!![ ... !!]` XML and `!!{RST ... !!}`) that
+  // a Fortran formatter such as findent/fprettify does not understand and will
+  // corrupt (it re-indents the raw <name>/<method> lines and relocates the `!$`
+  // OpenMP sentinels). Indentation while typing is handled by the editor's
+  // built-in auto-indent below, which never rewrites those blocks.
+  //
+  // If you want to indent a hand-selected region of *pure* Fortran, install
+  // findent (`pip install findent`) and run it on the selection only; the flags
+  // that reproduce the Galacticus style are:  -i3 -r2 -m2 --openmp=0
+  "fortran.formatting.formatter": "Disabled",
+
+  "[FortranFreeForm]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.autoIndent": "full"
+  },
+
+  // ======================================================================
+  // XML — validate parameter files against the bundled schema
+  // ======================================================================
+  "xml.fileAssociations": [
+    {
+      "pattern": "**/parameters*.xml",
+      "systemId": "schema/parameters.xsd"
+    }
+  ],
+  "xml.format.enabled": true,
+
+  // ======================================================================
+  // Python
+  // ======================================================================
+  "[python]": {
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.autoIndent": "full"
+  },
+
+  // ======================================================================
+  // reStructuredText (also used for the embedded docstrings)
+  // ======================================================================
+  "[restructuredtext]": {
+    "editor.tabSize": 3,
+    "editor.insertSpaces": true
+  },
+
+  // ======================================================================
+  // Keep build artefacts out of the file explorer and search
+  // ======================================================================
+  "files.exclude": {
+    "**/*.o": true,
+    "**/*.mod": true,
+    "**/*.smod": true,
+    "**/*.d": true,
+    "**/*.md5": true,
+    "**/*.md5c": true,
+    "**/*.lock": true,
+    "**/*.fl": true
+  },
+  "search.exclude": {
+    "work/**": true,
+    "build/**": true,
+    "**/*.hdf5": true,
+    "**/*.pyc": true
+  }
+}

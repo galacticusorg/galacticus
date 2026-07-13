@@ -16,5 +16,7 @@ __pycache__
 *.egg-info
 .pytest_cache
 .DS_Store
-.vscode
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 .ipynb_checkpoints
