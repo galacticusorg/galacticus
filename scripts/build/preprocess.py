@@ -10,8 +10,7 @@ Setting `GALACTICUS_PREPROCESSOR_ANALYZE=yes` in the environment runs the
 tree analyzer after processing. This is a manual debugging hook only — no
 Makefile rule or CI workflow sets it.
 
-Mirrors scripts/build/preprocess.pl.
-Andrew Benson (ported to Python 2026).
+Andrew Benson (2026).
 """
 
 import os
@@ -23,8 +22,7 @@ from Galacticus.Build.SourceTree              import parse_file, serialize, anal
 from Galacticus.Build.SourceTree.Process      import process_tree
 from Galacticus._logging                      import configure_default as _configure_default
 
-# Show INFO-level diagnostic output from the library modules (mirrors the
-# verbose `print()`-driven output of the Perl-era driver).
+# Show INFO-level diagnostic output from the library modules.
 _configure_default()
 
 # Register every source-tree process hook (the full set — see Process/all.py).

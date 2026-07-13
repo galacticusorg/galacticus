@@ -2,7 +2,6 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/Classes/CreateDestroy.pm.
 Seven `classIteratedFunctions` hooks: Initialization, Builder,
 Finalization (small stubs); Class_Create_By_Interrupt (top-level
 helper for createIfNeeded); plus Add/Count/Name_Meta_Property (one
@@ -20,7 +19,7 @@ from Galacticus.Build.Components.Classes.MetaProperties import meta_property_typ
 
 def Class_Initialization(build, class_dict):
     """Generate `nodeComponent<Class>Initialize` — abstract stub that
-    errors when called.  Mirrors `Class_Initialization`.
+    errors when called.
     """
     name      = class_dict['name']
     type_name = 'nodeComponent' + _ucfirst(name)
@@ -49,7 +48,6 @@ def Class_Initialization(build, class_dict):
 
 def Class_Finalization(build, class_dict):
     """Generate `nodeComponent<Class>Finalize` — no-op stub.
-    Mirrors `Class_Finalization`.
     """
     name      = class_dict['name']
     type_name = 'nodeComponent' + _ucfirst(name)
@@ -76,7 +74,6 @@ def Class_Finalization(build, class_dict):
 
 def Class_Builder(build, class_dict):
     """Generate `nodeComponent<Class>Builder` — abstract stub.
-    Mirrors `Class_Builder`.
     """
     name      = class_dict['name']
     type_name = 'nodeComponent' + _ucfirst(name)
@@ -115,7 +112,7 @@ def Class_Builder(build, class_dict):
 def Class_Create_By_Interrupt(build, class_dict):
     """Generate `<class>CreateByInterrupt` (a free function, not bound)
     when at least one member has at least one property with the
-    `createIfNeeded` attribute.  Mirrors `Class_Create_By_Interrupt`.
+    `createIfNeeded` attribute.
     """
     name = class_dict['name']
 
@@ -169,7 +166,7 @@ def Class_Create_By_Interrupt(build, class_dict):
 
 def Class_Add_Meta_Property(build, class_dict):
     """Generate `nodeComponent<Class>Add<Label>Rank<N>MetaProperty` per
-    meta-property type.  Mirrors `Class_Add_Meta_Property`.
+    meta-property type.
 
     Body uses one `!$omp critical` to serialize meta-property updates
     and grows the class's bookkeeping arrays in lock-step.  The
@@ -341,15 +338,13 @@ def Class_Add_Meta_Property(build, class_dict):
             )
             function['content'] = content
         # Inactive class → no body; the function returns whatever the
-        # implicit value of the result is.  Match Perl, which simply
-        # leaves $function->{content} unset.
+        # implicit value of the result is.
 
         _bind(build, type_name, function, f"add{prefix}MetaProperty")
 
 
 def Class_Count_Meta_Property(build, class_dict):
     """Generate `component<Class>Count<Label>Rank<N>MetaProperties`.
-    Mirrors `Class_Count_Meta_Property`.
     """
     name      = class_dict['name']
     cap       = _ucfirst(name)
@@ -395,7 +390,6 @@ def Class_Count_Meta_Property(build, class_dict):
 
 def Class_Name_Meta_Property(build, class_dict):
     """Generate `component<Class>Name<Label>Rank<N>MetaProperty`.
-    Mirrors `Class_Name_Meta_Property`.
     """
     name      = class_dict['name']
     cap       = _ucfirst(name)
@@ -464,7 +458,8 @@ def _ucfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Classes/CreateDestroy.pm:23-30.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('classesCreateDestroy', 'classIteratedFunctions', Class_Initialization)

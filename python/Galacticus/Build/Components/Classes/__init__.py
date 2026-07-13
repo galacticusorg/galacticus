@@ -2,15 +2,13 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors the perl/Galacticus/Build/Components/Classes/ directory.  The
-parent module Classes.pm contributes `Gather_Classes` (a `gather`-phase
+This module contributes `Gather_Classes` (a `gather`-phase
 hook that groups component implementations by their class name and
 populates `componentClasses` / `componentClassList` /
 `componentClassListActive`) plus `Build_Component_Classes` (a `types`
 phase hook that emits one `nodeComponent<Class>` Fortran type per class).
-Only the small `Gather_Classes` piece is ported here for now — the type
-builder and the per-class iterated hooks come with the full Classes/
-port.
+The remaining per-class generators live in the sibling modules of this
+package.
 """
 
 import logging
@@ -29,7 +27,7 @@ from Galacticus.Build.Components.NullFunctions import create_null_function
 
 def Gather_Classes(build):
     """Group component implementations by class name and build active-class
-    lists.  Mirrors `Gather_Classes`.
+    lists.
 
     After this hook runs, `build` carries:
 
@@ -77,9 +75,8 @@ def Gather_Classes(build):
 def Build_Component_Classes(build):
     """Define one `nodeComponent<Class>` Fortran type per component class.
 
-    Mirrors `Build_Component_Classes` (Classes.pm:75-217).  For every
-    `(implementation, property)` pair under each class that has at
-    least one of `isGettable` / `isSettable` / `isEvolvable`, emit
+    For every `(implementation, property)` pair under each class that
+    has at least one of `isGettable` / `isSettable` / `isEvolvable`, emit
     null-function bindings for `Set` / `Count` / `Rate` / `Analytic`
     / `Inactive` / `Scale` as appropriate.  Each function name is
     deduplicated per-class via `properties_created`.
@@ -248,7 +245,8 @@ def _ucfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Classes.pm:21-28.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('classes', 'gather', Gather_Classes)

@@ -2,8 +2,6 @@
 `mpiSelf%...` call and `call mpiBarrier()` with a debug write.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/DebugMPI.pm
 """
 
 import io
@@ -23,7 +21,7 @@ def _debug_enabled():
 
 
 def process_debug_mpi(tree, options):
-    """Mirrors Process_DebugMPI() from DebugMPI.pm."""
+    """Prefix MPI calls with debug writes when MPI debugging is enabled."""
     if not _debug_enabled():
         return
 

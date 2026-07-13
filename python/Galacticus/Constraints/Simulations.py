@@ -1,6 +1,5 @@
 """Provides utilities for iterating over simulation data structures used as constraints.
 
-Python port of perl/Galacticus/Constraints/Simulations.pm
 Andrew Benson (ported to Python 2026)
 """
 
@@ -321,7 +320,7 @@ def parse_simulations_xml(path):
     return result
 
 
-# Perl-compatible camelCase aliases for public API.
+# Legacy camelCase API aliases.
 selectSimulations    = select_simulations
 matchSelection       = match_selection
 parseSimulationsXml  = parse_simulations_xml

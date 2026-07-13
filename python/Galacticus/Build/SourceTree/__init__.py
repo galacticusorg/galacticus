@@ -1,10 +1,6 @@
 """Provides a tree-based parser for Galacticus Fortran source files.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors the subset of perl/Galacticus/Build/SourceTree.pm used by the
-Galacticus build scripts, together with the Parse::Directives and
-Parse::ModuleUses parsers that libraryInterfaces.py requires.
 """
 
 import re
@@ -20,10 +16,7 @@ from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
 # ---------------------------------------------------------------------------
 
 def parse_file(filename):
-    """Read a Fortran source file and return the root AST node.
-
-    Mirrors Perl Galacticus::Build::SourceTree::ParseFile().
-    """
+    """Read a Fortran source file and return the root AST node."""
     with open(filename, 'r', errors='replace') as fh:
         content = fh.read()
     return parse_code(content, name=os.path.basename(filename), source=filename)
@@ -32,7 +25,6 @@ def parse_file(filename):
 def parse_code(code, name='<string>', source=None, instrument=True):
     """Build an AST from a Fortran source string.
 
-    Mirrors Perl Galacticus::Build::SourceTree::ParseCode(code, fileName).
     Used by Process/Generics when it serializes a macro-expanded subtree and
     needs to re-parse it from its textual form.
 
@@ -41,8 +33,7 @@ def parse_code(code, name='<string>', source=None, instrument=True):
     `process_source_introspection` then expands those into a full Fortran
     expression naming the surrounding scope.  Re-parses of generic-expanded
     or otherwise synthesised content should pass `instrument=False` so the
-    line numbers aren't tagged a second time — matching Perl ParseCode's
-    `instrument => 0` option.
+    line numbers aren't tagged a second time.
     """
     if instrument:
         from Galacticus.Build.SourceTree.Process.SourceIntrospection import (
@@ -66,7 +57,7 @@ def parse_code(code, name='<string>', source=None, instrument=True):
 def walk_tree(node):
     """Depth-first generator over all nodes in the tree.
 
-    Mirrors the Perl Walk_Tree loop idiom.  Yields every node exactly once
+    Yields every node exactly once
     in pre-order (parent before children).
     """
     yield node
@@ -77,10 +68,7 @@ def walk_tree(node):
 
 
 def children(node):
-    """Return a list of direct child nodes.
-
-    Mirrors Perl Galacticus::Build::SourceTree::Children().
-    """
+    """Return a list of direct child nodes."""
     result = []
     child = node.get('firstChild')
     while child:
@@ -102,14 +90,12 @@ def _link_children(parent, child_list):
 
 
 def _build_tree(root):
-    """Parse root['content'] into child AST nodes, then recurse.
-
-    Mirrors Perl Build_Children + Parse_Unit + the directive/moduleUse/
-    declaration parse hooks.
+    """Parse root['content'] into child AST nodes, then recurse, running
+    the directive/moduleUse/declaration parse passes over the result.
     """
     # Step 1: comment out embedded LaTeX (`!!{ ... !!}`) and XML (`!![ ... !!]`)
-    # blocks by prefixing each body line with "!< ".  Mirrors Perl
-    # Comment_Embedded(): the markers themselves remain unmodified (they are
+    # blocks by prefixing each body line with "!< ".
+    # The markers themselves remain unmodified (they are
     # already valid Fortran comments because they begin with "!!"), but the
     # body lines need the "!< " prefix to be valid Fortran when serialized
     # straight to the compiler.  We store the commented content in code nodes
@@ -120,8 +106,7 @@ def _build_tree(root):
     unit_children = _parse_units(root)
     _link_children(root, unit_children)
 
-    # Step 3: run the parse passes over the whole tree (matches the set of
-    # parseHooks registered in perl/Galacticus/Build/SourceTree.pm).
+    # Step 3: run the parse passes over the whole tree.
     _pass_directives(root)
     _pass_module_uses(root)
     _pass_declarations(root)
@@ -385,7 +370,7 @@ def _children_from_mixed_lines(inner_lines, parent):
 
 
 # ---------------------------------------------------------------------------
-# Parse pass 1: directives  (mirrors Parse::Directives)
+# Parse pass 1: directives
 # ---------------------------------------------------------------------------
 
 
@@ -401,10 +386,7 @@ def _pass_directives(tree):
 
 
 def replace_node(old_node, new_nodes):
-    """Replace old_node in the tree with new_nodes.
-
-    Mirrors Perl Galacticus::Build::SourceTree::ReplaceNode().
-    """
+    """Replace old_node in the tree with new_nodes."""
     if not new_nodes:
         return
     parent = old_node.get('parent')
@@ -435,10 +417,7 @@ def replace_node(old_node, new_nodes):
 
 
 def insert_before_node(node, new_nodes):
-    """Insert new_nodes as siblings immediately before node in the parent's child list.
-
-    Mirrors Perl Galacticus::Build::SourceTree::InsertBeforeNode().
-    """
+    """Insert new_nodes as siblings immediately before node in the parent's child list."""
     parent = node.get('parent')
     if parent is None:
         raise ValueError("insert_before_node: cannot insert before a root node")
@@ -455,10 +434,7 @@ def insert_before_node(node, new_nodes):
 
 
 def insert_after_node(node, new_nodes):
-    """Insert new_nodes as siblings immediately after node in the parent's child list.
-
-    Mirrors Perl Galacticus::Build::SourceTree::InsertAfterNode().
-    """
+    """Insert new_nodes as siblings immediately after node in the parent's child list."""
     parent = node.get('parent')
     if parent is None:
         raise ValueError("insert_after_node: cannot insert after a root node")
@@ -492,9 +468,8 @@ def _last_child(node):
 def insert_pre_contains(node, new_nodes):
     """Insert new_nodes before the `contains` child of node.
 
-    Mirrors Perl Galacticus::Build::SourceTree::InsertPreContains().  If no
-    `contains` exists, the new nodes are appended at the end of node's
-    children — matching Perl's `InsertAfterNode($lastChild, ...)` fallback.
+    If no `contains` exists, the new nodes are appended at the end of
+    node's children.
     """
     contains_node = _find_child_by_type(node, 'contains')
     if contains_node is not None:
@@ -511,12 +486,10 @@ def insert_post_contains(node, new_nodes):
     """Insert new_nodes as the first children placed after the `contains`
     marker of node.
 
-    Mirrors Perl Galacticus::Build::SourceTree::InsertPostContains(), which
-    auto-creates a `contains` node if the parent does not already have one,
-    then prepends the new nodes into its child list.  In our representation
-    `contains` is a self-closing sibling marker, so "prepend as children of
-    contains" becomes "insert immediately after contains" — the serialized
-    output is identical.
+    Auto-creates a `contains` node if the parent does not already have one.
+    In our representation `contains` is a self-closing sibling marker, so
+    "prepend as children of contains" becomes "insert immediately after
+    contains" — the serialized output is identical either way.
     """
     contains_node = _find_child_by_type(node, 'contains')
     if contains_node is None:
@@ -538,10 +511,7 @@ def insert_post_contains(node, new_nodes):
 
 
 def prepend_child_to_node(node, new_nodes):
-    """Insert new_nodes as the first children of node.
-
-    Mirrors Perl Galacticus::Build::SourceTree::PrependChildToNode().
-    """
+    """Insert new_nodes as the first children of node."""
     first_child = node.get('firstChild')
     if first_child is None:
         _link_children(node, new_nodes)
@@ -552,9 +522,10 @@ def prepend_child_to_node(node, new_nodes):
 def set_visibility(node, unit_name, visibility):
     """Ensure `unit_name` is listed in node's `public` or `private` visibility.
 
-    Mirrors Perl Galacticus::Build::SourceTree::SetVisibility().  Auto-creates
+    Auto-creates
     a `visibility` child node if one does not exist, placing it after any
-    existing `moduleUse` child (matching the Perl ordering requirement), and
+    existing `moduleUse` child — Fortran requires visibility statements to
+    follow `use` statements — and
     regenerates its `firstChild` code content with the sorted `public` /
     `private` lists.
     """
@@ -598,8 +569,8 @@ def set_visibility(node, unit_name, visibility):
     vis_dict = visibility_node.setdefault('visibility', {})
     vis_dict.setdefault(visibility, {})[unit_name] = True
 
-    # Rebuild the visibility code, matching Perl's iteration order
-    # `foreach ('private', 'public')`.
+    # Rebuild the visibility code in fixed private-then-public order so the
+    # regenerated code is deterministic.
     content = ''
     for level in ('private', 'public'):
         entries = vis_dict.get(level)
@@ -613,7 +584,7 @@ def set_visibility(node, unit_name, visibility):
 
 
 # ---------------------------------------------------------------------------
-# Parse pass 2: module uses  (mirrors Parse::ModuleUses)
+# Parse pass 2: module uses
 # ---------------------------------------------------------------------------
 
 def _pass_module_uses(tree):
@@ -629,7 +600,7 @@ def _pass_module_uses(tree):
 
 
 # ---------------------------------------------------------------------------
-# Parse pass 3: declarations  (mirrors Parse::Declarations)
+# Parse pass 3: declarations
 # ---------------------------------------------------------------------------
 
 def _pass_declarations(tree):
@@ -667,7 +638,7 @@ def _pass_declarations(tree):
                     'line':         node['line'],
                 }
                 # Store raw text in firstChild so serialize() can reconstruct
-                # the original source — mirrors Perl Parse_Declarations behaviour.
+                # the original source.
                 dn['firstChild'] = {
                     'type':       'code',
                     'content':    ''.join(decl_buf),
@@ -719,7 +690,7 @@ def _pass_declarations(tree):
 
 
 # ---------------------------------------------------------------------------
-# Parse pass 4: visibilities  (mirrors Parse::Visibilities)
+# Parse pass 4: visibilities
 # ---------------------------------------------------------------------------
 
 def _pass_visibilities(tree):
@@ -733,7 +704,7 @@ def _pass_visibilities(tree):
 
 
 # ---------------------------------------------------------------------------
-# Parse pass 5: OpenMP  (mirrors Parse::OpenMP)
+# Parse pass 5: OpenMP
 # ---------------------------------------------------------------------------
 
 def _pass_openmp(tree):
@@ -747,13 +718,11 @@ def _pass_openmp(tree):
 
 
 # ---------------------------------------------------------------------------
-# Serialization  (mirrors Perl Galacticus::Build::SourceTree::Serialize)
+# Serialization
 # ---------------------------------------------------------------------------
 
 def serialize(node, annotate=False, strip_mappings=False):
     """Reconstruct Fortran source text from an AST node and its siblings.
-
-    Mirrors Perl Galacticus::Build::SourceTree::Serialize().
 
     Parameters
     ----------
@@ -762,9 +731,8 @@ def serialize(node, annotate=False, strip_mappings=False):
     annotate : bool, default False
         When True, emit `!--> <origLine> <outLine> "<source>"` line-number
         mapping comments ahead of each node's serialized content.  When
-        False, the serialized output is pure Fortran.  (Perl defaults to
-        True; we default to False so existing callers that just want source
-        text are unaffected.)
+        False, the serialized output is pure Fortran.  (The default is False
+        because most callers just want plain source text.)
     strip_mappings : bool, default False
         When True, the annotations are removed from the returned source and
         collected into a second string.  In that mode the function returns a
@@ -839,7 +807,7 @@ def _serialize(node, annotate, strip_mappings):
 def analyze_tree(tree, options=None):
     """Run every registered analyze hook on the tree.
 
-    Mirrors Perl Galacticus::Build::SourceTree::AnalyzeTree().  The analyze
+    The analyze
     hook registry lives in Galacticus.Build.SourceTree.Process so that Analyze
     submodules can register themselves at import time; if no analyze modules
     have been imported, this is a no-op.

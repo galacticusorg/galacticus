@@ -1,8 +1,6 @@
 """Contains a Python module which implements parsing of directives in the Galacticus preprocessor system.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Parse/Directives.pm
 """
 
 import re
@@ -49,7 +47,6 @@ if _HAS_LXML:
 def _load_state_storables():
     """Load $BUILDPATH/stateStorables.xml once and cache it.
 
-    Mirrors the Perl `our $stateStorables` caching pattern at Directives.pm:20-25.
     Returns None if BUILDPATH is unset or the file is missing.
     """
     global _state_storables, _state_storables_loaded
@@ -71,8 +68,6 @@ def _load_state_storables():
 
 
 # XSD schema templates.  `{name}` is filled in with the directive name.
-# Mirrors the `fill_in_string` templates at Directives.pm:123-250 (functionClass)
-# and Directives.pm:255-273 (eventHookStatic).
 _FUNCTION_CLASS_SCHEMA = """<?xml version="1.0"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:element name="{name}">
@@ -232,9 +227,8 @@ _EVENT_HOOK_STATIC_SCHEMA = """<?xml version="1.0"?>
 def _validate_directive(directive_name, xml_text, context_node):
     """Validate the directive XML against the appropriate XSD schema if possible.
 
-    Mirrors the validation block at Directives.pm:119-288.  If lxml is not
-    installed, or no schema applies, validation is skipped silently (matching
-    the Perl code's behavior when $BUILDPATH is unset).
+    If lxml is not installed, or no schema applies, validation is skipped
+    silently.
     """
     if not _HAS_LXML:
         return
@@ -286,7 +280,6 @@ def _validate_directive(directive_name, xml_text, context_node):
 def _parse_directive_xml(xml_text, context_node):
     """Parse accumulated XML text into a directive node dict.
 
-    Mirrors the `XML::Simple->XMLin(..., keepRoot => 1)` call at Directives.pm:111.
     Returns None if the text does not parse as XML.
     """
     try:
@@ -322,8 +315,6 @@ def _parse_directive_xml(xml_text, context_node):
 def parse_directives(tree):
     """Walk the tree replacing XML directive comment blocks with directive nodes.
 
-    Mirrors Parse_Directives() from perl/Galacticus/Build/SourceTree/Parse/Directives.pm.
-
     Directives are delimited by:
       !![          (opening marker)
       !< <tagname ...>  (XML content lines — '!<' prefix stripped)
@@ -332,8 +323,8 @@ def parse_directives(tree):
     A single `!![ ... !!]` block may contain *multiple* sibling directive
     tags (e.g. six `<constant ... />` in a row).  Each is emitted as its
     own directive node, wrapped in synthetic `!![ ... !!]` markers — this
-    matches the Perl behaviour and prevents the XML parser from collapsing
-    the siblings into a synthetic `<root>` wrapper node.
+    prevents the XML parser from collapsing the siblings into a synthetic
+    `<root>` wrapper node.
     """
     from Galacticus.Build.SourceTree import walk_tree, replace_node, _make_code_node
 
@@ -408,7 +399,7 @@ def parse_directives(tree):
             if re.match(r'^\s*!!\[', raw_line):
                 in_xml     = True
                 raw_opener = raw_line
-                # Mirror Perl: derive `!!]` from `!![` by replacing `[` → `]`.
+                # Derive `!!]` from `!![` by replacing `[` → `]`.
                 raw_closer = raw_opener.replace('[', ']')
                 continue
 
@@ -423,8 +414,7 @@ def parse_directives(tree):
                     raw_dir_lines.append(raw_line)
                     # Three end-tag forms: a closing `</tag>`, a self-closing
                     # `<tag attr=…/>` (attributes may contain `/` — e.g. URLs —
-                    # so use `.*` greedily, matching Perl's
-                    # `\s*<tag\s.*\/>`), or a bare `<tag/>`.
+                    # so use `.*` greedily), or a bare `<tag/>`.
                     end1 = re.search(
                         r'</\s*' + re.escape(directive_root) + r'\s*>', stripped)
                     end2 = re.search(
@@ -465,9 +455,8 @@ def parse_directives(tree):
 def post_process_directives(tree):
     """Verify that every directive node has been processed.
 
-    Mirrors PostProcess_Directives() at Directives.pm:347-361.  Called after
-    the Process/* passes complete; raises RuntimeError on the first unprocessed
-    directive encountered.
+    Called after the Process/* passes complete; raises RuntimeError on the
+    first unprocessed directive encountered.
 
     Directives whose type is in the `NonProcessed` exemption list are
     forgiven even if they have no `processed` flag — code-generating hooks

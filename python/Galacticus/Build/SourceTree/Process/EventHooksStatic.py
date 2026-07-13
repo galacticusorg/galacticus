@@ -5,8 +5,6 @@ providing module.  Also marks every hooked function public in its
 enclosing module.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/EventHooksStatic.pm
 """
 
 import os
@@ -52,8 +50,7 @@ def _load_event_hook_names(directive_locations):
     """Return the set of all `<eventHookStatic>` names discovered across every
     file listed under `directiveLocations/eventHookStatic/file`.
 
-    Uses a `$BUILDPATH/eventHooksStatic.blob` pickle cache between runs,
-    mirroring the Perl `Storable`-based cache at EventHooksStatic.pm:33-39.
+    Uses a `$BUILDPATH/eventHooksStatic.blob` pickle cache between runs.
     """
     global _EVENT_HOOK_NAMES
     if _EVENT_HOOK_NAMES is not None:
@@ -108,20 +105,15 @@ def _load_event_hook_names(directive_locations):
 
 
 def _function_class_entry_for(type_name, state_storables):
-    """Return the functionClass entry (dict) for `<type>+'Class'` or None.
-
-    Matches the lookup `$stateStorables->{'functionClasses'}{$type.'Class'}`
-    from EventHooksStatic.pm:84 / :90 / :157.
-    """
+    """Return the functionClass entry (dict) for `<type>+'Class'` or None."""
     return _shared_function_class_entry(state_storables, type_name + 'Class')
 
 
 def _resolve_hooked_function(source_file, target_directive_name, state_storables):
     """Walk one source file to find the module name + hooked-function metadata.
 
-    Mirrors the inner loop at EventHooksStatic.pm:58-102.  Returns a dict
-    shaped like `{function, module, after, before}`, or raises on missing
-    info (the Perl code dies in the same spot).
+    Returns a dict shaped like `{function, module, after, before}`, or raises
+    on missing info.
     """
     tree = parse_file(source_file)
     module_name    = None
@@ -174,8 +166,8 @@ def _resolve_hooked_function(source_file, target_directive_name, state_storables
 def _dependency_sorted(hooked_functions):
     """Return `hooked_functions` reordered per `after`/`before` constraints.
 
-    Matches EventHooksStatic.pm:103-119: first sort alphabetically by
-    `function`, then if any entry carries after/before, topo-sort by those.
+    First sort alphabetically by `function`, then if any entry carries
+    after/before, topo-sort by those.
     """
     hooked_functions = sorted(hooked_functions, key=lambda h: h['function'])
     has_constraints = any(
@@ -198,7 +190,7 @@ def _dependency_sorted(hooked_functions):
 
 
 def process_event_hooks_static(tree, options):
-    """Mirrors Process_EventHooksStatic() from EventHooksStatic.pm."""
+    """Process `eventHookStatic` directives in the tree."""
     directive_locations, state_storables = _load_xml_once()
     event_hook_names = _load_event_hook_names(directive_locations)
 

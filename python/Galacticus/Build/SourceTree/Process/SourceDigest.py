@@ -1,16 +1,14 @@
 """Processes `sourceDigest` directives: emits a C-interop character array
-declaration bound to the per-build-target MD5 hash symbol (defined by
-the Perl build system's `Find_Hash` chain), plus the matching
+declaration bound to the per-build-target MD5 hash symbol (computed by
+the `find_hash` chain in this module), plus the matching
 `use :: ISO_C_Binding, only : C_Char` import.
 
 Also provides `find_hash`, `hash_data_files`, `modification_time`, and
 `update_modification_time` — the Makefile-side helpers used by
 scripts/build/sourceDigests.* to compute per-file and composite MD5
-digests (ported from the same Perl module).
+digests.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors `perl/Galacticus/Build/SourceTree/Process/SourceDigest.pm`.
 """
 
 import base64
@@ -33,8 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Shared state (mirrors the `our %digests`, `%compositeDigests`,
-# `%modificationTimes` package globals in the Perl module).
+# Shared state: per-file digests, composite digests, and mtime caches.
 # ---------------------------------------------------------------------------
 
 _digests            = {}
@@ -43,7 +40,7 @@ _modification_times = {}
 
 
 def process_source_digests(tree, options):
-    """Mirrors Process_SourceDigests() from SourceDigest.pm:24-58."""
+    """Process `sourceDigest` directives in the tree."""
     for node in walk_tree(tree):
         if node.get('type') != 'sourceDigest':
             continue
@@ -79,13 +76,13 @@ register_process('sourceDigests', process_source_digests)
 
 
 # ---------------------------------------------------------------------------
-# Hash-computation helpers (ported from Find_Hash / Hash_Data_Files /
-# modificationTime / updateModificationTime in SourceDigest.pm).
+# Hash-computation helpers (find_hash / hash_data_files / modification_time /
+# update_modification_time).
 # ---------------------------------------------------------------------------
 
 def _b64digest(hasher):
-    """Return the 22-character base64 form of `hasher`, matching Perl's
-    Digest::MD5::b64digest (no trailing '=' padding).
+    """Return the 22-character base64 form of `hasher`, with no trailing '='
+    padding.  Existing `.md5` caches depend on this exact format.
     """
     return base64.b64encode(hasher.digest()).rstrip(b'=').decode('ascii')
 
@@ -93,9 +90,7 @@ def _b64digest(hasher):
 def modification_time(file_name):
     """Return the mtime of `file_name`, caching repeated lookups.
 
-    Mirrors `modificationTime()` at SourceDigest.pm:287-293.  Perl's
-    `stat()` on a missing file returns an empty list, quietly caching
-    `undef`; do the same here by caching `None`.
+    Missing files are quietly cached as `None`.
     """
     if file_name not in _modification_times:
         try:
@@ -108,8 +103,6 @@ def modification_time(file_name):
 def update_modification_time(file_name):
     """Overwrite the cached mtime of `file_name` with the current on-disk
     value, or `None` if the path does not exist.
-
-    Mirrors `updateModificationTime()` at SourceDigest.pm:295-299.
     """
     try:
         _modification_times[file_name] = os.stat(file_name).st_mtime
@@ -120,8 +113,6 @@ def update_modification_time(file_name):
 def hash_data_files(hasher, files):
     """Feed the bytes of each data file (found under `$GALACTICUS_DATA_PATH`)
     into `hasher`, skipping any that don't exist.
-
-    Mirrors `Hash_Data_Files()` at SourceDigest.pm:272-285.
     """
     data_root = os.environ.get('GALACTICUS_DATA_PATH', '')
     for leaf in files:
@@ -247,8 +238,6 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
     dependencies, using (and updating) persistent per-file `.md5` / `.md5c`
     caches under `$BUILDPATH`.
 
-    Mirrors `Find_Hash()` at SourceDigest.pm:68-270.
-
     Parameters
     ----------
     file_names : list of str
@@ -261,8 +250,7 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
     include_files_excluded : list of str or None
         Names of `include` files that `read_file` should NOT follow.
     report : bool, default False
-        If True, print verbose progress to stdout (mirrors the Perl `report`
-        flag).
+        If True, print verbose progress to stdout.
 
     Returns
     -------
@@ -336,8 +324,10 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
                                 continue
                             if report:
                                 logger.info(f"    => Dependency file: {source_file_name}")
-                            # Mirror Perl: `$md5FileName = $sourceFileName; $md5FileName =~ s/^source//;
-                            #              $md5FileName = $BUILDPATH.$md5FileName.".md5";`
+                            # Map the source path to its `.md5` sidecar: strip
+                            # the leading `source` prefix and prepend
+                            # $BUILDPATH.  This mapping must stay stable —
+                            # existing caches were written under it.
                             stripped = re.sub(
                                 r'^source', '', source_file_name,
                             )

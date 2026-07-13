@@ -5,8 +5,6 @@ around gfortran PR 92836 (internal-file I/O is not thread-safe there).
 Also rewrites existing `gfortranInternalIO` / `FoX_DOM_Access` critical
 sections to use the same underlying `gfortranInternalIO_` lock name.
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/ThreadSafeIO.pm
 """
 
 import io
@@ -44,7 +42,7 @@ _RELEASE_REPORT = (
 
 def _enclosing_container(node):
     """Walk up to the first `function`/`subroutine`/`moduleProcedure`/
-    `module`/`program` ancestor.  Mirrors addUse() at ThreadSafeIO.pm:131-148.
+    `module`/`program` ancestor.
     """
     cursor = node
     while cursor is not None:
@@ -58,7 +56,7 @@ def _enclosing_container(node):
 
 def _inject_omp_use(node):
     """Add `use OMP_Lib, only : OMP_Get_Thread_Num` to the enclosing
-    container.  Mirrors addUse() body at ThreadSafeIO.pm:149-163.
+    container.
     """
     container = _enclosing_container(node)
     if container is None:
@@ -84,9 +82,8 @@ def _is_io_line(processed_line):
 
 
 def _tree_is_error_module(tree):
-    """Return True if any descendant is `module Error` — matches the early
-    exit at ThreadSafeIO.pm:34-40 that avoids locking inside the error-
-    reporting module (where deadlocks would occur).
+    """Return True if any descendant is `module Error` — used to skip
+    locking inside the error-reporting module (where deadlocks would occur).
     """
     for n in walk_tree(tree):
         if n.get('type') == 'module' and n.get('name') == 'Error':
@@ -95,7 +92,7 @@ def _tree_is_error_module(tree):
 
 
 def process_thread_safe_io(tree, options):
-    """Mirrors Lock_IO() from ThreadSafeIO.pm."""
+    """Wrap Fortran I/O statements in a critical section when requested."""
     flags = os.environ.get('GALACTICUS_FCFLAGS', '')
     if '-DTHREADSAFEIO' not in flags.split():
         return

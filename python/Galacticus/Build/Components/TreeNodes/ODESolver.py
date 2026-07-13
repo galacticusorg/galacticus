@@ -3,8 +3,7 @@ rates, scales, inactive/non-negative flags, plus the offsets builder.
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/TreeNodes/ODESolver.pm.  Eleven
-`functions`-phase hooks (one of which — `Tree_Node_ODE_Step_Initialize`
+Eleven `functions`-phase hooks (one of which — `Tree_Node_ODE_Step_Initialize`
 — itself emits four bound methods, one per quantity).
 """
 
@@ -27,7 +26,7 @@ _STEP_INIT_QUANTITIES = (
 
 def Tree_Node_ODE_Step_Initialize(build):
     """Emit four `odeStep<X>sInitialize` methods (rates / scales /
-    inactives / analytics).  Mirrors `Tree_Node_ODE_Step_Initialize`.
+    inactives / analytics).
     """
     for q in _STEP_INIT_QUANTITIES:
         cap = _ucfirst(q['name'])
@@ -55,7 +54,7 @@ def Tree_Node_ODE_Step_Initialize(build):
 
 
 def Tree_Node_ODE_Serialize_Count(build):
-    """Generate `treeNodeSerializeCount`.  Mirrors `Tree_Node_ODE_Serialize_Count`."""
+    """Generate `treeNodeSerializeCount`."""
     function = {
         'type':        'integer',
         'name':        'treeNodeSerializeCount',
@@ -94,7 +93,7 @@ def Tree_Node_ODE_Serialize_Count(build):
 
 
 def Tree_Node_ODE_Serialize_Values(build):
-    """Generate `treeNodeSerializeValuesToArray`.  Mirrors `Tree_Node_ODE_Serialize_Values`."""
+    """Generate `treeNodeSerializeValuesToArray`."""
     function = {
         'type':        'void',
         'name':        'treeNodeSerializeValuesToArray',
@@ -140,7 +139,7 @@ def Tree_Node_ODE_Serialize_Values(build):
 
 
 def Tree_Node_ODE_Deserialize_Values(build):
-    """Generate `treeNodeDeserializeValuesFromArray`.  Mirrors `Tree_Node_ODE_Deserialize_Values`."""
+    """Generate `treeNodeDeserializeValuesFromArray`."""
     function = {
         'type':        'void',
         'name':        'treeNodeDeserializeValuesFromArray',
@@ -188,9 +187,7 @@ def Tree_Node_ODE_Deserialize_Values(build):
 
 
 def Tree_Node_ODE_Serialize_NonNegative(build):
-    """Generate `treeNodeSerializeNonNegativeToArray`.  Mirrors
-    `Tree_Node_ODE_Serialize_NonNegative`.
-    """
+    """Generate `treeNodeSerializeNonNegativeToArray`."""
     function = {
         'type':        'void',
         'name':        'treeNodeSerializeNonNegativeToArray',
@@ -234,9 +231,9 @@ def Tree_Node_ODE_Serialize_NonNegative(build):
 
 
 def Tree_Node_ODE_Serialize_Scales(build):
-    """Generate `treeNodeSerializeScaleToArray`.  Mirrors
-    `Tree_Node_ODE_Serialize_Scales`.  The body is fully static — it
-    just packs from module-level `nodeScales` based on `propertyType`.
+    """Generate `treeNodeSerializeScaleToArray`.  The body is fully
+    static — it just packs from module-level `nodeScales` based on
+    `propertyType`.
     """
     function = {
         'type':        'void',
@@ -282,7 +279,7 @@ def Tree_Node_ODE_Serialize_Scales(build):
 
 
 def Tree_Node_ODE_Serialize_Rates(build):
-    """Generate `treeNodeSerializeRatesToArray`.  Mirrors `Tree_Node_ODE_Serialize_Rates`."""
+    """Generate `treeNodeSerializeRatesToArray`."""
     function = {
         'type':        'void',
         'name':        'treeNodeSerializeRatesToArray',
@@ -321,7 +318,7 @@ def Tree_Node_ODE_Serialize_Rates(build):
 
 
 def Tree_Node_ODE_Deserialize_Rates(build):
-    """Generate `treeNodeDeserializeRatesToArray`.  Mirrors `Tree_Node_ODE_Deserialize_Rates`."""
+    """Generate `treeNodeDeserializeRatesToArray`."""
     function = {
         'type':        'void',
         'name':        'treeNodeDeserializeRatesToArray',
@@ -360,7 +357,7 @@ def Tree_Node_ODE_Deserialize_Rates(build):
 
 
 def Tree_Node_ODE_Serialize_Inactive(build):
-    """Generate `treeNodeSerializeInactiveToArray`.  Mirrors `Tree_Node_ODE_Serialize_Inactive`."""
+    """Generate `treeNodeSerializeInactiveToArray`."""
     function = {
         'type':        'void',
         'name':        'treeNodeSerializeInactiveToArray',
@@ -387,7 +384,7 @@ def Tree_Node_ODE_Serialize_Inactive(build):
 
 
 def Tree_Node_ODE_Name_From_Index(build):
-    """Generate `treeNodePropertyNameFromIndex`.  Mirrors `Tree_Node_ODE_Name_From_Index`."""
+    """Generate `treeNodePropertyNameFromIndex`."""
     function = {
         'type':        'type(varying_string) => name',
         'name':        'treeNodePropertyNameFromIndex',
@@ -431,7 +428,7 @@ def Tree_Node_ODE_Name_From_Index(build):
 
 
 def Tree_Node_ODE_Offsets(build):
-    """Generate `treeNodeSerializeOffsets`.  Mirrors `Tree_Node_ODE_Offsets`.
+    """Generate `treeNodeSerializeOffsets`.
 
     Walks each active class to delegate `serializationOffsets` per
     component, then ensures the module-level `nodeScales`, `nodeRates`,
@@ -532,7 +529,8 @@ def _ucfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl ODESolver.pm:21-32.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('treeNodeODESolver', 'functions', Tree_Node_ODE_Step_Initialize)
