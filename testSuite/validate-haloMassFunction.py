@@ -112,6 +112,7 @@ for case in cases:
             "realization"          : realization,
             "negativeLogLikelihood": negativeLogLikelihood,
             "bins"                 : bins,
+            "model"                : model,
             "data"                 : data,
         }
     )
@@ -179,18 +180,44 @@ validate.write(likelihoods, results, "haloMassFunction"+group, "testSuite/"+path
 
 # For the Milky Way z=0 group, additionally analyze the environmental
 # dependence of the halo mass function using the resolutionX1 realizations.
+# Halos are counted in the mass range (4-40)x10^8 Msun (as in Benson et al.
+# 2026), and both the measured and expected counts (converted to number
+# densities) are normalized by the mean, over realizations, of the expected
+# number density - the environmental dependence then appears as a trend of
+# both model and data with the environmental overdensity of the realizations.
 if group == "SymphonyMilkyWayZ0":
+    massWindowMinimum = 4.0e8
+    massWindowMaximum = 4.0e9
     members = []
     for key in aggregates:
         suite, groupName, resolution, simulation, redshift = key
         if resolution == "resolutionX1":
             members.extend(aggregates[key])
-    negativeLogLikelihood = sum(member["negativeLogLikelihood"] for member in members)
-    overdensities         = np.array([member["data"]["overdensityEnvironment"     ] for member in members])
-    countsObserved        = np.array([np.sum(member["bins"]["count"    ])           for member in members])
-    countsExpected        = np.array([np.sum(member["bins"]["countMean"])           for member in members])
-    order                 = np.argsort(overdensities)
-    name                  = f"Symphony MilkyWay CDM resolutionX1 z={redshift} environments"
+    negativeLogLikelihood = 0.0
+    overdensities         = []
+    densitiesModel        = []
+    densitiesData         = []
+    densitiesError        = []
+    for member in members:
+        negativeLogLikelihoodWindow, binsWindow = validateHaloMassFunction.negativeLogLikelihood(
+            member["model"], member["data"],
+            massWindowMinimum, massWindowMaximum,
+            varianceFractionalModelDiscrepancy,
+        )
+        negativeLogLikelihood += negativeLogLikelihoodWindow
+        conversion             = binsWindow["countMean"][0]/binsWindow["massFunctionModel"][0]
+        variance               = binsWindow["countMean"]+varianceFractionalModelDiscrepancy*binsWindow["countMean"]**2
+        overdensities .append(member["data"]["overdensityEnvironment"])
+        densitiesModel.append(np.sum (       binsWindow["countMean"])/conversion)
+        densitiesData .append(np.sum (       binsWindow["count"    ])/conversion)
+        densitiesError.append(np.sqrt(np.sum(variance               ))/conversion)
+    overdensities  = np.array(overdensities )
+    densitiesModel = np.array(densitiesModel)
+    densitiesData  = np.array(densitiesData )
+    densitiesError = np.array(densitiesError)
+    normalization  = np.mean(densitiesModel)
+    order          = np.argsort(overdensities)
+    name           = f"Symphony MilkyWay CDM resolutionX1 z={redshift} environments"
     print(name+"\t"+str(negativeLogLikelihood))
     likelihoods = [
         {
@@ -202,19 +229,19 @@ if group == "SymphonyMilkyWayZ0":
     results     = [
         {
             "attributes": {
-                "name"         : name,
+                "name"         : name+" (4×10⁸ ≤ M/M☉ ≤ 4×10⁹)",
                 "logLikelihood": str(-negativeLogLikelihood),
                 "xAxisLabel"   : "environmental overdensity δ",
-                "yAxisLabel"   : "N/⟨N⟩",
+                "yAxisLabel"   : "n/⟨nₘₒdₑₗ⟩",
                 "xAxisIsLog"   : "0",
                 "yAxisIsLog"   : "0",
                 "targetLabel"  : "Symphony MilkyWay simulations",
             },
             "data": {
-                "xDataset"      : list(       overdensities [order]                       ),
-                "yDataset"      : list(np.ones(len(members))                              ),
-                "yError"        : list(np.sqrt(countsExpected[order])/countsExpected[order]),
-                "yDatasetTarget": list(        countsObserved[order] /countsExpected[order]),
+                "xDataset"      : list(overdensities [order]              ),
+                "yDataset"      : list(densitiesModel[order]/normalization),
+                "yError"        : list(densitiesError[order]/normalization),
+                "yDatasetTarget": list(densitiesData [order]/normalization),
             },
         }
     ]
