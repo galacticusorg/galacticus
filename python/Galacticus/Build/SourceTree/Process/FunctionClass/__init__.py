@@ -48,6 +48,7 @@ from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import (
     class_dependencies,
 )
 from Galacticus.Build.SourceTree.Process.SourceIntrospection import location
+from Galacticus.Build.FileChanges                            import update as file_changes_update
 
 
 # ---------------------------------------------------------------------------
@@ -537,32 +538,21 @@ def _insert_and_write_output(node, code_content, pre, post, classes, directive):
         prepend_child_to_node(submodule_node, block.get('preContains', []))
         insert_post_contains(submodule_node, block.get('postContains', []))
 
-        submodule_content = serialize(file_node)
+        # Write the submodule with its `.lmap` line-number-mapping sidecar
+        # and `.up` sentinel, exactly as preprocess.py does for directly
+        # preprocessed files — postprocess.py needs the map to translate
+        # compiler diagnostics back to original source lines, and the
+        # Makefile's rebuild logic relies on the sentinel.  Mirrors
+        # FunctionClass.pm:1456-1463.
+        submodule_content, submodule_mappings = serialize(
+            file_node, annotate=True, strip_mappings=True)
         file_name = block['fileName']
         tmp_name  = file_name + '.tmp'
         with open(tmp_name, 'w') as fh:
             fh.write(submodule_content)
-        _update_if_changed(file_name, tmp_name)
-
-
-def _update_if_changed(target, tmp):
-    """Move `tmp` over `target` only when their contents differ.  Best-effort
-    replacement for the Perl `File::Changes::Update(…, proveUpdate => 'yes')`
-    used by the Perl port; full line-mapping support (the `.lmap` sidecar)
-    is out of scope for this slice.
-    """
-    if os.path.exists(target):
-        try:
-            with open(target, 'r') as fh:
-                existing = fh.read()
-            with open(tmp, 'r') as fh:
-                new = fh.read()
-            if existing == new:
-                os.unlink(tmp)
-                return
-        except OSError:
-            pass
-    os.replace(tmp, target)
+        file_changes_update(file_name, tmp_name, prove_update=True)
+        with open(file_name + '.lmap', 'w') as fh:
+            fh.write(submodule_mappings)
 
 
 # ---------------------------------------------------------------------------
