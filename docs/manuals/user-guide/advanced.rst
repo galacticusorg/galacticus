@@ -172,6 +172,8 @@ The validator can additionally perform deeper, catalog-aware checks—verifying 
 
 A directory may be given in place of a file, in which case all ``*.xml`` files under it are validated and a summary is printed. This same tool is run in continuous integration to validate the bundled parameter files.
 
+.. _editor-parameter-validation:
+
 Editor validation and autocompletion
 """""""""""""""""""""""""""""""""""""
 

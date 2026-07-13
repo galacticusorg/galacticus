@@ -31,9 +31,11 @@ when the folder is first opened, via ``.vscode/extensions.json``):
   and `Pylance <https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance>`__
   — for the Python infrastructure under ``python/`` and ``scripts/``.
 * `XML <https://marketplace.visualstudio.com/items?itemName=redhat.vscode-xml>`__
-  (``redhat.vscode-xml``) — XML editing plus validation of parameter files
-  against the schemas in ``schema/`` (``parameters*.xml`` is associated with
-  ``schema/parameters.xsd``).
+  (``redhat.vscode-xml``) — XML editing, plus real-time validation and
+  autocompletion of parameter files against the generated
+  ``schema/parameters.xsd``. The shipped ``.vscode/settings.json`` wires this up;
+  see :ref:`editor-parameter-validation` in the user guide for what the schema
+  checks (and what it deliberately does not).
 * `YAML <https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml>`__
   (``redhat.vscode-yaml``) — for the workflow and configuration files.
 * `reStructuredText Syntax highlighting <https://marketplace.visualstudio.com/items?itemName=trond-snekvik.simple-rst>`__
