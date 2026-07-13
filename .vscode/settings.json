@@ -45,8 +45,8 @@
   // ======================================================================
   "xml.fileAssociations": [
     {
-      "pattern": "**/parameters*.xml",
-      "systemId": "schema/parameters.xsd"
+      "pattern": "**/parameters/**/*.xml",
+      "systemId": "${workspaceFolder}/schema/parameters.xsd"
     }
   ],
   "xml.format.enabled": true,
