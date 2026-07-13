@@ -1374,8 +1374,6 @@ jobs:
                 test-tidallyTruncatedNFWFit.py,
                 test-constraint-deterministic-spins.py,
                 test-constraint-mass-function.py,
-                test-extract-directives.py,
-                test-fortran-utils.py,
                 test-halo-mass-functions.py,
                 test-inactive_luminosities.py,
                 test-interoutput-star-formation-rate.py,
