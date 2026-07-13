@@ -66,13 +66,13 @@ contains
     use :: File_Utilities    , only : Directory_Make   , File_Exists          , File_Lock   , File_Unlock, &
           &                           lockDescriptor
     use :: Error             , only : Error_Report
-    use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath        , pathTypeTools
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//), replace    , &
           &                           varying_string
     use :: String_Handling   , only : stringSubstitute
     use :: System_Command    , only : System_Command_Do
     use :: System_Download   , only : download
-    use :: System_Compilers  , only : compiler         , compilerOptions      , languageC
+    use :: System_Compilers  , only : compiler         , compilerOptions      , languageC   , compilerValidate
     implicit none
     type   (varying_string), intent(  out)           :: classPath, classVersion
     logical                , intent(in   ), optional :: static
@@ -85,21 +85,22 @@ contains
 
     ! Set path and version
     classVersion=dependencyVersion("class")
-    classPath   =inputPath(pathTypeDataDynamic)//"class_public-"//classVersion//"/"
+    classPath   =inputPath(pathTypeTools)//"class_public-"//classVersion//"/"
     ! Build the CLASS code.
     if (.not.File_Exists(classPath//"class")) then
+       call compilerValidate(languageC,'CLASS')
        call Directory_Make(     classPath                                        )
        call File_Lock     (char(classPath//"class"),fileLock,lockIsShared=.false.)
        ! Unpack the code.
        if (.not.File_Exists(classPath//"Makefile")) then
           ! Download CLASS if necessary.
-          if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz")) then
+          if (.not.File_Exists(inputPath(pathTypeTools)//"class_public-"//char(classVersion)//".tar.gz")) then
              call displayMessage("downloading CLASS code....",verbosityLevelWorking)
-             call download("https://github.com/lesgourg/class_public/archive/refs/tags/v"//char(classVersion)//".tar.gz",char(inputPath(pathTypeDataDynamic))//"class_public-"//char(classVersion)//".tar.gz",status=status,retries=5,retryWait=60)
-             if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz")) call Error_Report("unable to download CLASS"//{introspection:location})
+             call download("https://github.com/lesgourg/class_public/archive/refs/tags/v"//char(classVersion)//".tar.gz",char(inputPath(pathTypeTools))//"class_public-"//char(classVersion)//".tar.gz",status=status,retries=5,retryWait=60)
+             if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeTools)//"class_public-"//char(classVersion)//".tar.gz")) call Error_Report("unable to download CLASS"//{introspection:location})
           end if
           call displayMessage("unpacking CLASS code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//" -f "//inputPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz",status)
+          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeTools)//" -f "//inputPath(pathTypeTools)//"class_public-"//char(classVersion)//".tar.gz",status)
           if (status /= 0 .or. .not.File_Exists(classPath)) call Error_Report('failed to unpack CLASS code'//{introspection:location})        
        end if
        call displayMessage("compiling CLASS code",verbosityLevelWorking)

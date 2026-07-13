@@ -74,6 +74,8 @@ contains
       The probability :math:`p \in [0,1]` of success on a single Bernoulli trial, which determines the mean (:math:`np`) and variance (:math:`np(1-p)`) of the resulting binomial distribution.
       </description>
       <source>parameters</source>
+      <minimum>0.0</minimum>
+      <maximum>1.0</maximum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>countTrials</name>
@@ -81,6 +83,7 @@ contains
       The total number of independent Bernoulli trials :math:`n`, which sets the range of the distribution from 0 to :math:`n` and controls the overall scale of the mean and variance.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0</minimum>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]

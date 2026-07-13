@@ -70,6 +70,8 @@ contains
       <description>
       The number (1-16) of the distribution to compute.
       </description>
+      <minimum>1</minimum>
+      <maximum>16</maximum>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>

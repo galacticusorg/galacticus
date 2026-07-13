@@ -41,8 +41,9 @@
   },
 
   // ======================================================================
-  // XML — validate parameter files against the bundled schema
+  // XML — validate parameter files against the generated schema
   // ======================================================================
+  "//": "Associate Galacticus parameter files with the generated XSD so that VS Code's XML extension (redhat.vscode-xml) provides real-time validation and autocompletion. See docs/manuals/user-guide/advanced.rst ('Editor validation and autocompletion').",
   "xml.fileAssociations": [
     {
       "pattern": "**/parameters/**/*.xml",

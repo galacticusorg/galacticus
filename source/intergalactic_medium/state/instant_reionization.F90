@@ -85,6 +85,7 @@ contains
          <description>
          The optical depth to reionization in the instantReionization :term:`IGM` state model.
          </description>
+         <minimum>0.0</minimum>
        </inputParameter>
        !!]
      else

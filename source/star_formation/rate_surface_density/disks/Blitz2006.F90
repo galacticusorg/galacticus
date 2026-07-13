@@ -213,6 +213,7 @@ contains
       The exponent in the scaling relation of molecular hydrogen fraction with disk pressure in the :cite:t:`blitz_role_2006` star formation timescale calculation.
       </description>
       <source>parameters</source>
+      <minimum>0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>assumeMonotonicSurfaceDensity</name>

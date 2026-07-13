@@ -114,8 +114,7 @@ def validate(document_string, file_name):
     """Validate `document_string` against schema/componentSchema.xsd.
 
     Mirrors `Components_Validate`.  Uses `lxml.etree.XMLSchema`; if `lxml`
-    is unavailable we silently skip validation (matching the same fallback
-    pattern as scripts/aux/validateParameters.py).
+    is unavailable we silently skip validation.
     """
     try:
         from lxml import etree as lxml_etree

@@ -3,16 +3,14 @@
 Makefile rules that tell the Galacticus build system how to produce `.mod`
 and `.smod` files from their owning object files.
 
-For every `.f` / `.f90` source file under `<installDir>/source/` (one level
-deep), this script:
+For every `.f` / `.f90` source file under `<installDir>/source/` (recursing
+into subdirectories to any depth), this script:
 
 * Extracts every `module <name>` and `submodule (<parent>[:<grand>]) <name>`
   declaration (skipping text inside `!!{…!!}` LaTeX and `!![…!!]` XML blocks).
 * For every `functionClass` directive in the file, walks each instance file
   listed in `directiveLocations.xml` to discover the concrete derived types
   and synthesises one functionClass-submodule entry per derived type.
-* Follows `include '<leaf>'` statements that reference files under the
-  top-level `source/` directory, scanning them for the same constructs.
 * Emits Makefile rules for each discovered module / submodule target: the
   `<mod>.mod`, `<mod>@<sub>.smod`, `<src>.o`, `<src>.p.F90`, `<mod>.mod.d`,
   `<mod>.mod.gv`, `<src>.m`, `<src>.smod` dependencies the main build
@@ -33,10 +31,15 @@ import sys
 import xml.etree.ElementTree as ET
 
 
-from Galacticus.Build.Directives import extract_directives
-from Galacticus.Build.SourceTree import parse_file, walk_tree
-from List.ExtraUtils             import as_array
-from XML.Utils                   import xml_to_dict
+from Galacticus.Build.Directives   import extract_directives
+from Galacticus.Build.ParallelScan import scan as parallel_scan
+from Galacticus.Build.SourceTree   import parse_file, walk_tree
+from List.ExtraUtils              import as_array
+from XML.Utils                    import xml_to_dict
+from Galacticus.Build.ScanCache import (
+    file_identifier as _file_identifier,
+    load_cache      as _load_cache,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -56,31 +59,11 @@ _SUBMODULE_LINE_RE = re.compile(
     r'\s*([a-zA-Z0-9_]+)$',
     re.IGNORECASE,
 )
-_INCLUDE_LINE_RE   = re.compile(r"""include\s+'(\w+)'""", re.IGNORECASE)
 
 
 # ---------------------------------------------------------------------------
 # Cache / helpers
 # ---------------------------------------------------------------------------
-
-def _file_identifier(path):
-    """Perl `(my $id = $path) =~ s/\\//_/g; $id =~ s/^\\._??//;`."""
-    return re.sub(r'^\._?', '', path.replace('/', '_'))
-
-
-def _load_cache(blob_path):
-    if not os.path.exists(blob_path):
-        return {}, None
-    try:
-        with open(blob_path, 'rb') as fh:
-            cache = pickle.load(fh)
-    except (pickle.UnpicklingError, EOFError, AttributeError, ValueError,
-            ImportError, ModuleNotFoundError):
-        return {}, None
-    if not isinstance(cache, dict):
-        return {}, None
-    return cache, os.stat(blob_path).st_mtime
-
 
 def _load_directive_locations(path):
     if not os.path.exists(path):
@@ -127,7 +110,7 @@ def _list_source_files(directory):
 # ---------------------------------------------------------------------------
 
 def _find_function_class_submodules(directive_name, function_class_file,
-                                    locations, source_root):
+                                    source_root):
     """Return the list of submodule records produced by one `functionClass`
     directive.  Mirrors moduleDependencies.pl:97-133.
     """
@@ -187,70 +170,133 @@ def _find_function_class_submodules(directive_name, function_class_file,
 # Per-file Fortran scan
 # ---------------------------------------------------------------------------
 
-def _scan_file(stack, entry, source_root):
-    """Drive the include stack rooted at `stack`, populating `entry` (which
-    may be a plain dict; expected keys populated: `files`, `modulesProvided`,
-    `submodulesProvided`).
+def _scan_file(file_path, entry, source_root):
+    """Scan one source file, populating `entry` (a plain dict; keys
+    populated: `modulesProvided`, `submodulesProvided`).
+
+    `include`d files are not followed: a Fortran `include` cannot introduce
+    a `module`/`submodule` statement in this codebase (module declarations
+    are never placed in include files), and the include-following the Perl
+    original attempted was inert anyway — its `include\\s+'(\\w+)'` regex
+    could not match any real include in the tree (all include file names
+    contain a `.`, which `\\w` excludes).
     """
-    while stack:
-        file_path = stack.pop()
-        in_xml   = False
-        in_latex = False
-        try:
-            fh = open(file_path, 'r', errors='replace')
-        except OSError:
-            sys.exit("moduleDependencies.py: can not open input file: "
-                     + file_path)
-        try:
-            for line in fh:
-                # Leave XML/LaTeX blocks on their closing markers.
-                if _XML_CLOSE_RE.match(line):
-                    in_xml = False
-                if _LATEX_CLOSE_RE.match(line):
-                    in_latex = False
-                if in_xml or in_latex:
-                    continue
+    in_xml   = False
+    in_latex = False
+    try:
+        fh = open(file_path, 'r', errors='replace')
+    except OSError:
+        sys.exit("moduleDependencies.py: can not open input file: "
+                 + file_path)
+    try:
+        for line in fh:
+            # Leave XML/LaTeX blocks on their closing markers.
+            if _XML_CLOSE_RE.match(line):
+                in_xml = False
+            if _LATEX_CLOSE_RE.match(line):
+                in_latex = False
+            if in_xml or in_latex:
+                continue
 
-                stripped = _STRIP_COMMENT_RE.sub('', line)
+            stripped = _STRIP_COMMENT_RE.sub('', line)
 
-                m = _MODULE_LINE_RE.match(stripped)
-                if m:
-                    entry.setdefault('modulesProvided', []).append(
-                        m.group(1).lower() + '.mod',
-                    )
+            m = _MODULE_LINE_RE.match(stripped)
+            if m:
+                entry.setdefault('modulesProvided', []).append(
+                    m.group(1).lower() + '.mod',
+                )
 
-                m = _SUBMODULE_LINE_RE.match(stripped)
-                if m:
-                    parent_mod = m.group(1).lower() + '.mod'
-                    submodule_name = m.group(3).lower()
-                    leaf = re.sub(r'\.[fF]90$', '',
-                                  os.path.relpath(file_path, source_root))
-                    entry.setdefault('submodulesProvided', []).append({
-                        'moduleName': parent_mod,
-                        'submodule':  {
-                            'name':          submodule_name,
-                            'fileName':      leaf,
-                            'source':        file_path,
-                            'extends':       None,
-                            'functionClass': False,
-                        },
-                    })
+            m = _SUBMODULE_LINE_RE.match(stripped)
+            if m:
+                parent_mod = m.group(1).lower() + '.mod'
+                submodule_name = m.group(3).lower()
+                leaf = re.sub(r'\.[fF]90$', '',
+                              os.path.relpath(file_path, source_root))
+                entry.setdefault('submodulesProvided', []).append({
+                    'moduleName': parent_mod,
+                    'submodule':  {
+                        'name':          submodule_name,
+                        'fileName':      leaf,
+                        'source':        file_path,
+                        'extends':       None,
+                        'functionClass': False,
+                    },
+                })
 
-                m = _INCLUDE_LINE_RE.search(stripped)
-                if m:
-                    include_path = os.path.join(source_root, m.group(1))
-                    stack.append(include_path)
-                    entry.setdefault('files', []).append(include_path)
+            # Enter XML/LaTeX blocks on their opening markers (check
+            # AFTER processing the line so `!![` itself is not mistaken
+            # for code).
+            if _XML_OPEN_RE.match(line):
+                in_xml = True
+            if _LATEX_OPEN_RE.match(line):
+                in_latex = True
+    finally:
+        fh.close()
 
-                # Enter XML/LaTeX blocks on their opening markers (check
-                # AFTER processing the line so `!![` itself is not mistaken
-                # for code).
-                if _XML_OPEN_RE.match(line):
-                    in_xml = True
-                if _LATEX_OPEN_RE.match(line):
-                    in_latex = True
-        finally:
-            fh.close()
+
+# ---------------------------------------------------------------------------
+# Per-file processing (parallelised across files)
+# ---------------------------------------------------------------------------
+#
+# Each source file is scanned independently: it reads the file (and any
+# `include`d files) and produces a single `entry` dict that writes to no shared
+# state. The per-file cost is dominated by blocking file I/O (open/read of the
+# source on NFS), which on a loaded node stretches from microseconds to
+# milliseconds per file; running the scans concurrently overlaps those waits
+# (and the parsing CPU work) instead of paying them one at a time.
+#
+# A fork-based process pool is used rather than threads so the workers are fully
+# isolated -- no assumptions are made about the thread-safety of the parser --
+# and the regex/AST parsing parallelises too. Workers inherit the read-only
+# `locations` map and `source_root` via copy-on-write fork, so nothing large is
+# pickled per task; only the small result dicts come back.
+
+_WORKER = {}
+
+
+def _scan_one(task):
+    """Worker: scan one source file and return its `(file_identifier, name,
+    desc, entry)`. Mirrors the per-file body of the serial scan loop exactly.
+    """
+    file_identifier, name, desc = task
+    source_root = _WORKER['source_root']
+    locations   = _WORKER['locations']
+    file_path   = desc['path'] + '/' + name
+
+    # functionClass -> synthesise submodule records.
+    function_classes = extract_directives(file_path, 'functionClass')
+    submodules_for_file = []
+    for fc in function_classes:
+        for fc_file in as_array((locations.get(fc['name']) or {}).get('file')):
+            submodules_for_file.extend(
+                _find_function_class_submodules(
+                    fc['name'], fc_file, source_root,
+                )
+            )
+
+    entry = {}
+    if submodules_for_file:
+        entry['submodules'] = submodules_for_file
+    entry.setdefault('files', []).append(file_path)
+    entry['sourceFileName']            = name
+    entry['sourceDirectoryDescriptor'] = desc
+    entry.setdefault('modulesProvided', [])
+
+    _scan_file(file_path, entry, source_root)
+    return file_identifier, name, desc, entry
+
+
+def _scan_files(scan_list, source_root, locations):
+    """Scan every file in `scan_list` (a list of `(file_identifier, name, desc)`
+    preserving the serial loop's order) and return the results in that SAME
+    order, so downstream `modules_per_file` insertion order -- and therefore the
+    emitted Makefile -- is identical to the serial version. The read-only
+    `source_root`/`locations` are published to `_WORKER` first so forked workers
+    inherit them via copy-on-write instead of re-pickling per task.
+    """
+    _WORKER['source_root'] = source_root
+    _WORKER['locations']   = locations
+    return parallel_scan(scan_list, _scan_one, 'moduleDependencies.py')
 
 
 # ---------------------------------------------------------------------------
@@ -510,10 +556,13 @@ def main(argv):
         if any(fid not in unstripped_set for fid in modules_per_file):
             force_rescan = True
 
-    # Per-file scan.
+    # Decide which files need a (re)scan, preserving the deterministic
+    # descriptor-then-sorted-name order so the merge below reproduces the serial
+    # insertion order exactly.
+    scan_list = []
     for desc in descriptors:
         for name in _list_source_files(desc['path']):
-            file_path      = desc['path'] + '/' + name
+            file_path       = desc['path'] + '/' + name
             file_identifier = _file_identifier(file_path)
 
             rescan = True
@@ -527,31 +576,14 @@ def main(argv):
                 rescan = bool(stale)
             if not (rescan or force_rescan):
                 continue
+            scan_list.append((file_identifier, name, desc))
 
-            modules_per_file.pop(file_identifier, None)
-
-            # functionClass -> synthesise submodule records.
-            function_classes = extract_directives(file_path, 'functionClass')
-            submodules_for_file = []
-            for fc in function_classes:
-                for fc_file in as_array(
-                    (locations.get(fc['name']) or {}).get('file'),
-                ):
-                    submodules_for_file.extend(
-                        _find_function_class_submodules(
-                            fc['name'], fc_file, locations, source_root,
-                        )
-                    )
-
-            entry = modules_per_file.setdefault(file_identifier, {})
-            if submodules_for_file:
-                entry['submodules'] = submodules_for_file
-            entry.setdefault('files', []).append(file_path)
-            entry['sourceFileName']           = name
-            entry['sourceDirectoryDescriptor'] = desc
-            entry.setdefault('modulesProvided', [])
-
-            _scan_file([file_path], entry, source_root)
+    # Scan the files (concurrently) and merge results in scan-list order so the
+    # output is identical to a serial run.
+    for file_identifier, name, desc, entry in _scan_files(
+            scan_list, source_root, locations):
+        modules_per_file.pop(file_identifier, None)
+        modules_per_file[file_identifier] = entry
 
     # Build the submodule-by-module map.
     submodules_by_module = _build_submodule_map(modules_per_file)

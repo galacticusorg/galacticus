@@ -27,7 +27,7 @@ Implements the geometry of the SDSS survey used by :cite:t:`bernardi_massive_201
    <description>
    A survey geometry class that describes the survey geometry of :cite:t:`bernardi_massive_2013`.
 
-   For the angular mask, we make use of the :term:`mangle` polygon file provided by the :term:`mangle` project\footnoteSpecifically, `https://zenodo.org/records/10998446/files/sdss_dr72safe0_res6d.pol.gz &lt;https://zenodo.org/records/10998446/files/sdss_dr72safe0_res6d.pol.gz&gt;`_. The solid angle of this mask, computed using the :term:`mangle` ``harmonize`` command is 2.232262776405 sr.
+   For the angular mask, we make use of the :term:`mangle` polygon file provided by the :term:`mangle` project\ [#]_. The solid angle of this mask, computed using the :term:`mangle` ``harmonize`` command is 2.232262776405 sr.
 
    To determine the depth as a function of stellar mass, we make use of results provided by M. Bernardi (private communication), giving the mean maximum volume, :math:`V_\mathrm{max}`, as a function of stellar mass for galaxies in this sample. These maximum volumes are converted to maximum distances using the solid angle quoted above. The results mass vs. distance relation is fit with a :math:`5^\mathrm{th}`-order polynomial. Figure :numref:`{number} &lt;fig-BernardiSDSSDepthFit&gt;` shows the resulting relation between stellar mass and the maximum distance at which such a galaxy would be included in the sample. Points indicate results from Bernardi, while the line shows a polynomial fit:
 
@@ -43,12 +43,15 @@ Implements the geometry of the SDSS survey used by :cite:t:`bernardi_massive_201
       :name: fig-BernardiSDSSDepthFit
 
       The maximum distance at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`bernardi_massive_2013`. Points show the results obtained from data provided by Bernardi, while the lines shows a polynomial fit to these results (given in eqn. :eq:`eq-BernardiDepthPolynomial`).
+
+   .. [#] Specifically, `https://zenodo.org/records/10998446/files/sdss_dr72safe0_res6d.pol.gz &lt;https://zenodo.org/records/10998446/files/sdss_dr72safe0_res6d.pol.gz&gt;`_.
    </description>
   </surveyGeometry>
   !!]
   type, extends(surveyGeometryMangle) :: surveyGeometryBernardi2013SDSS
      private
    contains
+     final     ::                              bernardi2013SDSSDestructor
      procedure :: fieldCount                => bernardi2013SDSSFieldCount
      procedure :: distanceMaximum           => bernardi2013SDSSDistanceMaximum
      procedure :: angularPowerMaximumDegree => bernardi2013SDSSAngularPowerMaximumDegree
@@ -76,26 +79,50 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(surveyGeometryBernardi2013SDSS)                :: self
-    type(inputParameters               ), intent(inout) :: parameters
+    type (surveyGeometryBernardi2013SDSS)                :: self
+    type (inputParameters               ), intent(inout) :: parameters
+    class(randomNumberGeneratorClass    ), pointer       :: randomNumberGenerator_
 
-    self=surveyGeometryBernardi2013SDSS()
+    !![
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
+    self=surveyGeometryBernardi2013SDSS(randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
     !!]
     return
   end function bernardi2013SDSSConstructorParameters
 
-  function bernardi2013SDSSConstructorInternal() result (self)
+  function bernardi2013SDSSConstructorInternal(randomNumberGenerator_) result (self)
     !!{RST
-    Default constructor for the :cite:t:`bernardi_massive_2013` conditional mass function class.
+    Default constructor for the :cite:t:`bernardi_massive_2013` conditional mass function class. The optional random
+    number generator is required only if window functions are to be constructed (they are Monte Carlo sampled from the
+    :term:`mangle` mask).
     !!}
     implicit none
-    type(surveyGeometryBernardi2013SDSS) :: self
+    type (surveyGeometryBernardi2013SDSS)                                  :: self
+    class(randomNumberGeneratorClass    ), intent(in   ), target, optional :: randomNumberGenerator_
+    !![
+    <constructorAssign variables="*randomNumberGenerator_"/>
+    !!]
 
     call self%initialize()
     return
   end function bernardi2013SDSSConstructorInternal
+
+  subroutine bernardi2013SDSSDestructor(self)
+    !!{RST
+    Destructor for the :galacticus-class:`surveyGeometryBernardi2013SDSS` survey geometry class.
+    !!}
+    implicit none
+    type(surveyGeometryBernardi2013SDSS), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
+    return
+  end subroutine bernardi2013SDSSDestructor
 
   integer function bernardi2013SDSSFieldCount(self)
     !!{RST

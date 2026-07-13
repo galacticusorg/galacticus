@@ -126,6 +126,7 @@ contains
          The fixed angular diameter distance at which to compute the Sunyaev-Zeldovich parameter.
          </description>
          <source>parameters</source>
+         <minimum inclusive="false">0.0</minimum>
        </inputParameter>
        !!]
     end if

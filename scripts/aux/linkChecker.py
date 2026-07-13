@@ -76,6 +76,8 @@ _EXCLUDED_URL_RES = [
     re.compile(r'^https?://\.+\)?$'),  # placeholder, e.g. "http://......." in code examples
     # Defunct Google Drive link for BPASS data, retained only for the historical record.
     re.compile(r'^https://drive\.google\.com/open\?id=0B7vqPPPgOdtIfjUtb3RsV2JUOTFFX29WV1FZNURPMHAxTEtZQjhJOGtyNXZUTTNVSzFZazQ$'),
+    # Defunct Maraston stellar population model link, retained only for the historical record.
+    re.compile(r"^http://www\.icg\.port\.ac\.uk/~maraston/Claudia's_Stellar_Population_Model\.html$"),
 ]
 
 
@@ -98,6 +100,13 @@ def scan_file(file_name, path, urls):
                     # inside it which is followed by further URL characters).
                     url = html.unescape(m.group(0)).rstrip('.,;:\'')
                     url = re.sub(r'\\(.)', r'\1', url)
+                    # Drop a trailing ``)`` that closes an enclosing construct
+                    # (shell ``$(curl ...)``, prose parenthetical) rather than
+                    # belonging to the URL.  Balanced parens — e.g. Wikipedia's
+                    # ``..._(computer_programming)`` — are kept; only an excess
+                    # of closing over opening parens is stripped.
+                    while url.endswith(')') and url.count(')') > url.count('('):
+                        url = url[:-1]
                     urls.setdefault(url, []).append(
                         {'file': file_name, 'path': path, 'lineNumber': line_number})
     except OSError as e:

@@ -94,14 +94,6 @@ with open(args.buildLogFile) as f:
         elif len(elements) > 2 and elements[0] == "./scripts/build/buildCode.py":
             elements[2] = elements[2].replace("./work/build/", "").replace("'", "")
             command = elements[2] + " (build)"
-        elif len(elements) > 8 and elements[1] == "-MRegexp::Common":
-            elements[8] = elements[8].replace("work/build/", "")
-            command = elements[8] + " (cpp)"
-        else:
-            if elements:
-                mb = re.match(r'\./scripts/build/(.*)\.pl', elements[0])
-                if mb:
-                    command = mb.group(1)
         tasks.append({
             'description': command,
             'startTime':   start_time,
@@ -237,9 +229,12 @@ with open(args.profileFile, 'w') as out:
             f"(at {memory_peak_time} seconds, summed over tasks running for "
             f"{args.durationMinimum} seconds or longer)<p>\n"
         )
+    # A build whose tasks all completed within one second has time_maximum=0
+    # (timestamps have 1s resolution); treat it as one second rather than
+    # dividing by zero.
     out.write(
         f"Build profile (all tasks which ran for {args.durationMinimum} seconds or longer: "
-        f"{100.0 * cost_total / time_maximum:5.2f}% of total time)<br>\n"
+        f"{100.0 * cost_total / max(time_maximum, 1):5.2f}% of total time)<br>\n"
     )
     out.write("<div>\n")
     out.write("<table id=\"chart\" style=\"border-spacing: 0; border-collapse: separate; border-top: 1px\">\n")
@@ -255,7 +250,7 @@ with open(args.profileFile, 'w') as out:
         out.write(
             f"<tr><td>{task['description']}</td>"
             f"<td>{task['cost']:7.2f}</td>"
-            f"<td>({100.0 * task['cost'] / time_maximum:5.2f}%)</td>"
+            f"<td>({100.0 * task['cost'] / max(time_maximum, 1):5.2f}%)</td>"
             f"<td>{format_memory(task['memoryKB'])}</td></tr>\n"
         )
     out.write("</table>\n")

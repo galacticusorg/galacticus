@@ -224,7 +224,8 @@ def migrate(input_doc, parameters, root_level, is_grid, input_filename, options,
     if options.validate == "yes":
         exec_path = os.environ.get("GALACTICUS_EXEC_PATH", ".")
         result = subprocess.run(
-            [os.path.join(exec_path, "scripts", "aux", "validateParameters.py"), input_filename]
+            [os.path.join(exec_path, "scripts", "build", "parameterValidate.py"),
+             "--structural", input_filename]
         )
         if result.returncode != 0:
             sys.exit(f'input file "{input_filename}" is not a valid Galacticus parameter file')

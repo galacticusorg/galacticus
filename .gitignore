@@ -6,11 +6,14 @@
 *.exe
 galacticusConfig.xml
 galacticus.py
+libgalacticus.so
+galacticus/
+docs/tutorials/*.ipynb
+parameters.catalog.json
 work
 testSuite/*.log
 testSuite/*.pbs
 testSuite/outputs
-source/external/FFTlog
 source/texfrag
 __pycache__
 *.egg-info

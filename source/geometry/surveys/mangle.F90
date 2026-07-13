@@ -21,7 +21,8 @@
 Implements an abstract survey geometry using :term:`mangle` polygons.
 !!}
 
-  use :: Geometry_Mangle, only : window
+  use :: Geometry_Mangle         , only : window
+  use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
   !![
   <surveyGeometry name="surveyGeometryMangle" abstract="yes" docformat="rst">
@@ -32,10 +33,12 @@ Implements an abstract survey geometry using :term:`mangle` polygons.
   !!]
   type, abstract, extends(surveyGeometryClass) :: surveyGeometryMangle
      private
-     logical                                               :: solidAnglesInitialized, angularPowerInitialized, windowInitialized
-     double precision        , allocatable, dimension(:  ) :: solidAngles
-     double precision        , allocatable, dimension(:,:) :: angularPowerSpectra
-     type            (window)                              :: mangleWindow
+     logical                                                                   :: solidAnglesInitialized          , angularPowerInitialized, &
+          &                                                                       windowInitialized
+     double precision                            , allocatable, dimension(:  ) :: solidAngles
+     double precision                            , allocatable, dimension(:,:) :: angularPowerSpectra
+     type            (window                    )                              :: mangleWindow
+     class           (randomNumberGeneratorClass), pointer                     :: randomNumberGenerator_ => null()
    contains
      !![
      <methods docformat="rst">
@@ -95,13 +98,12 @@ contains
 
   logical function mangleWindowFunctionAvailable(self)
     !!{RST
-    Return false to indicate that survey window function is not available.
+    Window functions are available whenever a random number generator was supplied (they are constructed by Monte Carlo sampling of the :term:`mangle` mask).
     !!}
     implicit none
     class(surveyGeometryMangle), intent(inout) :: self
-    !$GLC attributes unused :: self
 
-    mangleWindowFunctionAvailable=.false.
+    mangleWindowFunctionAvailable=associated(self%randomNumberGenerator_)
     return
   end function mangleWindowFunctionAvailable
 
@@ -157,19 +159,113 @@ contains
 
   subroutine mangleWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
     !!{RST
-    Provides window functions for :term:`mangle`-based survey geometries.
+    Provides window functions for :term:`mangle`-based survey geometries. The survey selection function is Monte Carlo
+    sampled: directions drawn uniformly on the sphere are rejection-sampled against the :term:`mangle` angular mask, and
+    each accepted direction is assigned depths drawn uniformly in volume within the survey's distance limits (following
+    the random-points implementation). A random number generator must have been supplied to the survey geometry's
+    constructor.
     !!}
-    use            :: Error        , only : Error_Report
-    use, intrinsic :: ISO_C_Binding, only : c_double_complex
+#ifdef FFTW3AVAIL
+    use            :: FFTW3                   , only : fftw_plan_dft_3d  , FFTW_FORWARD       , FFTW_ESTIMATE, fftw_execute_dft, &
+         &                                             fftw_destroy_plan
+#endif
+    use            :: Error                   , only : Error_Report
+    use, intrinsic :: ISO_C_Binding           , only : c_double_complex  , c_ptr
+    use            :: Meshes                  , only : Meshes_Apply_Point, cloudTypeTriangular
     implicit none
     class           (surveyGeometryMangle), intent(inout)                                           :: self
-    double precision                      , intent(in   )                                           :: mass1,mass2
+    double precision                      , intent(in   )                                           :: mass1                   , mass2
     integer                               , intent(in   )                                           :: gridCount
     double precision                      , intent(  out)                                           :: boxLength
-    complex         (c_double_complex    ), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
-    !$GLC attributes unused :: self, mass1, mass2, gridCount, boxLength, windowFunction1, windowFunction2
+    complex         (c_double_complex    ), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1         , windowFunction2
+    ! Monte Carlo sample count: at 250,000 samples the per-cell noise of the window on typical grid sizes is at the
+    ! percent level, while keeping the cost of the polygon-sampling loop modest (tens of seconds for the SDSS mask).
+    integer                               , parameter                                               :: sampleCount=250000
+    type            (varying_string      ), allocatable  , dimension(:)                             :: mangleFiles
+    complex         (c_double_complex    )               , dimension(gridCount,gridCount,gridCount) :: selectionFunction1      , selectionFunction2
+    double precision                                     , dimension(3)                             :: origin                  , direction               , &
+         &                                                                                             position1               , position2
+    integer                                                                                         :: i
+    double precision                                                                                :: comovingDistanceMaximum1, comovingDistanceMaximum2, &
+         &                                                                                             comovingDistanceMinimum1, comovingDistanceMinimum2, &
+         &                                                                                             distance1               , distance2
+#ifdef FFTW3AVAIL
+    type            (c_ptr               )                                                          :: plan
+#endif
+    complex         (c_double_complex    )                                                          :: normalization
 
-    call Error_Report('window function construction is not supported'//{introspection:location})
+#ifdef FFTW3UNAVAIL
+    call Error_Report('FFTW3 library is required but was not found'//{introspection:location})
+#endif
+    if (.not.associated(self%randomNumberGenerator_)) &
+         & call Error_Report('window function construction requires a random number generator - supply one to the survey geometry constructor'//{introspection:location})
+    ! Initialize the mangle window if necessary.
+    if (.not.self%windowInitialized) then
+       if (self%fieldCount() > 1) call Error_Report('only single field surveys are supported'//{introspection:location})
+       call self%mangleFiles(mangleFiles)
+       call self%mangleWindow%read(char(mangleFiles(1)))
+       self%windowInitialized=.true.
+    end if
+    ! Find the comoving distances corresponding to the two masses.
+    comovingDistanceMaximum1=self%distanceMaximum(mass1)
+    comovingDistanceMaximum2=self%distanceMaximum(mass2)
+    comovingDistanceMinimum1=self%distanceMinimum(mass1)
+    comovingDistanceMinimum2=self%distanceMinimum(mass2)
+    ! Determine a suitable box length for the window function calculation.
+    boxLength=3.0d0*max(comovingDistanceMaximum1-comovingDistanceMinimum1,comovingDistanceMaximum2-comovingDistanceMinimum2)
+    ! Set up origin.
+    origin=([0.5d0,0.5d0,0.0d0]/dble(gridCount)+[0.5d0,0.5d0,0.5d0])*dble(boxLength)
+    ! Populate the cube with the survey selection function.
+    selectionFunction1=dcmplx(0.0d0,0.0d0)
+    selectionFunction2=dcmplx(0.0d0,0.0d0)
+    do i=1,sampleCount
+       ! Draw a direction uniformly from within the mask (polygons sampled proportional to solid angle; balkanized
+       ! mangle windows have disjoint polygons so this is exactly uniform over the mask, at O(1) cost per sample
+       ! rather than the O(polygonCount) cost of rejection sampling the full sphere against the mask).
+       direction=self%mangleWindow%sampleDirection(self%randomNumberGenerator_)
+       ! Choose random distances, uniform in volume within the survey limits.
+       distance1=+(                                             &
+            &      +self%randomNumberGenerator_%uniformSample() &
+            &      *(                                           &
+            &        +comovingDistanceMaximum1**3               &
+            &        -comovingDistanceMinimum1**3               &
+            &       )                                           &
+            &        +comovingDistanceMinimum1**3               &
+            &     )**(1.0d0/3.0d0)                              &
+            &    -min(                                          &
+            &         comovingDistanceMinimum1                , &
+            &         comovingDistanceMinimum2                  &
+            &        )
+       distance2=+(                                             &
+            &      +self%randomNumberGenerator_%uniformSample() &
+            &      *(                                           &
+            &        +comovingDistanceMaximum2**3               &
+            &        -comovingDistanceMinimum2**3               &
+            &       )                                           &
+            &        +comovingDistanceMinimum2**3               &
+            &     )**(1.0d0/3.0d0)                              &
+            &    -min(                                          &
+            &         comovingDistanceMinimum1                , &
+            &         comovingDistanceMinimum2                  &
+            &        )
+       position1=distance1*direction+origin
+       position2=distance2*direction+origin
+       ! Apply to the mesh.
+       call Meshes_Apply_Point(selectionFunction1,boxLength,position1,pointWeight=cmplx(1.0d0,0.0d0,kind=c_double_complex),cloudType=cloudTypeTriangular)
+       call Meshes_Apply_Point(selectionFunction2,boxLength,position2,pointWeight=cmplx(1.0d0,0.0d0,kind=c_double_complex),cloudType=cloudTypeTriangular)
+    end do
+    ! Take the Fourier transform of the selection function.
+#ifdef FFTW3AVAIL
+    plan=fftw_plan_dft_3d(gridCount,gridCount,gridCount,selectionFunction1,windowFunction1,FFTW_FORWARD,FFTW_ESTIMATE)
+    call fftw_execute_dft(plan,selectionFunction1,windowFunction1)
+    call fftw_execute_dft(plan,selectionFunction2,windowFunction2)
+    call fftw_destroy_plan(plan)
+#endif
+    ! Normalize the window function.
+    normalization=windowFunction1(1,1,1)
+    if (real(normalization) > 0.0d0) windowFunction1=windowFunction1/normalization
+    normalization=windowFunction2(1,1,1)
+    if (real(normalization) > 0.0d0) windowFunction2=windowFunction2/normalization
     return
   end subroutine mangleWindowFunctions
 

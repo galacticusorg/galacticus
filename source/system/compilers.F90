@@ -27,7 +27,7 @@ module System_Compilers
   !!}
   implicit none
   private
-  public :: compiler, compilerOptions
+  public :: compiler, compilerOptions, compilerValidate
 
   !![
   <enumeration docformat="rst">
@@ -101,6 +101,58 @@ contains
     if (status == 0) compilerOptions=compilerRetrieve(char(compilerEnvironmentVariable),compilerLength)
     return
   end function compilerOptions
+
+  subroutine compilerValidate(language,toolName)
+    !!{RST
+    Verify that the compiler for the given {\normalfont \ttfamily language} is available on the
+    {\normalfont \ttfamily PATH} before attempting to build an external tool from source at run
+    time, aborting with a clear, actionable error if it is not. This turns the otherwise cryptic
+    build failure that results when no compiler is present (e.g. for a binary-only install) into a
+    message telling the user what to install.
+    !!}
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : assignment(=), char        , len         , operator(//), &
+         &                            var_str      , varying_string
+    use :: System_Which      , only : which
+    implicit none
+    type     (enumerationLanguageType), intent(in   )           :: language
+    character(len=*                  ), intent(in   ), optional :: toolName
+    type     (varying_string         )                          :: compilerName       , compilerPath       , &
+         &                                                         label              , environmentVariable, &
+         &                                                         forWhat
+    integer                                                     :: status
+
+    select case (language%ID)
+    case (languageFortran  %ID)
+       label              =var_str('Fortran'    )
+       environmentVariable=var_str('FCCOMPILER' )
+    case (languageC        %ID)
+       label              =var_str('C'          )
+       environmentVariable=var_str('CCOMPILER'  )
+    case (languageCPlusPlus%ID)
+       label              =var_str('C++'        )
+       environmentVariable=var_str('CPPCOMPILER')
+    case default
+       call Error_Report('unknown language'//{introspection:location})
+    end select
+    compilerName=compiler(language)
+    compilerPath=which(char(compilerName),status)
+    if (status /= 0 .or. len(compilerPath) == 0) then
+       if (present(toolName)) then
+          forWhat=var_str(' to build the ')//toolName//var_str(' tool')
+       else
+          forWhat=var_str('')
+       end if
+       call Error_Report(                                                                                       &
+            &            var_str('no ')//label//' compiler available'//forWhat//': the compiler '//"'"//        &
+            &            compilerName//"'"//' was not found on the PATH. Galacticus compiles some external '//  &
+            &            'tools from source at run time; install a '//label//' compiler, or set the '//         &
+            &            environmentVariable//' environment variable to one, then re-run.'//                    &
+            &            {introspection:location}                                                               &
+            &           )
+    end if
+    return
+  end subroutine compilerValidate
 
   function compilerRetrieve(compilerEnvironmentVariable,compilerLength)
     !!{RST

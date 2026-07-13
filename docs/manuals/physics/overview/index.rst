@@ -35,7 +35,7 @@ Consider the following, highly simplified, description of how the process of sta
 Components
 ----------
 
-The variables highlighted in red represent physical quantities - in this case the masses of stars and ISM in the galaxy. These are provided by a "`component <https://galacticus.readthedocs.io/en/latest/physics/components.html>`_" (e.g. a galactic disk) in Galacticus.
+The variables highlighted in red represent physical quantities - in this case the masses of stars and ISM in the galaxy. These are provided by a "`component <https://galacticus.readthedocs.io/en/latest/manuals/physics/components.html>`_" (e.g. a galactic disk) in Galacticus.
 
 Operators
 ---------

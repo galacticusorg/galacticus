@@ -167,23 +167,27 @@ contains
     !!{RST
     Return the concentration of the dark matter halo profile of ``node`` using the :cite:t:`ludlow_mass-concentration-redshift_2016` fitting function.
     !!}
-    use :: Error, only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic     , treeNode
+    use :: Error           , only : Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationLudlow2016Fit), intent(inout), target  :: self
     type            (treeNode                                   ), intent(inout), target  :: node
     class           (nodeComponentBasic                         ), pointer                :: basic
-    double precision                                             , parameter              :: criticalOverdensitySphericalCollapse=1.686d0
-    double precision                                                                      :: peakHeight                                  , expansionFactor, &
-         &                                                                                   c0                                          , beta           , &
-         &                                                                                   gamma1                                      , gamma2         , &
+    ! Positive, real root of the polynomial fitting function for ν₀. For smaller expansion factors, ν₀ will be negative, and so
+    ! the fit is not valid. Note that this differs slightly from the range of applicability claimed by Ludlow et al. (2016), who
+    ! state that the fit is valid over the range 1 ≥ log (1 + z) ≥ 0.
+    double precision                                             , parameter              :: expansionFactorMinimum              =0.1136685866008409d0
+    double precision                                             , parameter              :: criticalOverdensitySphericalCollapse=1.6860000000000000d0
+    double precision                                                                      :: peakHeight                                               , expansionFactor, &
+         &                                                                                   c0                                                       , beta           , &
+         &                                                                                   gamma1                                                   , gamma2         , &
          &                                                                                   nu0
 
     basic           =>  node                          %basic          (                                                       )
     peakHeight      =  +criticalOverdensitySphericalCollapse    &
          &             /self%cosmologicalMassVariance_%rootVariance   (basic%mass(),self%cosmologyFunctions_%cosmicTime(1.0d0))
     expansionFactor =   self%cosmologyFunctions_      %expansionFactor(basic%time()                                           )
-    if (expansionFactor < 0.1d0) call Error_Report('redshift out of range of fitting function'//{introspection:location})
+    if (expansionFactor < expansionFactorMinimum) call Error_Report('redshift out of range of fitting function'//{introspection:location})
     c0                        =+3.395d0*expansionFactor**0.215d0
     beta                      =+0.307d0/expansionFactor**0.540d0
     gamma1                    =+0.628d0*expansionFactor**0.047d0

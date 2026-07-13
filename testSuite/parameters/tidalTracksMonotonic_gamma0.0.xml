@@ -109,7 +109,6 @@
   </virialOrbit>
 
   <!-- Galaxy mergers -->
-  <mergerMassMovements            value="null"/>
   <mergerRemnantSize              value="null"/>
 
   <!-- Values are taken from Yang et al. (2021; https://ui.adsabs.harvard.edu/abs/2020MNRAS.498.3902Y) using results for gamma=2.5

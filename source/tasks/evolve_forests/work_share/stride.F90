@@ -73,6 +73,7 @@ contains
       The offset of the stride to take over forests.
       </description>
       <source>parameters</source>
+      <minimum>0</minimum>
     </inputParameter>
     <objectBuilder class="evolveForestsWorkShare" name="evolveForestsWorkShare_" source="parameters"/>
     !!]

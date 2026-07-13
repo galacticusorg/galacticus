@@ -68,12 +68,12 @@ contains
          &                            Directory_Make
     use :: Display           , only : displayMessage   , verbosityLevelWorking
     use :: Error             , only : Error_Report
-    use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath        , pathTypeTools
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//), replace       , &
           &                           varying_string
     use :: String_Handling   , only : stringSubstitute
     use :: System_Command    , only : System_Command_Do
-    use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran
+    use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran, compilerValidate
     implicit none
     type   (varying_string), intent(  out)           :: axionCambPath, axionCambVersion
     logical                , intent(in   ), optional :: static
@@ -86,13 +86,14 @@ contains
     !!]
 
     ! Set path and version
-    axionCambPath   =inputPath(pathTypeDataDynamic)//"AxionCAMB/"
-    lockPath        =inputPath(pathTypeDataDynamic)//"axion_camb"
+    axionCambPath   =inputPath(pathTypeTools)//"AxionCAMB/"
+    lockPath        =inputPath(pathTypeTools)//"axion_camb"
     exePath         =axionCambPath//"camb"
     axionCambVersion="?"
     call File_Lock(char(lockPath),fileLock,lockIsShared=.false.)
     ! Build the AxionCAMB code.
     if (.not.File_Exists(exePath)) then
+       call compilerValidate(languageFortran,'AxionCAMB')
        if (.not.File_Exists(axionCambPath)) then
           ! Download AxionCAMB if necessary.
           call displayMessage("downloading AxionCAMB code....",verbosityLevelWorking)

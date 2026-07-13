@@ -1,11 +1,13 @@
 [build-system]
-requires = ["setuptools>=82.0.1", "wheel"]
+requires = ["setuptools>=82.0.1", "wheel", "setuptools_scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "galacticus"
-version = "0.0.0"
-description = "Python infrastructure for the Galacticus semi-analytic galaxy formation model."
+# Version is derived from git tags by setuptools_scm (see [tool.setuptools_scm]
+# below). Tag a release `vX.Y.Z` to publish 0.0.0+... dev builds otherwise.
+dynamic = ["version"]
+description = "Install and run the Galacticus semi-analytic galaxy formation model."
 readme = "README.md"
 license = {file = "COPYING"}
 requires-python = ">=3.10"
@@ -35,6 +37,7 @@ dependencies = [
     "PyYAML",
     "GitPython",
     "termcolor",
+    "platformdirs",
 ]
 
 [project.optional-dependencies]
@@ -69,10 +72,42 @@ editor = [
     "findent",
 ]
 
+[project.scripts]
+# End-user launcher: `galacticus run model.xml`, `galacticus install`, etc.
+galacticus = "galacticus_launcher.cli:main"
+
 [project.urls]
 Homepage      = "https://github.com/galacticusorg/galacticus"
-Documentation = "https://github.com/galacticusorg/galacticus/wiki"
+Documentation = "https://galacticus.readthedocs.io/"
+Wiki          = "https://github.com/galacticusorg/galacticus/wiki"
 Issues        = "https://github.com/galacticusorg/galacticus/issues"
+
+# ----------------------------------------------------------------------
+# Versioning: setuptools_scm derives the version from git tags so PyPI
+# releases are immutable and reproducible.  A clean `vX.Y.Z` tag yields
+# version `X.Y.Z`; untagged/dev checkouts get a `0.0.0.devN` version,
+# which the launcher treats as "track bleeding-edge".  The fallback keeps
+# builds working in a tarball with no .git present.
+#
+# `local_scheme = "no-local-version"` omits the `+g<hash>` local segment.
+# PyPI/TestPyPI reject any local version identifier (a `+...` suffix), so
+# this is required for dev builds to be uploadable (e.g. the TestPyPI dry
+# run); a clean tagged release has no local segment either way.
+# ----------------------------------------------------------------------
+[tool.setuptools_scm]
+fallback_version = "0.0.0"
+version_scheme   = "no-guess-dev"
+local_scheme     = "no-local-version"
+
+# The repository carries non-version tags (e.g. `publication/doi/10.1103/...`).
+# Require version tags to start with `v`, so the `git describe --match` glob
+# becomes `v*[0-9]*` and the DOI tags are ignored -- otherwise the default match
+# (`*[0-9]*`) selects a DOI tag and the build fails with "Can't parse version
+# from tag". `strict = false` keeps `vX`/`vX.Y`/`vX.Y.Z` all valid and silences
+# the future-default warning.
+[tool.setuptools_scm.tag]
+prefix = "v"
+strict = false
 
 # ----------------------------------------------------------------------
 # setuptools layout: source lives under python/ rather than alongside

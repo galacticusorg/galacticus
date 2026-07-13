@@ -176,6 +176,7 @@ contains
     use :: ISO_Varying_String  , only : varying_string
     use :: Numerical_Comparison, only : Values_Differ
     use :: System_Command      , only : System_Command_Do
+    use :: System_Compilers    , only : languageC                   , compilerValidate
     use :: System_Download     , only : download
     use :: Table_Labels        , only : extrapolationTypeExtrapolate
     implicit none
@@ -240,6 +241,7 @@ contains
           ! Check for presence of the executable.
           call Directory_Make(inputPath(pathTypeDataDynamic)//"CosmicEmu-master")
           if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/emu.exe")) then
+             call compilerValidate(languageC,'CosmicEmu')
              ! Check for presence of the source code.
              if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.c")) then
                 ! Download the code.

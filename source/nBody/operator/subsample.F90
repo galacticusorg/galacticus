@@ -70,6 +70,8 @@ contains
       <description>
       The probability (between 0 and 1) that each particle is retained; particles are drawn independently from a uniform distribution to achieve the target subsampling fraction.
       </description>
+      <minimum inclusive="false">0.0</minimum>
+      <maximum>1.0</maximum>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]
@@ -94,7 +96,7 @@ contains
     <constructorAssign variables="rate, *randomNumberGenerator_"/>
     !!]
 
-    if (rate <= 0.0d0 .or. rate > 1.0d0) call Error_Report('range must be in the interval [0,1)'//{introspection:location})
+    if (rate <= 0.0d0 .or. rate > 1.0d0) call Error_Report('range must be in the interval (0,1]'//{introspection:location})
     return
   end function subsampleConstructorInternal
 

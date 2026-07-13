@@ -83,6 +83,7 @@ contains
       The lower bound :math:`x_\mathrm{l} &gt; 0` of the log-uniform distribution, below which the probability density is zero; must be positive and strictly less than the upper limit.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>limitUpper</name>
@@ -90,6 +91,7 @@ contains
       The upper bound :math:`x_\mathrm{u} &gt; 0` of the log-uniform distribution, above which the probability density is zero; must be positive and strictly greater than the lower limit.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     !!]

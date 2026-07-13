@@ -57,12 +57,12 @@ contains
     use :: Display           , only : displayMessage   , verbosityLevelWorking
     use :: File_Utilities    , only : File_Exists      , File_Lock            , File_Remove       , File_Unlock
     use :: Error             , only : Error_Report
-    use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic  , pathTypeDataStatic
+    use :: Input_Paths       , only : inputPath        , pathTypeTools        , pathTypeDataStatic
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//)      , varying_string
     use :: String_Handling   , only : operator(//)     , stringSubstitute
     use :: System_Command    , only : System_Command_Do
     use :: System_Download   , only : download
-    use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran
+    use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran   , compilerValidate
     use :: System_Which      , only : which
     implicit none
     type     (varying_string), intent(  out)           :: fspsPath, fspsVersion
@@ -79,15 +79,16 @@ contains
 
     ! Specify source code path.
     call Interface_FSPS_Version(fspsVersion)
-    fspsPath=inputPath(pathTypeDataDynamic)//"fsps-"//fspsVersion
-    lockPath=inputPath(pathTypeDataDynamic)//"fsps" //fspsVersion
+    fspsPath=inputPath(pathTypeTools)//"fsps-"//fspsVersion
+    lockPath=inputPath(pathTypeTools)//"fsps" //fspsVersion
     execPath=fspsPath//"/src/autosps.exe"
     call File_Lock(char(lockPath),fspsLock)
     ! Build the code if the executable does not exist.
     if (.not.File_Exists(execPath)) then
+       call compilerValidate(languageFortran,'FSPS')
        ! Download the code if not already done.
        if (.not.File_Exists(fspsPath)) then
-          tarPath=inputPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz"
+          tarPath=inputPath(pathTypeTools)//"FSPS_"//char(fspsVersion)//".tar.gz"
           if (.not.File_Exists(tarPath)) then
              call displayMessage("downloading FSPS source code....",verbosityLevelWorking)
              url="https://github.com/cconroy20/fsps/archive/refs/tags/v"//fspsVersion//".tar.gz"
@@ -95,7 +96,7 @@ contains
              if (.not.File_Exists(tarPath) .or. status /= 0) call Error_Report("failed to download FSPS"//{introspection:location})
           end if
           call displayMessage("unpacking FSPS code....",verbosityLevelWorking)
-          command="tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//" -f "//inputPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz"
+          command="tar -x -v -z -C "//inputPath(pathTypeTools)//" -f "//inputPath(pathTypeTools)//"FSPS_"//char(fspsVersion)//".tar.gz"
           call System_Command_Do(command,status)          
           if (status /= 0 .or. .not.File_Exists(fspsPath)) call Error_Report('failed to unpack FSPS code'//{introspection:location})
        end if

@@ -16,7 +16,6 @@
   <posteriorSampleLikelihood value="galaxyPopulation">
     <baseParametersFileName    value="parameters/tutorials/mcmcBase.xml"/>
     <failedParametersFileName  value="./failedParameters.xml"           />
-    <randomize                 value="false"                            />
     <evolveForestsVerbosity    value="silent"                           />
   </posteriorSampleLikelihood>
 

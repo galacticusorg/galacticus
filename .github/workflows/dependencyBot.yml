@@ -16,7 +16,7 @@ jobs:
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
-          app-id: ${{ secrets.DEPLOY_APP_ID }}
+          client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
       - uses: reviewdog/action-depup@v1
         if: ${{ env.appid != '' }}
@@ -48,7 +48,7 @@ jobs:
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
-          app-id: ${{ secrets.DEPLOY_APP_ID }}
+          client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
       - uses: reviewdog/action-depup@v1
         if: ${{ env.appid != '' }}
@@ -80,7 +80,7 @@ jobs:
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
-          app-id: ${{ secrets.DEPLOY_APP_ID }}
+          client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
       - uses: reviewdog/action-depup@v1
         if: ${{ env.appid != '' }}
@@ -113,7 +113,7 @@ jobs:
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
-          app-id: ${{ secrets.DEPLOY_APP_ID }}
+          client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
       - uses: reviewdog/action-depup@v1
         if: ${{ env.appid != '' }}
@@ -145,7 +145,7 @@ jobs:
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
-          app-id: ${{ secrets.DEPLOY_APP_ID }}
+          client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
       - name: Check for dependency
         if: ${{ env.appid != '' }}
@@ -183,7 +183,7 @@ jobs:
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
-          app-id: ${{ secrets.DEPLOY_APP_ID }}
+          client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
       - uses: reviewdog/action-depup@v1
         if: ${{ env.appid != '' }}

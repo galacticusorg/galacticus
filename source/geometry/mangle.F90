@@ -65,18 +65,22 @@ module Geometry_Mangle
      !!{RST
      A class to hold :term:`mangle` windows.
      !!}
-     integer                                           :: polygonCount
-     type   (polygon      ), dimension(:), allocatable :: polygons
-     integer(kind=c_size_t), dimension(:), allocatable :: solidAngleIndex
+     integer                                              :: polygonCount
+     type            (polygon), dimension(:), allocatable :: polygons
+     integer(kind=c_size_t   ), dimension(:), allocatable :: solidAngleIndex
+     logical                                              :: samplingInitialized =.false.
+     double precision         , dimension(:), allocatable :: solidAngleCumulative
    contains
      !![
      <methods docformat="rst">
-       <method description="Read the specified mangle polygon file."                        method="read"         />
-       <method description="Return true if the given point lives inside the mangle window." method="pointIncluded"/>
+       <method description="Read the specified mangle polygon file."                                      method="read"           />
+       <method description="Return true if the given point lives inside the mangle window."               method="pointIncluded"  />
+       <method description="Return a direction drawn uniformly from within the mangle window's polygons." method="sampleDirection"/>
      </methods>
      !!]
-     procedure :: read          => windowRead
-     procedure :: pointIncluded => windowPointIncluded
+     procedure :: read            => windowRead
+     procedure :: pointIncluded   => windowPointIncluded
+     procedure :: sampleDirection => windowSampleDirection
   end type window
 
 contains
@@ -127,12 +131,26 @@ contains
           call String_Split_Words(words,line)
           if (words(1) == "polygon") exit
        end do
-       line=words(4)
-       read (line,*) self%polygons(i)%capCount
-       line=words(6)
-       read (line,*) self%polygons(i)%weight
-       line=words(8)
-       read (line,*) self%polygons(i)%solidAngle
+       ! Parse the polygon header by anchoring on the labels following each
+       ! value: the layout differs between unpixelized files
+       ! ("( N caps, W weight, S str):") and pixelized files
+       ! ("( N caps, W weight, P pixel, S str):"), so fixed word positions
+       ! mis-read pixelized files (the pixel number landed in the solid
+       ! angle, corrupting the largest-polygon-first search ordering and
+       ! anything else built on polygon solid angles).
+       do j=3,10
+          line=words(j+1)
+          if (line(1:4) == "caps"  ) then
+             line=words(j)
+             read (line,*) self%polygons(i)%capCount
+          else if (line(1:6) == "weight") then
+             line=words(j)
+             read (line,*) self%polygons(i)%weight
+          else if (line(1:3) == "str"   ) then
+             line=words(j)
+             read (line,*) self%polygons(i)%solidAngle
+          end if
+       end do
        solidAngle(i)=self%polygons(i)%solidAngle
        allocate(self%polygons(i)%caps(self%polygons(i)%capCount))
        do j=1,self%polygons(i)%capCount
@@ -168,6 +186,99 @@ contains
     end do
     return
   end function windowPointIncluded
+
+  function windowSampleDirection(self,randomNumberGenerator_) result(direction)
+    !!{RST
+    Return a direction (unit 3-vector) drawn uniformly from within the window's polygons. Balkanized :term:`mangle`
+    windows have disjoint polygons, so drawing a polygon with probability proportional to its solid angle and then a
+    uniform point within that polygon samples the mask uniformly. Within a polygon, points are drawn uniformly from the
+    polygon's smallest bounding cap and rejection-sampled against the polygon's full cap set.
+    !!}
+    use :: Arrays_Search           , only : searchArray
+    use :: Error                   , only : Error_Report
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
+    implicit none
+    double precision                            , dimension(3)  :: direction
+    class           (window                    ), intent(inout) :: self
+    class           (randomNumberGeneratorClass), intent(inout) :: randomNumberGenerator_
+    ! Per-polygon rejection budget and overall retry budget. Balkanized windows can contain sliver polygons whose area
+    ! is a tiny fraction of their smallest bounding cap (they are bounded only by large survey-boundary caps), making
+    ! bounding-cap rejection arbitrarily inefficient. When the budget is exhausted a fresh polygon is drawn instead;
+    ! the resulting bias is bounded by the total solid angle of such pathological slivers (typically a ~10⁻⁶ fraction
+    ! of the window - far below Monte Carlo noise for any practical sample size).
+    integer                                     , parameter     :: iterationMaximum=10000, attemptMaximum=100
+    double precision                            , dimension(3)  :: axis                  , basisU            , &
+         &                                                         basisV
+    integer                                                     :: i                     , indexPolygon      , &
+         &                                                         iteration             , attempt
+    double precision                                            :: capHeight             , cosTheta          , &
+         &                                                         sinTheta              , phi               , &
+         &                                                         uniformDeviate
+    ! Initialize the cumulative solid angle distribution over polygons on first use.
+    if (.not.self%samplingInitialized) then
+       allocate(self%solidAngleCumulative(0:self%polygonCount))
+       self%solidAngleCumulative(0)=0.0d0
+       do i=1,self%polygonCount
+          self%solidAngleCumulative(i)=+    self%solidAngleCumulative(i-1)              &
+               &                       +max(self%polygons            (i  )%solidAngle,  &
+               &                            0.0d0                                     )
+       end do
+       if (self%solidAngleCumulative(self%polygonCount) <= 0.0d0) &
+            & call Error_Report('window has zero total solid angle'//{introspection:location})
+       self%samplingInitialized=.true.
+    end if
+    do attempt=1,attemptMaximum
+       ! Draw a polygon with probability proportional to its solid angle.
+       uniformDeviate=+self%solidAngleCumulative(self%polygonCount)                &
+            &         *randomNumberGenerator_%uniformSample()
+       indexPolygon  =int(searchArray(self%solidAngleCumulative,uniformDeviate))+1
+       indexPolygon  =max(1,min(indexPolygon,self%polygonCount))
+       ! Find the smallest positive (i.e. non-complemented) bounding cap of the polygon; the polygon is the intersection
+       ! of its caps, so it is contained within any positive cap. Fall back to the full sphere if no positive cap exists.
+       capHeight=2.0d0
+       axis     =[0.0d0,0.0d0,1.0d0]
+       do i=1,self%polygons(indexPolygon)%capCount
+          if     (                                                   &
+               &   self%polygons(indexPolygon)%caps(i)%c > 0.0d0     &
+               &  .and.                                              &
+               &   self%polygons(indexPolygon)%caps(i)%c < capHeight &
+               & ) then
+             capHeight=self%polygons(indexPolygon)%caps(i)%c
+             axis     =self%polygons(indexPolygon)%caps(i)%x
+          end if
+       end do
+       ! Build an orthonormal basis perpendicular to the cap axis.
+       if (abs(axis(1)) < 0.9d0) then
+          basisU=[0.0d0,-axis(3),+axis(2)]
+       else
+          basisU=[-axis(3),0.0d0,+axis(1)]
+       end if
+       basisU=basisU/sqrt(sum(basisU**2))
+       basisV=[                                     &
+            &  axis(2)*basisU(3)-axis(3)*basisU(2), &
+            &  axis(3)*basisU(1)-axis(1)*basisU(3), &
+            &  axis(1)*basisU(2)-axis(2)*basisU(1)  &
+            & ]
+       ! Rejection-sample a point uniform on the bounding cap until it lies within the polygon.
+       do iteration=1,iterationMaximum
+          ! Uniform on the cap: 1-cos(theta) uniform in [0,capHeight].
+          cosTheta =+1.0d0                                  &
+               &    -capHeight                              &
+               &    *randomNumberGenerator_%uniformSample()
+          sinTheta =sqrt(max(1.0d0-cosTheta**2,0.0d0))
+          phi      =+2.0d0                                  &
+               &    *Pi                                     &
+               &    *randomNumberGenerator_%uniformSample()
+          direction=+sinTheta*cos(phi)*basisU &
+               &    +sinTheta*sin(phi)*basisV &
+               &    +cosTheta         *axis
+          if (self%polygons(indexPolygon)%pointIncluded(direction)) return
+       end do
+       ! Budget exhausted for this polygon (a pathological sliver) - draw a fresh polygon.
+    end do
+    call Error_Report('failed to sample a point within the window'//{introspection:location})
+  end function windowSampleDirection
 
   logical function polygonPointIncluded(self,point)
     !!{RST
@@ -216,12 +327,13 @@ contains
     use :: File_Utilities    , only : Directory_Make   , File_Exists          , File_Lock      , File_Unlock  , &
           &                           lockDescriptor
     use :: Error             , only : Error_Report
-    use :: Input_Paths       , only : inputPath        , pathTypeDataDynamic
+    use :: Input_Paths       , only : inputPath        , pathTypeTools
     use :: ISO_Varying_String, only : operator(//)     , varying_string       , char           , assignment(=)
     use :: String_Handling   , only : stringSubstitute
     use :: System_Download   , only : download
     use :: System_Command    , only : System_Command_Do
-    use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran, languageC
+    use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran, languageC, &
+         &                            compilerValidate
     implicit none
     type   (varying_string), intent(  out)           :: manglePath, mangleVersion
     logical                , intent(in   ), optional :: static
@@ -234,9 +346,11 @@ contains
 
     ! Get the version to use.
     mangleVersion=dependencyVersion("mangle")
-    manglePath   =inputPath(pathTypeDataDynamic)//"mangle-"//mangleVersion//"/"
+    manglePath   =inputPath(pathTypeTools)//"mangle-"//mangleVersion//"/"
     ! Build the mangle code.
     if (.not.File_Exists(manglePath//"bin/harmonize")) then
+       call compilerValidate(languageFortran,'mangle')
+       call compilerValidate(languageC      ,'mangle')
        call Directory_Make(     manglePath                                         )
        call File_Lock     (char(manglePath//"mangle"),fileLock,lockIsShared=.false.)
        ! Unpack the code.
@@ -248,7 +362,7 @@ contains
              if (status /= 0 .or. .not.File_Exists(manglePath//".tar.gz")) call Error_Report("unable to download mangle"//{introspection:location})
           end if
           call displayMessage("unpacking mangle code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeDataDynamic)//" -f "//manglePath//".tar.gz",status)
+          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeTools)//" -f "//manglePath//".tar.gz",status)
           if (status /= 0 .or. .not.File_Exists(manglePath//"src/Makefile.in")) call Error_Report('failed to unpack mangle code'//{introspection:location})
        end if
        staticOptions=""

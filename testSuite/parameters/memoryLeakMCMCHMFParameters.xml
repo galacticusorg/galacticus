@@ -31,7 +31,6 @@
   <haloEnvironment value="fixed">
     <massEnvironment value=" 6.334263e+12" />
     <overdensity value="-0.748223" />
-    <redshift ignoreWarnings="true" value="0.000" />
   </haloEnvironment>
   <haloMassFunction value="errorConvolved">
     <errorFractionalMaximum value="1.0e+0" />

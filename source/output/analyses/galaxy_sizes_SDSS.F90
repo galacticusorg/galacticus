@@ -74,6 +74,8 @@ contains
       <description>
       The number (1-34) of the distribution to compute.
       </description>
+      <minimum>1</minimum>
+      <maximum>34</maximum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>massStellarRatio</name>

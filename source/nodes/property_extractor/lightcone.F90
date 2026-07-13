@@ -56,7 +56,7 @@
       Velocity of the galaxy (in km/s) along the 2\ :math:`^\mathrm{nd}` angular direction of the lightcone;
 
    ``lightconeRedshiftCosmological``
-      Redshift of the galaxy in the lightcone\footnoteNote that this will not, in general, be precisely the same as the redshift corresponding to the output time.;
+      Redshift of the galaxy in the lightcone\ [#]_;
 
    ``lightconeRedshiftObserved``
       Observed redshift of the galaxy, accounting for the effects of line-of-sight peculiar velocity (included only if ``[includeObservedRedshift]``\ =\ ``true``);
@@ -71,6 +71,8 @@
       The mean number density of this galaxy per unit area on the sky (in degrees\ :math:`^{-2}`).
 
    In order to allow this output a lightcone geometry (see :galacticus-class:`geometryLightcone`) must be specified.
+
+   .. [#] Note that this will not, in general, be precisely the same as the redshift corresponding to the output time.
    </description>
   </nodePropertyExtractor>
   !!]

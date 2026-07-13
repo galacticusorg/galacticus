@@ -27,7 +27,29 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinxcontrib.bibtex',
     'sphinxcontrib.mermaid',
+    'nbsphinx',
 ]
+
+# The tutorial notebooks are committed WITH executed output (kept green by
+# the Python-Interface CI job, which re-executes them against each freshly
+# built library), so the docs build renders those outputs verbatim and never
+# needs libgalacticus itself.
+nbsphinx_execute = 'never'
+
+# The notebooks live at the repository root (tutorials/) so users can run
+# them in place; copy them into the Sphinx source tree at build time (the
+# copies are gitignored).
+def _copy_tutorial_notebooks():
+    import glob
+    import shutil
+    docs_dir  = os.path.dirname(os.path.abspath(__file__))
+    source    = os.path.join(docs_dir, os.pardir, 'tutorials')
+    target    = os.path.join(docs_dir, 'tutorials')
+    os.makedirs(target, exist_ok=True)
+    for notebook in glob.glob(os.path.join(source, '*.ipynb')):
+        shutil.copy2(notebook, target)
+
+_copy_tutorial_notebooks()
 
 # Spell-checking (sphinxcontrib-spelling) is loaded only for the dedicated
 # ``spelling`` build (``SPHINX_SPELLING=1``, run in CI), so the normal HTML /

@@ -1,17 +1,31 @@
 # Welcome to Galacticus
 
 [![CI/CD](https://github.com/galacticusorg/galacticus/actions/workflows/cicd.yml/badge.svg)](https://github.com/galacticusorg/galacticus/actions/workflows/cicd.yml)
+[![PyPI version](https://img.shields.io/pypi/v/galacticus.svg)](https://pypi.org/project/galacticus/)
+[![Python versions](https://img.shields.io/pypi/pyversions/galacticus.svg)](https://pypi.org/project/galacticus/)
+[![Documentation](https://readthedocs.org/projects/galacticus/badge/?version=latest)](https://galacticus.readthedocs.io/en/latest/)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Welcome to the Galacticus project. Galacticus is a semi-analytic model of galaxy formation - a powerful toolkit for modeling the physics of how galaxies form.
-For more information please see the [wiki](https://github.com/galacticusorg/galacticus/wiki), and for a description of the physics see the [description paper](https://arxiv.org/abs/1008.1786) on Galacticus.
+Galacticus is a semi-analytic model of galaxy formation — a powerful, flexible toolkit for modeling the physics of how galaxies form and evolve. For the science behind it, see the [description paper](https://arxiv.org/abs/1008.1786); for everything else, the [documentation](https://galacticus.readthedocs.io/).
 
-Have questions? Ask them in the [discussion forum](https://github.com/galacticusorg/galacticus/discussions).
+**Install:** `pip install galacticus` gets you a ready-to-run model with no compilation — pre-built binaries, datasets, and tools are downloaded automatically for Linux and macOS. See the [Quickstart](#quickstart) and the [pip installation guide](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/pip.html).
+
+Have questions? Ask in the [discussion forum](https://github.com/galacticusorg/galacticus/discussions), or browse the [wiki](https://github.com/galacticusorg/galacticus/wiki).
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=master&repo=204087682)
 
 ---
 
 ## Quickstart
+
+> **Just want to run models?** If you don't need to modify the code, the easiest way to get started is to install the pre-built launcher from PyPI — no compiler or manual setup required:
+>
+> ```bash
+> pip install galacticus
+> galacticus run parameters/quickTest.xml
+> ```
+>
+> The first run downloads the right binary, datasets, and tools for your platform (Linux x86-64, macOS Intel, or macOS Apple Silicon) and configures the environment for you. See the [pip installation guide](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/pip.html). The rest of this section covers building from source, which you need only if you want to modify or extend Galacticus.
 
 This section walks you through building and running a minimal Galacticus model for the first time.
 
@@ -88,3 +102,9 @@ Analysis and visualization of Galacticus outputs - including plotting of on-the-
 ```bash
 python3 -m pip install dendros
 ```
+
+## Publications
+
+The [Galacticus Publications](https://github.com/galacticusorg/galacticusPublications) repository collects the parameter files and the exact Galacticus commit hash used to run the models in published papers, so that those results are easy to find and reproduce. The commit behind each paper is also tagged in this repository (e.g. `publication/arXiv/XXXX.XXXXX`), letting you check out the precise version of the code used.
+
+Written a paper that uses Galacticus? We'd welcome your contribution — see the [contribution guidelines](https://github.com/galacticusorg/galacticusPublications/blob/master/Contributing.md) for how to add it.

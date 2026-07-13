@@ -112,23 +112,25 @@ defines a parameter named "``cosmologyFunctions``" to have a value of "``matterL
 Checking your parameter file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can check that your parameter file has correct syntax using the ``validateParameters.py`` script. For example, to run this script on a parameter file named ``myParameterFile.xml`` you would do:
+You can check that your parameter file has correct syntax using the ``parameterValidate.py`` script with the ``--structural`` option. For example, to run this script on a parameter file named ``myParameterFile.xml`` you would do:
 
 .. code-block:: bash
 
-   ./scripts/aux/validateParameters.py myParameterFile.xml
+   ./scripts/build/parameterValidate.py --structural myParameterFile.xml
 
 Any problems with the parameters will be reported. As an example, try running the script on the (intentionally) incorrect parameter file ``testSuite/parameters/validation/duplicate-value-invalid.xml``:
 
 .. code-block:: bash
 
-   ./scripts/aux/validateParameters.py testSuite/parameters/validation/duplicate-value-invalid.xml
+   ./scripts/build/parameterValidate.py --structural testSuite/parameters/validation/duplicate-value-invalid.xml
 
-The output should be:
+The output should report:
 
 .. code-block:: text
 
-   Parameter 'componentSpin' has multiple values
+   [error/value] parameters/componentSpin: parameter 'componentSpin' has multiple values
+
+For deeper, catalog-aware checks (valid implementation selectors, accepted parameter names, and value type/enumeration/range constraints), generate the parameter catalog first and pass it with ``--catalog`` (see :ref:`the advanced guide <validating-parameter-files>`).
 
 informing you that a parameter appears multiple times in the file.
 

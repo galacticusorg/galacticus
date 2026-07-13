@@ -32,45 +32,25 @@ from Galacticus.Build.FileChanges               import update as file_changes_up
 from Galacticus.Build.FortranUtils              import get_fortran_line
 from Fortran.Utils                    import UNIT_OPENERS
 from Galacticus.Build.Directives      import extract_directives
-from Galacticus.Build.SourceTree      import parse_file, walk_tree
+from Galacticus.Build.ParallelScan    import scan as parallel_scan
+from Galacticus.Build.SourceTree      import parse_file
+from Galacticus.Build.TypeScan        import collect_types_and_directives, inherits_from
 from List.ExtraUtils                  import as_array
 from XML.Utils                        import dict_to_xml_string, xml_to_dict
+from Galacticus.Build.ScanCache import (
+    file_identifier as _file_identifier,
+    load_cache      as _load_cache,
+)
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-_TYPE_OPENER_RE = re.compile(
-    r'^\s*type\s*'
-    r'(?:,\s*(?:(abstract)|public|private|extends\s*\(([a-zA-Z0-9_]+)\))\s*)*'
-    r'(?:::)?\s*([a-zA-Z0-9_]+)\s*$',
-    re.IGNORECASE,
-)
-
 _MODULE_OPENER_RE = UNIT_OPENERS['module']['regex']
 _MODULE_NAME_GROUP = UNIT_OPENERS['module']['unit_name']  # 0-based index
 
 _MODULE_INLINE_RE = re.compile(r'^module\s+([a-zA-Z0-9_]+)')
-
-
-def _file_identifier(path):
-    """Perl `(my $id = $path) =~ s/\\//_/g; $id =~ s/^\\._??//;`."""
-    return re.sub(r'^\._?', '', path.replace('/', '_'))
-
-
-def _load_cache(blob_path):
-    if not os.path.exists(blob_path):
-        return {}, None
-    try:
-        with open(blob_path, 'rb') as fh:
-            cache = pickle.load(fh)
-    except (pickle.UnpicklingError, EOFError, AttributeError, ValueError,
-            ImportError, ModuleNotFoundError):
-        return {}, None
-    if not isinstance(cache, dict):
-        return {}, None
-    return cache, os.stat(blob_path).st_mtime
 
 
 def _parse_directive_locations(path):
@@ -111,39 +91,6 @@ def _collect_module_openers(file_name):
     return modules
 
 
-def _collect_types_and_directives(tree, directive_type):
-    """Walk `tree`, returning (type-dict, directive-node-list).  See the same
-    helper in deepCopyActions.py for the structure.
-    """
-    classes    = {}
-    directives = []
-    for node in walk_tree(tree):
-        if node.get('type') == directive_type:
-            directives.append(node)
-        if node.get('type') == 'type':
-            m = _TYPE_OPENER_RE.match(node.get('opener') or '')
-            if not m:
-                raise RuntimeError(
-                    "stateStorables.py: unable to parse type definition "
-                    f"opener: {node.get('opener')!r}"
-                )
-            abstract, extends, name = m.group(1), m.group(2), m.group(3)
-            classes[name] = {
-                'extends':  extends,
-                'abstract': abstract is not None,
-            }
-    return classes, directives
-
-
-def _inherits_from(classes, class_name, base_class):
-    current = class_name
-    while current is not None:
-        if current == base_class:
-            return True
-        current = classes.get(current, {}).get('extends')
-    return False
-
-
 def _enclosing_module_name(node):
     """Walk up `node`'s parents, returning the first enclosing `module`
     name (or `""` if none).  Mirrors the loop at stateStorables.pl:119-126.
@@ -156,6 +103,59 @@ def _enclosing_module_name(node):
                 return m.group(1)
         cur = cur.get('parent')
     return ''
+
+
+# ---------------------------------------------------------------------------
+# Per-file workers (run concurrently; each reads files only, no shared state)
+# ---------------------------------------------------------------------------
+#
+# Each pass's slow part is the per-file open/read/parse over NFS. The workers
+# below do exactly that and return plain data; main() merges the results in the
+# original order, reproducing the serial pop/setdefault sequence (and hence the
+# cache blob) exactly. The final XML is built from fully sorted lists, so it is
+# insensitive to ordering regardless.
+
+def _scan_function_class(task):
+    """Pass 1: module openers + functionClass directive names for one file."""
+    file_identifier, file_name = task
+    modules  = _collect_module_openers(file_name)
+    fc_names = [fc['name'] for fc in extract_directives(file_name, 'functionClass')]
+    return file_identifier, modules, fc_names
+
+
+def _scan_instance(task):
+    """Pass 2: concrete instance names for one (instance-file, functionClass)."""
+    instance_identifier, instance_file, function_class_name = task
+    names = [inst['name']
+             for inst in extract_directives(instance_file, function_class_name)]
+    return instance_identifier, names
+
+
+def _scan_state_storable(task):
+    """Pass 3: derived types matching each stateStorable directive's base."""
+    file_identifier, file_name = task
+    tree = parse_file(file_name)
+    classes, directives = collect_types_and_directives(tree, 'stateStorable')
+    entries = []
+    for node in directives:
+        directive  = node.get('directive') or {}
+        base_class = directive.get('class')
+        module     = _enclosing_module_name(node)
+        for class_name in sorted(classes):
+            if inherits_from(classes, class_name, base_class):
+                entries.append({
+                    'type':   class_name,
+                    'class':  base_class,
+                    'module': module,
+                })
+    return file_identifier, entries
+
+
+def _scan_event_static(task):
+    """Pass 4: eventHookStatic directive names for one file."""
+    file_identifier, file_name = task
+    names = [d['name'] for d in extract_directives(file_name, 'eventHookStatic')]
+    return file_identifier, names
 
 
 # ---------------------------------------------------------------------------
@@ -179,26 +179,45 @@ def main(argv):
 
     # -----------------------------------------------------------------------
     # Pass 1: every functionClass file -- extract modules + directives.
+    # Parsed concurrently, merged in file order (reproducing the serial
+    # pop/setdefault/append sequence exactly).
     # -----------------------------------------------------------------------
     function_class_files = as_array(
         (directive_locations.get('functionClass') or {}).get('file')
     )
+    p1_tasks = [
+        (_file_identifier(f), f) for f in function_class_files
+        if not _fresh(cache_mtime,
+                      _file_identifier(f) in storables_per_file, f)
+    ]
+    p1_results = {
+        fid: (modules, fc_names)
+        for fid, modules, fc_names in parallel_scan(
+            p1_tasks, _scan_function_class, 'stateStorables.py')
+    }
     for file_name in function_class_files:
         file_identifier = _file_identifier(file_name)
-        if not _fresh(cache_mtime,
-                      file_identifier in storables_per_file, file_name):
-            storables_per_file.pop(file_identifier, None)
-            modules = _collect_module_openers(file_name)
-            entry   = storables_per_file.setdefault(file_identifier, {})
-            for fc in extract_directives(file_name, 'functionClass'):
-                descriptor = {'name': fc['name'] + 'Class'}
-                if len(modules) == 1:
-                    descriptor['module'] = modules[0]
-                entry.setdefault('functionClasses', []).append(descriptor)
-                entry.setdefault('functionClassDirectives', []).append(fc['name'])
+        if file_identifier not in p1_results:
+            continue                      # fresh -- keep the cached entry
+        modules, fc_names = p1_results[file_identifier]
+        storables_per_file.pop(file_identifier, None)
+        entry = storables_per_file.setdefault(file_identifier, {})
+        for name in fc_names:
+            descriptor = {'name': name + 'Class'}
+            if len(modules) == 1:
+                descriptor['module'] = modules[0]
+            entry.setdefault('functionClasses', []).append(descriptor)
+            entry.setdefault('functionClassDirectives', []).append(name)
 
-        # Pass 2: for each functionClass declared here, enumerate its
-        # concrete instances -- one per file under the directive's name.
+    # -----------------------------------------------------------------------
+    # Pass 2: for each functionClass, enumerate its concrete instances. Tasks
+    # are built in the original nested order (so the merge's pop/append, which
+    # is order-sensitive when an instance file recurs, matches the serial run);
+    # Pass 1 must be merged first since this reads functionClassDirectives.
+    # -----------------------------------------------------------------------
+    p2_tasks = []
+    for file_name in function_class_files:
+        file_identifier = _file_identifier(file_name)
         directive_names = (
             storables_per_file.get(file_identifier, {})
                               .get('functionClassDirectives') or []
@@ -213,15 +232,25 @@ def main(argv):
                           instance_identifier in storables_per_file,
                           instance_file):
                     continue
-                storables_per_file.pop(instance_identifier, None)
-                instance_entry = storables_per_file.setdefault(
-                    instance_identifier, {},
+                p2_tasks.append(
+                    (instance_identifier, instance_file, function_class_name)
                 )
-                for inst in extract_directives(instance_file,
-                                               function_class_name):
-                    instance_entry.setdefault(
-                        'functionClassInstances', [],
-                    ).append(inst['name'])
+    # The cache entry for a freshly-scanned instance file is popped ONCE (to
+    # discard any stale instances left from a previous run), then every task's
+    # names are appended. A single instance file that implements instances of
+    # more than one functionClass yields one task per class; popping only on
+    # the first of them lets those tasks accumulate, instead of a later task's
+    # pop discarding an earlier one's names (which silently dropped that file's
+    # instances of every class but the last).
+    popped = set()
+    for instance_identifier, names in parallel_scan(
+            p2_tasks, _scan_instance, 'stateStorables.py'):
+        if instance_identifier not in popped:
+            storables_per_file.pop(instance_identifier, None)
+            popped.add(instance_identifier)
+        instance_entry = storables_per_file.setdefault(instance_identifier, {})
+        for name in names:
+            instance_entry.setdefault('functionClassInstances', []).append(name)
 
     # -----------------------------------------------------------------------
     # Pass 3: every stateStorable file -- walk its AST and record derived
@@ -230,29 +259,14 @@ def main(argv):
     state_storable_files = as_array(
         (directive_locations.get('stateStorable') or {}).get('file')
     )
-    for file_name in state_storable_files:
-        file_identifier = _file_identifier(file_name)
-        if _fresh(cache_mtime,
-                  file_identifier in storables_per_file, file_name):
-            continue
+    p3_tasks = [
+        (_file_identifier(f), f) for f in state_storable_files
+        if not _fresh(cache_mtime,
+                      _file_identifier(f) in storables_per_file, f)
+    ]
+    for file_identifier, entries in parallel_scan(
+            p3_tasks, _scan_state_storable, 'stateStorables.py'):
         storables_per_file.pop(file_identifier, None)
-
-        tree = parse_file(file_name)
-        classes, directives = _collect_types_and_directives(
-            tree, 'stateStorable',
-        )
-        entries = []
-        for node in directives:
-            directive  = node.get('directive') or {}
-            base_class = directive.get('class')
-            module     = _enclosing_module_name(node)
-            for class_name in sorted(classes):
-                if _inherits_from(classes, class_name, base_class):
-                    entries.append({
-                        'type':   class_name,
-                        'class':  base_class,
-                        'module': module,
-                    })
         if entries:
             storables_per_file.setdefault(
                 file_identifier, {},
@@ -264,16 +278,14 @@ def main(argv):
     event_static_files = as_array(
         (directive_locations.get('eventHookStatic') or {}).get('file')
     )
-    for file_name in event_static_files:
-        file_identifier = _file_identifier(file_name)
-        if _fresh(cache_mtime,
-                  file_identifier in storables_per_file, file_name):
-            continue
+    p4_tasks = [
+        (_file_identifier(f), f) for f in event_static_files
+        if not _fresh(cache_mtime,
+                      _file_identifier(f) in storables_per_file, f)
+    ]
+    for file_identifier, names in parallel_scan(
+            p4_tasks, _scan_event_static, 'stateStorables.py'):
         storables_per_file.pop(file_identifier, None)
-        names = [
-            d['name']
-            for d in extract_directives(file_name, 'eventHookStatic')
-        ]
         if names:
             storables_per_file.setdefault(
                 file_identifier, {},

@@ -38,7 +38,7 @@
      private
      logical                                              :: includeBaryonGravity                , useFormationHalo         , &
           &                                                  solveForInactiveProperties          , convergenceFailureIsFatal
-     double precision                                     :: solutionTolerance
+     double precision                                     :: solutionTolerance                   , velocityMaximumFactor
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_       => null()
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_      => null()
    contains
@@ -78,7 +78,7 @@ contains
     class           (darkMatterProfileDMOClass         ), pointer       :: darkMatterProfileDMO_
     logical                                                             :: useFormationHalo          , includeBaryonGravity     , &
          &                                                                 solveForInactiveProperties, convergenceFailureIsFatal
-    double precision                                                    :: solutionTolerance
+    double precision                                                    :: solutionTolerance         , velocityMaximumFactor
 
     !![
     <inputParameter docformat="rst">
@@ -121,10 +121,16 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>velocityMaximumFactor</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>If positive, the circular velocity of a galactic component returned by the solver is capped at this factor times the halo virial velocity (equivalently, the solved radius is prevented from collapsing to an unphysically small value). A value of zero (the default) disables the cap, recovering the original behavior. This regularizes pathological, numerically-driven disk collapses (radius :math:`\rightarrow 0`, velocity :math:`\rightarrow \infty`) that can occur for very low specific angular momentum or during ODE overshoot states.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
-    self=galacticStructureSolverEquilibrium(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfileDMO_)
+    self=galacticStructureSolverEquilibrium(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,velocityMaximumFactor,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_" />
@@ -133,7 +139,7 @@ contains
     return
   end function equilibriumConstructorParameters
 
-  function equilibriumConstructorInternal(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
+  function equilibriumConstructorInternal(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,velocityMaximumFactor,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`galacticStructureSolverEquilibrium` galactic structure solver class.
     !!}
@@ -141,11 +147,11 @@ contains
     type            (galacticStructureSolverEquilibrium)                        :: self
     logical                                             , intent(in   )         :: useFormationHalo          , includeBaryonGravity     , &
          &                                                                         solveForInactiveProperties, convergenceFailureIsFatal
-    double precision                                    , intent(in   )         :: solutionTolerance
+    double precision                                    , intent(in   )         :: solutionTolerance         , velocityMaximumFactor
     class           (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
     !![
-    <constructorAssign variables="convergenceFailureIsFatal, useFormationHalo, includeBaryonGravity, solutionTolerance, solveForInactiveProperties, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="convergenceFailureIsFatal, useFormationHalo, includeBaryonGravity, solutionTolerance, velocityMaximumFactor, solveForInactiveProperties, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
     !!]
 
     return
@@ -359,9 +365,11 @@ contains
             !![
             <objectDestructor name="massDistribution_"/>
             !!]
+            if (self%velocityMaximumFactor > 0.0d0) velocity=min(velocity,self%velocityMaximumFactor*self%darkMatterHaloScale_%velocityVirial(node_))
          else
             ! A previous radius was set, so use it, and the previous circular velocity, as the initial guess.
             velocity=velocityGet(node)
+            if (self%velocityMaximumFactor > 0.0d0) velocity=min(velocity,self%velocityMaximumFactor*self%darkMatterHaloScale_%velocityVirial(node_))
          end if
          ! If structure is not being reverted, store the new values of radius and velocity.
          if (.not.revertStructure .and. countIterations == 1) then
@@ -411,6 +419,10 @@ contains
          end if
          ! Compute new estimate of velocity.
          velocity=sqrt(darkMatterVelocitySquared+baryonicVelocitySquared)
+         ! Optionally cap the velocity at a multiple of the halo virial velocity. This regularizes pathological,
+         ! numerically-driven collapse of the radius (radius → 0, velocity → ∞) that can otherwise occur for very low
+         ! specific angular momentum or when the solver is driven by unphysical disk masses during ODE overshoot steps.
+         if (self%velocityMaximumFactor > 0.0d0) velocity=min(velocity,self%velocityMaximumFactor*self%darkMatterHaloScale_%velocityVirial(node_))
          ! Compute new estimate of radius.
          if (radius > 0.0d0) then
             radiusNew=sqrt(specificAngularMomentum/velocity*radius)

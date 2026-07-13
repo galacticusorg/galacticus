@@ -2,12 +2,12 @@
 # Scan source code for "!![…!!]" XML directives and dispatch the matching
 # generator.  Andrew Benson (ported to Python 2026)
 #
-# Mirrors scripts/build/buildCode.pl: the top-level driver that the build
-# system invokes once per `<directive>.xml` control file (see
-# codeDirectivesParse.py:327, where each include directive's Makefile rule
-# expands to `./scripts/build/buildCode.pl <install_dir> <directive_xml>`).
+# The top-level driver that the build system invokes once per
+# `<directive>.xml` control file: each include directive's Makefile rule
+# (written into Makefile_Directives by codeDirectivesParse.py) expands to
+# `./scripts/build/buildCode.py <install_dir> <directive_xml>`.
 #
-# The Perl driver scans every Fortran source file containing the named
+# The driver scans every Fortran source file containing the named
 # directive, accumulates each `<directive>` block's parsed XML body together
 # with the surrounding module name and source-file metadata, then dispatches
 # a `validate → parse → generate` pipeline registered by
@@ -25,6 +25,10 @@ import xml.etree.ElementTree as ET
 
 from Galacticus.Build.FortranUtils                      import get_fortran_line
 from Galacticus.Build.FileChanges                       import update as file_changes_update
+from Galacticus.Build.ScanCache                         import (
+    file_identifier as _file_identifier,
+    load_cache      as _load_cache,
+)
 from Fortran.Utils                            import UNIT_OPENERS, UNIT_CLOSERS
 from XML.Utils                                import xml_to_dict
 from Galacticus.Build                         import Hooks
@@ -37,41 +41,8 @@ from Galacticus._logging                      import configure_default as _confi
 # verbose `print()`-driven output of the Perl-era driver).
 _configure_default()
 
-# Importing each Process submodule registers its hook with the SourceTree
-# pipeline.  Mirrors the `use` statements at the top of
-# perl/Galacticus/Build/SourceTree.pm; same set as scripts/build/preprocess.py.
-import Galacticus.Build.SourceTree.Process.AddMetaProperty          # noqa: F401
-import Galacticus.Build.SourceTree.Process.Allocate                 # noqa: F401
-import Galacticus.Build.SourceTree.Process.ConditionalCall          # noqa: F401
-import Galacticus.Build.SourceTree.Process.Constants                # noqa: F401
-import Galacticus.Build.SourceTree.Process.Constructors             # noqa: F401
-import Galacticus.Build.SourceTree.Process.DebugHDF5                # noqa: F401
-import Galacticus.Build.SourceTree.Process.DebugMPI                 # noqa: F401
-import Galacticus.Build.SourceTree.Process.DeepCopyActions          # noqa: F401
-import Galacticus.Build.SourceTree.Process.DeepCopyFinalize         # noqa: F401
-import Galacticus.Build.SourceTree.Process.DeepCopyReset            # noqa: F401
-import Galacticus.Build.SourceTree.Process.Dependencies             # noqa: F401
-import Galacticus.Build.SourceTree.Process.Enumeration              # noqa: F401
-import Galacticus.Build.SourceTree.Process.EventHooks               # noqa: F401
-import Galacticus.Build.SourceTree.Process.EventHooksStatic         # noqa: F401
-import Galacticus.Build.SourceTree.Process.ForEach                  # noqa: F401
-import Galacticus.Build.SourceTree.Process.FunctionClass            # noqa: F401
-import Galacticus.Build.SourceTree.Process.FunctionsGlobal          # noqa: F401
-import Galacticus.Build.SourceTree.Process.Generics                 # noqa: F401
-import Galacticus.Build.SourceTree.Process.HDF5FCInterop            # noqa: F401
-import Galacticus.Build.SourceTree.Process.InputParameter           # noqa: F401
-import Galacticus.Build.SourceTree.Process.InputParametersValidate  # noqa: F401
-import Galacticus.Build.SourceTree.Process.MetaPropertyDatabase     # noqa: F401
-import Galacticus.Build.SourceTree.Process.NonProcessed             # noqa: F401
-import Galacticus.Build.SourceTree.Process.ObjectBuilder            # noqa: F401
-import Galacticus.Build.SourceTree.Process.OptionalArgument         # noqa: F401
-import Galacticus.Build.SourceTree.Process.ParameterMigration       # noqa: F401
-import Galacticus.Build.SourceTree.Process.ProfileOpenMP            # noqa: F401
-import Galacticus.Build.SourceTree.Process.SourceDigest             # noqa: F401
-import Galacticus.Build.SourceTree.Process.SourceIntrospection      # noqa: F401
-import Galacticus.Build.SourceTree.Process.StateStorable            # noqa: F401
-import Galacticus.Build.SourceTree.Process.StateStore               # noqa: F401
-import Galacticus.Build.SourceTree.Process.ThreadSafeIO             # noqa: F401
+# Register every source-tree process hook (the full set — see Process/all.py).
+import Galacticus.Build.SourceTree.Process.all  # noqa: F401
 
 
 # ---------------------------------------------------------------------------
@@ -133,9 +104,8 @@ def main(argv=None):
     # mtime is older than the cache get skipped.  Mirrors Perl's `Storable`
     # blob at `<fileName>.blob`.
     blob_path           = build['fileName'] + '.blob'
-    have_per_file       = os.path.exists(blob_path)
-    directives_per_file = _load_blob(blob_path) if have_per_file else {}
-    update_time         = os.path.getmtime(blob_path) if have_per_file else None
+    directives_per_file, update_time = _load_cache(blob_path)
+    have_per_file       = update_time is not None
 
     # Decide which files to scan.
     file_names_to_scan = _scan_targets(
@@ -228,29 +198,26 @@ def _xml_load(path):
 # ---------------------------------------------------------------------------
 
 def _scan_targets(directive, locations, source_directory):
-    """Return the list of files to scan for a given directive name.
+    """Return the list of files to scan for a given directive name, from the
+    pre-computed `directiveLocations.xml` map.
 
-    If the build cache `directiveLocations.xml` is available, take its
-    pre-computed list; otherwise fall back to every Fortran source file in
-    `source_directory`.
+    The map is required: the Makefile rules that invoke this script are
+    themselves written by codeDirectivesParse.py, which generates
+    `directiveLocations.xml` in the same run, so the file always exists in a
+    build. A missing map means this script was invoked out of sequence.
     """
-    if locations is not None and directive in locations:
-        files = locations[directive].get('file')
-        if files is None:
-            return []
-        return files if isinstance(files, list) else [files]
-
-    # Match `*.f`, `*.F`, `*.f90`, `*.F90`, `*.ft`, `*.Ft`, …
-    pattern = re.compile(r'\.[fF](90)?t?$')
-    out = []
-    for dirpath, dirnames, filenames in os.walk(source_directory):
-        dirnames[:] = sorted(d for d in dirnames if not d.startswith('.'))
-        for entry in filenames:
-            if entry.startswith('.#'):
-                continue
-            if pattern.search(entry):
-                out.append(os.path.join(dirpath, entry))
-    return out
+    if locations is None:
+        sys.exit(
+            "buildCode.py: directiveLocations.xml not found — run "
+            "./scripts/build/codeDirectivesParse.py first (in a build this "
+            "is done by the $(BUILDPATH)/directiveCatalogs.stamp rule)."
+        )
+    if directive not in locations:
+        return []
+    files = locations[directive].get('file')
+    if files is None:
+        return []
+    return files if isinstance(files, list) else [files]
 
 
 # ---------------------------------------------------------------------------
@@ -269,7 +236,7 @@ def _scan_file(file_name, build, source_directory,
     correct `moduleName`.  Files whose recorded mtime predates the cache are
     skipped wholesale.
     """
-    file_identifier = re.sub(r'^\._?', '', file_name.replace('/', '_'))
+    file_identifier = _file_identifier(file_name)
 
     # mtime-based skip:  if every file we previously scanned for this id is
     # older than the cache, nothing has changed.
@@ -326,12 +293,18 @@ def _process_until_include_or_eof(fh, frame, build, source_directory,
     we exhausted the file.
     """
     while True:
-        try:
-            raw_line, processed_line, _ = get_fortran_line(fh) \
-                if build['codeType'] == 'fortran' \
-                else (fh.readline(), fh.readline(), '')
-        except StopIteration:
-            break
+        if build['codeType'] == 'fortran':
+            raw_line, processed_line, _ = get_fortran_line(fh)
+        else:
+            # For C/C++ the raw and processed forms are the same single line;
+            # `get_fortran_line`'s continuation-joining does not apply. Read
+            # ONE line and use it for both — mirrors `_consume_until_close`
+            # below and the Perl original. (A previous
+            # `(fh.readline(), fh.readline(), '')` here read two lines per
+            # iteration, so `raw_line`/`processed_line` were different,
+            # consecutive lines and every other line was skipped.)
+            line = fh.readline()
+            raw_line, processed_line = line, line
         if not raw_line and not processed_line:
             return None
 
@@ -398,8 +371,6 @@ def _process_until_include_or_eof(fh, frame, build, source_directory,
             frame['position'] = fh.tell()
             return include_file, frame
 
-    return None
-
 
 def _consume_until_close(fh, build, xml_tag, frame, source_directory,
                          xml_code):
@@ -429,7 +400,7 @@ def _consume_until_close(fh, build, xml_tag, frame, source_directory,
             m = _INCLUDE_RE.match(processed)
             if m and include_file is None:
                 include_file = re.sub(
-                    r'\.inc$', '.Inc',
+                    r'\.inc$', '.p.Inc',
                     os.path.join(source_directory, build_path, m.group(1)),
                 )
 
@@ -474,16 +445,6 @@ def _parse_directive(xml_code, frame, build):
 # ---------------------------------------------------------------------------
 # Cache I/O
 # ---------------------------------------------------------------------------
-
-def _load_blob(path):
-    """Restore the per-file cache, ignoring a corrupt or stale pickle."""
-    try:
-        with open(path, 'rb') as fh:
-            data = pickle.load(fh)
-        return data if isinstance(data, dict) else {}
-    except (pickle.UnpicklingError, EOFError, AttributeError, ValueError):
-        return {}
-
 
 if __name__ == '__main__':
     main()

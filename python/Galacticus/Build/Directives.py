@@ -41,12 +41,17 @@ def _matches_conditions(directive: dict, conditions: dict | None) -> bool:
     return True
 
 
-def extract_directives(file_name: str, directive_name: str,
+def extract_directives(file_name: str, directive_name,
                        conditions: dict | None = None,
                        set_root_element_type: bool = False) -> list[dict]:
     """Return every directive in `file_name` whose root element matches
-    `directive_name` (or whose root element is anything when `directive_name`
-    is `'*'`).
+    `directive_name` — a single name, a set/tuple/list of names, or `'*'`
+    to match any root element.
+
+    Passing several names in one call reads and parses the file once
+    (each call performs a full line-by-line read, so N single-name calls
+    cost N reads); use `set_root_element_type=True` to recover which name
+    each returned directive matched.
 
     Mirrors Perl Extract_Directives (Directives.pm:80-98) plus the underlying
     state machine from Extract_Directive (Directives.pm:11-78):
@@ -124,7 +129,7 @@ def extract_directive(file_name: str, directive_name: str, **kwargs: Any) -> dic
     return directives[0] if directives else None
 
 
-def _parse_xml_block(xml_text: str, file_name: str, directive_name: str,
+def _parse_xml_block(xml_text: str, file_name: str, directive_name,
                      conditions: dict | None,
                      set_root_element_type: bool) -> dict | None:
     """Parse one accumulated XML block and return a dict if the root matches
@@ -142,7 +147,10 @@ def _parse_xml_block(xml_text: str, file_name: str, directive_name: str,
             f"'{directive_name}' from '{file_name}': {exc}\nXML content was:\n{xml_text}"
         )
 
-    if directive_name != '*' and elem.tag != directive_name:
+    if isinstance(directive_name, str):
+        if directive_name != '*' and elem.tag != directive_name:
+            return None
+    elif elem.tag not in directive_name:
         return None
 
     directive = xml_to_dict(elem)

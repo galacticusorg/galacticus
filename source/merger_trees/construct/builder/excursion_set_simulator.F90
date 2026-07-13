@@ -117,6 +117,8 @@
 	  <description>
 	  The maximum factor (:math:`&lt;1`) by which the mass of a halo can have changed before consolidation is no longer permitted.
 	  </description>
+	  <minimum inclusive="false">0.0</minimum>
+	  <maximum>1.0</maximum>
 	</inputParameter>
         <inputParameter docformat="rst">
 	  <name>factorTimeConsolidate</name>
@@ -125,6 +127,7 @@
 	  <description>
 	  The maximum factor (:math:`&lt;1`) by which the time of a halo can have changed before consolidation is no longer permitted.
 	  </description>
+	  <minimum inclusive="false">0.0</minimum>
 	</inputParameter>
  	<objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
 	<objectBuilder class="mergerTreeMassResolution" name="mergerTreeMassResolution_" source="parameters"/>

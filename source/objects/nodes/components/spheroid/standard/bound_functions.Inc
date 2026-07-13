@@ -26,7 +26,7 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self,componentType,m
   Return the mass distribution for the standard spheroid component.
   !!}
   use :: Mass_Distributions                   , only : massDistributionClass    , massDistributionSphericalScaler, massDistributionComposite   , massDistributionList   , &
-        &                                              massDistributionSpherical, massDistributionMatches_
+        &                                              massDistributionSpherical, massDistributionMatches_       , massDistributionListAcquire
   use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_           , kinematicDistribution_      , scalerStellarPool      , &
        &                                               scalerGasPool
   use :: Galactic_Structure_Options           , only : componentTypeSpheroid    , massTypeStellar                , massTypeGaseous             , enumerationWeightByType, &
@@ -129,8 +129,8 @@ function Node_Component_Spheroid_Standard_Mass_Distribution(self,componentType,m
      if      (includeStars .and. includeGas) then
         ! Wrap the dimensionless mass distribution inside scaler classes to allow us to re-scale it to any spheroid system, and then composite those.
         allocate(massDistributionTotal          )
-        allocate(massDistributionComponents     )
-        allocate(massDistributionComponents%next)
+        massDistributionComponents                        => massDistributionListAcquire()
+        massDistributionComponents%next                   => massDistributionListAcquire()
         massDistributionComponents     %massDistribution_ => massDistributionStellar
         massDistributionComponents%next%massDistribution_ => massDistributionGas
         !![
