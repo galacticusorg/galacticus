@@ -176,4 +176,72 @@ You can tell Galacticus to parse your parameter file, report any warnings, and w
 
 This can be useful to check that your parameter file is valid, and allow you to explore the values of any parameters that were set to defaults (as these will have been output to the HDF5 file).
 
+Run-time Estimation and Progress Reporting
+------------------------------------------
+
+When evolving a set of merger trees (the ``evolveForests`` task), Galacticus can report on the progress of the run and estimate how long it will take. This is useful both for monitoring a long-running job and, when a cost model is supplied, for estimating the total run time up-front so that an appropriately-sized cluster job can be requested.
+
+Progress reports
+~~~~~~~~~~~~~~~~~
+
+By default, Galacticus reports whole-run progress during merger tree evolution. The reporting cadence is controlled by the ``[timeIntervalReportProgress]`` parameter of the ``evolveForests`` task, which gives the minimum wall-clock interval (in seconds; default ``60``) between reports; setting it to zero or a negative value disables progress reporting. For example, to report every ten seconds:
+
+.. code-block:: xml
+
+    <task value="evolveForests">
+      <timeIntervalReportProgress value="10.0"/>
+    </task>
+
+Three kinds of message are produced:
+
+* a **start-of-run** line, giving the number of trees to be processed and (if a cost model is available; see below) an estimate of the total run time;
+* **throttled progress** reports during the run, giving the number of trees processed, the percentage complete, the elapsed time, and an estimated time remaining;
+* an **end-of-run summary**, giving the total wall time, total core-time, and the mean and maximum per-tree processing times---phrased to be directly useful when sizing a subsequent job.
+
+The estimated time remaining is *self-calibrating*: it is continually corrected using the ratio of actual to predicted processing time measured over the trees completed so far in the current run. It therefore converges to an accurate value as the run proceeds, even for a model it has never seen before. When trees are built in order of descending mass (the default), the most expensive trees complete first, so the estimate converges quickly.
+
+Under MPI, the progress report is made by the master process only, and the tree count shown is the globally-consistent count of forests claimed across all processes.
+
+Cost models: estimating run time before the run starts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Without any prior information, no estimate of the *total* run time can be made at the start of a run (progress is instead reported purely in terms of the number of trees completed). To obtain a start-of-run estimate---for example, to decide how much wall time to request for a cluster job---you can supply a *cost model* calibrated from a previous run of the same (or a similar) model. Using such a model is a two-step process.
+
+**Step 1: calibrate.** Enable the ``treeProcessingTimer`` merger tree operator in a (typically shorter, or representative) run:
+
+.. code-block:: xml
+
+    <mergerTreeOperator value="treeProcessingTimer"/>
+
+This records the processing time of each tree and, at the end of the run, fits the (base-10 logarithm of the) processing time as a quadratic function of the (base-10 logarithm of the) tree mass, and separately of the tree node count. The fit coefficients, residual scatter, and range of validity are written into the ``metaData/treeTiming`` group of that run's output file, alongside the raw per-tree timing data.
+
+**Step 2: estimate.** In a subsequent run, supply that output file as the cost model via the ``file`` :galacticus-class:`metaTreeProcessingTime` class:
+
+.. code-block:: xml
+
+    <metaTreeProcessingTime value="file">
+      <fileName value="previousRun.hdf5"/>
+    </metaTreeProcessingTime>
+
+Galacticus will then report a start-of-run estimate of the total core-time and the projected wall time given the number of workers, and will use the cost model to weight the running time-remaining estimate by the *predicted* work of each tree (which is much more accurate early in the run than a simple count of trees, especially when a few large trees dominate the cost). If a maximum wall time (``[walltimeMaximum]``) is set and the projected time exceeds it, a warning is issued.
+
+Because the time to process a tree depends on the physics of the specific model (as well as on mass, resolution, number of outputs, and so on), the estimate is necessarily *conditional on the calibration model*; this is noted in the reported message.
+
+For merger trees that are **built** on-the-fly, the root masses are known before evolution, so the mass-based fit is used. For merger trees that are **read** from files, the root masses are not known until a tree has been evolved, but the number of nodes in each tree *is* known from the file metadata; in this case the node-count-based fit is used automatically (the ``file`` cost model reads it from the same output file).
+
+The ``file`` cost model also accepts the legacy XML format (a ``<timing><fit>`` document of mass-based coefficients); an ``.hdf5`` or ``.h5`` file name selects the HDF5 format described above. Fit coefficients can be produced, or combined across several output files, using the ``scripts/analysis/treeProcessingTimeFit.py`` helper script (see :doc:`analysis`).
+
+Estimate-only (run-time sizing) mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To obtain the start-of-run estimate *without* actually evolving any trees---for instance, when sizing a job request---set the ``[estimateRunTimeOnly]`` parameter of the ``evolveForests`` task:
+
+.. code-block:: xml
+
+    <task value="evolveForests">
+      <estimateRunTimeOnly value="true"/>
+    </task>
+
+Galacticus will compute and report the estimate and then exit. This requires a cost model and tree census to produce a useful estimate. (This differs from the ``--dry-run`` command-line option described above, which parses the parameter file and exits without attempting any estimate.)
+
 .. [#] `h5py <https://www.h5py.org/>`_
