@@ -1019,6 +1019,7 @@ contains
     Call routines to set all derivatives for ``node``.
     !!}
     use :: Calculations_Resets, only : Calculations_Reset
+    use :: Galacticus_Nodes   , only : propertyActive    , evaluationActiveRHS
     implicit none
     type     (treeNode), intent(inout)          :: node
     logical            , intent(  out)          :: interrupt
@@ -1029,6 +1030,12 @@ contains
     ! Initialize interrupt status.
     interrupt         =  .false.
     functionInterrupt => null()
+    ! Flag that active-property derivatives are being evaluated (true only for the active property type). In
+    ! debugging builds this is used by the generated property getters to validate that no inactive property value is
+    ! read while active-property derivatives are being computed (during which inactive property values are stale).
+    ! The flag deliberately covers the Calculations_Reset call and the preDerivative event hook below, since those
+    ! feed the derivative calculations. It is cleared on all exits from this routine.
+    evaluationActiveRHS=propertyActive(propertyType)
     ! Call component routines to indicate that derivative calculation is commencing.
     call Calculations_Reset(node)
     ! Trigger an event to perform any pre-derivative calculations.
@@ -1038,11 +1045,16 @@ contains
     </eventHook>
     !!]
     ! Do not attempt to compute derivatives for nodes which are not solvable.
-    if (.not.node%isSolvable) return
+    if (.not.node%isSolvable) then
+       evaluationActiveRHS=.false.
+       return
+    end if
     ! Call component routines to compute derivatives.
     call self_%nodeOperator_%differentialEvolution(node,interrupt,functionInterrupt,propertyType)
     ! Return the procedure pointer.
     functionInterruptReturn => functionInterrupt
+    ! Clear the active-property derivative evaluation flag.
+    evaluationActiveRHS=.false.
     return
   end subroutine standardDerivativesCompute
 

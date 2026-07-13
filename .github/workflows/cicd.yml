@@ -291,6 +291,11 @@ jobs:
         with:
           name: test-execs-debugging
           path: 'tests.*.exe'
+      - name: Upload Galacticus executable
+        uses: actions/upload-artifact@v7
+        with:
+          name: galacticus-exec-debugging
+          path: 'Galacticus.exe'
       - run: echo "This job's status is ${{ job.status }}."
   ### Library
   Build-Library-Linux:
@@ -1423,6 +1428,29 @@ jobs:
     with:
       file: ${{ matrix.file }}
       artifact: galacticus-exec
+      runPath: ./testSuite
+    secrets: inherit
+  ## Inactive-property models run against the debugging (-DDEBUGGING) executable. Only in debugging builds are the
+  ## run-time checks that no inactive property value is read during active-property evolution (issue #128) compiled
+  ## into the generated property getters. The positive test asserts the check fires on a deliberate erroneous read;
+  ## the remaining models exercise inactive properties (and inactive float rank-0 meta-properties) legitimately and
+  ## must complete without the check firing.
+  Miscellaneous-Debugging:
+    needs: Build-Executables-Debugging-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        file: [ test-inactive-property-read.py,
+                test-inactive_luminosities.py,
+                test-outputSelector.py,
+                test-output-tree-contiguousity.py,
+                test-CGM-mass-cooled.py,
+                test-galacticStructureStateDeallocateBug.py ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: ${{ matrix.file }}
+      artifact: galacticus-exec-debugging
       runPath: ./testSuite
     secrets: inherit
   Miscellaneous-Unexpected:

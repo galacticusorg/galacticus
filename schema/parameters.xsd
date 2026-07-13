@@ -2438,6 +2438,7 @@
           <xs:enumeration value="stellarFeedbackDisks"/>
           <xs:enumeration value="stellarFeedbackSpheroids"/>
           <xs:enumeration value="subsubhaloPromotion"/>
+          <xs:enumeration value="testInactivePropertyRead"/>
           <xs:enumeration value="tidalHeatingSpheroids"/>
           <xs:enumeration value="tidalMassLossDisks"/>
           <xs:enumeration value="tidalMassLossSoliton"/>

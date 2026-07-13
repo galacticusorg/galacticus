@@ -8,7 +8,8 @@ Mirrors perl/Galacticus/Build/Components/Classes/MetaProperties.pm.
 
 
 
-from Galacticus.Build.Components.Utils import register
+from Galacticus.Build.Components.Utils import register, offset_name
+from Galacticus.Build.Components.Properties.Evolve import _is_debugging
 
 # The order of entries is preserved verbatim from the Perl module so that
 # generated identifier suffixes (`Float`, `LongInteger`, `Integer` × ranks
@@ -42,6 +43,7 @@ def Class_Meta_Property_Get(build, class_dict):
             if rank > 0 else ''
         )
 
+        modules = ['ISO_Varying_String']
         if active:
             kind_suffix = (
                 f"%values" if rank > 0 else ""
@@ -52,6 +54,21 @@ def Class_Meta_Property_Get(build, class_dict):
                 f"Rank{rank}MetaPropertyLabels(metaPropertyID)),'{mpt['label']}',"
                 f"{rank})\n"
             )
+            # In debugging builds, guard reads of inactive float rank-0 meta-properties (the only meta-property kind
+            # that supports inactivity) while active-property derivatives are being evaluated - their stored values
+            # are stale during that phase, so any such read is a bug (see issue #128).
+            if _is_debugging() and mpt['label'] == 'float' and rank == 0:
+                offset_all = offset_name('all', name, 'floatRank0MetaProperties')
+                content += (
+                    "if (evaluationActiveRHS) then\n"
+                    f" if (nodeInactives({offset_all}(metaPropertyID))) call Error_Report("
+                    f"'value of inactive float rank-0 meta-property \"'//char({name}"
+                    f"FloatRank0MetaPropertyLabels(metaPropertyID))//'\" of the {name} "
+                    "component was read during active property evolution'"
+                    "//{introspection:location})\n"
+                    "end if\n"
+                )
+                modules.append('Error')
             if rank > 0:
                 size_args = ','.join(
                     f"size(self%{mpt['label']}Rank{rank}"
@@ -79,7 +96,7 @@ def Class_Meta_Property_Get(build, class_dict):
                 f"Return the value of a rank-{rank} {mpt['label']} "
                 f"meta-property of a {type_name} component given its ID."
             ),
-            'modules':     ['ISO_Varying_String'],
+            'modules':     modules,
             'variables':   [
                 {
                     'intrinsic':  'class',
