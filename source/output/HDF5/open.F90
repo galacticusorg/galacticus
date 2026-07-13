@@ -116,7 +116,8 @@ contains
          <name>hdf5UseLatestFormat</name>
          <defaultValue>.false.</defaultValue>
          <description>
-         Specifies whether to use the latest HDF5 file format.
+         Specifies whether to use the latest HDF5 file format. Note that, to ensure output files remain readable by HDF5 1.14, the
+         ``latest'' format is capped at the HDF5 1.14 format version even when Galacticus is built against HDF5 2.0 or later.
          </description>
          <source>parameters</source>
        </inputParameter>

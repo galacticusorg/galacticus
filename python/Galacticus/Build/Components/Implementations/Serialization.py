@@ -374,6 +374,7 @@ def Implementation_Serialize_Raw(build, class_dict, member):
             f"Serialize the contents of a {member['name']} implementation "
             f"of the {class_dict['name']} component to raw (binary) file."
         ),
+        'modules':     ['ISO_Varying_String'],
         'variables':   [
             {
                 'intrinsic':  'class',
@@ -437,6 +438,14 @@ def Implementation_Serialize_Raw(build, class_dict, member):
             content += "end if\n"
 
     if class_dict['name'] in (build.get('componentClassListActive') or []):
+        # Meta-properties are written in a self-describing form: for each
+        # meta-property type we write a count, and then for each meta-property
+        # its name (length followed by characters) alongside its value(s). This
+        # makes the on-disk format independent of the set of meta-properties
+        # registered by the (task-dependent) run performing the store, so that a
+        # run performing the restore can map values back by name regardless of
+        # which meta-properties it has itself registered. See the matching
+        # deserialization in `Implementation_Deserialize_Raw`.
         for mpt in meta_property_types:
             cap_label = _ucfirst(mpt['label'])
             rank      = mpt['rank']
@@ -444,16 +453,29 @@ def Implementation_Serialize_Raw(build, class_dict, member):
             var_pref  = f"{class_dict['name']}{prefix}"
             if rank == 0:
                 content += (
-                    f"if (allocated({var_pref}MetaPropertyNames)) "
-                    f"write (fileHandle) self%{prefix}MetaProperties\n"
+                    f"if (allocated({var_pref}MetaPropertyNames)) then\n"
+                    f" write (fileHandle) size({var_pref}MetaPropertyNames)\n"
+                    f" do i=1,size({var_pref}MetaPropertyNames)\n"
+                    f"  write (fileHandle) len({var_pref}MetaPropertyNames(i))\n"
+                    f"  write (fileHandle) char({var_pref}MetaPropertyNames(i))\n"
+                    f"  write (fileHandle) self%{prefix}MetaProperties(i)\n"
+                    " end do\n"
+                    "else\n"
+                    " write (fileHandle) 0\n"
+                    "end if\n"
                 )
             elif rank == 1:
                 content += (
                     f"if (allocated({var_pref}MetaPropertyNames)) then\n"
+                    f" write (fileHandle) size({var_pref}MetaPropertyNames)\n"
                     f" do i=1,size({var_pref}MetaPropertyNames)\n"
+                    f"  write (fileHandle) len({var_pref}MetaPropertyNames(i))\n"
+                    f"  write (fileHandle) char({var_pref}MetaPropertyNames(i))\n"
                     f"  write (fileHandle) size(self%{prefix}MetaProperties(i)%values)\n"
                     f"  write (fileHandle) self%{prefix}MetaProperties(i)%values\n"
                     " end do\n"
+                    "else\n"
+                    " write (fileHandle) 0\n"
                     "end if\n"
                 )
             else:
@@ -478,6 +500,7 @@ def Implementation_Deserialize_Raw(build, class_dict, member):
             f"Deserialize the contents of a {member['name']} implementation "
             f"of the {class_dict['name']} component from raw (binary) file."
         ),
+        'modules':     ['ISO_Varying_String', 'Kind_Numbers'],
         'variables':   [
             {
                 'intrinsic':  'class',
@@ -497,6 +520,46 @@ def Implementation_Deserialize_Raw(build, class_dict, member):
         ],
         'content':     '',
     }
+
+    active = class_dict['name'] in (build.get('componentClassListActive') or [])
+    if active:
+        # Scratch variables used to read the self-describing meta-property
+        # block and map stored values back onto the currently-registered
+        # meta-properties by name (see `Implementation_Serialize_Raw`).
+        function['variables'].append({
+            'intrinsic': 'integer',
+            'variables': ['j', 'metaPropertyCount', 'metaPropertyNameLength',
+                          'metaPropertyMatch'],
+        })
+        function['variables'].append({
+            'intrinsic':  'character',
+            'type':       'len=:',
+            'attributes': ['allocatable'],
+            'variables':  ['metaPropertyName'],
+        })
+        for mpt in meta_property_types:
+            if mpt['rank'] != 0:
+                continue
+            cap_label = _ucfirst(mpt['label'])
+            var = {
+                'intrinsic': mpt['intrinsic'],
+                'variables': [f"metaPropertyScalar{cap_label}"],
+            }
+            if mpt.get('type'):
+                var['type'] = mpt['type']
+            function['variables'].append(var)
+        for mpt in meta_property_types:
+            if mpt['rank'] != 1:
+                continue
+            cap_label = _ucfirst(mpt['label'])
+            var = {
+                'intrinsic':  mpt['intrinsic'],
+                'attributes': ['allocatable', 'dimension(:)'],
+                'variables':  [f"metaPropertyBuffer{cap_label}"],
+            }
+            if mpt.get('type'):
+                var['type'] = mpt['type']
+            function['variables'].append(var)
 
     has_rank1_real = any(
         not (p.get('attributes') or {}).get('isVirtual')
@@ -561,31 +624,84 @@ def Implementation_Deserialize_Raw(build, class_dict, member):
                 )
             content += "end if\n"
 
-    if class_dict['name'] in (build.get('componentClassListActive') or []):
+    if active:
+        # Read the self-describing meta-property block written by
+        # `Implementation_Serialize_Raw`. For each meta-property type we read a
+        # count and then, for each stored meta-property, its name and value(s).
+        # Every stored entry is consumed from the stream regardless of whether
+        # this run has the meta-property registered (so the stream never
+        # desyncs), and values are assigned by matching the stored name against
+        # the currently-registered names. Registered meta-properties absent from
+        # the file retain their default (zero / unallocated) value.
+        zero_literal = {
+            'float':       '0.0d0',
+            'longInteger': '0_kind_int8',
+            'integer':     '0',
+        }
         for mpt in meta_property_types:
             cap_label = _ucfirst(mpt['label'])
             rank      = mpt['rank']
             prefix    = f"{cap_label}Rank{rank}"
             var_pref  = f"{class_dict['name']}{prefix}"
+            match_head = (
+                "read (fileHandle) metaPropertyNameLength\n"
+                "if (allocated(metaPropertyName)) deallocate(metaPropertyName)\n"
+                "allocate(character(len=metaPropertyNameLength) :: "
+                "metaPropertyName)\n"
+                "read (fileHandle) metaPropertyName\n"
+                "metaPropertyMatch=0\n"
+                f"if (allocated({var_pref}MetaPropertyNames)) then\n"
+                f" do j=1,size({var_pref}MetaPropertyNames)\n"
+                f"  if ({var_pref}MetaPropertyNames(j) == metaPropertyName) then\n"
+                "   metaPropertyMatch=j\n"
+                "   exit\n"
+                "  end if\n"
+                " end do\n"
+                "end if\n"
+            )
             if rank == 0:
                 content += (
                     f"if (allocated({var_pref}MetaPropertyNames)) then\n"
+                    f" if (allocated(self%{prefix}MetaProperties)) "
+                    f"deallocate(self%{prefix}MetaProperties)\n"
                     f" allocate(self%{prefix}MetaProperties(size("
                     f"{var_pref}MetaPropertyNames)))\n"
-                    f" read (fileHandle) self%{prefix}MetaProperties\n"
+                    f" self%{prefix}MetaProperties={zero_literal[mpt['label']]}\n"
                     "end if\n"
+                    "read (fileHandle) metaPropertyCount\n"
+                    "do i=1,metaPropertyCount\n"
+                    + match_head +
+                    " if (metaPropertyMatch > 0) then\n"
+                    f"  read (fileHandle) self%{prefix}MetaProperties(metaPropertyMatch)\n"
+                    " else\n"
+                    f"  read (fileHandle) metaPropertyScalar{cap_label}\n"
+                    " end if\n"
+                    "end do\n"
                 )
             elif rank == 1:
                 content += (
-                    f"if (allocated({var_pref}MetaPropertyNames  )) then\n"
+                    f"if (allocated({var_pref}MetaPropertyNames)) then\n"
+                    f" if (allocated(self%{prefix}MetaProperties)) "
+                    f"deallocate(self%{prefix}MetaProperties)\n"
                     f" allocate(self%{prefix}MetaProperties(size("
                     f"{var_pref}MetaPropertyNames)))\n"
-                    f" do i=1,size({var_pref}MetaPropertyNames)\n"
-                    "  read (fileHandle) metaPropertySize\n"
-                    f"  allocate(self%{prefix}MetaProperties(i)%values(metaPropertySize))\n"
-                    f"  read (fileHandle) self%{prefix}MetaProperties(i)%values\n"
-                    " end do\n"
                     "end if\n"
+                    "read (fileHandle) metaPropertyCount\n"
+                    "do i=1,metaPropertyCount\n"
+                    + match_head +
+                    " read (fileHandle) metaPropertySize\n"
+                    " if (metaPropertyMatch > 0) then\n"
+                    f"  if (allocated(self%{prefix}MetaProperties(metaPropertyMatch)%values)) "
+                    f"deallocate(self%{prefix}MetaProperties(metaPropertyMatch)%values)\n"
+                    f"  allocate(self%{prefix}MetaProperties(metaPropertyMatch)%values(metaPropertySize))\n"
+                    f"  read (fileHandle) self%{prefix}MetaProperties(metaPropertyMatch)%values\n"
+                    " else\n"
+                    f"  if (allocated(metaPropertyBuffer{cap_label})) "
+                    f"deallocate(metaPropertyBuffer{cap_label})\n"
+                    f"  allocate(metaPropertyBuffer{cap_label}(metaPropertySize))\n"
+                    f"  read (fileHandle) metaPropertyBuffer{cap_label}\n"
+                    " end if\n"
+                    "end do\n"
                 )
             else:
                 raise RuntimeError(

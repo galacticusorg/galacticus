@@ -11,6 +11,7 @@ We welcome many types of contributions:
 - **Documentation** - Updates to comments, docstrings, wiki pages, and guides
 - **Performance improvements** - Optimizations and efficiency gains
 - **AI-assisted contributions** - Code developed with tools like GitHub Copilot, Claude, ChatGPT, etc.
+- **Published results** - Parameter files and commit details for papers that use Galacticus, contributed to the separate [Galacticus Publications](https://github.com/galacticusorg/galacticusPublications) repository (see its [contribution guidelines](https://github.com/galacticusorg/galacticusPublications/blob/master/Contributing.md))
 
 *All contributions, regardless of source, must be thoroughly verified by a human developer before submission.*
 

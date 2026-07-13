@@ -28,6 +28,13 @@ Getting Galacticus
 
 Galacticus is available in many different forms: a precompiled binary, a `Docker <https://www.docker.com/>`_ image, and the full source code. See :doc:`installation/index` for downloads and installation instructions.
 
+Published results
+-----------------
+
+The companion `Galacticus Publications <https://github.com/galacticusorg/galacticusPublications>`_ repository collects the parameter files and the exact Galacticus commit hash used to run the models in published papers, making those results easy to find, reproduce, and build upon. The commit behind each paper is also tagged in the main Galacticus repository (for example ``publication/arXiv/XXXX.XXXXX``), so you can check out the precise version of the code used.
+
+If you have written a paper that uses Galacticus, we would welcome your contribution — see the `contribution guidelines <https://github.com/galacticusorg/galacticusPublications/blob/master/Contributing.md>`_ for how to add it.
+
 License
 -------
 

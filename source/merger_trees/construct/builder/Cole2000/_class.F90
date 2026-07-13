@@ -56,7 +56,7 @@
       The highest redshift to which the tree should be built. Any branch reaching this redshift will be terminated. Typically this should be set to a high value such that branches terminate when the resolution limit it reached, but specifying a maximum redshift can be useful in some situations.
 
    ``[branchIntervalStep]``
-      If ``true``, instead of limiting each time step such that the probability of branching is less than ``mergerTreeBuildCole2000MergeProbability``, the interval to the next branching event will be drawn from a negative exponential with the appropriate rate. If this exceeds the maximum allowed timestep based on other considerations (e.g. the accretion limit), no branching occurs, and the timestep proceeds\footnoteNote that we do not have to concern ourselves in the subsequent timestep with the fact that no branching occurred in the previous timestep because of the memorylessness nature of the negative exponential distribution. That is, the distribution of branching intervals conditioned on the fact that no branching occurred in the previous timestep, is just the same negative exponential distribution.. If the interval is less than the maximum allowed timestep, branching occurs at that point. In the regime of high branching rates (which occur when the branch being grown is far above the mass resolution), this approach allows for larger timesteps to be taken.
+      If ``true``, instead of limiting each time step such that the probability of branching is less than ``mergerTreeBuildCole2000MergeProbability``, the interval to the next branching event will be drawn from a negative exponential with the appropriate rate. If this exceeds the maximum allowed timestep based on other considerations (e.g. the accretion limit), no branching occurs, and the timestep proceeds\ [#]_. If the interval is less than the maximum allowed timestep, branching occurs at that point. In the regime of high branching rates (which occur when the branch being grown is far above the mass resolution), this approach allows for larger timesteps to be taken.
 
    The minimum halo mass that the algorithm will follow is determined by the selection merger tree building mass resolution method (see :galacticus-class:`mergerTreeMassResolution`). Mass accretion below this scale is treated as smooth accretion and branches are truncated once they fall below this mass.
 
@@ -74,6 +74,8 @@
       M_3 &amp; = (M_1 - M_2^\prime) (1-F),
 
    which ensures a symmetric treatment of subresolution accretion close to :math:`M_1/2`.
+
+   .. [#] Note that we do not have to concern ourselves in the subsequent timestep with the fact that no branching occurred in the previous timestep because of the memorylessness nature of the negative exponential distribution. That is, the distribution of branching intervals conditioned on the fact that no branching occurred in the previous timestep, is just the same negative exponential distribution.
    </description>
    <deepCopy>
      <ignore variables="workers"                           />

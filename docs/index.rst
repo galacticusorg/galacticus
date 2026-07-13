@@ -17,6 +17,7 @@ generated directly from the documentation embedded in the source code.
    manuals/user-guide/index
    manuals/developer-guide/index
    manuals/physics/index
+   tutorials/index
 
 .. toctree::
    :maxdepth: 2

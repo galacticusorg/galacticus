@@ -28,7 +28,7 @@ Implements the survey geometry of the SDSS sample used by :cite:t:`li_distributi
    <description>
    A survey geometry class that describes the survey geometry of :cite:t:`li_distribution_2009`.
 
-   For the angular mask, we make use of the catalog of random points within the survey footprint provided by the NYU-VAGC\footnoteSpecifically, `https://zenodo.org/records/10257229/files/lss_random-0.dr72.dat &lt;https://zenodo.org/records/10257229/files/lss_random-0.dr72.dat&gt;`_ (which is a copy of the dataset originally found at the, now defunct, URL ``http://sdss.physics.nyu.edu/lss/dr72/random/lss_random-0.dr72.dat``). (:cite:author:`blanton_new_2005` :cite:year:`blanton_new_2005`; see also :cite:t:`adelman-mccarthy_sixth_2008,padmanabhan_improved_2008`). :cite:t:`li_distribution_2009` consider only the main, contiguous region and so we keep only those points which satisfy RA\ :math:`&gt;100^\circ`, RA\ :math:`&lt;300^\circ`, and RA\ :math:`&lt;247^\circ` or :math:`\delta&lt; 51^\circ`. When the survey window function is needed, these points are used to determine which elements of a 3D grid fall within the window function.
+   For the angular mask, we make use of the catalog of random points within the survey footprint provided by the NYU-VAGC\ [#]_ (:cite:author:`blanton_new_2005` :cite:year:`blanton_new_2005`; see also :cite:t:`adelman-mccarthy_sixth_2008,padmanabhan_improved_2008`). :cite:t:`li_distribution_2009` consider only the main, contiguous region and so we keep only those points which satisfy RA\ :math:`&gt;100^\circ`, RA\ :math:`&lt;300^\circ`, and RA\ :math:`&lt;247^\circ` or :math:`\delta&lt; 51^\circ`. When the survey window function is needed, these points are used to determine which elements of a 3D grid fall within the window function.
 
    To estimate the depth of the :cite:t:`li_distribution_2009` sample as a function of galaxy stellar mass we make use of semi-analytic models in the Millennium Database. Specifically, we use the :term:`SAM` of :cite:author:`de_lucia_hierarchical_2007` (:cite:year:`de_lucia_hierarchical_2007`; specifically the ``millimil..DeLucia2006a`` and ``millimil..DeLucia2006a_sdss2mass`` tables in the Millennium Database). For each snapshot in the database, we extract the stellar masses and observed-frame SDSS r-band absolute magnitudes (including dust extinction), and determine the median absolute magnitude as a function of stellar mass. Using the limiting apparent magnitude of the :cite:t:`li_distribution_2009` sample, :math:`r=17.6`, we infer the corresponding absolute magnitude at each redshift and, using our derived absolute magnitude--stellar mass relation, infer the corresponding stellar mass.
 
@@ -46,6 +46,8 @@ Implements the survey geometry of the SDSS sample used by :cite:t:`li_distributi
       :name: fig-SDSSDepthFit
 
       The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of :cite:t:`li_distribution_2009`. Points show the results obtained using the :cite:t:`de_lucia_hierarchical_2007` model from the Millennium Database, while the lines shows a polynomial fit to these results (given in eqn. :eq:`eq-DepthPolynomial`).
+
+   .. [#] Specifically, `https://zenodo.org/records/10257229/files/lss_random-0.dr72.dat &lt;https://zenodo.org/records/10257229/files/lss_random-0.dr72.dat&gt;`_ (which is a copy of the dataset originally found at the, now defunct, URL ``http://sdss.physics.nyu.edu/lss/dr72/random/lss_random-0.dr72.dat``).
    </description>
   </surveyGeometry>
   !!]

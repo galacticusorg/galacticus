@@ -296,6 +296,63 @@ This directive can (and should) be used to destroy objects built by the ``object
       return
      end subroutine simpleDestructor
 
+.. _manual-sec-referenceCounting:
+
+Reference Counting
+~~~~~~~~~~~~~~~~~~
+
+Every ``functionClass`` object carries an internal reference counter which tracks how many references to the object are held. The ``objectBuilder`` directive increments this counter automatically when it retrieves or builds an object, and the ``objectDestructor`` directive decrements it, deallocating the object only when the count reaches zero. When objects are constructed directly (i.e. not via ``objectBuilder``), or when additional references to an existing object are taken, the reference count must still be kept accurate so that ``objectDestructor`` behaves correctly. Three directives automate this.
+
+The ``referenceConstruct`` directive constructs an object via an explicit constructor, increments its reference count, and calls its ``autoHook`` method (see Section :galacticus-ref:`autoHook`). For example:
+
+.. code-block:: none
+
+    class(kinematicsDistributionClass), pointer :: kinematicDistribution_
+
+    allocate(kinematicDistribution_)
+    !![
+    <referenceConstruct object="kinematicDistribution_" constructor="kinematicsDistributionLocal(alpha=1.0d0/sqrt(2.0d0))"/>
+    !!]
+
+which expands to an assignment of the constructor result to the object, followed by calls to ``referenceCountIncrement`` and ``autoHook`` on that object. The directive accepts the following attributes:
+
+``object``
+   The name of the variable to which the constructed object is assigned.
+
+``constructor``
+   The constructor expression to use. For long constructor expressions this may instead be given as a ``constructor`` element contained within the directive.
+
+``owner``
+   *(optional)* The name of an object owning ``object``---the assignment target is then ``{owner}%{object}``.
+
+``nameAssociated``
+   *(optional)* An alternative name by which the object is accessible at the point of the directive (e.g.\ inside an ``associate`` block). If given, this name is used in the generated code in place of ``{owner}%{object}``.
+
+``isResult``
+   *(optional)* If set to ``yes``, annotates that the reference being created is the result of the enclosing function, so ownership of the reference passes to the caller. This attribute does not change the generated code---it exists to allow static analysis of reference counting.
+
+The ``referenceAcquire`` directive takes a new reference to an *existing* object, pointer-associating a target with a source and incrementing the reference count:
+
+.. code-block:: none
+
+    !![
+    <referenceAcquire target="kinematicsDistribution_" source="self%kinematicsDistribution_"/>
+    !!]
+
+The ``target`` and ``source`` attributes are required; ``owner`` and ``isResult`` attributes are also accepted with the same meanings as for ``referenceConstruct`` (with ``owner`` applying to the target).
+
+Finally, the ``referenceCountIncrement`` directive simply increments the reference count of an existing object, for cases where a new reference has been created by other means (e.g. an explicit pointer assignment):
+
+.. code-block:: none
+
+    !![
+    <referenceCountIncrement owner="filter_" object="filter_"/>
+    !!]
+
+It accepts ``object`` (required), plus optional ``owner`` and ``isResult`` attributes as above.
+
+Every reference created via these directives should be balanced by a matching ``objectDestructor`` directive when the reference is released.
+
 Constructor Assignments
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -312,6 +369,53 @@ A common requirement in object constructors is to assign the values of arguments
      end function stellarMassConstructorInternal
 
 will cause the value of the ``massThreshold`` argument to ``stellarMassConstructorInternal%massThreshold``. If an argument name is prefixed with ``*`` in the variables list, pointer assignment is used instead of standard assignment.
+
+.. _manual-sec-metaProperties:
+
+Meta-Properties
+~~~~~~~~~~~~~~~
+
+Node components define their properties statically via ``component`` directives. Sometimes, however, a class needs to attach additional per-node data without defining a new component---for example, a ``nodeOperator`` recording some quantity that a ``galacticFilter`` will later read. Such data can be attached as a *meta-property* of an existing component class, registered at runtime using the ``addMetaProperty`` directive:
+
+.. code-block:: none
+
+    !![
+    <addMetaProperty component="basic" name="nodeFormationTime" id="self%nodeFormationTimeID" isEvolvable="no" isCreator="no"/>
+    !!]
+
+This expands to a call which registers a meta-property named ``nodeFormationTime`` in the ``basic`` component class, and stores the resulting integer identifier in ``self%nodeFormationTimeID``. That identifier is then used to access the meta-property via the component's type-bound accessors, e.g.:
+
+.. code-block:: none
+
+    time=basic%floatRank0MetaPropertyGet(self%nodeFormationTimeID     )
+    call basic%floatRank0MetaPropertySet(self%nodeFormationTimeID,time)
+
+(with the accessor names following the pattern ``{type}Rank{rank}MetaPropertyGet``/``Set``). Registering the same name from multiple classes yields the same identifier, so meta-properties can be shared between classes. The directive accepts the following attributes:
+
+``component``
+   The name of the component class to which the meta-property is attached (e.g. ``basic``).
+
+``name``
+   The name of the meta-property. This may also be a Fortran ``character`` variable or expression, allowing names to be constructed at runtime (e.g. one meta-property per element of a list).
+
+``id``
+   The integer variable in which to store the identifier of the registered meta-property.
+
+``type``
+   *(optional)* The type of the meta-property: ``float`` (default), ``integer``, or ``longInteger``.
+
+``rank``
+   *(optional)* The rank of the meta-property: 0 (default) or 1.
+
+``isEvolvable``
+   *(optional)* If ``yes``, the meta-property behaves as an evolvable property of the component (i.e. it is included in ODE evolution, with the usual rate accessors). Only rank-0, ``float`` meta-properties can be evolvable. Default is ``no``.
+
+``isCreator``
+   *(optional)* Set to ``yes`` in the class which is responsible for *setting* the meta-property, and ``no`` in classes which merely read it. This allows a meaningful error message (naming the class that should have been included in the model) to be reported if the meta-property is read but was never created. Default is ``no``.
+
+The error reporting described under ``isCreator`` is supported by the ``metaPropertyDatabase`` directive, which appears exactly once (in ``source/objects/nodes/_class.F90``) and synthesizes a database mapping each known meta-property name to the ``functionClass`` implementations that create it. It is internal build infrastructure, and never needs to be used when defining or using meta-properties.
+
+.. _manual-sec-stateStorable:
 
 State Storing
 ~~~~~~~~~~~~~
@@ -331,6 +435,25 @@ Galacticus supports storing its internal state to file to allow :ref:`restarts <
     !# </stateStorable>
 
 This specifies that the ``table`` class (and all child classes) can and should be stored to file as part of the representation of the internal state. Code to store and restore all data associated with any object of this class (as well as restoring polymorphic objects to the correct type) will be generated. If certain variables of the class or subclass should be restored to specific values this can be specified through a ``restoreTo`` element placed within an element with the name of the class or subclass (e.g. the ``table1DGeneric`` in the above example). The ``restoreTo`` element should specify a comma-separated list of one or more variables to set in its ``variables`` attribute, and the state to which they should be restored in its ``state`` attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a ``exclude`` element---a list of variables to exclude should be given as a comma-separated list in its ``variables`` attribute.
+
+In hand-written state store/restore subroutines (for example, those of node component classes, which are not generated via the ``functionClass`` machinery), the ``stateStore`` and ``stateRestore`` directives emit the necessary per-object serialization code. Each takes a ``variables`` attribute giving a space-separated list of pointers to ``functionClass`` objects. For example:
+
+.. code-block:: none
+
+     subroutine Node_Component_Spin_Vector_State_Store(stateFile,gslStateFile,stateOperationID)
+       use, intrinsic :: ISO_C_Binding, only : c_ptr, c_size_t
+       implicit none
+       integer          , intent(in   ) :: stateFile
+       integer(c_size_t), intent(in   ) :: stateOperationID
+       type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+       !![
+       <stateStore variables="darkMatterHaloScale_"/>
+       !!]
+       return
+     end subroutine Node_Component_Spin_Vector_State_Store
+
+For each listed variable, the ``stateStore`` directive writes the association status of the pointer to the state file and, if associated, calls the object's ``stateStore`` method. The ``stateRestore`` directive generates the matching code for restoration: it reads the stored association status and, if the object was stored, calls its ``stateRestore`` method (reporting an error if the pointer is unexpectedly not associated on restore). These directives must be used within subroutines having the standard state store/restore interface, i.e. accepting the ``stateFile``, ``gslStateFile``, and ``stateOperationID`` arguments shown above.
 
 .. _manual-sec-eventHooks:
 
@@ -363,6 +486,8 @@ The ``name`` attribute gives the name of the event hook. The ``interface`` eleme
 When the preprocessor encounters this directive, it generates code to call all functions that have been attached to this event hook. The event hook infrastructure (defined in ``Events_Hooks``) handles the list of attached functions and ensures each is called in the correct order (respecting any dependencies specified at attachment time), and with the correct OpenMP thread binding.
 
 A simpler variant, ``eventHookStatic``, is available for cases where the set of hooked functions is fixed at compile time (i.e.\ the functions are known statically and do not change at runtime). In this case, the directive takes only a ``name`` attribute, and the hooked functions are identified by a matching directive of the same name, which specifies the function to call via a ``function`` attribute.
+
+The supporting infrastructure for all event hooks---a typed event class for each ``eventHook`` directive with a declared ``interface``, together with its ``attach``, ``detach``, and ``isAttached`` methods---is synthesized by the ``eventHookManager`` directive. This directive appears exactly once, in the ``Events_Hooks`` module (``source/events/hooks.F90``), and is internal build infrastructure: developers defining or attaching to event hooks never need to use it.
 
 .. _manual-sec-autoHook:
 
@@ -571,6 +696,46 @@ Input Parameter Lists
 ~~~~~~~~~~~~~~~~~~~~~
 
 The ``inputParameterList`` directive will construct a ``varying_string`` array containing the names of all input parameters which are defined in the unit in which the directive appears. The name of the array is specified by the ``label`` attribute of the ``inputParameterList`` directive. If a ``source`` attribute is specified in the directive then only parameters being read from the named variable will be included in the list, otherwise any parameters read will be included. Such a list can be used to validate the names of parameters passed to a function for example.
+
+.. _manual-sec-inputParametersValidate:
+
+Input Parameter Validation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``inputParametersValidate`` directive checks that every parameter supplied to an object under construction is recognized, catching mis-spelled or misplaced parameter names in input files. It should be placed in the parameter-based constructor of every ``functionClass`` implementation, *after* all ``inputParameter`` and ``objectBuilder`` directives (so that the full set of allowed names is known). For example:
+
+.. code-block:: none
+
+     function stellarMassConstructorParameters(parameters) result(self)
+       implicit none
+       type            (galacticFilterStellarMass)                :: self
+       type            (inputParameters          ), intent(inout) :: parameters
+       double precision                                           :: massThreshold
+
+       !![
+       <inputParameter>
+         <name>massThreshold</name>
+         <source>parameters</source>
+         <description>The threshold stellar mass.</description>
+       </inputParameter>
+       <inputParametersValidate source="parameters"/>
+       !!]
+       self=galacticFilterStellarMass(massThreshold)
+       return
+     end function stellarMassConstructorParameters
+
+The generated code gathers the names of all parameters that the object (including any sub-objects it built) is allowed to accept, and then checks the parameter set named in the ``source`` attribute against this list, reporting an error for any unrecognized parameter. The directive accepts the following attributes:
+
+``source``
+   The name of the ``inputParameters`` object to validate.
+
+``multiParameters``
+   *(optional)* A comma-separated list of parameter names which are permitted to appear multiple times in the parameter set. This is used by classes which accept lists of objects (e.g. the ``multi`` implementations of various classes, which read multiple instances of a parameter such as ``galacticFilter``).
+
+``extraAllowedNames``
+   *(optional)* A space-separated list of additional parameter names which should be considered valid even though no ``inputParameter`` or ``objectBuilder`` directive reads them (e.g. parameters read indirectly by other means).
+
+.. _manual-sec-functionClass:
 
 Function Classes
 ~~~~~~~~~~~~~~~~
@@ -790,6 +955,31 @@ In addition to the deep copy functionality generated within ``functionClass`` ob
 
 These three directives are typically used in sequence when manually deep-copying a ``functionClass`` member: first ``deepCopyReset`` to prepare the source, then ``deepCopy`` to perform the copy, then ``deepCopyFinalize`` to clean up.
 
+Deep Copy Actions
+^^^^^^^^^^^^^^^^^
+
+Some types which are *not* ``functionClass`` objects nevertheless require special actions to be performed on any copy of an object made during a deep copy---for example, resetting an "initialized" flag, or reallocating an external (e.g. GSL) resource that must not be shared between copies. The ``deepCopyActions`` directive, placed in the declaration section of the module defining such a type, declares these actions. For example, the ``rootFinder`` class uses:
+
+.. code-block:: none
+
+    !![
+    <deepCopyActions class="rootFinder">
+     <rootFinder>
+      <setTo variables="functionInitialized" state=".false."/>
+     </rootFinder>
+    </deepCopyActions>
+    !!]
+
+The ``class`` attribute names the base class to which the actions apply. The directive then contains one element per type in the class hierarchy (named for that type), each of which may contain:
+
+``setTo``
+   Sets each member variable in the comma-separated ``variables`` attribute to the value given by the ``state`` attribute.
+
+``methodCall``
+   Calls the type-bound method named by the ``method`` attribute (with any arguments given via an ``arguments`` attribute)---used, for example, by the ``interpolator`` class to reallocate its GSL interpolator objects in the copy.
+
+The preprocessor generates a type-bound ``deepCopyActions`` method for the class (with a ``select type`` branch for each non-abstract type descended from it, applying the actions declared at each level of the inheritance chain). The deep-copy code generated for ``functionClass`` objects automatically calls this method on any member object of such a class after it is copied.
+
 .. _manual-sec-genericProgramming:
 
 Generic Programming
@@ -869,6 +1059,112 @@ When to revisit
 '''''''''''''''
 
 Reconsider PDT support only if *all* of the following hold: (a) a concrete need arises for a family of fixed-size numeric types differing *only* in a compile-time size or kind within a single intrinsic type; (b) the generic-programming directives are a demonstrably poor fit; (c) the supported ``gfortran`` release has carried mature, bug-quiet PDT support for several releases; and (d) the preprocessor's type-definition and declaration parsers (plus the state-store, deep-copy, and dependency generators) have been extended to represent type parameters. Even then, support should be restricted to ``kind`` parameters---``len``-parameterized PDTs should be considered permanently out of scope on performance and portability grounds.
+Allocations
+~~~~~~~~~~~
+
+The ``allocate`` directive emits an ``allocate()`` statement for an array whose rank is not known when the code is written---for example, in code templated over types of different rank via the generic programming infrastructure. The rank is inferred from the variable's declaration (after any generic expansion), and the shape is drawn from a second array or a size variable. For example:
+
+.. code-block:: none
+
+    !![
+    <allocate variable="luminosities" shape="shapeLines"/>
+    !!]
+
+expands, for a rank-2 ``luminosities``, to ``allocate(luminosities(shapeLines(1),shapeLines(2)))``. The directive accepts the following attributes:
+
+``variable``
+   The name of the allocatable variable to allocate.
+
+``shape``
+   *(optional)* The name of an array whose elements give the size of the allocated variable along each dimension.
+
+``size``
+   *(optional)* The name of an array whose extent along each dimension (i.e. ``size({array},dim=i)``) gives the size of the allocated variable along that dimension---used to allocate one array to match the shape of another.
+
+``rank``
+   *(optional)* Explicitly specifies the rank, overriding the rank inferred from the variable's declaration.
+
+Iterating Over Array Elements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``forEach`` directive wraps the code it contains in a set of loops over every element of a named array, for cases where the rank of the array is not known when the code is written (e.g. in code templated via the generic programming infrastructure). The ``variable`` attribute names the array, and the rank of the generated loop nest is inferred from that variable's declaration. Within the contained code, the placeholder ``{index}`` is replaced by the indexing expression for the current element (e.g. ``(foreach__1,foreach__2)``; empty for a scalar), ``{{index}}`` is replaced by the comma-separated list of index variables, and ``%index%`` is replaced by a suitable format specifier for writing those indices. This directive is used only in highly-generic infrastructure code (currently the unit testing framework)---most code knows the rank of its arrays and can use ordinary loops.
+
+Method Descriptions
+~~~~~~~~~~~~~~~~~~~
+
+The ``methods`` directive attaches documentation to the type-bound procedures of a derived type. It is placed inside the type definition, alongside the procedure bindings it describes, and contains one ``method`` element per method, with ``method`` and ``description`` attributes giving the method's name and a description of what it does. For example, from the ``rootFinder`` class:
+
+.. code-block:: none
+
+     type :: rootFinder
+        ...
+      contains
+        !![
+        <methods docformat="rst">
+          <method description="Set the function that evaluates :math:`f(x)` to use in a ``rootFinder`` object." method="rootFunction"/>
+          <method description="Set the type of algorithm to use in a ``rootFinder`` object."                    method="type"        />
+          <method description="Set the tolerance to use in a ``rootFinder`` object."                            method="tolerance"   />
+        </methods>
+        !!]
+        procedure :: rootFunction => rootFunctionSet
+        procedure :: type         => typeSet
+        procedure :: tolerance    => toleranceSet
+        ...
+     end type rootFinder
+
+The optional ``docformat="rst"`` attribute marks the descriptions as being written in reStructuredText (descriptions without it are treated as the older LaTeX dialect). These descriptions are extracted into this documentation, so should be provided for every type-bound procedure of a hand-written type. Note that for the *standard* methods of a ``functionClass`` implementation, descriptions are instead given via the ``description`` element of each ``method`` in the ``functionClass`` directive---explicit ``methods`` directives are needed only for methods unique to an implementation, and for types built outside of the ``functionClass`` system.
+
+Workarounds
+~~~~~~~~~~~
+
+The ``workaround`` directive annotates code that exists only to work around a bug in a compiler or other tool. It takes no action in the build---it exists to document the workaround (a list of all current workarounds, generated from these directives, appears in this documentation), and to make workarounds easy to find and remove once the underlying bug is fixed. Wrap the workaround code in the directive:
+
+.. code-block:: none
+
+    !![
+    <workaround type="gfortran" PR="105807" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105807">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
+    !!]
+    dummyPointer_      => self%vector_
+    self%vectorManager =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
+
+The ``type`` attribute (required) names the tool containing the bug (e.g. ``gfortran``), while the optional ``PR`` and ``url`` attributes identify the relevant bug report. A ``description`` element should explain the bug being worked around. Optional ``seeAlso`` elements (with the same ``type``/``PR``/``url`` attributes) can reference related bug reports.
+
+Module Scoping
+~~~~~~~~~~~~~~
+
+Each implementation of a ``functionClass`` is generated into its own submodule (see Section :galacticus-ref:`functionClass`). By default, private module-scope variables declared in an implementation's source file are moved into that submodule. The ``scoping`` directive overrides this for variables that must remain at *module* scope---for example, a ``parameter`` used in the declaration of a type component, which must be visible where the type itself is defined. It is placed in the declaration section of the file, and contains a ``module`` element whose ``variables`` attribute lists (comma-separated) the variables to keep at module scope:
+
+.. code-block:: none
+
+    !![
+    <scoping>
+     <module variables="outputRootMassesBufferSize"/>
+    </scoping>
+    !!]
+    integer, parameter :: outputRootMassesBufferSize=1000
+
+Internal Infrastructure Directives
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A few directives are internal build infrastructure, each appearing at exactly one point in the source. They are listed here for completeness---developers will not normally need to use them.
+
+``parameterMigration``
+   Used in the input parameter reading code (``source/utility/input_parameters.F90``). Expands to an array of the commit hashes listed in ``scripts/aux/migrations.xml``, used to decide which parameter migrations must be applied to bring an input parameter file up to date. (New migrations are added to ``migrations.xml``, not via this directive.)
+
+``dependenciesInitialize``
+   Used in the ``Dependencies`` module (``source/utility/dependencies.F90``). Expands to code populating the registry of dependency versions (from the ``aux/dependencies.yml`` manifest) so that the versions of libraries used in the build can be queried at run time.
+
+``expiry``
+   An annotation marking code that supports a deprecated feature and is scheduled for removal. The ``version`` attribute gives the Galacticus version at which the code is expected to be removed.
+
+``interTreePositionInsert``
+   A legacy annotation (in the Cartesian position component) marking the function which transfers position histories when a satellite node is moved between trees. New code should instead attach to the inter-tree event hooks (e.g. ``interTreeSatelliteInsertEvent``; see Section :galacticus-ref:`eventHooks`).
 
 Numerical Tools
 ---------------
@@ -975,6 +1271,8 @@ Galacticus provides for global functions which facilitate this---specifically, i
 
 Here, ``myFunction`` is the name of the function to make global, while the ``type`` and ``arguments`` (of which there may be more than one) elements are used to generate a suitable interface for the function. At run-time, a pointer to this function is then available from the ``Functions_Global`` module, named ``myFunction_``. Note that ``Functions_Global_Set`` provided by the ``Functions_Global_Utilities`` module must be called once to initialize these global function pointers prior to their use.
 
+The supporting code is synthesized by the ``functionsGlobal`` directive, which appears exactly twice: ``<functionsGlobal type="pointers"/>`` (in the ``Functions_Global`` module) expands to the procedure pointer declarations for every ``functionGlobal`` directive in the source, while ``<functionsGlobal type="establish"/>`` (in ``Functions_Global_Utilities``) expands to the code which associates each pointer with its target function. This is internal build infrastructure---to make a function globally callable only the ``functionGlobal`` directive above is needed.
+
 Galacticus Metadata
 -------------------
 
@@ -1012,6 +1310,43 @@ after which you can use this constant, e.g.:
 .. code-block:: none
 
       volumeSphere=4.0d0*Pi/3.0d0*radiusSphere**3
+
+Defining New Constants
+~~~~~~~~~~~~~~~~~~~~~~
+
+New constants are defined using the ``constant`` directive, placed in the declaration section of a module (most constants live in the modules under ``source/numerical/constants/``). The directive expands to a Fortran ``parameter`` declaration, and additionally provides the metadata (description, units, reference) from which the tables of constants in this documentation are generated. For example:
+
+.. code-block:: none
+
+    !![
+    <constant variable="atomicMassHydrogen" value="1.0078250322d0" symbol="A_{^1\mathrm{H}}" units="amu" unitsInSI="1.66053906892e-27" description="Atomic mass of the $^1$H isotope of hydrogen." reference="Commission on Isotopic Abundances and Atomic Weights" referenceURL="https://www.ciaaw.org/hydrogen.htm" group="atomic"/>
+    !!]
+
+The directive accepts the following attributes:
+
+``variable``
+   *(required)* The name of the constant.
+
+``value``
+   The value of the constant. Alternatively, the value may be extracted automatically from a GSL header by giving ``gslSymbol`` and ``gslHeader`` attributes (or from a Linux kernel header via ``kernelSymbol`` and ``kernelHeader``)---at build time a small C program is compiled and run to extract the value, ensuring it stays synchronized with the library. For GSL enumerations, use ``type="enum"`` together with a ``members`` attribute listing the enumeration members.
+
+``description``
+   *(required)* A description of the constant, used in this documentation.
+
+``reference``, ``referenceURL``
+   *(required/optional)* The source of the value of the constant, and a URL for it.
+
+``symbol``
+   *(optional)* The mathematical symbol for the constant (in LaTeX math syntax).
+
+``units``, ``unitsInSI``
+   *(optional)* The units of the constant, and the value of those units in the SI system.
+
+``group``
+   *(optional)* One or more (comma-separated) groups into which the constant should be collected in the documentation.
+
+``externalDescription``
+   *(optional)* A URL giving an external description of the constant.
 
 Indicating Units of Defined Constants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
