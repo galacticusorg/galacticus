@@ -1,5 +1,5 @@
 {
-  "source_dirs": ["source"],
+  "source_dirs": ["source/**"],
   "excl_dirs": ["build", "work", "docs", "aux", "testSuite", ".git"],
   "pp_suffixes": [".F90"],
   "lowercase_intrinsics": false,
