@@ -26,19 +26,19 @@ program Test_Coordinates
   Tests of the ``coordinate`` class, in particular the automatic conversion between coordinate systems performed on
   assignment.
   !!}
-  use :: Coordinates             , only : coordinateCartesian                 , coordinateCylindrical , coordinateSpherical , assignment(=)
-  use :: Display                 , only : displayVerbositySet                 , verbosityLevelStandard
+  use :: Coordinates             , only : coordinateCartesian, coordinateCylindrical , coordinateSpherical , assignment(=)
+  use :: Display                 , only : displayVerbositySet, verbosityLevelStandard
   use :: Numerical_Constants_Math, only : Pi
-  use :: Unit_Tests              , only : Assert                              , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests              , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  double precision           , dimension(3,8) :: cartesian  =reshape([0.0d0,0.0d0,0.0d0,1.0d0,1.0d0,1.0d0,1.0d0,0.0d0,0.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.0d0,1.0d0,-1.0d0,0.0d0,0.0d0,0.0d0,-1.0d0,0.0d0,0.0d0,0.0d0,-1.0d0],shape(cartesian))
-  double precision           , dimension(3,8) :: spherical  =reshape([0.0d0,0.0d0,0.0d0,sqrt(3.0d0),0.955316618d0,Pi/4.0d0,1.0d0,Pi/2.0d0,0.0d0,1.0d0,Pi/2.0d0,Pi/2.0d0,1.0d0,0.0d0,0.0d0,1.0d0,Pi/2.0d0,Pi,1.0d0,Pi/2.0d0,-0.5d0*Pi,1.0d0,Pi,0.0d0],shape(spherical))
-  double precision           , dimension(3,8) :: cylindrical=reshape([0.0d0,0.0d0,0.0d0,sqrt(2.0d0),Pi/4.0d0,1.0d0,1.0d0,0.0d0,0.0d0,1.0d0,Pi/2.0d0,0.0d0,0.0d0,0.0d0,1.0d0,1.0d0,Pi,0.0d0,1.0d0,-0.5d0*Pi,0.0d0,0.0d0,0.0d0,-1.0d0],shape(cylindrical))
-  type            (coordinateCartesian  )     :: coordinatesCartesian
-  type            (coordinateSpherical  )     :: coordinatesSpherical
-  type            (coordinateCylindrical)     :: coordinatesCylindrical
-  integer                                     :: i
-  character       (len=43)                    :: groupName
+  double precision                       , dimension(3,8) :: cartesian             =reshape([0.0d0,0.0d0,0.0d0,1.0d0,1.0d0,1.0d0,1.0d0,0.0d0,0.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.0d0,1.0d0,-1.0d0,0.0d0,0.0d0,0.0d0,-1.0d0,0.0d0,0.0d0,0.0d0,-1.0d0],shape(cartesian))
+  double precision                       , dimension(3,8) :: spherical             =reshape([0.0d0,0.0d0,0.0d0,sqrt(3.0d0),0.955316618d0,Pi/4.0d0,1.0d0,Pi/2.0d0,0.0d0,1.0d0,Pi/2.0d0,Pi/2.0d0,1.0d0,0.0d0,0.0d0,1.0d0,Pi/2.0d0,Pi,1.0d0,Pi/2.0d0,-0.5d0*Pi,1.0d0,Pi,0.0d0],shape(spherical))
+  double precision                       , dimension(3,8) :: cylindrical           =reshape([0.0d0,0.0d0,0.0d0,sqrt(2.0d0),Pi/4.0d0,1.0d0,1.0d0,0.0d0,0.0d0,1.0d0,Pi/2.0d0,0.0d0,0.0d0,0.0d0,1.0d0,1.0d0,Pi,0.0d0,1.0d0,-0.5d0*Pi,0.0d0,0.0d0,0.0d0,-1.0d0],shape(cylindrical))
+  type            (coordinateCartesian  )                 :: coordinatesCartesian
+  type            (coordinateSpherical  )                 :: coordinatesSpherical
+  type            (coordinateCylindrical)                 :: coordinatesCylindrical
+  integer                                                 :: i
+  character       (len=43)                                :: groupName
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
