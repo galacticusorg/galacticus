@@ -49,7 +49,7 @@
    :math:`t(M)`
       is the CPU time it takes to simulate a tree of mass :math:`M`.
 
-   To clarify, :math:`P(N|M_\star,M;\delta \ln M_\star;\delta \ln M_\star)` is the probability\footnoteTo put it another way, :math:`P(N|M_\star,M;\delta \ln M_\star)` is closely related to the commonly used Halo Occupation Distribution. to find :math:`N` galaxies of mass between :math:`M_\star` in a bin of width :math:`\delta \ln M_\star` in a halo of mass :math:`M`. The usual conditional stellar mass function is simply the first moment of this distribution:
+   To clarify, :math:`P(N|M_\star,M;\delta \ln M_\star;\delta \ln M_\star)` is the probability\ [#]_ to find :math:`N` galaxies of mass between :math:`M_\star` in a bin of width :math:`\delta \ln M_\star` in a halo of mass :math:`M`. The usual conditional stellar mass function is simply the first moment of this distribution:
 
    .. math::
       :label: eq-cSMFdefinition
@@ -101,7 +101,7 @@
       \Delta 2 \ln \mathcal{L} = \sum_i {[\phi_{\mathrm{obs},i} - \phi_i]^2 \over \alpha_i^2} - {[\phi_{\mathrm{obs},i} -
       \phi_i]^2 \over \alpha_i^2 + \sigma_i^2}
 
-   Of course, we don't know the model prediction, :math:`\phi_i`, in advance\footnoteBelow, we will adopt a simple empirical model for :math:`\phi(M_\star)`. However, it should not be used here since we will in actuality be computing the likelihood from the model itself.. However, if we assume that a model exists which is a good fit to the data then we would expect that :math:`[\phi_{\mathrm{obs},i} - \phi_i]^2 \approx \alpha_i^2` on average. In that case, the increase in likelihood due to the model is minimized by minimizing the function\footnoteThis can be seen intuitively: we are simply requiring that the variance in the model prediction is small compared the the variance in the data.
+   Of course, we don't know the model prediction, :math:`\phi_i`, in advance\ [#]_. However, if we assume that a model exists which is a good fit to the data then we would expect that :math:`[\phi_{\mathrm{obs},i} - \phi_i]^2 \approx \alpha_i^2` on average. In that case, the increase in likelihood due to the model is minimized by minimizing the function\ [#]_
 
    .. math::
 
@@ -132,7 +132,7 @@
 
       \gamma(M) = \sqrt{{\xi(M) \over \lambda t(M)}},
 
-   in the limit where\footnoteThis is the limit in which we would like our results to be. :math:`\sigma(M_\star) \ll \alpha(M_\star)`, and where
+   in the limit where\ [#]_ :math:`\sigma(M_\star) \ll \alpha(M_\star)`, and where
 
    .. math::
 
@@ -140,7 +140,7 @@
 
    The values of :math:`\lambda` and :math:`\delta \ln M_\star`, and the normalization of :math:`t(M)` are unimportant here since we merely want to find the optimal shape of the :math:`\gamma(M)` function---we can then scale it up or down to use the available time.
 
-   Figure :numref:`{number} &lt;fig-optimalSamplingStellarMassFunction&gt;` shows the function :math:`\gamma(M)` obtained by adopting a model conditional stellar mass function which is a sum of central and satellite terms. Specifically, we use the model of :cite:t:`leauthaud_new_2011` which is constrained to match observations from the COSMOS survey. In their model\footnoteThis integral form of the conditional stellar mass function is convenient here since it allows for easy calculation of the number of galaxies expected in the finite-width bins of the observed stellar mass function.:
+   Figure :numref:`{number} &lt;fig-optimalSamplingStellarMassFunction&gt;` shows the function :math:`\gamma(M)` obtained by adopting a model conditional stellar mass function which is a sum of central and satellite terms. Specifically, we use the model of :cite:t:`leauthaud_new_2011` which is constrained to match observations from the COSMOS survey. In their model\ [#]_:
 
    .. math::
 
@@ -237,6 +237,12 @@
       :name: fig-optimalSamplingStellarMassFunction
 
       Optimal weighting (yellow line) compared with weighting by the dark matter halo mass function (i.e. sampling halos at random from a representative volume; blue line). Sampling densities have been normalized to unit compute time.
+
+   .. [#] To put it another way, :math:`P(N|M_\star,M;\delta \ln M_\star)` is closely related to the commonly used Halo Occupation Distribution.
+   .. [#] Below, we will adopt a simple empirical model for :math:`\phi(M_\star)`. However, it should not be used here since we will in actuality be computing the likelihood from the model itself.
+   .. [#] This can be seen intuitively: we are simply requiring that the variance in the model prediction is small compared the the variance in the data.
+   .. [#] This is the limit in which we would like our results to be.
+   .. [#] This integral form of the conditional stellar mass function is convenient here since it allows for easy calculation of the number of galaxies expected in the finite-width bins of the observed stellar mass function.
    </description>
   </mergerTreeBuildMassDistribution>
   !!]

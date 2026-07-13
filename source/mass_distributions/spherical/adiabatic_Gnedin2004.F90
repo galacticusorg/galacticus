@@ -47,7 +47,7 @@
       f_\mathrm{i} M_\mathrm{total,0}(\bar{r}_\mathrm{i}) r_\mathrm{i} = f_\mathrm{f} M_\mathrm{total,0}(\bar{r}_\mathrm{i})
       r_\mathrm{f} + V^2_\mathrm{b}(\bar{r}_\mathrm{f}) \bar{r}_\mathrm{f} r_\mathrm{f}/ \mathrm{G},
 
-   where :math:`M_\mathrm{total,0}(r)` is the initial total matter profile, :math:`V_\mathrm{b}(r)` is the baryonic contribution to the rotation curve, :math:`f_\mathrm{i}`, is the fraction of mass within the virial radius compared to the node mass\footnoteIn Galacticus the "node mass" refers to the total mass of the node, assuming it has the universal complement of baryons. Since some halos may contain less than the complete complement of baryons it is possible that :math:`f_\mathrm{i}&lt;1`., :math:`f_\mathrm{f}=(\Omega_\mathrm{M}-\Omega_\mathrm{b})/\Omega_\mathrm{M}+M_\mathrm{satellite, baryonic}/M_\mathrm{total}`, :math:`M_\mathrm{satellite, baryonic}` is the baryonic mass in any satellite halos, :math:`M_\mathrm{total}` is the node mass, and
+   where :math:`M_\mathrm{total,0}(r)` is the initial total matter profile, :math:`V_\mathrm{b}(r)` is the baryonic contribution to the rotation curve, :math:`f_\mathrm{i}`, is the fraction of mass within the virial radius compared to the node mass\ [#]_, :math:`f_\mathrm{f}=(\Omega_\mathrm{M}-\Omega_\mathrm{b})/\Omega_\mathrm{M}+M_\mathrm{satellite, baryonic}/M_\mathrm{total}`, :math:`M_\mathrm{satellite, baryonic}` is the baryonic mass in any satellite halos, :math:`M_\mathrm{total}` is the node mass, and
 
    .. math::
       :label: eq-adiabaticContractionGnedinPowerLaw
@@ -78,6 +78,8 @@
       {\mathrm{d}\bar{r} \over \mathrm{d} r} = A \left({r \over r_0}\right)^{\omega-1},
 
    and which can then be solved numerically for :math:`r^\prime_\mathrm{i}`.
+
+   .. [#] In Galacticus the "node mass" refers to the total mass of the node, assuming it has the universal complement of baryons. Since some halos may contain less than the complete complement of baryons it is possible that :math:`f_\mathrm{i}&lt;1`.
    </description>
   </massDistribution>
   !!]

@@ -27,8 +27,10 @@ start=`date --rfc-3339=seconds`
 maxRSS=-1
 if [ -n "$gnuTime" ] && memFile=`mktemp 2>/dev/null`; then
     # Use GNU `time` to measure the peak resident set size of the task, writing the result to the
-    # temporary file so that it is not mixed into the build log.
+    # temporary file so that it is not mixed into the build log. GNU `time` exits with the wrapped
+    # command's exit status, so capturing it here preserves the recipe's status.
     "$gnuTime" -f '%M' -o "$memFile" sh -c "$@"
+    status=$?
     if [ -s "$memFile" ]; then
         read maxRSS < "$memFile"
     fi
@@ -41,8 +43,14 @@ else
     # without measuring memory usage.
     memFile=
     eval "$@"
+    status=$?
 fi
 stop=`date --rfc-3339=seconds`
 
 # Write our report.
 echo "++Task: {$start|$stop|$maxRSS} '$@'"
+
+# Propagate the wrapped command's exit status. This script is used as make's SHELL, so exiting 0
+# unconditionally would make every recipe appear to succeed — make would be unable to detect any
+# failed compile or link during a profiled ('compileprof') build.
+exit $status

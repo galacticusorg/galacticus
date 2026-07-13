@@ -85,14 +85,16 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(surveyGeometryMuzzin2013ULTRAVISTA) :: self
-    type   (inputParameters                 ), intent(inout) :: parameters
-    class  (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
-    integer                                                  :: redshiftBin
+    type(surveyGeometryMuzzin2013ULTRAVISTA)                :: self
+    type   (inputParameters                ), intent(inout) :: parameters
+    class  (cosmologyFunctionsClass        ), pointer       :: cosmologyFunctions_
+    class (randomNumberGeneratorClass      ), pointer       :: randomNumberGenerator_
+    integer                                                 :: redshiftBin
 
     ! Check and read parameters.
     !![
-    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     <inputParameter docformat="rst">
       <name>redshiftBin</name>
       <source>parameters</source>
@@ -101,27 +103,29 @@ contains
       </description>
     </inputParameter>
     !!]
-    self=surveyGeometryMuzzin2013ULTRAVISTA(redshiftBin,cosmologyFunctions_)
+    self=surveyGeometryMuzzin2013ULTRAVISTA(redshiftBin,cosmologyFunctions_,randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"/>
+    <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="randomNumberGenerator_"/>
     !!]
     return
   end function muzzin2013ULTRAVISTAConstructorParameters
 
-  function muzzin2013ULTRAVISTAConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
+  function muzzin2013ULTRAVISTAConstructorInternal(redshiftBin,cosmologyFunctions_,randomNumberGenerator_) result(self)
     !!{RST
     Internal constructor for the :cite:t:`muzzin_evolution_2013` mass function class.
     !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     use :: Error                      , only : Error_Report
     implicit none
-    type            (surveyGeometryMuzzin2013ULTRAVISTA)                        :: self
-    integer                                             , intent(in   )         :: redshiftBin
-    class           (cosmologyFunctionsClass           ), intent(in   ), target :: cosmologyFunctions_
-    double precision                                                            :: redshiftMinimum    , redshiftMaximum
+    type            (surveyGeometryMuzzin2013ULTRAVISTA)                                  :: self
+    integer                                             , intent(in   )                   :: redshiftBin
+    class           (cosmologyFunctionsClass           ), intent(in   ), target           :: cosmologyFunctions_
+    class           (randomNumberGeneratorClass        ), intent(in   ), target, optional :: randomNumberGenerator_
+    double precision                                                                      :: redshiftMinimum       , redshiftMaximum
     !![
-    <constructorAssign variables="redshiftBin, *cosmologyFunctions_"/>
+    <constructorAssign variables="redshiftBin, *cosmologyFunctions_, *randomNumberGenerator_"/>
     !!]
 
     ! Find distance limits for this redshift bin.
@@ -172,7 +176,8 @@ contains
     type(surveyGeometryMuzzin2013ULTRAVISTA), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyFunctions_"/>
+    <objectDestructor name="self%cosmologyFunctions_"   />
+    <objectDestructor name="self%randomNumberGenerator_"/>
     !!]
     return
   end subroutine muzzin2013ULTRAVISTADestructor

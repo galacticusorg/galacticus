@@ -131,6 +131,116 @@ def hash_data_files(hasher, files):
                 hasher.update(fh.read())
 
 
+_DATA_FILE_RE = re.compile(
+    r'[\"\'](data/[a-zA-Z0-9_\.\-/]+\.(xml|hdf5))[\"\']'
+)
+_STATIC_DATA_RE = re.compile(
+    r'(char\s*\()??\s*galacticusPath\s*'
+    r'\(\s*pathTypeDataStatic\s*\)\s*\)??\/\/\]\s*'
+    r'[\"\']([a-zA-Z0-9_\.\-/]+\.(xml|hdf5))[\"\']'
+)
+
+
+def ensure_file_digest(source_file_name, suffix, build_path, *, use_locks,
+                       include_files_excluded, report=False):
+    """Return the per-file MD5 digest of `source_file_name`, reading its
+    `.md5` sidecar when fresh or computing (and writing) it otherwise, and
+    caching the result in the module-level `_digests`.
+
+    Extracted verbatim from the inner loop of `find_hash` so that the
+    per-file digests — which are shared across every type's composite and
+    dominate a cold run's cost — can be pre-computed in parallel: each
+    source file has exactly ONE writer per build, so no intra-run lock is
+    needed. The `flock` (taken when `use_locks`) still serialises concurrent
+    *external* builds sharing a build directory, exactly as before.
+    """
+    if source_file_name in _digests:
+        return _digests[source_file_name]
+
+    stripped = re.sub(r'^source', '', source_file_name)
+    md5_file_name = build_path + stripped + '.md5'
+    md5_lock = open(md5_file_name + '.lock', 'w')
+    try:
+        if use_locks:
+            fcntl.flock(md5_lock, fcntl.LOCK_EX)
+        use_stored = False
+        if (os.path.exists(md5_file_name)
+                and modification_time(md5_file_name)
+                    > modification_time(source_file_name)):
+            use_stored = True
+            if suffix in ('F90', 'Inc'):
+                for match in get_matching_lines(source_file_name,
+                                                _DATA_FILE_RE):
+                    data_file_name = match['submatches'][0]
+                    if not (
+                        os.path.exists(md5_file_name)
+                        and modification_time(md5_file_name)
+                            > modification_time(data_file_name)
+                    ):
+                        use_stored = False
+        if use_stored:
+            with open(md5_file_name) as md5_fh:
+                digest = md5_fh.readline()
+            if digest:
+                _digests[source_file_name] = digest
+                if report:
+                    logger.info(
+                        f"   => Reading stored hash: "
+                        f"{source_file_name}\t{_digests[source_file_name]}"
+                    )
+            else:
+                use_stored = False
+        if not use_stored:
+            if report:
+                logger.info("   => Computing hash")
+            file_hasher = hashlib.md5()
+            if suffix in ('F90', 'Inc'):
+                text = read_file(
+                    source_file_name,
+                    state='raw',
+                    follow_includes=True,
+                    include_locations=['../source', '../' + build_path],
+                    include_files_excluded=include_files_excluded,
+                    strip_regex=re.compile(r'^\s*!(?!(!\[|\$)).*$'),
+                    strip_leading=True,
+                    strip_trailing=True,
+                    strip_empty=True,
+                )
+                file_hasher.update(text.encode('utf-8', errors='replace'))
+                extra_files = [
+                    m['submatches'][1]
+                    for m in get_matching_lines(source_file_name,
+                                                _STATIC_DATA_RE)
+                ]
+                hash_data_files(file_hasher, extra_files)
+                if report:
+                    logger.info(
+                        f"    => Computed hash from: "
+                        f"{source_file_name} {{{', '.join(extra_files)}}}"
+                    )
+            else:
+                with open(source_file_name, 'rb') as raw_fh:
+                    file_hasher.update(raw_fh.read())
+                if report:
+                    logger.info(
+                        f"    => Computed hash from: "
+                        f"{source_file_name} {{RAW}}"
+                    )
+            _digests[source_file_name] = _b64digest(file_hasher)
+            with open(md5_file_name, 'w') as md5_fh:
+                md5_fh.write(_digests[source_file_name])
+            update_modification_time(md5_file_name)
+            if report:
+                logger.info(
+                    f"   => Stored hash: {source_file_name}\t"
+                    f"{_digests[source_file_name]}"
+                )
+    finally:
+        md5_lock.close()
+
+    return _digests.get(source_file_name)
+
+
 def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
               report=False):
     """Compute a composite MD5 hash over `file_names` and all their Fortran
@@ -143,7 +253,8 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
     ----------
     file_names : list of str
         The roots whose composite hash is sought (paths relative to the
-        top-level build directory, e.g. `"source/foo.F90"`).
+        `source/` directory, e.g. `"objects/function_class.F90"` — the same
+        layout their sidecars have under `$BUILDPATH`).
     use_locks : bool, default True
         If True, take an exclusive flock on each `<file>.md5*.lock` sidecar
         to serialise concurrent builds.
@@ -289,104 +400,14 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
                             source_file_name = f"{source_prefix}.{suffix}"
                             if not os.path.exists(source_file_name):
                                 continue
-                            if source_file_name not in _digests:
-                                stripped = re.sub(
-                                    r'^source', '', source_file_name,
-                                )
-                                md5_file_name = build_path + stripped + '.md5'
-                                md5_lock = open(md5_file_name + '.lock', 'w')
-                                try:
-                                    if use_locks:
-                                        fcntl.flock(md5_lock, fcntl.LOCK_EX)
-                                    use_stored = False
-                                    if (os.path.exists(md5_file_name)
-                                            and modification_time(md5_file_name)
-                                                > modification_time(source_file_name)):
-                                        use_stored = True
-                                        if suffix in ('F90', 'Inc'):
-                                            for match in get_matching_lines(
-                                                source_file_name,
-                                                re.compile(
-                                                    r'[\"\'](data/[a-zA-Z0-9_\.\-/]+\.(xml|hdf5))[\"\']'
-                                                ),
-                                            ):
-                                                data_file_name = match['submatches'][0]
-                                                if not (
-                                                    os.path.exists(md5_file_name)
-                                                    and modification_time(md5_file_name)
-                                                        > modification_time(data_file_name)
-                                                ):
-                                                    use_stored = False
-                                    if use_stored:
-                                        with open(md5_file_name) as md5_fh:
-                                            digest = md5_fh.readline()
-                                        if digest:
-                                            _digests[source_file_name] = digest
-                                            if report:
-                                                logger.info(
-                                                    f"   => Reading stored hash: "
-                                                    f"{source_file_name}\t"
-                                                    f"{_digests[source_file_name]}"
-                                                )
-                                        else:
-                                            use_stored = False
-                                    if not use_stored:
-                                        if report:
-                                            logger.info("   => Computing hash")
-                                        file_hasher = hashlib.md5()
-                                        if suffix in ('F90', 'Inc'):
-                                            text = read_file(
-                                                source_file_name,
-                                                state='raw',
-                                                follow_includes=True,
-                                                include_locations=['../source', '../' + build_path],
-                                                include_files_excluded=include_files_excluded,
-                                                strip_regex=re.compile(r'^\s*!(?!(!\[|\$)).*$'),
-                                                strip_leading=True,
-                                                strip_trailing=True,
-                                                strip_empty=True,
-                                            )
-                                            file_hasher.update(text.encode('utf-8', errors='replace'))
-                                            extra_files = [
-                                                m['submatches'][1]
-                                                for m in get_matching_lines(
-                                                    source_file_name,
-                                                    re.compile(
-                                                        r'(char\s*\()??\s*galacticusPath\s*'
-                                                        r'\(\s*pathTypeDataStatic\s*\)\s*\)??\/\/\]\s*'
-                                                        r'[\"\']([a-zA-Z0-9_\.\-/]+\.(xml|hdf5))[\"\']'
-                                                    ),
-                                                )
-                                            ]
-                                            hash_data_files(file_hasher, extra_files)
-                                            if report:
-                                                logger.info(
-                                                    f"    => Computed hash from: "
-                                                    f"{source_file_name} {{{', '.join(extra_files)}}}"
-                                                )
-                                        else:
-                                            with open(source_file_name, 'rb') as raw_fh:
-                                                file_hasher.update(raw_fh.read())
-                                            if report:
-                                                logger.info(
-                                                    f"    => Computed hash from: "
-                                                    f"{source_file_name} {{RAW}}"
-                                                )
-                                        _digests[source_file_name] = _b64digest(file_hasher)
-                                        with open(md5_file_name, 'w') as md5_fh:
-                                            md5_fh.write(_digests[source_file_name])
-                                        update_modification_time(md5_file_name)
-                                        if report:
-                                            logger.info(
-                                                f"   => Stored hash: {source_file_name}\t"
-                                                f"{_digests[source_file_name]}"
-                                            )
-                                finally:
-                                    md5_lock.close()
-                            if source_file_name in _digests:
-                                composite_hasher.update(
-                                    _digests[source_file_name].encode('ascii')
-                                )
+                            digest = ensure_file_digest(
+                                source_file_name, suffix, build_path,
+                                use_locks=use_locks,
+                                include_files_excluded=include_files_excluded,
+                                report=report,
+                            )
+                            if digest is not None:
+                                composite_hasher.update(digest.encode('ascii'))
                             else:
                                 raise RuntimeError(
                                     "find_hash: failed to build digest for "

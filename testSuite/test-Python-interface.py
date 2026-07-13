@@ -52,6 +52,15 @@ def safe_section(name):
         print(f'   FAIL: section raised {type(exc).__name__}: {exc}')
 
 
+# Library-level utilities.
+with safe_section("verbositySet"):
+    # The library exposes Galacticus's display-verbosity control (progress
+    # bars and messages write directly to the process's stdout, so this is
+    # the only way for Python callers to quiet them).
+    galacticus.verbositySet("silent")
+    galacticus.verbositySet("standard")
+    check_eq("verbositySet callable", True, True)
+
 # Cosmological parameters.
 with safe_section("cosmologyParametersSimple"):
     cosmologyParameters = galacticus.cosmologyParametersSimple(0.3,0.045,0.7,2.78,70.0)
@@ -85,6 +94,14 @@ with safe_section("darkMatterParticleCDM"):
 with safe_section("transferFunctionCAMB"):
     transferFunction = galacticus.transferFunctionCAMB(darkMatterParticle,cosmologyParameters,cosmologyFunctions,0,0.0,0)
     check("T(k=2 Mpc⁻¹)", transferFunction.value(2.0), 14637.776794245852)
+    # Output-array method (`intent(out), allocatable, dimension(:)`): CAMB
+    # inherits the base default `allocate(wavenumbers(0))`, so this
+    # exercises the wrapper's zero-size/null-pointer guard — the caller
+    # must get back an empty float64 array, not a crash or a stale view.
+    wavenumbers = transferFunction.wavenumbersLocalMinima()
+    check_eq("wavenumbersLocalMinima() type" , type(wavenumbers).__name__, 'ndarray')
+    check_eq("wavenumbersLocalMinima() size" , wavenumbers.size          , 0)
+    check_eq("wavenumbersLocalMinima() dtype", str(wavenumbers.dtype)    , 'float64')
 
 # Linear growth.
 with safe_section("linearGrowthCollisionlessMatter"):
@@ -105,18 +122,28 @@ with safe_section("cosmologicalMassVarianceFilteredPower"):
 # Critical overdensity.
 with safe_section("criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt"):
     criticalOverdensity = galacticus.criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(linearGrowth,cosmologyFunctions,cosmologicalMassVariance,darkMatterParticle,True)
-    check("δ_c(a=1)", criticalOverdensity.value(time=13.8), 1.6750993420127407)
+    # rtol loosened (see the Δ_vir check below for the rationale): a cached
+    # tabulation spanning a wide redshift range (the merger-tree tutorial
+    # tabulates δ_c down to z=10⁵) shifts the interpolated value at t≈13.8
+    # by ~4e-5 relative to a fresh narrow-range tabulation.
+    check("δ_c(a=1)", criticalOverdensity.value(time=13.8), 1.6750993420127407, rtol=1.0e-4)
 
 # Virial density contrast.
 with safe_section("virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt"):
     virialDensityContrast = galacticus.virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(True,cosmologyFunctions)
-    check("Δ_vir(a=1)", virialDensityContrast.densityContrast(mass=1.0e12,time=13.8), 350.506868239381)
+    # rtol loosened from the default 1e-6: this class tabulates the
+    # spherical-collapse solution (tableStore=True), and the interpolated
+    # value shifts at the ~1e-6 level with the tabulation's grid layout,
+    # which depends on the history of queries that built any cached table
+    # (e.g. the tutorial notebooks query a wider redshift range).
+    check("Δ_vir(a=1)", virialDensityContrast.densityContrast(mass=1.0e12,time=13.8), 350.506868239381, rtol=1.0e-5)
 
 # Halo mass function.
 with safe_section("haloMassFunctionShethTormen"):
     haloMassFunction = galacticus.haloMassFunctionShethTormen(cosmologyParameters,cosmologicalMassVariance,criticalOverdensity,0.707,0.3,0.322183)
     haloMass = 1.0e10
-    check("dn/dlnM(M=10¹⁰M☉,a=1)", haloMassFunction.differential(13.8,haloMass)*haloMass, 0.1040973175348119, fmt=".4f")
+    # rtol loosened: inherits the δ_c tabulation-grid sensitivity above.
+    check("dn/dlnM(M=10¹⁰M☉,a=1)", haloMassFunction.differential(13.8,haloMass)*haloMass, 0.1040973175348119, fmt=".4f", rtol=1.0e-4)
 
 # Random number generator.  Exercises method returns of `integer` (poisson),
 # `integer(c_long)` (range/sample/seed), and the `integer(c_long)` argument
@@ -169,7 +196,8 @@ with safe_section("darkMatterProfileConcentrationFixed"):
     check_eq("class(...) return _owned" , getattr(vdcReturned, '_owned', True) , False)
     # And the wrapped object should be usable for further method calls; the
     # value should match the original instance (same Galacticus object).
-    check   ("Δ_vir(via returned)"      , vdcReturned.densityContrast(mass=1.0e12,time=13.8), 350.506868239381)
+    # rtol 1e-5: tabulation-layout sensitivity — see the Δ_vir check above.
+    check   ("Δ_vir(via returned)"      , vdcReturned.densityContrast(mass=1.0e12,time=13.8), 350.506868239381, rtol=1.0e-5)
 
 # Node property extractor — exercises `type(enumerationXxxType)` return path
 # (the inner method gives a derived enum type, the wrapper lifts the %ID
@@ -219,12 +247,25 @@ with safe_section("galacticFilterHighPass (abstract-intermediate arg)"):
 # (Fortran-side static c_char buffer + Python-side .decode("utf-8")).
 with safe_section("initialMassFunctionSalpeter1955"):
     imf = galacticus.initialMassFunctionSalpeter1955()
-    # TODO: replace dummy expectations below with golden values from a real run.
     check_eq("label"      , imf.label()                            ,    "Salpeter1955")  # varying_string return
     check   ("massMinimum", imf.massMinimum()                      ,    0.1)
     check   ("massMaximum", imf.massMaximum()                      ,  125.0)
     check   ("phi(M=1)"   , imf.phi(massInitial=1.0)               ,    0.170384)
     check   ("N(0.1..125)", imf.numberCumulative(massLower=0.1,massUpper=125.0), 2.82531)
+
+# Chabrier (2001) IMF — regression for the sign error in the analytic
+# cumulative integral's power-law piece (the two limits were summed rather
+# than differenced, making every cumulative count above the transition
+# mass negative). Pin the count of core-collapse SN progenitors against
+# the value from direct numerical integration of phi(m).
+with safe_section("initialMassFunctionChabrier2001 (cumulative integral sign)"):
+    imf = galacticus.initialMassFunctionChabrier2001(0.1, 1.0, 125.0, -2.3, 0.08, 0.69)
+    numberSNII = imf.numberCumulative(massLower=8.0, massUpper=125.0)
+    check_eq("N(8..125) positive", numberSNII > 0.0, True)
+    check   ("N(8..125)"         , numberSNII, 0.011786, rtol=1.0e-4)
+    massGrid  = np.logspace(np.log10(8.0), np.log10(125.0), 4001)
+    numerical = np.trapezoid([imf.phi(massInitial=m) for m in massGrid], massGrid)
+    check   ("N(8..125) vs direct integration of phi", numberSNII, numerical, rtol=1.0e-3)
 
 # Radiative transfer photon packet — exercises both fixed-size dimensional
 # shapes in one round-trip: positionSet/directionSet take a `dimension(3)`
@@ -284,14 +325,66 @@ with safe_section("supernovaeTypeIaPowerLawDTDDifferential"):
     check_eq("'yield' not exposed"   , hasattr(sn1a, 'yield' ), False)
 
 # Spherical computational-domain volume integrator — exercises the
-# procedure-pointer-arg skip.  The class's `integrate(integrand)`
-# method takes `procedure(...)` which the pipeline can't translate, so
-# the wrapper drops just that method while keeping the rest of the
-# class.  `volume()` is a plain double-precision return so it survives.
+# Python-callback (procedure-arg) path.  The class's
+# `integrate(integrand)` method takes
+# `procedure(computationalDomainVolumeIntegrand)`, which is registered
+# in Pipeline._CALLBACK_PROCEDURE_INTERFACES: the wrapper adapts a
+# Python callable via CFUNCTYPE → c_funptr → a Fortran shim that
+# converts the `class(coordinate)` argument to its Cartesian 3-array.
+# Integrating 1 over the domain must recover the shell volume;
+# integrating r² = |pos|² over the shell has the closed form
+# 4π(r₂⁵ − r₁⁵)/5.
 with safe_section("computationalDomainVolumeIntegratorSpherical"):
     cdom = galacticus.computationalDomainVolumeIntegratorSpherical([1.0, 5.0])
-    check   ("volume()"               , cdom.volume(), (4.0/3.0)*np.pi*(5.0**3 - 1.0**3))
-    check_eq("integrate() not exposed", hasattr(cdom, 'integrate'), False)
+    shellVolume = (4.0/3.0)*np.pi*(5.0**3 - 1.0**3)
+    check   ("volume()"          , cdom.volume(), shellVolume)
+    check_eq("integrate exposed" , hasattr(cdom, 'integrate'), True)
+    check   ("∫ 1 dV = V"        , cdom.integrate(lambda pos: 1.0),
+             shellVolume, rtol=1.0e-4)
+    check   ("∫ r² dV"           ,
+             cdom.integrate(lambda pos: float(np.sum(pos**2))),
+             4.0*np.pi*(5.0**5 - 1.0**5)/5.0, rtol=1.0e-4)
+
+# Mangle-based survey geometries — window-function availability is gated on
+# whether a random number generator was supplied to the constructor (the
+# windows are Monte-Carlo sampled from the polygon mask).  The window
+# computation itself is exercised by the survey-geometry tutorial; here we
+# pin only the constructor plumbing (the optional functionClass argument on
+# every mangle survey) and the availability gate, which are cheap.
+with safe_section("mangle survey geometries (window-function gating)"):
+    rngSurvey = galacticus.randomNumberGeneratorGSL(seed_=42,ompThreadOffset=False,mpiRankOffset=False)
+    mangleSurveys = [
+        ("Bernardi2013SDSS"    , lambda **kw: galacticus.surveyGeometryBernardi2013SDSS   (                          **kw)),
+        ("Baldry2012GAMA"      , lambda **kw: galacticus.surveyGeometryBaldry2012GAMA     (   cosmologyFunctions,    **kw)),
+        ("Davidzon2013VIPERS"  , lambda **kw: galacticus.surveyGeometryDavidzon2013VIPERS (1, cosmologyFunctions,    **kw)),
+        ("Muzzin2013ULTRAVISTA", lambda **kw: galacticus.surveyGeometryMuzzin2013ULTRAVISTA(1, cosmologyFunctions,   **kw)),
+        ("Moustakas2013PRIMUS" , lambda **kw: galacticus.surveyGeometryMoustakas2013PRIMUS(1, cosmologyFunctions,    **kw)),
+        ("Tomczak2014ZFOURGE"  , lambda **kw: galacticus.surveyGeometryTomczak2014ZFOURGE (1, cosmologyFunctions,    **kw)),
+        ("LocalGroupDES"       , lambda **kw: galacticus.surveyGeometryLocalGroupDES      (0.3,                      **kw)),
+        ("LocalGroupClassical" , lambda **kw: galacticus.surveyGeometryLocalGroupClassical(0.3, 1.0e5,               **kw)),
+    ]
+    for surveyName, makeSurvey in mangleSurveys:
+        check_eq(f"{surveyName} available (no RNG)"  , makeSurvey(                                 ).windowFunctionAvailable(), False)
+        check_eq(f"{surveyName} available (with RNG)", makeSurvey(randomNumberGenerator_=rngSurvey).windowFunctionAvailable(), True )
+
+# Black-body radiation field — exercises the *pointer-dummy* callback
+# path.  `integrateOverCrossSection(wavelengthRange, crossSectionFunction,
+# node)` takes `procedure(crossSectionFunctionTemplate), pointer`, so the
+# wrapper passes the shim module's procedure-pointer slot (re-aimed at the
+# shim before every call).  A zero cross-section must integrate to exactly
+# zero, and the integral is linear in the cross-section; blackBody's flux
+# ignores `node`, so a null handle is safe here.
+with safe_section("radiationFieldBlackBody (Python-callback cross-section)"):
+    radiation = galacticus.radiationFieldBlackBody(1.0e4)
+    nodeNull  = ctypes.c_void_p(0)
+    wRange    = np.array([100.0, 1000.0])
+    check("∫ flux·0 dλ"     ,
+          radiation.integrateOverCrossSection(wRange, lambda w: 0.0,     nodeNull), 0.0,
+          rtol=0.0, fmt=".1f")
+    rate1 = radiation.integrateOverCrossSection(wRange, lambda w: 1.0e-18, nodeNull)
+    rate2 = radiation.integrateOverCrossSection(wRange, lambda w: 2.0e-18, nodeNull)
+    check_eq("∫ flux·σ dλ > 0"   , rate1 > 0.0    , True)
+    check   ("linearity in σ"    , rate2 / rate1  , 2.0, rtol=1.0e-9)
 
 # Empirical UniverseMachine node operator — exercises the
 # continuation-character strip in the Internal-constructor arg-name
@@ -813,6 +906,72 @@ with safe_section("outputAnalysisDistributionNormalizerUnitarity (in-place inout
     check("dist[0] after normalize", float(dist[0]), 2.0 / 12.0)
     check("dist[1] after normalize", float(dist[1]), 4.0 / 12.0)
     check("dist[2] after normalize", float(dist[2]), 6.0 / 12.0)
+
+# Merger-tree construction, walking, and per-node property extraction —
+# pins several library capabilities at once:
+#  * `nodesInitialize()` — boots the node-component class system (default
+#    component selections); required before any tree node exists;
+#  * opaque shared-type pointer returns — `construct` returns a
+#    `type(mergerTree), pointer` as a c_void_p handle (None once the tree
+#    suite is exhausted);
+#  * scalar `intent(out)` logical write-back — the `finished` flag pins
+#    the kind-narrowing copy-back from the wrapper's default-kind local
+#    into the c_bool bind(c) dummy (initially missing: the flag stayed
+#    False forever);
+#  * the pointer write-back protocol — `walker.next(node)` repoints the
+#    caller's node handle each call;
+#  * `extractScalar` dispatch on the `nodePropertyExtractor` base class.
+with safe_section("merger-tree build/walk/extract"):
+    galacticus.nodesInitialize()
+    branchingProbability = galacticus.mergerTreeBranchingProbabilityParkinsonColeHelly(
+        0.57, 0.38, -0.01, 0.1, 1.0e-6, True, True, False,
+        cosmologicalMassVariance, criticalOverdensity)
+    rngTree         = galacticus.randomNumberGeneratorGSL(
+        seed_=8675309, ompThreadOffset=False, mpiRankOffset=False)
+    massResolution  = galacticus.mergerTreeMassResolutionFixed(1.0e10)
+    buildController = galacticus.mergerTreeBuildControllerUncontrolled(branchingProbability)
+    ageToday        = cosmologyFunctions.cosmicTime(1.0)
+    timeEarliest    = cosmologyFunctions.cosmicTime(
+        cosmologyFunctions.expansionFactorFromRedshift(1.0e5))
+    treeBuilder     = galacticus.mergerTreeBuilderCole2000(
+        0.1, 0.1, timeEarliest, 2.0e-6, True, 1.0e-6, 1.0e-3, False, False,
+        branchingProbability, massResolution, cosmologyFunctions,
+        criticalOverdensity, cosmologicalMassVariance, buildController)
+    treeSeeds        = galacticus.mergerTreeSeedsRandom(rngTree)
+    massDistribution = galacticus.mergerTreeBuildMassDistributionPowerLaw(0.0)
+    buildMasses      = galacticus.mergerTreeBuildMassesSampledDistributionUniform(
+        1.0e12, 1.0e13, 2.0, massDistribution)
+    outputTimesTree  = galacticus.outputTimesList([ageToday], cosmologyFunctions)
+    treeConstructor  = galacticus.mergerTreeConstructorBuild(
+        ageToday, 1.0e-6, 0, True,
+        cosmologyParameters, cosmologyFunctions, buildMasses, treeBuilder,
+        treeSeeds, haloMassFunction, outputTimesTree, rngTree)
+    finished = ctypes.c_bool(False)
+    tree     = treeConstructor.construct(1, finished)
+    check_eq("construct(1) returns a handle", bool(tree), True)
+    check_eq("finished False after tree 1"  , finished.value, False)
+    extractorMass = galacticus.nodePropertyExtractorMassBasic()
+    extractorTime = galacticus.nodePropertyExtractorTime()
+    walker = galacticus.mergerTreeWalkerIsolatedNodes(tree)
+    node   = ctypes.c_void_p(None)
+    masses, times = [], []
+    while walker.next(node):
+        masses.append(extractorMass.extractScalar(node))
+        times .append(extractorTime.extractScalar(node))
+    check_eq("walker visited nodes"          , len(masses) > 10, True)
+    # The root node: mass within the sampled range, time at the base epoch.
+    check_eq("root mass within sampled range", 1.0e12 <= max(masses) <= 1.0e13, True)
+    check   ("root time"                     , max(times), ageToday, fmt=".4f", unit="Gyr")
+    # Terminal nodes may undershoot the resolution mass by at most the
+    # accretionLimit fraction (a branch halts once it drops below
+    # resolution) — so the true floor is resolution*(1-accretionLimit).
+    check_eq("resolution floor respected"    , min(masses) >= 0.999*0.9e10, True)
+    # Exhaust the suite: requesting a tree beyond the last returns a null
+    # handle (None) and flips `finished` — this pins the intent(out)
+    # logical copy-back.
+    treeBeyond = treeConstructor.construct(3, finished)
+    check_eq("construct beyond suite returns None", treeBeyond, None)
+    check_eq("finished True beyond suite"         , finished.value, True)
 
 # Final summary and exit code.
 print(f"--- {_failures} failure(s) ---")

@@ -1,5 +1,6 @@
 # Python dependencies for building the Galacticus documentation on ReadTheDocs.
 sphinx>=8.1.3
 furo>=2025.12.19
+nbsphinx>=0.9.8
 sphinxcontrib-bibtex>=2.7.0
-sphinxcontrib-mermaid>=2.0.2
+sphinxcontrib-mermaid>=2.0.3
