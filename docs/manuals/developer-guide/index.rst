@@ -10,5 +10,6 @@ Developer Guide
    methods
    creating-a-new-class
    traversing-a-merger-tree
+   dark-matter-constraint-pipeline
    building-docker-images
    versions-and-releases
