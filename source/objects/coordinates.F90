@@ -40,10 +40,7 @@ module Coordinates
      !!{RST
      The base coordinate object class.
      !!}
-     ! The position is default-initialized to zero so that the (component-less) default structure constructor
-     ! `coordinateCartesian()` is valid -- this is relied upon by auto-generated `functionClass` code for methods
-     ! that return a `coordinateCartesian` (e.g. massDistribution acceleration/positionSample/chandrasekharIntegral).
-     double precision :: position(3) = 0.0d0
+     double precision :: position(3)
    contains
      !![
      <methods docformat="rst">
@@ -159,6 +156,17 @@ module Coordinates
      procedure :: scale             => Coordinates_Cylindrical_Scale
   end type coordinateCylindrical
 
+  ! Null constructor for a Cartesian coordinate. Provided so that the argument-less structure constructor
+  ! `coordinateCartesian()` -- emitted by auto-generated `functionClass` code for methods that return a
+  ! `coordinateCartesian` (e.g. the massDistribution acceleration/positionSample/chandrasekharIntegral) -- is
+  ! valid. This is done via an explicit constructor rather than a default-initializer on the `position`
+  ! component so that ordinary coordinate objects are not zero-initialized on every construction (which,
+  ! because coordinate assignment is a defined assignment with an intent(out) argument, is not elided by the
+  ! compiler and adds measurable cost in coordinate-heavy hot paths).
+  interface coordinateCartesian
+     module procedure coordinatesCartesianConstructorNull
+  end interface coordinateCartesian
+
   abstract interface
      double precision function rSphericalSquaredTemplate(self)
        import coordinate
@@ -199,6 +207,18 @@ module Coordinates
   end interface operator(*)
 
 contains
+
+  function coordinatesCartesianConstructorNull() result(self)
+    !!{RST
+    Null constructor for a Cartesian ``coordinate`` object, returning the origin. See the interface block for
+    why this exists.
+    !!}
+    implicit none
+    type(coordinateCartesian) :: self
+
+    self%position=0.0d0
+    return
+  end function coordinatesCartesianConstructorNull
 
   subroutine Coordinates_Null_From(self,x)
     !!{RST
