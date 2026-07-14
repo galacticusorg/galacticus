@@ -40,7 +40,8 @@ module Input_Parameters
   use            :: Resource_Manager  , only : resourceManager
   private
   public :: inputParameters                 , inputParameter, inputParameterList, Input_Parameters_Build_Stack_Push, &
-       &    Input_Parameters_Build_Stack_Pop  
+       &    Input_Parameters_Build_Stack_Pop  , Input_Parameters_Build_Stack_Object_Set                          , &
+       &    Input_Parameters_Build_Stack_Recursive_Object
   !![
   <generic identifier="Type">
    <instance label="Logical"        intrinsic="logical"                                          outputConverter="regEx¦(.*)¦char($1)¦"/>
@@ -276,6 +277,13 @@ module Input_Parameters
      type   (inputParameter), pointer :: node           => null()
      type   (varying_string)          :: className
      logical                          :: recursionAware =  .false.
+     ! Weak pointer to the object currently being constructed for this node. Set (via
+     ! Input_Parameters_Build_Stack_Object_Set) by the factory of a recursive="yes" class after allocating the
+     ! object but before dispatching its constructor, so that a re-entrant build which re-discovers this node can
+     ! retrieve the in-progress object and return a shim wired to it (see Input_Parameters_Build_Stack_Recursive_Object
+     ! and issue #695). Left null for non-recursive classes. Never reference-counted: this is a weak back-edge that
+     ! breaks the ownership cycle a bounded construction recursion would otherwise create.
+     class  (*             ), pointer :: object         => null()
   end type buildStackEntry
 
   type   (buildStackEntry), allocatable, dimension(:) :: buildStack
@@ -365,8 +373,47 @@ contains
     buildStack(buildStackDepth)%node           => node
     buildStack(buildStackDepth)%className      =  className
     buildStack(buildStackDepth)%recursionAware =  recursionAware
+    buildStack(buildStackDepth)%object         => null()
     return
   end subroutine Input_Parameters_Build_Stack_Push
+
+  subroutine Input_Parameters_Build_Stack_Object_Set(object)
+    !!{RST
+    Record, on the current (topmost) object-build stack entry, the object currently being constructed for that node. A recursive="yes" class calls this after allocating its object but before dispatching its constructor, so that a re-entrant build which re-discovers the same node can retrieve the in-progress object and return a shim wired to it (see ``Input_Parameters_Build_Stack_Recursive_Object`` and issue \#695). The pointer is weak---never reference-counted---so it does not create an ownership cycle.
+    !!}
+    implicit none
+    class(*), intent(in), target :: object
+
+    if (buildStackDepth > 0) buildStack(buildStackDepth)%object => object
+    return
+  end subroutine Input_Parameters_Build_Stack_Object_Set
+
+  function Input_Parameters_Build_Stack_Recursive_Object(node,className) result(object)
+    !!{RST
+    Search the object-build stack for an entry that is currently constructing the given ``node`` for the given ``className``, and return a (weak) pointer to the in-progress object recorded on that entry, or a null pointer if there is none. Used by a recursive="yes" factory to detect a bounded construction cycle---a re-entrant build that re-discovers the node currently under construction---and short-circuit it by returning a shim wired to the in-progress object, in place of the (now removed) per-family thread-private ``RecursiveBuildObject`` module variable. See issue \#695. The stack is searched from the top (innermost build) down so that the most recent in-progress construction of the node is returned.
+    !!}
+    use :: ISO_Varying_String, only : varying_string, operator(==)
+    implicit none
+    class    (*             ), pointer               :: object
+    type     (inputParameter), intent(in   ), target :: node
+    character(len=*         ), intent(in   )         :: className
+    integer                                          :: i
+
+    object => null()
+    do i=buildStackDepth,1,-1
+       if     (                                                       &
+            &   associated(buildStack(i)%node,node)                   &
+            &  .and.                                                  &
+            &   buildStack(i)%className == className                  &
+            &  .and.                                                  &
+            &   associated(buildStack(i)%object)                      &
+            & ) then
+          object => buildStack(i)%object
+          return
+       end if
+    end do
+    return
+  end function Input_Parameters_Build_Stack_Recursive_Object
 
   subroutine Input_Parameters_Build_Stack_Pop()
     !!{RST
@@ -375,7 +422,8 @@ contains
     implicit none
 
     if (buildStackDepth > 0) then
-       buildStack(buildStackDepth)%node => null()
+       buildStack(buildStackDepth)%node   => null()
+       buildStack(buildStackDepth)%object => null()
        buildStackDepth=buildStackDepth-1
     end if
     return

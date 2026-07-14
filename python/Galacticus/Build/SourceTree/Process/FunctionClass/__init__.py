@@ -2994,14 +2994,11 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
         c.get('recursive') == 'yes' for c in classes_ordered
     )
     if allow_recursion:
-        pre['content'] += (
-            f'   type(inputParameter), pointer :: '
-            f'{directive_name}RecursiveBuildNode => null()\n'
-            f'   class({directive_name}Class), pointer :: '
-            f'{directive_name}RecursiveBuildObject => null()\n'
-            f'   !$omp threadprivate({directive_name}RecursiveBuildNode,'
-            f'{directive_name}RecursiveBuildObject)\n\n'
-        )
+        # A recursive="yes" class detects a bounded construction cycle -- a re-entrant build that re-discovers the
+        # node currently under construction -- by querying the shared object-build stack (see the short-circuit
+        # below), rather than via the per-family thread-private RecursiveBuildNode/RecursiveBuildObject module
+        # variables used previously. The object under construction is recorded on the stack entry by the factory
+        # (Input_Parameters_Build_Stack_Object_Set) after allocation but before dispatch. See issue #695.
         add_uses(parent, {
             'moduleUse': {
                 'Input_Parameters': {'intrinsic': False, 'all': True},
@@ -3049,7 +3046,8 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
     post['content'] += (
         '      use :: Input_Parameters  , only : inputParameter         , '
         'inputParameters        , Input_Parameters_Build_Stack_Push, '
-        'Input_Parameters_Build_Stack_Pop\n'
+        'Input_Parameters_Build_Stack_Pop, Input_Parameters_Build_Stack_Object_Set, '
+        'Input_Parameters_Build_Stack_Recursive_Object\n'
         '      use :: Locks  , only : ompLock\n'
         '      use :: Error  , only : Error_Report\n'
         '      use :: ISO_Varying_String, only : varying_string         , '
@@ -3067,6 +3065,13 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
             '      type     (ompLock        ), save                    :: addLock\n'
             '      logical                   , save                    :: addLockInitialized=.false.\n'
             '      logical                                             :: needLock\n'
+        )
+    if allow_recursion:
+        # Weak pointer to the object already under construction for the re-discovered node, returned by the
+        # object-build-stack query used to detect a bounded construction cycle (issue #695). A recursive="yes"
+        # class implies a <default>, so `parameterNode` above is always declared alongside this.
+        post['content'] += (
+            '      class    (*               ), pointer                 :: recursiveObject\n'
         )
     post['content'] += (
         '      type     (varying_string )                          '
@@ -3119,48 +3124,50 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
             '        subParameters=parameters%subParameters(char(parameterName_))\n'
             f'        allocate({target_name} :: self)\n'
         )
-        if match is not None and match.get('recursive') == 'yes':
-            post['content'] += (
-                f'        {directive_name}RecursiveBuildNode   => parameterNode\n'
-                f'        {directive_name}RecursiveBuildObject => self\n'
-            )
         post['content'] += (
             '        call Input_Parameters_Build_Stack_Push(subParameters%parameters,'
             f"'{directive_name}',{'.true.' if allow_recursion else '.false.'},{loc_expr})\n"
+        )
+        if match is not None and match.get('recursive') == 'yes':
+            # Record the in-progress object on the build-stack entry so a re-entrant build that re-discovers this
+            # node can retrieve it and return a shim wired to it (issue #695).
+            post['content'] += (
+                '        call Input_Parameters_Build_Stack_Object_Set(self)\n'
+            )
+        post['content'] += (
             '        select type (self)\n'
             f'          type is ({target_name})\n'
             f'            self={target_name}(subParameters)\n'
             '         end select\n'
             '        call Input_Parameters_Build_Stack_Pop()\n'
         )
-        if match is not None and match.get('recursive') == 'yes':
-            post['content'] += (
-                f'        {directive_name}RecursiveBuildNode   => null()\n'
-                f'        {directive_name}RecursiveBuildObject => null()\n'
-            )
         post['content'] += '         call parameterNode%objectSet(self)\n'
         post['content'] += '      else\n'
 
     if allow_recursion:
+        # Detect a bounded construction cycle: query the object-build stack for an in-progress object being built
+        # for this same node and class. If found, this build has re-discovered the node currently under
+        # construction, so return a shim -- an instance of the concrete recursive type carrying isRecursive and a
+        # weak recursiveSelf pointer back to the in-progress object -- instead of building again. See issue #695.
         post['content'] += (
             '        parameterNode => parameters%node'
             '(char(parameterName_),requireValue=.true.)\n'
-            f'        if (associated(parameterNode,'
-            f'{directive_name}RecursiveBuildNode)) then\n'
+            f'        recursiveObject => Input_Parameters_Build_Stack_Recursive_Object'
+            f"(parameterNode,'{directive_name}')\n"
+            '        if (associated(recursiveObject)) then\n'
         )
         for c in non_abstract_classes:
             if c.get('recursive') != 'yes':
                 continue
             class_name = c['name']
             post['content'] += (
-                f'           select type ({directive_name}RecursiveBuildObject)\n'
+                '           select type (recursiveObject)\n'
                 f'              type is ({class_name})\n'
                 f'              allocate({class_name} :: self)\n'
                 '              select type (self)\n'
                 f'              type is ({class_name})\n'
                 '                 self%isRecursive=.true.\n'
-                f'                 self%recursiveSelf => '
-                f'{directive_name}RecursiveBuildObject\n'
+                '                 self%recursiveSelf => recursiveObject\n'
                 '              end select\n'
                 '           end select\n'
             )
@@ -3185,9 +3192,10 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
         post['content'] += f"     case ('{name}')\n"
         post['content'] += f"        allocate({c['name']} :: self)\n"
         if c.get('recursive') == 'yes':
+            # Record the in-progress object on the (already-pushed) build-stack entry so a re-entrant build that
+            # re-discovers this node can retrieve it and return a shim wired to it (issue #695).
             post['content'] += (
-                f"        {directive_name}RecursiveBuildNode   => parameterNode\n"
-                f"        {directive_name}RecursiveBuildObject => self\n"
+                '        call Input_Parameters_Build_Stack_Object_Set(self)\n'
             )
         post['content'] += (
             '        select type (self)\n'
@@ -3195,11 +3203,6 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
             f"            self={c['name']}(subParameters)\n"
             '         end select\n'
         )
-        if c.get('recursive') == 'yes':
-            post['content'] += (
-                f"        {directive_name}RecursiveBuildNode   => null()\n"
-                f"        {directive_name}RecursiveBuildObject => null()\n"
-            )
     post['content'] += '      case default\n'
     post['content'] += (
         "         message='Unrecognized type \"'//trim(instanceName)//'\" "
