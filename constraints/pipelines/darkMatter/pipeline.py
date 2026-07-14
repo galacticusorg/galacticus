@@ -18,7 +18,7 @@ import lxml.etree as ET
 import numpy as np
 
 import queueManager
-from queueManager import submit_jobs
+from queueManager import submit_jobs, submit_job_detached
 from List.ExtraUtils import as_array
 from XML.Utils import xml_to_dict
 from Galacticus.Constraints.Parameters import (
@@ -91,6 +91,11 @@ def _parse_args():
     parser.add_argument('--diagnoseSteps', default=1000, type=int,
                         help='Recent-window size (steps per chain) for --diagnose (default 1000; '
                              '0 = full history, slower).')
+    parser.add_argument('--detached', default='no', choices=['no', 'yes'],
+                        help='Detached driver: each invocation performs one state-machine action '
+                             '(submit fresh/resume, or advance a converged stage) and exits, '
+                             'instead of blocking until each MCMC finishes. Re-invoke (by hand, '
+                             'cron, or /loop) to advance. Default: no (blocking).')
     args, args_extra = parser.parse_known_args()
     for attr in ('outputDirectory', 'pipelinePath'):
         val = getattr(args, attr)
@@ -407,6 +412,125 @@ def _build_job(label, task, output_dir, galacticus, config_file, callgrind):
     }
 
 
+def _generate_content(label, options, pipeline_path, output_dir, args_extra):
+    """Run a stage's GenerateContent script (emits its config + base parameter files)."""
+    subscript_options = [
+        ('pipelinePath',                 pipeline_path),
+        ('outputDirectory',              output_dir),
+        ('countParticlesMinimum',        options['countParticlesMinimum']),
+        ('select',                       options['select']),
+        ('initializeToPosteriorMaximum', options.get('initializeToPosteriorMaximum')),
+    ]
+    for i in range(0, len(args_extra), 2):
+        m = re.match(r'\-\-' + label + r'_([a-zA-Z]+)', args_extra[i])
+        if m:
+            subscript_options.append((m.group(1), args_extra[i + 1]))
+    _call_subscript(pipeline_path + f'{label}GenerateContent.py', subscript_options)
+
+
+def _postprocess_command(label, pipeline_path, output_dir, options):
+    """Build the post-process subprocess command for a stage."""
+    cmd = [
+        sys.executable,
+        pipeline_path + f'{label}PostProcess.py',
+        '--pipelinePath',    pipeline_path,
+        '--outputDirectory', output_dir,
+    ]
+    for key in ('countParticlesMinimum', 'partition', 'jobMaximum', 'waitOnActive', 'waitOnSubmit', 'force'):
+        if options.get(key) is not None:
+            cmd += [f'--{key}', str(options[key])]
+    if options.get('select'):
+        for s in options['select']:
+            cmd += ['--select', s]
+    return cmd
+
+
+def _extract_parameters(config, options):
+    """Return the {name: value} best-fit parameter dict for a parsed stage config."""
+    if options['maximum'] == 'likelihood':
+        params_vec, _ = maximum_likelihood_parameter_vector(config)
+    else:
+        params_vec, _ = maximum_posterior_parameter_vector(config)
+    names = parameter_names(config)
+    return {name: float(params_vec[i]) for i, name in enumerate(names)}
+
+
+def _merge_results(results_file, params):
+    """Merge *params* into results.txt (preserving values from earlier stages)."""
+    merged = {}
+    if os.path.exists(results_file):
+        with open(results_file) as fh:
+            for line in fh:
+                m = re.match(r'([a-zA-Z0-9:/]+)\s+([\+\-\d\.e]+)', line)
+                if m:
+                    merged[m.group(1)] = float(m.group(2))
+    merged.update(params)
+    with open(results_file, 'w') as fh:
+        for name in sorted(merged):
+            fh.write(f'{name}\t{merged[name]}\n')
+
+
+def _run_detached(options, args, args_extra, tasks, pipeline_path, output_dir, galacticus):
+    """Perform ONE state-machine action and exit (no blocking on the queue).
+
+    Walk the stages in order. Converged-but-unprocessed stages are advanced
+    (extract -> hand-off -> post-process, marked ``processed``); the first
+    non-converged stage is submitted (fresh, or resume if chain logs exist) with a
+    non-blocking submit, its job id recorded, and the driver exits. Re-invoke to take
+    the next action. The interlock is automatic: prior stages are all converged by the
+    time we reach the first non-converged one.
+    """
+    results_file = output_dir + 'results.txt'
+    for task in tasks:
+        label       = task['label']
+        config_file = output_dir + f'{label}Config.xml'
+        manifest    = _manifest_read(output_dir, label)
+
+        if manifest.get('converged'):
+            if not manifest.get('processed'):
+                print(f"[{label}] converged -> extracting, writing hand-off, post-processing.")
+                config = _parse_config(config_file)
+                params = _extract_parameters(config, options)
+                _merge_results(results_file, params)
+                _write_calibrated_containers(output_dir, params)
+                subprocess.run(_postprocess_command(label, pipeline_path, output_dir, options), check=True)
+                _manifest_write(output_dir, label, processed=True)
+                print(f"[{label}] done.")
+            continue
+
+        # First non-converged stage: submit one job, record it, and exit.
+        if _job_active(label):
+            print(f"[{label}] a job is active (id {manifest.get('jobId', '?')}); nothing to do.")
+            print(f"  Inspect:  {sys.argv[0]} --diagnose {label}")
+            print(f"  Accept:   {sys.argv[0]} --markConverged {label}")
+            return
+
+        chain_log_0 = output_dir + f'{label}Chains_0000.log'
+        logs_exist  = os.path.exists(chain_log_0)
+        if not logs_exist and options['generateContent'] == 'yes':
+            print(f"[{label}] generating content for a fresh run...")
+            _generate_content(label, options, pipeline_path, output_dir, args_extra)
+        submit_config = (output_dir + f'{label}ConfigResume.xml') if logs_exist else config_file
+        kind          = 'resume' if logs_exist else 'fresh'
+        job     = _build_job(label, task, output_dir, galacticus,
+                             submit_config, options['callgrind'])
+        manager = queueManager.factory(args)
+        job_id  = submit_job_detached(manager, job)
+        _manifest_write(
+            output_dir, label,
+            converged=False, processed=False, jobId=job_id,
+            submittedAt=datetime.datetime.now().isoformat(timespec='seconds'),
+            submitKind=kind,
+        )
+        print(f"[{label}] submitted {kind} job {job_id} ({os.path.basename(submit_config)}).")
+        print(f"  Monitor:  {sys.argv[0]} --diagnose {label}")
+        print(f"  Accept:   {sys.argv[0]} --markConverged {label}")
+        print(f"  Then re-invoke this command to advance.")
+        return
+
+    print("All stages are converged and processed. Nothing to do.")
+
+
 # ---------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------
@@ -445,8 +569,13 @@ def main():
             'ppn':         options['progenitorMassFunctionPPN'],
             'nodes':       options['progenitorMassFunctionNodes'],
             'postprocess': True,
-        }, 
+        },
    ]
+
+    # Detached driver: one state-machine action per invocation, then exit.
+    if options['detached'] == 'yes':
+        _run_detached(options, args, args_extra, tasks, pipeline_path, output_dir, galacticus)
+        return
 
     params_determined = {}
 

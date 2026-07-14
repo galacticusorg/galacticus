@@ -102,14 +102,27 @@ The human flips the marker with the ``--markConverged {stage}`` subcommand
 Because ``submit_jobs`` blocks, cancelling the job is also what unblocks the waiting
 driver so it can advance.
 
-.. note::
+Blocking vs. detached
+~~~~~~~~~~~~~~~~~~~~~~~
 
-   The driver currently uses a **blocking** model: it waits on ``submit_jobs`` for
-   the lifetime of each MCMC. A fully **detached** driver — submit, record the job
-   id, exit, and be re-invoked (by a human, ``cron``, or the ``/loop`` skill) so
-   each invocation performs the next action from the table above — would remove the
-   long-lived process entirely and is the preferred eventual target. It requires a
-   non-blocking submission path.
+The default driver is **blocking**: it waits on ``submit_jobs`` (which polls
+``squeue``/``sacct``) for the lifetime of each MCMC. That single process must
+survive the whole calibration.
+
+``--detached yes`` selects ``_run_detached``, which performs exactly one action from
+the table above per invocation and then exits — submit the next job, or advance a
+converged stage — recording the job id in the manifest. It is re-invoked (by a
+human, ``cron``, or the ``/loop`` skill) to take each subsequent step, removing the
+long-lived process entirely. Two things make this work:
+
+* a **non-blocking submission path** in ``queueManager`` — ``submit_job_detached``
+  (and ``SLURMManager.submit_detached``) writes the launch file and ``sbatch``\ es
+  the job via the shared ``_submitOne`` helper, then returns the job id without
+  polling;
+* the **file-based hand-off** — because each detached invocation is a fresh process
+  with no in-memory ``params_determined``, the calibrated container on disk is what
+  carries the coupling forward. ``_run_detached`` regenerates content only for a
+  *fresh* submit (never on a resume, so a resuming job's files are not clobbered).
 
 Convergence diagnostics for a DE ensemble
 -----------------------------------------

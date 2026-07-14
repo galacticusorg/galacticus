@@ -9,7 +9,22 @@ import json
 import lxml.etree as ET
 import subprocess
 
-__all__ = ['QueueManager', 'SLURMManager', 'factory', 'translate_job', 'submit_jobs']
+__all__ = ['QueueManager', 'SLURMManager', 'factory', 'translate_job', 'submit_jobs',
+           'submit_job_detached']
+
+# Mapping of job-dict keys to SLURM `#SBATCH` option names.
+_SLURM_OPTION_MAP = {
+    "label":           "job-name"       ,
+    "partition":       "partition"      ,
+    "nodes":           "nodes"          ,
+    "tasksPerNode":    "ntasks-per-node",
+    "cpusPerTask":     "cpus-per-task"  ,
+    "memoryPerThread": "mem-per-cpu"    ,
+    "memory":          "mem"            ,
+    "walltime":        "time"           ,
+    "logOutput":       "output"         ,
+    "logError":        "error"
+}
 
 
 class QueueManager:
@@ -73,23 +88,86 @@ class SLURMManager(QueueManager):
             self.options['waitOnSubmit'] = args.waitOnSubmit
         if 'waitOnActive' in vars(args) and args.waitOnActive is not None:
             self.options['waitOnActive'] = args.waitOnActive
-            
+
+    def _submitOne(self,job):
+        """Prepare a job (defaults, task/memory sizing, launch file) and `sbatch` it.
+
+        Sets ``job['jobID']`` and ``job['state']`` and returns the job ID. Does not
+        wait for or monitor the job. Shared by the blocking ``submitJobs`` and the
+        non-blocking ``submit_detached``.
+        """
+        # Set job defaults.
+        if "partition" not in job and "partition" in self.options:
+            job['partition'] = self.options['partition']
+        # Determine number of tasks such that we do not exceed the available memory.
+        if "memoryPerThread" in job and not "tasksPerNode" in job:
+            optimizeFor    = job['optimizeFor'] if "optimizeFor" in job else "threads"
+            useMemory      = "maximum" if optimizeFor == "threads" else "minimum"
+            memoryFraction = 0.8
+            command        = [ 'sinfo' ]
+            if "partition" in job:
+                command.extend(['--partition', job['partition']])
+            command.append('--json')
+            sinfo = subprocess.run(command, capture_output=True, text=True)
+            if sinfo.returncode != 0:
+                raise Exception("`sinfo` failed")
+            partitionData       = json.loads(sinfo.stdout)
+            job['tasksPerNode'] = 0 if useMemory == "maximum" else 1000000
+            job['cpusPerTask' ] = 1
+            for node in partitionData['sinfo']:
+                countCPUsLimit = min(node['cpus']['maximum'],int(memoryFraction*node['memory'][useMemory]/job['memoryPerThread']))
+                if useMemory == "maximum":
+                    if countCPUsLimit > job['tasksPerNode']:
+                        job['tasksPerNode'] = countCPUsLimit
+                else:
+                    if countCPUsLimit < job['tasksPerNode']:
+                        job['tasksPerNode'] = countCPUsLimit
+        # Create the job submit file.
+        with open(job['launchFile'],"w") as fileBatch:
+            fileBatch.write('#!/bin/bash\n')
+            for option in job:
+                if option in _SLURM_OPTION_MAP:
+                    suffix = "M" if re.match(r"^mem\-",_SLURM_OPTION_MAP[option],) else ""
+                    fileBatch.write(f'#SBATCH --{_SLURM_OPTION_MAP[option]}={job[option]}{suffix}\n')
+            fileBatch.write(f'ulimit -t unlimited\n')
+            fileBatch.write(f'ulimit -c unlimited\n')
+            if "countOpenMPThreads" in job:
+                fileBatch.write(f'export OMP_NUM_THREADS={job["countOpenMPThreads"]}\n')
+            fileBatch.write(f'{job["command"]}\n')
+            fileBatch.write(f'exit\n')
+        print(f'Submitting job "{job["label"]}"')
+        countSubmitAttempts = 0
+        submitSuccess       = False
+        while not submitSuccess and countSubmitAttempts < 10:
+            sbatch = subprocess.run(['sbatch', job['launchFile']], capture_output=True, text=True)
+            if sbatch.returncode == 0:
+                submitSuccess = True
+                # Extract the job ID.
+                match = re.search(r"\d+", sbatch.stdout)
+                if match:
+                    job['jobID'] = match.group(0)
+                    job['state'] = "PENDING"
+                else:
+                    raise Exception(f"`sbatch` command did not return job ID")
+            else:
+                countSubmitAttempts += 1
+                print(f"`sbatch` command failed with return code: {sbatch.returncode}")
+                print(sbatch.stderr)
+                timeSleep = max([1,self.options['waitOnSubmit']])*2**countSubmitAttempts
+                print(f"waiting {timeSleep} s to try again....")
+                time.sleep(timeSleep)
+        if not submitSuccess:
+            raise Exception("`sbatch` command failed after multiple attempts")
+        return job['jobID']
+
+    def submit_detached(self,job):
+        """Prepare and submit a single job, returning its job ID, without waiting."""
+        return self._submitOne(job)
+
     def submitJobs(self,jobs):
         """Submit jobs to a SLURM queue manager and wait for completion."""
         # Define components of SLURM interface,
         activeStates = [ "RUNNING", "PENDING" ]
-        optionMap    = {
-            "label":           "job-name"       ,
-            "partition":       "partition"      , 
-            "nodes":           "nodes"          ,
-            "tasksPerNode":    "ntasks-per-node",
-            "cpusPerTask":     "cpus-per-task"  ,
-            "memoryPerThread": "mem-per-cpu"    ,
-            "memory":          "mem"            ,
-            "walltime":        "time"           ,
-            "logOutput":       "output"         ,
-            "logError":        "error"
-            }
         # Iterate until all jobs are finished.
         activeJobs = {}
         while len(activeJobs) > 0 or len(jobs) > 0:
@@ -151,77 +229,9 @@ class SLURMManager(QueueManager):
                 while countNewSubmits > 0 and len(jobs) > 0:
                     # Get the next job.
                     job = jobs.pop()
-                    # Set job defaults.
-                    if "partition" not in job and "partition" in self.options:
-                        job['partition'] = self.options['partition']
-                    # Determine number of tasks such that we do not exceed the available memory.
-                    if "memoryPerThread" in job and not "tasksPerNode" in job:
-                        # Determine if we are optimizing for nodes or for threads.
-                        optimizeFor = job['optimizeFor'] if "optimizeFor" in job else "threads"
-                        # Deterine if we should use the maximum or minimum memory across nodes.
-                        useMemory = None
-                        if optimizeFor == "threads":
-                            useMemory = "maximum"
-                        if optimizeFor == "nodes":
-                            useMemory = "minimum"
-                        # Specify the fraction of memory on a node we will use (i.e. allow some buffer so as not to use all memory).
-                        memoryFraction = 0.8
-                        # Get info on nodes in this partition.
-                        command = [ 'sinfo' ]
-                        if "partition" in job:
-                            command.extend(['--partition', job['partition']])
-                        command.append('--json')
-                        sinfo = subprocess.run(command, capture_output=True, text=True)
-                        if sinfo.returncode != 0:
-                            raise Exception("`sinfo` failed")
-                        partitionData = json.loads(sinfo.stdout)
-                        job['tasksPerNode'] = 0 if useMemory == "maximum" else 1000000
-                        job['cpusPerTask' ] = 1
-                        for node in partitionData['sinfo']:
-                            countCPUsLimit = min(node['cpus']['maximum'],int(memoryFraction*node['memory'][useMemory]/job['memoryPerThread']))
-                            if useMemory == "maximum":
-                                if countCPUsLimit > job['tasksPerNode']:
-                                    job['tasksPerNode'] = countCPUsLimit
-                            else:
-                                if countCPUsLimit < job['tasksPerNode']:
-                                    job['tasksPerNode'] = countCPUsLimit
-                    # Create the job submit file.
-                    with open(job['launchFile'],"w") as fileBatch:
-                        fileBatch.write('#!/bin/bash\n')
-                        for option in job:
-                            if option in optionMap:
-                                suffix = "M" if re.match(r"^mem\-",optionMap[option],) else ""
-                                fileBatch.write(f'#SBATCH --{optionMap[option]}={job[option]}{suffix}\n')
-                        fileBatch.write(f'ulimit -t unlimited\n')
-                        fileBatch.write(f'ulimit -c unlimited\n')
-                        if "countOpenMPThreads" in job:
-                            fileBatch.write(f'export OMP_NUM_THREADS={job["countOpenMPThreads"]}\n')
-                        fileBatch.write(f'{job["command"]}\n')
-                        fileBatch.write(f'exit\n')
-                    print(f'Submitting job "{job["label"]}"')
-                    countSubmitAttempts = 0
-                    submitSuccess       = False
-                    while not submitSuccess and countSubmitAttempts < 10:
-                        sbatch = subprocess.run(['sbatch', job['launchFile']], capture_output=True, text=True)
-                        if sbatch.returncode == 0:
-                            submitSuccess = True
-                            # Extract the job ID.
-                            match = re.search(r"\d+", sbatch.stdout)
-                            if match:
-                                job['jobID'] = match.group(0)
-                                job['state'] = "PENDING"
-                                activeJobs[job['jobID']] = job
-                            else:
-                                raise Exception(f"`sbatch` command did not return job ID")
-                        else:
-                            countSubmitAttempts += 1
-                            print(f"`sbatch` command failed with return code: {sbatch.returncode}")
-                            print(sbatch.stderr)
-                            timeSleep = max([1,self.options['waitOnSubmit']])*2**countSubmitAttempts
-                            print(f"waiting {timeSleep} s to try again....")
-                            time.sleep(timeSleep)
-                    if not submitSuccess:
-                        raise Exception("`sbatch` command failed after multiple attempts")
+                    # Prepare and submit it (writes the launch file, sbatch, sets jobID).
+                    self._submitOne(job)
+                    activeJobs[job['jobID']] = job
                     # Record that we submitted a job.
                     didSubmit = True
                     # Decrement the number of new jobs we can submit.
@@ -258,3 +268,13 @@ def submit_jobs(manager, jobs):
     """Submit a list of Perl-style job dicts via the Python queue manager."""
     if jobs:
         manager.submitJobs([translate_job(j) for j in jobs])
+
+
+def submit_job_detached(manager, job):
+    """Submit a single Perl-style job dict without waiting; return its job ID.
+
+    Unlike :func:`submit_jobs`, this does not poll for or wait on completion — it
+    writes the launch file, `sbatch`\\es the job, and returns immediately. Intended
+    for a detached driver that submits, records the job ID, and exits.
+    """
+    return manager.submit_detached(translate_job(job))

@@ -98,6 +98,27 @@ resubmits the **resume** config and keeps going. (A job that dies in under two
 minutes is treated as a crash, not a wall-time kill, and the driver stops so you
 can investigate.)
 
+### Blocking vs. detached
+
+By default the driver **blocks**: it waits on the queue for the lifetime of each
+MCMC (up to the 7-day wall-time). That single long-lived process must survive for
+the whole calibration.
+
+With `--detached` the driver instead performs **one action per invocation and
+exits**: it submits the next job (fresh, or resume if chain logs exist), records the
+job id in the manifest, and returns; a converged-but-unprocessed stage is instead
+advanced (extract → hand-off → post-process). You then re-invoke the *same* command
+— by hand, from `cron`, or via the `/loop` skill — to take the next step. Nothing
+long-lived has to stay alive, which suits HPC. `--diagnose` and `--markConverged`
+work identically in both modes. (This relies on the file-based hand-off: each
+detached invocation is a fresh process, so the calibrated container on disk — not
+in-memory state — is what carries the coupling forward.)
+
+```bash
+# submit / advance one step, then exit
+pipeline.py --outputDirectory /path/to/run/ --select '…' --detached yes
+```
+
 ---
 
 ## The cross-stage hand-off
@@ -137,6 +158,7 @@ held only in memory.
 | `--diagnose STAGE` | print convergence diagnostics for a stage and exit |
 | `--diagnoseSteps N` | recent-window size for `--diagnose` (default 1000; 0 = full history) |
 | `--markConverged STAGE` | mark a stage converged (cancels its job) and exit |
+| `--detached yes` | perform one state-machine action and exit (re-invoke to advance) instead of blocking |
 | `--{stage}Nodes N`, `--{stage}PPN N` | SLURM node / processors-per-node for a stage's job |
 | `--generateContent no` | skip regenerating parameter files (reuse what is on disk) |
 | `--maximum likelihood` | extract the maximum-likelihood (not maximum-posterior) point |
