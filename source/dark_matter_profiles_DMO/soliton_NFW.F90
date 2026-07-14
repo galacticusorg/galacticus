@@ -285,6 +285,7 @@ contains
     darkMatterProfile => node%darkMatterProfile()
     solitonStatus     = darkMatterProfile%floatRank0MetaPropertyGet(self%statusID)
 
+    ! Cache the initial halo structure so that the halo remains consistently treated as either a soliton+NFW or an NFW profile throughout its evolution.
     if (solitonStatus >= 0.0d0) then
        if (self%radiusCorePrevious < 0.0d0) then
            call self%computeProperties(node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massCore)
@@ -420,7 +421,7 @@ contains
     call darkMatterProfile%floatRank0MetaPropertySet(self%radiusSolitonID,-1.0d0)
     call darkMatterProfile%floatRank0MetaPropertySet(self%massCoreID     ,-1.0d0)
     solitonStatus = darkMatterProfile%floatRank0MetaPropertyGet(self%statusID)
-    ! Initialize the status on the first call.
+    ! Initialize the status on the first call.  If a soliton solution is found, the halo is treated as a soliton+NFW profile thereafter. Otherwise the status is set to -1 and the halo is treated as an NFW profile for all subsequent calls.
     if (solitonStatus == 0.0d0) then
         call darkMatterProfile%floatRank0MetaPropertySet(self%statusID   ,-1.0d0)
     end if
