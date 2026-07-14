@@ -7,10 +7,12 @@ Andrew Benson (ported to Python 2026)
 
 import argparse
 import datetime
+import json
 import os
 import re
 import subprocess
 import sys
+import time
 
 import lxml.etree as ET
 import numpy as np
@@ -79,6 +81,16 @@ def _parse_args():
     parser.add_argument('--initializeToPosteriorMaximum', default=None,
                         help='Log file root for initializing MCMC from prior posterior maximum; '
                              'forwarded to GenerateContent')
+    parser.add_argument('--markConverged', default=None, metavar='STAGE',
+                        help='Human judgement gate: mark STAGE (e.g. haloMassFunction) as '
+                             'converged — scancel its running job and record a durable marker — '
+                             'then exit. The next pipeline run advances past it.')
+    parser.add_argument('--diagnose', default=None, metavar='STAGE',
+                        help='Print DE-appropriate convergence diagnostics for STAGE (via dendros) '
+                             'and exit. Aids the human judgement; does not make it.')
+    parser.add_argument('--diagnoseSteps', default=1000, type=int,
+                        help='Recent-window size (steps per chain) for --diagnose (default 1000; '
+                             '0 = full history, slower).')
     args, args_extra = parser.parse_known_args()
     for attr in ('outputDirectory', 'pipelinePath'):
         val = getattr(args, attr)
@@ -224,6 +236,136 @@ def _write_calibrated_containers(output_dir, params_determined):
 
 
 # ---------------------------------------------------------------------------
+# Stage state machine: manifest + SLURM introspection + human convergence gate
+# ---------------------------------------------------------------------------
+#
+# Convergence is a deliberate human judgement (the stopping criterion is set
+# unreachably high on purpose), so the driver separates the one human bit from
+# the machine-decidable bits. Per stage, on each entry:
+#
+#   converged marker | chain logs | job active |  action
+#   ---------------- | ---------- | ---------- |  -------------------------------
+#   yes (human-set)  |     -      |     -      |  extract -> handoff -> postprocess
+#   no               |    no      |    no      |  submit FRESH  ({stage}Config.xml)
+#   no               |   yes      |    no      |  submit RESUME ({stage}ConfigResume.xml)
+#   no               |     -      |   yes      |  in progress -- wait for it
+#
+# The human flips the marker with `--markConverged {stage}` (which scancels the
+# still-running chain job); that unblocks the waiting driver, which then advances.
+
+def _manifest_path(output_dir, stage):
+    return f'{output_dir}{stage}.state.json'
+
+
+def _manifest_read(output_dir, stage):
+    """Return the stage manifest dict ({} if none written yet)."""
+    path = _manifest_path(output_dir, stage)
+    if not os.path.exists(path):
+        return {}
+    with open(path) as fh:
+        return json.load(fh)
+
+
+def _manifest_write(output_dir, stage, **updates):
+    """Merge *updates* into the stage manifest and persist it."""
+    manifest = _manifest_read(output_dir, stage)
+    manifest.update(updates)
+    with open(_manifest_path(output_dir, stage), 'w') as fh:
+        json.dump(manifest, fh, indent=2, sort_keys=True)
+        fh.write('\n')
+    return manifest
+
+
+def _job_label(stage):
+    """The deterministic SLURM job name for a stage (matches submission)."""
+    return f'darkMatterPipeline{stage[0].upper()}{stage[1:]}'
+
+
+def _job_active(stage):
+    """True if a queued/running SLURM job for this stage exists (by name)."""
+    try:
+        result = subprocess.run(
+            ['squeue', '--me', '--name', _job_label(stage), '-h', '-o', '%i'],
+            capture_output=True, text=True,
+        )
+    except FileNotFoundError:
+        return False
+    return result.returncode == 0 and bool(result.stdout.strip())
+
+
+def _wait_for_job(stage, interval=60):
+    """Block until no SLURM job for this stage remains active."""
+    while _job_active(stage):
+        time.sleep(interval)
+
+
+def _git_revision():
+    try:
+        return subprocess.run(
+            ['git', '-C', os.environ.get('GALACTICUS_EXEC_PATH', '.'), 'rev-parse', 'HEAD'],
+            capture_output=True, text=True,
+        ).stdout.strip() or None
+    except Exception:
+        return None
+
+
+def _do_mark_converged(output_dir, stage):
+    """Record the human 'converged' decision for a stage and stop its job."""
+    if _job_active(stage):
+        print(f"Cancelling active '{stage}' job ({_job_label(stage)})...")
+        subprocess.run(['scancel', '--name', _job_label(stage)], check=False)
+    _manifest_write(
+        output_dir, stage,
+        converged=True,
+        convergedAt=datetime.datetime.now().isoformat(timespec='seconds'),
+        gitRevision=_git_revision(),
+    )
+    print(f"Marked '{stage}' converged (manifest: {_manifest_path(output_dir, stage)}).")
+    print(f"The next `pipeline.py` run will extract the maximum, write the calibrated "
+          f"handoff, postprocess, and advance to the next stage.")
+
+
+def _do_diagnose(output_dir, stage, steps):
+    """Emit DE-appropriate convergence aids for a stage via dendros, then exit.
+
+    Deliberately uses the effect-size ensemble drift + ESS/autocorrelation, and
+    *not* per-walker Gelman-Rubin / Geweke, which are inflated for an interacting
+    differentialEvolution ensemble (see plan review Section 3).
+    """
+    from dendros import open_mcmc
+
+    config = f'{output_dir}{stage}Config.xml'
+    if not os.path.exists(config):
+        raise FileNotFoundError(f"No config for stage '{stage}': {config}")
+    window = steps if steps and steps > 0 else None
+    run = open_mcmc(config, max_steps=window)
+    n_chains = len(run.chains)
+    n_steps = run.chains[0].n_steps if n_chains else 0
+    outliers = run.outlier_chains() if n_chains else ()
+    manifest = _manifest_read(output_dir, stage)
+
+    print(f"[diagnose {stage}]  chains={n_chains}  steps/chain kept={n_steps}"
+          f"  ({'last '+str(window) if window else 'full history'})  outliers={len(outliers)}")
+    print(f"  converged marker: {manifest.get('converged', False)}"
+          f"{'  (set '+manifest['convergedAt']+')' if manifest.get('convergedAt') else ''}")
+    if n_chains == 0 or n_steps < 4:
+        print("  (too few samples yet for diagnostics)")
+        return
+    try:
+        drift = run.ensemble_drift(drop_chains=outliers)
+        print(f"  ensemble-mean drift (effect size, recent window halves):"
+              f"  max={drift.max_drift():.3f} sigma   worst={drift.worst_parameter()}")
+        print(f"    -> a well-mixed tail sits well below ~0.1 sigma once the window spans")
+        print(f"       several autocorrelation times; widen --diagnoseSteps if it's short.")
+    except Exception as e:
+        print(f"  ensemble_drift unavailable: {e}")
+    print("  (effect-size drift is the DE-appropriate signal; per-walker R-hat/Geweke are")
+    print("   omitted — inflated for a DE ensemble — see plan Section 3. Slower autocorrelation")
+    print("   diagnostics: dendros effective_sample_size / acceptance_rate on this config.)")
+    print(f"  When you judge it done:  {sys.argv[0]} --markConverged {stage}")
+
+
+# ---------------------------------------------------------------------------
 # Subprocess helper
 # ---------------------------------------------------------------------------
 
@@ -245,6 +387,26 @@ def _call_subscript(script_path, flag_pairs):
     subprocess.run(cmd, check=True)
 
 
+def _build_job(label, task, output_dir, galacticus, config_file, callgrind):
+    """Build the queueManager job dict for a stage's MCMC, running *config_file*."""
+    n_proc     = task['ppn'] * task['nodes']
+    omp_prefix = 'export OMP_NUM_THREADS=1; '
+    mpi_prefix = f'mpirun --oversubscribe --n {n_proc} '
+    callgrind_prefix = (
+        f'--output-filename {output_dir}{label}.vlog valgrind --tool=callgrind '
+        if callgrind == 'yes' else ''
+    )
+    return {
+        'command':    f'{omp_prefix} {mpi_prefix}{callgrind_prefix}{galacticus} {config_file}',
+        'launchFile': f'{output_dir}{label}.sh',
+        'logFile':    f'{output_dir}{label}.log',
+        'label':      _job_label(label),
+        'ppn':        task['ppn'],
+        'nodes':      task['nodes'],
+        'walltime':   '7-00:00:00',
+    }
+
+
 # ---------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------
@@ -257,6 +419,14 @@ def main():
     galacticus       = os.path.join(
         os.environ.get('GALACTICUS_EXEC_PATH', ''), 'Galacticus.exe'
     )
+
+    # Subcommands act on an existing run directory and then exit.
+    if options.get('diagnose'):
+        _do_diagnose(output_dir, options['diagnose'], options['diagnoseSteps'])
+        return
+    if options.get('markConverged'):
+        _do_mark_converged(output_dir, options['markConverged'])
+        return
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -280,7 +450,7 @@ def main():
 
     params_determined = {}
 
-    for task in tasks:
+    for task_index, task in enumerate(tasks):
         label       = task['label']
         config_file = output_dir + f'{label}Config.xml'
         print(f'Begin task: {label}')
@@ -336,34 +506,50 @@ def main():
             _write_parameters(config)
             print('  ...done')
 
-        # Step 6: submit the MCMC job (skip if chain log already exists).
-        chain_log_0 = log_file_root(config) + '_0000.log'
-        if not os.path.exists(chain_log_0):
-            n_proc = task["ppn"]*task['nodes']
-            omp_prefix = (
-                f'export OMP_NUM_THREADS=1; '
-                )
-            mpi_prefix = (
-                f'mpirun --oversubscribe --n {n_proc} '
-                )
-            callgrind_prefix = (
-                f'--output-filename {output_dir}{label}.vlog '
-                f'valgrind --tool=callgrind '
-                if options['callgrind'] == 'yes' else ''
-            )
-            job = {
-                'command':    f'{omp_prefix} {mpi_prefix}{callgrind_prefix}{galacticus} {config_file}',
-                'launchFile': f'{output_dir}{label}.sh',
-                'logFile':    f'{output_dir}{label}.log',
-                'label':      f'darkMatterPipeline{label[0].upper()}{label[1:]}',
-                'ppn':        task['ppn'],
-                'nodes':      task['nodes'],
-                'walltime':   '7-00:00:00',
-            }
-            print(f"  Running MCMC for '{label}'  [{datetime.datetime.now()}]")
+        # Step 6 (stage state machine): the stage is "done" only when a human has
+        # marked it converged (not merely because a chain log exists). Interlock on
+        # upstream stages, then submit fresh/resume and wait, resubmitting the resume
+        # config on each walltime kill, until the marker is set (which scancels the
+        # running job and unblocks us).
+        for prior in tasks[:task_index]:
+            if not _manifest_read(output_dir, prior['label']).get('converged'):
+                print(f"  Refusing to start '{label}': upstream stage "
+                      f"'{prior['label']}' is not marked converged.")
+                print(f"    Inspect:  {sys.argv[0]} --diagnose {prior['label']}")
+                print(f"    Accept:   {sys.argv[0]} --markConverged {prior['label']}")
+                sys.exit(1)
+
+        chain_log_0   = log_file_root(config) + '_0000.log'
+        resume_config = output_dir + f'{label}ConfigResume.xml'
+        resubmits     = 0
+        while not _manifest_read(output_dir, label).get('converged'):
+            if _job_active(label):
+                print(f"  A '{label}' job is already active; waiting for it to end...")
+                _wait_for_job(label)
+                continue
+            logs_exist    = os.path.exists(chain_log_0)
+            submit_config = resume_config if logs_exist else config_file
+            kind          = 'resume' if logs_exist else 'fresh'
+            print(f"  Running {kind} MCMC for '{label}' "
+                  f"({os.path.basename(submit_config)})  [{datetime.datetime.now()}]")
+            job     = _build_job(label, task, output_dir, galacticus, submit_config,
+                                 options['callgrind'])
             manager = queueManager.factory(args)
+            t_start = time.time()
             submit_jobs(manager, [job])
-            print(f'  ...done [{datetime.datetime.now()}]')
+            elapsed = time.time() - t_start
+            if _manifest_read(output_dir, label).get('converged'):
+                break                       # human marked it done (scancel unblocked us)
+            resubmits += 1
+            if elapsed < 120:
+                print(f"  '{label}' job ended after {elapsed:.0f}s but is not marked "
+                      f"converged — this looks like a crash, not a walltime kill. Stopping.")
+                print(f"    Check {output_dir}{label}.log, fix, and re-run.")
+                sys.exit(1)
+            print(f"  '{label}' job ended (walltime?) and is not marked converged; "
+                  f"resubmitting resume [#{resubmits}].")
+            print(f"    When you judge it done:  {sys.argv[0]} --markConverged {label}")
+        print(f"  '{label}' is marked converged  [{datetime.datetime.now()}]")
 
         # Step 7: extract best-fit parameters from chain logs.
         results_file = output_dir + 'results.txt'
