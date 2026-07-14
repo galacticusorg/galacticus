@@ -1,0 +1,118 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Characterization model for the *legitimate* (bounded) construction        -->
+<!-- recursion handled by recursive="yes" (issue #695).                         -->
+<!--                                                                            -->
+<!-- Setting virialDensityContrast="percolation" with the default              -->
+<!-- darkMatterHaloScale ("virialDensityContrastDefinition") forms the         -->
+<!-- canonical mutual cycle:                                                    -->
+<!--                                                                            -->
+<!--   virialDensityContrastPercolation                                        -->
+<!--     -> percolation objects -> dark-matter profile -> darkMatterHaloScale  -->
+<!--       = darkMatterHaloScaleVirialDensityContrastDefinition                -->
+<!--         -> virialDensityContrast (resolves back up the parameter tree to  -->
+<!--            the percolation object currently under construction)            -->
+<!--                                                                            -->
+<!-- The build re-discovers the node currently under construction and returns  -->
+<!-- a shim (recursive="yes" short-circuit) instead of aborting (#397). This   -->
+<!-- model asserts that the *successful* recursive build path works end to     -->
+<!-- end. Run multi-threaded, it also deep-copies the recursive object graph   -->
+<!-- (per-thread copies in evolveForests) and, via stateFileRoot, exercises    -->
+<!-- stateStore/stateRestore of the shim.                                      -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
+
+  <errorWaitTime value="0"/>
+  <evolveForestsWorkShare value="cyclic"/>
+  <stateFileRoot value="testSuite/outputs/recursionSuccessPercolation/state"/>
+  <outputFileName value="testSuite/outputs/recursionSuccessPercolation.hdf5"/>
+
+  <!-- The recursion-forming ingredient: a percolation virial density contrast, -->
+  <!-- combined with the default virialDensityContrastDefinition halo scale.    -->
+  <virialDensityContrast value="percolation">
+    <linkingLength value="0.2"/>
+  </virialDensityContrast>
+
+  <mergerTreeBuildMasses value="sampledDistributionUniform">
+    <massTreeMaximum value="1.0e13"/>
+    <massTreeMinimum value="1.0e12"/>
+    <treesPerDecade value="4"/>
+    <mergerTreeBuildMassDistribution value="powerLaw"/>
+  </mergerTreeBuildMasses>
+  <mergerTreeConstructor value="build">
+    <redshiftBase value="0.0"/>
+    <processDescending value="false"/>
+    <treeBeginAt value="1"/>
+  </mergerTreeConstructor>
+
+  <satelliteMergingTimescales value="jiang2008">
+    <timescaleMultiplier value="5.4"/>
+  </satelliteMergingTimescales>
+
+  <!-- Halo scale radii and concentrations -->
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Halo spins -->
+    <nodeOperator value="haloAngularMomentumRandom">
+      <factorReset value="2.0"/>
+    </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"   />
+    <!-- Star formation -->
+    <nodeOperator value="starFormationDisks"/>
+    <nodeOperator value="starFormationSpheroids"/>
+    <!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
+  </nodeOperator>
+
+  <verbosityLevel value="standard"/>
+
+  <componentHotHalo value="standard"/>
+</parameters>

@@ -1428,6 +1428,7 @@ jobs:
                 test-AGNSED.py,
                 test-SIDM-parametric.py,
                 test-objectBuilder-recursion.py,
+                test-objectBuilder-recursion-success.py,
                 test-library-interfaces.py,
                 test-merger-tree-read-ties.py ]
     uses: ./.github/workflows/testModel.yml
