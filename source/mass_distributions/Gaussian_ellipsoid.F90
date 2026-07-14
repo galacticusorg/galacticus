@@ -45,7 +45,10 @@
           &                                                           scaleLengthMaximum
      integer                              , dimension(3          ) :: axesMapIn                        , axesMapOut
      double precision                     , dimension(2          ) :: axisRatio
-     type            (matrix), allocatable                         :: rotationIn                       , rotationOut
+     ! Rotation matrices (into, and out of, the frame aligned with the principal axes) are stored as plain 3x3
+     ! arrays -- computed once in initialize() using the GSL-backed matrix type -- so that the per-evaluation
+     ! rotations in the density/acceleration hot paths use matmul, with no GSL vector/matrix heap allocation.
+     double precision                     , dimension(3,3        ) :: rotationIn                       , rotationOut
      double precision                     , dimension(3)           :: axis1                            , axis2                                 , &
           &                                                           axis3
    contains
@@ -225,6 +228,7 @@ contains
     type            (vector                           ), intent(in   ), dimension(3), optional :: axes
     type            (matrix                           ), intent(in   )              , optional :: rotation
     type            (vector                           )               , dimension(3)           :: axesPrinciple
+    type            (matrix                           )                                        :: rotationMatrix
     integer                                                                                    :: i
 
     ! If dimensionless, then maximum scale length should be 1.0.
@@ -259,11 +263,9 @@ contains
        self%axisRatio(i)=+self%scaleLength(self%axesMapOut(i)) &
             &            /self%scaleLengthMaximum
     end do
-    ! Compute rotation matrices required to rotate the ellipsoid to be aligned with the principle Cartesian axes, and back again.
-    if (allocated(self%rotationIn )) deallocate(self%rotationIn )
-    if (allocated(self%rotationOut)) deallocate(self%rotationOut)
-    allocate(self%rotationIn )
-    allocate(self%rotationOut)
+    ! Compute rotation matrices required to rotate the ellipsoid to be aligned with the principle Cartesian
+    ! axes, and back again. These are computed once here (using the GSL-backed matrix type) and stored as plain
+    ! 3x3 arrays for use by matmul in the density/acceleration hot paths.
     if (present(axes)) then
        self%axis1      =axes(1)
        self%axis2      =axes(2)
@@ -271,13 +273,14 @@ contains
        axesPrinciple(1)=vector([1.0d0,0.0d0,0.0d0])
        axesPrinciple(2)=vector([0.0d0,1.0d0,0.0d0])
        axesPrinciple(3)=vector([0.0d0,0.0d0,1.0d0])
-       self%rotationIn =matrixRotation(axes,axesPrinciple)
+       rotationMatrix  =matrixRotation(axes,axesPrinciple)
     else if (present(rotation)) then
-       self%rotationIn=matrix(rotation)
+       rotationMatrix  =matrix(rotation)
     else
        call Error_Report('either principle axes or a rotation matrix must be supplied'//{introspection:location})
     end if
-    self%rotationOut=self%rotationIn%inverse()
+    self%rotationIn =rotationMatrix
+    self%rotationOut=rotationMatrix%inverse()
     return
   end subroutine gaussianEllipsoidInitialize
   
@@ -286,22 +289,17 @@ contains
     Return the density at the specified ``coordinates`` in a Gaussian ellipsoid mass distribution.
     !!}
     use :: Coordinates   , only : assignment(=), coordinateCartesian
-    use :: Linear_Algebra, only : assignment(=), operator(*)        , vector
     implicit none
     class           (massDistributionGaussianEllipsoid), intent(inout) :: self
     class           (coordinate                       ), intent(in   ) :: coordinates
     type            (coordinateCartesian              )                :: position
     double precision                                   , dimension(3)  :: positionComponents
     double precision                                                   :: mSquared
-    type           (vector                            )                :: positionVectorUnrotated, positionVector
 
     ! Rotate the position to the frame where the ellipsoid is aligned with the principle Cartesian axes.
     position                = coordinates
     positionComponents      = position
-    positionVectorUnrotated = positionComponents
-    positionVector          = self%rotationIn         &
-         &                   *positionVectorUnrotated
-    positionComponents      = positionVector
+    positionComponents      = matmul(self%rotationIn,positionComponents)
     position                = positionComponents
     ! Evaluate the density.
     mSquared                =+(position%x()/self%scaleLength(1))**2 &
@@ -333,7 +331,6 @@ contains
     Computes the gravitational acceleration at ``coordinates`` for Gaussian ellipsoid mass distributions.
     !!}
     use :: Coordinates                     , only : assignment(=)                 , coordinateCartesian
-    use :: Linear_Algebra                  , only : assignment(=)                 , operator(*)        , vector
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     type            (coordinateCartesian              )                :: gaussianEllipsoidAcceleration
@@ -343,18 +340,13 @@ contains
     double precision                                   , dimension(3)  :: positionCartesian            , positionCartesianScaleFree , &
          &                                                                accelerationScaleFree        , accelerationArray
     integer                                                            :: i
-    type            (vector                            )               :: positionVector               , positionVectorUnrotated    , &
-         &                                                                accelerationVector           , accelerationVectorUnrotated
 
     ! Ensure that acceleration is tabulated.
     call self%accelerationTabulate()
     ! Construct the scale-free (and rotated) position.
     coordinatesCartesian    = coordinates
     positionCartesian       = coordinatesCartesian
-    positionVectorUnrotated = positionCartesian
-    positionVector          = self%rotationIn         &
-         &                   *positionVectorUnrotated
-    positionCartesian       = positionVector
+    positionCartesian       = matmul(self%rotationIn,positionCartesian)
     do i=1,3
        positionCartesianScaleFree(self%axesMapIn(i))=positionCartesian(i)
     end do
@@ -366,10 +358,7 @@ contains
     do i=1,3
        accelerationArray(self%axesMapOut(i))=accelerationScaleFree(i)
     end do
-    accelerationVector          = accelerationArray
-    accelerationVectorUnrotated = self%rotationOut              &
-         &                       *accelerationVector
-    accelerationArray           = accelerationVectorUnrotated
+    accelerationArray           = matmul(self%rotationOut,accelerationArray)
     if (.not.self%isDimensionless())                     &
          & accelerationArray=+accelerationArray          &
          &                   *gravitationalConstant_internal &
