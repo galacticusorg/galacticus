@@ -22,10 +22,24 @@ import xml.etree.ElementTree as ET
 
 
 from Galacticus.Build.Directives   import extract_directives
+from Galacticus.Build.FileChanges  import update as file_changes_update
 from Galacticus.Build.ParallelScan import scan as parallel_scan
 from List.ExtraUtils              import as_array, hash_list, smart_push
 from XML.Utils                    import xml_to_dict
+from Galacticus.Build.Libraries import (
+    EXTERNAL_MODULES,
+    MODULE_LIBRARIES,
+    INCLUDE_LIBRARIES,
+)
+from Galacticus.Build.ScanCache import (
+    file_identifier as _file_identifier,
+    load_cache      as _load_cache,
+)
 
+
+# Version stamp for the Makefile_Use_Dependencies.blob cache. Bump when the
+# scan rules change so stale-rule entries are discarded.
+_BLOB_VERSION = 2
 
 # Directives consulted per source file (module-level so the parallel worker can
 # see it). Order matters only in that it is fixed.
@@ -63,10 +77,14 @@ def _scan_one(task):
         'libraryDependencies':  {},
     }
 
-    directives = {
-        name: extract_directives(file_path, name)
-        for name in _DIRECTIVE_NAMES
-    }
+    # One read/parse of the file for all directive names (extract_directives
+    # performs a full file read per call, so per-name calls would cost
+    # len(_DIRECTIVE_NAMES) reads). rootElementType is popped so the per-name
+    # directive dicts are identical to those a single-name call returns.
+    directives = {name: [] for name in _DIRECTIVE_NAMES}
+    for directive in extract_directives(file_path, _DIRECTIVE_NAMES,
+                                        set_root_element_type=True):
+        directives[directive.pop('rootElementType')].append(directive)
 
     file_names_to_process = [file_path]
     event_hook_modules = []
@@ -86,62 +104,8 @@ def _scan_one(task):
 
 
 # ---------------------------------------------------------------------------
-# Hardcoded module / library tables
-# ---------------------------------------------------------------------------
-
-# Modules that are provided by the toolchain; the scanner must not try to
-# build them from Galacticus source.
-EXTERNAL_MODULES = frozenset({
-    'omp_lib', 'hdf5', 'h5tb', 'h5lt', 'h5global', 'h5fortran_types',
-    'fox_common', 'fox_dom', 'fox_wxml', 'fox_utils', 'mpi', 'mpi_f08',
-})
-
-# Modules whose `use` triggers a link-time library dependency.
-MODULE_LIBRARIES = {
-    'nearest_neighbors':  'ANN',
-    'points_convex_hull': 'qhullcpp',
-    'fftw3':              'fftw3',
-    'fox_common':         'FoX_common',
-    'fox_dom':            'FoX_dom',
-    'fox_wxml':           'FoX_wxml',
-    'fox_utils':          'FoX_utils',
-    'hdf5':               'hdf5_fortran',
-    'h5tb':               'hdf5hl_fortran',
-    'vectors':            'blas',
-    'models_likelihoods': 'matheval',
-    'input_parameters':   'matheval',
-    'interface_gsl':      'gsl',
-    'output_versioning':  'git2',
-}
-
-# C `#include <name.h>` header → link-time library.
-INCLUDE_LIBRARIES = {
-    'crypt': 'crypt',
-}
-
-
-# ---------------------------------------------------------------------------
 # Cache helpers
 # ---------------------------------------------------------------------------
-
-def _file_identifier(path):
-    """Perl `(my $id = $path) =~ s/\\//_/g; $id =~ s/^\\._??//;`."""
-    return re.sub(r'^\._?', '', path.replace('/', '_'))
-
-
-def _load_cache(blob_path):
-    if not os.path.exists(blob_path):
-        return {}, None
-    try:
-        with open(blob_path, 'rb') as fh:
-            cache = pickle.load(fh)
-    except (pickle.UnpicklingError, EOFError, AttributeError, ValueError,
-            ImportError, ModuleNotFoundError):
-        return {}, None
-    if not isinstance(cache, dict):
-        return {}, None
-    return cache, os.stat(blob_path).st_mtime
-
 
 def _load_xml(path):
     if not os.path.exists(path):
@@ -153,11 +117,13 @@ def _load_xml(path):
 # Preprocessor directive collection
 # ---------------------------------------------------------------------------
 
-_IFDEF_RE   = re.compile(r'^ifdef\s+([A-Z]+)')
-_IFEQ_RE    = re.compile(r'^ifeq\s')
-_ENDIF_RE   = re.compile(r'^endif')
+_IFDEF_RE   = re.compile(r'^\s*ifdef\s+([A-Za-z_][A-Za-z0-9_]*)')
+_IFNDEF_RE  = re.compile(r'^\s*ifndef\s+([A-Za-z_][A-Za-z0-9_]*)')
+_IFEQ_RE    = re.compile(r'^\s*if(?:n?)eq\s')
+_ELSE_RE    = re.compile(r'^\s*else\b(.*)$')
+_ENDIF_RE   = re.compile(r'^\s*endif\b')
 _FCFLAGS_RE = re.compile(r'^\s*FCFLAGS\s*\+??=')
-_DASH_D_RE  = re.compile(r'-D([0-9A-Z]+)')
+_DASH_D_RE  = re.compile(r'-D([0-9A-Za-z_]+)')
 
 
 def _collect_preprocessor_directives(build_path):
@@ -182,21 +148,51 @@ def _collect_preprocessor_directives(build_path):
     for makefile in makefiles:
         if not os.path.exists(makefile):
             continue
-        conditions_stack = [1]
+        # Stack entries: True (branch known active), False (known
+        # inactive), None (unevaluable — `ifeq`/`ifneq` conditions over make
+        # variables, and any `else <condition>` chain). A -D flag is
+        # collected unless a *definitely false* branch encloses it: for
+        # unevaluable conditions every branch is collected, deliberately
+        # over-approximating the macro set (over-depending is benign;
+        # under-depending silently drops dependencies). `ifdef`/`ifndef` are
+        # approximated against the environment. Every opener pushes and
+        # every `endif` pops, so an unrecognized condition can no longer
+        # desynchronize the stack (previously `ifneq` did not push but its
+        # `endif` still popped, deactivating or reactivating outer branches
+        # at random).
+        conditions_stack = [True]
         with open(makefile, 'r', errors='replace') as fh:
             for line in fh:
                 m = _IFDEF_RE.match(line)
                 if m:
-                    conditions_stack.append(1 if m.group(1) in os.environ else 0)
+                    conditions_stack.append(m.group(1) in os.environ)
+                    continue
+                m = _IFNDEF_RE.match(line)
+                if m:
+                    conditions_stack.append(m.group(1) not in os.environ)
                     continue
                 if _IFEQ_RE.match(line):
-                    conditions_stack.append(1)
+                    conditions_stack.append(None)
+                    continue
+                m = _ELSE_RE.match(line)
+                if m:
+                    if len(conditions_stack) > 1:
+                        taken = conditions_stack.pop()
+                        if m.group(1).strip():
+                            # `else if…`: a chained condition — unevaluable
+                            # in general, so collect from it.
+                            conditions_stack.append(None)
+                        elif taken is None:
+                            conditions_stack.append(None)
+                        else:
+                            conditions_stack.append(not taken)
                     continue
                 if _ENDIF_RE.match(line):
                     if len(conditions_stack) > 1:
                         conditions_stack.pop()
                     continue
-                if _FCFLAGS_RE.match(line) and all(conditions_stack):
+                if (_FCFLAGS_RE.match(line)
+                        and all(c is not False for c in conditions_stack)):
                     for tok in line.split():
                         m = _DASH_D_RE.match(tok)
                         if m:
@@ -374,6 +370,50 @@ def _method_module_names(method):
     return []
 
 
+# Per-process memos for _apply_directive_requirements: every file carrying a
+# `functionsGlobal` (or `eventHookStatic`) directive needs the same
+# information about the functionGlobal location files, which previously was
+# re-derived — including full re-reads of those files — once per requesting
+# source file. Workers are forked processes, so each builds these at most
+# once per run.
+_FG_POINTER_MODULES    = None
+_CONTAINING_MODULE_MEMO = {}
+
+
+def _functionglobal_pointer_modules(locations):
+    """Module names imported by `functionsGlobal type="pointers"` users: the
+    (deduplicated-in-order) modules declared by every `functionGlobal`
+    directive, excluding iso_c_binding."""
+    global _FG_POINTER_MODULES
+    if _FG_POINTER_MODULES is None:
+        modules = []
+        for fg_file in as_array(
+            (locations.get('functionGlobal') or {}).get('file')
+            if locations else None,
+        ):
+            for d in extract_directives(fg_file, 'functionGlobal'):
+                module_val = d.get('module')
+                if module_val is None:
+                    continue
+                for module in as_array(module_val):
+                    name = str(module).strip()
+                    m = re.match(r'^([a-zA-Z0-9_]+)', name)
+                    if m and m.group(1).lower() != 'iso_c_binding':
+                        modules.append(m.group(1).lower())
+        _FG_POINTER_MODULES = modules
+    return _FG_POINTER_MODULES
+
+
+def _find_containing_module_memo(file_name, fc_map):
+    """Memoized _find_containing_module (the fc_map is identical across all
+    calls within one run)."""
+    if file_name not in _CONTAINING_MODULE_MEMO:
+        _CONTAINING_MODULE_MEMO[file_name] = _find_containing_module(
+            file_name, {'functionClasses': fc_map},
+        )
+    return _CONTAINING_MODULE_MEMO[file_name]
+
+
 def _apply_directive_requirements(entry, source_file, directives,
                                   locations, state_storables,
                                   work_dir, file_identifier,
@@ -435,28 +475,17 @@ def _apply_directive_requirements(entry, source_file, directives,
         if has_pointers:
             entry['modulesUsed'].append(work_dir + 'error.mod')
             entry['modulesUsed'].append(work_dir + 'input_parameters.mod')
-            for fg_file in as_array(
-                (locations.get('functionGlobal') or {}).get('file')
-                if locations else None,
-            ):
-                for d in extract_directives(fg_file, 'functionGlobal'):
-                    module_val = d.get('module')
-                    if module_val is None:
-                        continue
-                    for module in as_array(module_val):
-                        name = str(module).strip()
-                        m = re.match(r'^([a-zA-Z0-9_]+)', name)
-                        if m and m.group(1).lower() != 'iso_c_binding':
-                            entry['modulesUsed'].append(
-                                work_dir + m.group(1).lower() + '.mod'
-                            )
+            for module_name in _functionglobal_pointer_modules(locations):
+                entry['modulesUsed'].append(
+                    work_dir + module_name + '.mod'
+                )
 
         if has_establish:
             for fg_file in as_array(
                 (locations.get('functionGlobal') or {}).get('file')
                 if locations else None,
             ):
-                module_name = _find_containing_module(fg_file, {'functionClasses': fc_map})
+                module_name = _find_containing_module_memo(fg_file, fc_map)
                 if module_name is None:
                     sys.exit(
                         "useDependencies.py: unable to locate containing "
@@ -474,9 +503,7 @@ def _apply_directive_requirements(entry, source_file, directives,
                 if locations else None,
             )
             for ehs_file in ehs_files:
-                module_name = _find_containing_module(
-                    ehs_file, {'functionClasses': fc_map},
-                )
+                module_name = _find_containing_module_memo(ehs_file, fc_map)
                 if module_name is None:
                     sys.exit(
                         "useDependencies.py: unable to locate containing "
@@ -538,8 +565,9 @@ _LATEX_CLOSE_RE = re.compile(r'^\s*!!\}')
 _LIB_HINT_RE        = re.compile(r'^\s*!;\s*([a-zA-Z0-9_]+)\s*$')
 _C_INCLUDE_RE       = re.compile(r'^\s*#include\s+<([a-zA-Z0-9_]+)\.h>')
 _PP_IFDEF_RE        = re.compile(r'^#ifdef\s+([0-9A-Za-z_]+)\s*$')
-_PP_IFNDEF_RE       = re.compile(r'^#ifndef\s+([0-9A-Z_]+)\s*$')
+_PP_IFNDEF_RE       = re.compile(r'^#ifndef\s+([0-9A-Za-z_]+)\s*$')
 _PP_IF_RE           = re.compile(r'^#if\s')
+_PP_ELIF_RE         = re.compile(r'^#elif\s')
 _PP_ENDIF_RE        = re.compile(r'^#endif\s*$')
 _PP_ELSE_RE         = re.compile(r'^#else\s*$')
 _USE_LINE_RE        = re.compile(
@@ -570,10 +598,17 @@ _INCLUDE_LINE_RE    = re.compile(
 
 
 def _update_conditional_compile(stack, preprocessor_directives):
-    """Mirrors the foreach loop at useDependencies.pl:374-383."""
-    preprocessor_directives_set = preprocessor_directives
+    """Return True when every conditional block on `stack` is active.
+
+    Entries flagged `unknown` (a `#if <expression>` or a chain containing
+    `#elif`) are treated as active regardless of `#else` flips — every
+    branch of an unevaluable conditional is scanned. Mirrors the foreach
+    loop at useDependencies.pl:374-383, with the unknown-entry extension.
+    """
     for entry in stack:
-        name_defined = entry['name'] in preprocessor_directives_set
+        if entry.get('unknown'):
+            continue
+        name_defined = entry['name'] in preprocessor_directives
         active = entry['state'] if name_defined else 1 - entry['state']
         if active == 0:
             return False
@@ -588,10 +623,6 @@ def _scan_source_file(sources_entry, file_names_to_process, source_file,
     """
     while file_names_to_process:
         full_path = file_names_to_process.pop()
-        if not os.path.exists(full_path):
-            leaf_m = re.search(r'/([\w.]+?)$', full_path)
-            leaf = leaf_m.group(1) if leaf_m else full_path
-            subprocess.run(['make', leaf], check=False)
 
         if re.search(r'\.cpp$', full_path, re.IGNORECASE):
             sources_entry['libraryDependencies']['stdc++'] = True
@@ -635,8 +666,13 @@ def _scan_source_file(sources_entry, file_names_to_process, source_file,
                             'name': m.group(1), 'state': 1,
                         })
                     elif _PP_IF_RE.match(line):
+                        # A general `#if <expression>` cannot be evaluated
+                        # here; treat every branch of it as active so its
+                        # `use` statements are still recorded (over-depending
+                        # is benign; the previous behavior treated the block
+                        # as inactive and silently dropped dependencies).
                         preprocessor_stack.append({
-                            'name': 'conditional', 'state': 1,
+                            'name': None, 'state': 1, 'unknown': True,
                         })
                     else:
                         m = _PP_IFNDEF_RE.match(line)
@@ -647,6 +683,13 @@ def _scan_source_file(sources_entry, file_names_to_process, source_file,
                         elif _PP_ENDIF_RE.match(line):
                             if preprocessor_stack:
                                 preprocessor_stack.pop()
+                        elif _PP_ELIF_RE.match(line):
+                            # A chain containing `#elif` can no longer be
+                            # tracked by defined-ness flips — degrade the
+                            # whole chain to unevaluable (all branches
+                            # active).
+                            if preprocessor_stack:
+                                preprocessor_stack[-1]['unknown'] = True
                         elif _PP_ELSE_RE.match(line):
                             if preprocessor_stack:
                                 preprocessor_stack[-1]['state'] = (
@@ -893,10 +936,25 @@ def _write_makefile(path, uses_per_file, source_files, submodules,
             sub_dir  = sf['subDirectoryName']
             work_sub = work_dir + (sub_dir + '/' if sub_dir else '')
 
-            # Library file rule (.fl) -- one echo per library dependency.
+            # Library sidecar (.fl): write its content directly, only-if-changed
+            # (preserving the mtime -- and so sparing dependent .o targets -- when
+            # the library set is unchanged), and also emit the traditional echo
+            # rule. The emitted rules have no prerequisites, so once a .fl exists
+            # its recipe can never run again: without the direct write here, a
+            # change in a source file's library dependencies (or any corruption of
+            # an existing .fl) would never be repaired short of a clean build. The
+            # echo rule is kept as the recovery path for a manually-deleted .fl.
             if not object_file_name.endswith('.Inc'):
                 library_file_name = re.sub(r'\.o$', '.fl', object_file_name)
                 fl_path = work_sub + library_file_name
+                fl_dir = os.path.dirname(fl_path)
+                if fl_dir:
+                    os.makedirs(fl_dir, exist_ok=True)
+                fl_tmp = fl_path + '.tmp'
+                with open(fl_tmp, 'w') as fl:
+                    for lib in sorted((entry.get('libraryDependencies') or {}).keys()):
+                        fl.write(lib + '\n')
+                file_changes_update(fl_path, fl_tmp)
                 mk.write(f"{fl_path}:\n")
                 redirect = '>'
                 for lib in sorted((entry.get('libraryDependencies') or {}).keys()):
@@ -1015,6 +1073,11 @@ def main(argv):
     uses_per_file, cache_mtime = _load_cache(
         work_dir + 'Makefile_Use_Dependencies.blob',
     )
+    # Discard caches written under older scan rules (the conditional-
+    # compilation handling changed what a scan records); a mismatch costs
+    # one full rescan.
+    if uses_per_file.pop('blobVersion', None) != _BLOB_VERSION:
+        uses_per_file, cache_mtime = {}, None
     have_per_file = cache_mtime is not None
 
     source_files = _source_files_to_process(root_source_dir, build_path)
@@ -1081,6 +1144,7 @@ def main(argv):
     )
 
     with open(work_dir + 'Makefile_Use_Dependencies.blob', 'wb') as fh:
+        uses_per_file['blobVersion'] = _BLOB_VERSION
         pickle.dump(uses_per_file, fh, protocol=pickle.HIGHEST_PROTOCOL)
 
 

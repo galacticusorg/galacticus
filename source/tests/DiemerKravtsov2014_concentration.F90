@@ -23,7 +23,9 @@ Contains a program which tests the :cite:t:`diemer_universal_2014` halo concentr
 
 program Test_DiemerKravtsov2014_Concentration
   !!{RST
-  Tests the :cite:t:`diemer_universal_2014` halo concentration algorithm. Values of concentration were taken from their website\footnoteFile no longer available---was downloaded from ``http://www.benediktdiemer.com/wp-content/uploads/2014/07/Concentration_WMAP7_median.txt``.
+  Tests the :cite:t:`diemer_universal_2014` halo concentration algorithm. Values of concentration were taken from their website\ [#]_.
+
+  .. [#] File no longer available---was downloaded from ``http://www.benediktdiemer.com/wp-content/uploads/2014/07/Concentration_WMAP7_median.txt``
   !!}
   use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower           , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda

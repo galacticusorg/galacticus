@@ -278,9 +278,11 @@ contains
     do i=1,gridCount
        do j=1,gridCount
           do k=1,gridCount
-             ! Compute distance to this point.
-             position=([dble(i),dble(j),dble(k)]-[0.5d0,0.5d0,0.5d0])*boxLength-origin
-             distance=Vector_Magnitude(position)
+             ! Compute the center of this cell (in box coordinates, as
+             ! expected by Meshes_Apply_Point), and its distance from the
+             ! box center (where the observer sits).
+             position=([dble(i),dble(j),dble(k)]-[0.5d0,0.5d0,0.5d0])*boxLength/dble(gridCount)
+             distance=Vector_Magnitude(position-origin)
              ! Apply to the mesh.
              if (distance > comovingDistanceMinimum1 .and. distance < comovingDistanceMaximum1) &
                   & call Meshes_Apply_Point(selectionFunction1,boxLength,position,pointWeight=cmplx(1.0d0,0.0d0,kind=c_double_complex),cloudType=cloudTypeTriangular)

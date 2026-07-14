@@ -25,29 +25,14 @@ import sys
 
 
 from Galacticus.Build.Directives import extract_directives
+from Galacticus.Build.ScanCache import (
+    file_identifier as _file_identifier,
+    load_cache      as _load_cache,
+)
 
 
 # Include files to exclude from the parameter search (third-party code).
 _EXCLUDED_INCLUDES = frozenset({'fftw3.f03'})
-
-
-def _file_identifier(path):
-    """Perl `(my $id = $path) =~ s/\\//_/g; $id =~ s/^\\._??//;`."""
-    return re.sub(r'^\._?', '', path.replace('/', '_'))
-
-
-def _load_cache(blob_path):
-    if not os.path.exists(blob_path):
-        return {}, None
-    try:
-        with open(blob_path, 'rb') as fh:
-            cache = pickle.load(fh)
-    except (pickle.UnpicklingError, EOFError, AttributeError, ValueError,
-            ImportError, ModuleNotFoundError):
-        return {}, None
-    if not isinstance(cache, dict):
-        return {}, None
-    return cache, os.stat(blob_path).st_mtime
 
 
 def _object_files_from_dep(dependency_file_name, build_path):
@@ -115,7 +100,7 @@ def main(argv):
                                               build_path))
 
     parameters_per_file, cache_mtime = _load_cache(blob_path)
-    have_per_file = cache_mtime is not None
+    seen_identifiers = set()
 
     source_root = os.path.join(source_directory_name, 'source')
     if not os.path.isdir(source_root):
@@ -150,9 +135,10 @@ def main(argv):
             file_stack = [os.path.join(source_root, file_name)]
 
         file_identifier = _file_identifier(file_stack[0])
+        seen_identifiers.add(file_identifier)
 
         rescan = True
-        if have_per_file and file_identifier in parameters_per_file:
+        if file_identifier in parameters_per_file:
             tracked = parameters_per_file[file_identifier].get('files') or []
             stale = any(
                 os.path.exists(t) and os.stat(t).st_mtime > cache_mtime
@@ -169,10 +155,13 @@ def main(argv):
 
         # Pull any pre-emitted `.p` parameter-list file (one parameter
         # name per line, dropped by the FunctionClass source-tree
-        # processor).  Only for .F90 source.
+        # processor).  Only for .F90 source.  Track the `.p` file itself
+        # so a change to it alone can trigger a rescan of this entry.
         if file_name.endswith('.F90'):
+            p_list_path = root_file_name + 'p'
+            entry['files'].append(p_list_path)
             entry['parameter'].extend(
-                _slurp_lines_if_present(root_file_name + 'p')
+                _slurp_lines_if_present(p_list_path)
             )
 
         while file_stack:
@@ -192,6 +181,15 @@ def main(argv):
                 pname = d.get('parameterName')
                 if pname is not None and pname != d.get('class'):
                     entry['parameter'].append(pname)
+
+    # Prune cache entries for files that no longer participate in this target
+    # (deleted, renamed, dropped from the `.d` list, or whose identifier
+    # flipped between the source and preprocessed path). Without this, their
+    # parameters would keep contributing to `knownParameterNames` forever,
+    # weakening the executable's unknown-parameter detection.
+    parameters_per_file = {
+        k: v for k, v in parameters_per_file.items() if k in seen_identifiers
+    }
 
     # Aggregate + deduplicate (sort + unique).
     all_parameters = []
