@@ -34,30 +34,30 @@
      !!{RST
      A Gaussian ellipsoid mass distribution. The formulation and calculations follow the parameterizations and approach of :cite:t:`chandrasekhar_ellipsoidal_1987`. The ellipsoidal has scale lengths :math:`a_\mathrm{i}` along each of the three perpendicular axes (which are assumed to be aligned with the Cartesian :math:`(x,y,z)` axes).
      !!}
-     double precision                     , dimension(3          ) :: scaleLength
-     double precision                                              :: mass                             , density_
-     logical                                                       :: accelerationInitialized
-     double precision        , allocatable, dimension(:          ) :: accelerationX                    , accelerationScaleLength
-     double precision        , allocatable, dimension(:,:,:,:,:,:) :: accelerationVector
-     double precision                                              :: accelerationXMinimumLog          , accelerationXMaximumLog               , &
-          &                                                           accelerationScaleLengthMinimumLog, accelerationScaleLengthMaximumLog     , &
-          &                                                           accelerationXInverseInterval     , accelerationScaleLengthInverseInterval, &
-          &                                                           scaleLengthMaximum
-     integer                              , dimension(3          ) :: axesMapIn                        , axesMapOut
-     double precision                     , dimension(2          ) :: axisRatio
+     double precision             , dimension(3          ) :: scaleLength
+     double precision                                      :: mass                             , density_
+     logical                                               :: accelerationInitialized
+     double precision, allocatable, dimension(:          ) :: accelerationX                    , accelerationScaleLength
+     double precision, allocatable, dimension(:,:,:,:,:,:) :: accelerationVector
+     double precision                                      :: accelerationXMinimumLog          , accelerationXMaximumLog               , &
+          &                                                   accelerationScaleLengthMinimumLog, accelerationScaleLengthMaximumLog     , &
+          &                                                   accelerationXInverseInterval     , accelerationScaleLengthInverseInterval, &
+          &                                                   scaleLengthMaximum
+     integer                      , dimension(3          ) :: axesMapIn                        , axesMapOut
+     double precision             , dimension(2          ) :: axisRatio
      ! Rotation matrices (into, and out of, the frame aligned with the principal axes) are stored as plain 3x3
      ! arrays -- computed once in initialize() using the GSL-backed matrix type -- so that the per-evaluation
      ! rotations in the density/acceleration hot paths use matmul, with no GSL vector/matrix heap allocation.
-     double precision                     , dimension(3,3        ) :: rotationIn                       , rotationOut
-     double precision                     , dimension(3)           :: axis1                            , axis2                                 , &
-          &                                                           axis3
+     double precision             , dimension(3,3        ) :: rotationIn                       , rotationOut
+     double precision             , dimension(3)           :: axis1                            , axis2                                 , &
+          &                                                   axis3
    contains
      !![
      <methods docformat="rst">
        <method description="Compute the density on the isodensity surface defined by the parameter :math:`m^2`\ 2." method="densityEllipsoidal"     />
-       <method description="Tabulate the gravitational acceleration due to the ellipsoid."                  method="accelerationTabulate"   />
-       <method description="Interpolate in the tabulated gravitational acceleration due to the ellipsoid."  method="accelerationInterpolate"/>
-       <method description="(Re)initialize the structural properties of the Gaussian ellispoid."            method="initialize"             />
+       <method description="Tabulate the gravitational acceleration due to the ellipsoid."                          method="accelerationTabulate"   />
+       <method description="Interpolate in the tabulated gravitational acceleration due to the ellipsoid."          method="accelerationInterpolate"/>
+       <method description="(Re)initialize the structural properties of the Gaussian ellispoid."                    method="initialize"             />
      </methods>
      !!]
      procedure :: density                 => gaussianEllipsoidDensity
@@ -182,14 +182,14 @@ contains
     use :: Linear_Algebra      , only : vector       , assignment(=)
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
-    type            (massDistributionGaussianEllipsoid)                                        :: self
-    double precision                                   , intent(in   ), dimension(3)           :: scaleLength
-    type            (vector                           ), intent(in   ), dimension(3), optional :: axes
-    type            (matrix                           ), intent(in   )              , optional :: rotation
-    double precision                                   , intent(in   )              , optional :: mass
-    logical                                            , intent(in   )              , optional :: dimensionless
-    type            (enumerationComponentTypeType     ), intent(in   )              , optional :: componentType
-    type            (enumerationMassTypeType          ), intent(in   )              , optional :: massType
+    type            (massDistributionGaussianEllipsoid)                                          :: self
+    double precision                                   , intent(in   ), dimension(3  )           :: scaleLength
+    type            (vector                           ), intent(in   ), dimension(3  ), optional :: axes
+    double precision                                   , intent(in   ), dimension(3,3), optional :: rotation
+    double precision                                   , intent(in   )                , optional :: mass
+    logical                                            , intent(in   )                , optional :: dimensionless
+    type            (enumerationComponentTypeType     ), intent(in   )                , optional :: componentType
+    type            (enumerationMassTypeType          ), intent(in   )                , optional :: massType
     !![
     <constructorAssign variables="mass, dimensionless, componentType, massType"/>
     !!]
@@ -223,13 +223,13 @@ contains
     use :: Numerical_Comparison    , only : Values_Differ
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (massDistributionGaussianEllipsoid), intent(inout)                         :: self
-    double precision                                   , intent(in   ), dimension(3)           :: scaleLength
-    type            (vector                           ), intent(in   ), dimension(3), optional :: axes
-    type            (matrix                           ), intent(in   )              , optional :: rotation
-    type            (vector                           )               , dimension(3)           :: axesPrinciple
-    type            (matrix                           )                                        :: rotationMatrix
-    integer                                                                                    :: i
+    class           (massDistributionGaussianEllipsoid), intent(inout)                           :: self
+    double precision                                   , intent(in   ), dimension(3  )           :: scaleLength
+    type            (vector                           ), intent(in   ), dimension(3  ), optional :: axes
+    double precision                                   , intent(in   ), dimension(3,3), optional :: rotation
+    type            (vector                           )               , dimension(3  )           :: axesPrinciple
+    type            (matrix                           )                                          :: rotationMatrix
+    integer                                                                                      :: i
 
     ! If dimensionless, then maximum scale length should be 1.0.
     if (self%dimensionless) then
@@ -264,8 +264,11 @@ contains
             &            /self%scaleLengthMaximum
     end do
     ! Compute rotation matrices required to rotate the ellipsoid to be aligned with the principle Cartesian
-    ! axes, and back again. These are computed once here (using the GSL-backed matrix type) and stored as plain
-    ! 3x3 arrays for use by matmul in the density/acceleration hot paths.
+    ! axes, and back again, stored as plain 3x3 arrays for use by matmul in the density/acceleration hot paths.
+    ! For the principal-axes case the rotation is built with the GSL-backed matrix type (via matrixRotation) and
+    ! extracted; when a rotation matrix is supplied directly it is already a plain array. The reverse rotation is
+    ! the inverse of the (orthonormal) rotation matrix, which is simply its transpose -- avoiding a GSL matrix
+    ! inversion (and, in the supplied-rotation case, any GSL usage at all).
     if (present(axes)) then
        self%axis1      =axes(1)
        self%axis2      =axes(2)
@@ -274,13 +277,13 @@ contains
        axesPrinciple(2)=vector([0.0d0,1.0d0,0.0d0])
        axesPrinciple(3)=vector([0.0d0,0.0d0,1.0d0])
        rotationMatrix  =matrixRotation(axes,axesPrinciple)
+       self%rotationIn =rotationMatrix
     else if (present(rotation)) then
-       rotationMatrix  =matrix(rotation)
+       self%rotationIn =rotation
     else
        call Error_Report('either principle axes or a rotation matrix must be supplied'//{introspection:location})
     end if
-    self%rotationIn =rotationMatrix
-    self%rotationOut=rotationMatrix%inverse()
+    self%rotationOut=transpose(self%rotationIn)
     return
   end subroutine gaussianEllipsoidInitialize
   
@@ -288,7 +291,7 @@ contains
     !!{RST
     Return the density at the specified ``coordinates`` in a Gaussian ellipsoid mass distribution.
     !!}
-    use :: Coordinates   , only : assignment(=), coordinateCartesian
+    use :: Coordinates, only : assignment(=), coordinateCartesian
     implicit none
     class           (massDistributionGaussianEllipsoid), intent(inout) :: self
     class           (coordinate                       ), intent(in   ) :: coordinates

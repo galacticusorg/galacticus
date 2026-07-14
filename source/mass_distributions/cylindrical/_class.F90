@@ -80,7 +80,6 @@ contains
     use :: Galactic_Structure_Options      , only : componentTypeAll              , massTypeAll        , enumerationComponentTypeType, enumerationMassTypeType
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
-    use :: Linear_Algebra                  , only : vector                        , matrix             , assignment(=)
     implicit none
     type            (coordinateCartesian              )                :: cylindricalChandrasekharIntegral
     class           (massDistributionCylindrical      ), intent(inout) :: self
@@ -113,7 +112,7 @@ contains
          &                                                                densitySurfaceRadiusHalfMass                         , velocityDispersionRadialHalfMass, &
          &                                                                velocityDispersionMaximum                            , velocityRelativeMagnitude       , &
          &                                                                factorSuppressionExtendedMass
-    type            (matrix                           )                :: rotation
+    double precision                                   , dimension(3,3)  :: rotation
 
     ! Initialize the result to zero so that early returns below yield a well-defined (zero) integral.
     cylindricalChandrasekharIntegral              =  [0.0d0,0.0d0,0.0d0]
