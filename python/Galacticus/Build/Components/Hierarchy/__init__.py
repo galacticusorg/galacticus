@@ -109,7 +109,7 @@ def Hierarchy_Initialization(build):
                     ext = comp['extends']
                     cursor = _ucfirst(ext['class']) + _ucfirst(ext['name'])
                     content += (
-                        f"\tnodeComponent{cursor}IsActiveValue=.true.\n"
+                        f"        nodeComponent{cursor}IsActiveValue=.true.\n"
                     )
                 else:
                     cursor = ""

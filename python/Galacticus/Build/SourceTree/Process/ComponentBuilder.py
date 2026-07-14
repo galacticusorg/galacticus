@@ -114,6 +114,15 @@ def process_component_builder(tree, options):
 
         content = _build_component_content()
 
+        # Strip trailing whitespace from every line.  The generator emits some
+        # lines with trailing whitespace (including tabs); that was harmless
+        # while the code lived in a compiler-`include`d file, but now that it is
+        # grafted inline into `_class.p.F90` gfortran would flag the tabs with
+        # `-Wtabs`.  Trailing whitespace is semantically irrelevant in
+        # free-form Fortran, so stripping it yields warning-clean inline code
+        # without altering behavior.
+        content = '\n'.join(line.rstrip() for line in content.split('\n'))
+
         # Parse the synthesized source and run the full process pipeline over
         # it, exactly as buildCode.py did (buildCode.py:194-199), so directives
         # the generator embedded in its own output are expanded and marked
