@@ -361,9 +361,9 @@ contains
     do i=1,3
        accelerationArray(self%axesMapOut(i))=accelerationScaleFree(i)
     end do
-    accelerationArray           = matmul(self%rotationOut,accelerationArray)
-    if (.not.self%isDimensionless())                     &
-         & accelerationArray=+accelerationArray          &
+    accelerationArray=matmul(self%rotationOut,accelerationArray)
+    if (.not.self%isDimensionless())                         &
+         & accelerationArray=+accelerationArray              &
          &                   *gravitationalConstant_internal &
          &                   *self%mass                      &
          &                   /self%scaleLengthMaximum**2
