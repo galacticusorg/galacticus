@@ -166,14 +166,14 @@ contains
     massDistribution_             =>  node     %massDistribution()
     massDistributionHost_         =>  nodeHost %massDistribution()
     chandrasekharIntegral         =   massDistributionHost_%chandrasekharIntegral(massDistributionHost_,massDistribution_,massSatellite,position,velocity)
-    chandrasekhar1943Acceleration =  +4.0d0                                            &
-            &                        *Pi                                               &
-            &                        *chandrasekharIntegral                            &
-            &                        *self%coulombLogarithm(node)                      &
-            &                        *gravitationalConstant_internal**2                &
-            &                        *massSatellite                                    &
-            &                        *kilo                                             &
-            &                        *gigaYear                                         &
+    chandrasekhar1943Acceleration =  +4.0d0                             &
+            &                        *Pi                                &
+            &                        *chandrasekharIntegral             &
+            &                        *self%coulombLogarithm(node)       &
+            &                        *gravitationalConstant_internal**2 &
+            &                        *massSatellite                     &
+            &                        *kilo                              &
+            &                        *gigaYear                          &
             &                        /megaParsec
     !![
     <objectDestructor name="massDistribution_"    />

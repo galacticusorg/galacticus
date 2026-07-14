@@ -354,8 +354,8 @@ contains
 
     call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
     accelerationVector=self%massDistribution_%acceleration(coordinatesScaled)
-    accelerationVector=+accelerationVector                  &
-         &             *self%factorScalingMass              &
+    accelerationVector=+accelerationVector                    &
+         &             *self%factorScalingMass                &
          &             /self%factorScalingLength**2
     if (self%massDistribution_%isDimensionless())             &
          & accelerationVector=+accelerationVector             &

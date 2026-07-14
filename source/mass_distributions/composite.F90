@@ -828,19 +828,20 @@ contains
     !!}
     use :: Coordinates, only : coordinateCartesian, assignment(=)
     implicit none
-    type            (coordinateCartesian         )                :: compositeAcceleration
-    class           (massDistributionComposite   ), intent(inout)  :: self
-    class           (coordinate                  ), intent(in   )  :: coordinates
-    type            (massDistributionList        ), pointer        :: massDistribution_
-    double precision                              , dimension(3  ) :: accelerationArray , accelerationComponent
+    type            (coordinateCartesian      )                 :: compositeAcceleration
+    class           (massDistributionComposite), intent(inout)  :: self
+    class           (coordinate               ), intent(in   )  :: coordinates
+    type            (massDistributionList     ), pointer        :: massDistribution_
+    double precision                           , dimension(3  ) :: accelerationArray    , accelerationComponent
 
     accelerationArray=[0.0d0,0.0d0,0.0d0]
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
-          accelerationComponent =  massDistribution_%massDistribution_%acceleration(coordinates)
-          accelerationArray     = +accelerationArray+accelerationComponent
-          massDistribution_     => massDistribution_%next
+          accelerationComponent =   massDistribution_%massDistribution_%acceleration(coordinates)
+          accelerationArray     =  +accelerationArray                                             &
+               &                   +accelerationComponent
+          massDistribution_     =>  massDistribution_%next
        end do
     end if
     compositeAcceleration=accelerationArray
@@ -957,14 +958,14 @@ contains
     !!}
     use :: Coordinates, only : coordinateCartesian, assignment(=)
     implicit none
-    type            (coordinateCartesian         )                :: compositeChandrasekharIntegral
-    class           (massDistributionComposite   ), intent(inout) :: self
-    class           (massDistributionClass       ), intent(inout) :: massDistributionEmbedding     , massDistributionPerturber
-    double precision                              , intent(in   ) :: massPerturber
-    class           (coordinate                  ), intent(in   ) :: coordinates
-    type            (coordinateCartesian         ), intent(in   ) :: velocity
-    type            (massDistributionList        ), pointer       :: massDistribution_
-    double precision                              , dimension(3)  :: integralArray                 , integralComponent
+    type            (coordinateCartesian      )                :: compositeChandrasekharIntegral
+    class           (massDistributionComposite), intent(inout) :: self
+    class           (massDistributionClass    ), intent(inout) :: massDistributionEmbedding     , massDistributionPerturber
+    double precision                           , intent(in   ) :: massPerturber
+    class           (coordinate               ), intent(in   ) :: coordinates
+    type            (coordinateCartesian      ), intent(in   ) :: velocity
+    type            (massDistributionList     ), pointer       :: massDistribution_
+    double precision                           , dimension(3)  :: integralArray                 , integralComponent
     !$GLC attributes unused :: massDistributionEmbedding
 
     integralArray=[0.0d0,0.0d0,0.0d0]
@@ -986,11 +987,11 @@ contains
     !!}
     use :: Coordinates, only : coordinateCartesian, assignment(=)
     implicit none
-    type            (coordinateCartesian         )                :: compositePositionSample
-    class           (massDistributionComposite   ), intent(inout) :: self
-    class           (randomNumberGeneratorClass  ), intent(inout) :: randomNumberGenerator_
-    type            (massDistributionList        ), pointer       :: massDistribution_
-    double precision                                              :: massCumulative
+    type            (coordinateCartesian       )                :: compositePositionSample
+    class           (massDistributionComposite ), intent(inout) :: self
+    class           (randomNumberGeneratorClass), intent(inout) :: randomNumberGenerator_
+    type            (massDistributionList      ), pointer       :: massDistribution_
+    double precision                                            :: massCumulative
 
     compositePositionSample=[0.0d0,0.0d0,0.0d0]
     if (associated(self%massDistributions)) then
@@ -1007,6 +1008,5 @@ contains
           massDistribution_ => massDistribution_%next
        end do
     end if
-    
     return
   end function compositePositionSample
