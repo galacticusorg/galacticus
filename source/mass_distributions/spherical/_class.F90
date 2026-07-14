@@ -201,12 +201,6 @@ contains
 
     call self%solverSet  ()
     radius          =   coordinates    %rSpherical(                                     )
-
-    ! Use a small positive radius to approximate the r -> 0 limit
-    if (radius <= 0.0d0) then
-        radius = 1.0d-12
-    end if
-
     differentiator_ =   differentiator            (densityEvaluate                      )
     densityGradient =  +differentiator_%derivative(log(radius)    ,radiusLogarithmicStep)
     call self%solverUnset()

@@ -71,7 +71,7 @@
      integer                                                      :: randomOffsetID                               , densityCoreID                             , &
           &                                                          radiusCoreID                                 , radiusSolitonID                           , &
           &                                                          massCoreNormalID                             , massCoreID                                , &
-          &                                                          zetaID
+          &                                                          zetaID                                       , statusID
    contains    
      !![
      <methods docformat="rst">
@@ -250,6 +250,7 @@ contains
     !![
     <constructorAssign variables="nonAnalyticSolver,*darkMatterHaloScale_,*darkMatterParticle_,*darkMatterProfileHeating_,*cosmologyFunctions_,*cosmologyParameters_,*virialDensityContrast_,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,tolerateEnclosedMassIntegrationFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,velocityDispersionApproximate,fractionRadiusFinalSmall,toleranceRelativePotential,scatterFractional"/>
     <addMetaProperty component="darkMatterProfile" name="solitonRandomOffset"   id="self%randomOffsetID"   isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonStatus"         id="self%statusID"         isEvolvable="no"  isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="solitonDensityCore"    id="self%densityCoreID"    isEvolvable="no"  isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="solitonRadiusCore"     id="self%radiusCoreID"     isEvolvable="no"  isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="solitonRadiusSoliton"  id="self%radiusSolitonID"  isEvolvable="no"  isCreator="yes"/>
@@ -357,7 +358,7 @@ contains
     Return the soliton plus NFW fuzzy dark matter mass distribution for the given ``node``.
     !!}
     use :: Error                     , only : Error_Report
-    use :: Galacticus_Nodes          , only : nodeComponentBasic
+    use :: Galacticus_Nodes          , only : nodeComponentBasic              , nodeComponentDarkMatterProfile
     use :: Galactic_Structure_Options, only : componentTypeDarkHalo           , massTypeDark                          , weightByMass
     use :: Mass_Distributions        , only : massDistributionSolitonNFWHeated, kinematicsDistributionSolitonNFWHeated, kinematicsDistributionNFW   , &
          &                                    kinematicsDistributionClass     , massDistributionSpherical             , massDistributionNFW         , &
@@ -370,13 +371,14 @@ contains
     class           (massDistributionHeatingClass        ), pointer                 :: massDistributionHeating_
     type            (treeNode                            ), intent(inout)           :: node
     class           (nodeComponentBasic                  ), pointer                 :: basic
+    class           (nodeComponentDarkMatterProfile      ), pointer                 :: darkMatterProfile
     type            (enumerationWeightByType             ), intent(in   ), optional :: weightBy
     integer                                               , intent(in   ), optional :: weightIndex
     type            (enumerationWeightByType             )                          :: weightBy_
     double precision                                                                :: radiusCore              , radiusScale               , &
          &                                                                             radiusSoliton           , radiusVirial              , &
          &                                                                             densityScale            , densityCore               , &
-         &                                                                             massCore
+         &                                                                             massCore                , solitonStatus
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -386,15 +388,25 @@ contains
     if (weightBy_ /= weightByMass) return
     ! Compute properties of the distribution.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
-    if (self%radiusCorePrevious < 0.0d0) then
-       call self%computeProperties(node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massCore)
-       self%radiusVirialPrevious =radiusVirial
-       self%radiusScalePrevious  =radiusScale
-       self%radiusCorePrevious   =radiusCore
-       self%radiusSolitonPrevious=radiusSoliton
-       self%densityCorePrevious  =densityCore
-       self%densityScalePrevious =densityScale
-       self%massCorePrevious     =massCore
+
+    basic             => node%basic            ()
+    darkMatterProfile => node%darkMatterProfile()
+    solitonStatus     = darkMatterProfile%floatRank0MetaPropertyGet(self%statusID)
+
+    if (solitonStatus >= 0.0d0) then
+       if (self%radiusCorePrevious < 0.0d0) then
+           call self%computeProperties(node,radiusVirial,radiusScale,radiusCore,radiusSoliton,densityCore,densityScale,massCore)
+           self%radiusVirialPrevious =radiusVirial
+           self%radiusScalePrevious  =radiusScale
+           self%radiusCorePrevious   =radiusCore
+           self%radiusSolitonPrevious=radiusSoliton
+           self%densityCorePrevious  =densityCore
+           self%densityScalePrevious =densityScale
+           self%massCorePrevious     =massCore
+       end if
+    else
+       self%radiusVirialPrevious=+self%darkMatterHaloScale_%radiusVirial(node)
+       self%radiusScalePrevious =+darkMatterProfile        %scale       (    )
     end if
     radiusVirial =self%radiusVirialPrevious
     radiusScale  =self%radiusScalePrevious
@@ -558,7 +570,8 @@ contains
     double precision                                                                :: massHalo                         , expansionFactor           , &
          &                                                                             redshift                         , concentration             , &
          &                                                                             randomOffset                     , massCoreNormal            , &
-         &                                                                             zeta_0                           , zeta_z
+         &                                                                             zeta_0                           , zeta_z                    , &
+         &                                                                             solitonStatus
     integer                                                                         :: sampleCountMaximum       =50
     integer                                                                         :: status                           , sampleCount
     !![
@@ -570,8 +583,11 @@ contains
     darkMatterProfile => node%darkMatterProfile()
     call darkMatterProfile%floatRank0MetaPropertySet(self%radiusSolitonID,-1.0d0)
     call darkMatterProfile%floatRank0MetaPropertySet(self%massCoreID     ,-1.0d0)
-    call darkMatterProfile%floatRank0MetaPropertySet(self%radiusCoreID   ,-1.0d0)
-    call darkMatterProfile%floatRank0MetaPropertySet(self%densityCoreID  ,-1.0d0)
+    solitonStatus = darkMatterProfile%floatRank0MetaPropertyGet(self%statusID)
+    ! Initialize the status on the first call.
+    if (solitonStatus == 0.0d0) then
+        call darkMatterProfile%floatRank0MetaPropertySet(self%statusID   ,-1.0d0)
+    end if
     ! Extract basic properties of the node.
     expansionFactor=+self             %cosmologyFunctions_% expansionFactor            (basic%time           ())
     redshift       =+self             %cosmologyFunctions_ %redshiftFromExpansionFactor(      expansionFactor  )
@@ -678,6 +694,7 @@ contains
        radiusSoliton=finder%find(rootGuess=3.0d0*radiusCore,status=status)
        if (status == errorStatusSuccess) then
            call darkMatterProfile%floatRank0MetaPropertySet(self%randomOffsetID ,randomOffset )
+           call darkMatterProfile%floatRank0MetaPropertySet(self%statusID       ,+1.0d0       )
            call darkMatterProfile%floatRank0MetaPropertySet(self%radiusSolitonID,radiusSoliton)
            call darkMatterProfile%floatRank0MetaPropertySet(self%massCoreID     ,massCore     )
            exit

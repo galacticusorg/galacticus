@@ -66,8 +66,8 @@
 
   ! Submodule-scope variables used in root finding.
   class(satelliteDynamicalFrictionKaur2018), pointer :: self_
-  class           (massDistributionClass), pointer   :: massDistribution__
-  double precision :: massSatellite_              , densityHostCentral_
+  class(massDistributionClass             ), pointer :: massDistribution__
+  double precision                                   :: massSatellite_    , densityHostCentral_
   !$omp threadprivate(self_,massDistribution__,massSatellite_, densityHostCentral_)
   
 contains
@@ -214,15 +214,18 @@ contains
     ! Check if the density profile has a finite density at the center. We do this by considering the logarithmic slope of the
     ! density profile. For cusped density profiles, we assume no stalling.
     coordinates                          =  [0.0d0,0.0d0,0.0d0]
-    ! massDistribution_                    => self             %darkMatterProfileDMO_%get                  (nodeHost                      )
-    massDistribution_  => nodeHost         %massDistribution(           )
+    massDistribution_                    => self             %darkMatterProfileDMO_%get                  (nodeHost                      )
     logSlopeDensityProfileDarkMatterHost =  massDistribution_                      %densityGradientRadial(coordinates,logarithmic=.true.)
+    !![
+    <objectDestructor name="massDistribution_"/>
+    !!]
     if (logSlopeDensityProfileDarkMatterHost < 0.0d0) return
     ! Find the stalling radius.
     self_              => self
+    massDistribution_  => nodeHost         %massDistribution(           )
     densityHostCentral =  massDistribution_%density         (coordinates)
+    
     massDistribution__ => massDistribution_
-
     densityHostCentral_= densityHostCentral
     massSatellite_     = massSatellite
     if (.not.finderConstructed) then 
