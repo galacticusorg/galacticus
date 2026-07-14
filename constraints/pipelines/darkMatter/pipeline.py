@@ -187,6 +187,42 @@ def _write_parameters(config):
             )
 
 
+def _write_calibrated_containers(output_dir, params_determined):
+    """Write calibrated parameter values into the on-disk container files.
+
+    The cross-stage coupling is file-based: a stage's base files ``xi:include`` a
+    container such as ``haloMassFunctionParameters.xml``, and a *downstream* stage
+    ``xi:include``s the *same* file to reuse the calibrated model (e.g. the
+    progenitor stage reusing the calibrated HMF window function). The generators
+    write those containers with prior/default values; this updates them in place
+    with the extracted best-fit values so the coupling survives standalone or
+    partial runs — a fresh ``xinclude`` of the container then yields calibrated
+    values without relying on the in-memory ``params_determined`` handoff.
+
+    Each parameter ``root/leaf/...`` whose container ``{output_dir}{root}.xml``
+    exists has its element at that path set to the calibrated value; parameters
+    with no matching container file are left to the base-file injection.
+    """
+    roots = {}
+    for name in params_determined:
+        roots.setdefault(name.split('/', 1)[0], []).append(name)
+    for root, names in sorted(roots.items()):
+        container_path = f'{output_dir}{root}.xml'
+        if not os.path.exists(container_path):
+            continue
+        tree = ET.parse(container_path)
+        container_root = tree.getroot()
+        updated = 0
+        for name in names:
+            elem = _find_param_element(container_root, name)
+            if elem is not None:
+                elem.set('value', str(params_determined[name]))
+                updated += 1
+        ET.indent(container_root)
+        tree.write(container_path, xml_declaration=True, encoding='utf-8')
+        print(f'    Wrote {updated}/{len(names)} calibrated values -> {os.path.basename(container_path)}')
+
+
 # ---------------------------------------------------------------------------
 # Subprocess helper
 # ---------------------------------------------------------------------------
@@ -359,11 +395,14 @@ def main():
                     params_determined[m.group(1)] = float(m.group(2))
             print('  ...done')
 
-        # Step 8: re-apply and re-write with the newly extracted parameters.
+        # Step 8: re-apply and re-write with the newly extracted parameters, and
+        # persist the calibrated container files for the file-based cross-stage
+        # handoff (so a downstream stage's xi:include picks up calibrated values).
         if options['writeParameters'] == 'yes':
             print('  Updating parameter files...')
             _apply_parameters(config, params_determined)
             _write_parameters(config)
+            _write_calibrated_containers(output_dir, params_determined)
             print('  ...done')
 
         # Step 9: postprocess.
