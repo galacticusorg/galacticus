@@ -61,6 +61,10 @@ def test_graft_replaces_directive(monkeypatch):
     """The `<componentBuilder/>` node is replaced by the generated content."""
     monkeypatch.setattr(CB, '_build_component_content',
                         lambda: _GENERATED_SNIPPET)
+    # Isolate the graft mechanics from the (separately-tested) full process
+    # pipeline, which needs a populated `$BUILDPATH`; our fragment carries no
+    # embedded directives, so processing it is a no-op here.
+    monkeypatch.setattr(CB, 'process_tree', lambda tree, options=None: tree)
 
     tree = parse_code(_module_with_directive(), name='test')
     CB.process_component_builder(tree, {})
@@ -81,6 +85,7 @@ def test_hand_written_procedure_stays_after_generated_contains(monkeypatch):
     layout the compiler `include` produced before the migration."""
     monkeypatch.setattr(CB, '_build_component_content',
                         lambda: _GENERATED_SNIPPET)
+    monkeypatch.setattr(CB, 'process_tree', lambda tree, options=None: tree)
 
     tree = parse_code(_module_with_directive(), name='test')
     CB.process_component_builder(tree, {})

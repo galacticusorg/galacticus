@@ -119,7 +119,11 @@ def process_component_builder(tree, options):
         # the generator embedded in its own output are expanded and marked
         # processed.  The parsed fragment's directive nodes come back
         # `processed`, so the outer walk (and later hooks) skip them.
-        build_path = os.environ['BUILDPATH']
+        #
+        # `fragment_name` is only a source label for the `!-->` line-map
+        # annotations; during a real build BUILDPATH is always set, mirroring
+        # the old `.p.Inc` path, but it is not required for the graft to work.
+        build_path = os.environ.get('BUILDPATH', '')
         fragment_name = os.path.join(build_path, 'objects.nodes.components.p.Inc')
         sub_tree = parse_code(content, name=fragment_name)
         process_tree(sub_tree)
