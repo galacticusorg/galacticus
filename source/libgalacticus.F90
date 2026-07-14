@@ -21,5 +21,5 @@
   A wrapper file which simply includes the auto-generated content for ``libgalacticus``.
   !!}
 
-  include 'libgalacticus.inc'
+  include 'libgalacticus.preprocessed.inc'
   

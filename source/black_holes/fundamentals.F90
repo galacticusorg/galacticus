@@ -655,7 +655,9 @@ contains
 
        s_\mathrm{jet} = - \frac{P_\mathrm{jet}}{\dot{M}_{\bullet,0} \mathrm{c}^2} \left[ (1+\sqrt{1-j^2})^2 + j^2 \right] \frac{(1-j^2)^{1/2}}{j},
 
-    which is equation (12)\footnoteNote that equation (12) of :cite:t:`benson_maximum_2009` is missing the factor of :math:`\dot{M}_{\bullet,0} \mathrm{c}^2` in the denominator of :cite:t:`benson_maximum_2009`.
+    which is equation (12)\ [#]_ of :cite:t:`benson_maximum_2009`.
+
+    .. [#] Note that equation (12) of :cite:t:`benson_maximum_2009` is missing the factor of :math:`\dot{M}_{\bullet,0} \mathrm{c}^2` in the denominator.
     !!}
     implicit none
     double precision, intent(in   ) :: spinBlackHole

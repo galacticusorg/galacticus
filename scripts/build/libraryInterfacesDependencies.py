@@ -34,7 +34,10 @@ if not os.path.isdir(out_dir):
 # and avoids spurious git diffs in the generated Makefile fragment).
 units = sorted(f[:-len('.F90')]
                for f in os.listdir(out_dir)
-               if f.endswith('.F90'))
+               # Exclude preprocessed `<unit>.p.F90` files, which live in the
+               # same directory: they are build products of the units, not
+               # units themselves.
+               if f.endswith('.F90') and not f.endswith('.p.F90'))
 
 rules = []
 for name in units:
@@ -44,20 +47,32 @@ for name in units:
         f"{build_path}libgalacticus/{name}.p.F90.up:"
         f" {build_path}libgalacticus/{name}.F90"
         f" {build_path}hdf5FCInterop.dat"
-        f" {build_path}openMPCriticalSections.xml\n"
+        f" {build_path}openMPCriticalSections.xml"
+        f" {build_path}stateStorables.xml"
+        f" {build_path}deepCopyActions.xml\n"
         f"\t./scripts/build/preprocess.py"
         f" {build_path}libgalacticus/{name}.F90"
         f" {build_path}libgalacticus/{name}.p.F90\n"
         f"{build_path}libgalacticus/{name}.p.F90 :"
         f" {build_path}libgalacticus/{name}.p.F90.up\n"
         f"\t@true\n"
+        # The compile recipe mirrors the main Makefile's `%.o` pattern rule
+        # (see the comment there): diagnostics go to a file so the compiler's
+        # exit status is preserved rather than being masked by the
+        # postprocess.py pipe. Keep the two recipes in sync.
         f"{build_path}libgalacticus/{name}.o :"
         f" {build_path}libgalacticus/{name}.p.F90"
         f" {build_path}libgalacticus/{name}.d Makefile\n"
         f"\t@mkdir -p {build_path}/moduleBuild\n"
         f"\t$(FCCOMPILER) -c {build_path}libgalacticus/{name}.p.F90"
-        f" -o {build_path}libgalacticus/{name}.o $(FCFLAGS) 2>&1"
-        f" | ./scripts/build/postprocess.py {build_path}libgalacticus/{name}.p.F90\n"
+        f" -o {build_path}libgalacticus/{name}.o $(FCFLAGS)"
+        f" > {build_path}libgalacticus/{name}.o.diag 2>&1; \\\n"
+        f"\tcompileStatus=$$?; \\\n"
+        f"\t./scripts/build/postprocess.py {build_path}libgalacticus/{name}.p.F90"
+        f" < {build_path}libgalacticus/{name}.o.diag; \\\n"
+        f"\tpostprocessStatus=$$?; \\\n"
+        f"\trm -f {build_path}libgalacticus/{name}.o.diag; \\\n"
+        f"\t[ $$compileStatus -eq 0 ] && [ $$postprocessStatus -eq 0 ]\n"
         f"\n"
     )
 

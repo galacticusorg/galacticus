@@ -47,7 +47,7 @@ jobs:
           python -m pip install --upgrade build
           python -m build
       - name: Upload distribution artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: python-distribution
           path: dist/
@@ -93,7 +93,7 @@ jobs:
       id-token: write
     steps:
       - name: Download distribution artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: python-distribution
           path: dist/
