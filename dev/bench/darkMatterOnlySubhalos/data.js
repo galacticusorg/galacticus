@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784020339357,
+  "lastUpdate": 1784020349982,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "e1b296af6affaea60acfddaa0726eadaa7f658a3",
-          "message": "fix(style): Formatting only",
-          "timestamp": "2025-05-08T15:54:49-07:00",
-          "tree_id": "2e61589e99ad6e5223207836eeca5a391e07a3b5",
-          "url": "https://github.com/galacticusorg/galacticus/commit/e1b296af6affaea60acfddaa0726eadaa7f658a3"
-        },
-        "date": 1746783504535,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": "18.762635507998",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": "9.53119084748844",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": "24429.987619222244",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8784,6 +8745,45 @@ window.BENCHMARK_DATA = {
             "value": 31.752,
             "range": "0.08614870863802873",
             "unit": "seconds"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "abc87c1cb585b2257ae634c3fbb8f326c90371e3",
+          "message": "Merge pull request #1245 from galacticusorg/dependabot/pip/nbsphinx-gte-0.9.8\n\nchore(deps): update nbsphinx requirement from >=0.9.5 to >=0.9.8",
+          "timestamp": "2026-07-13T15:18:00Z",
+          "tree_id": "034f8ba443f267a963e4c566b7cfa27ad7b3387f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/abc87c1cb585b2257ae634c3fbb8f326c90371e3"
+        },
+        "date": 1784020348806,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 4.662495333799818,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 2.062336280548457,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 13993.979100559267,
+            "unit": "-logℒ"
           }
         ]
       }
