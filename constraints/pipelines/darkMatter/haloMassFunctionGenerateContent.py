@@ -14,7 +14,12 @@ import h5py
 import lxml.etree as ET
 import numpy as np
 
-from Galacticus.Constraints.Simulations import iterate, parse_simulations_xml
+from Galacticus.Constraints.Simulations import (
+    iterate,
+    parse_simulations_xml,
+    detection_class_name,
+    write_detection_mappings_file,
+)
 from Galacticus._logging                 import configure_default as _configure_default
 from XML.Utils import xml_to_dict
 
@@ -333,9 +338,7 @@ def _step_e_base_files(entry_groups, options):
         ]
 
         # --- Detection efficiency class ---
-        suite_name_det = suite.get('matchedDetection', {}).get('suite', suite['name'])
-        suite_name_det = suite_name_det.replace(':', '')
-        class_name     = suite_name_det + grp.get('detectionEfficiencyClass', '')
+        class_name = detection_class_name(suite, grp)
         if options.get('removeDetectionEfficiency') != 'true':
             detection_efficiency_classes[class_name] = \
                 detection_efficiency_classes.get(class_name, 0) + 1
@@ -435,6 +438,9 @@ def _step_e_base_files(entry_groups, options):
             grp_n   = grp['name']
             res_n   = res['name']
             sim_n   = sim['name']
+            # Shared detection-efficiency mappings (also XIncluded by the progenitor
+            # stage), so the halo mass function model resolves in either stage.
+            write_detection_mappings_file(output_dir, class_name)
             base = (
                 f'<?xml version="1.0" encoding="UTF-8"?>\n'
                 f'<parameters>\n'
@@ -465,19 +471,9 @@ def _step_e_base_files(entry_groups, options):
                 f'  <massParticleAtResolution value="=[simulation/massParticle/{res_n}]"'
                 f' ignoreWarnings="true"/>\n'
                 f'\n'
-                f'  <!-- Detection efficiency -->\n'
-                f'  <detectionMassMinimumParticleCount'
-                f' value="=[haloMassFunctionParameters/massMinimumParticleCount{class_name}]"'
-                f'  ignoreWarnings="true"/>\n'
-                f'  <detectionEfficiencyAtMassMinimum '
-                f' value="=[haloMassFunctionParameters/efficiencyAtMassMinimum{class_name}]"'
-                f'   ignoreWarnings="true"/>\n'
-                f'  <detectionExponentMass            '
-                f' value="=[haloMassFunctionParameters/exponentMassDetection{class_name}]"'
-                f'     ignoreWarnings="true"/>\n'
-                f'  <detectionExponentRedshift        '
-                f' value="=[haloMassFunctionParameters/exponentRedshiftDetection{class_name}]"'
-                f' ignoreWarnings="true"/>\n'
+                f'  <!-- Detection efficiency mappings (shared with the progenitor stage) -->\n'
+                f'  <xi:include href="{output_dir}haloMassFunctionDetection_{class_name}.xml"'
+                f'                             {xp} {xi}/>\n'
             )
             if (suite.get('includePerturbation', {}).get('value') == 'true'
                     and options.get('removeSimulationVariance') != 'true'):

@@ -13,7 +13,12 @@ import lxml.etree as ET
 import numpy as np
 
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'python'))
-from Galacticus.Constraints.Simulations import iterate, parse_simulations_xml
+from Galacticus.Constraints.Simulations import (
+    iterate,
+    parse_simulations_xml,
+    detection_class_name,
+    write_detection_mappings_file,
+)
 from XML.Utils import xml_to_dict
 
 # ---------------------------------------------------------------------------
@@ -217,12 +222,20 @@ def _base_files(entry_groups,options):
         )
 
         # --- Write one base parameter file ---
-        xi = 'xmlns:xi="http://www.w3.org/2001/XInclude"'
-        xp = 'xpointer="xpointer(parameters/*)"'
+        xi     = 'xmlns:xi="http://www.w3.org/2001/XInclude"'
+        xp     = 'xpointer="xpointer(parameters/*)"'
+        # Pull in ONLY the <haloMassFunction> element (not the task / error /
+        # component nodes that also live in haloMassFunction_{suite}.xml).
+        xp_hmf = 'xpointer="xpointer(parameters/haloMassFunction)"'
         suite_n = suite['name']
         grp_n   = grp['name']
         res_n   = res['name']
         sim_n   = sim['name']
+        # Shared detection-efficiency mappings (also written by the HMF stage): the
+        # included haloMassFunction model references bare detection names that these
+        # map to the calibrated per-class values in haloMassFunctionParameters.xml.
+        class_name = detection_class_name(suite, grp)
+        write_detection_mappings_file(output_dir, class_name)
         base = (
             f'<?xml version="1.0" encoding="UTF-8"?>\n'
             f'<parameters>\n'
@@ -245,6 +258,16 @@ def _base_files(entry_groups,options):
             f'                                 {xp} {xi}/>\n'
             f'  <xi:include href="{output_dir}progenitorMassFunctionParameters.xml"'
             f'                                 {xp} {xi}/>\n'
+            f'  <!-- Calibrated halo mass function model from the HMF stage (the -->\n'
+            f'  <!-- processed/pruned copy in the output directory), reading the -->\n'
+            f'  <!-- calibrated values from haloMassFunctionParameters.xml. Only the -->\n'
+            f'  <!-- <haloMassFunction> section is included. -->\n'
+            f'  <xi:include href="{output_dir}haloMassFunction_{suite_n}.xml"'
+            f'                                 {xp_hmf} {xi}/>\n'
+            f'  <!-- Detection-efficiency mappings the model references (shared with -->\n'
+            f'  <!-- the HMF stage). -->\n'
+            f'  <xi:include href="{output_dir}haloMassFunctionDetection_{class_name}.xml"'
+            f'                             {xp} {xi}/>\n'
             f'\n'
         )
         if options['randomize'] == 'yes':

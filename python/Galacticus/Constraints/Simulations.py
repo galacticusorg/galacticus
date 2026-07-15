@@ -17,7 +17,8 @@ from XML.Utils import xml_to_dict
 
 logger = logging.getLogger(__name__)
 
-__all__ = ['select_simulations', 'match_selection', 'iterate', 'parse_simulations_xml']
+__all__ = ['select_simulations', 'match_selection', 'iterate', 'parse_simulations_xml',
+           'detection_class_name', 'write_detection_mappings_file']
 
 
 def select_simulations(options):
@@ -319,6 +320,42 @@ def parse_simulations_xml(path):
             for el in suites
         }
     return result
+
+
+def detection_class_name(suite, group):
+    """Return the detection-efficiency class name for a (suite, group).
+
+    Combines the suite's matched-detection suite (or its own name, with any ':'
+    stripped) with the group's ``detectionEfficiencyClass``. This is the suffix on
+    the per-class detection parameters in ``haloMassFunctionParameters.xml``
+    (e.g. ``massMinimumParticleCount{class}``, ``exponentMassDetection{class}``).
+    """
+    suite_name_det = suite.get('matchedDetection', {}).get('suite', suite['name'])
+    suite_name_det = suite_name_det.replace(':', '')
+    return suite_name_det + group.get('detectionEfficiencyClass', '')
+
+
+def write_detection_mappings_file(output_dir, class_name):
+    """Write the shared halo-mass-function detection-efficiency parameter mappings.
+
+    The halo mass function model (``haloMassFunction_{suite}.xml``) references *bare*
+    detection parameter names (``detectionExponentMass`` etc.); this file maps those
+    to the per-class calibrated values in ``haloMassFunctionParameters.xml``. Both the
+    halo-mass-function and progenitor stages XInclude this single file, so the same
+    model resolves in either stage. Idempotent; returns the written path.
+    """
+    path = f"{output_dir}haloMassFunctionDetection_{class_name}.xml"
+    with open(path, 'w') as fh:
+        fh.write(
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<parameters>\n'
+            f'  <detectionMassMinimumParticleCount value="=[haloMassFunctionParameters/massMinimumParticleCount{class_name}]" ignoreWarnings="true"/>\n'
+            f'  <detectionEfficiencyAtMassMinimum  value="=[haloMassFunctionParameters/efficiencyAtMassMinimum{class_name}]"  ignoreWarnings="true"/>\n'
+            f'  <detectionExponentMass             value="=[haloMassFunctionParameters/exponentMassDetection{class_name}]"     ignoreWarnings="true"/>\n'
+            f'  <detectionExponentRedshift         value="=[haloMassFunctionParameters/exponentRedshiftDetection{class_name}]" ignoreWarnings="true"/>\n'
+            '</parameters>\n'
+        )
+    return path
 
 
 # Perl-compatible camelCase aliases for public API.
