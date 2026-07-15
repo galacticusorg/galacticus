@@ -2472,29 +2472,10 @@ def _build_state_store_methods(directive, non_abstract_classes, classes,
         state_store_code   += f"type is ({non_abstract['name']})\n"
         state_restore_code += f"type is ({non_abstract['name']})\n"
 
-        if non_abstract.get('recursive') == 'yes':
-            state_store_code   += "if (self%isRecursive) then\n"
-            state_store_code   += (
-                " call displayUnindent('recursive copy - moving to actual',"
-                "verbosity=verbosityLevelWorking)\n"
-            )
-            state_store_code   += (
-                " call self%recursiveSelf%stateStore  "
-                "(stateFile,gslStateFile,stateOperationID)\n"
-            )
-            state_store_code   += " return\n"
-            state_store_code   += "end if\n"
-            state_restore_code += "if (self%isRecursive) then\n"
-            state_restore_code += (
-                " call displayUnindent('recursive copy - moving to actual',"
-                "verbosity=verbosityLevelWorking)\n"
-            )
-            state_restore_code += (
-                " call self%recursiveSelf%stateRestore"
-                "(stateFile,gslStateFile,stateOperationID)\n"
-            )
-            state_restore_code += " return\n"
-            state_restore_code += "end if\n"
+        # NOTE (issue #695): a recursive="yes" class's shim is now a distinct
+        # generated type (<name>Recursive) that overrides stateStore/stateRestore
+        # to forward to recursiveSelf, so the concrete class no longer needs an
+        # isRecursive short-circuit here.
 
         state_store_code   += (
             "if (self%stateOperationID == stateOperationID) then\n")
@@ -3152,47 +3133,23 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
     if allow_recursion:
         # Detect a bounded construction cycle: query the object-build stack for an in-progress object being built
         # for this same node and class. If found, this build has re-discovered the node currently under
-        # construction, so return a shim -- an instance of the concrete recursive type carrying isRecursive and a
-        # weak recursiveSelf pointer back to the in-progress object -- instead of building again. See issue #695.
+        # construction, so return the generated shim type -- carrying only a weak recursiveSelf pointer back to the
+        # in-progress object -- instead of building again. See issue #695.
+        shim_type = directive_name + 'Recursive'
         post['content'] += (
             '        parameterNode => parameters%node'
             '(char(parameterName_),requireValue=.true.)\n'
             f'        recursiveObject => Input_Parameters_Build_Stack_Recursive_Object'
             f"(parameterNode,'{directive_name}')\n"
             '        if (associated(recursiveObject)) then\n'
-        )
-        if directive_name in _SHIM_MIGRATED_FAMILIES:
-            # Migrated (issue #695): return the generated shim type, wired to
-            # the object under construction, in place of the old
-            # concrete-type-with-isRecursive-flag shim.
-            shim_type = directive_name + 'Recursive'
-            post['content'] += (
-                f'           allocate({shim_type} :: self)\n'
-                '           select type (self)\n'
-                f'           type is ({shim_type})\n'
-                '              select type (recursiveObject)\n'
-                f'              class is ({directive_name}Class)\n'
-                '                 self%recursiveSelf => recursiveObject\n'
-                '              end select\n'
-                '           end select\n'
-            )
-        else:
-            for c in non_abstract_classes:
-                if c.get('recursive') != 'yes':
-                    continue
-                class_name = c['name']
-                post['content'] += (
-                    '           select type (recursiveObject)\n'
-                    f'              type is ({class_name})\n'
-                    f'              allocate({class_name} :: self)\n'
-                    '              select type (self)\n'
-                    f'              type is ({class_name})\n'
-                    '                 self%isRecursive=.true.\n'
-                    '                 self%recursiveSelf => recursiveObject\n'
-                    '              end select\n'
-                    '           end select\n'
-                )
-        post['content'] += (
+            f'           allocate({shim_type} :: self)\n'
+            '           select type (self)\n'
+            f'           type is ({shim_type})\n'
+            '              select type (recursiveObject)\n'
+            f'              class is ({directive_name}Class)\n'
+            '                 self%recursiveSelf => recursiveObject\n'
+            '              end select\n'
+            '           end select\n'
             '           if (needLock) call addLock%unset()\n'
             '           return\n'
             '        end if\n'
@@ -3904,12 +3861,6 @@ _SHIM_FRAMEWORK_METHODS = {
     'descriptor', 'hashedDescriptor', 'allowedParameters', 'objectType',
 }
 
-# Families whose factory allocates the generated shim type instead of the old
-# concrete-type-with-flag shim. During the #695 migration this grows one family
-# at a time (Phase 2 migrates virialDensityContrast; Phase 3 the rest).
-_SHIM_MIGRATED_FAMILIES = {'virialDensityContrast'}
-
-
 def _shim_forward_argument_names(method):
     """Return the comma-separated actual-argument list for forwarding a call
     of `method` to recursiveSelf, reconstructed from the argument
@@ -4115,6 +4066,7 @@ def _generate_recursive_shim(directive, methods, non_abstract_classes,
     # finalize, so it survives for this resolution).
     post['content'] += (
         f'   recursive subroutine {shim_type}DeepCopy(self,destination)\n'
+        '      use, intrinsic :: ISO_C_Binding, only : c_size_t\n'
         '      implicit none\n'
         f'      class({shim_type}      ), intent(inout), target :: self\n'
         f'      class({directive_name}Class), intent(inout)     :: destination\n'
@@ -4129,6 +4081,12 @@ def _generate_recursive_shim(directive, methods, non_abstract_classes,
         '               destination%parentDeferred =  .true.\n'
         '            end if\n'
         '         end if\n'
+        # Match the generated deepCopy: a freshly mold-allocated copy has
+        # referenceCount=0, so reset it to 1 (a live reference held by the
+        # owner) and clear the state-store id -- otherwise the owner's
+        # objectDestructor decrements it to -1 and aborts.
+        '         call destination%referenceCountReset()\n'
+        '         destination%stateOperationID=0_c_size_t\n'
         '      end select\n'
         f'   end subroutine {shim_type}DeepCopy\n\n'
     )

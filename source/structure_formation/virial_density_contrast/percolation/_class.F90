@@ -31,12 +31,6 @@
    <description>
    A dark matter halo virial density contrast class based on the percolation analysis of :cite:t:`more_overdensity_2011`. The virial density contrast is computed to be consistent with a given friends-of-friends algorithm linking length using the percolation-theory-motivated calibration of :cite:t:`more_overdensity_2011`. Specifically, the friends-of-friends algorithm is assumed to link together particles forming an isodensity surface of density :math:`\rho = \bar{\rho} n_\mathrm{c}/b^3`, where :math:`\bar{\rho}` is the mean density of the universe, :math:`n_\mathrm{c}=0.652960` is a critical density for percolation as given by :cite:t:`more_overdensity_2011`, and :math:`b` is the linking length. Given this bounding density, the virial density contrast is found by requiring that the halo contain the required mass within such a bounding density, given the halo density profile.
    </description>
-   <deepCopy>
-    <ignore   variables="recursiveSelf"/>
-   </deepCopy>
-   <stateStorable>
-     <exclude variables="recursiveSelf"/>
-   </stateStorable>
   </virialDensityContrast>
   !!]
   type, extends(virialDensityContrastClass) :: virialDensityContrastPercolation
@@ -47,8 +41,6 @@
      double precision                                            :: linkingLength
      type            (varying_string                  )          :: fileName
      class           (cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_             => null()
-     logical                                                     :: isRecursive                               , parentDeferred
-     class           (virialDensityContrastPercolation), pointer :: recursiveSelf                   => null()
      class           (*                               ), pointer :: percolationObjects_             => null()
      type            (resourceManager                 )          :: percolationObjectsManager
      ! Tabulation of density contrast vs. time and mass.
@@ -165,9 +157,6 @@ contains
     self%densityContrastTableMassMaximum= 1.0d+16
     self%densityContrastTableInitialized=.false.
     self%densityContrastTableRemakeCount= 0
-    ! Set recursive properties.
-    self%isRecursive   =.false.
-    self%parentDeferred=.false.
     return
   end function percolationConstructorInternal
 
@@ -287,11 +276,6 @@ contains
     logical                                           , intent(in   ) , optional :: collapsing
     double precision                                                             :: timeActual
 
-    ! Call the recursive copy if necessary.
-    if (self%isRecursive) then
-       percolationDensityContrast=self%recursiveSelf%densityContrast(mass,time,expansionFactor,collapsing)
-       return
-    end if
     ! Get the time to use.
     if (.not.solving) timeActual=self%cosmologyFunctions_%epochTime(time,expansionFactor,collapsing)
     ! Determine how to compute density contrast.
@@ -318,11 +302,6 @@ contains
     logical                                           , intent(in   ) , optional :: collapsing
     double precision                                                             :: timeActual
 
-    ! Call the recursive copy if necessary.
-    if (self%isRecursive) then
-       percolationDensityContrastRateOfChange=self%recursiveSelf%densityContrastRateOfChange(mass,time,expansionFactor,collapsing)
-       return
-    end if
     ! Get the time to use.
     timeActual=self%cosmologyFunctions_%epochTime(time,expansionFactor,collapsing)
     ! Compute the solution.
@@ -352,7 +331,6 @@ contains
     class(virialDensityContrastPercolation), intent(inout) :: self
 
     self                           %   copiedSelf => null()
-    if (.not.self%isRecursive) self%recursiveSelf => null()
     if (associated(self%cosmologyfunctions_)) call self%cosmologyfunctions_%deepCopyReset()
     if (associated(self%percolationObjects_)) call percolationObjectsDeepCopyReset_(self%percolationObjects_)
     return
@@ -366,7 +344,6 @@ contains
     implicit none
     class(virialDensityContrastPercolation), intent(inout) :: self
 
-    if (self%isRecursive) call percolationFindParent(self)
     if (associated(self%cosmologyfunctions_)) call self%cosmologyfunctions_%deepCopyFinalize()
     if (associated(self%percolationObjects_)) call percolationObjectsDeepCopyFinalize_(self%percolationObjects_)
     return
@@ -387,7 +364,6 @@ contains
     type is (virialDensityContrastPercolation)
        destination%linkingLength                  =self%linkingLength
        destination%fileName                       =self%fileName
-       destination%isRecursive                    =self%isRecursive
        destination%densityContrastTableTimeMinimum=self%densityContrastTableTimeMinimum
        destination%densityContrastTableTimeMaximum=self%densityContrastTableTimeMaximum
        destination%densityContrastTableMassMinimum=self%densityContrastTableMassMinimum
@@ -397,24 +373,6 @@ contains
        destination%densityContrastTableInitialized=self%densityContrastTableInitialized
        destination%densityContrastTable           =self%densityContrastTable
        destination%densityContrastTableRemakeCount=self%densityContrastTableRemakeCount
-       destination%parentDeferred                 =.false.
-       if (self%isRecursive) then
-          if (associated(self%recursiveSelf%recursiveSelf)) then
-             ! If the parent self's recursiveSelf pointer is set, it indicates that it was deep-copied, and the pointer points to
-             ! that copy. In that case we set the parent self of our destination to that copy.
-             destination%recursiveSelf  => self%recursiveSelf%recursiveSelf
-          else
-             ! The parent self does not appear to have been deep-copied yet. Retain the same parent self pointer in our copy, but
-             ! indicate that we need to look for the new parent later.
-             destination%recursiveSelf  => self%recursiveSelf
-             destination%parentDeferred =  .true.
-          end if
-       else
-          ! This is a parent of a recursively-constructed object. Record the location of our copy so that it can be used to set
-          ! the parent in deep copies of the child object.
-          call percolationDeepCopyAssign(self,destination)
-          destination%recursiveSelf                     => null()
-       end if
        if (associated(self%cosmologyFunctions_)) then
           if (associated(self%cosmologyFunctions_%copiedSelf)) then
              select type(s => self%cosmologyFunctions_%copiedSelf)
@@ -442,67 +400,6 @@ contains
     end select
     return
   end subroutine percolationDeepCopy
-
-  subroutine percolationDeepCopyAssign(self,destination)
-    !!{RST
-    Perform pointer assignment during a deep copy of the object.
-    !!}
-    implicit none
-    class(virialDensityContrastPercolation), intent(inout)         :: self
-    class(virialDensityContrastClass      ), intent(inout), target :: destination
-
-    select type (destination)
-    type is (virialDensityContrastPercolation)
-       self%recursiveSelf => destination
-    end select
-    return
-  end subroutine percolationDeepCopyAssign
-
-  subroutine percolationFindParent(self)
-    !!{RST
-    Find the deep-copied parent of a recursive child.
-    !!}
-    use :: Error, only : Error_Report
-    implicit none
-    class(virialDensityContrastPercolation), intent(inout) :: self
-
-    if (self%parentDeferred) then
-       if (associated(self%recursiveSelf%recursiveSelf)) then
-          self%recursiveSelf => self%recursiveSelf%recursiveSelf
-       else
-        call Error_Report("recursive child's parent was not copied"//{introspection:location})
-       end if
-       self%parentDeferred=.false.
-    end if
-    return
-  end subroutine percolationFindParent
-
-  subroutine percolationCopyTable(self)
-    !!{RST
-    Copy the table from a recursive child's parent.
-    !!}
-    use :: Error, only : Error_Report
-    implicit none
-    class(virialDensityContrastPercolation), intent(inout) :: self
-
-    if (associated(self%recursiveSelf)) then
-       if (self%densityContrastTableRemakeCount /= self%recursiveSelf%densityContrastTableRemakeCount) then
-          call self%densityContrastTable%destroy()
-          self%densityContrastTableTimeMinimum=self%recursiveSelf%densityContrastTableTimeMinimum
-          self%densityContrastTableTimeMaximum=self%recursiveSelf%densityContrastTableTimeMaximum
-          self%densityContrastTableMassMinimum=self%recursiveSelf%densityContrastTableMassMinimum
-          self%densityContrastTableMassMaximum=self%recursiveSelf%densityContrastTableMassMaximum
-          self%densityContrastTableMassCount  =self%recursiveSelf%densityContrastTableMassCount
-          self%densityContrastTableTimeCount  =self%recursiveSelf%densityContrastTableTimeCount
-          self%densityContrastTableInitialized=self%recursiveSelf%densityContrastTableInitialized
-          self%densityContrastTable           =self%recursiveSelf%densityContrastTable
-          self%densityContrastTableRemakeCount=self%recursiveSelf%densityContrastTableRemakeCount
-       end if
-    else
-       call Error_Report("recursive child has no parent"//{introspection:location})
-    end if
-    return
-  end subroutine percolationCopyTable
 
   subroutine percolationStoreTable(self)
     !!{RST

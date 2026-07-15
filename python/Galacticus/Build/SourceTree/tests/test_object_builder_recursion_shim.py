@@ -77,9 +77,9 @@ def test_factory_short_circuits_reentrant_build_to_shim():
     # The short-circuit fires on a positive build-stack query for this node ...
     assert "Input_Parameters_Build_Stack_Recursive_Object" in src, src
     assert "if (associated(recursiveObject)) then" in src, src
-    # ... allocating a shim of the concrete type with the recursion flag set
-    # and the weak back-pointer wired to the in-progress object.
-    assert "self%isRecursive=.true." in src, src
+    # ... allocating the generated shim type with the weak back-pointer wired
+    # to the in-progress object.
+    assert "allocate({shim_type} :: self)" in src, src
     assert "self%recursiveSelf => recursiveObject" in src, src
     # The short-circuit returns before reaching the main 'select case' ladder.
     short_circuit = "if (associated(recursiveObject)) then"
@@ -88,17 +88,20 @@ def test_factory_short_circuits_reentrant_build_to_shim():
 
 
 def test_state_store_forwards_for_recursive_shim():
-    """A ``recursive="yes"`` class's generated ``stateStore``/``stateRestore``
-    must short-circuit when ``isRecursive`` and forward to ``recursiveSelf``
-    (the shim holds no real state of its own)."""
+    """State storage for a recursive re-entry is handled by the generated shim
+    type overriding stateStore/stateRestore to forward to recursiveSelf; the
+    concrete class's generated stateStore no longer carries an isRecursive
+    short-circuit."""
     from Galacticus.Build.SourceTree.Process.FunctionClass import (
-        _build_state_store_methods,
+        _build_state_store_methods, _generate_recursive_shim,
     )
-    src = inspect.getsource(_build_state_store_methods)
-    assert "non_abstract.get('recursive') == 'yes'" in src, src
-    assert "if (self%isRecursive) then" in src, src
-    assert "self%recursiveSelf%stateStore" in src, src
-    assert "self%recursiveSelf%stateRestore" in src, src
+    # The concrete-class generated stateStore no longer references isRecursive.
+    store_src = inspect.getsource(_build_state_store_methods)
+    assert "self%isRecursive" not in store_src, store_src
+    # The shim forwards stateStore/stateRestore instead.
+    shim_src = inspect.getsource(_generate_recursive_shim)
+    assert "self%recursiveSelf%{store}" in shim_src, shim_src
+    assert "for store in ('stateStore', 'stateRestore')" in shim_src, shim_src
 
 
 # --- Phase 2: the generated shim type <name>Recursive (issue #695) ------------
@@ -148,6 +151,10 @@ def test_shim_deepcopy_uses_copiedself_fixup():
     assert "self%recursiveSelf%copiedSelf" in src, src
     assert "parentDeferred =  .true." in src, src
     assert "DeepCopyFinalize(self)" in src, src
+    # A mold-allocated copy starts at referenceCount=0; the shim's deepCopy must
+    # reset it to 1 (like the generated deepCopy) or the owner's objectDestructor
+    # decrements to -1 and aborts.
+    assert "destination%referenceCountReset()" in src, src
 
 
 def test_deepcopy_finalize_does_not_null_copiedself():
@@ -166,15 +173,15 @@ def test_deepcopy_finalize_does_not_null_copiedself():
     ), src
 
 
-def test_migrated_family_factory_allocates_shim_type():
-    """The factory short-circuit for a migrated family (virialDensityContrast
-    in Phase 2) allocates the generated shim type and wires recursiveSelf,
-    instead of the old concrete-type-with-isRecursive-flag shim."""
+def test_factory_short_circuit_allocates_shim_type():
+    """The factory short-circuit allocates the generated shim type and wires
+    recursiveSelf for every recursive family (the old concrete-type-with-
+    isRecursive-flag shim is gone)."""
     from Galacticus.Build.SourceTree.Process.FunctionClass import (
-        _generate_constructor, _SHIM_MIGRATED_FAMILIES,
+        _generate_constructor,
     )
-    assert "virialDensityContrast" in _SHIM_MIGRATED_FAMILIES
     src = inspect.getsource(_generate_constructor)
-    assert "directive_name in _SHIM_MIGRATED_FAMILIES" in src, src
     assert "allocate({shim_type} :: self)" in src, src
     assert "self%recursiveSelf => recursiveObject" in src, src
+    # The old concrete-type-with-flag path must be gone.
+    assert "self%isRecursive=.true." not in src, src

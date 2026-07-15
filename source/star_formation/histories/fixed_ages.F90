@@ -33,12 +33,6 @@
 
    The metallicity bins are arranged logarithmically in metallicity with ``[countMetallicities]`` bins between ``[metallicityMinimum]`` and ``[metallicityMaximum]`` (specified in Solar units). Note that the metallicity associated with each bin is the maximum metallicity for that bin, with the minimum metallicity corresponding to the value associated with the previous bin (or zero metallicity for the first bin). Note that a final bin, extending to infinite metallicity, is always added automatically. If ``[countMetallicities]``\ :math:`=0` is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin encompassing all metallicities from zero to infinity is used). Alternatively, specific metallicity bin boundaries can be set via the ``[metallicityBoundaries]`` parameter---a final boundary corresponding to infinity is always added automatically.
    </description>
-   <deepCopy>
-     <ignore variables="recursiveSelf"/>
-   </deepCopy>
-   <stateStorable>
-     <exclude variables="recursiveSelf"/>
-   </stateStorable>
   </starFormationHistory>
   !!]
   type, extends(starFormationHistoryClass) :: starFormationHistoryFixedAges
@@ -46,8 +40,6 @@
      A star formation histories class which records star formation split by metallicity.
      !!}
      private
-     logical                                                                    :: isRecursive                  , parentDeferred
-     class           (starFormationHistoryFixedAges), pointer                   :: recursiveSelf       => null()
      class           (geometryLightconeClass       ), pointer                   :: geometryLightcone_  => null()
      class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_ => null()
      double precision                                                           :: ageMinimum                   , ageMaximum        , &
@@ -72,9 +64,6 @@
      procedure :: metallicityBoundaries => fixedAgesMetallicityBoundaries
      procedure :: ageDistribution       => fixedAgesAgeDistribution
      procedure :: descriptor            => fixedAgesDescriptor
-     procedure :: deepCopy              => fixedAgesDeepCopy
-     procedure :: deepCopyReset         => fixedAgesDeepCopyReset
-     procedure :: deepCopyFinalize      => fixedAgesDeepCopyFinalize
   end type starFormationHistoryFixedAges
 
   interface starFormationHistoryFixedAges
@@ -259,8 +248,6 @@ contains
     ! Set the maximum age.
     self%ageMaximum=self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0)
     ! Set recursive properties.
-    self%parentDeferred=.false.
-    self%isRecursive   =.false.
     return
   end function fixedAgesConstructorInternal
 
@@ -308,11 +295,6 @@ contains
     integer                                                                     :: i
     !$GLC attributes unused :: timeBegin, timeEnd
 
-    ! Call the recursive copy if necessary.
-    if (self%isRecursive) then
-       call self%recursiveSelf%create(node,historyStarFormation,timeBegin,timeEnd)
-       return
-    end if
     ! Find lightcone crossing times.
     basic                     =>     node %basic()
     timeNodeStart             =  max(basic%time (),self%geometryLightcone_%timeMinimum())
@@ -424,11 +406,6 @@ contains
          &                                                                          countHistories      , i
     double precision                                                             :: fuelMetallicity     , time
 
-    ! Call the recursive copy if necessary.
-    if (self%isRecursive) then
-       call self%recursiveSelf%rate(node,historyStarFormation,abundancesFuel,rateStarFormation)
-       return
-    end if
     ! Check if history exists.
     if (historyStarFormation%exists()) then
        basic => node %basic()
@@ -492,11 +469,6 @@ contains
     type            (history                      )                             :: newHistory
     !$GLC attributes unused :: node
 
-    ! Call the recursive copy if necessary.
-    if (self%isRecursive) then
-       call self%recursiveSelf%update(node,indexOutput,historyStarFormation)
-       return
-    end if
     ! Determine if this is a new update.
     basic => node%basic()
     if     (                                           &
@@ -553,11 +525,6 @@ contains
     character       (len=12                       )                             :: label
     integer                                                                     :: i
 
-    ! Call the recursive copy if necessary.
-    if (self%isRecursive) then
-       call self%recursiveSelf%move(node1,node2,starFormationHistory1,starFormationHistory2)
-       return
-    end if
     ! Extract and validate crossing times.
     basic1             => node1 %basic                    (                    )
     basic2             => node2 %basic                    (                    )
@@ -643,10 +610,6 @@ contains
     !$GLC attributes unused :: abundancesStellar
 
     ! Call the recursive copy if needed.
-    if (self%isRecursive) then
-       call self%recursiveSelf%scales(historyStarFormation,node,massStellar,massGas,abundancesStellar)
-       return
-    end if
     if (.not.historyStarFormation%exists()) return
     ! Get the set of crossing times for this node.
     basic         => node %basic                    (                    )
@@ -676,11 +639,6 @@ contains
     double precision                               , allocatable  , dimension(:) :: fixedAgesMetallicityBoundaries
     class           (starFormationHistoryFixedAges), intent(inout)               :: self
 
-    ! Call the recursive copy if necessary.
-    if (self%isRecursive) then
-       fixedAgesMetallicityBoundaries=self%recursiveSelf%metallicityBoundaries()
-       return
-    end if
     ! Return our table of metallicities.
     allocate(fixedAgesMetallicityBoundaries(0:size(self%metallicityTable)-1))
     fixedAgesMetallicityBoundaries(0:size(self%metallicityTable)-1)=self%metallicityTable(1:size(self%metallicityTable))
@@ -714,11 +672,6 @@ contains
     <optionalArgument name="allowTruncation" defaultsTo=".false."/>
     !!]
     
-    ! Call the recursive copy if necessary.
-    if (self%isRecursive) then
-       times=self%recursiveSelf%times(node,indexOutput,starFormationHistory,allowTruncation,timeStart)
-       return
-    end if
     ! Check that the current time matches the next tabulated time.
     basic         => node %basic                    (                    )
     timesCrossing =  basic%floatRank1MetaPropertyGet(self%timesCrossingID)
@@ -776,11 +729,6 @@ contains
     class           (nodeComponentBasic           ), pointer                     :: basic
     integer         (c_size_t                     )                              :: i                   , j
 
-    ! Call the recursive copy if necessary.
-    if (self%isRecursive) then
-       timeNext=self%recursiveSelf%timeNext(node,starFormationHistory)
-       return
-    end if
     ! Find the next boundary time across all histories.
     basic         => node %basic                    (                    )
     timesCrossing =  basic%floatRank1MetaPropertyGet(self%timesCrossingID)
@@ -822,11 +770,6 @@ contains
     <optionalArgument name="allowTruncation" defaultsTo=".false."/>
     !!]
     
-    ! Call the recursive copy if necessary.
-    if (self%isRecursive) then
-       masses=self%recursiveSelf%masses(node,starFormationHistory,allowTruncation)
-       return
-    end if
     ! Check that the current time matches the next tabulated time.
     basic         => node %basic                    (                    )
     timesCrossing =  basic%floatRank1MetaPropertyGet(self%timesCrossingID)
@@ -892,11 +835,6 @@ contains
     integer                                                           :: i
     type     (varying_string               )                          :: metallicityBoundariesLabel
 
-    ! Call the recursive copy if necessary.
-    if (self%isRecursive) then
-       call self%recursiveSelf%descriptor(descriptor,includeClass,includeFileModificationTimes)
-       return
-    end if
     if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('starFormationHistory','fixedAges')
     parameters=descriptor%subparameters('starFormationHistory')
     write (parameterLabel,'(e17.10)') self%ageMinimum
@@ -914,142 +852,3 @@ contains
     call self%geometryLightcone_%descriptor(parameters,includeClass,includeFileModificationTimes)
     return
   end subroutine fixedAgesDescriptor
-
-  subroutine fixedAgesDeepCopyReset(self)
-    !!{RST
-    Perform a deep copy reset of the object.
-    !!}
-    implicit none
-    class(starFormationHistoryFixedAges), intent(inout) :: self
-
-    self                           %   copiedSelf => null()
-    if (.not.self%isRecursive) self%recursiveSelf => null()
-    if (associated(self%geometryLightcone_)) call self%geometryLightcone_%deepCopyReset()
-    return
-  end subroutine fixedAgesDeepCopyReset
-  
-  subroutine fixedAgesDeepCopyFinalize(self)
-    !!{RST
-    Finalize a deep reset of the object.
-    !!}
-    implicit none
-    class(starFormationHistoryFixedAges), intent(inout) :: self
-
-    if (self%isRecursive) call fixedAgesFindParent(self)
-    if (associated(self%geometryLightcone_)) call self%geometryLightcone_%deepCopyFinalize()
-    return
-  end subroutine fixedAgesDeepCopyFinalize
-  
-  subroutine fixedAgesDeepCopy(self,destination)
-    !!{RST
-    Perform a deep copy of the object.
-    !!}
-    use :: Error, only : Error_Report
-    implicit none
-    class(starFormationHistoryFixedAges), intent(inout), target :: self
-    class(starFormationHistoryClass    ), intent(inout)         :: destination
-
-    call self%starFormationHistoryClass%deepCopy(destination)
-    select type (destination)
-    type is (starFormationHistoryFixedAges)
-       destination%isRecursive                    =self%isRecursive
-       if (self%isRecursive) then
-          if (associated(self%recursiveSelf%recursiveSelf)) then
-             ! If the parent self's recursiveSelf pointer is set, it indicates that it was deep-copied, and the pointer points to
-             ! that copy. In that case we set the parent self of our destination to that copy.
-             destination%recursiveSelf  => self%recursiveSelf%recursiveSelf
-          else
-            ! The parent self does not appear to have been deep-copied yet. Retain the same parent self pointer in our copy, but
-             ! indicate that we need to look for the new parent later.
-             destination%recursiveSelf  => self%recursiveSelf
-             destination%parentDeferred =  .true.
-          end if
-       else
-          ! This is a parent of a recursively-constructed object. Record the location of our copy so that it can be used to set
-          ! the parent in deep copies of the child object.
-          call fixedAgesDeepCopyAssign(self,destination)
-          destination%recursiveSelf             => null()
-          destination%ageMinimum                =  self%ageMinimum           
-          destination%ageMaximum                =  self%ageMaximum           
-          destination%metallicityMaximum        =  self%metallicityMaximum        
-          destination%metallicityMinimum        =  self%metallicityMinimum        
-          destination%countAges                 =  self%countAges            
-          destination%countMetallicities        =  self%countMetallicities        
-          destination%metallicityTable          =  self%metallicityTable          
-          destination%timesCrossingID           =  self%timesCrossingID          
-          destination%createdInID               =  self%createdInID          
-          destination%parentDeferred            = .false.
-          nullify(destination%geometryLightcone_)
-          if (associated(self%geometryLightcone_)) then
-             if (associated(self%geometryLightcone_%copiedSelf)) then
-                select type(s => self%geometryLightcone_%copiedSelf)
-                   class is (geometryLightconeClass)
-                   destination%geometryLightcone_ => s
-                   class default
-                   call Error_Report('copiedSelf has incorrect type'//{introspection:location})
-                end select
-                call self%geometryLightcone_%copiedSelf%referenceCountIncrement()
-             else
-                allocate(destination%geometryLightcone_,mold=self%geometryLightcone_)
-                call self%geometryLightcone_%deepCopy(destination%geometryLightcone_)
-                self%geometryLightcone_%copiedSelf => destination%geometryLightcone_
-                call destination%geometryLightcone_%autoHook()
-             end if
-          end if
-          nullify(destination%cosmologyFunctions_)
-          if (associated(self%cosmologyFunctions_)) then
-             if (associated(self%cosmologyFunctions_%copiedSelf)) then
-                select type(s => self%cosmologyFunctions_%copiedSelf)
-                   class is (cosmologyFunctionsClass)
-                   destination%cosmologyFunctions_ => s
-                   class default
-                   call Error_Report('copiedSelf has incorrect type'//{introspection:location})
-                end select
-                call self%cosmologyFunctions_%copiedSelf%referenceCountIncrement()
-             else
-                allocate(destination%cosmologyFunctions_,mold=self%cosmologyFunctions_)
-                call self%cosmologyFunctions_%deepCopy(destination%cosmologyFunctions_)
-                self%cosmologyFunctions_%copiedSelf => destination%cosmologyFunctions_
-                call destination%cosmologyFunctions_%autoHook()
-             end if
-          end if
-       end if
-    class default
-       call Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine fixedAgesDeepCopy
-
-  subroutine fixedAgesDeepCopyAssign(self,destination)
-    !!{RST
-    Perform pointer assignment during a deep copy of the object.
-    !!}
-    implicit none
-    class(starFormationHistoryFixedAges), intent(inout)         :: self
-    class(starFormationHistoryClass    ), intent(inout), target :: destination
-
-    select type (destination)
-    type is (starFormationHistoryFixedAges)
-       self%recursiveSelf => destination
-    end select
-    return
-  end subroutine fixedAgesDeepCopyAssign
-
-  subroutine fixedAgesFindParent(self)
-    !!{RST
-    Find the deep-copied parent of a recursive child.
-    !!}
-    use :: Error, only : Error_Report
-    implicit none
-    class(starFormationHistoryFixedAges), intent(inout) :: self
-
-    if (self%parentDeferred) then
-       if (associated(self%recursiveSelf%recursiveSelf)) then
-          self%recursiveSelf => self%recursiveSelf%recursiveSelf
-       else
-         call Error_Report("recursive child's parent was not copied"//{introspection:location})
-       end if
-       self%parentDeferred=.false.
-    end if
-    return
-  end subroutine fixedAgesFindParent
