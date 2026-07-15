@@ -2211,7 +2211,12 @@ def _build_deep_copy_methods(directive, non_abstract_classes, classes,
 
     deep_copy['resetCode']    += "self%copiedSelf => null()\n"
     deep_copy['resetCode']    += "select type (self)\n"
-    deep_copy['finalizeCode'] += "self%copiedSelf => null()\n"
+    # NOTE (issue #695, D4): deepCopyFinalize deliberately does NOT null copiedSelf. A generated recursive shim
+    # (<name>Recursive) resolves its weak recursiveSelf pointer to the copy of the real object via
+    # recursiveSelf%copiedSelf, and that resolution runs during deepCopyFinalize. Because finalize is top-down and
+    # the real object is an ancestor of the shim, nulling copiedSelf here would clear it before the shim could read
+    # it. copiedSelf is only ever read inside a deepCopy operation, which always begins with deepCopyReset nulling
+    # it, so leaving it stale between operations is harmless (assumed hygiene-only; revisit if a race appears).
     deep_copy['finalizeCode'] += "select type (self)\n"
     deep_copy['code']         += "select type (self)\n"
 
@@ -3156,21 +3161,37 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
             f"(parameterNode,'{directive_name}')\n"
             '        if (associated(recursiveObject)) then\n'
         )
-        for c in non_abstract_classes:
-            if c.get('recursive') != 'yes':
-                continue
-            class_name = c['name']
+        if directive_name in _SHIM_MIGRATED_FAMILIES:
+            # Migrated (issue #695): return the generated shim type, wired to
+            # the object under construction, in place of the old
+            # concrete-type-with-isRecursive-flag shim.
+            shim_type = directive_name + 'Recursive'
             post['content'] += (
-                '           select type (recursiveObject)\n'
-                f'              type is ({class_name})\n'
-                f'              allocate({class_name} :: self)\n'
-                '              select type (self)\n'
-                f'              type is ({class_name})\n'
-                '                 self%isRecursive=.true.\n'
+                f'           allocate({shim_type} :: self)\n'
+                '           select type (self)\n'
+                f'           type is ({shim_type})\n'
+                '              select type (recursiveObject)\n'
+                f'              class is ({directive_name}Class)\n'
                 '                 self%recursiveSelf => recursiveObject\n'
                 '              end select\n'
                 '           end select\n'
             )
+        else:
+            for c in non_abstract_classes:
+                if c.get('recursive') != 'yes':
+                    continue
+                class_name = c['name']
+                post['content'] += (
+                    '           select type (recursiveObject)\n'
+                    f'              type is ({class_name})\n'
+                    f'              allocate({class_name} :: self)\n'
+                    '              select type (self)\n'
+                    f'              type is ({class_name})\n'
+                    '                 self%isRecursive=.true.\n'
+                    '                 self%recursiveSelf => recursiveObject\n'
+                    '              end select\n'
+                    '           end select\n'
+                )
         post['content'] += (
             '           if (needLock) call addLock%unset()\n'
             '           return\n'
@@ -3874,6 +3895,269 @@ def _generate_method_functions(directive, methods, post, node):
         post['content'] += f'   end {category} {function_name}\n\n'
 
 
+# Framework methods that the recursive shim handles explicitly (i.e. NOT by
+# forwarding to recursiveSelf via the physics-method path). Everything else in
+# the family's `methods` map is a physics method that the shim forwards.
+_SHIM_FRAMEWORK_METHODS = {
+    'stateStore', 'stateRestore', 'stateStore_', 'stateRestore_',
+    'autoHook', 'deepCopy', 'deepCopy_', 'deepCopyReset', 'deepCopyFinalize',
+    'descriptor', 'hashedDescriptor', 'allowedParameters', 'objectType',
+}
+
+# Families whose factory allocates the generated shim type instead of the old
+# concrete-type-with-flag shim. During the #695 migration this grows one family
+# at a time (Phase 2 migrates virialDensityContrast; Phase 3 the rest).
+_SHIM_MIGRATED_FAMILIES = {'virialDensityContrast'}
+
+
+def _shim_forward_argument_names(method):
+    """Return the comma-separated actual-argument list for forwarding a call
+    of `method` to recursiveSelf, reconstructed from the argument
+    declarations exactly as _generate_method_functions builds its
+    argument_list (so optional arguments propagate their presence)."""
+    argument_list = ''
+    separator = ''
+    for arg in as_array(method.get('argument') or []):
+        parts = arg.split('::', 1)
+        variables = parts[1].strip() if len(parts) == 2 else ''
+        if re.match(r'^\s*!\$', arg) is not None:
+            argument_list += ' &\n!$ & ' + separator + variables + ' &\n& '
+        else:
+            argument_list += separator + variables
+        separator = ','
+    return argument_list
+
+
+def _generate_recursive_shim(directive, methods, non_abstract_classes,
+                             pre, post, node):
+    """Emit the generated shim type `<name>Recursive` for a functionClass
+    family that contains a recursive="yes" class (issue #695).
+
+    The shim is a lightweight stand-in returned by the factory when a bounded
+    construction cycle re-discovers the object currently under construction. It
+    holds only a weak `recursiveSelf` back-pointer to that object and forwards
+    every method to it; deepCopy, stateStore, descriptor, autoHook and
+    allowedParameters are handled centrally here rather than by ~100 lines of
+    hand-written per-class boilerplate.
+    """
+    parent = node['parent']
+    directive_name = directive['name']
+    shim_type = directive_name + 'Recursive'
+    loc_expr = location(node, node.get('line', 0))
+
+    set_visibility(parent, shim_type, 'public')
+
+    physics = [
+        m for m in sorted(methods)
+        if m not in _SHIM_FRAMEWORK_METHODS
+        and m not in ('destructor', 'assignment(=)')
+    ]
+
+    # ---- type definition ----
+    pre['content'] += f'   type, extends({directive_name}Class) :: {shim_type}\n'
+    pre['content'] += (
+        '     !!{\n'
+        f'     A generated shim for the \\refClass{{{directive_name}Class}} '
+        'family. Returned by the factory when a bounded construction cycle\n'
+        '     re-enters the object currently under construction; forwards every '
+        'method to the (weakly-referenced) real object. See issue \\#695.\n'
+        '     !!}\n'
+    )
+    pre['content'] += (
+        f'     class({directive_name}Class), pointer :: recursiveSelf => null()\n'
+    )
+    pre['content'] += '     logical :: parentDeferred = .false.\n'
+    pre['content'] += '    contains\n'
+    for m in physics:
+        fn = shim_type + _ucfirst(m)
+        pre['content'] += f'     procedure :: {m} => {fn}\n'
+    pre['content'] += (
+        f'     procedure :: allowedParameters => {shim_type}AllowedParameters\n'
+        f'     procedure :: autoHook          => {shim_type}AutoHook\n'
+        f'     procedure :: deepCopy          => {shim_type}DeepCopy\n'
+        f'     procedure :: deepCopyReset     => {shim_type}DeepCopyReset\n'
+        f'     procedure :: deepCopyFinalize  => {shim_type}DeepCopyFinalize\n'
+        f'     procedure :: descriptor        => {shim_type}Descriptor\n'
+        f'     procedure :: hashedDescriptor  => {shim_type}HashedDescriptor\n'
+        f'     procedure :: objectType        => {shim_type}ObjectType\n'
+        f'     procedure :: stateStore        => {shim_type}StateStore\n'
+        f'     procedure :: stateRestore      => {shim_type}StateRestore\n'
+    )
+    pre['content'] += f'   end type {shim_type}\n\n'
+
+    # ---- physics-method forwarders ----
+    for m in physics:
+        method = methods[m]
+        fn = shim_type + _ucfirst(m)
+        arg_names = _shim_forward_argument_names(method)
+        # Rebuild the declaration block (self + arguments) with the shim's own
+        # passed-object type, matching the base binding's self intent/target so
+        # the override interface is compatible.
+        self_intent = method.get('selfIntent', 'inout')
+        self_target = ', target' if method.get('selfTarget') == 'yes' else ''
+        argument_code = (
+            f'      class({shim_type}), intent({self_intent}){self_target} :: self\n'
+        )
+        for arg in as_array(method.get('argument') or []):
+            argument_code += '      ' + arg + '\n'
+        method_type = method.get('type', 'void')
+        recursive_prefix = 'recursive ' if method.get('recursive') == 'yes' else ''
+        elemental_prefix = 'elemental ' if method.get('elemental') == 'yes' else ''
+        self_line = ''
+        type_prefix = ''
+        if method_type == 'void':
+            category = 'subroutine'
+        elif method_type.startswith('class'):
+            category = 'function'
+            self_line = f'      {method_type}, pointer :: {fn}\n'
+        elif method_type.startswith('type') or ',' in method_type:
+            category = 'function'
+            self_line = f'      {method_type} :: {fn}\n'
+        else:
+            category = 'function'
+            type_prefix = method_type + ' '
+        header = f'   {recursive_prefix}{elemental_prefix}{type_prefix}{category} {fn}(self'
+        if arg_names:
+            header += ',' + arg_names
+        header += ')\n'
+        post['content'] += header
+        post['content'] += '      implicit none\n'
+        post['content'] += argument_code
+        post['content'] += self_line
+        call_args = f'({arg_names})' if arg_names else '()'
+        if category == 'subroutine':
+            post['content'] += (
+                f'      call self%recursiveSelf%{m}{call_args}\n'
+            )
+        else:
+            post['content'] += (
+                f'      {fn}=self%recursiveSelf%{m}{call_args}\n'
+            )
+        post['content'] += f'   end {category} {fn}\n\n'
+
+    # ---- framework overrides ----
+    # allowedParameters: no-op (the shim owns no child objects; the real object
+    # already contributed its parameters when it was built).
+    post['content'] += (
+        f'   recursive subroutine {shim_type}AllowedParameters(self,allowedParameters,sourceName,objectsOnly)\n'
+        '      use ISO_Varying_String, only : varying_string\n'
+        '      implicit none\n'
+        f'      class    ({shim_type}   ), intent(inout)                            :: self\n'
+        '      type     (varying_string), dimension(:), allocatable, intent(inout) :: allowedParameters\n'
+        '      character(len=*         )                           , intent(in   ) :: sourceName\n'
+        '      logical                                             , intent(in   ) :: objectsOnly\n'
+        '      !$GLC attributes unused :: self, allowedParameters, sourceName, objectsOnly\n'
+        '      return\n'
+        f'   end subroutine {shim_type}AllowedParameters\n\n'
+    )
+    # autoHook: no-op. The real object already hooked itself when it was built;
+    # the objectBuilder template calls autoHook on the shim too, so forwarding
+    # or a default hook would double-register on calculationResetEvent.
+    post['content'] += (
+        f'   subroutine {shim_type}AutoHook(self)\n'
+        '      implicit none\n'
+        f'      class({shim_type}), intent(inout) :: self\n'
+        '      !$GLC attributes unused :: self\n'
+        '      return\n'
+        f'   end subroutine {shim_type}AutoHook\n\n'
+    )
+    # objectType / descriptor / hashedDescriptor / stateStore / stateRestore:
+    # forward to the real object.
+    post['content'] += (
+        f'   function {shim_type}ObjectType(self,short)\n'
+        '      use ISO_Varying_String, only : varying_string\n'
+        '      implicit none\n'
+        f'      type (varying_string)                            :: {shim_type}ObjectType\n'
+        f'      class({shim_type}   ), intent(inout)             :: self\n'
+        '      logical               , intent(in   ), optional :: short\n'
+        f'      {shim_type}ObjectType=self%recursiveSelf%objectType(short)\n'
+        f'   end function {shim_type}ObjectType\n\n'
+    )
+    post['content'] += (
+        f'   subroutine {shim_type}Descriptor(self,descriptor,includeClass,includeFileModificationTimes)\n'
+        '      use Input_Parameters, only : inputParameters\n'
+        '      implicit none\n'
+        f'      class({shim_type}    ), intent(inout)           :: self\n'
+        '      type (inputParameters), intent(inout)           :: descriptor\n'
+        '      logical               , intent(in   ), optional :: includeClass, includeFileModificationTimes\n'
+        '      call self%recursiveSelf%descriptor(descriptor,includeClass,includeFileModificationTimes)\n'
+        f'   end subroutine {shim_type}Descriptor\n\n'
+    )
+    post['content'] += (
+        f'   function {shim_type}HashedDescriptor(self,includeSourceDigest,includeFileModificationTimes)\n'
+        '      use ISO_Varying_String, only : varying_string\n'
+        '      implicit none\n'
+        f'      type (varying_string)                            :: {shim_type}HashedDescriptor\n'
+        f'      class({shim_type}   ), intent(inout)             :: self\n'
+        '      logical               , intent(in   ), optional :: includeSourceDigest, includeFileModificationTimes\n'
+        f'      {shim_type}HashedDescriptor=self%recursiveSelf%hashedDescriptor(includeSourceDigest,includeFileModificationTimes)\n'
+        f'   end function {shim_type}HashedDescriptor\n\n'
+    )
+    for store in ('stateStore', 'stateRestore'):
+        post['content'] += (
+            f'   subroutine {shim_type}{_ucfirst(store)}(self,stateFile,gslStateFile,stateOperationID)\n'
+            '      use, intrinsic :: ISO_C_Binding, only : c_ptr, c_size_t\n'
+            '      implicit none\n'
+            f'      class  ({shim_type}), intent(inout) :: self\n'
+            '      integer             , intent(in   ) :: stateFile\n'
+            '      type   (c_ptr      ), intent(in   ) :: gslStateFile\n'
+            '      integer(c_size_t   ), intent(in   ) :: stateOperationID\n'
+            f'      call self%recursiveSelf%{store}(stateFile,gslStateFile,stateOperationID)\n'
+            f'   end subroutine {shim_type}{_ucfirst(store)}\n\n'
+        )
+    # deepCopy: the shim is freshly mold-allocated by its owner (base fields at
+    # default, referenceCount=0 -- matching what the generated assignment's
+    # intent(out) reset produces for any copied object), so we only wire the
+    # weak recursiveSelf back-pointer to the copy of the real object. If the
+    # real object has already been copied in this operation its copiedSelf is
+    # set; otherwise we defer resolution to deepCopyFinalize (see D4 note in
+    # _build_deep_copy_methods: copiedSelf is deliberately NOT nulled during
+    # finalize, so it survives for this resolution).
+    post['content'] += (
+        f'   recursive subroutine {shim_type}DeepCopy(self,destination)\n'
+        '      implicit none\n'
+        f'      class({shim_type}      ), intent(inout), target :: self\n'
+        f'      class({directive_name}Class), intent(inout)     :: destination\n'
+        '      select type (destination)\n'
+        f'      type is ({shim_type})\n'
+        '         if (associated(self%recursiveSelf)) then\n'
+        '            if (associated(self%recursiveSelf%copiedSelf)) then\n'
+        '               destination%recursiveSelf  => self%recursiveSelf%copiedSelf\n'
+        '               destination%parentDeferred =  .false.\n'
+        '            else\n'
+        '               destination%recursiveSelf  => self%recursiveSelf\n'
+        '               destination%parentDeferred =  .true.\n'
+        '            end if\n'
+        '         end if\n'
+        '      end select\n'
+        f'   end subroutine {shim_type}DeepCopy\n\n'
+    )
+    post['content'] += (
+        f'   recursive subroutine {shim_type}DeepCopyReset(self)\n'
+        '      implicit none\n'
+        f'      class({shim_type}), intent(inout) :: self\n'
+        '      self%copiedSelf => null()\n'
+        f'   end subroutine {shim_type}DeepCopyReset\n\n'
+    )
+    # deepCopyFinalize: resolve a deferred parent. recursiveSelf currently
+    # points at the ORIGINAL real object; its copiedSelf now holds the copy.
+    post['content'] += (
+        f'   recursive subroutine {shim_type}DeepCopyFinalize(self)\n'
+        '      use Error, only : Error_Report\n'
+        '      implicit none\n'
+        f'      class({shim_type}), intent(inout) :: self\n'
+        '      if (self%parentDeferred) then\n'
+        '         if (associated(self%recursiveSelf).and.associated(self%recursiveSelf%copiedSelf)) then\n'
+        '            self%recursiveSelf  => self%recursiveSelf%copiedSelf\n'
+        '            self%parentDeferred =  .false.\n'
+        '         else\n'
+        f"            call Error_Report('recursive shim parent was not copied'//{loc_expr})\n"
+        '         end if\n'
+        '      end if\n'
+        f'   end subroutine {shim_type}DeepCopyFinalize\n\n'
+    )
+
+
 def _normalise_modules(modules):
     """Normalise the `modules` entry on a method dict into a list of
     `{name, only}` shapes.  Mirrors the `reftype($method->{'modules'})`
@@ -3997,6 +4281,12 @@ def process_function_class(tree, options):
             directive, classes_ordered, non_abstract_classes,
             pre, code_content, node)
         _generate_method_functions(directive, methods, post, node)
+
+        # Emit the generated shim type for families that opt in to bounded
+        # construction recursion (issue #695).
+        if any(c.get('recursive') == 'yes' for c in classes_ordered):
+            _generate_recursive_shim(
+                directive, methods, non_abstract_classes, pre, post, node)
 
         _insert_and_write_output(
             node, code_content, pre, post, classes, directive)
