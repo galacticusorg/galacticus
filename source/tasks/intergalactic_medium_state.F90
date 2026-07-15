@@ -147,7 +147,7 @@ contains
     use            :: Error           , only : errorStatusSuccess
     use            :: Output_HDF5     , only : outputFile
     use            :: HDF5_Access     , only : hdf5Access
-    use            :: IO_HDF5         , only : hdf5Object
+    use            :: IO_HDF5         , only : hdf5Object, hdf5Group
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: String_Handling , only : operator(//)
     implicit none
@@ -157,7 +157,7 @@ contains
          &                                                                         temperature    , massFiltering, &
          &                                                                         expansionFactor, massJeans
     integer         (c_size_t                    )                              :: outputCount    , i
-    type            (hdf5Object                  )                              :: outputsGroup   , outputGroup  , &
+    type            (hdf5Group                   )                              :: outputsGroup   , outputGroup  , &
          &                                                                         containerGroup
     type            (varying_string              )                              :: groupName      , description
 

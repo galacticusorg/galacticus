@@ -325,7 +325,7 @@ contains
     !!}
     use :: Output_HDF5                   , only : outputFile
     use :: HDF5_Access                   , only : hdf5Access
-    use :: IO_HDF5                       , only : hdf5Object
+    use :: IO_HDF5                       , only : hdf5Object, hdf5Group
     use :: Model_Parameters              , only : modelParameterListLogPrior
     use :: Models_Likelihoods_Constants  , only : logImpossible
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceAlways
@@ -340,7 +340,7 @@ contains
     type            (varying_string                  ), allocatable  , dimension(:) :: parameterNames
     double precision                                                                :: logPrior
     type            (posteriorSampleConvergenceAlways)                              :: posteriorSampleConvergence_
-    type            (hdf5Object                      )                              :: analysesGroup                    , subGroup
+    type            (hdf5Group                       )                              :: analysesGroup                    , subGroup
     type            (varying_string                  )                              :: groupName
     integer                                                                         :: i
     

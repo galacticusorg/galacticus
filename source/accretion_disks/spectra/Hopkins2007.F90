@@ -139,7 +139,7 @@ contains
     use            :: Error                           , only : Error_Report
     use            :: Input_Paths                     , only : inputPath              , pathTypeDataDynamic , pathTypeDataStatic
     use            :: HDF5_Access                     , only : hdf5Access
-    use            :: IO_HDF5                         , only : hdf5Object
+    use            :: IO_HDF5                         , only : hdf5Object, hdf5File, hdf5Dataset
     use, intrinsic :: ISO_Fortran_Env
     use            :: Numerical_Constants_Astronomical, only : luminositySolar
     use            :: Numerical_Constants_Physical    , only : speedLight
@@ -158,7 +158,8 @@ contains
     double precision                                 , parameter                   :: luminosityBolometricMaximum=1.0d28
     integer                                          , parameter                   :: luminosityBolometricCount  =200
     logical                                                                        :: makeFile
-    type            (hdf5Object                     )                              :: file                              , dataset
+    type            (hdf5File                       )                              :: file
+    type            (hdf5Dataset                    )                              :: dataset
     integer                                                                        :: fileFormatCurrentFile             , sedUnit             , &
          &                                                                            i                                 , j                   , &
          &                                                                            status                            , wavelengthCount

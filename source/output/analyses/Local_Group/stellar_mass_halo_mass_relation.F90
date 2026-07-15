@@ -181,7 +181,7 @@ contains
           &                                                 galacticFilterSurveyGeometry                        , galacticFilterStellarMass                 , enumerationPositionTypeType
     use :: Geometry_Surveys                        , only : surveyGeometryFullSky
     use :: HDF5_Access                             , only : hdf5Access
-    use :: IO_HDF5                                 , only : hdf5Object
+    use :: IO_HDF5                                 , only : hdf5Object, hdf5File
     use :: Input_Paths                             , only : inputPath                                           , pathTypeDataStatic
     use :: Node_Property_Extractors                , only : nodePropertyExtractorMassStellar                    , nodePropertyExtractorMassBasic
     use :: Numerical_Comparison                    , only : Values_Agree
@@ -231,7 +231,7 @@ contains
     logical                                                                 , parameter                     :: likelihoodNormalize                             =.false.
     double precision                                                        , parameter                     :: massStellarThreshold                            =+1.0d-3
     integer         (c_size_t                                              )                                :: i                                                           , bufferCount
-    type            (hdf5Object                                            )                                :: fileData
+    type            (hdf5File                                              )                                :: fileData
     type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="*outputTimes_, positionType, randomErrorMinimum, randomErrorMaximum, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, massStellarSystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum"/>

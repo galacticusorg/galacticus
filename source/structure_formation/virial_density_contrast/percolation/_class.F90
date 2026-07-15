@@ -511,7 +511,7 @@ contains
     use :: File_Utilities    , only : Directory_Make, File_Lock     , File_Path, File_Unlock, &
           &                           lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5Object, hdf5File
     use :: ISO_Varying_String, only : char          , varying_string
     implicit none
     class(virialDensityContrastPercolation), intent(inout) :: self
@@ -522,7 +522,7 @@ contains
     call File_Lock     (self%fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
     block
-      type(hdf5Object) :: file
+      type(hdf5File  ) :: file
       file=hdf5Object(self%fileName,overWrite=.true.,readOnly=.false.)
       call file%writeAttribute(        self%densityContrastTableTimeMinimum                                                                 ,'timeMinimum'    )
       call file%writeAttribute(        self%densityContrastTableTimeMaximum                                                                 ,'timeMaximum'    )
@@ -545,7 +545,7 @@ contains
     !!}
     use :: File_Utilities    , only : File_Exists, File_Lock     , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5Object, hdf5File
     use :: ISO_Varying_String, only : char       , varying_string
     implicit none
     class           (virialDensityContrastPercolation), intent(inout)               :: self
@@ -558,7 +558,7 @@ contains
        call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
        block
-         type(hdf5Object) :: file
+         type(hdf5File  ) :: file
          file=hdf5Object(char(self%fileName),readOnly=.true.)
          call file%readAttribute('timeMinimum'    ,self%densityContrastTableTimeMinimum)
          call file%readAttribute('timeMaximum'    ,self%densityContrastTableTimeMaximum)

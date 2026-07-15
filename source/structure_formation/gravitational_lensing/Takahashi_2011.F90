@@ -333,7 +333,7 @@ contains
     use :: Error                , only : Error_Report
     use :: Input_Paths          , only : inputPath                   , pathTypeDataDynamic
     use :: HDF5_Access          , only : hdf5Access
-    use :: IO_HDF5              , only : hdf5Object
+    use :: IO_HDF5              , only : hdf5Object, hdf5File
     use :: Numerical_Comparison , only : Values_Differ
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range                  , rangeTypeLogarithmic
@@ -365,7 +365,7 @@ contains
          &                                                                              convergenceMaximum                        , magnificationPdfMoment0       , &
          &                                                                              magnificationLower                        , magnificationUpper            , &
          &                                                                              cdfPrevious                               , cdf
-    type            (hdf5Object                       )                              :: parametersFile
+    type            (hdf5File                         )                              :: parametersFile
     type            (lockDescriptor                   )                              :: fileLock
     type            (varying_string                   )                              :: fileName
 

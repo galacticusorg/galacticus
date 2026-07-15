@@ -31,7 +31,7 @@ program XRay_Absorption_ISM_Wilms2000
   !!}
   use :: Atomic_Cross_Sections_Compton, only : Atomic_Cross_Section_Compton
   use :: Dates_and_Times              , only : Formatted_Date_and_Time
-  use :: IO_HDF5                      , only : hdf5Object
+  use :: IO_HDF5                      , only : hdf5Object, hdf5File, hdf5Dataset
   use :: Numerical_Constants_Prefixes , only : kilo
   use :: Numerical_Constants_Units    , only : electronVolt
   use :: Numerical_Ranges             , only : Make_Range
@@ -53,7 +53,8 @@ program XRay_Absorption_ISM_Wilms2000
        &                                                                                siggrains                       , sigmol
   double precision            , dimension(  energyCount,metallicityCount)            :: crossSection
   double precision            , dimension(                            42)            :: parameters
-  type            (hdf5Object)                                                       :: myDataset                       , outputFile
+  type            (hdf5Dataset)                                                       :: myDataset
+  type            (hdf5File   )                                                       :: outputFile
   integer                                                                            :: iMetallicity
   double precision                                                                   :: electronNumber
 

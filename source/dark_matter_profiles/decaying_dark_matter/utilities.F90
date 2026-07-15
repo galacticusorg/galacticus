@@ -325,7 +325,7 @@ contains
     use :: Numerical_Ranges        , only : Make_Range    , rangeTypeLogarithmic
     use :: File_Utilities          , only : File_Exists   , Directory_Make               , File_Path, File_Lock         , File_Unlock, lockDescriptor
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5Object
+    use :: IO_HDF5                 , only : hdf5Object, hdf5File
     use :: Input_Paths             , only : inputPath     , pathTypeDataDynamic
     implicit none
     double precision            , intent(in   )               :: velocityEscapeScaleFree              , velocityKickScaleFree
@@ -365,7 +365,7 @@ contains
          if (allocated(fractionRetained         )) deallocate(fractionRetained         )
          if (allocated(energyRetained           )) deallocate(energyRetained           )
          block
-           type(hdf5Object) :: file
+           type(hdf5File  ) :: file
            !$ call hdf5Access%set()
            file=hdf5Object(char(fileName),overWrite=.false.,readOnly=.true.)
            call file%readDataset('velocitiesEscape',velocitiesEscapeScaleFree)
@@ -490,7 +490,7 @@ contains
          call displayUnindent     ('done',verbosity=verbosityLevelStandard)
          ! Store results to file.
          block
-           type(hdf5Object) :: file
+           type(hdf5File  ) :: file
            !$ call hdf5Access%set()
            file=hdf5Object(char(fileName),overWrite=.true.,readOnly=.false.)
            call file%writeDataset(velocitiesEscapeScaleFree,'velocitiesEscape')

@@ -311,14 +311,15 @@ contains
     !!}
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5Object
+    use :: IO_HDF5                         , only : hdf5Object           , hdf5Group           , hdf5Dataset
     use :: HDF5                            , only : hsize_t
     use :: Numerical_Constants_Astronomical, only : massSolar
     use :: Units_MetaData                  , only : unitType
     implicit none
     class  (mergerTreeOperatorTreeProcessingTimer), intent(inout) :: self
     integer(hsize_t                              ), parameter     :: chunkSize      =100_hsize_t
-    type   (hdf5Object                           )                :: metaDataDataset            , metaDataGroup, timingDataGroup
+    type   (hdf5Dataset                          )                :: metaDataDataset
+    type   (hdf5Group                            )                :: metaDataGroup            , timingDataGroup
     logical                                                       :: preExists
 
     if (self%countTrees > 0) then

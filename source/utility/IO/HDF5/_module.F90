@@ -37,7 +37,8 @@ module IO_HDF5
   implicit none
   private
   public :: hdf5Object          , hdf5VarDouble     , hdf5VarInteger8, ioHDF5AccessInitialize, &
-       &    IO_HDF5_Set_Defaults, IO_HDF5_Is_HDF5   , hdf5VarDouble2D
+       &    IO_HDF5_Set_Defaults, IO_HDF5_Is_HDF5   , hdf5VarDouble2D, hdf5AttributableObject, &
+       &    hdf5Group           , hdf5File          , hdf5Dataset    , hdf5Attribute
 #ifdef DEBUGHDF5
   public :: IO_HDF5_Start_Locked, IO_HDF5_End_Locked
 
@@ -115,7 +116,7 @@ module IO_HDF5
      integer(hsize_t        )          :: chunkSize
      integer                           :: compressionLevel
      logical                           :: chunkSizeSet    =.false.    , compressionLevelSet=.false.
-     type   (hdf5Object     ), pointer :: parentObject     => null()
+     class  (hdf5Object     ), pointer :: parentObject     => null()
    contains
      !![
      <methods docformat="rst">
@@ -258,6 +259,46 @@ module IO_HDF5
      procedure :: parent             =>IO_HDF5_Parent
      procedure :: deepCopy           =>IO_HDF5_Deep_Copy
   end type hdf5Object
+
+  ! Class hierarchy for HDF5 objects (see issue #93). During the migration to a full class hierarchy the base
+  ! ``hdf5Object`` type remains concrete and retains every method plus the ``hdf5ObjectType`` kind flag, so that all data and
+  ! behavior continue to live in the base and existing (unmigrated) call sites compile unchanged. The extended types below add
+  ! no components or methods yet; they exist so that constructors and the ``open*`` methods can return concrete kinds
+  ! (``hdf5File``, ``hdf5Group``, ``hdf5Dataset``, ``hdf5Attribute``). Because the defined assignment and all methods are
+  ! inherited from the base, an extended-type result can still be assigned to a ``type(hdf5Object)`` variable. Later phases push
+  ! methods down to their proper class, make the base abstract, and remove the kind flag. The intermediate
+  ! ``hdf5AttributableObject`` exists because HDF5 attributes attach to named objects (groups/files/datasets) but not to other
+  ! attributes.
+  type, extends(hdf5Object            ) :: hdf5AttributableObject
+     !!{RST
+     Abstract-in-intent base for HDF5 objects to which attributes may attach (groups, files, and datasets).
+     !!}
+  end type hdf5AttributableObject
+
+  type, extends(hdf5AttributableObject) :: hdf5Group
+     !!{RST
+     An HDF5 group object.
+     !!}
+  end type hdf5Group
+
+  type, extends(hdf5Group             ) :: hdf5File
+     !!{RST
+     An HDF5 file object. A file is-a group (its root group), which is why numerous call sites open groups, write datasets,
+     and write attributes directly on the file object.
+     !!}
+  end type hdf5File
+
+  type, extends(hdf5AttributableObject) :: hdf5Dataset
+     !!{RST
+     An HDF5 dataset object.
+     !!}
+  end type hdf5Dataset
+
+  type, extends(hdf5AttributableObject) :: hdf5Attribute
+     !!{RST
+     An HDF5 attribute object.
+     !!}
+  end type hdf5Attribute
 
   interface hdf5Object
      module procedure hdf5FileOpenVarStr
@@ -546,9 +587,14 @@ contains
     type     (varying_string           )                              :: message
     character(len=objectNameSizeMaximum)                              :: objectName
 
+    ! A never-opened object has a null object identifier and holds no HDF5 resources, so there is nothing to finalize. This
+    ! guard also makes finalization of freshly-constructed objects a safe no-op — for example when an unopened object reaches
+    ! an intent(out) or polymorphic-assignment target and is finalized before being written. (This is the finalization pattern
+    ! that the class hierarchy of issue #93 relies on: each concrete type's cleanup runs once and then the object is inert.)
+    if (.not.associated(self%objectID)) return
     ! Ensure that finalization occurs within an HDF5 locked region to avoid thread conflicts. (The HDF5 library is not
     ! thread-safe, and we must also ensure that resource manager counts are updated in a thread-safe manner to ensure correct
-    ! counting.)    
+    ! counting.)
     !$ call IO_HDF5_Start_Locked()
     if (self%objectManager%count() == 1) then
        ! Close the object.
@@ -734,7 +780,7 @@ contains
     implicit none
     class(hdf5Object    ), intent(in   ), target  :: self
     type (varying_string)                         :: fileName
-    type (hdf5Object    )               , pointer :: parent
+    class(hdf5Object    )               , pointer :: parent
 
     parent  => self
     do while (parent%hdf5ObjectType /= hdf5ObjectTypeFile)
@@ -969,7 +1015,7 @@ contains
     !!}
     use :: ISO_Varying_String, only : char
     implicit none
-    type   (hdf5Object    )                          :: self
+    type   (hdf5File      )                          :: self
     type   (varying_string), intent(in   )           :: fileName
     logical                , intent(in   ), optional :: objectsOverwritable, overWrite         , readOnly      , isTemporary
     integer(kind=hsize_t  ), intent(in   ), optional :: chunkSize
@@ -995,7 +1041,7 @@ contains
     use :: ISO_Varying_String, only : assignment(=)      , len                   , operator(//)          , trim                   , &
          &                            char
     implicit none
-    type     (hdf5Object    )                          :: self
+    type     (hdf5File      )                          :: self
     character(len=*         ), intent(in   )           :: fileName
     logical                  , intent(in   ), optional :: objectsOverwritable, overWrite         , readOnly      , isTemporary
     integer  (kind=hsize_t  ), intent(in   ), optional :: chunkSize
@@ -1177,7 +1223,7 @@ contains
     implicit none
     class    (hdf5Object    ), intent(in   ), target                      :: inObject
     character(len=*         ), intent(in   )                              :: groupPath
-    type     (hdf5Object    ), intent(inout), allocatable  , dimension(:) :: groupObjects
+    type     (hdf5Group     ), intent(inout), allocatable  , dimension(:) :: groupObjects
     type     (varying_string)               , allocatable  , dimension(:) :: groupNames
     integer                                                               :: i           , countGroups
 
@@ -1204,7 +1250,7 @@ contains
          &                            h5pcreate_f  , h5pset_attr_phase_change_f, h5pclose_f, H5P_GROUP_CREATE_F
     use :: ISO_Varying_String, only : assignment(=), operator(//)
     implicit none
-    type     (hdf5Object    )                          :: self
+    type     (hdf5Group     )                          :: self
     character(len=*         ), intent(in   )           :: groupName
     character(len=*         ), intent(in   ), optional :: comment
     logical                  , intent(in   ), optional :: objectsOverwritable, overwriteOverride
@@ -1232,10 +1278,7 @@ contains
     locationPath=inObject%pathTo()
 
     ! Set the parent for the group.
-    select type (inObject)
-    type is (hdf5Object)
-       self%parentObject => inObject
-    end select
+    self%parentObject => inObject
     ! Obtain a reference to the file ID.
     self%fileID      => inObject%fileID
     self%fileManager =  inObject%fileManager
@@ -1400,7 +1443,7 @@ contains
     use :: ISO_Varying_String, only : assignment(=)       , operator(//)      , operator(/=)
     implicit none
     class    (hdf5Object    )              , intent(in   ), target   :: inObject
-    type     (hdf5Object    )                                        :: self
+    type     (hdf5Attribute )                                        :: self
     character(len=*         )              , intent(in   )           :: attributeName
     integer                                , intent(in   ), optional :: attributeDataType
     integer  (kind=HSIZE_T  ), dimension(:), intent(in   ), optional :: attributeDimensions
@@ -1422,10 +1465,7 @@ contains
        locationPath                                   =inObject    %objectFile
        if (inObject%objectLocation /= "") locationPath=locationPath           //"/"//inObject%objectLocation
        if (inObject%objectName     /= "") locationPath=locationPath           //"/"//inObject%objectName
-       select type (inObject)
-       type is (hdf5Object)
-          self%parentObject => inObject
-       end select
+       self%parentObject => inObject
     else
        message="attempt to open attribute '"//trim(attributeName)//"' in unopen object '"//inObject%objectName//"'"
        call Error_Report(message//inObject%locationReport()//{introspection:location})
@@ -1613,7 +1653,7 @@ contains
           call self%assertAttributeType({Type¦h5TypesWrite},rank(attributeValue))
        end if
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           attributeObject=self
        end select
        attributeNameActual=self%objectName
@@ -1710,7 +1750,7 @@ contains
           call self%assertAttributeType([dataTypeID],0)
        end if
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
        attributeObject=self
        end select
        attributeNameActual=self%objectName
@@ -1809,7 +1849,7 @@ contains
           call self%assertAttributeType([dataTypeID],1)
        end if
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
        attributeObject=self
        end select
        attributeNameActual=self%objectName
@@ -1924,7 +1964,7 @@ contains
     if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           attributeObject=self
        end select
        ! No name should be supplied in this case.
@@ -2029,7 +2069,7 @@ contains
     if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           attributeObject=self
        end select
        ! No name should be supplied in this case.
@@ -2127,7 +2167,7 @@ contains
     if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           attributeObject=self
        end select
        ! No name should be supplied in this case.
@@ -2246,7 +2286,7 @@ contains
     if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
        attributeObject=self
        end select
        ! No name should be supplied in this case.
@@ -2391,7 +2431,7 @@ contains
     if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
        attributeObject=self
        end select
        ! No name should be supplied in this case.
@@ -2503,7 +2543,7 @@ contains
     if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           attributeObject=self
        end select
        ! No name should be supplied in this case.
@@ -2615,7 +2655,7 @@ contains
     if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
        attributeObject=self
        end select
        ! No name should be supplied in this case.
@@ -2743,7 +2783,7 @@ attributeValue=trim(attributeValue)
     if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
        attributeObject=self
        end select
        ! No name should be supplied in this case.
@@ -2852,7 +2892,7 @@ attributeValue=trim(attributeValue)
     if (self%hdf5ObjectType == hdf5ObjectTypeAttribute) then
        ! Object is the attribute.
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
        attributeObject=self
        end select
        ! No name should be supplied in this case.
@@ -3164,7 +3204,7 @@ attributeValue=trim(attributeValue)
           &                           h5pset_chunk_f      , h5pset_deflate_f     , h5sclose_f
     use :: ISO_Varying_String, only : assignment(=)       , operator(//)         , operator(/=)
     implicit none
-    type     (hdf5Object    )                                        :: self
+    type     (hdf5Dataset   )                                        :: self
     character(len=*         )              , intent(in   )           :: datasetName
     character(len=*         )              , intent(in   ), optional :: comment
     integer  (hsize_t       )              , intent(in   ), optional :: chunkSize
@@ -3196,10 +3236,7 @@ attributeValue=trim(attributeValue)
        locationPath                                   =inObject    %objectFile
        if (inObject%objectLocation /= "") locationPath=locationPath           //"/"//inObject%objectLocation
        if (inObject%objectName     /= "") locationPath=locationPath           //"/"//inObject%objectName
-       select type (inObject)
-       type is (hdf5Object)
-          self%parentObject => inObject
-       end select
+       self%parentObject => inObject
     else
        message="attempt to open dataset '"//trim(datasetName)//"' in unopen object '"//inObject%objectName//"'"
        call Error_Report(message//inObject%locationReport()//{introspection:location})
@@ -3667,7 +3704,7 @@ attributeValue=trim(attributeValue)
     logical                  , intent(in   ), optional                                          :: appendTo
     integer  (hsize_t       ), intent(in   ), optional                                          :: chunkSize
     integer                  , intent(in   ), optional                                          :: appendDimension             , compressionLevel
-    type     (hdf5Object    ), intent(  out), optional                                          :: datasetReturned
+    class    (hdf5Object    ), intent(  out), optional                                          :: datasetReturned
     integer  (kind=HSIZE_T  )               , dimension(rank(datasetValue))                     :: datasetDimensions           , hyperslabCount             , &
          &                                                                                         hyperslabStart              , newDatasetDimensions       , &
          &                                                                                         newDatasetDimensionsFiltered, newDatasetDimensionsMaximum
@@ -3719,7 +3756,7 @@ attributeValue=trim(attributeValue)
           call self%assertDatasetType({Type¦h5TypesWrite},rank(datasetValue))
        end if
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           datasetObject=self
        end select
        datasetNameActual=self%objectName
@@ -3929,7 +3966,7 @@ attributeValue=trim(attributeValue)
     if (self%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           datasetObject=self
        end select
 
@@ -4328,7 +4365,7 @@ attributeValue=trim(attributeValue)
     if (self%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           datasetObject=self
        end select
 
@@ -4669,7 +4706,7 @@ attributeValue=trim(attributeValue)
     logical                                , intent(in   ), optional :: appendTo
     integer  (hsize_t       )              , intent(in   ), optional :: chunkSize
     integer                                , intent(in   ), optional :: compressionLevel
-    type     (hdf5Object    )              , intent(  out), optional :: datasetReturned
+    class    (hdf5Object    )              , intent(  out), optional :: datasetReturned
     integer  (kind=HSIZE_T  ), dimension(1)                          :: datasetDimensions          , hyperslabCount      , &
          &                                                              hyperslabStart             , newDatasetDimensions, &
          &                                                              newDatasetDimensionsMaximum
@@ -4727,7 +4764,7 @@ attributeValue=trim(attributeValue)
           call self%assertDatasetType([dataTypeID],1)
        end if
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           datasetObject    =self
        end select
        datasetNameActual=self%objectName
@@ -4851,7 +4888,7 @@ attributeValue=trim(attributeValue)
     logical                                , intent(in   ), optional :: appendTo
     integer  (hsize_t       )              , intent(in   ), optional :: chunkSize
     integer                                , intent(in   ), optional :: compressionLevel
-    type     (hdf5Object    )              , intent(  out), optional :: datasetReturned
+    class    (hdf5Object    )              , intent(  out), optional :: datasetReturned
 
     ! Call the character version of this routine to perform the write.
     call IO_HDF5_Write_Dataset_Character_1D(self,Convert_VarString_To_Char(datasetValue),datasetName,comment,appendTo&
@@ -4931,7 +4968,7 @@ attributeValue=trim(attributeValue)
     if (self%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           datasetObject=self
        end select
        ! No name should be supplied in this case.
@@ -5236,7 +5273,7 @@ attributeValue=trim(attributeValue)
     if (self%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           datasetObject=self
        end select
        ! No name should be supplied in this case.
@@ -5506,7 +5543,7 @@ attributeValue=trim(attributeValue)
     if (self%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           datasetObject=self
        end select
        ! No name should be supplied in this case.
@@ -5615,7 +5652,7 @@ attributeValue=trim(attributeValue)
     if (self%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           datasetObject=self
        end select
        ! No name should be supplied in this case.
@@ -5767,7 +5804,7 @@ attributeValue=trim(attributeValue)
     if (self%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           datasetObject=self
        end select
 
@@ -6148,7 +6185,7 @@ attributeValue=trim(attributeValue)
     if (self%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           datasetObject=self
        end select
 
@@ -6532,7 +6569,7 @@ attributeValue=trim(attributeValue)
     if (self%hdf5ObjectType == hdf5ObjectTypeDataset) then
        ! Object is the dataset.
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           datasetObject=self
        end select
 
@@ -6844,7 +6881,7 @@ attributeValue=trim(attributeValue)
     logical                               , intent(in   ), optional             :: appendTo
     integer         (hsize_t             ), intent(in   ), optional             :: chunkSize
     integer                               , intent(in   ), optional             :: compressionLevel
-    type            (hdf5Object          ), intent(  out), optional             :: datasetReturned
+    class           (hdf5Object          ), intent(  out), optional             :: datasetReturned
     integer         (kind=HSIZE_T        )               , dimension(1)         :: datasetDimensions          , hyperslabCount      , &
          &                                                                         hyperslabStart             , newDatasetDimensions, &
          &                                                                         newDatasetDimensionsMaximum
@@ -6892,7 +6929,7 @@ attributeValue=trim(attributeValue)
           call self%assertDatasetType({VlenType¦h5VlenType},1)
        end if
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           datasetObject=self
        end select
        datasetNameActual=self%objectName
@@ -7020,7 +7057,7 @@ attributeValue=trim(attributeValue)
     logical                          , intent(in   ), optional             :: appendTo
     integer         (hsize_t        ), intent(in   ), optional             :: chunkSize
     integer                          , intent(in   ), optional             :: compressionLevel
-    type            (hdf5Object     ), intent(  out), optional             :: datasetReturned
+    class           (hdf5Object     ), intent(  out), optional             :: datasetReturned
     integer         (kind=HSIZE_T   )               , dimension(1)         :: datasetDimensions          , hyperslabCount      , &
          &                                                                    hyperslabStart             , newDatasetDimensions, &
          &                                                                    newDatasetDimensionsMaximum
@@ -7069,7 +7106,7 @@ attributeValue=trim(attributeValue)
           call self%assertDatasetType(H5T_VLEN_VLEN_DOUBLE,1)
        end if
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           datasetObject=self
        end select
        datasetNameActual=self%objectName
@@ -7204,7 +7241,7 @@ attributeValue=trim(attributeValue)
     logical                         , intent(in   ), optional               :: appendTo
     integer         (hsize_t       ), intent(in   ), optional               :: chunkSize
     integer                         , intent(in   ), optional               :: compressionLevel
-    type            (hdf5Object    ), intent(  out), optional               :: datasetReturned
+    class           (hdf5Object    ), intent(  out), optional               :: datasetReturned
     integer         (kind=HSIZE_T  )               , dimension(2  )         :: datasetDimensions          , hyperslabCount      , &
          &                                                                     hyperslabStart             , newDatasetDimensions, &
          &                                                                     newDatasetDimensionsMaximum
@@ -7252,7 +7289,7 @@ attributeValue=trim(attributeValue)
           call self%assertDatasetType(H5T_VLEN_DOUBLE,2)
        end if
        select type (self)
-       type is (hdf5Object)
+       class is (hdf5Object)
           datasetObject=self
        end select
        datasetNameActual=self%objectName
@@ -7642,7 +7679,7 @@ attributeValue=trim(attributeValue)
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
     class    (hdf5Object       )              , intent(inout)         :: fromGroup
-    type     (hdf5Object       )              , intent(inout)         :: toDataset
+    class    (hdf5Dataset      )              , intent(inout)         :: toDataset
     character(len=*            )              , intent(in   )         :: referenceName
     integer  (kind=HSIZE_T     ), dimension(1), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(1)                        :: datasetDimensions, hyperslabCount, hyperslabStart
@@ -7763,7 +7800,7 @@ attributeValue=trim(attributeValue)
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
     class    (hdf5Object       )              , intent(inout)         :: fromGroup
-    type     (hdf5Object       )              , intent(inout)         :: toDataset
+    class    (hdf5Dataset      )              , intent(inout)         :: toDataset
     character(len=*            )              , intent(in   )         :: referenceName
     integer  (kind=HSIZE_T     ), dimension(2), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(2)                        :: datasetDimensions, hyperslabCount, hyperslabStart
@@ -7884,7 +7921,7 @@ attributeValue=trim(attributeValue)
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
     class    (hdf5Object       )              , intent(inout)         :: fromGroup
-    type     (hdf5Object       )              , intent(inout)         :: toDataset
+    class    (hdf5Dataset      )              , intent(inout)         :: toDataset
     character(len=*            )              , intent(in   )         :: referenceName
     integer  (kind=HSIZE_T     ), dimension(3), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(3)                        :: datasetDimensions, hyperslabCount, hyperslabStart
@@ -8005,7 +8042,7 @@ attributeValue=trim(attributeValue)
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
     class    (hdf5Object       )              , intent(inout)         :: fromGroup
-    type     (hdf5Object       )              , intent(inout)         :: toDataset
+    class    (hdf5Dataset      )              , intent(inout)         :: toDataset
     character(len=*            )              , intent(in   )         :: referenceName
     integer  (kind=HSIZE_T     ), dimension(4), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(4)                        :: datasetDimensions, hyperslabCount, hyperslabStart
@@ -8126,7 +8163,7 @@ attributeValue=trim(attributeValue)
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
     class    (hdf5Object       )              , intent(inout)         :: fromGroup
-    type     (hdf5Object       )              , intent(inout)         :: toDataset
+    class    (hdf5Dataset      )              , intent(inout)         :: toDataset
     character(len=*            )              , intent(in   )         :: referenceName
     integer  (kind=HSIZE_T     ), dimension(5), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(5)                        :: datasetDimensions, hyperslabCount, hyperslabStart
@@ -8288,7 +8325,7 @@ attributeValue=trim(attributeValue)
     implicit none
     class    (hdf5Object    ), intent(in   ) :: self
     character(len=*         ), intent(in   ) :: source
-    type     (hdf5Object    ), intent(inout) :: targetObject
+    class    (hdf5Group     ), intent(inout) :: targetObject
     integer                                  :: errorCode
     type     (varying_string)                :: message
 
@@ -8340,7 +8377,7 @@ attributeValue=trim(attributeValue)
     use :: ISO_Varying_String, only : char        , var_str, operator(//)
     implicit none
     class(hdf5Object) , intent(in   ) :: self
-    type (hdf5Object) , intent(inout) :: destination
+    class(hdf5Object) , intent(inout) :: destination
 
     ! Get a new object ID.
     if (self%isOpen()) then

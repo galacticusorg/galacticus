@@ -30,7 +30,7 @@ module Galacticus_Nodes
   use            :: Galactic_Structure_Options         , only : enumerationComponentTypeType , enumerationMassTypeType       , enumerationWeightByType
   use            :: Dictionaries                       , only : doubleDictionary             , genericDictionary
   use            :: Histories                          , only : history                      , longIntegerHistory
-  use            :: IO_HDF5                            , only : hdf5Object
+  use            :: IO_HDF5                            , only : hdf5Group
   use, intrinsic :: ISO_C_Binding                      , only : c_size_t
   use            :: ISO_Varying_String                 , only : varying_string
   use            :: Kepler_Orbits                      , only : keplerOrbit
@@ -76,7 +76,7 @@ module Galacticus_Nodes
      The merger tree object type.
      !!}
      integer         (kind=kind_int8            )                  :: index                  =  -huge(0_kind_int8)
-     type            (hdf5Object                )                  :: hdf5Group
+     type            (hdf5Group                 )                  :: hdf5Group
      double precision                                              :: volumeWeight           =  -huge(0.0d0      ), initializedUntil =  -huge(0.0d0)
      logical                                                       :: isTreeInitialized      =  .false.
      type            (treeNode                  ), pointer         :: nodeBase               => null()

@@ -189,7 +189,7 @@ contains
     use :: Galactic_Structure_Options, only : componentTypeMax, componentTypeMin
     use :: Numerical_Ranges          , only : Make_Range      , rangeTypeLogarithmic
     use :: HDF5_Access               , only : hdf5Access
-    use :: IO_HDF5                   , only : hdf5Object
+    use :: IO_HDF5                   , only : hdf5Object, hdf5File
     use :: Input_Paths               , only : inputPath       , pathTypeDataDynamic
     use :: File_Utilities            , only : File_Exists     , File_Lock           , File_Unlock, lockDescriptor, &
          &                                    Directory_Make
@@ -210,7 +210,7 @@ contains
          &                                                                                   metric               , metricChangeMinimum, &
          &                                                                                   metricChange         , metricMinimumGlobal
     type            (varying_string              )                                        :: fileName
-    type            (hdf5Object                  )                                        :: file
+    type            (hdf5File                    )                                        :: file
     type            (lockDescriptor              )                                        :: fileLock
     character       (len=16                      )                                        :: name
     integer                                                                               :: iLock

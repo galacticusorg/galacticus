@@ -118,7 +118,7 @@ contains
     !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
-    use :: IO_HDF5                   , only : hdf5Object
+    use :: IO_HDF5                   , only : hdf5Group
     implicit none
     type            (nodePropertyExtractorLuminosityEmissionLine)                              :: self
     type            (inputParameters                            ), intent(inout)               :: parameters
@@ -130,7 +130,7 @@ contains
     class           (hiiRegionEscapeFractionClass               ), pointer                     :: hiiRegionEscapeFraction_
     type            (varying_string                             ), allocatable  , dimension(:) :: lineNames
     type            (varying_string                             )                              :: component                   , cloudyTableFileName
-    type            (hdf5Object                                 )                              :: parametersGroup
+    type            (hdf5Group                                  )                              :: parametersGroup
     double precision                                                                           :: toleranceRelative
     
     allocate(lineNames(parameters%count('lineNames')))
@@ -197,7 +197,7 @@ contains
     use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5Object
+    use :: IO_HDF5                         , only : hdf5Object, hdf5File, hdf5Group, hdf5Dataset
     use :: Error                           , only : Error_Report
     use :: Input_Paths                     , only : inputPath        , pathTypeDataStatic
     implicit none
@@ -222,8 +222,9 @@ contains
     integer                                                                     , dimension(5        ) :: shapeLines
     double precision                                             , allocatable  , dimension(:,:,:,:,:) :: luminosities
     integer         (c_size_t                                   )               , dimension(2        ) :: permutation
-    type            (hdf5Object                                 )                                      :: emissionLinesFile                 , lines                             , &
-         &                                                                                                dataset
+    type            (hdf5File                                   )                                      :: emissionLinesFile
+    type            (hdf5Group                                  )                                      :: lines
+    type            (hdf5Dataset                                )                                      :: dataset
     integer         (c_size_t                                   )                                      :: i                                 , k                                 , &
          &                                                                                                iAge                              , indexNormalization                , &
          &                                                                                                sizeNormalization
@@ -617,7 +618,7 @@ contains
     use :: Histories               , only : history
     use :: ISO_Varying_String      , only : var_str
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5Object
+    use :: IO_HDF5                 , only : hdf5Object, hdf5File, hdf5Group
     use :: Output_HDF5             , only : outputFile
     use :: Numerical_Comparison    , only : Values_Agree
     use :: File_Utilities          , only : File_Exists                  , File_Lock                             , File_Unlock, lockDescriptor, &
@@ -632,7 +633,7 @@ contains
     type            (history                                    ), intent(in   )               :: starFormationHistory
     class           (nodeComponentBasic                         ), pointer                     :: basic
     double precision                                             , allocatable  , dimension(:) :: times
-    type            (hdf5Object                                 ), allocatable  , dimension(:) :: parametersGroups
+    type            (hdf5Group                                  ), allocatable  , dimension(:) :: parametersGroups
     integer         (c_size_t                                   )                              :: indexOutput         , countTemplates
     character       (len=16                                     )                              :: label
 
@@ -664,7 +665,7 @@ contains
     if (.not.allocated(self%templates(indexTemplate)%emissionLineLuminosity)) then
        coldPathScope: block
          type(lockDescriptor) :: fileLock
-         type(hdf5Object    ) :: file
+         type(hdf5File      ) :: file
          type(varying_string) :: fileName
          ! Construct the file name.
          fileName=inputPath(pathTypeDataDynamic)                                          // &

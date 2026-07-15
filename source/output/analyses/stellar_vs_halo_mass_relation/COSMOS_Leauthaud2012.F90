@@ -188,7 +188,7 @@ contains
     use :: Input_Paths                           , only : inputPath                                  , pathTypeDataStatic
     use :: Geometry_Surveys                      , only : surveyGeometryFullSky
     use :: HDF5_Access                           , only : hdf5Access
-    use :: IO_HDF5                               , only : hdf5Object
+    use :: IO_HDF5                               , only : hdf5Object, hdf5File, hdf5Group
     use :: ISO_Varying_String                    , only : var_str                                    , varying_string
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo              , nodePropertyExtractorMassStellar
     use :: Numerical_Constants_Astronomical      , only : massSolar
@@ -252,7 +252,8 @@ contains
     type            (varying_string                                      )                                :: analysisLabel                                                 , weightPropertyLabel                                               , &
          &                                                                                                   weightPropertyDescription                                     , groupRedshiftName                                                 , &
          &                                                                                                   targetDataFileName
-    type            (hdf5Object                                          )                                :: fileData                                                      , groupRedshift
+    type            (hdf5File                                            )                                :: fileData
+    type            (hdf5Group                                           )                                :: groupRedshift
     type            (table1DGeneric                                      )                                :: interpolator
     character       (len=4                                               )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
     type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
@@ -664,13 +665,13 @@ contains
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object
+    use :: IO_HDF5    , only : hdf5Object, hdf5Group
     implicit none
     class(outputAnalysisStellarVsHaloMassRelationLeauthaud2012), intent(inout)           :: self
     type (varying_string                                      ), intent(in   ), optional :: groupName
-    type (hdf5Object                                          )               , target   :: analysesGroup, subGroup
-    type (hdf5Object                                          )               , pointer  :: inGroup
-    type (hdf5Object                                          )                          :: analysisGroup
+    type (hdf5Group                                           )               , target   :: analysesGroup, subGroup
+    type (hdf5Group                                           )               , pointer  :: inGroup
+    type (hdf5Group                                           )                          :: analysisGroup
 
     call self%outputAnalysis_%finalize(groupName)
     ! Overwrite the log-likelihood - this allows us to handle cases where the model is zero everywhere.

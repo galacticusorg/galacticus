@@ -108,7 +108,7 @@ contains
     use :: Error                                 , only : Error_Report
     use :: Input_Paths                           , only : inputPath                                         , pathTypeDataStatic
     use :: HDF5_Access                           , only : hdf5Access
-    use :: IO_HDF5                               , only : hdf5Object
+    use :: IO_HDF5                               , only : hdf5Object, hdf5File
     use :: ISO_Varying_String                    , only : var_str
     use :: Node_Property_Extractors              , only : nodePropertyExtractorConcentration                , nodePropertyExtractorMassHalo
     use :: Numerical_Comparison                  , only : Values_Agree
@@ -146,7 +146,7 @@ contains
     type            (nodePropertyExtractorConcentration                ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (virialDensityContrastFixed                        ), pointer                       :: virialDensityContrastDefinition_
     integer         (c_size_t                                          )                                :: iOutput
-    type            (hdf5Object                                        )                                :: dataFile
+    type            (hdf5File                                          )                                :: dataFile
     !![
     <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *nbodyHaloMassError_, *outputTimes_"/>
     !!]

@@ -54,7 +54,7 @@ contains
     Constructor for the :galacticus-class:`nbodyOperatorFilterID` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
-    use :: IO_HDF5         , only : hdf5Object
+    use :: IO_HDF5         , only : hdf5Object, hdf5File, hdf5Group
     use :: HDF5_Access     , only : hdf5Access
     use :: String_Handling , only : String_Split_Words, String_Count_Words
     implicit none
@@ -63,8 +63,8 @@ contains
     type   (varying_string       )                              :: idSelectionFileName, idSelectionDatasetName
     type   (varying_string       ), allocatable  , dimension(:) :: groupNames
     integer(c_size_t             ), allocatable  , dimension(:) :: idSelection
-    type   (hdf5Object           )                              :: idFile
-    type   (hdf5Object           ), allocatable  , dimension(:) :: idGroup
+    type   (hdf5File             )                              :: idFile
+    type   (hdf5Group            ), allocatable  , dimension(:) :: idGroup
     integer                                                     :: i
     
     if      (parameters%isPresent('idSelection'        )) then

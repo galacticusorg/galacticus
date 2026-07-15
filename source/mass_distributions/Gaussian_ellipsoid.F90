@@ -512,7 +512,7 @@ contains
           &                                 File_Unlock          , lockDescriptor
     use :: Input_Paths             , only : inputPath            , pathTypeDataDynamic
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5Object
+    use :: IO_HDF5                 , only : hdf5Object, hdf5File
     use :: ISO_Varying_String      , only : char                 , operator(//)        , varying_string
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
@@ -537,7 +537,7 @@ contains
     if (self%accelerationInitialized) return
     block
       type   (varying_string) :: fileName
-      type   (hdf5Object    ) :: file
+      type   (hdf5File      ) :: file
       type   (lockDescriptor) :: fileLock
       integer                 :: iLock
 

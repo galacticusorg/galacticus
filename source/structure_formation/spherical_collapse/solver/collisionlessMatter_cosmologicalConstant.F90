@@ -653,7 +653,7 @@ contains
     use :: File_Utilities       , only : File_Exists              , File_Lock                    , File_Unlock                  , lockDescriptor, &
          &                               Directory_Make           , File_Path
     use :: HDF5_Access          , only : hdf5Access
-    use :: IO_HDF5              , only : hdf5Object
+    use :: IO_HDF5              , only : hdf5Object, hdf5File
     use :: Linear_Growth        , only : normalizeMatterDominated
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range               , rangeTypeLinear              , rangeTypeLogarithmic
@@ -686,7 +686,7 @@ contains
          &                                                                                             iOverdensityLinear                    , iOverdensity                      , &
          &                                                                                             iTime
     type            (lockDescriptor                                  )                              :: fileLock
-    type            (hdf5Object                                      )                              :: file
+    type            (hdf5File                                        )                              :: file
 
     ! Check that we have a linear growth object.
     if (.not.associated(self%linearGrowth_)) call Error_Report('no linearGrowth object was supplied'//{introspection:location})
@@ -976,7 +976,7 @@ contains
     use :: Error             , only : errorStatusFail, errorStatusSuccess
     use :: File_Utilities    , only : File_Exists
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5Object, hdf5File
     use :: ISO_Varying_String, only : char           , varying_string
     use :: Tables            , only : table1D        , table1DLogarithmicLinear
     implicit none
@@ -986,7 +986,7 @@ contains
     type            (varying_string                                  )             , intent(in   ) :: fileName
     logical                                                                        , intent(in   ) :: tableStore
     integer                                                                        , intent(  out) :: status
-    type            (hdf5Object                                      )                             :: file
+    type            (hdf5File                                        )                             :: file
     double precision                                                  , allocatable, dimension(:)  :: timeTable    , valueTable
     !$GLC attributes unused :: self
 
@@ -1026,7 +1026,7 @@ contains
     !!}
     use :: File_Utilities    , only : Directory_Make, File_Path
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5Object, hdf5File
     use :: ISO_Varying_String, only : char          , varying_string
     use :: Tables            , only : table1D
     implicit none
@@ -1034,7 +1034,7 @@ contains
     class  (table1D                                         ), intent(in   ) :: storeTable
     type   (varying_string                                  ), intent(in   ) :: fileName
     logical                                                  , intent(in   ) :: tableStore
-    type   (hdf5Object                                      )                :: file
+    type   (hdf5File                                        )                :: file
     !$GLC attributes unused :: self
 
     if (.not.tableStore) return

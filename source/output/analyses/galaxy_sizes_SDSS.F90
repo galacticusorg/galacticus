@@ -121,7 +121,7 @@ contains
     use :: Geometry_Surveys                        , only : surveyGeometryLiWhite2009SDSS
     use :: Gravitational_Lensing                   , only : gravitationalLensingClass
     use :: HDF5_Access                             , only : hdf5Access
-    use :: IO_HDF5                                 , only : hdf5Object
+    use :: IO_HDF5                                 , only : hdf5Object, hdf5File, hdf5Group
     use :: ISO_Varying_String                      , only : var_str                                      , varying_string
     use :: Node_Property_Extractors                , only : nodePropertyExtractorRadiusHalfMassStellar   , nodePropertyExtractorMassStellar
     use :: Numerical_Constants_Astronomical        , only : megaParsec
@@ -179,7 +179,8 @@ contains
     !  log10(stellar mass).
     double precision                                                 , parameter                   :: massStellarErrorDex                     =8.06d-2
     integer         (c_size_t                                       )                              :: iBin
-    type            (hdf5Object                                     )                              :: dataFile                                       , distribution
+    type            (hdf5File                                       )                              :: dataFile
+    type            (hdf5Group                                      )                              :: distribution
     double precision                                                                               :: massStellarMinimum                             , massStellarMaximum                                  , &
          &                                                                                            indexSersicMinimum                             , indexSersicMaximum
     character       (len=16                                         )                              :: distributionName                               , massStellarMinimumLogarithmic                       , &

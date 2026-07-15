@@ -286,7 +286,7 @@ contains
     use            :: Display                         , only : displayIndent     , displayUnindent
     use            :: Error                           , only : errorStatusSuccess
     use            :: Output_HDF5                     , only : outputFile
-    use            :: IO_HDF5                         , only : hdf5Object
+    use            :: IO_HDF5                         , only : hdf5Object, hdf5Group, hdf5Dataset
     use            :: HDF5_Access                     , only : hdf5Access
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : massSolar         , megaParsec
@@ -309,8 +309,9 @@ contains
          &                                                                         windowFunction
     double precision                                                            :: wavenumberMinimum        , wavenumberMaximum
     type            (integrator                )                                :: integrator_
-    type            (hdf5Object                )                                :: outputsGroup             , outputGroup        , &
-         &                                                                         containerGroup           , dataset
+    type            (hdf5Group                 )                                :: outputsGroup             , outputGroup        , &
+         &                                                                         containerGroup
+    type            (hdf5Dataset               )                                :: dataset
     type            (varying_string            )                                :: groupName                , description
 
     call displayIndent('Begin task: power spectrum')

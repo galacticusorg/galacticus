@@ -29,12 +29,12 @@ program Test_Parameters
   use :: Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass
   use :: Cosmology_Functions      , only : cosmologyFunctions     , cosmologyFunctionsClass
   use :: Display                   , only : displayVerbositySet     , verbosityLevelStandard
-  use :: IO_HDF5                   , only : hdf5Object
+  use :: IO_HDF5                   , only : hdf5Object              , hdf5File
   use :: ISO_Varying_String        , only : assignment(=)           , var_str                      , varying_string
   use :: Input_Parameters          , only : inputParameters         , inputParameter
   use :: Unit_Tests                , only : Assert                  , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  type            (hdf5Object                   )              :: outputFile
+  type            (hdf5File                     )              :: outputFile
   type            (varying_string               )              :: parameterFile            , parameterValue
   class           (cosmologyParametersClass     ), pointer     :: cosmologyParameters_
   class           (cosmologyFunctionsClass      ), pointer     :: cosmologyFunctions_

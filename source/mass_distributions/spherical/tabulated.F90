@@ -918,7 +918,7 @@ contains
     Read tabulated data from file.
     !!}
     use :: HDF5_Access    , only : hdf5Access
-    use :: IO_HDF5        , only : hdf5Object
+    use :: IO_HDF5        , only : hdf5Object, hdf5File
     use :: String_Handling, only : String_Upper_Case_First
     use :: Display        , only : displayMessage         , verbosityLevelWorking
     implicit none
@@ -926,7 +926,7 @@ contains
     type   (varying_string                    ), intent(in   ) :: fileName  , quantityName
     type   (massDistributionContainer         ), intent(inout) :: container
     type   (massDistributionTabulation        ), intent(inout) :: tabulation
-    type   (hdf5Object                        )                :: file
+    type   (hdf5File                          )                :: file
     integer(c_size_t                          )                :: i
 
     if (allocated(tabulation%table)) deallocate(tabulation%table)
@@ -959,7 +959,7 @@ contains
     Read tabulated data from file.
     !!}
     use :: HDF5_Access    , only : hdf5Access
-    use :: IO_HDF5        , only : hdf5Object
+    use :: IO_HDF5        , only : hdf5Object, hdf5File
     use :: String_Handling, only : String_Upper_Case_First
     use :: Display        , only : displayMessage         , verbosityLevelWorking
     implicit none
@@ -967,7 +967,7 @@ contains
     type   (varying_string                    ), intent(in   ) :: fileName  , quantityName
     type   (massDistributionContainer         ), intent(inout) :: container
     type   (massDistributionTabulation        ), intent(in   ) :: tabulation
-    type   (hdf5Object                        )                :: file
+    type   (hdf5File                          )                :: file
     integer(c_size_t                          )                :: i
 
     call displayMessage("writing tabulated "//char(quantityName)//" profile to '"//char(fileName)//"'",verbosityLevelWorking)

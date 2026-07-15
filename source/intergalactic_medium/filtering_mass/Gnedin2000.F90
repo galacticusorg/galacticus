@@ -620,11 +620,11 @@ contains
     !!}
     use :: File_Utilities, only : File_Exists
     use :: HDF5_Access   , only : hdf5Access
-    use :: IO_HDF5       , only : hdf5Object
+    use :: IO_HDF5       , only : hdf5Object, hdf5File
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout)             :: self
     double precision                                            , dimension(:), allocatable :: massFiltering
-    type            (hdf5Object                                )                            :: dataFile
+    type            (hdf5File                                  )                            :: dataFile
 
     ! Return immediately if the file does not exist.
     if (.not.File_Exists(self%fileName)) return
@@ -648,10 +648,10 @@ contains
     !!}
     use :: HDF5   , only : hsize_t
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5, only : hdf5Object
+    use :: IO_HDF5, only : hdf5Object, hdf5File
     implicit none
     class(intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
-    type (hdf5Object                                )                :: dataFile
+    type (hdf5File                                  )                :: dataFile
 
     ! Open the data file.
     !$ call hdf5Access%set()

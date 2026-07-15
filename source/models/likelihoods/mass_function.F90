@@ -180,7 +180,7 @@ contains
     use :: Display          , only : displayMessage, displayMagenta    , displayReset
     use :: Input_Paths      , only : inputPath     , pathTypeDataStatic
     use :: HDF5_Access      , only : hdf5Access
-    use :: IO_HDF5          , only : hdf5Object
+    use :: IO_HDF5          , only : hdf5Object, hdf5File
     use :: Linear_Algebra   , only : assignment(=)
     type            (posteriorSampleLikelihoodMassFunction)                              :: self
     double precision                                       , intent(in   )               :: redshiftMinimum        , redshiftMaximum       , &
@@ -192,7 +192,7 @@ contains
     class           (haloMassFunctionClass                ), intent(in   ), target       :: haloMassFunction_
     class           (surveyGeometryClass                  ), intent(in   ), target       :: surveyGeometry_
     double precision                                       , allocatable  , dimension(:) :: massBinWidth           , eigenValueArray
-    type            (hdf5Object                           )                              :: massFunctionFile
+    type            (hdf5File                             )                              :: massFunctionFile
     integer                                                                              :: i
     type            (matrix                               )                              :: eigenVectors
     type            (vector                               )                              :: eigenValues

@@ -182,7 +182,7 @@ contains
     use :: Galacticus_Nodes        , only : treeNode   , nodeComponentBasic
     use :: Input_Paths             , only : inputPath  , pathTypeDataDynamic
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5Object
+    use :: IO_HDF5                 , only : hdf5Object, hdf5File
     use :: Linear_Algebra          , only : matrix     , vector             , assignment(=), operator(*)
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator , GSL_Integ_Gauss15
@@ -217,7 +217,7 @@ contains
     type            (integrator                      )                              :: integratorVertical           , integratorRadial
     type            (matrix                          )                              :: covarianceMatrix
     type            (vector                          )                              :: deviateVector
-    type            (hdf5Object                      )                              :: file
+    type            (hdf5File                        )                              :: file
     type            (lockDescriptor                  )                              :: fileLock
     type            (varying_string                  )                              :: fileName
     character       (len=18                          )                              :: label

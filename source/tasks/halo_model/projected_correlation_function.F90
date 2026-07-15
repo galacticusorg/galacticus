@@ -286,13 +286,13 @@ contains
     use :: Error                            , only : errorStatusSuccess
     use :: Output_HDF5                      , only : outputFile
     use :: Halo_Model_Projected_Correlations, only : Halo_Model_Projected_Correlation
-    use :: IO_HDF5                          , only : hdf5Object
+    use :: IO_HDF5                          , only : hdf5Object, hdf5Group
     use :: HDF5_Access                      , only : hdf5Access
     use :: Node_Components                  , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     implicit none
     class  (taskHaloModelProjectedCorrelationFunction), intent(inout), target   :: self
     integer                                           , intent(  out), optional :: status
-    type   (hdf5Object                               )                          :: outputGroup
+    type   (hdf5Group                                )                          :: outputGroup
 
     call displayIndent('Begin task: halo model projected correlation function')
     ! Call routines to perform initialization which must occur for all threads if run in parallel.

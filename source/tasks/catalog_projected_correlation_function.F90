@@ -322,7 +322,7 @@ contains
     use :: Display                         , only : displayIndent                    , displayMessage                     , displayUnindent
     use :: Error                           , only : Error_Report                     , errorStatusSuccess
     use :: Output_HDF5                     , only : outputFile
-    use :: IO_HDF5                         , only : hdf5Object
+    use :: IO_HDF5                         , only : hdf5Object, hdf5Group, hdf5Dataset
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_IRATE                        , only : irate
     use :: ISO_Varying_String              , only : varying_string
@@ -344,7 +344,8 @@ contains
          &                                                                                      correlationSurvey
     double precision                                                        , dimension(3  ) :: rotationAxis
     type            (varying_string                         )                                :: message
-    type            (hdf5Object                             )                                :: dataset              , correlationFunctionGroup
+    type            (hdf5Dataset                            )                                :: dataset
+    type            (hdf5Group                              )                                :: correlationFunctionGroup
     type            (irate                                  )                                :: galaxyFile
     double precision                                                                         :: simulationBoxSize    , time                    , &
          &                                                                                      redshift

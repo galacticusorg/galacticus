@@ -1052,7 +1052,7 @@ contains
     use :: Error                   , only : Error_Report
     use :: Input_Paths             , only : inputPath              , pathTypeDataDynamic
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5Object
+    use :: IO_HDF5                 , only : hdf5Object, hdf5File
     use :: ISO_Varying_String      , only : char                   , operator(//)           , varying_string
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
@@ -1097,7 +1097,7 @@ contains
       if (File_Exists(fileName)) then
          !$ call hdf5Access%set()
          hdf5ReadScope: block
-           type(hdf5Object) :: file
+           type(hdf5File  ) :: file
            file=hdf5Object(fileName,readOnly=.true.)
            call file%readDataset('radii'                      ,self%accelerationRadii          )
            call file%readDataset('heights'                    ,self%accelerationHeights        )
@@ -1265,7 +1265,7 @@ contains
          call displayUnindent     ("done",verbosityLevelWorking)
          !$ call hdf5Access%set()
          hdf5WriteScope: block
-           type(hdf5Object) :: file
+           type(hdf5File  ) :: file
            file=hdf5Object(fileName,overWrite=.true.,readOnly=.false.)
            call file%writeDataset(self%accelerationRadii          ,'radii'                                                        )
            call file%writeDataset(self%accelerationHeights        ,'heights'                                                      )

@@ -389,7 +389,7 @@ contains
         &                                   lockDescriptor
     use :: Error                   , only : Error_Report
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5Object
+    use :: IO_HDF5                 , only : hdf5Object, hdf5File
     use :: ISO_Varying_String      , only : char              , extract            , len               , operator(//), &
           &                                 operator(==)      , varying_string
     use :: Numerical_Constants_Math, only : Pi
@@ -406,7 +406,7 @@ contains
          &                                                                         manglePath              , mangleVersion
     double precision                                                            :: multiplier              , subSolidAngle, &
          &                                                                         w00
-    type            (hdf5Object    )                                            :: solidAngleFile
+    type            (hdf5File      )                                            :: solidAngleFile
     type            (lockDescriptor)                                            :: fileLock
 
     ! Check for pre-existing calculation.
@@ -470,7 +470,7 @@ contains
          &                            lockDescriptor
     use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5Object, hdf5File
     use :: ISO_Varying_String, only : char              , extract            , len               , operator(//), &
           &                           operator(==)      , var_str            , varying_string
     use :: String_Handling   , only : String_Count_Words, String_Join        , String_Split_Words, operator(//)
@@ -491,7 +491,7 @@ contains
          &                                                                                                                                       k                         , l            , &
          &                                                                                                                                       p                         , q
     double precision                                                                                                                          :: multiplier                , weight
-    type            (hdf5Object    )                                                                                                          :: angularPowerFile
+    type            (hdf5File      )                                                                                                          :: angularPowerFile
     type            (lockDescriptor)                                                                                                          :: fileLock
 
     ! Read the angular power from file if possible.

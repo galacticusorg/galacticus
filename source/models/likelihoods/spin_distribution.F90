@@ -186,7 +186,7 @@ contains
     Constructor for the :galacticus-class:`posteriorSampleLikelihoodSpinDistribution` posterior sampling likelihood class.
     !!}
     use :: HDF5_Access      , only : hdf5Access
-    use :: IO_HDF5          , only : hdf5Object
+    use :: IO_HDF5          , only : hdf5Object, hdf5File
     implicit none
     type            (posteriorSampleLikelihoodSpinDistribution)                        :: self
     character       (len=*                                    ), intent(in   )         :: fileName
@@ -200,7 +200,7 @@ contains
     class           (nbodyHaloMassErrorClass                  ), intent(in   ), target :: nbodyHaloMassError_
     class           (darkMatterHaloScaleClass                 ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileScaleRadiusClass        ), intent(in   ), target :: darkMatterProfileScaleRadius_
-    type            (hdf5Object                               )                        :: spinDistributionFile
+    type            (hdf5File                                 )                        :: spinDistributionFile
     double precision                                                                   :: spinIntervalLogarithmic
     integer                                                                            :: i
     !![

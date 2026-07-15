@@ -116,11 +116,11 @@ contains
     Read merger tree masses from file.
     !!}
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object
+    use :: IO_HDF5    , only : hdf5Object , hdf5File
     implicit none
     class           (mergerTreeBuildMassesReadHDF5), intent(inout)                            :: self
     double precision                               , intent(  out), allocatable, dimension(:) :: mass    , weight
-    type            (hdf5Object                   )                                           :: treeFile
+    type            (hdf5File                     )                                           :: treeFile
 
     !$ call hdf5Access%set()
     treeFile=hdf5Object(self%fileName,overWrite=.false.,readOnly=.true.)

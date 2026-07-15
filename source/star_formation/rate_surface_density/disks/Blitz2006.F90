@@ -912,7 +912,7 @@ contains
            &                               displayUnindent, verbosityLevelWorking
       use :: Numerical_Integration, only : integrator     , GSL_Integ_Gauss61
       use :: HDF5_Access          , only : hdf5Access
-      use :: IO_HDF5              , only : hdf5Object
+      use :: IO_HDF5              , only : hdf5Object, hdf5File
       use :: File_Utilities       , only : File_Exists    , File_Lock            , File_Unlock  , lockDescriptor, &
            &                               Directory_Make , File_Path
       implicit none
@@ -953,7 +953,7 @@ contains
             ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
             !$ call hdf5Access%set()
             hdf5FileScopeRead: block
-              type(hdf5Object) :: file
+              type(hdf5File  ) :: file
               file=hdf5Object(char(self%filenameTable),readOnly=.true.)
               call file%readAttribute('coefficientFactorBoostMinimum'                      ,self%coefficientFactorBoostMinimum                      )
               call file%readAttribute('coefficientFactorBoostMaximum'                      ,self%coefficientFactorBoostMaximum                      )
@@ -1065,7 +1065,7 @@ contains
          call Directory_Make(File_Path(self%filenameTable))
          !$ call hdf5Access%set()
          hdf5FileScopeWrite: block
-           type(hdf5Object) :: file
+           type(hdf5File  ) :: file
            file=hdf5Object(self%filenameTable,overWrite=.true.,readOnly=.false.)
            call file%writeAttribute(self%coefficientFactorBoostMinimum                       ,'coefficientFactorBoostMinimum'                      )
            call file%writeAttribute(self%coefficientFactorBoostMaximum                       ,'coefficientFactorBoostMaximum'                      )

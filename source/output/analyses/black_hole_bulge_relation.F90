@@ -128,7 +128,7 @@ contains
     use :: Error                                 , only : Error_Report
     use :: Input_Paths                           , only : inputPath                                          , pathTypeDataStatic
     use :: HDF5_Access                           , only : hdf5Access
-    use :: IO_HDF5                               , only : hdf5Object
+    use :: IO_HDF5                               , only : hdf5Object, hdf5File
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassBlackHole                 , nodePropertyExtractorMassStellarSpheroid
     use :: Numerical_Comparison                  , only : Values_Agree
     use :: Numerical_Constants_Astronomical      , only : massSolar
@@ -168,7 +168,7 @@ contains
     integer         (c_size_t                                           ), parameter                     :: bufferCount                                     =10
     logical                                                              , parameter                     :: likelihoodNormalize                             =.false.
     integer         (c_size_t                                           )                                :: iOutput                                                 , i
-    type            (hdf5Object                                         )                                :: dataFile
+    type            (hdf5File                                           )                                :: dataFile
     type            (varying_string                                     )                                :: targetLabel
     type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![

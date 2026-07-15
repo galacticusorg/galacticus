@@ -242,7 +242,7 @@ contains
           &                                 File_Unlock                 , lockDescriptor
     use :: Input_Paths             , only : inputPath                   , pathTypeDataDynamic
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5Object
+    use :: IO_HDF5                 , only : hdf5Object, hdf5File
     use :: String_Handling         , only : operator(//)
     implicit none
     type            (virialOrbitJiang2014        )                                :: self
@@ -266,7 +266,7 @@ contains
     logical                                                                       :: limitFound                         , success
     type            (integrator                  )                                :: integratorTangential               , integratorTotal
     type            (varying_string              )                                :: fileName
-    type            (hdf5Object                  )                                :: file
+    type            (hdf5File                    )                                :: file
     type            (lockDescriptor              )                                :: fileLock
      !![
     <constructorAssign variables="*darkMatterHaloScale_, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, bRatioLow, bRatioIntermediate, bRatioHigh, gammaRatioLow, gammaRatioIntermediate, gammaRatioHigh, sigmaRatioLow, sigmaRatioIntermediate, sigmaRatioHigh, muRatioLow, muRatioIntermediate , muRatioHigh, *darkMatterProfileDMO_"/>

@@ -137,7 +137,7 @@ contains
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic      , nodeComponentPosition, &
          &                                          treeNode
-    use :: IO_HDF5                         , only : hdf5Object
+    use :: IO_HDF5                         , only : hdf5Object           , hdf5File            , hdf5Dataset
     use :: Merger_Tree_Walkers             , only : mergerTreeWalkerAllNodes
     use :: Numerical_Constants_Astronomical, only : gigaYear                , megaParsec
     use :: Units_MetaData                  , only : unitType
@@ -155,7 +155,8 @@ contains
     double precision                          , allocatable  , dimension(:,:) :: position_
     integer                                                                   :: iNode          , nodesInTree
     character       (len=39                  )                                :: fileName
-    type            (hdf5Object              )                                :: fileObject     , treeDataset
+    type            (hdf5File                )                                :: fileObject
+    type            (hdf5Dataset             )                                :: treeDataset
 
     ! Reset output incremental counter if this tree is not the same as the previous one.
     if (tree%index /= self%treeIndexPrevious) then

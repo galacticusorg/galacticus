@@ -1431,11 +1431,11 @@ contains
     !!}
     use :: File_Utilities    , only : File_Exists, File_Lock, File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5Object, hdf5File
     use :: ISO_Varying_String, only : char
     implicit none
     class           (virialOrbitLossCone)             , intent(inout) :: self
-    type            (hdf5Object                                      )                             :: file
+    type            (hdf5File                                        )                             :: file
     type            (lockDescriptor                                  )                             :: fileLock
     !$GLC attributes unused :: self
 
@@ -1485,11 +1485,11 @@ contains
     use :: File_Utilities    , only : Directory_Make, File_Lock, File_Path, File_Unlock, &
           &                           lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5Object, hdf5File
     use :: ISO_Varying_String, only : char
     implicit none
     class(virialOrbitLossCone), intent(inout) :: self
-    type (hdf5Object         )                :: file
+    type (hdf5File           )                :: file
     type (lockDescriptor     )                :: fileLock
 
     call Directory_Make(File_Path(self%fileName))

@@ -164,7 +164,7 @@ contains
           &                                         File_Remove            , File_Lock      , File_Unlock
     use :: Error                           , only : Error_Report
     use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5Object
+    use :: IO_HDF5                         , only : hdf5Object, hdf5File, hdf5Group, hdf5Dataset
     use :: ISO_Varying_String              , only : char                   , operator(//)   , trim               , var_str  , &
           &                                         varying_string
     use :: Numerical_Constants_Astronomical, only : gigaYear               , luminositySolar, massSolar
@@ -254,8 +254,9 @@ contains
     call Directory_Make(File_Path(spectraFileName))
     !$ call hdf5Access%set()
     block
-      type(hdf5Object) :: spectraFile, imfGroup, &
-           &              dataset
+      type(hdf5File   ) :: spectraFile
+      type(hdf5Group  ) :: imfGroup
+      type(hdf5Dataset) :: dataset
       spectraFile=hdf5Object(char(spectraFileName))
       ! Add metadata.
       call spectraFile%writeAttribute('Galacticus'                                                                           ,'createdBy'  )

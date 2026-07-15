@@ -102,7 +102,7 @@ contains
     implicit none
     class           (radiativeTransferOutputterLymanContinuumRate), intent(inout) :: self
     class           (radiativeTransferSourceClass                ), intent(inout) :: radiativeTransferSource_
-    type            (hdf5Object                                  ), intent(inout) :: outputGroup
+    type            (hdf5Group                                   ), intent(inout) :: outputGroup
     type            (integrator                                  )                :: integrator_
     double precision                                                              :: rateLymanContinuum
     integer                                                                       :: sourceIndex
@@ -213,7 +213,7 @@ contains
     use :: String_Handling, only : String_Upper_Case_First
     implicit none
     class  (radiativeTransferOutputterLymanContinuumRate), intent(inout) :: self
-    type   (hdf5Object                                  ), intent(inout) :: outputGroup
+    type   (hdf5Group                                   ), intent(inout) :: outputGroup
     integer                                                              :: sourceIndex
 
     !$ call hdf5Access%set  ()

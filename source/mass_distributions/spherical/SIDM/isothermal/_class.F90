@@ -247,7 +247,7 @@ contains
          &                                    File_Unlock    , lockDescriptor
     use :: Input_Paths               , only : inputPath      , pathTypeDataDynamic
     use :: HDF5_Access               , only : hdf5Access
-    use :: IO_HDF5                   , only : hdf5Object
+    use :: IO_HDF5                   , only : hdf5Object, hdf5File
     use :: Numerical_Ranges          , only : Make_Range     , rangeTypeLinear
     use :: Multidimensional_Minimizer, only : multiDMinimizer
     implicit none
@@ -303,7 +303,7 @@ contains
        ! Restore tables from file.
        !$ call hdf5Access%set()
        hdf5FileScope: block
-         type(hdf5Object) :: file
+         type(hdf5File  ) :: file
          file=hdf5Object(char(fileName))
          call file%readDataset('xi'                         ,     xi                         )
          call file%readDataset('radii'                      ,self%radiiDimensionless         )
@@ -397,7 +397,7 @@ contains
        call File_Lock(char(fileName),fileLock,lockIsShared=.false.)
        !$ call hdf5Access%set()
        hdf5FileScopeWrite: block
-         type(hdf5Object) :: file
+         type(hdf5File  ) :: file
          file=hdf5Object(char(fileName),overWrite=.true.,readOnly=.false.)
          call file%writeDataset(     xi                          ,'xi'                         )
          call file%writeDataset(self%radiiDimensionless          ,'radii'                      )

@@ -254,10 +254,10 @@ contains
     Outputs conditional mass function.
     !!}
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5, only : hdf5Object
+    use :: IO_HDF5, only : hdf5Object, hdf5File
     implicit none
     class(mergerTreeOperatorOutputRootMasses), intent(inout) :: self
-    type (hdf5Object                        ), target        :: outputFile
+    type (hdf5File                          ), target        :: outputFile
 
     ! If the buffers are empty, we have nothing to do.
     if (self%treeCount == 0) return

@@ -264,12 +264,12 @@ contains
     use :: Error          , only : Error_Report
     use :: Input_Paths    , only : inputPath        , pathTypeDataDynamic, pathTypeDataStatic
     use :: HDF5_Access    , only : hdf5Access
-    use :: IO_HDF5        , only : hdf5Object
+    use :: IO_HDF5        , only : hdf5Object, hdf5File
     use :: String_Handling, only : operator(//)
     use :: System_Command , only : System_Command_Do
     implicit none
     class(surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
-    type (hdf5Object                       )                :: surveyGeometryRandomsFile
+    type (hdf5File                         )                :: surveyGeometryRandomsFile
 
     ! Generate the randoms file if necessary.
     if (.not.File_Exists(inputPath(pathTypeDataDynamic)//&

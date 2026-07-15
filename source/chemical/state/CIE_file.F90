@@ -623,7 +623,7 @@ contains
          &                                       displayReset
     use :: Error                        , only : Error_Report                        , errorStatusSuccess
     use :: HDF5_Access                  , only : hdf5Access
-    use :: IO_HDF5                      , only : hdf5Object
+    use :: IO_HDF5                      , only : hdf5Object, hdf5File, hdf5Dataset
     use :: ISO_Varying_String           , only : varying_string
     use :: Table_Labels                 , only : enumerationExtrapolationTypeEncode  , extrapolationTypeFix, extrapolationTypeExtrapolate, extrapolationTypeZero, &
          &                                       enumerationExtrapolationTypeDescribe
@@ -633,8 +633,8 @@ contains
     double precision                      , parameter     :: metallicityLogarithmicZero=-999.0d0
     type            (varying_string      )                :: limitType
     integer                                               :: fileFormatVersion                  , status
-    type            (hdf5Object          )                :: chemicalStateFile                  , metallicityDataset, &
-         &                                                   temperatureDataset
+    type            (hdf5File            )                :: chemicalStateFile
+    type            (hdf5Dataset         )                :: metallicityDataset, temperatureDataset
     
     !$ call hdf5Access%set()
     ! Parse the file.

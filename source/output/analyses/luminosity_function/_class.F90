@@ -205,7 +205,7 @@ contains
     Constructor for the :galacticus-class:`outputAnalysisLuminosityFunction` output analysis class which reads bin information from a standard format file.
     !!}
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object
+    use :: IO_HDF5    , only : hdf5Object, hdf5File
     implicit none
     type            (outputAnalysisLuminosityFunction       )                              :: self
     type            (varying_string                         ), intent(in   )               :: label                              , comment
@@ -224,7 +224,7 @@ contains
     integer                                                  , intent(in   )               :: covarianceBinomialBinsPerDecade
     double precision                                         , intent(in   )               :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
     integer                                                                                :: i
-    type            (hdf5Object                             )                              :: dataFile
+    type            (hdf5File                               )                              :: dataFile
     type            (varying_string                         )                              :: targetLabel
     logical                                                                                :: haveTarget
 

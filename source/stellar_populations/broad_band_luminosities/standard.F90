@@ -308,7 +308,7 @@ contains
          &                                                     Directory_Make              , File_Path
     use            :: Error                           , only : Error_Report                , Warn                                 , errorStatusFail         , errorStatusSuccess
     use            :: HDF5_Access                     , only : hdf5Access
-    use            :: IO_HDF5                         , only : hdf5Object
+    use            :: IO_HDF5                         , only : hdf5Object, hdf5File
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: ISO_Varying_String              , only : assignment(=)               , char                                 , operator(//)            , var_str
     use            :: Input_Parameters                , only : inputParameters
@@ -454,7 +454,7 @@ contains
                       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
                       call File_Lock(luminositiesFileName,lockFileDescriptor,lockIsShared=.true.)
                       block
-                        type(hdf5Object) :: luminositiesFile
+                        type(hdf5File  ) :: luminositiesFile
                         !$ call hdf5Access%set()
                         luminositiesFile=hdf5Object(char(luminositiesFileName),readOnly=.true.)
                         if (luminositiesFile%hasDataset(trim(datasetName))) then
@@ -608,7 +608,7 @@ contains
                       call Directory_Make(File_Path(luminositiesFileName)                                        )
                       call File_Lock     (          luminositiesFileName ,lockFileDescriptor,lockIsShared=.false.)
                       block
-                        type(hdf5Object) :: luminositiesFile
+                        type(hdf5File  ) :: luminositiesFile
                         !$ call hdf5Access%set()
                         luminositiesFile=hdf5Object(luminositiesFileName)
                         if (.not.luminositiesFile%hasAttribute('parameters')) call luminositiesFile%writeAttribute(char(descriptorString),'parameters')

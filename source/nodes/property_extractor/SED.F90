@@ -109,7 +109,7 @@ contains
     use :: Input_Parameters              , only : inputParameters
     use :: Galactic_Structure_Options    , only : enumerationComponentTypeEncode
     use :: Stellar_Luminosities_Structure, only : enumerationFrameEncode
-    use :: IO_HDF5                       , only : hdf5Object
+    use :: IO_HDF5                       , only : hdf5Group
     implicit none
     type            (nodePropertyExtractorSED                  )                         :: self
     type            (inputParameters                           ), intent(inout), target  :: parameters
@@ -118,7 +118,7 @@ contains
     class           (starFormationHistoryClass                 )               , pointer :: starFormationHistory_
     class           (outputTimesClass                          )               , pointer :: outputTimes_
     class           (cosmologyFunctionsClass                   )               , pointer :: cosmologyFunctions_
-    type            (hdf5Object                                )                         :: parametersGroup
+    type            (hdf5Group                                 )                         :: parametersGroup
     type            (varying_string                            )                         :: component                             , frame
     double precision                                                                     :: wavelengthMinimum                     , wavelengthMaximum, &
          &                                                                                  resolution                            , toleranceRelative
@@ -595,7 +595,7 @@ contains
     use :: Histories                     , only : history
     use :: ISO_Varying_String            , only : var_str
     use :: HDF5_Access                   , only : hdf5Access
-    use :: IO_HDF5                       , only : hdf5Object
+    use :: IO_HDF5                       , only : hdf5Object, hdf5File, hdf5Group
     use :: Output_HDF5                   , only : outputFile
     use :: Numerical_Comparison          , only : Values_Agree
     use :: File_Utilities                , only : File_Exists                  , File_Lock                             , File_Unlock, lockDescriptor, &
@@ -612,7 +612,7 @@ contains
     integer         (c_size_t                ), intent(  out)               :: countTemplates 
     class           (nodeComponentBasic      ), pointer                     :: basic
     double precision                          , allocatable  , dimension(:) :: times
-    type            (hdf5Object              ), allocatable  , dimension(:) :: parametersGroups
+    type            (hdf5Group               ), allocatable  , dimension(:) :: parametersGroups
     integer         (c_size_t                )                              :: indexOutput
     character       (len=16                  )                              :: label
 
@@ -649,7 +649,7 @@ contains
     if (.not.allocated(self%templates(indexTemplate)%sed)) then
        coldPathScope: block
          type            (lockDescriptor          )                              :: fileLock
-         type            (hdf5Object              )                              :: file
+         type            (hdf5File                )                              :: file
          type            (varying_string          )                              :: fileName
          ! Construct the file name.
          fileName=inputPath(pathTypeDataDynamic)                                          // &

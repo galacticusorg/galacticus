@@ -208,7 +208,7 @@ contains
          &                               displayUnindent        , verbosityLevelStandard
     use    :: Error             , only : Error_Report
     use    :: HDF5_Access       , only : hdf5Access
-    use    :: IO_HDF5           , only : hdf5Object
+    use    :: IO_HDF5           , only : hdf5Group
     use    :: ISO_Varying_String, only : var_str
 #ifdef USEMPI
     use    :: MPI_Utilities     , only : mpiSelf
@@ -236,7 +236,7 @@ contains
     double precision                                                                  :: binParentWidthInverse, binRedshiftWidthInverse, &
          &                                                                               redshiftParent       , expansionFactorMerger  , &
          &                                                                               redshiftMerger_
-    type            (hdf5Object                      )                                :: cosmologyGroup       , simulationGroup        , &
+    type            (hdf5Group                       )                                :: cosmologyGroup       , simulationGroup        , &
          &                                                                               resultsGroup
 
 #ifdef USEMPI

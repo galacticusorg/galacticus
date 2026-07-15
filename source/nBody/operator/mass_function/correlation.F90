@@ -191,7 +191,7 @@ contains
          &                               displayUnindent        , verbosityLevelStandard
     use    :: Error             , only : Error_Report
     use    :: HDF5_Access       , only : hdf5Access
-    use    :: IO_HDF5           , only : hdf5Object
+    use    :: IO_HDF5           , only : hdf5Group
     use    :: ISO_Varying_String, only : var_str
 #ifdef USEMPI
     use    :: MPI_Utilities     , only : mpiSelf
@@ -214,7 +214,7 @@ contains
          &                                                                                   i                   , j          , &
          &                                                                                   k                   , iBootstrap
     double precision                                                                      :: binWidthInverse
-    type            (hdf5Object                          )                                :: simulationGroup
+    type            (hdf5Group                           )                                :: simulationGroup
 
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then

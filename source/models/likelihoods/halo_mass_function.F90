@@ -255,7 +255,7 @@ contains
     use :: Display                 , only : displayMessage, displayMagenta, displayReset
     use :: Error                   , only : Error_Report
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5Object
+    use :: IO_HDF5                 , only : hdf5Object, hdf5File, hdf5Group
     use :: ISO_Varying_String      , only : char          , extract       , index       , operator(//)
     use :: Linear_Algebra          , only : assignment(=)
     use :: Numerical_Constants_Math, only : Pi
@@ -285,7 +285,8 @@ contains
     double precision                                           , allocatable  , dimension(:,:) :: massFunctionCovarianceOriginal
     class           (*                                        ), pointer                       :: dummyPointer_
     character       (len=12                                   )                                :: redshiftLabel
-    type            (hdf5Object                               )                                :: massFunctionFile                  , simulationGroup
+    type            (hdf5File                                 )                                :: massFunctionFile
+    type            (hdf5Group                                )                                :: simulationGroup
     integer                                                                                    :: i                                 , j                  , &
          &                                                                                        ii                                , jj                 , &
          &                                                                                        massCountReduced                  , iRedshift          , &

@@ -244,7 +244,7 @@ contains
     use :: File_Utilities, only : File_Exists
     use :: Error         , only : Error_Report
     use :: HDF5_Access   , only : hdf5Access
-    use :: IO_HDF5       , only : hdf5Object
+    use :: IO_HDF5       , only : hdf5Object, hdf5File
     use :: Table_Labels  , only : extrapolationTypeAbort, extrapolationTypeExtrapolate
     implicit none
     class  (intergalacticMediumStateFile), intent(inout) :: self
@@ -254,7 +254,7 @@ contains
     ! Check if data has yet to be read.
     if (self%dataRead) return
     block
-      type(hdf5Object) :: file
+      type(hdf5File  ) :: file
       
       if (.not.File_Exists(self%fileName)) call Error_Report('Unable to find intergalactic medium state file "' //char(self%fileName)//'"'//{introspection:location})
       !$ call hdf5Access%set()

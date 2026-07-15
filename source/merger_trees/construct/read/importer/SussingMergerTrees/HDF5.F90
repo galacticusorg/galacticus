@@ -22,7 +22,7 @@
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
-  use :: IO_HDF5                   , only : hdf5Object
+  use :: IO_HDF5                   , only : hdf5Object           , hdf5File            , hdf5Group
 
   !![
   <mergerTreeImporter name="mergerTreeImporterSussingHDF5" docformat="rst">
@@ -37,7 +37,8 @@
      !!}
      private
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
-     type (hdf5Object                   )          :: file                               , snapshots
+     type (hdf5File                     )          :: file
+     type (hdf5Group                    )          :: snapshots
    contains
      final     ::         sussingHDF5Destructor
      procedure :: open => sussingHDF5Open
@@ -259,7 +260,7 @@ contains
          &                                                                                  nodeCount            , iProgenitor                , &
          &                                                                                  nodeCountSnapshot    , iHalo
     type     (varying_string               )                                             :: snapshotName
-    type     (hdf5Object                   )                                             :: snapshot             , mergerTrees
+    type     (hdf5Group                    )                                             :: snapshot             , mergerTrees
     type     (importerUnits                )                                             :: propertyUnits
     logical                                                                              :: massUnitsAssigned    , lengthUnitsAssigned        , &
          &                                                                                  velocityUnitsAssigned

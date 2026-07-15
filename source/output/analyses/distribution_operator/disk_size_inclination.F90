@@ -81,7 +81,7 @@ contains
           &                           lockDescriptor
     use :: Input_Paths       , only : inputPath                , pathTypeDataDynamic
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5Object, hdf5File
     use :: ISO_Varying_String, only : varying_string
     use :: Root_Finder       , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     use :: Table_Labels      , only : extrapolationTypeFix
@@ -95,7 +95,7 @@ contains
     integer                                                                                        :: i
     double precision                                                   , dimension(:), allocatable :: halfMassRadii
     type            (varying_string                                   )                            :: fileName
-    type            (hdf5Object                                       )                            :: file
+    type            (hdf5File                                         )                            :: file
     type            (lockDescriptor                                   )                            :: lockFileDescriptor
 
     call self%inclinationTable%create      (                                                                           &

@@ -281,7 +281,7 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`outputAnalysisQuiescentFraction` output analysis class which reads all required properties from file.
     !!}
-    use :: IO_HDF5    , only : hdf5Object
+    use :: IO_HDF5    , only : hdf5Object, hdf5File
     use :: HDF5_Access, only : hdf5Access
     implicit none
     type            (outputAnalysisQuiescentFraction          )                                :: self
@@ -301,7 +301,7 @@ contains
     double precision                                           , allocatable  , dimension(:  ) :: meanValueTarget                              , massesStellar
     double precision                                           , allocatable  , dimension(:,:) :: meanCovarianceTarget
     type            (varying_string                           )                                :: targetLabel
-    type            (hdf5Object                               )                                :: dataFile
+    type            (hdf5File                                 )                                :: dataFile
 
     !$ call hdf5Access%set  ()
     dataFile=hdf5Object(fileName,readOnly=.true.)

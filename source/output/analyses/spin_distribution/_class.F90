@@ -343,7 +343,7 @@ contains
     Constructor for the :galacticus-class:`outputAnalysisSpinDistribution` output analysis class which reads all required properties from file.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
-    use :: IO_HDF5                          , only : hdf5Object
+    use :: IO_HDF5                          , only : hdf5Object, hdf5File, hdf5Group
     use :: HDF5_Access                      , only : hdf5Access
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
     use :: Virial_Density_Contrast          , only : virialDensityContrastClass
@@ -365,8 +365,8 @@ contains
     integer         (c_size_t                         ), allocatable  , dimension(:  ) :: functionCountTarget
     double precision                                   , allocatable  , dimension(:,:) :: functionCovarianceTarget
     type            (varying_string                   )                                :: targetLabel
-    type            (hdf5Object                       )                                :: dataFile                     , simulationGroup                   , &
-         &                                                                                attributesGroup
+    type            (hdf5File                         )                                :: dataFile
+    type            (hdf5Group                        )                                :: simulationGroup                   , attributesGroup
     integer                                                                            :: i                            , particleCountMinimum
     double precision                                                                   :: massParticle                 , redshift                          , &
          &                                                                                timeRecent                   , massMinimum                       , &

@@ -167,7 +167,7 @@ contains
     use            :: Error                           , only : errorStatusSuccess
     use            :: Output_HDF5                     , only : outputFile
     use            :: Galacticus_Nodes                , only : nodeComponentBasic   , treeNode
-    use            :: IO_HDF5                         , only : hdf5Object
+    use            :: IO_HDF5                         , only : hdf5Object, hdf5Group, hdf5Dataset
     use            :: HDF5_Access                     , only : hdf5Access
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : massSolar
@@ -188,8 +188,9 @@ contains
     double precision                    , allocatable  , dimension(:,:,:) :: velocityDispersion1DMergingHalos
     type            (treeNode          )               , pointer          :: node
     class           (nodeComponentBasic)               , pointer          :: basic
-    type            (hdf5Object        )                                  :: outputsGroup                    , outputGroup           , &
-         &                                                                   containerGroup                  , dataset
+    type            (hdf5Group         )                                  :: outputsGroup                    , outputGroup           , &
+         &                                                                   containerGroup
+    type            (hdf5Dataset       )                                  :: dataset
     type            (varying_string    )                                  :: groupName                       , description
     double precision                                                      :: radiusVirial                    , radiusVirialLagrangian
 

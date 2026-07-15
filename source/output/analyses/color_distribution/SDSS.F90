@@ -96,7 +96,7 @@ contains
     use :: Input_Paths                             , only : inputPath                                         , pathTypeDataStatic
     use :: Geometry_Surveys                        , only : surveyGeometryMonteroDorta2009SDSS
     use :: HDF5_Access                             , only : hdf5Access
-    use :: IO_HDF5                                 , only : hdf5Object
+    use :: IO_HDF5                                 , only : hdf5Object, hdf5File, hdf5Group
     use :: ISO_Varying_String                      , only : var_str                                           , varying_string
     use :: Node_Property_Extractors                , only : nodePropertyExtractorLmnstyStllrCF2000            , nodePropertyExtractorRatio
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
@@ -138,7 +138,8 @@ contains
     double precision                                                    , parameter                   :: magnitudeErrorU                         =3.50d-02
     double precision                                                    , parameter                   :: massStellarMinimum                      =1.00d+06
     integer         (c_size_t                                          )                              :: iBin                                             , bufferCount
-    type            (hdf5Object                                        )                              :: dataFile                                         , distribution
+    type            (hdf5File                                          )                              :: dataFile
+    type            (hdf5Group                                         )                              :: distribution
     double precision                                                                                  :: magnitudeMinimum                                 , magnitudeMaximum
     character       (len=16                                            )                              :: distributionName                                 , magnitudeMinimumLabel                               , &
          &                                                                                               magnitudeMaximumLabel

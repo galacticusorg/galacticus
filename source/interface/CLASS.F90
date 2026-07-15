@@ -145,7 +145,7 @@ contains
     use               :: HDF5                            , only : hsize_t
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: HDF5_Access                     , only : hdf5Access
-    use               :: IO_HDF5                         , only : hdf5Object
+    use               :: IO_HDF5                         , only : hdf5Object, hdf5File, hdf5Group
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
     use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract       , len           , &
           &                                                       operator(//)                , operator(==)       , varying_string
@@ -179,9 +179,8 @@ contains
     type            (lockDescriptor          )                                  :: fileLock
     integer                                                                     :: i                                       , j                     , &
          &                                                                         countRedshiftsUnique
-    type            (hdf5Object              )                                  :: classOutput                             , parametersGroup       , &
-         &                                                                         extrapolationWavenumberGroup            , extrapolationGroup    , &
-         &                                                                         speciesGroup
+    type            (hdf5File                )                                  :: classOutput
+    type            (hdf5Group               )                                  :: parametersGroup, extrapolationWavenumberGroup, extrapolationGroup, speciesGroup
     character       (len=32                  )                                  :: parameterLabel                          , datasetName           , &
          &                                                                         redshiftLabel
     type            (varying_string          )                                  :: uniqueLabel                             , fileName_
@@ -397,7 +396,7 @@ contains
     use               :: HDF5                            , only : hsize_t
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: HDF5_Access                     , only : hdf5Access
-    use               :: IO_HDF5                         , only : hdf5Object
+    use               :: IO_HDF5                         , only : hdf5Object, hdf5File, hdf5Group
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
     use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract       , len           , &
           &                                                       operator(//)                , operator(==)       , varying_string
@@ -428,9 +427,8 @@ contains
     type            (lockDescriptor          )                                  :: fileLock
     integer                                                                     :: i                                       , j                       , &
          &                                                                         countRedshiftsUnique
-    type            (hdf5Object              )                                  :: classOutput                             , parametersGroup         , &
-         &                                                                         extrapolationWavenumberGroup            , extrapolationGroup      , &
-         &                                                                         speciesGroup
+    type            (hdf5File                )                                  :: classOutput
+    type            (hdf5Group               )                                  :: parametersGroup, extrapolationWavenumberGroup, extrapolationGroup, speciesGroup
     character       (len=32                  )                                  :: parameterLabel                          , datasetName             , &
          &                                                                         redshiftLabel
     type            (varying_string          )                                  :: uniqueLabel                             , fileName_
@@ -646,7 +644,7 @@ contains
     use               :: Input_Paths                     , only : inputPath               , pathTypeDataDynamic
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: HDF5_Access                     , only : hdf5Access
-    use               :: IO_HDF5                         , only : hdf5Object
+    use               :: IO_HDF5                         , only : hdf5Object, hdf5File
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
     use               :: ISO_Varying_String              , only : varying_string          , char               , operator(//)
@@ -656,7 +654,7 @@ contains
     implicit none
     class    (cosmologyParametersClass), intent(inout)                   :: cosmologyParameters_
     type     (lockDescriptor          )                                  :: fileLock
-    type     (hdf5Object              )                                  :: classOutput
+    type     (hdf5File                )                                  :: classOutput
     character(len=32                  )                                  :: parameterLabel
     type     (varying_string          )                                  :: uniqueLabel                , fileName
     type     (inputParameters         )                                  :: descriptor

@@ -272,7 +272,7 @@ contains
     use :: Output_HDF5             , only : outputFile
     use :: HDF5_Access             , only : hdf5Access
     use :: Galacticus_Nodes        , only : treeNode
-    use :: IO_HDF5                 , only : hdf5Object
+    use :: IO_HDF5                 , only : hdf5Object, hdf5Group
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Ranges        , only : Make_Range        , rangeTypeLogarithmic
     implicit none
@@ -289,7 +289,7 @@ contains
          &                                                                  iTime
     type            (treeNode         )                                  :: node
     double precision                                                     :: varianceProgenitor
-    type            (hdf5Object       )                                  :: outputGroup
+    type            (hdf5Group        )                                  :: outputGroup
 
     call displayIndent('Begin task: excursion sets')
 #ifdef USEMPI

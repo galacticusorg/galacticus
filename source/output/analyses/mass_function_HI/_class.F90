@@ -209,7 +209,7 @@ contains
     Constructor for the :galacticus-class:`outputAnalysisMassFunctionHI` output analysis class which reads bin information from a standard format file.
     !!}
     use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5Object
+    use :: IO_HDF5                         , only : hdf5Object, hdf5File
     use :: Output_Analysis_Molecular_Ratios, only : outputAnalysisMolecularRatioClass
     implicit none
     type            (outputAnalysisMassFunctionHI           )                              :: self
@@ -226,7 +226,7 @@ contains
     double precision                                         , dimension(:,:), allocatable :: functionCovarianceTarget
     integer                                                  , intent(in   )               :: covarianceBinomialBinsPerDecade
     double precision                                         , intent(in   )               :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
-    type            (hdf5Object                             )                              :: dataFile
+    type            (hdf5File                               )                              :: dataFile
     type            (varying_string                         )                              :: targetLabel
     logical                                                                                :: haveTarget
 

@@ -183,7 +183,7 @@ contains
     use            :: Error                         , only : Error_Report
     use            :: Input_Paths                   , only : inputPath              , pathTypeDataStatic
     use            :: HDF5_Access                   , only : hdf5Access
-    use            :: IO_HDF5                       , only : hdf5Object
+    use            :: IO_HDF5                       , only : hdf5Object, hdf5File, hdf5Group, hdf5Dataset
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Instruments_Filters           , only : Filter_Extent          , Filter_Get_Index
     use            :: Output_Times                  , only : outputTimesClass
@@ -199,8 +199,9 @@ contains
     class           (starFormationRateSpheroidsClass                ), intent(in   ), target                 :: starFormationRateSpheroids_
     class           (stellarSpectraDustAttenuationClass             ), intent(in   ), target                 :: stellarSpectraDustAttenuation_
     class           (outputTimesClass                               ), intent(in   ), target                 :: outputTimes_
-    type            (hdf5Object                                     )                                        :: emissionLinesFile             , lines, &
-         &                                                                                                      lineDataset
+    type            (hdf5File                                       )                                        :: emissionLinesFile
+    type            (hdf5Group                                      )                                        :: lines
+    type            (hdf5Dataset                                    )                                        :: lineDataset
     integer         (c_size_t                                       )                                        :: i
     !![
     <constructorAssign variables="lineNames, depthOpticalISMCoefficient, *starFormationRateDisks_, *starFormationRateSpheroids_, *stellarSpectraDustAttenuation_, *outputTimes_"/>

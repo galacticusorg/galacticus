@@ -109,7 +109,7 @@ contains
     use            :: Display         , only : displayIndent     , displayUnindent
     use            :: Error           , only : errorStatusSuccess
     use            :: Output_HDF5     , only : outputFile
-    use            :: IO_HDF5         , only : hdf5Object
+    use            :: IO_HDF5         , only : hdf5Object, hdf5Group
     use            :: HDF5_Access     , only : hdf5Access
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: String_Handling , only : operator(//)
@@ -117,7 +117,7 @@ contains
     class  (taskComovingDistances), intent(inout), target   :: self
     integer                       , intent(  out), optional :: status
     integer(c_size_t             )                          :: output
-    type   (hdf5Object           )                          :: outputsGroup, outputGroup
+    type   (hdf5Group            )                          :: outputsGroup, outputGroup
     type   (varying_string       )                          :: groupName   , description
 
     call displayIndent('Begin task: comoving distances')

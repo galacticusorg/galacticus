@@ -45,7 +45,7 @@ contains
     use :: Error                           , only : Error_Report
     use :: Hashes_Cryptographic            , only : Hash_MD5
     use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5Object
+    use :: IO_HDF5                         , only : hdf5Object, hdf5File, hdf5Dataset
     use :: ISO_Varying_String              , only : assignment(=)                      , char                          , operator(//)        , var_str       , &
           &                                         varying_string
     use :: Input_Paths                     , only : inputPath                          , pathTypeDataDynamic
@@ -75,7 +75,8 @@ contains
          &                                                               densityHydrogenI                       , densityHydrogenII
     double precision                , allocatable  , dimension(:,:,:) :: powerEmittedFractionalCumulative
     logical                                                           :: computeCoolingFunctions                , computeChemicalStates
-    type            (hdf5Object    )                                  :: outputFile                             , dataset
+    type            (hdf5File      )                                  :: outputFile
+    type            (hdf5Dataset   )                                  :: dataset
     integer                                                           :: fileFormatFile                         , metallicityCount                     , &
          &                                                               temperatureCount                       , cloudyScript                         , &
          &                                                               iMetallicity                           , inputFile                            , &

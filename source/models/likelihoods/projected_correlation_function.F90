@@ -183,7 +183,7 @@ contains
     !!}
     use :: Input_Paths      , only : inputPath    , pathTypeDataStatic
     use :: HDF5_Access      , only : hdf5Access
-    use :: IO_HDF5          , only : hdf5Object
+    use :: IO_HDF5          , only : hdf5Object, hdf5File
     use :: Linear_Algebra   , only : assignment(=)
     implicit none
     type            (posteriorSampleLikelihoodPrjctdCorrelationFunction)                        :: self
@@ -199,7 +199,7 @@ contains
     class           (darkMatterProfileDMOClass                         ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterHaloBiasClass                           ), intent(in   ), target :: darkMatterHaloBias_
     class           (darkMatterProfileScaleRadiusClass                 ), intent(in   ), target :: darkMatterProfileScaleRadius_
-    type            (hdf5Object                                        )                        :: file
+    type            (hdf5File                                          )                        :: file
     !![
     <constructorAssign variables="haloMassMinimum, haloMassMaximum, lineOfSightDepth, halfIntegral, fileName, *powerSpectrum_, *cosmologyFunctions_, *surveyGeometry_, *darkMatterHaloScale_, *haloMassFunction_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *darkMatterProfileScaleRadius_"/>
     !!]

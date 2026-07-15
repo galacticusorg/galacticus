@@ -135,7 +135,7 @@ contains
     use :: FoX_DOM        , only : destroy                          , extractDataContent   , node
     use :: Error          , only : Error_Report
     use :: HDF5_Access    , only : hdf5Access
-    use :: IO_HDF5        , only : hdf5Object
+    use :: IO_HDF5        , only : hdf5Object, hdf5File
     use :: IO_XML         , only : XML_Array_Read                   , XML_Array_Read_Static, XML_Count_Elements_By_Tag_Name, XML_Get_Elements_By_Tag_Name, &
          &                         XML_Get_First_Element_By_Tag_Name, XML_Parse            , xmlNodeList
     use :: Table_Labels   , only : extrapolationTypeZero
@@ -150,7 +150,7 @@ contains
     integer                                                                                    :: fileFormatVersion  , iSpectrum , &
          &                                                                                        status             , jSpectrum
     logical                                                                                    :: timesIncreasing
-    type            (hdf5Object                               )                                :: file
+    type            (hdf5File                                 )                                :: file
     !![
     <constructorAssign variables="fileName, *cosmologyFunctions_"/>
     !!]

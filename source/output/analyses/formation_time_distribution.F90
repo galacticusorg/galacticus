@@ -397,7 +397,7 @@ contains
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: HDF5_Access                      , only : hdf5Access
-    use :: IO_HDF5                          , only : hdf5Object
+    use :: IO_HDF5                          , only : hdf5Object, hdf5File, hdf5Group
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
     use :: File_Utilities                   , only : File_Name_Expand
     use :: Virial_Density_Contrast          , only : virialDensityContrastClass
@@ -428,7 +428,8 @@ contains
     double precision                                                     , allocatable, dimension(:,:  ) :: functionCovarianceTarget
     double precision                                                     , allocatable, dimension(:,:,:) :: functionValuesTarget
     integer         (c_size_t                            )               , allocatable, dimension(:,:,:) :: functionCountsTarget
-    type            (hdf5Object                          )                                               :: dataFile                        , simulationGroup
+    type            (hdf5File                            )                                               :: dataFile
+    type            (hdf5Group                           )                                               :: simulationGroup
     integer                                                                                              :: i
     logical                                                                                              :: haveBoundaries
     type            (varying_string                      )                                               :: fileName_

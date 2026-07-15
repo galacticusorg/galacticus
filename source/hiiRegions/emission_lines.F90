@@ -65,11 +65,12 @@ contains
     !!}
     use :: Input_Paths       , only : inputPath , pathTypeDataStatic
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5Object, hdf5File, hdf5Group, hdf5Dataset
     use :: ISO_Varying_String, only : char      , operator(==)
     implicit none
-    type   (hdf5Object) :: file   , lines, &
-         &                 dataset
+    type   (hdf5File   ) :: file
+    type   (hdf5Group  ) :: lines
+    type   (hdf5Dataset) :: dataset
     integer             :: i
 
     if (.not.databaseInitialized) then

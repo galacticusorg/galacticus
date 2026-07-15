@@ -31,7 +31,7 @@ module Input_Parameters
   use, intrinsic :: ISO_C_Binding     , only : c_char         , c_int
   use            :: FoX_dom           , only : node
   use            :: Function_Classes  , only : functionClass
-  use            :: IO_HDF5           , only : hdf5Object
+  use            :: IO_HDF5           , only : hdf5Object, hdf5File, hdf5Group
   use            :: ISO_Varying_String, only : varying_string
   use            :: Kind_Numbers      , only : kind_int8
   use            :: String_Handling   , only : char
@@ -135,7 +135,8 @@ module Input_Parameters
      private
      type   (documentWrapper  ), pointer, public :: document               => null()
      type   (node             ), pointer         :: rootNode               => null()
-     type   (hdf5Object       ), pointer         :: outputParameters       => null() , outputParametersContainer        => null()
+     type   (hdf5Group        ), pointer         :: outputParameters       => null()
+     type   (hdf5File         ), pointer         :: outputParametersContainer        => null()
      type   (resourceManager  )                  :: outputParametersManager          , outputParametersContainerManager          , &
           &                                         documentManager
      type   (inputParameter   ), pointer, public :: parameters             => null()
@@ -442,7 +443,7 @@ contains
     type     (inputParameters)                                           :: self
     type     (varying_string    )              , intent(in   )           :: xmlString
     type     (varying_string    ), dimension(:), intent(in   ), optional :: allowedParameterNames, changeFiles
-    type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
+    type     (hdf5Group         ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                    , intent(in   ), optional :: noOutput             , threadSafe
     type     (node              ), pointer                               :: doc                  , parameterNode
     character(len=1             )                                        :: xmlStringStart
@@ -499,7 +500,7 @@ contains
     type     (inputParameters)                                        :: self
     character(len=*          )              , intent(in   )           :: fileName
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames, changeFiles
-    type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
+    type     (hdf5Group      ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput             , threadSafe
     type     (xmlNodeList    ), dimension(:), allocatable             :: childNodes           , newNodes
     type     (node           ), pointer                               :: doc                  , parameterNode    , &
@@ -772,7 +773,7 @@ contains
     type     (node           ), pointer     , intent(in   )           :: parametersNode
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
     character(len=*          )              , intent(in   ), optional :: fileName
-    type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
+    type     (hdf5Group      ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput                   , noBuild            , &
          &                                                               threadSafe
     type     (resourceManager)              , intent(in   ), optional :: documentManager
@@ -1798,7 +1799,7 @@ contains
     Return the HDF5 group to which this parameters content will be written.
     !!}
     implicit none
-    type(hdf5Object      )                :: parametersGroup
+    type(hdf5Group       )                :: parametersGroup
     class(inputParameters), intent(inout) :: self
 
     if (self%outputParameters%isOpen()) call self%outputParameters%deepCopy(parametersGroup)
@@ -1813,7 +1814,7 @@ contains
     use :: ISO_Varying_String, only : char
     implicit none
     class(inputParameters), intent(inout) :: self
-    type (hdf5Object     ), intent(inout) :: outputGroup
+    class(hdf5Group      ), intent(inout) :: outputGroup
     class(*              ), pointer       :: dummyPointer_
 
     !$ call hdf5Access%set()

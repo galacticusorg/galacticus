@@ -254,13 +254,13 @@ contains
     !!}
     use :: Output_HDF5  , only : outputFile
     use :: HDF5_Access  , only : hdf5Access
-    use :: IO_HDF5      , only : hdf5Object
+    use :: IO_HDF5      , only : hdf5Object, hdf5Group
     implicit none
     class(outputAnalysisMassSizeRelationShen2003), intent(inout)           :: self
     type (varying_string                        ), intent(in   ), optional :: groupName
-    type (hdf5Object                            )               , target   :: analysesGroup, subGroup
-    type (hdf5Object                            )               , pointer  :: inGroup
-    type (hdf5Object                            )                          :: analysisGroup
+    type (hdf5Group                             )               , target   :: analysesGroup, subGroup
+    type (hdf5Group                             )               , pointer  :: inGroup
+    type (hdf5Group                             )                          :: analysisGroup
 
     ! Finalize analysis.
     call self%finalizeAnalysis()

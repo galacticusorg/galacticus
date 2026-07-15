@@ -115,7 +115,7 @@ contains
     Constructor for the :galacticus-class:`outputAnalysisSatelliteVelocityMaximum` output analysis class for internal use.
     !!}
     use :: HDF5_Access            , only : hdf5Access
-    use :: IO_HDF5                , only : hdf5Object
+    use :: IO_HDF5                , only : hdf5Object, hdf5File
     use :: Numerical_Interpolation, only : GSL_Interp_CSpline
     use :: Table_Labels           , only : extrapolationTypeExtrapolate
     implicit none
@@ -124,7 +124,7 @@ contains
     class           (darkMatterProfileDMOClass             ), intent(in   ), target       :: darkMatterProfileDMO_       , darkMatterProfileDMOUnheated
     class           (outputTimesClass                      ), intent(inout), target       :: outputTimes_
     double precision                                        , intent(in   )               :: relativeModelUncertainty
-    type            (hdf5Object                            )                              :: file
+    type            (hdf5File                              )                              :: file
     double precision                                        , allocatable  , dimension(:) :: time                        , velocityMaximum             , &
          &                                                                                   fractionVelocityMaximum     , velocityMaximumError        , &
          &                                                                                   fractionVelocityMaximumError
@@ -252,15 +252,16 @@ contains
 #endif
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5Object
+    use :: IO_HDF5                         , only : hdf5Object, hdf5Group, hdf5Dataset
     use :: Numerical_Constants_Astronomical, only : gigaYear
     use :: Units_MetaData                  , only : unitType
     implicit none
     class(outputAnalysisSatelliteVelocityMaximum), intent(inout)           :: self
     type (varying_string                        ), intent(in   ), optional :: groupName
-    type (hdf5Object                            )               , target   :: analysesGroup, subGroup
-    type (hdf5Object                            )               , pointer  :: inGroup
-    type (hdf5Object                            )                          :: analysisGroup, dataset
+    type (hdf5Group                             )               , target   :: analysesGroup, subGroup
+    type (hdf5Group                             )               , pointer  :: inGroup
+    type (hdf5Group                             )                          :: analysisGroup
+    type (hdf5Dataset                           )                          :: dataset
 
 #ifdef USEMPI
     ! If running under MPI, accumulate tracks across all processes.

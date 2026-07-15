@@ -139,13 +139,13 @@ contains
     !!}
     use :: Error       , only : Error_Report
     use :: HDF5_Access , only : hdf5Access
-    use :: IO_HDF5     , only : hdf5Object
+    use :: IO_HDF5     , only : hdf5Object, hdf5File
     use :: Table_Labels, only : extrapolationTypeZero, extrapolationTypeFix
     implicit none
     class    (accretionDiskSpectraFile), intent(inout) :: self
     character(len=*                   ), intent(in   ) :: fileName
     integer                                            :: fileFormatFile
-    type     (hdf5Object              )                :: spectraFile
+    type     (hdf5File                )                :: spectraFile
 
     ! Open the file.
     !$ call hdf5Access%set()

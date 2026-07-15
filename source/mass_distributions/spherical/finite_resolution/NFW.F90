@@ -764,13 +764,13 @@ contains
     use :: File_Utilities    , only : File_Lock     , File_Unlock        , lockDescriptor, Directory_Make, &
          &                            File_Path
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5Object, hdf5File
     use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)       , char
     implicit none
     class(massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self
     type (lockDescriptor                              )                :: fileLock
-    type (hdf5Object                                  )                :: file
+    type (hdf5File                                    )                :: file
     type (varying_string                              )                :: fileName
 
     fileName=inputPath(pathTypeDataDynamic)// &
@@ -798,13 +798,13 @@ contains
     !!}
     use :: File_Utilities    , only : File_Exists    , File_Lock         , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5Object, hdf5File
     use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)
     implicit none
     class(massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self
     type (lockDescriptor                              )                :: fileLock
-    type (hdf5Object                                  )                :: file
+    type (hdf5File                                    )                :: file
     type (varying_string                              )                :: fileName
 
     fileName=inputPath(pathTypeDataDynamic)// &
@@ -1016,13 +1016,13 @@ contains
     use :: File_Utilities    , only : File_Lock     , File_Unlock        , lockDescriptor, Directory_Make, &
          &                            File_Path
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5Object, hdf5File
     use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)       , char
     implicit none
     class(massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self
     type (lockDescriptor                              )                :: fileLock
-    type (hdf5Object                                  )                :: file
+    type (hdf5File                                    )                :: file
     type (varying_string                              )                :: fileName
 
     fileName=inputPath(pathTypeDataDynamic)// &
@@ -1050,13 +1050,13 @@ contains
     !!}
     use :: File_Utilities    , only : File_Exists    , File_Lock         , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5Object, hdf5File
     use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)
     implicit none
     class(massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self
     type (lockDescriptor                              )                :: fileLock
-    type (hdf5Object                                  )                :: file
+    type (hdf5File                                    )                :: file
     type (varying_string                              )                :: fileName
 
     fileName=inputPath(pathTypeDataDynamic)// &
@@ -1301,13 +1301,13 @@ contains
     use :: File_Utilities    , only : File_Lock     , File_Unlock        , lockDescriptor, Directory_Make, &
          &                            File_Path
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5Object, hdf5File
     use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)       , char
     implicit none
     class(massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self
     type (lockDescriptor                              )                :: fileLock
-    type (hdf5Object                                  )                :: file
+    type (hdf5File                                    )                :: file
     type (varying_string                              )                :: fileName
 
     fileName=inputPath(pathTypeDataDynamic)// &
@@ -1335,13 +1335,13 @@ contains
     !!}
     use :: File_Utilities    , only : File_Exists    , File_Lock         , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5Object, hdf5File
     use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)
     implicit none
     class(massDistributionSphericalFiniteResolutionNFW), intent(inout) :: self
     type (lockDescriptor                              )                :: fileLock
-    type (hdf5Object                                  )                :: file
+    type (hdf5File                                    )                :: file
     type (varying_string                              )                :: fileName
 
     fileName=inputPath(pathTypeDataDynamic)// &
