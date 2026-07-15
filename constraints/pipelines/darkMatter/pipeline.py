@@ -314,6 +314,15 @@ def _git_revision():
         return None
 
 
+def _self_cmd(output_dir):
+    """Invocation prefix (script + --outputDirectory) for the guidance printed to the user.
+
+    Guidance commands must carry --outputDirectory so they are runnable as printed
+    (otherwise they fall back to the default './pipeline' directory).
+    """
+    return f"{sys.argv[0]} --outputDirectory {output_dir}"
+
+
 def _do_mark_converged(output_dir, stage):
     """Record the human 'converged' decision for a stage and stop its job."""
     if _job_active(stage):
@@ -367,7 +376,7 @@ def _do_diagnose(output_dir, stage, steps):
     print("  (effect-size drift is the DE-appropriate signal; per-walker R-hat/Geweke are")
     print("   omitted — inflated for a DE ensemble — see plan Section 3. Slower autocorrelation")
     print("   diagnostics: dendros effective_sample_size / acceptance_rate on this config.)")
-    print(f"  When you judge it done:  {sys.argv[0]} --markConverged {stage}")
+    print(f"  When you judge it done:  {_self_cmd(output_dir)} --markConverged {stage}")
 
 
 # ---------------------------------------------------------------------------
@@ -501,8 +510,8 @@ def _run_detached(options, args, args_extra, tasks, pipeline_path, output_dir, g
         # First non-converged stage: submit one job, record it, and exit.
         if _job_active(label):
             print(f"[{label}] a job is active (id {manifest.get('jobId', '?')}); nothing to do.")
-            print(f"  Inspect:  {sys.argv[0]} --diagnose {label}")
-            print(f"  Accept:   {sys.argv[0]} --markConverged {label}")
+            print(f"  Inspect:  {_self_cmd(output_dir)} --diagnose {label}")
+            print(f"  Accept:   {_self_cmd(output_dir)} --markConverged {label}")
             return
 
         chain_log_0 = output_dir + f'{label}Chains_0000.log'
@@ -523,8 +532,8 @@ def _run_detached(options, args, args_extra, tasks, pipeline_path, output_dir, g
             submitKind=kind,
         )
         print(f"[{label}] submitted {kind} job {job_id} ({os.path.basename(submit_config)}).")
-        print(f"  Monitor:  {sys.argv[0]} --diagnose {label}")
-        print(f"  Accept:   {sys.argv[0]} --markConverged {label}")
+        print(f"  Monitor:  {_self_cmd(output_dir)} --diagnose {label}")
+        print(f"  Accept:   {_self_cmd(output_dir)} --markConverged {label}")
         print(f"  Then re-invoke this command to advance.")
         return
 
@@ -644,8 +653,8 @@ def main():
             if not _manifest_read(output_dir, prior['label']).get('converged'):
                 print(f"  Refusing to start '{label}': upstream stage "
                       f"'{prior['label']}' is not marked converged.")
-                print(f"    Inspect:  {sys.argv[0]} --diagnose {prior['label']}")
-                print(f"    Accept:   {sys.argv[0]} --markConverged {prior['label']}")
+                print(f"    Inspect:  {_self_cmd(output_dir)} --diagnose {prior['label']}")
+                print(f"    Accept:   {_self_cmd(output_dir)} --markConverged {prior['label']}")
                 sys.exit(1)
 
         chain_log_0   = log_file_root(config) + '_0000.log'
@@ -677,7 +686,7 @@ def main():
                 sys.exit(1)
             print(f"  '{label}' job ended (walltime?) and is not marked converged; "
                   f"resubmitting resume [#{resubmits}].")
-            print(f"    When you judge it done:  {sys.argv[0]} --markConverged {label}")
+            print(f"    When you judge it done:  {_self_cmd(output_dir)} --markConverged {label}")
         print(f"  '{label}' is marked converged  [{datetime.datetime.now()}]")
 
         # Step 7: extract best-fit parameters from chain logs.
