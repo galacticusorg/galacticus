@@ -26,7 +26,9 @@
   !![
   <satelliteDynamicalFriction name="satelliteDynamicalFrictionLancaster2020" docformat="rst">
    <description>
-   A satellite dynamical friction class which computes the Coulomb logarithm following the prescription of :cite:t:`lancaster_dynamical_2020`. The Coulomb logarithm is evaluated using :math:`\Lambda = r_\mathrm{orbital}/b_{90}`, where :math:`b_{90}=GM_\mathrm{sat}/v_\mathrm{orbital}^2`.
+   A satellite dynamical friction class which computes the Coulomb logarithm following the prescription of :cite:t:`lancaster_dynamical_2020`.
+   The Coulomb logarithm is evaluated using :math:`\Lambda = r_\mathrm{orbital}/l_{90}`, where :math:`l_{90}=\mathrm{G}M_\mathrm{sat}/v_\mathrm{orbital}^2`
+   is the impact parameter for an encounter causing a 90-degree deflection.
    </description>
   </satelliteDynamicalFriction>
   !!]
@@ -36,7 +38,6 @@
      !!}
      private
    contains
-     final     ::                     lancaster2020Destructor
      procedure :: coulombLogarithm => lancaster2020CoulombLogarithm
   end type satelliteDynamicalFrictionLancaster2020
 
@@ -56,10 +57,10 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type   (satelliteDynamicalFrictionlancaster2020)                :: self
-    type   (inputParameters                        ), intent(inout) :: parameters
+    type(satelliteDynamicalFrictionlancaster2020)                :: self
+    type(inputParameters                        ), intent(inout) :: parameters
     
-    self = satelliteDynamicalFrictionLancaster2020()
+    self=satelliteDynamicalFrictionLancaster2020()
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -71,20 +72,13 @@ contains
     Internal constructor for the :galacticus-class:`satelliteDynamicalFrictionLancaster2020` satellite dynamical friction class.
     !!}
     implicit none
-    type   (satelliteDynamicalFrictionLancaster2020) :: self
+    type(satelliteDynamicalFrictionLancaster2020) :: self
 
+    ! Set the fixed (and unused by this class) `logarithmCoulomb` of the parent class to an
+    ! unphysical value.
+    self%logarithmCoulomb=-huge(0.0d0)
     return
   end function lancaster2020ConstructorInternal
-
-  subroutine lancaster2020Destructor(self)
-    !!{RST
-    Destructor for the :galacticus-class:`satelliteDynamicalFrictionLancaster2020` satellite dynamical friction class.
-    !!}
-    implicit none
-    type(satelliteDynamicalFrictionLancaster2020), intent(inout) :: self
-
-    return
-  end subroutine lancaster2020Destructor
   
   double precision function lancaster2020CoulombLogarithm(self,node) result(coulombLogarithm)
     !!{RST
@@ -98,8 +92,8 @@ contains
     type            (treeNode                               ), intent   (inout) :: node
     class           (nodeComponentSatellite                 ), pointer          :: satellite
     double precision                                         , dimension(3    ) :: position     , velocity    
-    double precision                                                            :: speedOrbital , radiusOrbital, &
-         &                                                                         massSatellite, l90
+    double precision                                                            :: speedOrbital , radiusOrbital          , &
+         &                                                                         massSatellite, impactParameter90Degree
 
     satellite               =>  node     %satellite (        )
     massSatellite           =   satellite%boundMass (        )
@@ -107,8 +101,10 @@ contains
     velocity                =   satellite%velocity  (        )
     radiusOrbital           =   Vector_Magnitude    (position)
     speedOrbital            =   Vector_Magnitude    (velocity)
-
-    l90              = gravitationalConstant_internal*massSatellite/(speedOrbital**2.0d0)
-    coulombLogarithm = radiusOrbital/l90
+    impactParameter90Degree =  +gravitationalConstant_internal    &
+         &                     *massSatellite                     &
+         &                     /speedOrbital                  **2
+    coulombLogarithm        =  +radiusOrbital                     &
+         &                    /impactParameter90Degree
     return
   end function lancaster2020CoulombLogarithm

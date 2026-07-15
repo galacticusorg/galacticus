@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  Implementation of a satellite dynamical friction class which scales the cceleration returned by another satellite dynamical friction class.
+  Implementation of a satellite dynamical friction class which scales the acceleration returned by another satellite dynamical friction class.
   !!}
 
   !![
@@ -33,7 +33,7 @@
      Implementation of a satellite dynamical friction class which multiplies the acceleration returned by another satellite dynamical friction class by a constant scale factor.
      !!}
      private
-     class           (satelliteDynamicalFrictionClass), pointer :: satelliteDynamicalFriction_         => null()
+     class           (satelliteDynamicalFrictionClass), pointer :: satelliteDynamicalFriction_ => null()
      double precision                                           :: scaleFactor
    contains
      final     ::                 scaleDestructor
@@ -76,7 +76,7 @@ contains
     </inputParameter>
     <objectBuilder class="satelliteDynamicalFriction" name="satelliteDynamicalFriction_" source="parameters"/>
     !!]
-    self=satelliteDynamicalFrictionScale(satelliteDynamicalFriction_, scaleFactor)
+    self=satelliteDynamicalFrictionScale(satelliteDynamicalFriction_,scaleFactor)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteDynamicalFriction_"/>
@@ -94,7 +94,7 @@ contains
     class(satelliteDynamicalFrictionClass), intent(in), target :: satelliteDynamicalFriction_
     double precision                      , intent(in)         :: scaleFactor
     !![
-    <constructorAssign variables="*satelliteDynamicalFriction_,scaleFactor"/>
+    <constructorAssign variables="*satelliteDynamicalFriction_, scaleFactor"/>
     !!]
     return
   end function scaleConstructorInternal
@@ -124,7 +124,7 @@ contains
     ! Compute the base acceleration.    
     scaleAcceleration=+self%satelliteDynamicalFriction_%acceleration(node)
     ! Evaluate the dynamical friction acceleration.
-    scaleAcceleration=+scaleAcceleration &
-         &               *self%scaleFactor
+    scaleAcceleration=+     scaleAcceleration &
+         &            *self%scaleFactor
     return
   end function scaleAcceleration

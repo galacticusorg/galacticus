@@ -226,8 +226,8 @@ contains
     densityHostCentral =  massDistribution_%density         (coordinates)
     
     massDistribution__ => massDistribution_
-    densityHostCentral_= densityHostCentral
-    massSatellite_     = massSatellite
+    densityHostCentral_=  densityHostCentral
+    massSatellite_     =  massSatellite
     if (.not.finderConstructed) then 
        finder           =rootFinder(                                                             &
             &                       rootFunction                 =radiusStallingRoot           , &
@@ -268,14 +268,12 @@ contains
       implicit none
       double precision, intent(in   ) :: radiusStalling
       
-      radiusStallingRoot=+4.0d0                                                  &
-           &             *Pi                                                     &
-           &             /3.0d0                                                  &
+      radiusStallingRoot=+4.0d0                                                   &
+           &             *Pi                                                      &
+           &             /3.0d0                                                   &
            &             *densityHostCentral_                                     &
-           &             *radiusStalling    **3                                  &
+           &             *radiusStalling    **3                                   &
            &             -massDistribution__%massEnclosedBySphere(radiusStalling) &
            &             -massSatellite_
       return
   end function radiusStallingRoot
-    
-  
