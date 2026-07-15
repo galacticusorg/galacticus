@@ -67,7 +67,7 @@ contains
     return
   end function lancaster2020ConstructorParameters
 
-  function lancaster2020ConstructorInternal( ) result(self)
+  function lancaster2020ConstructorInternal() result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`satelliteDynamicalFrictionLancaster2020` satellite dynamical friction class.
     !!}
