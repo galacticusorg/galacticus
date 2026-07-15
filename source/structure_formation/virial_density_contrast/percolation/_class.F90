@@ -38,18 +38,18 @@
      A dark matter halo virial density contrast class based on the percolation analysis of :cite:t:`more_overdensity_2011`.
      !!}
      private
-     double precision                                            :: linkingLength
-     type            (varying_string                  )          :: fileName
-     class           (cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_             => null()
-     class           (*                               ), pointer :: percolationObjects_             => null()
-     type            (resourceManager                 )          :: percolationObjectsManager
+     double precision                                   :: linkingLength
+     type            (varying_string         )          :: fileName
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_             => null()
+     class           (*                      ), pointer :: percolationObjects_             => null()
+     type            (resourceManager        )          :: percolationObjectsManager
      ! Tabulation of density contrast vs. time and mass.
-     double precision                                            :: densityContrastTableTimeMinimum           , densityContrastTableTimeMaximum
-     double precision                                            :: densityContrastTableMassMinimum           , densityContrastTableMassMaximum
-     integer                                                     :: densityContrastTableMassCount             , densityContrastTableTimeCount
-     logical                                                     :: densityContrastTableInitialized =  .false.
-     type            (table2DLogLogLin                )          :: densityContrastTable
-     integer                                                     :: densityContrastTableRemakeCount
+     double precision                                   :: densityContrastTableTimeMinimum           , densityContrastTableTimeMaximum
+     double precision                                   :: densityContrastTableMassMinimum           , densityContrastTableMassMaximum
+     integer                                            :: densityContrastTableMassCount             , densityContrastTableTimeCount
+     logical                                            :: densityContrastTableInitialized =  .false.
+     type            (table2DLogLogLin       )          :: densityContrastTable
+     integer                                            :: densityContrastTableRemakeCount
    contains
      !![
      <methods docformat="rst">
@@ -330,7 +330,7 @@ contains
     implicit none
     class(virialDensityContrastPercolation), intent(inout) :: self
 
-    self                           %   copiedSelf => null()
+    self%copiedSelf => null()
     if (associated(self%cosmologyfunctions_)) call self%cosmologyfunctions_%deepCopyReset()
     if (associated(self%percolationObjects_)) call percolationObjectsDeepCopyReset_(self%percolationObjects_)
     return

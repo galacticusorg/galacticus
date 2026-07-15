@@ -2212,7 +2212,7 @@ def _build_deep_copy_methods(directive, non_abstract_classes, classes,
     # recursiveSelf%copiedSelf, and that resolution runs during deepCopyFinalize. Because finalize is top-down and
     # the real object is an ancestor of the shim, nulling copiedSelf here would clear it before the shim could read
     # it. copiedSelf is only ever read inside a deepCopy operation, which always begins with deepCopyReset nulling
-    # it, so leaving it stale between operations is harmless (assumed hygiene-only; revisit if a race appears).
+    # it, so leaving it stale between operations is harmless.
     deep_copy['finalizeCode'] += "select type (self)\n"
     deep_copy['code']         += "select type (self)\n"
 

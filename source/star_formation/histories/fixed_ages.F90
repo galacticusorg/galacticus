@@ -40,17 +40,17 @@
      A star formation histories class which records star formation split by metallicity.
      !!}
      private
-     class           (geometryLightconeClass       ), pointer                   :: geometryLightcone_  => null()
-     class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_ => null()
-     double precision                                                           :: ageMinimum                   , ageMaximum        , &
-          &                                                                        metallicityMaximum           , metallicityMinimum, &
-          &                                                                        massScaleAbsolute
-     integer         (c_size_t                     )                            :: countAges                    , countMetallicities
-     integer                                                                    :: timesCrossingID              , countRetain       , &
-          &                                                                        createdInID
-     integer         (kind_int8                    )                            :: uniqueIDPrevious
-     double precision                                                           :: timePrevious
-     double precision                               , allocatable, dimension(:) :: metallicityTable
+     class           (geometryLightconeClass ), pointer                   :: geometryLightcone_  => null()
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
+     double precision                                                     :: ageMinimum                   , ageMaximum        , &
+          &                                                                  metallicityMaximum           , metallicityMinimum, &
+          &                                                                  massScaleAbsolute
+     integer         (c_size_t               )                            :: countAges                    , countMetallicities
+     integer                                                              :: timesCrossingID              , countRetain       , &
+          &                                                                  createdInID
+     integer         (kind_int8              )                            :: uniqueIDPrevious
+     double precision                                                     :: timePrevious
+     double precision                         , allocatable, dimension(:) :: metallicityTable
    contains
      final     ::                          fixedAgesDestructor
      procedure :: create                => fixedAgesCreate

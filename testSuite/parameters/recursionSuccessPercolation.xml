@@ -1,17 +1,17 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Characterization model for the *legitimate* (bounded) construction        -->
-<!-- recursion handled by recursive="yes" (issue #695).                         -->
-<!--                                                                            -->
+<!-- recursion handled by recursive="yes" (issue #695).                        -->
+<!--                                                                           -->
 <!-- Setting virialDensityContrast="percolation" with the default              -->
 <!-- darkMatterHaloScale ("virialDensityContrastDefinition") forms the         -->
-<!-- canonical mutual cycle:                                                    -->
-<!--                                                                            -->
+<!-- canonical mutual cycle:                                                   -->
+<!--                                                                           -->
 <!--   virialDensityContrastPercolation                                        -->
 <!--     -> percolation objects -> dark-matter profile -> darkMatterHaloScale  -->
 <!--       = darkMatterHaloScaleVirialDensityContrastDefinition                -->
 <!--         -> virialDensityContrast (resolves back up the parameter tree to  -->
-<!--            the percolation object currently under construction)            -->
-<!--                                                                            -->
+<!--            the percolation object currently under construction)           -->
+<!--                                                                           -->
 <!-- The build re-discovers the node currently under construction and returns  -->
 <!-- a shim (recursive="yes" short-circuit) instead of aborting (#397). This   -->
 <!-- model asserts that the *successful* recursive build path works end to     -->

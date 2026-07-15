@@ -39,22 +39,22 @@
      A dark matter halo scale contrast class using virial density contrasts.
      !!}
      private
-     class           (cosmologyParametersClass                          ), pointer :: cosmologyParameters_       => null()
-     class           (cosmologyFunctionsClass                           ), pointer :: cosmologyFunctions_        => null()
-     class           (virialDensityContrastClass                        ), pointer :: virialDensityContrast_     => null()
+     class           (cosmologyParametersClass  ), pointer :: cosmologyParameters_       => null()
+     class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_        => null()
+     class           (virialDensityContrastClass), pointer :: virialDensityContrast_     => null()
      ! Record of unique ID of node which we last computed results for.
-     integer         (kind=kind_int8                                    )          :: lastUniqueID
+     integer         (kind=kind_int8            )          :: lastUniqueID
      ! Record of whether or not halo scales have already been computed for this node.
-     logical                                                                       :: timescaleDynamicalComputed          , radiusVirialComputed            , &
-          &                                                                           temperatureVirialComputed           , velocityVirialComputed
+     logical                                               :: timescaleDynamicalComputed          , radiusVirialComputed            , &
+          &                                                   temperatureVirialComputed           , velocityVirialComputed
      ! Stored values of halo scales.
-     double precision                                                              :: timescaleDynamicalStored            , radiusVirialStored              , &
-          &                                                                           temperatureVirialStored             , velocityVirialStored            , &
-          &                                                                           timePrevious                        , densityGrowthRatePrevious       , &
-          &                                                                           massPrevious
+     double precision                                      :: timescaleDynamicalStored            , radiusVirialStored              , &
+          &                                                   temperatureVirialStored             , velocityVirialStored            , &
+          &                                                   timePrevious                        , densityGrowthRatePrevious       , &
+          &                                                   massPrevious
      ! Table for fast lookup of the mean density of halos.
-     double precision                                                              :: densityMeanTimeMaximum              , densityMeanTimeMinimum   =-1.0d0
-     type            (table1DLogarithmicLinear                          )          :: densityMeanTable
+     double precision                                      :: densityMeanTimeMaximum              , densityMeanTimeMinimum   =-1.0d0
+     type            (table1DLogarithmicLinear  )          :: densityMeanTable
    contains
      !![
      <methods docformat="rst">
