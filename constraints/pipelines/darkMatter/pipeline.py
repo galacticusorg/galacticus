@@ -344,7 +344,7 @@ def _do_diagnose(output_dir, stage, steps):
 
     Deliberately uses the effect-size ensemble drift + ESS/autocorrelation, and
     *not* per-walker Gelman-Rubin / Geweke, which are inflated for an interacting
-    differentialEvolution ensemble (see plan review Section 3).
+    differentialEvolution ensemble (see the pipeline README and developer guide).
     """
     from dendros import open_mcmc
 
@@ -374,8 +374,8 @@ def _do_diagnose(output_dir, stage, steps):
     except Exception as e:
         print(f"  ensemble_drift unavailable: {e}")
     print("  (effect-size drift is the DE-appropriate signal; per-walker R-hat/Geweke are")
-    print("   omitted — inflated for a DE ensemble — see plan Section 3. Slower autocorrelation")
-    print("   diagnostics: dendros effective_sample_size / acceptance_rate on this config.)")
+    print("   omitted — inflated for a DE ensemble — see constraints/pipelines/darkMatter/README.md.")
+    print("   Slower autocorrelation diagnostics: dendros effective_sample_size / acceptance_rate.)")
     print(f"  When you judge it done:  {_self_cmd(output_dir)} --markConverged {stage}")
 
 
