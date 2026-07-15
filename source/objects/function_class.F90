@@ -44,10 +44,12 @@ module Function_Classes
        <method method="referenceCountDecrement" description="Decrement the reference count to this object and return the new reference count."/>
        <method method="isDefault"               description="Return true if this is the default object of this class."                        />
        <method method="reportOn"                description="Indicate that reference count changes to this object should be reported on."     />
+       <method method="isRecursiveShim"         description="Return true if this is a generated recursion shim (see issue \#695)."           />
      </methods>
      !!]
      procedure :: isDefault               => functionClassIsDefault
      procedure :: reportOn                => functionClassReportOn
+     procedure :: isRecursiveShim         => functionClassIsRecursiveShim
      procedure :: referenceCountReset     => functionClassReferenceCountReset
      procedure :: referenceCountIncrement => functionClassReferenceCountIncrement
      procedure :: referenceCountDecrement => functionClassReferenceCountDecrement
@@ -81,6 +83,18 @@ contains
     functionClassIsDefault=self%isDefaultOfClass
     return
   end function functionClassIsDefault
+
+  logical function functionClassIsRecursiveShim(self)
+    !!{RST
+    Return true if this is a generated recursion shim---a lightweight stand-in returned by the factory when a bounded construction cycle re-enters the object currently under construction. Overridden to return true only by the generated ``<name>Recursive`` shim types. Used, e.g., by the ``objectBuilder`` template to avoid caching a shim in the parameter node in place of the real object. See issue \#695.
+    !!}
+    implicit none
+    class(functionClass), intent(in   ) :: self
+    !$GLC attributes unused :: self
+
+    functionClassIsRecursiveShim=.false.
+    return
+  end function functionClassIsRecursiveShim
 
   subroutine functionClassReferenceCountReset(self)
     !!{RST

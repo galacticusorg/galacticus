@@ -719,8 +719,7 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
             name   = node['name']
             sig_re = (
                 r'^\s*(recursive\s+)??function\s+' + re.escape(name)
-                + r'\s*\(\s*parameters\s*'
-                + r'(,\s*recursiveConstruct\s*,\s*recursiveSelf\s*)??\)'
+                + r'\s*\(\s*parameters\s*\)'
             )
             if re.match(sig_re, opener):
                 result_m = re.search(
@@ -1591,30 +1590,27 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
             inner = inner.get('sibling')
 
         # Walk the whole class tree looking for a function named
-        # <constructor>(parameters [, recursiveConstruct, recursiveSelf]).
+        # <constructor>(parameters).
         node = (class_rec.get('tree') or {}).get('firstChild')
         while node is not None:
             if (node.get('type') == 'function'
                     and node.get('name') in constructors):
                 opener = node.get('opener') or ''
                 name   = node['name']
-                # Match `function NAME(parameters [, recursiveConstruct,
-                # recursiveSelf])` with an optional `recursive` prefix.
-                # The mandatory whitespace lives INSIDE the
-                # `(recursive\s+)?` group so non-recursive openers (which
-                # have no leading word and no whitespace) match too —
-                # the previous form `(recursive)??\s+function` required
-                # whitespace before `function` unconditionally and
-                # therefore missed every non-recursive constructor,
-                # leaving the `objects` accumulator empty and the
-                # generated `allowedParameters` method without its
-                # `if (associated(self%X_)) call self%X_%allowedParameters
-                # (allowedParameters,'parameters',.true.)` lines for
-                # nested object pointers.
+                # Match `function NAME(parameters)` with an optional
+                # `recursive` prefix. The mandatory whitespace lives INSIDE
+                # the `(recursive\s+)?` group so non-recursive openers (which
+                # have no leading word and no whitespace) match too — the
+                # previous form `(recursive)??\s+function` required whitespace
+                # before `function` unconditionally and therefore missed every
+                # non-recursive constructor, leaving the `objects` accumulator
+                # empty and the generated `allowedParameters` method without
+                # its `if (associated(self%X_)) call self%X_%allowedParameters
+                # (allowedParameters,'parameters',.true.)` lines for nested
+                # object pointers.
                 sig_re = (
                     r'^\s*(recursive\s+)?function\s+' + re.escape(name)
-                    + r'\s*\(\s*parameters\s*'
-                    + r'(\s*,\s*recursiveConstruct\s*,\s*recursiveSelf\s*)??\)'
+                    + r'\s*\(\s*parameters\s*\)'
                 )
                 if re.match(sig_re, opener):
                     result_m = re.search(
@@ -3933,6 +3929,7 @@ def _generate_recursive_shim(directive, methods, non_abstract_classes,
         f'     procedure :: objectType        => {shim_type}ObjectType\n'
         f'     procedure :: stateStore        => {shim_type}StateStore\n'
         f'     procedure :: stateRestore      => {shim_type}StateRestore\n'
+        f'     procedure :: isRecursiveShim   => {shim_type}IsRecursiveShim\n'
     )
     pre['content'] += f'   end type {shim_type}\n\n'
 
@@ -4011,6 +4008,17 @@ def _generate_recursive_shim(directive, methods, non_abstract_classes,
         '      !$GLC attributes unused :: self\n'
         '      return\n'
         f'   end subroutine {shim_type}AutoHook\n\n'
+    )
+    # isRecursiveShim: identifies this object as a shim so the objectBuilder
+    # template skips caching it in the parameter node in place of the real
+    # object (issue #695).
+    post['content'] += (
+        f'   logical function {shim_type}IsRecursiveShim(self)\n'
+        '      implicit none\n'
+        f'      class({shim_type}), intent(in   ) :: self\n'
+        '      !$GLC attributes unused :: self\n'
+        f'      {shim_type}IsRecursiveShim=.true.\n'
+        f'   end function {shim_type}IsRecursiveShim\n\n'
     )
     # objectType / descriptor / hashedDescriptor / stateStore / stateRestore:
     # forward to the real object.

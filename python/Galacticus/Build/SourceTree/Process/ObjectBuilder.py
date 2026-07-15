@@ -228,7 +228,15 @@ def _handle_object_builder(node, state_storables, function_classes):
         f"(parametersCurrent{copy_instance}{name_arg})\n"
     )
     lines += f"            call {directive['name']}%referenceCountIncrement()\n"
-    lines += f"         call parameterNode%objectSet({directive['name']})\n"
+    # Do not cache a recursion shim in the parameter node: while the real object
+    # is still under construction a re-entrant build receives a shim, and caching
+    # it would occupy the node's slot so the real object is never stored (and
+    # every later requester would receive the shim, whose weak back-pointer does
+    # not keep the real object alive). See issue #695.
+    lines += (
+        f"         if (.not.{directive['name']}%isRecursiveShim()) "
+        f"call parameterNode%objectSet({directive['name']})\n"
+    )
     lines += f"         call {directive['name']}%autoHook()\n"
     lines += "      end if\n"
     lines += copy_loop_close

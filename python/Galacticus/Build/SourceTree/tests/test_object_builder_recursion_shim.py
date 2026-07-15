@@ -173,6 +173,29 @@ def test_deepcopy_finalize_does_not_null_copiedself():
     ), src
 
 
+def test_shim_overrides_is_recursive_shim():
+    """The shim overrides isRecursiveShim() to return true, so callers (e.g.
+    the objectBuilder) can identify it as a shim."""
+    from Galacticus.Build.SourceTree.Process.FunctionClass import (
+        _generate_recursive_shim,
+    )
+    src = inspect.getsource(_generate_recursive_shim)
+    assert "isRecursiveShim   => {shim_type}IsRecursiveShim" in src, src
+    assert "IsRecursiveShim=.true." in src, src
+
+
+def test_object_builder_skips_object_set_for_shim():
+    """The objectBuilder must not cache a recursion shim in the parameter node
+    (the objectSet-hijack wart, issue #695): objectSet is guarded on
+    .not.<name>%isRecursiveShim()."""
+    from Galacticus.Build.SourceTree.Process.ObjectBuilder import (
+        _handle_object_builder,
+    )
+    src = inspect.getsource(_handle_object_builder)
+    assert "isRecursiveShim()" in src, src
+    assert "%objectSet(" in src, src
+
+
 def test_factory_short_circuit_allocates_shim_type():
     """The factory short-circuit allocates the generated shim type and wires
     recursiveSelf for every recursive family (the old concrete-type-with-

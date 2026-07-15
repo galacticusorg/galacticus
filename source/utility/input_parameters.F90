@@ -351,6 +351,9 @@ contains
                   & char(10)//'or via another, mutually-compositing class), but no such object was provided explicitly. The'   // &
                   & char(10)//'build then searches up the parameter tree, re-discovers the object currently being built, and'  // &
                   & char(10)//'attempts to build it again. Provide the required ['//className//'] explicitly to resolve this.' // &
+                  & char(10)//'Alternatively, if re-entry into a class in this cycle is semantically bounded (the physics'     // &
+                  & char(10)//'guarantees the recursion terminates), mark that class'//"'"//'s directive recursive="yes" so the'// &
+                  & char(10)//'build returns a lightweight forwarding shim on re-entry instead of recursing (see issue #695).' // &
                   & char(10)//'Build stack (outermost first):'
              do k=1,buildStackDepth
                 message=message//char(10)//'   -> ['//char(buildStack(k)%className)//']'
