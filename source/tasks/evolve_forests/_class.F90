@@ -612,10 +612,14 @@ contains
     reportProgress        =self%timeIntervalReportProgress > 0.0d0
     call System_Clock(clockStart,clockRate)
     clockLastReport       =clockStart
-    ! Obtain the tree census (total tree count), but only when it will actually be used, since for some constructors (e.g. the read
-    ! path) this can be moderately expensive (it opens every input file to read metadata).
+    ! The tree census (total tree count), predicted total work, and start-of-run estimate are computed later, inside the parallel
+    ! region (after the per-thread node component initialization), because for some merger tree mass distributions constructing the
+    ! set of tree masses requires building nodes---which is not possible until that initialization has been performed. Safe defaults
+    ! are set here.
     countTreesTotal       =-1_c_size_t
-    if (reportProgress .or. self%estimateRunTimeOnly) countTreesTotal=self%mergerTreeConstructor_%countTrees()
+    workPredictedTotal    =-1.0d0
+    haveCostModel         =.false.
+    costModelByNodeCount  =.false.
     ! Compute the total number of workers (across MPI processes and OpenMP threads) directly, rather than via the work-share object,
     ! so as not to populate its worker-ID cache before it is deep-copied to each thread. Heterogeneous per-process thread counts are
     ! not accounted for here (the estimate assumes a uniform thread count per process).
@@ -624,57 +628,70 @@ contains
 #ifdef USEMPI
     workerCount           =workerCount*mpiSelf%count()
 #endif
-    workPredictedTotal    =-1.0d0
-    haveCostModel         =.false.
-    costModelByNodeCount  =.false.
-    if (countTreesTotal > 0_c_size_t) then
-       call self%mergerTreeConstructor_%treeMasses(massesCensus)
-       if (allocated(massesCensus)) then
-          ! Root masses are known up-front (e.g. the build path): use the mass-based cost model.
-          workPredictedTotal=0.0d0
-          haveCostModel     =.true.
-          do iCensus=1_c_size_t,size(massesCensus,kind=c_size_t)
-             timeTreePredicted_=self%metaTreeProcessingTime_%time(massesCensus(iCensus))
-             if (timeTreePredicted_ <= 0.0d0) then
-                ! No usable cost model (e.g. the null estimator) - fall back to tree-count-based progress only.
-                haveCostModel     =.false.
-                workPredictedTotal=-1.0d0
-                exit
-             end if
-             workPredictedTotal=workPredictedTotal+timeTreePredicted_
-          end do
-       else
-          ! Root masses are not known up-front (e.g. the read path), but node counts may be: try a node-count-based cost model.
-          call self%mergerTreeConstructor_%treeCountsNodes(countsNodesCensus)
-          if (allocated(countsNodesCensus)) then
-             workPredictedTotal  =0.0d0
-             haveCostModel       =.true.
-             costModelByNodeCount=.true.
-             do iCensus=1_c_size_t,size(countsNodesCensus,kind=c_size_t)
-                timeTreePredicted_=self%metaTreeProcessingTime_%timeByCountNodes(countsNodesCensus(iCensus))
+
+    ! Begin parallel processing of trees until all work is done.
+    !$omp parallel copyin(finished) if (self%evolveForestsInParallel)
+    ! Perform initialization which must occur for all threads if run in parallel. This is done first---before the per-thread deep
+    ! copies below---so that the tree census (which, for some mass distributions, requires building nodes) can be computed on the
+    ! master constructor and then inherited by each thread's copy.
+    !$omp critical(evolveForestsInitialize)
+    allocate(parameters)
+    parameters=inputParameters(self%parameters)
+    call Node_Components_Thread_Initialize(parameters)
+    !$omp end critical(evolveForestsInitialize)
+    !$omp barrier
+    ! Compute the tree census and (if a cost model is available) the total predicted work, then report the start-of-run estimate.
+    ! This is performed on the master constructor, before the per-thread deep copies below, so that each thread's copy inherits the
+    ! already-constructed set of tree masses---rather than re-constructing it, which for some mass distributions both duplicates work
+    ! and is unsafe to do concurrently. It is done after the per-thread node component initialization above (constructing the tree
+    ! masses can require building nodes), and only when the result will be used (progress reporting or estimate-only mode), as for
+    ! some constructors (e.g. the read path) it is moderately expensive.
+    !$omp masked
+    if (reportProgress .or. self%estimateRunTimeOnly) then
+       countTreesTotal=self%mergerTreeConstructor_%countTrees()
+       if (countTreesTotal > 0_c_size_t) then
+          call self%mergerTreeConstructor_%treeMasses(massesCensus)
+          if (allocated(massesCensus)) then
+             ! Root masses are known up-front (e.g. the build path): use the mass-based cost model.
+             workPredictedTotal=0.0d0
+             haveCostModel     =.true.
+             do iCensus=1_c_size_t,size(massesCensus,kind=c_size_t)
+                timeTreePredicted_=self%metaTreeProcessingTime_%time(massesCensus(iCensus))
                 if (timeTreePredicted_ <= 0.0d0) then
-                   haveCostModel       =.false.
-                   costModelByNodeCount=.false.
-                   workPredictedTotal  =-1.0d0
+                   ! No usable cost model (e.g. the null estimator) - fall back to tree-count-based progress only.
+                   haveCostModel     =.false.
+                   workPredictedTotal=-1.0d0
                    exit
                 end if
                 workPredictedTotal=workPredictedTotal+timeTreePredicted_
              end do
+          else
+             ! Root masses are not known up-front (e.g. the read path), but node counts may be: try a node-count-based cost model.
+             call self%mergerTreeConstructor_%treeCountsNodes(countsNodesCensus)
+             if (allocated(countsNodesCensus)) then
+                workPredictedTotal  =0.0d0
+                haveCostModel       =.true.
+                costModelByNodeCount=.true.
+                do iCensus=1_c_size_t,size(countsNodesCensus,kind=c_size_t)
+                   timeTreePredicted_=self%metaTreeProcessingTime_%timeByCountNodes(countsNodesCensus(iCensus))
+                   if (timeTreePredicted_ <= 0.0d0) then
+                      haveCostModel       =.false.
+                      costModelByNodeCount=.false.
+                      workPredictedTotal  =-1.0d0
+                      exit
+                   end if
+                   workPredictedTotal=workPredictedTotal+timeTreePredicted_
+                end do
+             end if
           end if
+          ! Report the start-of-run estimate of the total run time, warning if it exceeds any wall-time budget.
+          call evolveForestsProgressStart(self,countTreesTotal,workPredictedTotal,workerCount,haveCostModel)
        end if
     end if
-    ! Report a start-of-run estimate of the total run time (only when a cost model and census are both available), and warn if it
-    ! exceeds any wall-time budget. The estimate is always reported when running in estimate-only mode.
-    if (reportProgress .or. self%estimateRunTimeOnly) call evolveForestsProgressStart(self,countTreesTotal,workPredictedTotal,workerCount,haveCostModel)
-    ! In estimate-only mode, report the estimate and exit without evolving any trees (used for sizing job requests).
-    if (self%estimateRunTimeOnly) then
-       !$ call OMP_Destroy_Lock(initializationLock)
-       call displayUnindent('Done task: merger tree evolution (run-time estimate only; no trees evolved)')
-       return
-    end if
-
-    ! Begin parallel processing of trees until all work is done.
-    !$omp parallel copyin(finished) if (self%evolveForestsInParallel)
+    !$omp end masked
+    !$omp barrier
+    ! Create per-thread copies of the objects used in tree processing. The merger tree constructor's copy inherits the set of tree
+    ! masses constructed by the census above, and so does not re-construct them.
     allocate(mergerTreeOutputter_  ,mold=self%mergerTreeOutputter_  )
     allocate(mergerTreeInitializor_,mold=self%mergerTreeInitializor_)
     allocate(mergerTreeEvolver_    ,mold=self%mergerTreeEvolver_    )
@@ -694,12 +711,6 @@ contains
     !!]
     !$omp end critical(evolveForestsDeepCopy)
     !$omp barrier
-    ! Call routines to perform initialization which must occur for all threads if run in parallel.
-    !$omp critical(evolveForestsInitialize)
-    allocate(parameters)
-    parameters=inputParameters(self%parameters)
-    call Node_Components_Thread_Initialize(parameters)
-    !$omp end critical(evolveForestsInitialize)
     ! Allow events to be attached to the universe.
     !$omp masked
     self%universeWaiting%event => null()
@@ -715,6 +726,9 @@ contains
     end if
     !$omp end masked
     !$omp barrier
+    ! In estimate-only mode, the start-of-run estimate has now been reported; skip tree evolution entirely (each thread marks itself
+    ! finished so that no forests are claimed or processed).
+    if (self%estimateRunTimeOnly) finished=.true.
     ! Begin processing trees.
     treeProcess : do while (.not.finished)
        ! Attempt to get a new tree to process. We first try to get a new tree. If no new trees exist, we will look for a tree on
@@ -1153,7 +1167,11 @@ contains
     <eventHookStatic name="universePostEvolveTask"/>
     !!]
 
-    call displayUnindent('Done task: merger tree evolution')
+    if (self%estimateRunTimeOnly) then
+       call displayUnindent('Done task: merger tree evolution (run-time estimate only; no trees evolved)')
+    else
+       call displayUnindent('Done task: merger tree evolution')
+    end if
 
     return
   end subroutine evolveForestsPerform
