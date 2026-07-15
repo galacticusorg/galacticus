@@ -18,7 +18,7 @@ from XML.Utils import xml_to_dict
 logger = logging.getLogger(__name__)
 
 __all__ = ['select_simulations', 'match_selection', 'iterate', 'parse_simulations_xml',
-           'detection_class_name', 'write_detection_mappings_file']
+           'detection_class_name', 'write_hmf_mappings_file']
 
 
 def select_simulations(options):
@@ -335,26 +335,60 @@ def detection_class_name(suite, group):
     return suite_name_det + group.get('detectionEfficiencyClass', '')
 
 
-def write_detection_mappings_file(output_dir, class_name):
-    """Write the shared halo-mass-function detection-efficiency parameter mappings.
+def _isolation_bias_label(suite, group):
+    """The isolation-bias parameter label for a (suite, group). Mirrors the
+    halo-mass-function generator's Step A."""
+    group_short = group.get('shortName', group['name'])
+    if 'matchedIsolation' in suite:
+        label = suite['matchedIsolation']['suite'] + group_short
+    else:
+        label = suite['name'] + group_short
+    return label.replace(':', '_')
 
-    The halo mass function model (``haloMassFunction_{suite}.xml``) references *bare*
-    detection parameter names (``detectionExponentMass`` etc.); this file maps those
-    to the per-class calibrated values in ``haloMassFunctionParameters.xml``. Both the
-    halo-mass-function and progenitor stages XInclude this single file, so the same
-    model resolves in either stage. Idempotent; returns the written path.
+
+def write_hmf_mappings_file(output_dir, suite, group):
+    """Write the shared halo-mass-function parameter mappings for a (suite, group).
+
+    The halo mass function model (``haloMassFunction_{suite}.xml``) references several
+    *bare* parameter names — ``detectionExponentMass``, ``perturbationFractional``,
+    ``isolationBias`` — that resolve to per-class/per-group calibrated values in
+    ``haloMassFunctionParameters.xml``. Those mappings previously lived only in the HMF
+    base file; this writes them to a single file that both the halo-mass-function and
+    progenitor stages XInclude, so the same model resolves in either stage.
+
+    Only the mappings whose bare name is *actually referenced by the model* (read from
+    the processed ``haloMassFunction_{suite}.xml`` in *output_dir*) are emitted, so the
+    file tracks any ``--removeX`` pruning and per-suite model differences. (The
+    ``haloEnvironment`` object used by some suites is not a bare-name mapping and is not
+    handled here.) Idempotent; returns the written path.
     """
-    path = f"{output_dir}haloMassFunctionDetection_{class_name}.xml"
+    suite_name = suite['name']
+    model_path = f"{output_dir}haloMassFunction_{suite_name}.xml"
+    model_xml  = open(model_path).read() if os.path.exists(model_path) else ''
+
+    lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<parameters>']
+    if '[detectionExponentMass]' in model_xml:
+        c = detection_class_name(suite, group)
+        lines += [
+            f'  <detectionMassMinimumParticleCount value="=[haloMassFunctionParameters/massMinimumParticleCount{c}]" ignoreWarnings="true"/>',
+            f'  <detectionEfficiencyAtMassMinimum  value="=[haloMassFunctionParameters/efficiencyAtMassMinimum{c}]"  ignoreWarnings="true"/>',
+            f'  <detectionExponentMass             value="=[haloMassFunctionParameters/exponentMassDetection{c}]"     ignoreWarnings="true"/>',
+            f'  <detectionExponentRedshift         value="=[haloMassFunctionParameters/exponentRedshiftDetection{c}]" ignoreWarnings="true"/>',
+        ]
+    if '[perturbationFractional]' in model_xml:
+        lbl = 'Cube' + group['name']
+        lines.append(f'  <perturbationFractional value="=[haloMassFunctionParameters/perturbation{lbl}]"/>')
+    if '[isolationBias]' in model_xml:                       # Symphony / COZMIC only
+        lbl = _isolation_bias_label(suite, group)
+        lines += [
+            f'  <isolationBias         value="=[haloMassFunctionParameters/isolationBias{lbl}]"         ignoreWarnings="true"/>',
+            f'  <isolationBiasExponent value="=[haloMassFunctionParameters/isolationBiasExponent{lbl}]" ignoreWarnings="true"/>',
+        ]
+    lines += ['</parameters>', '']
+
+    path = f"{output_dir}haloMassFunctionMappings_{suite_name}_{group['name']}.xml"
     with open(path, 'w') as fh:
-        fh.write(
-            '<?xml version="1.0" encoding="UTF-8"?>\n'
-            '<parameters>\n'
-            f'  <detectionMassMinimumParticleCount value="=[haloMassFunctionParameters/massMinimumParticleCount{class_name}]" ignoreWarnings="true"/>\n'
-            f'  <detectionEfficiencyAtMassMinimum  value="=[haloMassFunctionParameters/efficiencyAtMassMinimum{class_name}]"  ignoreWarnings="true"/>\n'
-            f'  <detectionExponentMass             value="=[haloMassFunctionParameters/exponentMassDetection{class_name}]"     ignoreWarnings="true"/>\n'
-            f'  <detectionExponentRedshift         value="=[haloMassFunctionParameters/exponentRedshiftDetection{class_name}]" ignoreWarnings="true"/>\n'
-            '</parameters>\n'
-        )
+        fh.write('\n'.join(lines))
     return path
 
 

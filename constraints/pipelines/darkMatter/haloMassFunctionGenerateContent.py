@@ -18,7 +18,7 @@ from Galacticus.Constraints.Simulations import (
     iterate,
     parse_simulations_xml,
     detection_class_name,
-    write_detection_mappings_file,
+    write_hmf_mappings_file,
 )
 from Galacticus._logging                 import configure_default as _configure_default
 from XML.Utils import xml_to_dict
@@ -438,9 +438,10 @@ def _step_e_base_files(entry_groups, options):
             grp_n   = grp['name']
             res_n   = res['name']
             sim_n   = sim['name']
-            # Shared detection-efficiency mappings (also XIncluded by the progenitor
-            # stage), so the halo mass function model resolves in either stage.
-            write_detection_mappings_file(output_dir, class_name)
+            # Shared halo-mass-function parameter mappings (detection / perturbation /
+            # isolation) that the model references by bare name; also XIncluded by the
+            # progenitor stage, so the model resolves in either stage.
+            write_hmf_mappings_file(output_dir, suite, grp)
             base = (
                 f'<?xml version="1.0" encoding="UTF-8"?>\n'
                 f'<parameters>\n'
@@ -471,33 +472,11 @@ def _step_e_base_files(entry_groups, options):
                 f'  <massParticleAtResolution value="=[simulation/massParticle/{res_n}]"'
                 f' ignoreWarnings="true"/>\n'
                 f'\n'
-                f'  <!-- Detection efficiency mappings (shared with the progenitor stage) -->\n'
-                f'  <xi:include href="{output_dir}haloMassFunctionDetection_{class_name}.xml"'
+                f'  <!-- Shared halo-mass-function parameter mappings (detection / -->\n'
+                f'  <!-- perturbation / isolation) referenced by the model by bare name. -->\n'
+                f'  <xi:include href="{output_dir}haloMassFunctionMappings_{suite_n}_{grp_n}.xml"'
                 f'                             {xp} {xi}/>\n'
             )
-            if (suite.get('includePerturbation', {}).get('value') == 'true'
-                    and options.get('removeSimulationVariance') != 'true'):
-                lbl = grp['parameterPerturbation']
-                base += (
-                    f'\n'
-                    f'  <!-- Use the simulation variance perturbation relevant to this simulation -->\n'
-                    f'  <perturbationFractional'
-                    f' value="=[haloMassFunctionParameters/perturbation{lbl}]"/>\n'
-                )
-            if (suite.get('includeIsolationBias', {}).get('value') == 'true'
-                    and options.get('removeMultiplier') != 'true'):
-                lbl = grp['labelIsolationBias']
-                base += (
-                    f'\n'
-                    f'  <!-- Isolation bias -->\n'
-                    f'  <isolationBias        '
-                    f' value="=[haloMassFunctionParameters/isolationBias{lbl}]"'
-                    f'         ignoreWarnings="true"/>\n'
-                    f'  <isolationBiasExponent'
-                    f' value="=[haloMassFunctionParameters/isolationBiasExponent{lbl}]"'
-                    f' ignoreWarnings="true"/>\n'
-                    f'\n'
-                )
             if suite.get('includeEnvironment', {}).get('value') == 'true':
                 env = entry['environment']
                 base += (

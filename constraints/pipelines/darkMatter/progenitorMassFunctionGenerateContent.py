@@ -16,8 +16,7 @@ sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', ''), 'pyt
 from Galacticus.Constraints.Simulations import (
     iterate,
     parse_simulations_xml,
-    detection_class_name,
-    write_detection_mappings_file,
+    write_hmf_mappings_file,
 )
 from XML.Utils import xml_to_dict
 
@@ -231,11 +230,11 @@ def _base_files(entry_groups,options):
         grp_n   = grp['name']
         res_n   = res['name']
         sim_n   = sim['name']
-        # Shared detection-efficiency mappings (also written by the HMF stage): the
-        # included haloMassFunction model references bare detection names that these
-        # map to the calibrated per-class values in haloMassFunctionParameters.xml.
-        class_name = detection_class_name(suite, grp)
-        write_detection_mappings_file(output_dir, class_name)
+        # Shared halo-mass-function parameter mappings (also written by the HMF stage):
+        # the included haloMassFunction model references bare names (detection /
+        # perturbation / isolation) that these map to calibrated values in
+        # haloMassFunctionParameters.xml.
+        write_hmf_mappings_file(output_dir, suite, grp)
         base = (
             f'<?xml version="1.0" encoding="UTF-8"?>\n'
             f'<parameters>\n'
@@ -264,9 +263,9 @@ def _base_files(entry_groups,options):
             f'  <!-- <haloMassFunction> section is included. -->\n'
             f'  <xi:include href="{output_dir}haloMassFunction_{suite_n}.xml"'
             f'                                 {xp_hmf} {xi}/>\n'
-            f'  <!-- Detection-efficiency mappings the model references (shared with -->\n'
-            f'  <!-- the HMF stage). -->\n'
-            f'  <xi:include href="{output_dir}haloMassFunctionDetection_{class_name}.xml"'
+            f'  <!-- Shared halo-mass-function parameter mappings the model references -->\n'
+            f'  <!-- by bare name (detection / perturbation / isolation). -->\n'
+            f'  <xi:include href="{output_dir}haloMassFunctionMappings_{suite_n}_{grp_n}.xml"'
             f'                             {xp} {xi}/>\n'
             f'\n'
         )
