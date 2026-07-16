@@ -127,7 +127,7 @@ contains
       If true, the original (flawed) method for accounting for variance in the angular momentum of subresolution accretion will be used. Otherwise, the new method is used.
       </description>
       <source>parameters</source>
-      <defaultValue>.true.</defaultValue>
+      <defaultValue>.false.</defaultValue>
     </inputParameter>
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"          source="parameters"/>
