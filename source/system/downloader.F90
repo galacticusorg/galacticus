@@ -228,7 +228,7 @@ contains
          &                                                    timeout
     integer                  , intent(  out), optional     :: status
     integer                                                :: status_       , tries    , i
-    type     (varying_string)                              :: urlList
+    type     (varying_string)                              :: urlList       , escapedOutputFile
     character(len=12        )                              :: timeoutLabel
     !![
     <optionalArgument name="retries"   defaultsTo="0"  />
@@ -239,6 +239,7 @@ contains
     call downloadInitialize()
     ! Build a string representation of the per-attempt timeout (in seconds) for use in the downloader commands below.
     write (timeoutLabel,'(i0)') timeout_
+    escapedOutputFile=shellEscape(trim(outputFileName))
     if (present(status)) status=0
     status_=errorStatusFail
     do i=1,size(url)
@@ -250,12 +251,12 @@ contains
              ! here, so allowing `wget` to also retry internally results in a multiplicative number of attempts (and can cause the
              ! download to far exceed any time limit when each internal attempt hangs until its read-timeout). The `--timeout`
              ! option bounds the time spent on DNS lookup, connection, and reads for the single attempt.
-             call System_Command_Do('wget --no-check-certificate --tries=1 --timeout='//trim(timeoutLabel)//' "'//char(url(i))//'" -O '       //char(shellEscape(trim(outputFileName))),status_)
+             call System_Command_Do('wget --no-check-certificate --tries=1 --timeout='//trim(timeoutLabel)//' "'//char(url(i))//'" -O '       //char(escapedOutputFile),status_)
           else if (downloadUsingCurl) then
              ! Force `curl` to make only a single attempt (i.e. disable its own retrying) so that retries are handled solely by the
              ! loop here, consistent with the behavior of `wget` above. The `--max-time` option bounds the total time allowed for
              ! the single attempt.
-             call System_Command_Do('curl --insecure --location --retry 0 --max-time '//trim(timeoutLabel)//' "' //char(url(i))//'" --output '//char(shellEscape(trim(outputFileName))),status_)
+             call System_Command_Do('curl --insecure --location --retry 0 --max-time '//trim(timeoutLabel)//' "' //char(url(i))//'" --output '//char(escapedOutputFile),status_)
           else if (.not.present(status)) then
              call Error_Report('no downloader available'//{introspection:location})
           end if

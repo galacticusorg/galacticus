@@ -339,7 +339,9 @@ contains
     logical                , intent(in   ), optional :: static
     integer                                          :: status
     type   (lockDescriptor)                          :: fileLock
-    type   (varying_string)                          :: command   , staticOptions
+    type   (varying_string)                          :: command         , staticOptions, &
+         &                                              escapedToolsPath, escapedTarFile, &
+         &                                              escapedSrcDir
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
@@ -362,12 +364,15 @@ contains
              if (status /= 0 .or. .not.File_Exists(manglePath//".tar.gz")) call Error_Report("unable to download mangle"//{introspection:location})
           end if
           call displayMessage("unpacking mangle code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//shellEscape(inputPath(pathTypeTools))//" -f "//shellEscape(manglePath//".tar.gz"),status)
+          escapedToolsPath=shellEscape(inputPath(pathTypeTools))
+          escapedTarFile  =shellEscape(manglePath//".tar.gz"   )
+          call System_Command_Do("tar -x -v -z -C "//escapedToolsPath//" -f "//escapedTarFile,status)
           if (status /= 0 .or. .not.File_Exists(manglePath//"src/Makefile.in")) call Error_Report('failed to unpack mangle code'//{introspection:location})
        end if
        staticOptions=""
        if (static_) staticOptions=" -Wl,--whole-archive -lpthread -ldl -Wl,--no-whole-archive"
-       command=         'cd '//shellEscape(manglePath//"src")//'; ./configure; '
+       escapedSrcDir=shellEscape(manglePath//"src")
+       command=         'cd '//escapedSrcDir//'; ./configure; '
        command=command//'sed -E -i~ s/"^F77[[:space:]]*=[[:space:]]*[a-zA-Z0-9]+"/"F77 = '//                 compiler       (languageFortran)                         //'"/ Makefile; '
        command=command//'sed -E -i~ s/"^CC[[:space:]]*=[[:space:]]*[a-zA-Z0-9]+"/"CC = '  //                 compiler       (languageC      )                         //'"/ Makefile; '
        command=command//'sed -E -i~ s/"^FFLAGS[[:space:]]*:=(.*)"/"FFLAGS:=\1 '           //stringSubstitute(compilerOptions(languageFortran),"/","\/")//staticOptions//'"/ Makefile; '
@@ -402,8 +407,10 @@ contains
     type            (varying_string), allocatable  , dimension(             : ) :: subFiles
     integer                                                                     :: i                       , j            , &
          &                                                                         status                  , wlmFile
-    type            (varying_string)                                            :: fileName                , fileNameTmp  , &
-         &                                                                         manglePath              , mangleVersion
+    type            (varying_string)                                            :: fileName                , fileNameTmp       , &
+         &                                                                         manglePath              , mangleVersion     , &
+         &                                                                         escapedHarmonize        , escapedFileName   , &
+         &                                                                         escapedFileNameTmp
     double precision                                                            :: multiplier              , subSolidAngle, &
          &                                                                         w00
     type            (hdf5Object    )                                            :: solidAngleFile
@@ -437,7 +444,10 @@ contains
              multiplier=-1.0d0
           end if
           fileNameTmp=File_Name_Temporary('geometryMangleSolidAngle')
-          call System_Command_Do(shellEscape(manglePath//"bin/harmonize")//" "//shellEscape(fileName)//" "//shellEscape(fileNameTmp),status)
+          escapedHarmonize  =shellEscape(manglePath//"bin/harmonize")
+          escapedFileName   =shellEscape(fileName                   )
+          escapedFileNameTmp=shellEscape(fileNameTmp                )
+          call System_Command_Do(escapedHarmonize//" "//escapedFileName//" "//escapedFileNameTmp,status)
           if (status /= 0) call Error_Report('failed to run mangle harmonize'//{introspection:location})
           open(newUnit=wlmFile,file=char(fileNameTmp),status="old",form="formatted")
           read (wlmFile,*)
@@ -483,8 +493,10 @@ contains
     double precision                               , dimension(                                      2                                      ) :: coefficient
     double precision                               , dimension(size(fileNames)                      ,2,(degreeMaximum+1)*(degreeMaximum+2)/2) :: coefficients
     type            (varying_string), allocatable  , dimension(             :                                                               ) :: subFiles
-    type            (varying_string)                                                                                                          :: fileName                  , fileNameTmp  , &
-         &                                                                                                                                       manglePath                , mangleVersion
+    type            (varying_string)                                                                                                          :: fileName                  , fileNameTmp      , &
+         &                                                                                                                                       manglePath                , mangleVersion    , &
+         &                                                                                                                                       escapedHarmonize          , escapedFileName  , &
+         &                                                                                                                                       escapedFileNameTmp
     integer                                                                                                                                   :: degree                    , order        , &
          &                                                                                                                                       status                    , wlmFile      , &
          &                                                                                                                                       i                         , j            , &
@@ -529,7 +541,10 @@ contains
              multiplier=-1.0d0
           end if
           fileNameTmp=File_Name_Temporary('geometryMangleAngularPower')
-          call System_Command_Do(shellEscape(manglePath//"bin/harmonize")//" -l "//degreeMaximum//" "//shellEscape(fileName)//" "//shellEscape(fileNameTmp),status)
+          escapedHarmonize  =shellEscape(manglePath//"bin/harmonize")
+          escapedFileName   =shellEscape(fileName                   )
+          escapedFileNameTmp=shellEscape(fileNameTmp                )
+          call System_Command_Do(escapedHarmonize//" -l "//degreeMaximum//" "//escapedFileName//" "//escapedFileNameTmp,status)
           if (status /= 0) call Error_Report('failed to run mangle harmonize'//{introspection:location})
           open(newUnit=wlmFile,file=char(fileNameTmp),status="old",form="formatted")
           read (wlmFile,*)

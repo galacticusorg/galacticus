@@ -76,10 +76,13 @@ contains
     type     (varying_string), intent(  out)           :: cambPath       , cambVersion
     logical                  , intent(in   ), optional :: static
     integer                                            :: status
-    type     (varying_string)                          :: command        , forutilsVersion , &
-         &                                                makeFile       , makeFileForUtils, &
-         &                                                tarBall        , executable      , &
-         &                                                url            , tarBallForUtils
+    type     (varying_string)                          :: command          , forutilsVersion   , &
+         &                                                makeFile         , makeFileForUtils  , &
+         &                                                tarBall          , executable        , &
+         &                                                url              , tarBallForUtils   , &
+         &                                                escapedToolsPath , escapedTarFile    , &
+         &                                                escapedForUtilsDir, escapedForUtilsTar, &
+         &                                                escapedCambPath
     type     (lockDescriptor)                          :: fileLock
     !![
     <optionalArgument name="static" defaultsTo=".false." />
@@ -109,7 +112,9 @@ contains
              if (status /= 0 .or. .not.File_Exists(tarBall)) call Error_Report("unable to download CAMB"//{introspection:location})
           end if
           call displayMessage("unpacking CAMB code....",verbosityLevelWorking)
-          command="tar -x -v -z -C "//shellEscape(inputPath(pathTypeTools))//" -f "//shellEscape(inputPath(pathTypeTools)//"CAMB_"//cambVersion//".tar.gz")
+          escapedToolsPath=shellEscape(inputPath(pathTypeTools))
+          escapedTarFile  =shellEscape(inputPath(pathTypeTools)//"CAMB_"//cambVersion//".tar.gz")
+          command="tar -x -v -z -C "//escapedToolsPath//" -f "//escapedTarFile
           call System_Command_Do(command,status);
           if (status /= 0 .or. .not.File_Exists(cambPath)) call Error_Report('failed to unpack CAMB code'//{introspection:location})
           ! Download the "forutils" package if necessary.
@@ -121,16 +126,19 @@ contains
                 if (status /= 0 .or. .not.File_Exists(tarBallForUtils)) call Error_Report("unable to download forutils"//{introspection:location})
              end if
              call displayMessage("unpacking forutils code....",verbosityLevelWorking)
-             command="tar -x -v -z -C "//shellEscape(cambPath//"../forutils")//" -f "//shellEscape(cambPath//"../forutils_"//forutilsVersion//".tar.gz")//" --strip-components 1"
-             call System_Command_Do(command);          
+             escapedForUtilsDir=shellEscape(cambPath//"../forutils")
+             escapedForUtilsTar=shellEscape(cambPath//"../forutils_"//forutilsVersion//".tar.gz")
+             command="tar -x -v -z -C "//escapedForUtilsDir//" -f "//escapedForUtilsTar//" --strip-components 1"
+             call System_Command_Do(command);
              if (status /= 0 .or. .not.File_Exists(makeFileForUtils)) call Error_Report('failed to unpack forutils code'//{introspection:location})
           end if
        end if       
        call displayMessage("compiling CAMB code",verbosityLevelWorking)
-       command='cd '//shellEscape(cambPath)//'; sed -E -i~ s/"ifortErr[[:space:]]*=.*"/"ifortErr = 1"/ Makefile; sed -E -i~ s/"gfortErr[[:space:]]*=.*"/"gfortErr = 0"/ Makefile; sed -E -i~ s/"gfortran"/"'//stringSubstitute(compiler(languageFortran),"/","\/")//'"/ Makefile; sed -E -i~ s/"gfortran"/"'//stringSubstitute(compiler(languageFortran),"/","\/")//'"/ ../forutils/Makefile_compiler; sed -E -i~ s/"^FFLAGS[[:space:]]*\+=[[:space:]]*\-march=native"/"FFLAGS+="/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*=[[:space:]]*.*"/"FFLAGS = -cpp -Ofast -fopenmp '//stringSubstitute(compilerOptions(languageFortran),"/","\/")
+       escapedCambPath=shellEscape(cambPath)
+       command='cd '//escapedCambPath//'; sed -E -i~ s/"ifortErr[[:space:]]*=.*"/"ifortErr = 1"/ Makefile; sed -E -i~ s/"gfortErr[[:space:]]*=.*"/"gfortErr = 0"/ Makefile; sed -E -i~ s/"gfortran"/"'//stringSubstitute(compiler(languageFortran),"/","\/")//'"/ Makefile; sed -E -i~ s/"gfortran"/"'//stringSubstitute(compiler(languageFortran),"/","\/")//'"/ ../forutils/Makefile_compiler; sed -E -i~ s/"^FFLAGS[[:space:]]*\+=[[:space:]]*\-march=native"/"FFLAGS+="/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*=[[:space:]]*.*"/"FFLAGS = -cpp -Ofast -fopenmp '//stringSubstitute(compilerOptions(languageFortran),"/","\/")
        if (static_) command=command//" -static -Wl,--whole-archive -lpthread -ldl -Wl,--no-whole-archive"
        command=command//'"/ Makefile'
-       if (static_) command=command//'; cp "$GALACTICUS_EXEC_PATH/source/utility/OpenMP/workaround.c" '//shellEscape(cambPath)//'; gcc -DSTATIC -c workaround.c -o workaround.o; sed -E -i~ s/"\-o camb$"/"workaround\.o \-o camb"/ Makefile_main'
+       if (static_) command=command//'; cp "$GALACTICUS_EXEC_PATH/source/utility/OpenMP/workaround.c" '//escapedCambPath//'; gcc -DSTATIC -c workaround.c -o workaround.o; sed -E -i~ s/"\-o camb$"/"workaround\.o \-o camb"/ Makefile_main'
        command=command//'; find . -name "*.f90" | xargs sed -E -i~ s/"error stop"/"error stop "/; make -j1 camb'
        call System_Command_Do(command,status);
        if (status /= 0 .or. .not.File_Exists(executable)) call Error_Report("failed to build CAMB code"//{introspection:location})
@@ -194,7 +202,8 @@ contains
          &                                                                                 redshiftLabel                           , indexLabel              , &
          &                                                                                 extracted
     type            (varying_string                  )                                  :: uniqueLabel                             , workPath                , &
-         &                                                                                 transferFileName                        , fileName_
+         &                                                                                 transferFileName                        , fileName_               , &
+         &                                                                                 escapedExecutable                       , escapedParameterFile
     type            (inputParameters                 )                                  :: descriptor
     logical                                                                             :: allEpochsFound
     !![
@@ -437,7 +446,9 @@ contains
              write (cambParameterFile,'(a,1x,"=",1x,i1   )') 'l_sample_boost               ',1
              close(cambParameterFile)
              ! Run CAMB.
-             call System_Command_Do(shellEscape(cambPath//"camb")//" "//shellEscape(parameterFile))
+             escapedExecutable   =shellEscape(cambPath//"camb")
+             escapedParameterFile=shellEscape(parameterFile   )
+             call System_Command_Do(escapedExecutable//" "//escapedParameterFile)
              ! Read the CAMB transfer function file.
              if (allocated(wavenumbers      )) deallocate(wavenumbers      )
              if (allocated(transferFunctions)) deallocate(transferFunctions)

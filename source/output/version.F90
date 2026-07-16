@@ -117,7 +117,8 @@ contains
     type     (varying_string)          :: runTime        , inputPathStatic
 #ifndef GIT2AVAIL
     integer                            :: status         , hashUnit
-    type     (varying_string)          :: hashFileName
+    type     (varying_string)          :: hashFileName   , escapedStaticPath, &
+         &                                escapedHashFile
 #endif
 
     ! Record the count of the system clock.
@@ -143,7 +144,9 @@ contains
     ! Git2 library is not available. If we have the command line `git` installed, use it instead.
     gitHashDatasets="unknown"
     hashFileName   =File_Name_Temporary("repoHash.txt")
-    call System_Command_Do("cd "//char(shellEscape(inputPath(pathTypeDataStatic)))//"; if which git > /dev/null && git rev-parse --is-inside-work-tree > /dev/null 2>&1 ; then git rev-parse HEAD > "//char(shellEscape(hashFileName))//"; else echo unknown > "//char(shellEscape(hashFileName))//"; fi",iStatus=status)
+    escapedStaticPath=shellEscape(inputPath(pathTypeDataStatic))
+    escapedHashFile  =shellEscape(hashFileName                 )
+    call System_Command_Do("cd "//char(escapedStaticPath)//"; if which git > /dev/null && git rev-parse --is-inside-work-tree > /dev/null 2>&1 ; then git rev-parse HEAD > "//char(escapedHashFile)//"; else echo unknown > "//char(escapedHashFile)//"; fi",iStatus=status)
     if (status == 0) then
        open(newUnit=hashUnit,file=char(hashFileName),status="old",form="formatted",iostat=ioErr)
        if (ioErr == 0) read (hashUnit,'(a)') gitHashDatasets

@@ -183,8 +183,11 @@ contains
     class           (powerSpectrumNonlinearCosmicEmu), intent(inout) :: self
     double precision                                 , intent(in   ) :: time          , waveNumber
     double precision                                                 :: redshift
-    type            (varying_string                 )                :: parameterFile , powerSpectrumFile, &
-         &                                                              parameters
+    type            (varying_string                 )                :: parameterFile     , powerSpectrumFile   , &
+         &                                                              parameters        , escapedZipFile      , &
+         &                                                              escapedDynamicPath , escapedBuildDir     , &
+         &                                                              escapedWorkDir     , escapedExecutable   , &
+         &                                                              escapedParameterFile, escapedPowerSpectrum
     character       (len=32                         )                :: parameterLabel
     integer                                                          :: iWavenumber   , powerSpectrumUnit, &
          &                                                              status
@@ -253,18 +256,25 @@ contains
                 end if
                 ! Unpack the code.
                 call displayMessage("unpacking CosmicEmu code....",verbosityLevelWorking)
-                call System_Command_Do("unzip "//shellEscape(inputPath(pathTypeDataDynamic)//"CosmicEmu-master.zip")//" -d "//shellEscape(inputPath(pathTypeDataDynamic)))
+                escapedZipFile    =shellEscape(inputPath(pathTypeDataDynamic)//"CosmicEmu-master.zip")
+                escapedDynamicPath=shellEscape(inputPath(pathTypeDataDynamic)                        )
+                call System_Command_Do("unzip "//escapedZipFile//" -d "//escapedDynamicPath)
                 if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.c")) &
                      & call Error_Report("failed to unpack CosmicEmu code"//{introspection:location})
              end if
              ! Build the code.
              call displayMessage("compiling CosmicEmu code....",verbosityLevelWorking)
-             call System_Command_Do("cd "//shellEscape(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb")//"; sed -i~ -r s/""^(\s*gcc.*\-lm)(\s+.*)$""/""\1 \-I\`gsl\-config \-\-prefix\`\2\n""/ makefile; make");
+             escapedBuildDir=shellEscape(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb")
+             call System_Command_Do("cd "//escapedBuildDir//"; sed -i~ -r s/""^(\s*gcc.*\-lm)(\s+.*)$""/""\1 \-I\`gsl\-config \-\-prefix\`\2\n""/ makefile; make");
              if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.exe")) &
                   & call Error_Report("failed to build Cosmic_Emu code"//{introspection:location})
           end if
           ! Generate the power spectrum.
-          call System_Command_Do("cd "//shellEscape(File_Path(parameterFile))//"; "//shellEscape(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.exe")//" < "//shellEscape(parameterFile)//"; mv EMU0.txt "//shellEscape(powerSpectrumFile))
+          escapedWorkDir      =shellEscape(File_Path(parameterFile))
+          escapedExecutable   =shellEscape(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.exe")
+          escapedParameterFile=shellEscape(parameterFile)
+          escapedPowerSpectrum=shellEscape(powerSpectrumFile)
+          call System_Command_Do("cd "//escapedWorkDir//"; "//escapedExecutable//" < "//escapedParameterFile//"; mv EMU0.txt "//escapedPowerSpectrum)
           ! Destroy the parameter file and temporary directory.
           call      File_Remove(          parameterFile )
           call Directory_Remove(File_Path(parameterFile))

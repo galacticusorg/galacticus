@@ -64,11 +64,12 @@ contains
     integer                  , intent(  out), optional :: status
     character(len=1024      )                          :: commandFull_
     integer                                            :: status_     , commandUnit
-    type     (varying_string)                          :: tempFile
-    
+    type     (varying_string)                          :: tempFile    , escapedTempFile
+
     if (present(status)) status=errorStatusSuccess
     tempFile=File_Name_Temporary("which")
-    call System_Command_Do('which '//trim(command)//' > '//char(shellEscape(tempFile)),status_)
+    escapedTempFile=shellEscape(tempFile)
+    call System_Command_Do('which '//trim(command)//' > '//char(escapedTempFile),status_)
     if (status_ == 0) then
        open(newUnit=commandUnit,file=char(tempFile),status='unknown',form='formatted')
        read (commandUnit,'(a)') commandFull_ 

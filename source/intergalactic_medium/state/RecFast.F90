@@ -99,7 +99,8 @@ contains
          &                                                                            matterTemperature
     character       (len=32                         )                              :: parameterLabel
     type            (varying_string                 )                              :: parameterFile       , recFastFile      , &
-         &                                                                            recfastPath         , recfastVersion
+         &                                                                            recfastPath         , recfastVersion   , &
+         &                                                                            escapedExecutable   , escapedParameterFile
     double precision                                                               :: omegaDarkMatter
     integer                                                                        :: fileFormatVersion   , i                , &
          &                                                                            countRedshift       , parametersUnit   , &
@@ -163,7 +164,9 @@ contains
        close(parametersUnit)
        ! Run RecFast.
        call File_Lock(char(recfastPath//"recfast.exe"),fileLock,lockIsShared=.false.)
-       call System_Command_Do(shellEscape(recfastPath//"recfast.exe")//" < "//shellEscape(parameterFile))
+       escapedExecutable   =shellEscape(recfastPath//"recfast.exe")
+       escapedParameterFile=shellEscape(parameterFile             )
+       call System_Command_Do(escapedExecutable//" < "//escapedParameterFile)
        call File_Unlock(fileLock)
        ! Parse the output file.
        countRedshift=Count_Lines_in_File(recFastFile)-1

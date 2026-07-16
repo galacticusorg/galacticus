@@ -47,6 +47,11 @@ contains
     safely as a single token (e.g. a file system path) in a shell command even if it contains spaces or other characters
     that are special to the shell. This should be applied to any path substituted into a command passed to
     ``System_Command_Do``.
+
+    Note that the result of ``shellEscape`` must first be assigned to a local variable, which is then used in building the
+    command string. The result of ``shellEscape`` must {\normalfont \bfseries not} be used directly as an actual argument (for
+    example inline within a ``System_Command_Do`` argument, or as an operand of a concatenation that is passed as an actual
+    argument), as gfortran leaks the function result in that case.
     !!}
     use :: ISO_Varying_String, only : varying_string, replace, operator(//)
     implicit none
