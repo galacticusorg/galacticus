@@ -133,18 +133,18 @@ module Input_Parameters
   
   type :: inputParameters
      private
-     type   (documentWrapper  ), pointer, public :: document               => null()
-     type   (node             ), pointer         :: rootNode               => null()
-     type   (hdf5Group        ), pointer         :: outputParameters       => null()
-     type   (hdf5File         ), pointer         :: outputParametersContainer        => null()
-     type   (resourceManager  )                  :: outputParametersManager          , outputParametersContainerManager          , &
+     type   (documentWrapper  ), pointer, public :: document                  => null()
+     type   (node             ), pointer         :: rootNode                  => null()
+     type   (hdf5Group        ), pointer         :: outputParameters          => null()
+     type   (hdf5File         ), pointer         :: outputParametersContainer => null()
+     type   (resourceManager  )                  :: outputParametersManager             , outputParametersContainerManager          , &
           &                                         documentManager
-     type   (inputParameter   ), pointer, public :: parameters             => null()
-     type   (inputParameters)  , pointer, public :: parent                 => null() , original                         => null()
-     logical                                     :: outputParametersCopied =  .false., outputParametersTemporary        = .false., &
-          &                                         isNull                 =  .false., strict                           = .false.
+     type   (inputParameter   ), pointer, public :: parameters                => null()
+     type   (inputParameters)  , pointer, public :: parent                    => null() , original                         => null()
+     logical                                     :: outputParametersCopied    =  .false., outputParametersTemporary        = .false., &
+          &                                         isNull                    =  .false., strict                           = .false.
      type   (integerDictionary), allocatable     :: warnedDefaults
-     type   (ompLock          ), pointer         :: lock                   => null()
+     type   (ompLock          ), pointer         :: lock                      => null()
      type   (resourceManager  )                  :: lockManager
    contains
      !![
@@ -880,18 +880,16 @@ contains
        allocate(self%outputParameters         )
        allocate(self%outputParametersContainer)
        !$ call hdf5Access%  set()
-       self%outputParametersContainer=hdf5File(                                      &
-            &                                    char(                                 &
-            &                                         File_Name_Temporary(             &
-            &                                                             'glcTmpPar', &
+       self%outputParametersContainer=hdf5File(                                 &
+            &                                  File_Name_Temporary(             &
+            &                                                      'glcTmpPar', &
 #ifdef __APPLE__
-            &                                                             '/tmp'       &
+            &                                                      '/tmp'       &
 #else
-            &                                                             '/dev/shm'   &
+            &                                                      '/dev/shm'   &
 #endif
-            &                                                            )             &
-            &                                         )                              , &
-            &                                    isTemporary=.true.                    &
+            &                                                     )           , &
+            &                                    isTemporary=.true.             &
             &                                   )
        self%outputParameters         =self%outputParametersContainer%openGroup('Parameters',attributesCompactMaxiumum=0)
        self%outputParametersCopied   =.false.

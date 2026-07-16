@@ -25,7 +25,7 @@ module Computational_Domains
   !!{RST
   Provides a class that implements computational domains.
   !!}
-  use            :: IO_HDF5                         , only : hdf5File, hdf5Group, hdf5Dataset
+  use            :: IO_HDF5                         , only : hdf5File                          , hdf5Group, hdf5Dataset
   use, intrinsic :: ISO_C_Binding                   , only : c_size_t
   use            :: Radiative_Transfer_Photon_Packet, only : radiativeTransferPhotonPacketClass
   private

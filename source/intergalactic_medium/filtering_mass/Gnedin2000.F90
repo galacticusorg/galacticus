@@ -646,9 +646,9 @@ contains
     !!{RST
     Write tabulated data on linear growth factor to file.
     !!}
-    use :: HDF5   , only : hsize_t
+    use :: HDF5       , only : hsize_t
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5, only : hdf5File
+    use :: IO_HDF5    , only : hdf5File
     implicit none
     class(intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
     type (hdf5File                                  )                :: dataFile

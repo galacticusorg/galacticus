@@ -322,7 +322,7 @@ contains
     use :: Display                         , only : displayIndent                    , displayMessage                     , displayUnindent
     use :: Error                           , only : Error_Report                     , errorStatusSuccess
     use :: Output_HDF5                     , only : outputFile
-    use :: IO_HDF5                         , only : hdf5File, hdf5Group, hdf5Dataset
+    use :: IO_HDF5                         , only : hdf5File                         , hdf5Group                          , hdf5Dataset
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_IRATE                        , only : irate
     use :: ISO_Varying_String              , only : varying_string
@@ -336,21 +336,21 @@ contains
     implicit none
     class           (taskCatalogProjectedCorrelationFunction), intent(inout), target         :: self
     integer                                                  , intent(  out), optional       :: status
-    double precision                                         , pointer      , dimension(:,:) :: galaxyPosition_      , galaxyVelocity_
-    double precision                                         , allocatable  , dimension(:,:) :: galaxyPosition       , galaxyVelocity
+    double precision                                         , pointer      , dimension(:,:) :: galaxyPosition_         , galaxyVelocity_
+    double precision                                         , allocatable  , dimension(:,:) :: galaxyPosition          , galaxyVelocity
     double precision                                         , allocatable  , dimension(:,:) :: randomPosition
     double precision                                         , pointer      , dimension(:  ) :: galaxyMass
-    double precision                                         , allocatable  , dimension(:  ) :: correlation          , separation              , &
+    double precision                                         , allocatable  , dimension(:  ) :: correlation             , separation      , &
          &                                                                                      correlationSurvey
     double precision                                                        , dimension(3  ) :: rotationAxis
     type            (varying_string                         )                                :: message
     type            (hdf5Dataset                            )                                :: dataset
     type            (hdf5Group                              )                                :: correlationFunctionGroup
     type            (irate                                  )                                :: galaxyFile
-    double precision                                                                         :: simulationBoxSize    , time                    , &
+    double precision                                                                         :: simulationBoxSize       , time            , &
          &                                                                                      redshift
-    integer                                                                                  :: randomPointCount     , replications            , &
-         &                                                                                      i                    , j                       , &
+    integer                                                                                  :: randomPointCount        , replications    , &
+         &                                                                                      i                       , j               , &
          &                                                                                      replicatedGalaxyCount
 
     call displayIndent('Begin task: catalog projected correlation function')

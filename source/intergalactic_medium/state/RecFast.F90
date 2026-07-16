@@ -85,7 +85,7 @@ contains
           &                                         File_Unlock                 , File_Name_Temporary, File_Remove
     use :: Input_Paths                     , only : inputPath                   , pathTypeDataDynamic
     use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5File, hdf5Group, hdf5Dataset
+    use :: IO_HDF5                         , only : hdf5File                    , hdf5Group          , hdf5Dataset
     use :: Interfaces_RecFast              , only : Interface_RecFast_Initialize
     use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use :: Units_MetaData                  , only : unitType

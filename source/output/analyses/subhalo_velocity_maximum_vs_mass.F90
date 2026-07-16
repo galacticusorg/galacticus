@@ -163,7 +163,7 @@ contains
     Constructor for the :galacticus-class:`outputAnalysisSubhaloVMaxVsMass` output analysis class for internal use.
     !!}
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5File, hdf5Group
+    use :: IO_HDF5                 , only : hdf5File                  , hdf5Group
     use :: Output_Times            , only : outputTimesClass
     use :: Cosmology_Functions     , only : cosmologyFunctionsClass
     use :: Virial_Density_Contrast , only : virialDensityContrastClass

@@ -188,7 +188,7 @@ contains
     use :: Input_Paths                           , only : inputPath                                  , pathTypeDataStatic
     use :: Geometry_Surveys                      , only : surveyGeometryFullSky
     use :: HDF5_Access                           , only : hdf5Access
-    use :: IO_HDF5                               , only : hdf5File, hdf5Group
+    use :: IO_HDF5                               , only : hdf5File                                   , hdf5Group
     use :: ISO_Varying_String                    , only : var_str                                    , varying_string
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo              , nodePropertyExtractorMassStellar
     use :: Numerical_Constants_Astronomical      , only : massSolar
@@ -665,7 +665,7 @@ contains
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5File, hdf5Group
+    use :: IO_HDF5    , only : hdf5File  , hdf5Group
     implicit none
     class(outputAnalysisStellarVsHaloMassRelationLeauthaud2012), intent(inout)           :: self
     type (varying_string                                      ), intent(in   ), optional :: groupName

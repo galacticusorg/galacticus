@@ -311,7 +311,7 @@ contains
     !!}
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5File           , hdf5Group           , hdf5Dataset
+    use :: IO_HDF5                         , only : hdf5File  , hdf5Group, hdf5Dataset
     use :: HDF5                            , only : hsize_t
     use :: Numerical_Constants_Astronomical, only : massSolar
     use :: Units_MetaData                  , only : unitType

@@ -272,7 +272,7 @@ contains
     use :: Output_HDF5             , only : outputFile
     use :: HDF5_Access             , only : hdf5Access
     use :: Galacticus_Nodes        , only : treeNode
-    use :: IO_HDF5                 , only : hdf5File, hdf5Group
+    use :: IO_HDF5                 , only : hdf5File          , hdf5Group
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Ranges        , only : Make_Range        , rangeTypeLogarithmic
     implicit none

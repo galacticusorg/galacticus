@@ -386,7 +386,7 @@ contains
     use :: Cosmology_Functions , only : cosmologyFunctionsClass  , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters, only : cosmologyParametersSimple
     use :: HDF5_Access         , only : hdf5Access
-    use :: IO_HDF5             , only : hdf5File, hdf5Group
+    use :: IO_HDF5             , only : hdf5File                 , hdf5Group
     implicit none
     type            (outputAnalysisCorrelationFunction      )                                :: self
     type            (varying_string                         ), intent(in   )                 :: label                                     , comment
@@ -905,7 +905,7 @@ contains
     !!}
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5File, hdf5Group, hdf5Dataset
+    use :: IO_HDF5                         , only : hdf5File  , hdf5Group, hdf5Dataset
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Units_MetaData                  , only : unitType
     implicit none

@@ -96,7 +96,7 @@ contains
     use :: Input_Paths                             , only : inputPath                                         , pathTypeDataStatic
     use :: Geometry_Surveys                        , only : surveyGeometryMonteroDorta2009SDSS
     use :: HDF5_Access                             , only : hdf5Access
-    use :: IO_HDF5                                 , only : hdf5File, hdf5Group
+    use :: IO_HDF5                                 , only : hdf5File                                          , hdf5Group
     use :: ISO_Varying_String                      , only : var_str                                           , varying_string
     use :: Node_Property_Extractors                , only : nodePropertyExtractorLmnstyStllrCF2000            , nodePropertyExtractorRatio
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
@@ -155,7 +155,7 @@ contains
     write (distributionName,'(a,i2.2)') 'distribution',distributionNumber
     !$ call hdf5Access%set()
     dataFile    =hdf5File          (char(inputPath(pathTypeDataStatic)//'observations/galaxyColors/colorDistributionsBaldry2004.hdf5'),readOnly=.true.)
-    distribution=dataFile  %openGroup(distributionName                                                                                                  )
+    distribution=dataFile%openGroup(distributionName                                                                                                  )
     call distribution%readDataset  ('color'            ,colors             )
     call distribution%readDataset  ('distribution'     ,functionValueTarget)
     call distribution%readDataset  ('distributionError',functionErrorTarget)
@@ -163,7 +163,7 @@ contains
     call distribution%readAttribute('magnitudeMaximum' ,magnitudeMaximum   )
     !$ call hdf5Access%unset()
     self %binCount=size(colors)
-   allocate(functionCovarianceTarget(self%binCount,self%binCount))
+    allocate(functionCovarianceTarget(self%binCount,self%binCount))
     functionCovarianceTarget=0.0d0
     do iBin=1,self%binCount
        ! Negative values indicate upper limits, which mean no galaxies were observed in the given bin.

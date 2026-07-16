@@ -65,7 +65,7 @@ contains
     !!}
     use :: Input_Paths       , only : inputPath , pathTypeDataStatic
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5File, hdf5Group, hdf5Dataset
+    use :: IO_HDF5           , only : hdf5File  , hdf5Group         , hdf5Dataset
     use :: ISO_Varying_String, only : char      , operator(==)
     implicit none
     type   (hdf5File   ) :: file

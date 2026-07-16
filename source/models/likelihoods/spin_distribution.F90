@@ -185,8 +185,8 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`posteriorSampleLikelihoodSpinDistribution` posterior sampling likelihood class.
     !!}
-    use :: HDF5_Access      , only : hdf5Access
-    use :: IO_HDF5          , only : hdf5File
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5    , only : hdf5File
     implicit none
     type            (posteriorSampleLikelihoodSpinDistribution)                        :: self
     character       (len=*                                    ), intent(in   )         :: fileName

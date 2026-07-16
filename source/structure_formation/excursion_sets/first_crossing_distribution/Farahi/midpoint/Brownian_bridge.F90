@@ -493,7 +493,7 @@ contains
     Write additional data on excursion set first crossing probabilities to file for the case of the Brownian bridge. Specifically, linear growth factors are written to the file as a convenience useful for interpreting the results.
     !!}
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5File, hdf5Group
+    use :: IO_HDF5    , only : hdf5File  , hdf5Group
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpointBrownianBridge), intent(inout)               :: self
     double precision                                                       , allocatable  , dimension(:) :: linearGrowthFactor

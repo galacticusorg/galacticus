@@ -177,11 +177,11 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`posteriorSampleLikelihoodMassFunction` posterior sampling likelihood class.
     !!}
-    use :: Display          , only : displayMessage, displayMagenta    , displayReset
-    use :: Input_Paths      , only : inputPath     , pathTypeDataStatic
-    use :: HDF5_Access      , only : hdf5Access
-    use :: IO_HDF5          , only : hdf5File
-    use :: Linear_Algebra   , only : assignment(=)
+    use :: Display       , only : displayMessage, displayMagenta    , displayReset
+    use :: Input_Paths   , only : inputPath     , pathTypeDataStatic
+    use :: HDF5_Access   , only : hdf5Access
+    use :: IO_HDF5       , only : hdf5File
+    use :: Linear_Algebra, only : assignment(=)
     type            (posteriorSampleLikelihoodMassFunction)                              :: self
     double precision                                       , intent(in   )               :: redshiftMinimum        , redshiftMaximum       , &
          &                                                                                  haloMassMinimum        , haloMassMaximum       , &

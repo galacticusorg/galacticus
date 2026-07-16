@@ -400,7 +400,7 @@ contains
      use            :: Galacticus_Nodes                , only : mergerTree        , mergerTreeList, nodeComponentBasic, treeNode, &
           &                                                     universe          , universeEvent
      use            :: HDF5_Access                     , only : hdf5Access
-     use            :: IO_HDF5                         , only : hdf5Group, hdf5Dataset
+     use            :: IO_HDF5                         , only : hdf5Group         , hdf5Dataset
      use, intrinsic :: ISO_C_Binding                   , only : c_size_t
      use            :: ISO_Varying_String              , only : varying_string
      use            :: Numerical_Constants_Math        , only : Pi

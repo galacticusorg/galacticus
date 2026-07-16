@@ -23,7 +23,7 @@
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  use :: IO_HDF5                , only : hdf5File           , hdf5Group           , hdf5Dataset
+  use :: IO_HDF5                , only : hdf5File                , hdf5Group, hdf5Dataset
 
   !![
   <mergerTreeOperator name="mergerTreeOperatorMassAccretionHistory" docformat="rst">
@@ -188,7 +188,7 @@ contains
     integer         (c_size_t                              )                                :: accretionHistoryCount
     type            (varying_string                        )                                :: groupName
     type            (hdf5Dataset                           )                                :: accretionDataset
-    type            (hdf5Group                              )                                :: treeGroup
+    type            (hdf5Group                             )                                :: treeGroup
 
     ! Iterate over trees.
     treeCurrent => tree

@@ -22,7 +22,7 @@
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
-  use :: IO_HDF5                   , only : hdf5File            , hdf5Group
+  use :: IO_HDF5                   , only : hdf5File                     , hdf5Group
 
   !![
   <mergerTreeImporter name="mergerTreeImporterSussingHDF5" docformat="rst">

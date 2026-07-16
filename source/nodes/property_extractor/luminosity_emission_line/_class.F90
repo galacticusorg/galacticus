@@ -197,7 +197,7 @@ contains
     use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5File, hdf5Group, hdf5Dataset
+    use :: IO_HDF5                         , only : hdf5File         , hdf5Group            , hdf5Dataset
     use :: Error                           , only : Error_Report
     use :: Input_Paths                     , only : inputPath        , pathTypeDataStatic
     implicit none
@@ -618,7 +618,7 @@ contains
     use :: Histories               , only : history
     use :: ISO_Varying_String      , only : var_str
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5File, hdf5Group
+    use :: IO_HDF5                 , only : hdf5File                     , hdf5Group
     use :: Output_HDF5             , only : outputFile
     use :: Numerical_Comparison    , only : Values_Agree
     use :: File_Utilities          , only : File_Exists                  , File_Lock                             , File_Unlock, lockDescriptor, &

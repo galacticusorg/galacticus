@@ -29,7 +29,7 @@ program Test_Decaying_Dark_Matter
   use :: Unit_Tests          , only : Assert                            , Unit_Tests_Begin_Group          , Unit_Tests_End_Group                         , Unit_Tests_Finish                          , &
        &                              compareLessThanOrEqual
   use :: HDF5_Access         , only : hdf5Access
-  use :: IO_HDF5             , only : hdf5File                        , ioHDF5AccessInitialize
+  use :: IO_HDF5             , only : hdf5File                          , ioHDF5AccessInitialize
   use :: Input_Paths         , only : inputPath                         , pathTypeExec
   use :: ISO_Varying_String  , only : char                              , operator(//)                    , varying_string
   use :: Events_Hooks        , only : eventsHooksInitialize

@@ -28,7 +28,7 @@ module IO_HDF5
   !!{RST
   Implements simple and convenient interfaces to a variety of HDF5 functionality.
   !!}
-  use            :: HDF5              , only : hid_t          , hsize_t, size_t , hdset_reg_ref_t_f
+  use            :: HDF5              , only : hid_t          , hsize_t, size_t, hdset_reg_ref_t_f
   use, intrinsic :: ISO_C_Binding     , only : c_char         , c_int  , c_ptr , c_size_t
   use            :: ISO_Varying_String, only : varying_string
   use            :: Kind_Numbers      , only : kind_int8
@@ -111,14 +111,14 @@ module IO_HDF5
      logical                           :: isOverwritable   =.false.
      logical                           :: readOnly         =.false.
      logical                           :: isTemporary      =  .false.
-     integer(hid_t          ), pointer :: objectID         => null() , fileID             => null()
+     integer(hid_t          ), pointer :: objectID         => null() , fileID              => null()
      type   (resourceManager)          :: objectManager              , fileManager
      type   (varying_string )          :: objectFile
      type   (varying_string )          :: objectLocation
      type   (varying_string )          :: objectName
      integer(hsize_t        )          :: chunkSize
      integer                           :: compressionLevel
-     logical                           :: chunkSizeSet    =.false.    , compressionLevelSet=.false.
+     logical                           :: chunkSizeSet     =  .false., compressionLevelSet = .false.
      class  (hdf5Object     ), pointer :: parentObject     => null()
    contains
      !![
@@ -673,11 +673,11 @@ contains
     after the caller has verified that ``self%objectID`` is associated and performed any kind-specific close.
     !!}
     use :: File_Utilities    , only : File_Remove
-    use :: Display           , only : displayIndent     , displayMessage  , displayUnindent   , verbosityLevelSilent
+    use :: Display           , only : displayIndent, displayMessage, displayUnindent   , verbosityLevelSilent
     use :: Error             , only : Error_Report
-    use :: HDF5              , only : h5f_obj_all_f     , h5fclose_f      , h5fget_obj_count_f , h5fget_obj_ids_f    , &
-          &                           h5iget_name_f     , hid_t           , size_t
-    use :: ISO_Varying_String, only : assignment(=)     , operator(//)    , char
+    use :: HDF5              , only : h5f_obj_all_f, h5fclose_f    , h5fget_obj_count_f, h5fget_obj_ids_f    , &
+          &                           h5iget_name_f, hid_t         , size_t
+    use :: ISO_Varying_String, only : assignment(=), operator(//)  , char
     use :: String_Handling   , only : operator(//)
     implicit none
     class    (hdf5Object               ), intent(inout)               :: self
@@ -1527,7 +1527,6 @@ contains
     ! Mark this object as open.
     self%isOpenValue=.true.
 
-
     ! Store the name and location of the object.
     self%objectFile    =self%parentObject%objectFile
     self%objectLocation=self%parentObject%pathTo    (includeFileName=.false.)
@@ -1746,7 +1745,6 @@ contains
 
     ! Mark this object as open.
     self%isOpenValue=.true.
-
 
     ! Store the name and location of the object.
     self%objectFile    =self%parentObject%objectFile
@@ -2468,11 +2466,11 @@ contains
     use            :: Error             , only : Error_Report
     use            :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
-    {Type¦intrinsic}         , dimension(:), intent(  out), target  , contiguous :: attributeValue
-    class    (hdf5AttributableObject)      , intent(inout)                       :: self
-    character(len=*                 )      , intent(in   ), optional             :: attributeName
-    type     (hdf5Attribute         )                                           :: attributeObject
-    type     (varying_string        )                                           :: attributeNameActual , message
+    {Type¦intrinsic}                 , intent(  out), dimension(:), target, contiguous :: attributeValue
+    class    (hdf5AttributableObject), intent(inout)                                   :: self
+    character(len=*                 ), intent(in   ), optional                         :: attributeName
+    type     (hdf5Attribute         )                                                  :: attributeObject
+    type     (varying_string        )                                                  :: attributeNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -3252,10 +3250,10 @@ attributeValue=trim(attributeValue)
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
-    type     (varying_string  ), allocatable, dimension(:), intent(  out)           :: attributeValue
-    class    (hdf5Attribute   )                           , intent(inout)           :: self
-    integer  (kind=SIZE_T     )                           , intent(in   )           :: dataTypeSize
-    character(len=dataTypeSize), allocatable, dimension(:)                          :: temporaryBuffer
+    type     (varying_string  ), allocatable, dimension(:), intent(  out) :: attributeValue
+    class    (hdf5Attribute   )                           , intent(inout) :: self
+    integer  (kind=SIZE_T     )                           , intent(in   ) :: dataTypeSize
+    character(len=dataTypeSize), allocatable, dimension(:)                :: temporaryBuffer
 
     ! Call the character version of this routine to perform the read.
     call IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable_Self(self,temporaryBuffer)
@@ -3318,13 +3316,13 @@ attributeValue=trim(attributeValue)
     use :: HDF5              , only : HID_T        , h5aget_type_f, h5tclose_f, h5tget_size_f
     use :: ISO_Varying_String, only : assignment(=), operator(//) , trim
     implicit none
-    type     (varying_string), dimension(:), intent(inout)           :: attributeValue
-    class    (hdf5Attribute )              , intent(inout)           :: self
-    integer  (kind=HID_T    )                                        :: dataTypeID
-    integer  (kind=SIZE_T   )                                        :: dataTypeSize
-    integer                                                          :: errorCode
-    type     (hdf5Attribute )                                        :: attributeObject
-    type     (varying_string)                                        :: attributeNameActual, message
+    type     (varying_string), dimension(:), intent(inout) :: attributeValue
+    class    (hdf5Attribute )              , intent(inout) :: self
+    integer  (kind=HID_T    )                              :: dataTypeID
+    integer  (kind=SIZE_T   )                              :: dataTypeSize
+    integer                                                :: errorCode
+    type     (hdf5Attribute )                              :: attributeObject
+    type     (varying_string)                              :: attributeNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -3373,10 +3371,10 @@ attributeValue=trim(attributeValue)
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
-    type     (varying_string  ), dimension(:)                   , intent(inout)           :: attributeValue
-    class    (hdf5Attribute   )                                 , intent(inout)           :: self
-    integer  (kind=SIZE_T     )                                 , intent(in   )           :: dataTypeSize
-    character(len=dataTypeSize), dimension(size(attributeValue))                          :: temporaryBuffer
+    type     (varying_string  ), dimension(:)                   , intent(inout) :: attributeValue
+    class    (hdf5Attribute   )                                 , intent(inout) :: self
+    integer  (kind=SIZE_T     )                                 , intent(in   ) :: dataTypeSize
+    character(len=dataTypeSize), dimension(size(attributeValue))                :: temporaryBuffer
 
     ! Call the character version of this routine to perform the read.
     call IO_HDF5_Read_Attribute_Character_1D_Array_Static_Self(self,temporaryBuffer)
@@ -3574,10 +3572,10 @@ attributeValue=trim(attributeValue)
     use :: HDF5              , only : HID_T        , h5dget_space_f, h5sget_simple_extent_ndims_f
     use :: ISO_Varying_String, only : assignment(=), operator(//)
     implicit none
-    class  (hdf5Dataset   ), intent(in   )               :: datasetObject
-    integer                                              :: datasetRank         , errorCode
-    integer(kind=HID_T    )                              :: datasetDataspaceID
-    type   (varying_string)                              :: message
+    class  (hdf5Dataset   ), intent(in   ) :: datasetObject
+    integer                                :: datasetRank         , errorCode
+    integer(kind=HID_T    )                :: datasetDataspaceID
+    type   (varying_string)                :: message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -3877,7 +3875,6 @@ attributeValue=trim(attributeValue)
     ! Mark this object as open.
     self%isOpenValue=.true.
 
-
     ! Mark whether dataset is overwritable.
     if (present(isOverwritable)) then
        ! Check overwriting is not requested if parent is not overwritable.
@@ -4100,20 +4097,20 @@ attributeValue=trim(attributeValue)
     Open the named {Type¦typeName} array dataset in ``self`` (a group or file) and write to it by delegating to the dataset object.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : HSIZE_T                        , hsize_t
-    use            :: ISO_Varying_String, only : assignment(=)                  , operator(//)    , trim
+    use            :: HDF5              , only : HSIZE_T      , hsize_t
+    use            :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
     class    (hdf5Group     ), intent(inout)                                                    :: self
-    character(len=*         ), intent(in   ), optional                                          :: comment                     , datasetName
+    character(len=*         ), intent(in   ), optional                                          :: comment          , datasetName
     {Type¦intrinsic}         , intent(in   ), dimension(..)                , target, contiguous :: datasetValue
     logical                  , intent(in   ), optional                                          :: appendTo
     integer  (hsize_t       ), intent(in   ), optional                                          :: chunkSize
-    integer                  , intent(in   ), optional                                          :: appendDimension             , compressionLevel
+    integer                  , intent(in   ), optional                                          :: appendDimension  , compressionLevel
     type     (hdf5Dataset   ), intent(  out), optional                                          :: datasetReturned
     integer  (kind=HSIZE_T  )               , dimension(rank(datasetValue))                     :: datasetDimensions
-    logical                                                                                     :: appendToActual              , preExisted
+    logical                                                                                     :: appendToActual   , preExisted
     type     (hdf5Dataset   )                                                                   :: datasetObject
-    type     (varying_string)                                                                   :: datasetNameActual           , message
+    type     (varying_string)                                                                   :: datasetNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -4730,10 +4727,10 @@ attributeValue=trim(attributeValue)
     {Type¦intrinsic}                   , allocatable, dimension(..) , intent(  out), target   :: datasetValue
     class           (hdf5Group        )                             , intent(inout)           :: self
     character       (len=*            )                             , intent(in   ), optional :: datasetName
-    integer         (kind=HSIZE_T     )             , dimension(:  ), intent(in   ), optional :: readBegin         , readCount
+    integer         (kind=HSIZE_T     )             , dimension(:  ), intent(in   ), optional :: readBegin        , readCount
     integer         (kind=HSIZE_T     )             , dimension(:  ), intent(in   ), optional :: readSelection
     type            (hdf5Dataset      )                                                       :: datasetObject
-    type            (varying_string   )                                                       :: datasetNameActual , message
+    type            (varying_string   )                                                       :: datasetNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -4769,7 +4766,7 @@ attributeValue=trim(attributeValue)
     Read a {Type¦typeName} array dataset of any rank from ``self`` (a dataset object), into an allocatable array.
     !!}
     use            :: Error             , only : Error_Report
-    use :: HDF5 , only : {Type¦h5TypeImport}H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, HID_T , &
+    use            :: HDF5              , only : {Type¦h5TypeImport}H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, HID_T , &
          &                HSIZE_T, h5dclose_f, h5dget_space_f, h5dread_f , &
          &                h5sclose_f, h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f , &
          &                h5sselect_elements_f, h5sselect_hyperslab_f, hsize_t, size_t
@@ -5128,12 +5125,12 @@ attributeValue=trim(attributeValue)
     Open the named character 1-D array dataset in ``self`` (a group or file) and write to it by delegating to the dataset object.
     !!}
     use :: Error             , only : Error_Report
-    use :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T       , HSIZE_T      , h5tclose_f, &
-          &                           h5tcopy_f           , h5tset_size_f, hsize_t     , size_t
-    use :: ISO_Varying_String, only : assignment(=)       , operator(//), trim
+    use :: HDF5              , only : H5T_NATIVE_CHARACTER, HID_T        , HSIZE_T, h5tclose_f, &
+          &                           h5tcopy_f           , h5tset_size_f, hsize_t, size_t
+    use :: ISO_Varying_String, only : assignment(=)       , operator(//) , trim
     implicit none
     class    (hdf5Group     )              , intent(inout)           :: self
-    character(len=*         )              , intent(in   ), optional :: comment                    , datasetName
+    character(len=*         )              , intent(in   ), optional :: comment          , datasetName
     character(len=*         ), dimension(:), intent(in   )           :: datasetValue
     logical                                , intent(in   ), optional :: appendTo
     integer  (hsize_t       )              , intent(in   ), optional :: chunkSize
@@ -5142,9 +5139,9 @@ attributeValue=trim(attributeValue)
     integer  (kind=HSIZE_T  ), dimension(1)                          :: datasetDimensions
     integer                                                          :: errorCode
     integer  (kind=HID_T    )                                        :: dataTypeID
-    logical                                                          :: appendToActual             , preExisted
+    logical                                                          :: appendToActual   , preExisted
     type     (hdf5Dataset   )                                        :: datasetObject
-    type     (varying_string)                                        :: datasetNameActual          , message
+    type     (varying_string)                                        :: datasetNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -5415,9 +5412,9 @@ attributeValue=trim(attributeValue)
     character(len=*            ), dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Group        )              , intent(inout)           :: self
     character(len=*            )              , intent(in   ), optional :: datasetName
-    integer  (kind=HSIZE_T     ), dimension(1), intent(in   ), optional :: readBegin              , readCount
+    integer  (kind=HSIZE_T     ), dimension(1), intent(in   ), optional :: readBegin        , readCount
     type     (hdf5Dataset      )                                        :: datasetObject
-    type     (varying_string   )                                        :: datasetNameActual      , message
+    type     (varying_string   )                                        :: datasetNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -5453,7 +5450,7 @@ attributeValue=trim(attributeValue)
     Read a character 1-D array dataset from ``self`` (a dataset object), into a static array.
     !!}
     use            :: Error             , only : Error_Report
-    use :: HDF5 , only : H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, HID_T , &
+    use            :: HDF5              , only : H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, HID_T , &
          &                HSIZE_T, h5dclose_f, h5dget_space_f, h5dread_f , &
          &                h5sclose_f, h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f , &
          &                h5sselect_hyperslab_f, hsize_t, h5tclose_f
@@ -5469,7 +5466,7 @@ attributeValue=trim(attributeValue)
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
     ! deallocated. This is not an elegant solution, but it works.
-    type   (hdf5Reference), save, target :: reference
+    type     (hdf5Reference    ), save         , target                 :: reference
     integer                                                             :: errorCode
     integer  (kind=HID_T       )                                        :: dataTypeID          (6), datasetDataspaceID      , &
          &                                                                 dereferencedObjectID   , memorySpaceID           , &
@@ -5698,9 +5695,9 @@ attributeValue=trim(attributeValue)
     character(len=*            ), allocatable, dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Group        )                           , intent(inout)           :: self
     character(len=*            )                           , intent(in   ), optional :: datasetName
-    integer  (kind=HSIZE_T     )             , dimension(1), intent(in   ), optional :: readBegin              , readCount
+    integer  (kind=HSIZE_T     )             , dimension(1), intent(in   ), optional :: readBegin        , readCount
     type     (hdf5Dataset      )                                                     :: datasetObject
-    type     (varying_string   )                                                     :: datasetNameActual      , message
+    type     (varying_string   )                                                     :: datasetNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -5736,31 +5733,31 @@ attributeValue=trim(attributeValue)
     Read a character 1-D array dataset from ``self`` (a dataset object), into an allocatable array.
     !!}
     use            :: Error             , only : Error_Report
-    use :: HDF5 , only : H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, HID_T , &
+    use            :: HDF5              , only : H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, HID_T , &
          &                HSIZE_T, h5dclose_f, h5dget_space_f, h5dread_f , &
          &                h5sclose_f, h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f , &
          &                h5sselect_hyperslab_f, h5tclose_f, hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)          , trim
     implicit none
-    character(len=*            ), allocatable, dimension(:), intent(  out)           :: datasetValue
-    class    (hdf5Dataset      )                           , intent(inout)           :: self
-    integer  (kind=HSIZE_T     )             , dimension(1), intent(in   ), optional :: readBegin              , readCount
-    integer  (kind=HSIZE_T     )             , dimension(1)                          :: datasetDimensions      , datasetMaximumDimensions, &
-         &                                                                              referenceEnd           , referenceStart
+    character(len=*         ), allocatable, dimension(:), intent(  out)           :: datasetValue
+    class    (hdf5Dataset   )                           , intent(inout)           :: self
+    integer  (kind=HSIZE_T  )             , dimension(1), intent(in   ), optional :: readBegin              , readCount
+    integer  (kind=HSIZE_T  )             , dimension(1)                          :: datasetDimensions      , datasetMaximumDimensions, &
+         &                                                                           referenceEnd           , referenceStart
     ! <HDF5> Why is "reference" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
     ! deallocated. This is not an elegant solution, but it works.
-    type   (hdf5Reference), save, target :: reference
-    integer                                                                          :: errorCode
-    integer  (kind=HID_T       )                                                     :: dataTypeID          (6), datasetDataspaceID      , &
-         &                                                                              dereferencedObjectID   , memorySpaceID           , &
-         &                                                                              storedDatasetID
-    logical                                                                          :: isReference            , readSubsection
-    type     (hdf5Dataset      )                                                     :: datasetObject
-    type     (varying_string   )                                                     :: datasetNameActual      , message
-    type     (c_ptr            )                                                     :: dataBuffer
+    type   (hdf5Reference   ), save       , target                                :: reference
+    integer                                                                       :: errorCode
+    integer  (kind=HID_T    )                                                     :: dataTypeID          (6), datasetDataspaceID      , &
+         &                                                                           dereferencedObjectID   , memorySpaceID           , &
+         &                                                                           storedDatasetID
+    logical                                                                       :: isReference            , readSubsection
+    type     (hdf5Dataset   )                                                     :: datasetObject
+    type     (varying_string)                                                     :: datasetNameActual      , message
+    type     (c_ptr         )                                                     :: dataBuffer
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -5989,10 +5986,10 @@ attributeValue=trim(attributeValue)
     use :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
     type     (varying_string), allocatable, dimension(:), intent(  out)           :: datasetValue
-    class    (hdf5Group      )                           , intent(inout)           :: self
+    class    (hdf5Group     )                           , intent(inout)           :: self
     character(len=*         )                           , intent(in   ), optional :: datasetName
-    type     (hdf5Dataset    )                                                     :: datasetObject
-    type     (varying_string )                                                     :: datasetNameActual, message
+    type     (hdf5Dataset   )                                                     :: datasetObject
+    type     (varying_string)                                                     :: datasetNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -6031,13 +6028,13 @@ attributeValue=trim(attributeValue)
     use :: HDF5              , only : HID_T        , h5dget_type_f, h5tclose_f, h5tget_size_f
     use :: ISO_Varying_String, only : assignment(=), operator(//) , trim
     implicit none
-    type     (varying_string), allocatable, dimension(:), intent(  out)           :: datasetValue
-    class    (hdf5Dataset    )                           , intent(inout)           :: self
-    integer  (kind=HID_T    )                                                     :: dataTypeID
-    integer  (kind=SIZE_T   )                                                     :: dataTypeSize
-    integer                                                                       :: errorCode
-    type     (hdf5Dataset    )                                                     :: datasetObject
-    type     (varying_string)                                                     :: datasetNameActual, message
+    type     (varying_string), allocatable, dimension(:), intent(  out) :: datasetValue
+    class    (hdf5Dataset   )                           , intent(inout) :: self
+    integer  (kind=HID_T    )                                           :: dataTypeID
+    integer  (kind=SIZE_T   )                                           :: dataTypeSize
+    integer                                                             :: errorCode
+    type     (hdf5Dataset   )                                           :: datasetObject
+    type     (varying_string)                                           :: datasetNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -6086,10 +6083,10 @@ attributeValue=trim(attributeValue)
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
-    type     (varying_string  ), allocatable, dimension(:), intent(  out)           :: datasetValue
-    class    (hdf5Dataset     )                           , intent(inout)           :: self
-    integer  (kind=SIZE_T     )                           , intent(in   )           :: dataTypeSize
-    character(len=dataTypeSize), allocatable, dimension(:)                          :: temporaryBuffer
+    type     (varying_string  ), allocatable, dimension(:), intent(  out) :: datasetValue
+    class    (hdf5Dataset     )                           , intent(inout) :: self
+    integer  (kind=SIZE_T     )                           , intent(in   ) :: dataTypeSize
+    character(len=dataTypeSize), allocatable, dimension(:)                :: temporaryBuffer
 
     ! Call the character version of this routine to perform the read.
     call IO_HDF5_Read_Dataset_Character_1D_Array_Allocatable_Self(self,temporaryBuffer)
@@ -6110,10 +6107,10 @@ attributeValue=trim(attributeValue)
     use :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
     type     (varying_string), dimension(:), intent(inout)           :: datasetValue
-    class    (hdf5Group      )              , intent(inout)           :: self
+    class    (hdf5Group     )              , intent(inout)           :: self
     character(len=*         )              , intent(in   ), optional :: datasetName
-    type     (hdf5Dataset    )                                        :: datasetObject
-    type     (varying_string )                                        :: datasetNameActual, message
+    type     (hdf5Dataset   )                                        :: datasetObject
+    type     (varying_string)                                        :: datasetNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -6152,13 +6149,13 @@ attributeValue=trim(attributeValue)
     use :: HDF5              , only : HID_T        , h5dget_type_f, h5tclose_f, h5tget_size_f
     use :: ISO_Varying_String, only : assignment(=), operator(//) , trim
     implicit none
-    type     (varying_string), dimension(:), intent(inout)           :: datasetValue
-    class    (hdf5Dataset    )              , intent(inout)           :: self
-    integer  (kind=HID_T    )                                        :: dataTypeID
-    integer  (kind=SIZE_T   )                                        :: dataTypeSize
-    integer                                                          :: errorCode
-    type     (hdf5Dataset    )                                        :: datasetObject
-    type     (varying_string)                                        :: datasetNameActual, message
+    type     (varying_string), dimension(:), intent(inout) :: datasetValue
+    class    (hdf5Dataset   )              , intent(inout) :: self
+    integer  (kind=HID_T    )                              :: dataTypeID
+    integer  (kind=SIZE_T   )                              :: dataTypeSize
+    integer                                                :: errorCode
+    type     (hdf5Dataset   )                              :: datasetObject
+    type     (varying_string)                              :: datasetNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -6207,10 +6204,10 @@ attributeValue=trim(attributeValue)
     !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
-    type     (varying_string  ), dimension(:)                 , intent(inout)           :: datasetValue
-    class    (hdf5Dataset     )                               , intent(inout)           :: self
-    integer  (kind=SIZE_T     )                               , intent(in   )           :: dataTypeSize
-    character(len=dataTypeSize), dimension(size(datasetValue))                          :: temporaryBuffer
+    type     (varying_string  ), dimension(:)                 , intent(inout) :: datasetValue
+    class    (hdf5Dataset     )                               , intent(inout) :: self
+    integer  (kind=SIZE_T     )                               , intent(in   ) :: dataTypeSize
+    character(len=dataTypeSize), dimension(size(datasetValue))                :: temporaryBuffer
 
     ! Call the character version of this routine to perform the read.
     call IO_HDF5_Read_Dataset_Character_1D_Array_Static_Self(self,temporaryBuffer)
@@ -6232,10 +6229,10 @@ attributeValue=trim(attributeValue)
     type            ({VlenType¦intrinsic}), allocatable, dimension(:  ), intent(  out)           :: datasetValue
     class           (hdf5Group           )                             , intent(inout)           :: self
     character       (len=*               )                             , intent(in   ), optional :: datasetName
-    integer         (kind=HSIZE_T        )             , dimension(1  ), intent(in   ), optional :: readBegin         , readCount
+    integer         (kind=HSIZE_T        )             , dimension(1  ), intent(in   ), optional :: readBegin        , readCount
     integer         (kind=HSIZE_T        )             , dimension(:  ), intent(in   ), optional :: readSelection
     type            (hdf5Dataset         )                                                       :: datasetObject
-    type            (varying_string      )                                                       :: datasetNameActual , message
+    type            (varying_string      )                                                       :: datasetNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -6271,7 +6268,7 @@ attributeValue=trim(attributeValue)
     Read a {VlenType¦typeName} 1-D array dataset from ``self`` (a dataset object), into an allocatable array.
     !!}
     use            :: Error             , only : Error_Report
-    use :: HDF5 , only : H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, size_t , &
+    use            :: HDF5              , only : H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, size_t , &
          &                HID_T, HSIZE_T, h5dclose_f, h5dget_space_f , &
          &                h5dread_f, h5sclose_f, h5screate_simple_f, h5sget_select_bounds_f , &
          &                h5sget_simple_extent_dims_f, h5sselect_elements_f, h5sselect_hyperslab_f, hsize_t
@@ -6280,16 +6277,16 @@ attributeValue=trim(attributeValue)
     implicit none
     type            ({VlenType¦intrinsic}), allocatable, dimension(:  ), intent(  out)           :: datasetValue
     class           (hdf5Dataset         )                             , intent(inout)           :: self
-    integer         (kind=HSIZE_T        )             , dimension(1  ), intent(in   ), optional :: readBegin         , readCount
+    integer         (kind=HSIZE_T        )             , dimension(1  ), intent(in   ), optional :: readBegin        , readCount
     integer         (kind=HSIZE_T        )             , dimension(:  ), intent(in   ), optional :: readSelection
-    integer         (kind=HSIZE_T        )             , dimension(1  )                          :: datasetDimensions , datasetMaximumDimensions, &
-         &                                                                                          referenceEnd      , referenceStart
+    integer         (kind=HSIZE_T        )             , dimension(1  )                          :: datasetDimensions, datasetMaximumDimensions, &
+         &                                                                                          referenceEnd     , referenceStart
     integer         (kind=HSIZE_T        ), allocatable, dimension(:,:)                          :: readSelectionMap
     ! <HDF5> Why is "reference" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
     ! deallocated. This is not an elegant solution, but it works.
-    type   (hdf5Reference), save, target :: reference
+    type            (hdf5Reference       ), save       , target                                  :: reference
     integer                                                                                      :: errorCode
     integer         (kind=HSIZE_T        )                                                       :: i
     integer         (kind=HID_T          )                                                       :: datasetDataspaceID, dereferencedObjectID    , &
@@ -6591,10 +6588,10 @@ attributeValue=trim(attributeValue)
     type            (hdf5VarDouble2D  ), allocatable, dimension(:  ), intent(  out)           :: datasetValue
     class           (hdf5Group        )                             , intent(inout)           :: self
     character       (len=*            )                             , intent(in   ), optional :: datasetName
-    integer         (kind=HSIZE_T     )             , dimension(1  ), intent(in   ), optional :: readBegin         , readCount
+    integer         (kind=HSIZE_T     )             , dimension(1  ), intent(in   ), optional :: readBegin        , readCount
     integer         (kind=HSIZE_T     )             , dimension(:  ), intent(in   ), optional :: readSelection
     type            (hdf5Dataset      )                                                       :: datasetObject
-    type            (varying_string   )                                                       :: datasetNameActual , message
+    type            (varying_string   )                                                       :: datasetNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -6630,36 +6627,36 @@ attributeValue=trim(attributeValue)
     Read a varying-length :math:`\times` varying-length 1D double dataset from ``self`` (a dataset object), into an allocatable array.
     !!}
     use            :: Error             , only : Error_Report
-    use :: HDF5 , only : H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, size_t , &
+    use            :: HDF5              , only : H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, size_t , &
          &                HID_T, HSIZE_T, h5dclose_f, h5dget_space_f , &
          &                h5dread_f, h5sclose_f, h5screate_simple_f, h5sget_select_bounds_f , &
          &                h5sget_simple_extent_dims_f, h5sselect_elements_f, h5sselect_hyperslab_f, hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_f_pointer         , c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//)         , trim
     implicit none
-    type            (hdf5VarDouble2D  ), allocatable, dimension(:  ), intent(  out)           :: datasetValue
-    class           (hdf5Dataset      )                             , intent(inout)           :: self
-    integer         (kind=HSIZE_T     )             , dimension(1  ), intent(in   ), optional :: readBegin         , readCount
-    integer         (kind=HSIZE_T     )             , dimension(:  ), intent(in   ), optional :: readSelection
-    integer         (kind=HSIZE_T     )             , dimension(1  )                          :: datasetDimensions , datasetMaximumDimensions, &
-         &                                                                                       referenceEnd      , referenceStart
-    integer         (kind=HSIZE_T     ), allocatable, dimension(:,:)                          :: readSelectionMap
+    type            (hdf5VarDouble2D), allocatable, dimension(:  ), intent(  out)           :: datasetValue
+    class           (hdf5Dataset    )                             , intent(inout)           :: self
+    integer         (kind=HSIZE_T   )             , dimension(1  ), intent(in   ), optional :: readBegin         , readCount
+    integer         (kind=HSIZE_T   )             , dimension(:  ), intent(in   ), optional :: readSelection
+    integer         (kind=HSIZE_T   )             , dimension(1  )                          :: datasetDimensions , datasetMaximumDimensions, &
+         &                                                                                     referenceEnd      , referenceStart
+    integer         (kind=HSIZE_T   ), allocatable, dimension(:,:)                          :: readSelectionMap
     ! <HDF5> Why is "reference" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
     ! deallocated. This is not an elegant solution, but it works.
-    type   (hdf5Reference), save, target :: reference
-    integer                                                                                   :: errorCode
-    integer         (kind=HSIZE_T     )                                                       :: i                 , j
-    integer         (kind=HID_T       )                                                       :: datasetDataspaceID, dereferencedObjectID    , &
-         &                                                                                       memorySpaceID     , storedDatasetID
-    logical                                                                                   :: isReference       , readSubsection
-    type            (hdf5Dataset      )                                                       :: datasetObject
-    type            (varying_string   )                                                       :: datasetNameActual , message
-    type            (c_ptr            )                                                       :: dataBuffer
-    type            (hdf5VlenC        ), allocatable, dimension(:  ), target                  :: datasetValueC1
-    type            (hdf5VlenC        )             , dimension(:  ), pointer                 :: datasetValueC2
-    double precision                                , dimension(:  ), pointer                 :: datasetRow
+    type            (hdf5Reference  ), save       , target                                  :: reference
+    integer                                                                                 :: errorCode
+    integer         (kind=HSIZE_T   )                                                       :: i                 , j
+    integer         (kind=HID_T     )                                                       :: datasetDataspaceID, dereferencedObjectID    , &
+         &                                                                                     memorySpaceID     , storedDatasetID
+    logical                                                                                 :: isReference       , readSubsection
+    type            (hdf5Dataset    )                                                       :: datasetObject
+    type            (varying_string )                                                       :: datasetNameActual , message
+    type            (c_ptr          )                                                       :: dataBuffer
+    type            (hdf5VlenC      ), allocatable, dimension(:  ), target                  :: datasetValueC1
+    type            (hdf5VlenC      )             , dimension(:  ), pointer                 :: datasetValueC2
+    double precision                              , dimension(:  ), pointer                 :: datasetRow
 
 
     ! Check that this module is initialized.
@@ -6935,7 +6932,6 @@ attributeValue=trim(attributeValue)
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
     end if
-
     return
   end subroutine IO_HDF5_Read_Dataset_VarVarDouble_1D_Array_Allocatable_Self
 
@@ -6950,10 +6946,10 @@ attributeValue=trim(attributeValue)
     type            (hdf5VarDouble    ), allocatable, dimension(:,:), intent(  out)           :: datasetValue
     class           (hdf5Group        )                             , intent(inout)           :: self
     character       (len=*            )                             , intent(in   ), optional :: datasetName
-    integer         (kind=HSIZE_T     )             , dimension(2  ), intent(in   ), optional :: readBegin         , readCount
+    integer         (kind=HSIZE_T     )             , dimension(2  ), intent(in   ), optional :: readBegin        , readCount
     integer         (kind=HSIZE_T     )             , dimension(:  ), intent(in   ), optional :: readSelection
     type            (hdf5Dataset      )                                                       :: datasetObject
-    type            (varying_string   )                                                       :: datasetNameActual , message
+    type            (varying_string   )                                                       :: datasetNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -6989,34 +6985,34 @@ attributeValue=trim(attributeValue)
     Read a varying-length 2D double dataset from ``self`` (a dataset object), into an allocatable array.
     !!}
     use            :: Error             , only : Error_Report
-    use :: HDF5 , only : H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, size_t , &
+    use            :: HDF5              , only : H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, size_t , &
          &                HID_T, HSIZE_T, h5dclose_f, h5dget_space_f , &
          &                h5dread_f, h5sclose_f, h5screate_simple_f, h5sget_select_bounds_f , &
          &                h5sget_simple_extent_dims_f, h5sselect_elements_f, h5sselect_hyperslab_f, hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_f_pointer         , c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//)         , trim
     implicit none
-    type            (hdf5VarDouble    ), allocatable, dimension(:,:), intent(  out)           :: datasetValue
-    class           (hdf5Dataset      )                             , intent(inout)           :: self
-    integer         (kind=HSIZE_T     )             , dimension(2  ), intent(in   ), optional :: readBegin         , readCount
-    integer         (kind=HSIZE_T     )             , dimension(:  ), intent(in   ), optional :: readSelection
-    integer         (kind=HSIZE_T     )             , dimension(2  )                          :: datasetDimensions , datasetMaximumDimensions, &
-         &                                                                                       referenceEnd      , referenceStart
-    integer         (kind=HSIZE_T     ), allocatable, dimension(:,:)                          :: readSelectionMap
+    type            (hdf5VarDouble ), allocatable, dimension(:,:), intent(  out)           :: datasetValue
+    class           (hdf5Dataset   )                             , intent(inout)           :: self
+    integer         (kind=HSIZE_T  )             , dimension(2  ), intent(in   ), optional :: readBegin         , readCount
+    integer         (kind=HSIZE_T  )             , dimension(:  ), intent(in   ), optional :: readSelection
+    integer         (kind=HSIZE_T  )             , dimension(2  )                          :: datasetDimensions , datasetMaximumDimensions, &
+         &                                                                                    referenceEnd      , referenceStart
+    integer         (kind=HSIZE_T  ), allocatable, dimension(:,:)                          :: readSelectionMap
     ! <HDF5> Why is "reference" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
     ! deallocated. This is not an elegant solution, but it works.
-    type   (hdf5Reference), save, target :: reference
-    integer                                                                                   :: errorCode
-    integer         (kind=HSIZE_T     )                                                       :: i                 , j
-    integer         (kind=HID_T       )                                                       :: datasetDataspaceID, dereferencedObjectID, &
-         &                                                                                       memorySpaceID     , storedDatasetID
-    logical                                                                                   :: isReference       , readSubsection
-    type            (hdf5Dataset      )                                                       :: datasetObject
-    type            (varying_string   )                                                       :: datasetNameActual , message
-    type            (c_ptr            )                                                       :: dataBuffer
-    type            (hdf5VlenC        ), allocatable, dimension(:,:), target                  :: datasetValueC
+    type            (hdf5Reference ), save       , target                                  :: reference
+    integer                                                                                :: errorCode
+    integer         (kind=HSIZE_T  )                                                       :: i                 , j
+    integer         (kind=HID_T    )                                                       :: datasetDataspaceID, dereferencedObjectID, &
+         &                                                                                    memorySpaceID     , storedDatasetID
+    logical                                                                                :: isReference       , readSubsection
+    type            (hdf5Dataset   )                                                       :: datasetObject
+    type            (varying_string)                                                       :: datasetNameActual , message
+    type            (c_ptr         )                                                       :: dataBuffer
+    type            (hdf5VlenC     ), allocatable, dimension(:,:), target                  :: datasetValueC
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -7304,21 +7300,21 @@ attributeValue=trim(attributeValue)
     !!{RST
     Open the named {VlenType¦typeName} 1-D array dataset in ``self`` (a group or file) and write to it by delegating to the dataset object.
     !!}
-    use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : HSIZE_T      , hsize_t
-    use            :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
+    use :: Error             , only : Error_Report
+    use :: HDF5              , only : HSIZE_T      , hsize_t
+    use :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
-    class           (hdf5Group           ), intent(inout)                       :: self
-    character       (len=*               ), intent(in   ), optional             :: comment                    , datasetName
-    type            ({VlenType¦intrinsic}), intent(in   ), dimension(:)         :: datasetValue
-    logical                               , intent(in   ), optional             :: appendTo
-    integer         (hsize_t             ), intent(in   ), optional             :: chunkSize
-    integer                               , intent(in   ), optional             :: compressionLevel
-    type            (hdf5Dataset         ), intent(  out), optional             :: datasetReturned
-    integer         (kind=HSIZE_T        )               , dimension(1)         :: datasetDimensions
-    logical                                                                     :: appendToActual             , preExisted
-    type            (hdf5Dataset         )                                      :: datasetObject
-    type            (varying_string      )                                      :: datasetNameActual          , message
+    class           (hdf5Group           ), intent(inout)               :: self
+    character       (len=*               ), intent(in   ), optional     :: comment          , datasetName
+    type            ({VlenType¦intrinsic}), intent(in   ), dimension(:) :: datasetValue
+    logical                               , intent(in   ), optional     :: appendTo
+    integer         (hsize_t             ), intent(in   ), optional     :: chunkSize
+    integer                               , intent(in   ), optional     :: compressionLevel
+    type            (hdf5Dataset         ), intent(  out), optional     :: datasetReturned
+    integer         (kind=HSIZE_T        )               , dimension(1) :: datasetDimensions
+    logical                                                             :: appendToActual   , preExisted
+    type            (hdf5Dataset         )                              :: datasetObject
+    type            (varying_string      )                              :: datasetNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized()
@@ -7521,19 +7517,19 @@ attributeValue=trim(attributeValue)
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HSIZE_T      , hsize_t
-    use :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
+    use :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
-    class           (hdf5Group      ), intent(inout)                       :: self
-    character       (len=*          ), intent(in   ), optional             :: comment                    , datasetName
-    type            (hdf5VarDouble2D), intent(in   ), dimension(:)         :: datasetValue
-    logical                          , intent(in   ), optional             :: appendTo
-    integer         (hsize_t        ), intent(in   ), optional             :: chunkSize
-    integer                          , intent(in   ), optional             :: compressionLevel
-    type            (hdf5Dataset    ), intent(  out), optional             :: datasetReturned
-    integer         (kind=HSIZE_T   )               , dimension(1)         :: datasetDimensions
-    logical                                                                :: appendToActual             , preExisted
-    type            (hdf5Dataset    )                                      :: datasetObject
-    type            (varying_string )                                      :: datasetNameActual          , message
+    class    (hdf5Group      ), intent(inout)              :: self
+    character(len=*          ), intent(in   ), optional    :: comment          , datasetName
+    type     (hdf5VarDouble2D), intent(in   ), dimension(:):: datasetValue
+    logical                   , intent(in   ), optional    :: appendTo
+    integer  (hsize_t        ), intent(in   ), optional    :: chunkSize
+    integer                   , intent(in   ), optional    :: compressionLevel
+    type     (hdf5Dataset    ), intent(  out), optional    :: datasetReturned
+    integer  (kind=HSIZE_T   )               , dimension(1):: datasetDimensions
+    logical                                                :: appendToActual   , preExisted
+    type     (hdf5Dataset    )                             :: datasetObject
+    type     (varying_string )                             :: datasetNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized()
@@ -7594,22 +7590,22 @@ attributeValue=trim(attributeValue)
           &                                      h5sclose_f   , h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f
     use            :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
     implicit none
-    class           (hdf5Dataset    ), intent(inout)                       :: self
-    type            (hdf5VarDouble2D), intent(in   ), dimension(:)         :: datasetValue
-    logical                          , intent(in   ), optional             :: appendTo
-    logical                          , intent(in   ), optional             :: preExistedIn
-    integer         (kind=HSIZE_T   )               , dimension(1)         :: datasetDimensions          , hyperslabCount      , &
-         &                                                                    hyperslabStart             , newDatasetDimensions, &
-         &                                                                    newDatasetDimensionsMaximum
-    type            (hdf5VlenC      ), allocatable  , dimension(:), target :: datasetValueC1
-    type            (hdf5VlenVlenC  ), allocatable  , dimension(:), target :: datasetValueC2
-    type            (c_ptr          )                                      :: datasetValueC_
-    integer         (kind=HSIZE_T   )                                      :: i                          , j
-    integer                                                                :: datasetRank                , errorCode
-    integer         (kind=HID_T     )                                      :: dataspaceID                , newDataspaceID
-    logical                                                                :: appendToActual             , preExisted
-    type            (hdf5Dataset    )                                      :: datasetObject
-    type            (varying_string )                                      :: datasetNameActual          , message
+    class  (hdf5Dataset    ), intent(inout)                       :: self
+    type   (hdf5VarDouble2D), intent(in   ), dimension(:)         :: datasetValue
+    logical                 , intent(in   ), optional             :: appendTo
+    logical                 , intent(in   ), optional             :: preExistedIn
+    integer(kind=HSIZE_T   )               , dimension(1)         :: datasetDimensions          , hyperslabCount      , &
+         &                                                           hyperslabStart             , newDatasetDimensions, &
+         &                                                           newDatasetDimensionsMaximum
+    type   (hdf5VlenC      ), allocatable  , dimension(:), target :: datasetValueC1
+    type   (hdf5VlenVlenC  ), allocatable  , dimension(:), target :: datasetValueC2
+    type   (c_ptr          )                                      :: datasetValueC_
+    integer(kind=HSIZE_T   )                                      :: i                          , j
+    integer                                                       :: datasetRank                , errorCode
+    integer(kind=HID_T     )                                      :: dataspaceID                , newDataspaceID
+    logical                                                       :: appendToActual             , preExisted
+    type   (hdf5Dataset    )                                      :: datasetObject
+    type   (varying_string )                                      :: datasetNameActual          , message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized()
@@ -7744,19 +7740,19 @@ attributeValue=trim(attributeValue)
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HSIZE_T      , hsize_t
-    use :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
+    use :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
-    class           (hdf5Group     ), intent(inout)                         :: self
-    character       (len=*         ), intent(in   ), optional               :: comment                    , datasetName
-    type            (hdf5VarDouble ), intent(in   ), dimension(:,:)         :: datasetValue
-    logical                         , intent(in   ), optional               :: appendTo
-    integer         (hsize_t       ), intent(in   ), optional               :: chunkSize
-    integer                         , intent(in   ), optional               :: compressionLevel
-    type            (hdf5Dataset   ), intent(  out), optional               :: datasetReturned
-    integer         (kind=HSIZE_T  )               , dimension(2  )         :: datasetDimensions
-    logical                                                                 :: appendToActual             , preExisted
-    type            (hdf5Dataset   )                                        :: datasetObject
-    type            (varying_string)                                        :: datasetNameActual          , message
+    class    (hdf5Group     ), intent(inout)                :: self
+    character(len=*         ), intent(in   ), optional      :: comment          , datasetName
+    type     (hdf5VarDouble ), intent(in   ), dimension(:,:):: datasetValue
+    logical                  , intent(in   ), optional      :: appendTo
+    integer  (hsize_t       ), intent(in   ), optional      :: chunkSize
+    integer                  , intent(in   ), optional      :: compressionLevel
+    type     (hdf5Dataset   ), intent(  out), optional      :: datasetReturned
+    integer  (kind=HSIZE_T  )               , dimension(2  ):: datasetDimensions
+    logical                                                 :: appendToActual   , preExisted
+    type     (hdf5Dataset   )                               :: datasetObject
+    type     (varying_string)                               :: datasetNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized()
@@ -7817,21 +7813,21 @@ attributeValue=trim(attributeValue)
           &                                      h5sclose_f   , h5screate_simple_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f
     use            :: ISO_Varying_String, only : assignment(=), operator(//)      , trim
     implicit none
-    class           (hdf5Dataset   ), intent(inout)                         :: self
-    type            (hdf5VarDouble ), intent(in   ), dimension(:,:)         :: datasetValue
-    logical                         , intent(in   ), optional               :: appendTo
-    logical                         , intent(in   ), optional               :: preExistedIn
-    integer         (kind=HSIZE_T  )               , dimension(2  )         :: datasetDimensions          , hyperslabCount      , &
-         &                                                                     hyperslabStart             , newDatasetDimensions, &
-         &                                                                     newDatasetDimensionsMaximum
-    type            (hdf5VlenC     ), allocatable  , dimension(:,:), target :: datasetValueC
-    type            (c_ptr         )                                        :: datasetValueC_
-    integer         (kind=HSIZE_T  )                                        :: i                          , j
-    integer                                                                 :: datasetRank                , errorCode
-    integer         (kind=HID_T    )                                        :: dataspaceID                , newDataspaceID
-    logical                                                                 :: appendToActual             , preExisted
-    type            (hdf5Dataset   )                                        :: datasetObject
-    type            (varying_string)                                        :: datasetNameActual          , message
+    class  (hdf5Dataset   ), intent(inout)                         :: self
+    type   (hdf5VarDouble ), intent(in   ), dimension(:,:)         :: datasetValue
+    logical                , intent(in   ), optional               :: appendTo
+    logical                , intent(in   ), optional               :: preExistedIn
+    integer(kind=HSIZE_T  )               , dimension(2  )         :: datasetDimensions          , hyperslabCount      , &
+         &                                                            hyperslabStart             , newDatasetDimensions, &
+         &                                                            newDatasetDimensionsMaximum
+    type   (hdf5VlenC     ), allocatable  , dimension(:,:), target :: datasetValueC
+    type   (c_ptr         )                                        :: datasetValueC_
+    integer(kind=HSIZE_T  )                                        :: i                          , j
+    integer                                                        :: datasetRank                , errorCode
+    integer(kind=HID_T    )                                        :: dataspaceID                , newDataspaceID
+    logical                                                        :: appendToActual             , preExisted
+    type   (hdf5Dataset   )                                        :: datasetObject
+    type   (varying_string)                                        :: datasetNameActual          , message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized()
@@ -8047,17 +8043,17 @@ attributeValue=trim(attributeValue)
     use, intrinsic :: ISO_C_Binding     , only : c_loc               , c_null_char
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//)
     implicit none
-    integer  (kind=kind_int8     ), allocatable, dimension(:), intent(  out), target   :: datasetValue
-    class    (hdf5Group          )                           , intent(inout)           :: self
-    character(len=*              )                           , intent(in   )           :: tableName      , columnName
-    integer  (kind=HSIZE_T  )                                , intent(in   ), optional :: readBegin      , readCount
-    integer  (kind=HSIZE_T       )                                                     :: fieldCount     , recordCount    , &
-         &                                                                                readBeginActual, readCountActual
-    integer  (kind=SIZE_T        )                                                     :: recordTypeSize
-    integer                                                                            :: errorCode
-    type     (varying_string     )                                                     :: message
-    type     (c_ptr              )                                                     :: dataValueC
-    logical                                                                            :: readSubsection
+    integer  (kind=kind_int8), allocatable, dimension(:), intent(  out), target   :: datasetValue
+    class    (hdf5Group     )                           , intent(inout)           :: self
+    character(len=*         )                           , intent(in   )           :: tableName      , columnName
+    integer  (kind=HSIZE_T  )                           , intent(in   ), optional :: readBegin      , readCount
+    integer  (kind=HSIZE_T  )                                                     :: fieldCount     , recordCount    , &
+         &                                                                           readBeginActual, readCountActual
+    integer  (kind=SIZE_T   )                                                     :: recordTypeSize
+    integer                                                                       :: errorCode
+    type     (varying_string)                                                     :: message
+    type     (c_ptr         )                                                     :: dataValueC
+    logical                                                                       :: readSubsection
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -8297,21 +8293,21 @@ attributeValue=trim(attributeValue)
     !!{RST
     Create a scalar reference to the 1-D ``toDataset`` in the HDF5 group ``fromGroup``.
     !!}
-    use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5S_SELECT_SET_F     , H5T_STD_REF_DSETREG, HID_T          , HSIZE_T           , &
-          &                                      h5dclose_f           , h5dcreate_f        , h5dget_space_f , h5sclose_f        , &
-          &                                      h5screate_simple_f   , h5sselect_hyperslab_f
-    use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
+    use :: Error             , only : Error_Report
+    use :: HDF5              , only : H5S_SELECT_SET_F     , H5T_STD_REF_DSETREG  , HID_T         , HSIZE_T   , &
+          &                           h5dclose_f           , h5dcreate_f          , h5dget_space_f, h5sclose_f, &
+          &                           h5screate_simple_f   , h5sselect_hyperslab_f
+    use :: ISO_Varying_String, only : assignment(=)        , char                 , operator(//)  , trim
     implicit none
-    class    (hdf5Group        )              , intent(inout)         :: fromGroup
-    class    (hdf5Dataset      )              , intent(inout)         :: toDataset
-    character(len=*            )              , intent(in   )         :: referenceName
-    integer  (kind=HSIZE_T     ), dimension(1), intent(in   )         :: referenceCount   , referenceStart
-    integer  (kind=HSIZE_T     ), dimension(1)                        :: datasetDimensions, hyperslabCount, hyperslabStart
-    type     (hdf5Reference    )                             , target :: reference
-    integer                                                           :: errorCode        , datasetRank
-    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
-    type     (varying_string   )                                      :: message
+    class    (hdf5Group     )              , intent(inout)         :: fromGroup
+    class    (hdf5Dataset   )              , intent(inout)         :: toDataset
+    character(len=*         )              , intent(in   )         :: referenceName
+    integer  (kind=HSIZE_T  ), dimension(1), intent(in   )         :: referenceCount   , referenceStart
+    integer  (kind=HSIZE_T  ), dimension(1)                        :: datasetDimensions, hyperslabCount, hyperslabStart
+    type     (hdf5Reference )                             , target :: reference
+    integer                                                        :: errorCode        , datasetRank
+    integer  (kind=HID_T    )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
+    type     (varying_string)                                      :: message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -8392,21 +8388,21 @@ attributeValue=trim(attributeValue)
     !!{RST
     Create a scalar reference to the 2-D ``toDataset`` in the HDF5 group ``fromGroup``.
     !!}
-    use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5S_SELECT_SET_F     , H5T_STD_REF_DSETREG, HID_T          , HSIZE_T           , &
-          &                                      h5dclose_f           , h5dcreate_f        , h5dget_space_f , h5sclose_f        , &
-          &                                      h5screate_simple_f   , h5sselect_hyperslab_f
-    use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
+    use :: Error             , only : Error_Report
+    use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_STD_REF_DSETREG  , HID_T          , HSIZE_T   , &
+          &                           h5dclose_f        , h5dcreate_f          , h5dget_space_f , h5sclose_f, &
+          &                           h5screate_simple_f, h5sselect_hyperslab_f
+    use :: ISO_Varying_String, only : assignment(=)     , char                , operator(//)    , trim
     implicit none
-    class    (hdf5Group        )              , intent(inout)         :: fromGroup
-    class    (hdf5Dataset      )              , intent(inout)         :: toDataset
-    character(len=*            )              , intent(in   )         :: referenceName
-    integer  (kind=HSIZE_T     ), dimension(2), intent(in   )         :: referenceCount   , referenceStart
-    integer  (kind=HSIZE_T     ), dimension(2)                        :: datasetDimensions, hyperslabCount, hyperslabStart
-    type     (hdf5Reference    )                             , target :: reference
-    integer                                                           :: errorCode        , datasetRank
-    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
-    type     (varying_string   )                                      :: message
+    class    (hdf5Group     )              , intent(inout)         :: fromGroup
+    class    (hdf5Dataset   )              , intent(inout)         :: toDataset
+    character(len=*         )              , intent(in   )         :: referenceName
+    integer  (kind=HSIZE_T  ), dimension(2), intent(in   )         :: referenceCount   , referenceStart
+    integer  (kind=HSIZE_T  ), dimension(2)                        :: datasetDimensions, hyperslabCount, hyperslabStart
+    type     (hdf5Reference )                             , target :: reference
+    integer                                                        :: errorCode        , datasetRank
+    integer  (kind=HID_T    )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
+    type     (varying_string)                                      :: message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -8487,21 +8483,21 @@ attributeValue=trim(attributeValue)
     !!{RST
     Create a scalar reference to the 3-D ``toDataset`` in the HDF5 group ``fromGroup``.
     !!}
-    use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5S_SELECT_SET_F     , H5T_STD_REF_DSETREG, HID_T          , HSIZE_T           , &
-          &                                      h5dclose_f           , h5dcreate_f        , h5dget_space_f , h5sclose_f        , &
-          &                                      h5screate_simple_f   , h5sselect_hyperslab_f
-    use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
+    use :: Error             , only : Error_Report
+    use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_STD_REF_DSETREG  , HID_T         , HSIZE_T   , &
+          &                           h5dclose_f        , h5dcreate_f          , h5dget_space_f, h5sclose_f, &
+          &                           h5screate_simple_f, h5sselect_hyperslab_f
+    use :: ISO_Varying_String, only : assignment(=)     , char                 , operator(//)  , trim
     implicit none
-    class    (hdf5Group        )              , intent(inout)         :: fromGroup
-    class    (hdf5Dataset      )              , intent(inout)         :: toDataset
-    character(len=*            )              , intent(in   )         :: referenceName
-    integer  (kind=HSIZE_T     ), dimension(3), intent(in   )         :: referenceCount   , referenceStart
-    integer  (kind=HSIZE_T     ), dimension(3)                        :: datasetDimensions, hyperslabCount, hyperslabStart
-    type     (hdf5Reference    )                             , target :: reference
-    integer                                                           :: errorCode        , datasetRank
-    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
-    type     (varying_string   )                                      :: message
+    class    (hdf5Group     )              , intent(inout)         :: fromGroup
+    class    (hdf5Dataset   )              , intent(inout)         :: toDataset
+    character(len=*         )              , intent(in   )         :: referenceName
+    integer  (kind=HSIZE_T  ), dimension(3), intent(in   )         :: referenceCount   , referenceStart
+    integer  (kind=HSIZE_T  ), dimension(3)                        :: datasetDimensions, hyperslabCount, hyperslabStart
+    type     (hdf5Reference )                             , target :: reference
+    integer                                                        :: errorCode        , datasetRank
+    integer  (kind=HID_T    )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
+    type     (varying_string)                                      :: message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -8582,21 +8578,21 @@ attributeValue=trim(attributeValue)
     !!{RST
     Create a scalar reference to the 4-D ``toDataset`` in the HDF5 group ``fromGroup``.
     !!}
-    use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5S_SELECT_SET_F     , H5T_STD_REF_DSETREG, HID_T          , HSIZE_T           , &
-          &                                      h5dclose_f           , h5dcreate_f        , h5dget_space_f , h5sclose_f        , &
-          &                                      h5screate_simple_f   , h5sselect_hyperslab_f
-    use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
+    use :: Error             , only : Error_Report
+    use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_STD_REF_DSETREG  , HID_T         , HSIZE_T   , &
+          &                           h5dclose_f        , h5dcreate_f          , h5dget_space_f, h5sclose_f, &
+          &                           h5screate_simple_f, h5sselect_hyperslab_f
+    use :: ISO_Varying_String, only : assignment(=)     , char                 , operator(//)  , trim
     implicit none
-    class    (hdf5Group        )              , intent(inout)         :: fromGroup
-    class    (hdf5Dataset      )              , intent(inout)         :: toDataset
-    character(len=*            )              , intent(in   )         :: referenceName
-    integer  (kind=HSIZE_T     ), dimension(4), intent(in   )         :: referenceCount   , referenceStart
-    integer  (kind=HSIZE_T     ), dimension(4)                        :: datasetDimensions, hyperslabCount, hyperslabStart
-    type     (hdf5Reference    )                             , target :: reference
-    integer                                                           :: errorCode        , datasetRank
-    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
-    type     (varying_string   )                                      :: message
+    class    (hdf5Group     )              , intent(inout)         :: fromGroup
+    class    (hdf5Dataset   )              , intent(inout)         :: toDataset
+    character(len=*         )              , intent(in   )         :: referenceName
+    integer  (kind=HSIZE_T  ), dimension(4), intent(in   )         :: referenceCount   , referenceStart
+    integer  (kind=HSIZE_T  ), dimension(4)                        :: datasetDimensions, hyperslabCount, hyperslabStart
+    type     (hdf5Reference )                             , target :: reference
+    integer                                                        :: errorCode        , datasetRank
+    integer  (kind=HID_T    )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
+    type     (varying_string)                                      :: message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -8677,21 +8673,21 @@ attributeValue=trim(attributeValue)
     !!{RST
     Create a scalar reference to the 5-D ``toDataset`` in the HDF5 group ``fromGroup``.
     !!}
-    use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5S_SELECT_SET_F     , H5T_STD_REF_DSETREG, HID_T          , HSIZE_T           , &
-          &                                      h5dclose_f           , h5dcreate_f        , h5dget_space_f , h5sclose_f        , &
-          &                                      h5screate_simple_f   , h5sselect_hyperslab_f
-    use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
+    use :: Error             , only : Error_Report
+    use :: HDF5              , only : H5S_SELECT_SET_F  , H5T_STD_REF_DSETREG  , HID_T         , HSIZE_T   , &
+          &                           h5dclose_f        , h5dcreate_f          , h5dget_space_f, h5sclose_f, &
+          &                           h5screate_simple_f, h5sselect_hyperslab_f
+    use :: ISO_Varying_String, only : assignment(=)     , char                 , operator(//)   , trim
     implicit none
-    class    (hdf5Group        )              , intent(inout)         :: fromGroup
-    class    (hdf5Dataset      )              , intent(inout)         :: toDataset
-    character(len=*            )              , intent(in   )         :: referenceName
-    integer  (kind=HSIZE_T     ), dimension(5), intent(in   )         :: referenceCount   , referenceStart
-    integer  (kind=HSIZE_T     ), dimension(5)                        :: datasetDimensions, hyperslabCount, hyperslabStart
-    type     (hdf5Reference    )                             , target :: reference
-    integer                                                           :: errorCode        , datasetRank
-    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
-    type     (varying_string   )                                      :: message
+    class    (hdf5Group     )              , intent(inout)         :: fromGroup
+    class    (hdf5Dataset   )              , intent(inout)         :: toDataset
+    character(len=*         )              , intent(in   )         :: referenceName
+    integer  (kind=HSIZE_T  ), dimension(5), intent(in   )         :: referenceCount   , referenceStart
+    integer  (kind=HSIZE_T  ), dimension(5)                        :: datasetDimensions, hyperslabCount, hyperslabStart
+    type     (hdf5Reference )                             , target :: reference
+    integer                                                        :: errorCode        , datasetRank
+    integer  (kind=HID_T    )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
+    type     (varying_string)                                      :: message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -8949,13 +8945,13 @@ attributeValue=trim(attributeValue)
          &                                       char
     implicit none
     class    (hdf5AttributableObject), intent(inout)           :: self
-    type     (unitType      ), intent(in   ), target   :: attributeValue
-    character(len=*         ), intent(in   ), optional :: attributeName
-    integer  (kind=HID_T    )                          :: compoundTypeID     , dataspaceID , &
-         &                                                attributeID        , stringTypeID
-    integer  (kind=size_t   )                          :: typeSize
-    integer                                            :: errorCode
-    type     (varying_string)                          :: attributeNameActual, message
+    type     (unitType              ), intent(in   ), target   :: attributeValue
+    character(len=*                 ), intent(in   ), optional :: attributeName
+    integer  (kind=HID_T            )                          :: compoundTypeID     , dataspaceID , &
+         &                                                        attributeID        , stringTypeID
+    integer  (kind=size_t           )                          :: typeSize
+    integer                                                    :: errorCode
+    type     (varying_string        )                          :: attributeNameActual, message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized()

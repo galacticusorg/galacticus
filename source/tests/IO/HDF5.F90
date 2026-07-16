@@ -24,10 +24,11 @@ program Tests_IO_HDF5
   use :: Display           , only : displayVerbositySet, verbosityLevelStandard
   use :: Error             , only : Error_Report
   use :: HDF5              , only : HSIZE_T
-  use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5File            , hdf5VarDouble       , hdf5VarInteger8  , &
+  use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5File              , hdf5VarDouble       , hdf5VarInteger8  , &
        &                            hdf5VarDouble2D    , hdf5DataTypeDouble    , hdf5File            , hdf5Group        , &
        &                            hdf5Dataset
-  use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string      , var_str          , char
+  use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string      , var_str          , &
+       &                            char
   use :: Kind_Numbers      , only : kind_int8
   use :: System_Command    , only : System_Command_Do
   use :: Units_MetaData    , only : unitType

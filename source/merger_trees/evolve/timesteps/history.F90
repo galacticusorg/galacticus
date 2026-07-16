@@ -391,7 +391,7 @@ contains
     use :: Error                           , only : Error_Report
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5File           , hdf5Group           , hdf5Dataset
+    use :: IO_HDF5                         , only : hdf5File    , hdf5Group, hdf5Dataset
     use :: Numerical_Constants_Astronomical, only : gigaYear    , massSolar, megaParsec
     use :: Units_MetaData                  , only : unitType
     implicit none
@@ -400,8 +400,8 @@ contains
          &                                                       densityStellar        , densityStellarDisk       , &
          &                                                       densityStellarSpheroid, densityColdGas           , &
          &                                                       densityHotHaloGas     , densityNode
-    type            (hdf5Dataset)                              :: historyDataset
-    type            (hdf5Group  )                              :: historyGroup
+    type            (hdf5Dataset)                             :: historyDataset
+    type            (hdf5Group  )                             :: historyGroup
 
     select type (self)
     class is (mergerTreeEvolveTimestepHistory)

@@ -233,7 +233,7 @@ contains
     use :: Error                                 , only : Error_Report
     use :: Geometry_Surveys                      , only : surveyGeometryFullSky
     use :: HDF5_Access                           , only : hdf5Access
-    use :: IO_HDF5                               , only : hdf5File, hdf5Group
+    use :: IO_HDF5                               , only : hdf5File                                                      , hdf5Group
     use :: ISO_Varying_String                    , only : var_str                                                       , varying_string
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo                                 , nodePropertyExtractorMassStellar
     use :: Numerical_Constants_Astronomical      , only : massSolar
@@ -298,7 +298,7 @@ contains
          &                                                                                              haloMassDefinition                                            , referenceTarget                                                   , &
          &                                                                                              labelTarget
     type            (hdf5File                                       )                                :: fileTarget
-    type            (hdf5Group                                      )                                :: groupRedshift, groupCosmology
+    type            (hdf5Group                                      )                                :: groupRedshift                                                 , groupCosmology
     character       (len=4                                          )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
     type(enumerationFixedDensityTypeType) :: densityType
     type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
@@ -758,7 +758,7 @@ contains
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5File, hdf5Group
+    use :: IO_HDF5    , only : hdf5File  , hdf5Group
     implicit none
     class(outputAnalysisStellarVsHaloMassRelation), intent(inout)           :: self
     type (varying_string                         ), intent(in   ), optional :: groupName

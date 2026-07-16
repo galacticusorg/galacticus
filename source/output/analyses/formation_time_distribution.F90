@@ -397,7 +397,7 @@ contains
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: HDF5_Access                      , only : hdf5Access
-    use :: IO_HDF5                          , only : hdf5File, hdf5Group
+    use :: IO_HDF5                          , only : hdf5File                  , hdf5Group
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
     use :: File_Utilities                   , only : File_Name_Expand
     use :: Virial_Density_Contrast          , only : virialDensityContrastClass

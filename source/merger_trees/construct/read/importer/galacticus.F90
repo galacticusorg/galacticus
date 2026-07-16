@@ -25,7 +25,7 @@
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParametersClass
   use :: Halo_Mass_Functions       , only : haloMassFunctionClass
-  use :: IO_HDF5                   , only : hdf5File            , hdf5Group           , hdf5Dataset
+  use :: IO_HDF5                   , only : hdf5File                     , hdf5Group      , hdf5Dataset
   use :: Stateful_Types            , only : statefulDouble               , statefulInteger, statefulLogical
 
   ! Enumeration of particle epoch types.

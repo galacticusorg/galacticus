@@ -265,7 +265,7 @@ contains
     use :: Error               , only : Error_Report
     use :: File_Utilities      , only : File_Lock     , File_Unlock
     use :: HDF5_Access         , only : hdf5Access
-    use :: IO_HDF5             , only : hdf5File, hdf5Group
+    use :: IO_HDF5             , only : hdf5File      , hdf5Group
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
     class           (transferFunctionFileFuzzyDarkMatter), intent(inout)           :: self

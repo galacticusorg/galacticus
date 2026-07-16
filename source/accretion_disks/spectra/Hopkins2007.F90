@@ -139,7 +139,7 @@ contains
     use            :: Error                           , only : Error_Report
     use            :: Input_Paths                     , only : inputPath              , pathTypeDataDynamic , pathTypeDataStatic
     use            :: HDF5_Access                     , only : hdf5Access
-    use            :: IO_HDF5                         , only : hdf5File, hdf5Dataset
+    use            :: IO_HDF5                         , only : hdf5File               , hdf5Dataset
     use, intrinsic :: ISO_Fortran_Env
     use            :: Numerical_Constants_Astronomical, only : luminositySolar
     use            :: Numerical_Constants_Physical    , only : speedLight

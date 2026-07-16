@@ -22,7 +22,7 @@ Implements an N-body data importer for Gadget HDF5 files.
 !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
-  use :: IO_HDF5             , only : hdf5File, hdf5Group, hdf5Dataset
+  use :: IO_HDF5             , only : hdf5File                , hdf5Group, hdf5Dataset
 
   !![
   <nbodyImporter name="nbodyImporterGadgetHDF5" docformat="rst">

@@ -483,7 +483,7 @@ contains
     use            :: Error                           , only : Error_Report
     use            :: Input_Paths                     , only : inputPath                        , pathTypeDataDynamic
     use            :: HDF5_Access                     , only : hdf5Access
-    use            :: IO_HDF5                         , only : hdf5File, hdf5Dataset
+    use            :: IO_HDF5                         , only : hdf5File                         , hdf5Dataset
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Input_Parameters                , only : inputParameters
     use            :: Numerical_Constants_Astronomical, only : metallicitySolar

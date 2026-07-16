@@ -149,7 +149,7 @@ contains
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5File, hdf5Group, hdf5Dataset
+    use :: IO_HDF5           , only : hdf5File     , hdf5Group   , hdf5Dataset
     use :: ISO_Varying_String, only : assignment(=), operator(//), varying_string
     use :: String_Handling   , only : operator(//)
     implicit none
@@ -162,7 +162,7 @@ contains
            &                       initialMassCount       , initialMassCountMaximum, &
            &                       metallicityCountMaximum, metallicityCount
       type     (hdf5Dataset   ) :: ageDataset
-      type     (hdf5Group     ) :: massGroup, metallicityGroup
+      type     (hdf5Group     ) :: massGroup              , metallicityGroup
       type     (hdf5File      ) :: stellarTracks
       logical                   :: foundMassGroup         , foundMetallicityGroup
 

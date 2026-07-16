@@ -540,7 +540,7 @@ contains
          &                            displayReset
     use :: Error             , only : Error_Report                        , errorStatusSuccess
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5File, hdf5Dataset
+    use :: IO_HDF5           , only : hdf5File                            , hdf5Dataset
     use :: ISO_Varying_String, only : varying_string
     use :: Table_Labels      , only : enumerationExtrapolationTypeEncode  , extrapolationTypeFix, extrapolationTypeExtrapolate, extrapolationTypeZero, &
          &                            enumerationExtrapolationTypeDescribe
@@ -551,7 +551,7 @@ contains
     type            (varying_string        )                :: limitType
     integer                                                 :: fileFormatVersion                  , status
     type            (hdf5File              )                :: coolingFunctionFile
-    type            (hdf5Dataset           )                :: metallicityDataset, temperatureDataset
+    type            (hdf5Dataset           )                :: metallicityDataset                 , temperatureDataset
     
     !$ call hdf5Access%set()
     ! Read the file.

@@ -254,7 +254,7 @@ contains
     Outputs conditional mass function.
     !!}
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5, only : hdf5File
+    use :: IO_HDF5    , only : hdf5File
     implicit none
     class(mergerTreeOperatorOutputRootMasses), intent(inout) :: self
     type (hdf5File                          ), target        :: outputFile

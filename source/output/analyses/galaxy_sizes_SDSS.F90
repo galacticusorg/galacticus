@@ -121,7 +121,7 @@ contains
     use :: Geometry_Surveys                        , only : surveyGeometryLiWhite2009SDSS
     use :: Gravitational_Lensing                   , only : gravitationalLensingClass
     use :: HDF5_Access                             , only : hdf5Access
-    use :: IO_HDF5                                 , only : hdf5File, hdf5Group
+    use :: IO_HDF5                                 , only : hdf5File                                     , hdf5Group
     use :: ISO_Varying_String                      , only : var_str                                      , varying_string
     use :: Node_Property_Extractors                , only : nodePropertyExtractorRadiusHalfMassStellar   , nodePropertyExtractorMassStellar
     use :: Numerical_Constants_Astronomical        , only : megaParsec
@@ -198,7 +198,7 @@ contains
     write (distributionName,'(a,i2.2)') 'distribution',distributionNumber
     !$ call hdf5Access%set()
     dataFile    =hdf5File          (char(inputPath(pathTypeDataStatic)//'observations/galaxySizes/Galaxy_Sizes_By_Mass_SDSS_Shen_2003.hdf5'),readOnly=.true.)
-    distribution=dataFile  %openGroup(distributionName                                                                                                        )
+    distribution=dataFile%openGroup(distributionName                                                                                                        )
     call distribution%readDataset  ('radius'             ,radii              )
     call distribution%readDataset  ('radiusFunction'     ,functionValueTarget)
     call distribution%readDataset  ('radiusFunctionError',functionErrorTarget)

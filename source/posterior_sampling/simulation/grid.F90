@@ -325,7 +325,7 @@ contains
     !!}
     use :: Output_HDF5                   , only : outputFile
     use :: HDF5_Access                   , only : hdf5Access
-    use :: IO_HDF5                       , only : hdf5File, hdf5Group
+    use :: IO_HDF5                       , only : hdf5File                        , hdf5Group
     use :: Model_Parameters              , only : modelParameterListLogPrior
     use :: Models_Likelihoods_Constants  , only : logImpossible
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceAlways

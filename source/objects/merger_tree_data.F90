@@ -1590,10 +1590,10 @@ contains
     !!}
     use :: File_Utilities    , only : File_Exists
     use :: Error             , only : Error_Report
-    use :: HDF5              , only : HSIZE_T        , hsize_t
+    use :: HDF5              , only : HSIZE_T      , hsize_t
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5File           , hdf5Group       , hdf5Dataset
-    use :: ISO_Varying_String, only : assignment(=)  , char
+    use :: IO_HDF5           , only : hdf5File     , hdf5Group, hdf5Dataset
+    use :: ISO_Varying_String, only : assignment(=), char
     use :: String_Handling   , only : operator(//)
     implicit none
     integer  (kind=hsize_t )                            , intent(in   ) :: hdfChunkSize
@@ -1845,31 +1845,31 @@ contains
     use :: Error             , only : Error_Report
     use :: HDF5              , only : hsize_t
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5File     , hdf5Group    , hdf5Dataset
+    use :: IO_HDF5           , only : hdf5File     , hdf5Group  , hdf5Dataset
     use :: ISO_Varying_String, only : assignment(=), char
     implicit none
-    integer         (kind=hsize_t  )                           , intent(in   ) ::        hdfChunkSize
-    integer                                                    , intent(in   ) ::        hdfCompressionLevel
-    class           (mergerTreeData)                           , intent(inout) ::        mergerTrees
-    character       (len=*         )                           , intent(in   ) ::        outputFileName
-    logical                                                    , intent(in   ) , optional::                      append
-    type            (hdf5Group     ), pointer                                  ::        attributeGroup
-    type            (hdf5Group     ), target                                   ::        cosmologyGroup                , darkParticlesGroup  , &
-         &                                                                               haloTrees                     , mergerTreesGroup    , &
-         &                                                                               particlesGroup                , simulationGroup     , &
-         &                                                                               snapshotGroup
-    type            (hdf5File      ), target                                   ::        outputFile
-    type            (hdf5Dataset   ), target                                   ::        dataset
-    integer                         , allocatable, dimension(:)                ::        nodeSnapshotIndices           , snapshotIndices
-    integer         (c_size_t      ), allocatable, dimension(:)                ::        descendantSnapshot
-    double precision                , allocatable, dimension(:)                ::        particleMass
-    integer                                                                    ::        iAttribute                    , nodesOnSnapshotCount, &
-         &                                                                               particlesOnSnapshotCount
-    integer         (c_size_t      )                                           ::        iDescendant                   , iNode               , &
-         &                                                                               iSnapshot                     , snapshotMaximum     , &
-         &                                                                               snapshotMinimum
-    character       (len=14        )                                           ::        snapshotGroupName
-    logical                                                                    ::        appendActual                  , fileExists
+    integer         (kind=hsize_t  )                           , intent(in   ) :: hdfChunkSize
+    integer                                                    , intent(in   ) :: hdfCompressionLevel
+    class           (mergerTreeData)                           , intent(inout) :: mergerTrees
+    character       (len=*         )                           , intent(in   ) :: outputFileName
+    logical                         , optional                 , intent(in   ) :: append
+    type            (hdf5Group     ), pointer                                  :: attributeGroup
+    type            (hdf5Group     ), target                                   :: cosmologyGroup          , darkParticlesGroup  , &
+         &                                                                        haloTrees               , mergerTreesGroup    , &
+         &                                                                        particlesGroup          , simulationGroup     , &
+         &                                                                        snapshotGroup
+    type            (hdf5File      ), target                                   :: outputFile
+    type            (hdf5Dataset   ), target                                   :: dataset
+    integer                         , allocatable, dimension(:)                :: nodeSnapshotIndices     , snapshotIndices
+    integer         (c_size_t      ), allocatable, dimension(:)                :: descendantSnapshot
+    double precision                , allocatable, dimension(:)                :: particleMass
+    integer                                                                    :: iAttribute              , nodesOnSnapshotCount, &
+         &                                                                        particlesOnSnapshotCount
+    integer         (c_size_t      )                                           :: iDescendant             , iNode               , &
+         &                                                                        iSnapshot               , snapshotMaximum     , &
+         &                                                                        snapshotMinimum
+    character       (len=14        )                                           :: snapshotGroupName
+    logical                                                                    :: appendActual            , fileExists
 
     ! Determine if we are to append to an existing file.
     appendActual=.false.

@@ -144,7 +144,7 @@ contains
     use            :: Display                         , only : displayIndent, displayUnindent, verbosityLevelStandard
     use            :: Error                           , only : Error_Report
     use            :: HDF5_Access                     , only : hdf5Access
-    use            :: IO_HDF5                         , only : hdf5File, hdf5Group, hdf5Dataset
+    use            :: IO_HDF5                         , only : hdf5File     , hdf5Group      , hdf5Dataset
     use            :: IO_IRATE                        , only : irate
     use            :: ISO_Varying_String              , only : char
     use            :: Numerical_Constants_Astronomical, only : massSolar    , megaparsec
@@ -159,7 +159,7 @@ contains
     type            (irate                   )                                :: irate_
     character       (len=13                  )                                :: snapshotLabel
     type            (hdf5File                )                                :: irateFile
-    type            (hdf5Group               )                                :: snapshotGroup, halosGroup
+    type            (hdf5Group               )                                :: snapshotGroup     , halosGroup
     type            (hdf5Dataset             )                                :: dataset
     integer                                                                   :: i
     type            (varying_string          )                                :: datasetDescription, unitName

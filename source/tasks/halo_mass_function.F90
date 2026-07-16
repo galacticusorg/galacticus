@@ -504,7 +504,7 @@ contains
     use            :: HDF5_Access                         , only : hdf5Access
     use            :: Galacticus_Nodes                    , only : mergerTree                         , nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
     use            :: Galactic_Structure_Options          , only : componentTypeDarkMatterOnly        , massTypeDark
-    use            :: IO_HDF5                             , only : hdf5File, hdf5Group, hdf5Dataset
+    use            :: IO_HDF5                             , only : hdf5File                           , hdf5Group                          , hdf5Dataset
     use, intrinsic :: ISO_C_Binding                       , only : c_size_t
     use            :: Mass_Distributions                  , only : massDistributionClass
     use            :: Node_Components                     , only : Node_Components_Thread_Initialize  , Node_Components_Thread_Uninitialize

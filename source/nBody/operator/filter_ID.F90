@@ -54,7 +54,7 @@ contains
     Constructor for the :galacticus-class:`nbodyOperatorFilterID` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
-    use :: IO_HDF5         , only : hdf5File, hdf5Group
+    use :: IO_HDF5         , only : hdf5File          , hdf5Group
     use :: HDF5_Access     , only : hdf5Access
     use :: String_Handling , only : String_Split_Words, String_Count_Words
     implicit none
