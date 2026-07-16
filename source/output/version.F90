@@ -144,7 +144,8 @@ contains
     ! Git2 library is not available. If we have the command line `git` installed, use it instead.
     gitHashDatasets="unknown"
     hashFileName   =File_Name_Temporary("repoHash.txt")
-    escapedStaticPath=shellEscape(inputPath(pathTypeDataStatic))
+    escapedStaticPath=inputPath(pathTypeDataStatic)
+    escapedStaticPath=shellEscape(escapedStaticPath)
     escapedHashFile  =shellEscape(hashFileName                 )
     call System_Command_Do("cd "//char(escapedStaticPath)//"; if which git > /dev/null && git rev-parse --is-inside-work-tree > /dev/null 2>&1 ; then git rev-parse HEAD > "//char(escapedHashFile)//"; else echo unknown > "//char(escapedHashFile)//"; fi",iStatus=status)
     if (status == 0) then

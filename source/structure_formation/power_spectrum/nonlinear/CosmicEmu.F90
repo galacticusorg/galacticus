@@ -257,7 +257,8 @@ contains
                 ! Unpack the code.
                 call displayMessage("unpacking CosmicEmu code....",verbosityLevelWorking)
                 escapedZipFile    =shellEscape(inputPath(pathTypeDataDynamic)//"CosmicEmu-master.zip")
-                escapedDynamicPath=shellEscape(inputPath(pathTypeDataDynamic)                        )
+                escapedDynamicPath=inputPath(pathTypeDataDynamic)
+                escapedDynamicPath=shellEscape(escapedDynamicPath)
                 call System_Command_Do("unzip "//escapedZipFile//" -d "//escapedDynamicPath)
                 if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.c")) &
                      & call Error_Report("failed to unpack CosmicEmu code"//{introspection:location})
@@ -270,7 +271,8 @@ contains
                   & call Error_Report("failed to build Cosmic_Emu code"//{introspection:location})
           end if
           ! Generate the power spectrum.
-          escapedWorkDir      =shellEscape(File_Path(parameterFile)                                                          )
+          escapedWorkDir=File_Path(parameterFile)
+          escapedWorkDir=shellEscape(escapedWorkDir)
           escapedExecutable   =shellEscape(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.exe")
           escapedParameterFile=shellEscape(parameterFile                                                                     )
           escapedPowerSpectrum=shellEscape(powerSpectrumFile                                                                 )

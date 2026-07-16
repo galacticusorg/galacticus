@@ -364,7 +364,8 @@ contains
              if (status /= 0 .or. .not.File_Exists(manglePath//".tar.gz")) call Error_Report("unable to download mangle"//{introspection:location})
           end if
           call displayMessage("unpacking mangle code....",verbosityLevelWorking)
-          escapedToolsPath=shellEscape(inputPath(pathTypeTools))
+          escapedToolsPath=inputPath(pathTypeTools)
+          escapedToolsPath=shellEscape(escapedToolsPath)
           escapedTarFile  =shellEscape(manglePath//".tar.gz"   )
           call System_Command_Do("tar -x -v -z -C "//escapedToolsPath//" -f "//escapedTarFile,status)
           if (status /= 0 .or. .not.File_Exists(manglePath//"src/Makefile.in")) call Error_Report('failed to unpack mangle code'//{introspection:location})

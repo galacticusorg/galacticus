@@ -101,7 +101,8 @@ contains
              if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeTools)//"class_public-"//char(classVersion)//".tar.gz")) call Error_Report("unable to download CLASS"//{introspection:location})
           end if
           call displayMessage("unpacking CLASS code....",verbosityLevelWorking)
-          escapedToolsPath=shellEscape(inputPath(pathTypeTools)                                                )
+          escapedToolsPath=inputPath(pathTypeTools)
+          escapedToolsPath=shellEscape(escapedToolsPath)
           escapedTarFile  =shellEscape(inputPath(pathTypeTools)//"class_public-"//char(classVersion)//".tar.gz")
           call System_Command_Do("tar -x -v -z -C "//escapedToolsPath//" -f "//escapedTarFile,status)
           if (status /= 0 .or. .not.File_Exists(classPath)) call Error_Report('failed to unpack CLASS code'//{introspection:location})

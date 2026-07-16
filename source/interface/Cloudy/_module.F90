@@ -93,7 +93,8 @@ contains
           end if
           ! Unpack and patch the code.
           call displayMessage("unpacking and patching Cloudy code....",verbosityLevelWorking)
-          escapedToolsPath =shellEscape(inputPath(pathTypeTools))
+          escapedToolsPath=inputPath(pathTypeTools)
+          escapedToolsPath=shellEscape(escapedToolsPath)
           escapedTarFile   =shellEscape(cloudyPath//".tar.gz"   )
           call System_Command_Do("tar -x -v -z -C "//escapedToolsPath//" -f "//escapedTarFile,status)
           if (status /= 0 .or. .not.File_Exists(cloudyPath)) call Error_Report("failed to unpack Cloudy code"//{introspection:location})

@@ -52,6 +52,11 @@ contains
     command string. The result of ``shellEscape`` must {\normalfont \bfseries not} be used directly as an actual argument (for
     example inline within a ``System_Command_Do`` argument, or as an operand of a concatenation that is passed as an actual
     argument), as gfortran leaks the function result in that case.
+
+    For the same reason, the {\normalfont \ttfamily token} argument passed to ``shellEscape`` must not itself be a bare
+    function call that returns a {\normalfont \ttfamily varying\_string} (e.g. {\normalfont \ttfamily shellEscape(inputPath(...))}),
+    since gfortran leaks that nested function result. Assign such a result to a local variable first, then pass the variable:
+    {\normalfont \ttfamily localVar=inputPath(...)} followed by {\normalfont \ttfamily localVar=shellEscape(localVar)}.
     !!}
     use :: ISO_Varying_String, only : varying_string, replace, operator(//)
     implicit none
