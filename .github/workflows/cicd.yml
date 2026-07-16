@@ -8,6 +8,7 @@ on:
     # validators in prChecks.yml and the ReadTheDocs build, so they skip this.
     paths: &codePaths
       - 'Makefile'
+      - 'aux/dependencies.yml'
       - 'source/**'
       - 'python/**'
       - 'scripts/build/**'
