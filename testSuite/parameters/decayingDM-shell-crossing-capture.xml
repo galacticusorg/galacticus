@@ -181,6 +181,7 @@
     <nodeOperator value="satelliteTidalHeating"            />
     <!-- Halo angular momentum -->
     <nodeOperator value="haloAngularMomentumVitvitska2002"  >
+      <useOriginalSubresolutionMethod value="true"/>
       <darkMatterProfileDMO value="NFW" />
       <exponentMass value="1.10475"/> <!-- Best fit value from Benson, Behrens, & Lu (2020) offset for fix to Keplerian orbit propagation -->
     </nodeOperator>
