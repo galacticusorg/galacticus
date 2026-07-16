@@ -4464,9 +4464,24 @@ def test_functionclass_generate_constructor_with_default_and_recursion():
 
     assert_equal('interface myFoo' in pre['content'], True,
                  "constructor interface declared")
-    assert_equal('RecursiveBuildNode' in pre['content'], True,
-                 "recursive-build state variable declared when any class is recursive")
     body = post['content']
+    # Recursion detection is now unified onto the shared object-build stack
+    # (issue #695): the factory records the object under construction on the
+    # stack and, on re-entry, queries the stack and returns the generated shim
+    # type -- in place of the former per-family RecursiveBuildNode/Object
+    # thread-private module variables.
+    assert_equal('RecursiveBuildNode' in pre['content'], False,
+                 "the retired per-family recursive-build module variables are "
+                 "no longer emitted")
+    assert_equal('recursiveObject => Input_Parameters_Build_Stack_Recursive_Object'
+                 in body, True,
+                 "recursive-build detection queries the object-build stack when "
+                 "any class is recursive")
+    assert_equal('call Input_Parameters_Build_Stack_Object_Set(self)' in body, True,
+                 "object under construction recorded on the build stack for a "
+                 "recursive class")
+    assert_equal('allocate(myFooRecursive :: self)' in body, True,
+                 "recursive re-entry short-circuits to the generated shim type")
     assert_equal('function myFooCnstrctrPrmtrs(parameters,copyInstance,'
                  'parameterName) result(self)' in body, True,
                  "constructor function declared with all expected parameters")
