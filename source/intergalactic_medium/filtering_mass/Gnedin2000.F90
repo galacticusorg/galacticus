@@ -655,7 +655,7 @@ contains
 
     ! Open the data file.
     !$ call hdf5Access%set()
-    dataFile=hdf5File(char(self%fileName),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
+    dataFile=hdf5File(self%fileName,overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
     call dataFile%writeDataset  (reshape(self%table      %ys(),[self%table%size()]),          'massFiltering')
     call dataFile%writeAttribute(        self%timeMinimum                          ,          'timeMinimum'  )
     call dataFile%writeAttribute(        self%timeMaximum                          ,          'timeMaximum'  )

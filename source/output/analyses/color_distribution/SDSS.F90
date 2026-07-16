@@ -154,7 +154,7 @@ contains
     ! Construct colors matched to those used by Baldry et al. (2004). Also read magnitude range.
     write (distributionName,'(a,i2.2)') 'distribution',distributionNumber
     !$ call hdf5Access%set()
-    dataFile    =hdf5File          (char(inputPath(pathTypeDataStatic)//'observations/galaxyColors/colorDistributionsBaldry2004.hdf5'),readOnly=.true.)
+    dataFile    =hdf5File          (inputPath(pathTypeDataStatic)//'observations/galaxyColors/colorDistributionsBaldry2004.hdf5',readOnly=.true.)
     distribution=dataFile%openGroup(distributionName                                                                                                  )
     call distribution%readDataset  ('color'            ,colors             )
     call distribution%readDataset  ('distribution'     ,functionValueTarget)

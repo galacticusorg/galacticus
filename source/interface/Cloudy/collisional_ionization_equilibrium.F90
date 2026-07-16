@@ -113,7 +113,7 @@ contains
        computeChemicalStates  =.false.
        if (File_Exists(fileNameCoolingFunction)) then
           !$ call hdf5Access%set()
-          outputFile=hdf5File(char(fileNameCoolingFunction),readOnly=.true.)
+          outputFile=hdf5File(fileNameCoolingFunction,readOnly=.true.)
           if (outputFile%hasAttribute('fileFormat')) then
              call outputFile%readAttribute('fileFormat',fileFormatFile)
              if (fileFormatFile /= versionFileFormatCurrent) computeCoolingFunctions=.true.
@@ -125,7 +125,7 @@ contains
        ! Determine if we need to compute chemical states.
        if (File_Exists(fileNameChemicalState)) then
           !$ call hdf5Access%set()
-          outputFile=hdf5File(char(fileNameChemicalState),readOnly=.true.)
+          outputFile=hdf5File(fileNameChemicalState,readOnly=.true.)
           if (outputFile%hasAttribute('fileFormat')) then
              call outputFile%readAttribute('fileFormat',fileFormatFile)
              if (fileFormatFile /= versionFileFormatCurrent) computeChemicalStates=.true.
@@ -266,7 +266,7 @@ contains
           ! Output cooling functions to an HDF5 file.
           if (computeCoolingFunctions) then
              !$ call hdf5Access%set()
-             outputFile=hdf5File(char(fileNameCoolingFunction))
+             outputFile=hdf5File(fileNameCoolingFunction)
              ! Store data.
              call    outputFile%writeDataset  (metallicitiesLogarithmic                                  ,'metallicity'                     ,datasetReturned=dataset)
              call    dataset   %writeAttribute('fix'                                                     ,'extrapolateLow'                                          )
@@ -291,7 +291,7 @@ contains
           ! Output chemical states to an HDF5 file.
           if (computeChemicalStates) then
              !$ call hdf5Access%set()
-             outputFile=hdf5File(char(fileNameChemicalState))
+             outputFile=hdf5File(fileNameChemicalState)
              ! Store data.
              call    outputFile%writeDataset  (metallicitiesLogarithmic                                  ,'metallicity'    ,datasetReturned=dataset)
              call    dataset   %writeAttribute('fix'                                                     ,'extrapolateLow'                         )

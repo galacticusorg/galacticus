@@ -176,7 +176,7 @@ contains
     makeFile=.false.
     if (File_Exists(self%fileName)) then
        !$ call hdf5Access%set()
-       file=hdf5File(char(self%fileName),readOnly=.true.)
+       file=hdf5File(self%fileName,readOnly=.true.)
        if (file%hasAttribute('fileFormat')) then
           call file%readAttribute('fileFormat',fileFormatCurrentFile,allowPseudoScalar=.true.)
           makeFile=fileFormatCurrentFile /= fileFormatCurrent
@@ -237,7 +237,7 @@ contains
        call displayCounterClear(verbosity=verbosityLevelWorking)
        ! Store the data to file.
        !$ call hdf5Access%set()
-       file=hdf5File(char(self%fileName),overWrite=.true.)
+       file=hdf5File(self%fileName,overWrite=.true.)
        call file   %writeDataset  (wavelength               ,"wavelength"          ,datasetReturned=dataset)
        call dataset%writeAttribute(unitType(1.0d0/metersToAngstroms  ,"Angstroms (Å)"          ,"angstrom" ),"units")
        call file   %writeDataset  (luminosityBolometric     ,"bolometricLuminosity",datasetReturned=dataset)

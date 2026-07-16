@@ -210,7 +210,7 @@ contains
     else if (extract(fileName,len(fileName)-4,len(fileName)) == ".hdf5") then
        ! HDF5 file.
        !$ call hdf5Access%set()
-       file=hdf5File(char(self%fileName),readOnly=.true.)
+       file=hdf5File(self%fileName,readOnly=.true.)
        ! Check the file format version of the file.
        call file%readAttribute('fileFormat',fileFormatVersion)
        if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})

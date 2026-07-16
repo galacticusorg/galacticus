@@ -259,7 +259,7 @@ contains
       type(hdf5Group  ) :: cosmologicalParametersGroup, unitsGroup
       type(hdf5Dataset) :: angularMomentumDataset     , spinDataset
       ! Open the file.
-      self%file=hdf5File(char(fileName),readOnly=.true.)
+      self%file=hdf5File(fileName,readOnly=.true.)
       ! Get the file format version number.
       if (self%file%hasAttribute('formatVersion')) then
          call self%file%readAttribute('formatVersion',self%formatVersion,allowPseudoScalar=.true.)

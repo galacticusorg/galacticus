@@ -477,7 +477,7 @@ contains
        allEpochsFound=.true.
        !$ call hdf5Access%set()
        hdf5ReadScope: block
-         classOutput=hdf5File(char(fileName_))
+         classOutput=hdf5File(fileName_)
          call classOutput%readDataset('wavenumber',wavenumbers)
          allocate(transferFunctions(size(wavenumbers),3,size(redshifts)))
          speciesGroup=classOutput%openGroup('darkMatter')
@@ -507,7 +507,7 @@ contains
        if (File_Exists(fileName_)) then
           !$ call hdf5Access%set()
           hdf5DatasetsScope: block
-            classOutput=hdf5File(char(fileName_))
+            classOutput=hdf5File(fileName_)
             speciesGroup=classOutput%openGroup('darkMatter')
             call speciesGroup%datasets(datasetNames)
           end block hdf5DatasetsScope
@@ -549,7 +549,7 @@ contains
        ! Construct the output HDF5 file.
        !$ call hdf5Access%set()
        hdf5WriteScope: block
-         classOutput=hdf5File(char(fileName_),objectsOverwritable=.true.)
+         classOutput=hdf5File(fileName_,objectsOverwritable=.true.)
          call classOutput %writeAttribute('Transfer functions created by CLASS.','description')
          call classOutput %writeAttribute(classFormatVersionCurrent,'fileFormat')
          call classOutput %writeDataset(wavenumbers ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not. classOutput%hasDataset('wavenumber'))
@@ -580,7 +580,7 @@ contains
     if (present(transferFunctionDarkMatter)) then
        !$ call hdf5Access%set()
        hdf5DarkMatterScope: block
-         classOutput=hdf5File(char(fileName_))
+         classOutput=hdf5File(fileName_)
          call classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call transferFunctionDarkMatter%create(                                                 &
@@ -607,7 +607,7 @@ contains
     if (present(transferFunctionBaryons)) then
        !$ call hdf5Access%set()
        hdf5BaryonsScope: block
-         classOutput=hdf5File(char(fileName_))
+         classOutput=hdf5File(fileName_)
          call classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call transferFunctionBaryons   %create(                                                 &
@@ -685,7 +685,7 @@ contains
     if (File_Exists(fileName)) then
        !$ call hdf5Access %set          (                             )
        hdf5ReadScope: block
-         classOutput=hdf5File(char(fileName))
+         classOutput=hdf5File(fileName)
          call    classOutput%readAttribute('normalization',normalization)      
        end block hdf5ReadScope
        !$ call hdf5Access %unset        (                             )
@@ -695,7 +695,7 @@ contains
        ! Construct the output HDF5 file.
        !$ call hdf5Access %set           (                              )
        hdf5WriteScope: block
-         classOutput=hdf5File(char(fileName),objectsOverwritable=.true.)
+         classOutput=hdf5File(fileName,objectsOverwritable=.true.)
          call    classOutput%writeAttribute(normalization ,'normalization')
        end block hdf5WriteScope
        !$ call hdf5Access %unset         (                              )

@@ -184,6 +184,7 @@ contains
     use :: Star_Formation_Rates_Spheroids            , only : starFormationRateSpheroidsClass
     use :: Star_Formation_Rates_Nuclear_Star_Clusters, only : starFormationRateNuclearStarClustersClass
     use :: String_Handling                           , only : stringXMLFormat
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
     type            (outputAnalysisMassMetallicityBlanc2019             )                                :: self
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum                                            , &
@@ -234,7 +235,7 @@ contains
     
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
-    dataFile=hdf5File(char(inputPath(pathTypeDataStatic))//"observations/abundances/massMetallicityRelationBlanc2019.hdf5",readOnly=.true.)
+    dataFile=hdf5File(inputPath(pathTypeDataStatic)//"observations/abundances/massMetallicityRelationBlanc2019.hdf5",readOnly=.true.)
     call dataFile%readDataset("massStellar"               ,masses             )
     call dataFile%readDataset("abundanceOxygenMean"       ,functionValueTarget)
     call dataFile%readDataset("abundanceOxygen16PercentCI",function16Target   )

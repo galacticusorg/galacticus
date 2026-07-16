@@ -257,7 +257,7 @@ contains
       type(hdf5File   ) :: spectraFile
       type(hdf5Group  ) :: imfGroup
       type(hdf5Dataset) :: dataset
-      spectraFile=hdf5File(char(spectraFileName))
+      spectraFile=hdf5File(spectraFileName)
       ! Add metadata.
       call spectraFile%writeAttribute('Galacticus'                                                                           ,'createdBy'  )
       call spectraFile%writeAttribute(Formatted_Date_and_Time()                                                              ,'timestep'   )

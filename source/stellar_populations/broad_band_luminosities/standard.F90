@@ -456,7 +456,7 @@ contains
                       block
                         type(hdf5File  ) :: luminositiesFile
                         !$ call hdf5Access%set()
-                        luminositiesFile=hdf5File(char(luminositiesFileName),readOnly=.true.)
+                        luminositiesFile=hdf5File(luminositiesFileName,readOnly=.true.)
                         if (luminositiesFile%hasDataset(trim(datasetName))) then
                            ! Read the dataset.
                            call luminositiesFile%readDatasetStatic(trim(datasetName),self%luminosityTables(populationID)%luminosity(luminosityIndex(iLuminosity),:,:))

@@ -379,7 +379,7 @@ contains
        if (File_Exists(fileName)) then
           ! Read the results from file.
           !$ call hdf5Access%set()
-          parametersFile=hdf5File(char(fileName),readOnly=.true.)
+          parametersFile=hdf5File(fileName,readOnly=.true.)
           call parametersFile%readDataset("convergenceVariance",tableConvergenceVariance)
           call parametersFile%readDataset(             "NKappa",tableNKappa             )
           call parametersFile%readDataset(             "AKappa",tableAKappa             )
@@ -442,7 +442,7 @@ contains
           ! Store the results to file.
           call Directory_Make(inputPath(pathTypeDataDynamic)//'largeScaleStructure')
           !$ call hdf5Access%set()
-          parametersFile=hdf5File(char(fileName))
+          parametersFile=hdf5File(fileName)
           call parametersFile%writeDataset(tableConvergenceVariance,"convergenceVariance","Dimensionless variance of lensing convergence"     )
           call parametersFile%writeDataset(tableNKappa             ,"NKappa"             ,"Parameter N_kappa from Takahashi et al. (2011)"    )
           call parametersFile%writeDataset(tableAKappa             ,"AKappa"             ,"Parameter A_kappa from Takahashi et al. (2011)"    )

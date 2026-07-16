@@ -190,6 +190,7 @@ contains
     use            :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     use            :: String_Handling               , only : String_Join            , char
     use            :: Table_Labels                  , only : extrapolationTypeFix
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
     type            (nodePropertyExtractorLmnstyEmssnLinePanuzzo2003)                                        :: self
     double precision                                                 , intent(in   )                         :: depthOpticalISMCoefficient
@@ -209,7 +210,7 @@ contains
 
     ! Read the table of emission line luminosities.
     !$ call hdf5Access%set()
-    emissionLinesFile=hdf5File(char(inputPath(pathTypeDataStatic))//"hiiRegions/emissionLinesPanuzzo2003.hdf5",readOnly=.true.)
+    emissionLinesFile=hdf5File(inputPath(pathTypeDataStatic)//"hiiRegions/emissionLinesPanuzzo2003.hdf5",readOnly=.true.)
     lines            =emissionLinesFile%openGroup('lines')
     do i=1,size(lineNames)
        if (.not.lines%hasDataset(char(self%lineNames(i)))) call Error_Report('line "'//char(self%lineNames(i))//'" not found'//{introspection:location})

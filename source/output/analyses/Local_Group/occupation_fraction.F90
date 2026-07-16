@@ -195,6 +195,7 @@ contains
           &                                                 outputAnalysisPropertyOperatorBoolean               , outputAnalysisPropertyOperatorFilterHighPass, propertyOperatorList
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorSubsampling
     use :: Output_Times                            , only : outputTimesClass
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
     type            (outputAnalysisLocalGroupOccupationFraction         )                                :: self
     integer                                                              , intent(in   )                 :: covarianceBinomialBinsPerDecade
@@ -239,7 +240,7 @@ contains
     
     ! Construct the target distribution.
     !$ call hdf5Access%set  ()
-    fileData=hdf5File(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/fractionOccupation_Local_Group_Nadler2020.hdf5",readOnly=.true.)
+    fileData=hdf5File(inputPath(pathTypeDataStatic)//"observations/stellarHaloMassRelation/fractionOccupation_Local_Group_Nadler2020.hdf5",readOnly=.true.)
     call fileData%readDataset('massHalo'          ,massHaloData          )
     call fileData%readDataset('fractionOccupation',fractionOccupationData)
     !$ call hdf5Access%unset()

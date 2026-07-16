@@ -162,6 +162,7 @@ contains
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
     use :: Output_Times                          , only : outputTimesClass
     use :: Statistics_Distributions              , only : distributionFunction1DBeta
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
     type            (outputAnalysisMorphologicalFractionGAMAMoffett2016   )                                :: self
     double precision                                                       , intent(in   )                 :: ratioEarlyType                                                         , ratioEarlyTypeError                     , &
@@ -204,7 +205,7 @@ contains
     
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
-    dataFile=hdf5File(char(inputPath(pathTypeDataStatic))//"observations/morphology/earlyTypeFractionGAMA.hdf5",readOnly=.true.)
+    dataFile=hdf5File(inputPath(pathTypeDataStatic)//"observations/morphology/earlyTypeFractionGAMA.hdf5",readOnly=.true.)
     call dataFile%readDataset("mass"      ,masses               )
     call dataFile%readDataset("countEarly",self%countEarlyTarget)
     !$ call hdf5Access%unset()

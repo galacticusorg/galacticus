@@ -1455,7 +1455,7 @@ contains
           deallocate(self%interpolatorMass                    )
        end if
        !$ call hdf5Access%set()
-       file=hdf5File(char(self%fileName))
+       file=hdf5File(self%fileName)
        call file%readAttribute('time'                                ,     self%time                                 )
        call file%readAttribute('massMinimum'                         ,     self%massMinimum                          )
        call file%readAttribute('massMaximum'                         ,     self%massMaximum                          )
@@ -1496,7 +1496,7 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock     (self%fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    file=hdf5File(char(self%fileName),overWrite=.true.,readOnly=.false.)
+    file=hdf5File(self%fileName,overWrite=.true.,readOnly=.false.)
     call file%writeAttribute(self%time                                ,'time'                                )
     call file%writeAttribute(self%massMinimum                         ,'massMinimum'                         )
     call file%writeAttribute(self%massMaximum                         ,'massMaximum'                         )

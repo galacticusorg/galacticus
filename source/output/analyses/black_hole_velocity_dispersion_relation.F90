@@ -200,7 +200,7 @@ contains
     !!]
     
     !$ call hdf5Access%set()
-    dataFile=hdf5File(char(inputPath(pathTypeDataStatic)//'/observations/blackHoles/blackHoleMassVsVelocityDispersion_McConnellMa2013.hdf5'),readOnly=.true.)
+    dataFile=hdf5File(inputPath(pathTypeDataStatic)//'/observations/blackHoles/blackHoleMassVsVelocityDispersion_McConnellMa2013.hdf5',readOnly=.true.)
     call dataFile%readDataset  ('velocityDispersionBinned',velocities         )
     call dataFile%readAttribute('label'                   ,targetLabel        )
     call dataFile%readDataset  ('massBlackHoleMean'       ,functionValueTarget)

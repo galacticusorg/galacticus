@@ -153,7 +153,7 @@ contains
     
     ! Construct mass bins matched to those used by Ludlow et al. (2016).
     !$ call hdf5Access%set()
-    dataFile=hdf5File(char(inputPath(pathTypeDataStatic)//'darkMatter/concentrationMassRelationCDMLudlow2016.hdf5'),readOnly=.true.)
+    dataFile=hdf5File(inputPath(pathTypeDataStatic)//'darkMatter/concentrationMassRelationCDMLudlow2016.hdf5',readOnly=.true.)
     call dataFile%readDataset('massHalo',massHaloLogarithmic)
     !$ call hdf5Access%unset()
     massHaloLogarithmic=log10(massHaloLogarithmic)

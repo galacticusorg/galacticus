@@ -210,7 +210,7 @@ contains
        hubbleConstantLittleH=1.0d0
     end if
     ! Open the data file of the current snapshot.
-    self%file=hdf5File(char(self%fileName),objectsOverwritable=.true.)
+    self%file=hdf5File(self%fileName,objectsOverwritable=.true.)
     ! Construct the particle type group to read and verify that it exists.
     write (particleGroupName,'(a8,i1)') "PartType",self%particleType
     if (.not.self%file%hasGroup(particleGroupName)) call Error_Report('particle group does not exist'//{introspection:location})

@@ -139,7 +139,7 @@ contains
        !$ call hdf5Access%set()
        hdf5ReadScope: block
          type(hdf5File  ) :: outputFile
-         outputFile=hdf5File(char(self%fileName),overwrite=.false.,readOnly=.true.)
+         outputFile=hdf5File(self%fileName,overwrite=.false.,readOnly=.true.)
          call outputFile%readAttribute('fileFormat',fileFormatVersion)
        end block hdf5ReadScope
        !$ call hdf5Access%unset()

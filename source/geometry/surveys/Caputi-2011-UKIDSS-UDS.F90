@@ -279,8 +279,8 @@ contains
     end if
     ! Read the distribution of random points from file.
     !$ call hdf5Access%set()
-    surveyGeometryRandomsFile=hdf5File(char(inputPath(pathTypeDataDynamic)//&
-         &'surveys/UKIDSS_UDS/surveyGeometryRandoms.hdf5')&
+    surveyGeometryRandomsFile=hdf5File(inputPath(pathTypeDataDynamic)//&
+         &'surveys/UKIDSS_UDS/surveyGeometryRandoms.hdf5'&
          &,readOnly=.true.)
     call surveyGeometryRandomsFile%readDataset('theta',self%randomTheta)
     call surveyGeometryRandomsFile%readDataset('phi'  ,self%randomPhi  )

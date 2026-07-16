@@ -106,7 +106,7 @@ contains
 
     ! Read data from file.
     write (snapshotLabel,'(a,i5.5)') 'Snapshot',snapshot
-    irateFile=hdf5File(char(self%fileName),readOnly=.true.)
+    irateFile=hdf5File(self%fileName,readOnly=.true.)
     snapshotGroup=irateFile    %openGroup(snapshotLabel)
     halosGroup   =snapshotGroup%openGroup('HaloCatalog')
     call snapshotGroup%readAttribute("Redshift",redshiftInternal,allowPseudoScalar=.true.)
@@ -153,7 +153,7 @@ contains
     type            (hdf5File)                            :: irateFile
     type            (hdf5Group)                           :: simulationGroup
 
-    irateFile=hdf5File(char(self%fileName),readOnly=.true.)
+    irateFile=hdf5File(self%fileName,readOnly=.true.)
     simulationGroup=irateFile%openGroup('SimulationProperties')
     if (present(boxSize)) call simulationGroup%readAttribute("boxSize",boxSize,allowPseudoScalar=.true.)
     return
@@ -171,7 +171,7 @@ contains
     type            (hdf5File)                            :: irateFile
     type            (hdf5Group)                           :: simulationGroup
 
-    irateFile=hdf5File(char(self%fileName),readOnly=.false.)
+    irateFile=hdf5File(self%fileName,readOnly=.false.)
     simulationGroup=irateFile%openGroup('SimulationProperties')
     if (present(boxSize)) call simulationGroup%writeAttribute(boxSize,'boxSize')
     return
@@ -188,8 +188,8 @@ contains
     type (irate     ), intent(inout) :: targetFile
     type (hdf5File  )                :: selfIRATEFile, targetIRATEFile
 
-    selfIRATEFile  =hdf5File(char(self      %fileName),readOnly=.true. )
-    targetIRATEFile=hdf5File(char(targetFile%fileName),readOnly=.false.)
+    selfIRATEFile  =hdf5File(self      %fileName,readOnly=.true. )
+    targetIRATEFile=hdf5File(targetFile%fileName,readOnly=.false.)
     call selfIRATEFile%copy("SimulationProperties",targetIRATEFile )
     return
   end subroutine irateCopySimulation
@@ -205,8 +205,8 @@ contains
     type (irate     ), intent(inout) :: targetFile
     type (hdf5File  )                :: selfIRATEFile, targetIRATEFile
 
-    selfIRATEFile  =hdf5File(char(self      %fileName),readOnly=.true. )
-    targetIRATEFile=hdf5File(char(targetFile%fileName),readOnly=.false.)
+    selfIRATEFile  =hdf5File(self      %fileName,readOnly=.true. )
+    targetIRATEFile=hdf5File(targetFile%fileName,readOnly=.false.)
     call selfIRATEFile%copy ("Cosmology",targetIRATEFile)
     return
   end subroutine irateCopyCosmology
@@ -240,7 +240,7 @@ contains
     ! Write data to file. Chunking of the HDF5 datasets is disabled - this allows us to write zero-sized datasets (which can occur
     ! in the case of an empty selection of halos).
     write (snapshotLabel,'(a,i5.5)') 'Snapshot',snapshot
-    irateFile=hdf5File(char(self%fileName),readOnly=.false.,overWrite=overWrite_,objectsOverwritable=objectsOverwritable_)
+    irateFile=hdf5File(self%fileName,readOnly=.false.,overWrite=overWrite_,objectsOverwritable=objectsOverwritable_)
     snapshotGroup=irateFile    %openGroup(snapshotLabel)
     halosGroup   =snapshotGroup%openGroup('HaloCatalog')
     call snapshotGroup%writeAttribute(redshift,"Redshift")

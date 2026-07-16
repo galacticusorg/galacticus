@@ -185,6 +185,7 @@ contains
     use :: HDF5_Access      , only : hdf5Access
     use :: IO_HDF5          , only : hdf5File
     use :: Linear_Algebra   , only : assignment(=)
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
     type            (posteriorSampleLikelihoodPrjctdCorrelationFunction)                        :: self
     double precision                                                    , intent(in   )         :: haloMassMinimum    , haloMassMaximum, &
@@ -206,7 +207,7 @@ contains
 
     ! Read the projected correlation function file.
     !$ call hdf5Access%set()
-    file=hdf5File(char(inputPath(pathTypeDataStatic))//fileName,readOnly=.true.)
+    file=hdf5File(inputPath(pathTypeDataStatic)//fileName,readOnly=.true.)
     call file%readDataset("separation"                          ,self%separation                          )
     call file%readDataset("projectedCorrelationFunctionObserved",self%projectedCorrelationFunctionObserved)
     call file%readDataset("covariance"                          ,self%covarianceMatrix                    )

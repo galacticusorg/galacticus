@@ -670,7 +670,7 @@ contains
              hdf5ErrorScope: block
                type(hdf5File  ) :: errorFile
                errorFileName=self%fileName//".error."//GetPID()
-               errorFile=hdf5File(char(errorFileName),overWrite=.true.,objectsOverwritable=.true.)
+               errorFile=hdf5File(errorFileName,overWrite=.true.,objectsOverwritable=.true.)
                call errorFile%writeAttribute(mass                           ,'mass'                           )
                call errorFile%writeAttribute(rootVariance                   ,'rootVariance'                   )
                call errorFile%writeAttribute(rootVarianceGradient           ,'rootVarianceGradient'           )

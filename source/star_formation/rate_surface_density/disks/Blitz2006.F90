@@ -954,7 +954,7 @@ contains
             !$ call hdf5Access%set()
             hdf5FileScopeRead: block
               type(hdf5File  ) :: file
-              file=hdf5File(char(self%filenameTable),readOnly=.true.)
+              file=hdf5File(self%filenameTable,readOnly=.true.)
               call file%readAttribute('coefficientFactorBoostMinimum'                      ,self%coefficientFactorBoostMinimum                      )
               call file%readAttribute('coefficientFactorBoostMaximum'                      ,self%coefficientFactorBoostMaximum                      )
               call file%readAttribute('coefficientFactorBoostStellarMinimum'               ,self%coefficientFactorBoostStellarMinimum               )

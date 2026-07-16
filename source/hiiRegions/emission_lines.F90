@@ -67,6 +67,7 @@ contains
     use :: HDF5_Access       , only : hdf5Access
     use :: IO_HDF5           , only : hdf5File  , hdf5Group         , hdf5Dataset
     use :: ISO_Varying_String, only : char      , operator(==)
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
     type   (hdf5File   ) :: file
     type   (hdf5Group  ) :: lines
@@ -77,7 +78,7 @@ contains
        !$omp critical (emissionLineDatabaseInitialize)
        if (.not.databaseInitialized) then
           !$ call hdf5Access%set()
-          file=hdf5File(char(inputPath(pathTypeDataStatic))//'hiiRegions/emissionLines.hdf5',readOnly=.true.)
+          file=hdf5File(inputPath(pathTypeDataStatic)//'hiiRegions/emissionLines.hdf5',readOnly=.true.)
           lines=file%openGroup("lines")
           call lines%datasets(lineNames)
           allocate(wavelengths(size(lineNames)))

@@ -168,7 +168,7 @@ contains
 
       ! Open the HDF5 file.
       !$ call hdf5Access%set()
-      stellarTracks=hdf5File(char(self%fileName),readOnly=.true.)
+      stellarTracks=hdf5File(self%fileName,readOnly=.true.)
       ! Check that this file has the correct format.
       call stellarTracks%readAttribute('fileFormat',fileFormatVersion,allowPseudoScalar=.true.)
       if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('format of stellar tracks file is out of date'//{introspection:location})

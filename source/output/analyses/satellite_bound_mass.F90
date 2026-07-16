@@ -127,7 +127,7 @@ contains
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    file=hdf5File(char(fileName),readOnly=.true.)
+    file=hdf5File(fileName,readOnly=.true.)
     call file%readDataset('time'          ,time          )
     call file%readDataset('boundMass'     ,boundMass     )
     call file%readDataset('boundMassError',boundMassError)

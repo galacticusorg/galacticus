@@ -556,7 +556,7 @@ contains
          call File_Lock(fileName,fileLock,lockIsShared=iLock == 1)
          if (File_Exists(fileName)) then
             !$ call hdf5Access%set()
-            file=hdf5File(char(fileName),readOnly=.true.)
+            file=hdf5File(fileName,readOnly=.true.)
             call file%readDataset('x'            ,self%accelerationX          )
             call file%readDataset('scaleLength'  ,self%accelerationScaleLength)
             call file%readDataset('acceleration' ,self%accelerationVector     )
@@ -615,7 +615,7 @@ contains
             call displayCounterClear(       verbosityLevelWorking)
             call displayUnindent     ("done",verbosityLevelWorking)
             !$ call hdf5Access%set()
-            file=hdf5File(char(fileName),overWrite=.true.,readOnly=.false.)
+            file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
             call file%writeDataset(self%accelerationX           ,'x'           )
             call file%writeDataset(self%accelerationScaleLength ,'scaleLength' )
             call file%writeDataset(self%accelerationVector      ,'acceleration')

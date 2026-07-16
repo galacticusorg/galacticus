@@ -689,7 +689,7 @@ contains
          call File_Lock(fileName,fileLock,lockIsShared=.false.)
          if (File_Exists(fileName)) then
             !$ call hdf5Access%set()
-            file=hdf5File(char(fileName))
+            file=hdf5File(fileName)
             if (file%hasDataset('luminosityTemplate')) then
                if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
                   call displayMessage("reading emission line luminosity tabulation from file '"                                        //fileName//"'",verbosityLevelWorking)
@@ -715,7 +715,7 @@ contains
                call displayMessage("storing emission line luminosity tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
             end if
             !$ call hdf5Access%set()
-            file=hdf5File(char(fileName),overWrite=.false.,readOnly=.false.)
+            file=hdf5File(fileName,overWrite=.false.,readOnly=.false.)
             call    file%writeDataset(self %templates             (indexTemplate)%emissionLineLuminosity      ,'luminosityTemplate','A matrix mapping star formation history to emission line luminosities.' )
             call    file%writeDataset(self %lineNames                                                         ,'lineNames'         ,'The names of the emission lines'                                        )
             call    file%writeDataset(self %wavelengths                                                       ,'wavelengths'       ,'The wavelengths of the emission lines [Å]'                              )

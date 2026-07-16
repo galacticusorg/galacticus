@@ -90,6 +90,7 @@ contains
     Constructor for the :galacticus-class:`posteriorSampleLikelihoodMassFunction` posterior sampling likelihood class which builds the object from a parameter set.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
     type            (posteriorSampleLikelihoodMassFunction)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters
@@ -204,7 +205,7 @@ contains
     self%logHaloMassMaximum=log10(haloMassMaximum)
     ! Read the mass function file.
     !$ call hdf5Access%set()
-    massFunctionFile=hdf5File(char(inputPath(pathTypeDataStatic))//massFunctionFileName,readOnly=.true.)
+    massFunctionFile=hdf5File(inputPath(pathTypeDataStatic)//massFunctionFileName,readOnly=.true.)
     call massFunctionFile%readDataset("mass"                ,self%mass                )
     call massFunctionFile%readDataset("massFunctionObserved",self%massFunctionObserved)
     call massFunctionFile%readDataset("covariance"          ,self%covarianceMatrix    )

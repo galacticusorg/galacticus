@@ -335,7 +335,7 @@ contains
     !$ call hdf5Access%set()
     hdf5FileScope: block
       type (hdf5File  ) :: file
-      file=hdf5File(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
+      file=hdf5File(fileName,overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
       call file%writeDataset(velocityDispersion1DTableLengthResolution,'radiusCore'        )
       call file%writeDataset(velocityDispersion1DTableRadius          ,'radius'            )
       call file%writeDataset(velocityDispersion1DTable                ,'velocityDispersion')
@@ -376,7 +376,7 @@ contains
        !$ call hdf5Access%set()
        hdf5FileScope: block
          type (hdf5File  ) :: file
-         file=hdf5File(char(fileName))
+         file=hdf5File(fileName)
          call file%readDataset('radiusCore'        ,velocityDispersion1DTableLengthResolution)
          call file%readDataset('radius'            ,velocityDispersion1DTableRadius          )
          call file%readDataset('velocityDispersion',velocityDispersion1DTable                )

@@ -936,7 +936,7 @@ contains
     if (.not.allocated(tabulation%parametersInverseStep)) allocate(tabulation%parametersInverseStep(container%countParameters(tabulation)))
     if (.not.allocated(tabulation%countParameters      )) allocate(tabulation%countParameters      (container%countParameters(tabulation)))
     !$ call hdf5Access%set()
-    file=hdf5File(char(fileName),readOnly=.true.)
+    file=hdf5File(fileName,readOnly=.true.)
     call    file%readAttribute(char(quantityName)//'RadiusMinimum'                                                                    ,tabulation%radiusMinimum           )
     call    file%readAttribute(char(quantityName)//'RadiusMaximum'                                                                    ,tabulation%radiusMaximum           )
     call    file%readAttribute(char(quantityName)//'RadiusInverseStep'                                                                ,tabulation%radiusInverseStep       )
@@ -972,7 +972,7 @@ contains
 
     call displayMessage("writing tabulated "//char(quantityName)//" profile to '"//char(fileName)//"'",verbosityLevelWorking)
     !$ call hdf5Access%set()
-   file=hdf5File(char(fileName),overWrite=.true.)
+   file=hdf5File(fileName,overWrite=.true.)
     call    file%writeAttribute(tabulation%radiusMinimum           ,char(quantityName)//'RadiusMinimum'                                                                                                                  )
     call    file%writeAttribute(tabulation%radiusMaximum           ,char(quantityName)//'RadiusMaximum'                                                                                                                  )
     call    file%writeAttribute(tabulation%radiusInverseStep       ,char(quantityName)//'RadiusInverseStep'                                                                                                              )

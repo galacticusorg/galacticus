@@ -376,7 +376,7 @@ contains
           end do
           !$ call hdf5Access%set()
           hdfWriteScope: block
-            file=hdf5File(char(fileName),overWrite=.false.,readOnly=.false.)
+            file=hdf5File(fileName,overWrite=.false.,readOnly=.false.)
             do iOutput=1,self%outputTimes_%count()
                write (name,'(a,i4.4)') 'times'   ,iOutput
                call file%writeDataset(self%intervals(iOutput)%time    ,name)

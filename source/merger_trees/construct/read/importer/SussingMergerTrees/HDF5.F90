@@ -145,7 +145,7 @@ contains
     localSigma8     =self%cosmologicalMassVariance_%sigma8         (                  )
     !$ call hdf5Access%set()
     ! Open the HDF5 file.
-    self%file=hdf5File(char(fileName),overWrite=.false.)
+    self%file=hdf5File(fileName,overWrite=.false.)
     ! Open the snapshots group.
     self%snapshots=self%file%openGroup('Snapshots')
     ! Read expansion factors from the file.

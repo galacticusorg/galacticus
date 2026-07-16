@@ -201,7 +201,7 @@ contains
          & ) then       
        write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
        !$ call hdf5Access%set()
-       irateFile=hdf5File(char(self%fileName),readOnly=.false.)
+       irateFile=hdf5File(self%fileName,readOnly=.false.)
        snapshotGroup=irateFile    %openGroup(snapshotLabel)
        halosGroup   =snapshotGroup%openGroup('HaloCatalog')
        do i=1,simulations(1)%attributesInteger%size()
@@ -227,7 +227,7 @@ contains
          & ) then       
        write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
        !$ call hdf5Access%set()
-       irateFile=hdf5File(char(self%fileName),readOnly=.false.)
+       irateFile=hdf5File(self%fileName,readOnly=.false.)
        snapshotGroup=irateFile    %openGroup(snapshotLabel)
        halosGroup   =snapshotGroup%openGroup('HaloCatalog')
        do i=1,simulations(1)%propertiesInteger%size()

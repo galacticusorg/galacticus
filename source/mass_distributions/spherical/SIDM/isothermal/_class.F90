@@ -304,7 +304,7 @@ contains
        !$ call hdf5Access%set()
        hdf5FileScope: block
          type(hdf5File  ) :: file
-         file=hdf5File(char(fileName))
+         file=hdf5File(fileName)
          call file%readDataset('xi'                         ,     xi                         )
          call file%readDataset('radii'                      ,self%radiiDimensionless         )
          call file%readDataset('y0'                         ,     y0                         )
@@ -398,7 +398,7 @@ contains
        !$ call hdf5Access%set()
        hdf5FileScopeWrite: block
          type(hdf5File  ) :: file
-         file=hdf5File(char(fileName),overWrite=.true.,readOnly=.false.)
+         file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
          call file%writeDataset(     xi                          ,'xi'                         )
          call file%writeDataset(self%radiiDimensionless          ,'radii'                      )
          call file%writeDataset(     y0                          ,'y0'                         )

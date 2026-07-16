@@ -559,7 +559,7 @@ contains
        !$ call hdf5Access%set()
        block
          type(hdf5File  ) :: file
-         file=hdf5File(char(self%fileName),readOnly=.true.)
+         file=hdf5File(self%fileName,readOnly=.true.)
          call file%readAttribute('timeMinimum'    ,self%densityContrastTableTimeMinimum)
          call file%readAttribute('timeMaximum'    ,self%densityContrastTableTimeMaximum)
          call file%readAttribute('massMinimum'    ,self%densityContrastTableMassMinimum)

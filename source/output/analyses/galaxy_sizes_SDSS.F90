@@ -197,7 +197,7 @@ contains
     ! Construct sizes matched to those used by  Shen et al. (2003). Also read stellar mass and Sersic index ranges.
     write (distributionName,'(a,i2.2)') 'distribution',distributionNumber
     !$ call hdf5Access%set()
-    dataFile    =hdf5File          (char(inputPath(pathTypeDataStatic)//'observations/galaxySizes/Galaxy_Sizes_By_Mass_SDSS_Shen_2003.hdf5'),readOnly=.true.)
+    dataFile    =hdf5File          (inputPath(pathTypeDataStatic)//'observations/galaxySizes/Galaxy_Sizes_By_Mass_SDSS_Shen_2003.hdf5',readOnly=.true.)
     distribution=dataFile%openGroup(distributionName                                                                                                        )
     call distribution%readDataset  ('radius'             ,radii              )
     call distribution%readDataset  ('radiusFunction'     ,functionValueTarget)

@@ -367,7 +367,7 @@ contains
          block
            type(hdf5File  ) :: file
            !$ call hdf5Access%set()
-           file=hdf5File(char(fileName),overWrite=.false.,readOnly=.true.)
+           file=hdf5File(fileName,overWrite=.false.,readOnly=.true.)
            call file%readDataset('velocitiesEscape',velocitiesEscapeScaleFree)
            call file%readDataset('velocitiesKick'  ,velocitiesKickScaleFree  )
            call file%readDataset('energyRetained'  ,energyRetained           )
@@ -492,7 +492,7 @@ contains
          block
            type(hdf5File  ) :: file
            !$ call hdf5Access%set()
-           file=hdf5File(char(fileName),overWrite=.true.,readOnly=.false.)
+           file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
            call file%writeDataset(velocitiesEscapeScaleFree,'velocitiesEscape')
            call file%writeDataset(velocitiesKickScaleFree  ,'velocitiesKick'  )
            call file%writeDataset(energyRetained           ,'energyRetained'  )
