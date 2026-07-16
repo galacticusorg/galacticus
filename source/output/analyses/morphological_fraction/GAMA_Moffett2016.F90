@@ -150,7 +150,7 @@ contains
     use :: Input_Paths                           , only : inputPath                                          , pathTypeDataStatic
     use :: Geometry_Surveys                      , only : surveyGeometryBaldry2012GAMA
     use :: HDF5_Access                           , only : hdf5Access
-    use :: IO_HDF5                               , only : hdf5Object, hdf5File
+    use :: IO_HDF5                               , only : hdf5File
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar                   , nodePropertyExtractorMassStellarMorphology
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
@@ -204,7 +204,7 @@ contains
     
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
-    dataFile=hdf5Object(char(inputPath(pathTypeDataStatic))//"observations/morphology/earlyTypeFractionGAMA.hdf5",readOnly=.true.)
+    dataFile=hdf5File(char(inputPath(pathTypeDataStatic))//"observations/morphology/earlyTypeFractionGAMA.hdf5",readOnly=.true.)
     call dataFile%readDataset("mass"      ,masses               )
     call dataFile%readDataset("countEarly",self%countEarlyTarget)
     !$ call hdf5Access%unset()
@@ -497,7 +497,7 @@ contains
     !!}
     use :: Output_HDF5   , only : outputFile
     use :: HDF5_Access   , only : hdf5Access
-    use :: IO_HDF5       , only : hdf5Object, hdf5Group, hdf5Dataset
+    use :: IO_HDF5       , only : hdf5File, hdf5Group, hdf5Dataset
     use :: Units_MetaData, only : unitType
     implicit none
     class(outputAnalysisMorphologicalFractionGAMAMoffett2016), intent(inout)           :: self

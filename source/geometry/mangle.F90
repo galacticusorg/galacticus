@@ -389,7 +389,7 @@ contains
         &                                   lockDescriptor
     use :: Error                   , only : Error_Report
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5Object, hdf5File
+    use :: IO_HDF5                 , only : hdf5File
     use :: ISO_Varying_String      , only : char              , extract            , len               , operator(//), &
           &                                 operator(==)      , varying_string
     use :: Numerical_Constants_Math, only : Pi
@@ -413,7 +413,7 @@ contains
     if (present(solidAngleFileName).and.File_Exists(solidAngleFileName)) then
        call File_Lock(solidAngleFileName,fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set  ()
-       solidAngleFile=hdf5Object(solidAngleFileName,overWrite=.false.,readOnly=.true.)
+       solidAngleFile=hdf5File(solidAngleFileName,overWrite=.false.,readOnly=.true.)
        call solidAngleFile%readDatasetStatic('solidAngle',geometryMangleSolidAngle)
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
@@ -452,7 +452,7 @@ contains
     if (present(solidAngleFileName)) then
        call File_Lock(solidAngleFileName,fileLock,lockIsShared=.false.)
        !$ call hdf5Access%set  ()
-       solidAngleFile=hdf5Object(solidAngleFileName,overWrite=.true.)
+       solidAngleFile=hdf5File(solidAngleFileName,overWrite=.true.)
        call solidAngleFile%writeAttribute(String_Join(fileNames               ,":"),          'files'     )
        call solidAngleFile%writeDataset  (            geometryMangleSolidAngle     ,          'solidAngle')
        call solidAngleFile%flush         (                                                                )
@@ -470,7 +470,7 @@ contains
          &                            lockDescriptor
     use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object, hdf5File
+    use :: IO_HDF5           , only : hdf5File
     use :: ISO_Varying_String, only : char              , extract            , len               , operator(//), &
           &                           operator(==)      , var_str            , varying_string
     use :: String_Handling   , only : String_Count_Words, String_Join        , String_Split_Words, operator(//)
@@ -498,7 +498,7 @@ contains
     if (present(angularPowerFileName).and.File_Exists(angularPowerFileName)) then
        call File_Lock(angularPowerFileName,fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set  ()
-       angularPowerFile=hdf5Object(angularPowerFileName,readOnly=.true.)
+       angularPowerFile=hdf5File(angularPowerFileName,readOnly=.true.)
        l=0
        do p=1,size(fileNames)
           do q=p,size(fileNames)
@@ -572,7 +572,7 @@ contains
     if (present(angularPowerFileName)) then
        call File_Lock(angularPowerFileName,fileLock,lockIsShared=.false.)
        !$ call hdf5Access%set  ()
-       angularPowerFile=hdf5Object(angularPowerFileName,overWrite=.true.)
+       angularPowerFile=hdf5File(angularPowerFileName,overWrite=.true.)
        call angularPowerFile%writeAttribute(String_Join(fileNames,":"),'files')
        l=0
        do p=1,size(fileNames)

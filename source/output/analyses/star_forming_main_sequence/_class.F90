@@ -264,7 +264,7 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`outputAnalysisStarFormingMainSequence` output analysis class which reads all required properties from file.
     !!}
-    use :: IO_HDF5    , only : hdf5Object, hdf5File
+    use :: IO_HDF5    , only : hdf5File
     use :: HDF5_Access, only : hdf5Access
     implicit none
     type            (outputAnalysisStarFormingMainSequence    )                                :: self
@@ -288,7 +288,7 @@ contains
     integer                                                                                    :: i                                    , j
     
     !$ call hdf5Access%set  ()
-    dataFile=hdf5Object(fileName,readOnly=.true.)
+    dataFile=hdf5File(fileName,readOnly=.true.)
     call        dataFile%readDataset  ('massStellar'                              ,massesStellar                   )
     if (size(massesStellar) == 1)                                                                                    &
          & call dataFile%readAttribute('binWidth'                                 ,massesStellarBinWidthLogarithmic)

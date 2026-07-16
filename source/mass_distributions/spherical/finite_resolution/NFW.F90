@@ -764,7 +764,7 @@ contains
     use :: File_Utilities    , only : File_Lock     , File_Unlock        , lockDescriptor, Directory_Make, &
          &                            File_Path
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object, hdf5File
+    use :: IO_HDF5           , only : hdf5File
     use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)       , char
     implicit none
@@ -783,7 +783,7 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    file=hdf5Object(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
+    file=hdf5File(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     call file%writeDataset(radiusEnclosingMassTableLengthResolution,'lengthResolution')
     call file%writeDataset(radiusEnclosingMassTableMass            ,'mass'            )
     call file%writeDataset(radiusEnclosingMassTable                ,'radius'          )
@@ -798,7 +798,7 @@ contains
     !!}
     use :: File_Utilities    , only : File_Exists    , File_Lock         , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object, hdf5File
+    use :: IO_HDF5           , only : hdf5File
     use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)
     implicit none
@@ -822,7 +822,7 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       file=hdf5Object(char(fileName))
+       file=hdf5File(char(fileName))
        call file%readDataset('lengthResolution',radiusEnclosingMassTableLengthResolution)
        call file%readDataset('mass'            ,radiusEnclosingMassTableMass            )
        call file%readDataset('radius'          ,radiusEnclosingMassTable                )
@@ -1016,7 +1016,7 @@ contains
     use :: File_Utilities    , only : File_Lock     , File_Unlock        , lockDescriptor, Directory_Make, &
          &                            File_Path
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object, hdf5File
+    use :: IO_HDF5           , only : hdf5File
     use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)       , char
     implicit none
@@ -1035,7 +1035,7 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    file=hdf5Object(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
+    file=hdf5File(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     call file%writeDataset(radiusEnclosingDensityTableLengthResolution,'lengthResolution')
     call file%writeDataset(radiusEnclosingDensityTableDensity         ,'density'         )
     call file%writeDataset(radiusEnclosingDensityTable                ,'radius'          )
@@ -1050,7 +1050,7 @@ contains
     !!}
     use :: File_Utilities    , only : File_Exists    , File_Lock         , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object, hdf5File
+    use :: IO_HDF5           , only : hdf5File
     use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)
     implicit none
@@ -1074,7 +1074,7 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       file=hdf5Object(char(fileName))
+       file=hdf5File(char(fileName))
        call file%readDataset('lengthResolution',radiusEnclosingDensityTableLengthResolution)
        call file%readDataset('density'         ,radiusEnclosingDensityTableDensity   )
        call file%readDataset('radius'          ,radiusEnclosingDensityTable          )
@@ -1301,7 +1301,7 @@ contains
     use :: File_Utilities    , only : File_Lock     , File_Unlock        , lockDescriptor, Directory_Make, &
          &                            File_Path
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object, hdf5File
+    use :: IO_HDF5           , only : hdf5File
     use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)       , char
     implicit none
@@ -1320,7 +1320,7 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    file=hdf5Object(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
+    file=hdf5File(char(fileName),overWrite=.true.,objectsOverwritable=.true.,readOnly=.false.)
     call file%writeDataset(energyTableLengthResolution,'lengthResolution')
     call file%writeDataset(energyTableRadiusOuter     ,'radiusOuter'     )
     call file%writeDataset(energyTable                ,'energy'          )
@@ -1335,7 +1335,7 @@ contains
     !!}
     use :: File_Utilities    , only : File_Exists    , File_Lock         , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object, hdf5File
+    use :: IO_HDF5           , only : hdf5File
     use :: Input_Paths       , only : inputPath     , pathTypeDataDynamic
     use :: ISO_Varying_String, only : varying_string, operator(//)
     implicit none
@@ -1359,7 +1359,7 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       file=hdf5Object(char(fileName))
+       file=hdf5File(char(fileName))
        call file%readDataset('lengthResolution',energyTableLengthResolution)
        call file%readDataset('radiusOuter'     ,energyTableRadiusOuter     )
        call file%readDataset('energy'          ,energyTable                )

@@ -231,7 +231,7 @@ contains
     use            :: File_Utilities         , only : File_Exists
     use            :: Error                  , only : Error_Report
     use            :: HDF5_Access            , only : hdf5Access
-    use            :: IO_HDF5                , only : hdf5Object, hdf5File, hdf5Group
+    use            :: IO_HDF5                , only : hdf5File, hdf5Group
     use            :: Numerical_Comparison   , only : Values_Differ
     use            :: Numerical_Interpolation, only : GSL_Interp_cSpline
     use            :: Table_Labels           , only : enumerationExtrapolationTypeType, enumerationExtrapolationTypeEncode, extrapolationTypeExtrapolate
@@ -258,7 +258,7 @@ contains
     if (.not.File_Exists(fileName)) call Error_Report("file '"//char(fileName)//"' does not exist"//{introspection:location})
     ! Open and read the HDF5 data file.
     !$ call hdf5Access%set()
-    fileObject=hdf5Object(fileName,readOnly=.true.)
+    fileObject=hdf5File(fileName,readOnly=.true.)
     ! Check that the file has the correct format version number.
     call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
     if (versionNumber /= fileFormatVersionCurrent) call Error_Report(var_str('file has the incorrect format version number (expected fileFormat=1, found fileFormat=')//versionNumber//')'//{introspection:location})

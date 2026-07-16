@@ -289,7 +289,7 @@ contains
     !!}
     use :: Error       , only : Error_Report
     use :: HDF5_Access , only : hdf5Access
-    use :: IO_HDF5     , only : hdf5Object, hdf5File
+    use :: IO_HDF5     , only : hdf5File
     use :: Table_Labels, only : extrapolationTypeExtrapolate, extrapolationTypeZero, extrapolationTypeFix
     implicit none
     class  (stellarPopulationSpectraFile), intent(inout) :: self
@@ -300,7 +300,7 @@ contains
     if (.not.self%fileRead) then
        !$ call hdf5Access%set()
        ! Open the HDF5 file.
-       spectraFile=hdf5Object(self%fileName,readOnly=.true.)
+       spectraFile=hdf5File(self%fileName,readOnly=.true.)
        ! Check that this file has the correct format.
        call spectraFile%readAttribute('fileFormat',fileFormatVersion)
        if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('format of stellar tracks file is out of date'//{introspection:location})

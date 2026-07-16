@@ -236,7 +236,7 @@ contains
     Constructor for the :galacticus-class:`outputAnalysisLuminosityFunctionHalpha` output analysis class which reads bin information from a standard format file.
     !!}
     use :: HDF5_Access                   , only : hdf5Access
-    use :: IO_HDF5                       , only : hdf5Object, hdf5File
+    use :: IO_HDF5                       , only : hdf5File
     use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
     use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
     implicit none
@@ -265,7 +265,7 @@ contains
     logical                                                                                :: haveTarget
 
     !$ call hdf5Access%set()
-    dataFile=hdf5Object(fileName,readOnly=.true.)
+    dataFile=hdf5File(fileName,readOnly=.true.)
     call    dataFile%readDataset  ('luminosity'             ,luminosities       )
     haveTarget=dataFile%hasDataset('luminosityFunction').and.dataFile%hasDataset('luminosityFunctionError')
     if (haveTarget) then

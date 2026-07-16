@@ -23,7 +23,7 @@
 
   use :: Cosmology_Functions               , only : cosmologyFunctions   , cosmologyFunctionsClass
   use :: Galactic_Filters                  , only : galacticFilter       , galacticFilterClass
-  use :: IO_HDF5                           , only : hdf5Object           , hdf5Group
+  use :: IO_HDF5                           , only : hdf5File           , hdf5Group
   use :: Kind_Numbers                      , only : kind_int8
   use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
   use :: Node_Property_Extractors          , only : nodePropertyExtractor, nodePropertyExtractorClass
@@ -239,7 +239,7 @@ contains
     use            :: Error              , only : Error_Report
     use            :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
     use            :: HDF5_Access        , only : hdf5Access
-    use            :: IO_HDF5            , only : hdf5Object           , hdf5Dataset
+    use            :: IO_HDF5            , only : hdf5File           , hdf5Dataset
     use, intrinsic :: ISO_C_Binding      , only : c_size_t
     use            :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
@@ -724,7 +724,7 @@ contains
     Dump the contents of the integer properties buffer to the Galacticus output file.
     !!}
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object , hdf5Dataset
+    use :: IO_HDF5    , only : hdf5File , hdf5Dataset
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     integer(c_size_t                   ), intent(in   ) :: indexOutput
@@ -782,7 +782,7 @@ contains
     Dump the contents of the double precision properties buffer to the Galacticus output file.
     !!}
     use            :: HDF5_Access  , only : hdf5Access
-    use            :: IO_HDF5      , only : hdf5Object , hdf5Dataset
+    use            :: IO_HDF5      , only : hdf5File , hdf5Dataset
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self

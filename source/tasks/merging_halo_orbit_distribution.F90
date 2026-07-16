@@ -262,7 +262,7 @@ contains
     use :: Output_HDF5        , only : outputFile
     use :: Calculations_Resets, only : Calculations_Reset
     use :: HDF5_Access        , only : hdf5Access
-    use :: IO_HDF5            , only : hdf5Object, hdf5Group
+    use :: IO_HDF5            , only : hdf5File, hdf5Group
     use :: Numerical_Ranges   , only : Make_Range           , rangeTypeLogarithmic, rangeTypeLinear
     use :: Mass_Distributions , only : massDistributionClass
     use :: Coordinates        , only : coordinateSpherical  , assignment(=)

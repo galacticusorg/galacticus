@@ -460,7 +460,7 @@ contains
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: HDF5_Access                      , only : hdf5Access
-    use :: IO_HDF5                          , only : hdf5Object, hdf5File, hdf5Group
+    use :: IO_HDF5                          , only : hdf5File, hdf5Group
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
     use :: Virial_Density_Contrast          , only : virialDensityContrastClass
     implicit none
@@ -498,7 +498,7 @@ contains
     logical                                                                                              :: haveBoundaries
     
     !$ call hdf5Access%set  ()
-    dataFile=hdf5Object(fileName,readOnly=.true.)
+    dataFile=hdf5File(fileName,readOnly=.true.)
     simulationGroup=dataFile       %openGroup ('simulation0001'   )
     haveBoundaries =simulationGroup%hasDataset('massParentMinimum')
     call    simulationGroup%readDataset('massRatioProgenitor'   ,massRatio           )
@@ -1019,7 +1019,7 @@ contains
     !!{RST
     Write the log-likelihood of the progenitor mass function to the output group. This overrides the :galacticus-class:`outputAnalysisVolumeFunction1D` default so that our own  logLikelihood method is used, and the parent-class  logLikelihood method (which requires a covariance matrix that we do not construct) is never evaluated.
     !!}
-    use :: IO_HDF5, only : hdf5Object, hdf5Group
+    use :: IO_HDF5, only : hdf5File, hdf5Group
     implicit none
     class(outputAnalysisProgenitorMassFunction), intent(inout) :: self
     type (hdf5Group                           ), intent(inout) :: analysisGroup
@@ -1032,7 +1032,7 @@ contains
     !!{RST
     Write progenitor-mass-function-specific metadata to the analysis output group, namely the ranges of mass ratio and parent mass considered, together with the parent and progenitor redshifts.
     !!}
-    use :: IO_HDF5, only : hdf5Object, hdf5Group
+    use :: IO_HDF5, only : hdf5File, hdf5Group
     implicit none
     class(outputAnalysisProgenitorMassFunction), intent(inout) :: self
     type (hdf5Group                           ), intent(inout) :: analysisGroup

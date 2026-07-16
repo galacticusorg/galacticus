@@ -283,7 +283,7 @@ contains
     use            :: Error                           , only : Error_Report
     use            :: Output_HDF5                     , only : outputFile
     use            :: HDF5_Access                     , only : hdf5Access
-    use            :: IO_HDF5                         , only : hdf5Object           , hdf5Group           , hdf5Dataset
+    use            :: IO_HDF5                         , only : hdf5File           , hdf5Group           , hdf5Dataset
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: ISO_Varying_String              , only : var_str              , varying_string
     use            :: Kind_Numbers                    , only : kind_int8

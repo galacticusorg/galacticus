@@ -254,7 +254,7 @@ contains
     Outputs conditional mass function.
     !!}
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5, only : hdf5Object, hdf5File
+    use :: IO_HDF5, only : hdf5File
     implicit none
     class(mergerTreeOperatorOutputRootMasses), intent(inout) :: self
     type (hdf5File                          ), target        :: outputFile
@@ -263,7 +263,7 @@ contains
     if (self%treeCount == 0) return
     ! Open the output file.
     !$ call hdf5Access%set  ()
-    outputFile=hdf5Object(char(self%fileName),overWrite=.false.)
+    outputFile=hdf5File(char(self%fileName),overWrite=.false.)
     ! Write the data.
     call outputFile%writeDataset(self%mass  (1:self%treeCount),"treeRootMass","Tree root node masses.",appendTo =.true. )
     call outputFile%writeDataset(self%weight(1:self%treeCount),"treeWeight"  ,"Tree weights."         ,appendTo =.true. )

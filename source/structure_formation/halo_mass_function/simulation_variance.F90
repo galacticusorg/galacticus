@@ -164,7 +164,7 @@ contains
     !!}
     use :: Display       , only : displayIndent, displayUnindent    , displayMessage, verbosityLevelWorking
     use :: HDF5_Access   , only : hdf5Access
-    use :: IO_HDF5       , only : hdf5Object, hdf5File
+    use :: IO_HDF5       , only : hdf5File
     use :: File_Utilities, only : File_Exists  , File_Lock          , File_Unlock   , lockDescriptor
     use :: Input_Paths   , only : inputPath    , pathTypeDataDynamic
     implicit none
@@ -210,7 +210,7 @@ contains
                !$ call hdf5Access%set()
                hdf5ReadScope: block
                  type(hdf5File  ) :: varianceFile
-                 varianceFile=hdf5Object(fileNameVariance,readOnly=.true.)
+                 varianceFile=hdf5File(fileNameVariance,readOnly=.true.)
                  call varianceFile%readAttribute('variance',self%varianceSimulation)
                end block hdf5ReadScope
                !$ call hdf5Access%unset()
@@ -232,7 +232,7 @@ contains
                !$ call hdf5Access%set()
                hdf5WriteScope: block
                  type(hdf5File  ) :: varianceFile
-                 varianceFile=hdf5Object(fileNameVariance,readOnly=.false.,overWrite=.true.)
+                 varianceFile=hdf5File(fileNameVariance,readOnly=.false.,overWrite=.true.)
                  call varianceFile%writeAttribute(self%varianceSimulation,'variance')
                end block hdf5WriteScope
                !$ call hdf5Access%unset()

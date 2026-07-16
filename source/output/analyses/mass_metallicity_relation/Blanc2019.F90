@@ -169,7 +169,7 @@ contains
     use :: Input_Paths                               , only : inputPath                                          , pathTypeDataStatic
     use :: Geometry_Surveys                          , only : surveyGeometryLiWhite2009SDSS
     use :: HDF5_Access                               , only : hdf5Access
-    use :: IO_HDF5                                   , only : hdf5Object, hdf5File
+    use :: IO_HDF5                                   , only : hdf5File
     use :: Node_Property_Extractors                  , only : nodePropertyExtractorMassStellar                   , nodePropertyExtractorMetallicityISM
     use :: Numerical_Constants_Astronomical          , only : massSolar
     use :: Output_Analyses_Options                   , only : outputAnalysisCovarianceModelBinomial
@@ -234,7 +234,7 @@ contains
     
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
-    dataFile=hdf5Object(char(inputPath(pathTypeDataStatic))//"observations/abundances/massMetallicityRelationBlanc2019.hdf5",readOnly=.true.)
+    dataFile=hdf5File(char(inputPath(pathTypeDataStatic))//"observations/abundances/massMetallicityRelationBlanc2019.hdf5",readOnly=.true.)
     call dataFile%readDataset("massStellar"               ,masses             )
     call dataFile%readDataset("abundanceOxygenMean"       ,functionValueTarget)
     call dataFile%readDataset("abundanceOxygen16PercentCI",function16Target   )

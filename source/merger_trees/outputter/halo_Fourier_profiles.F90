@@ -25,7 +25,7 @@
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Galactic_Filters        , only : galacticFilterClass
-  use :: IO_HDF5                 , only : hdf5Object           , hdf5Group           , hdf5Dataset
+  use :: IO_HDF5                 , only : hdf5File           , hdf5Group           , hdf5Dataset
 
   !![
   <mergerTreeOutputter name="mergerTreeOutputterHaloFourierProfiles" docformat="rst">

@@ -25,7 +25,7 @@ module Radiative_Transfer_Outputters
   !!{RST
   Provides a class that implements outputters for radiative transfer calculations.
   !!}
-  use :: IO_HDF5                         , only : hdf5Object, hdf5Group
+  use :: IO_HDF5                         , only : hdf5File, hdf5Group
   use :: Radiative_Transfer_Photon_Packet, only : radiativeTransferPhotonPacketClass
   use :: Radiative_Transfer_Sources      , only : radiativeTransferSourceClass
   private

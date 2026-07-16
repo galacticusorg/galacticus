@@ -382,10 +382,12 @@ module IO_HDF5
      procedure :: assertAttributeType=>IO_HDF5_Assert_Attribute_Type
   end type hdf5Attribute
 
-  interface hdf5Object
+  ! Generic constructor for HDF5 file objects. Named ``hdf5File`` (matching the type it returns) rather than ``hdf5Object`` (the
+  ! abstract base), so that opening a file reads as constructing the file object it produces.
+  interface hdf5File
      module procedure hdf5FileOpenVarStr
      module procedure hdf5FileOpenChar
-  end interface hdf5Object
+  end interface hdf5File
     
   type :: hdf5VarDouble
      !!{RST
@@ -874,12 +876,17 @@ contains
 
   subroutine IO_HDF5_Assign(to,from)
     !!{RST
-    Assignment operator for the ``hdf5Object`` class.
+    Assignment operator for the ``hdf5Object`` class. An HDF5 object may be assigned only from an object of its own kind or a
+    more-derived kind: assigning a file into a group (``group=file``) is legal because a file is-a group, but the reverse
+    (``file=group``) and cross-kind assignments (``group=dataset``) are rejected, since they would leave the target holding data
+    that does not match its declared kind.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     class(hdf5Object), intent(  out) :: to
     class(hdf5Object), intent(in   ) :: from
 
+    if (.not.extends_type_of(from,to)) call Error_Report('cannot assign an HDF5 object to a variable of an unrelated (or less-derived) kind'//{introspection:location})
     to%isOpenValue         =  from%isOpenValue
     to%isOverwritable      =  from%isOverwritable
     to%readOnly            =  from%readOnly
@@ -1192,7 +1199,7 @@ contains
     integer                , intent(in   ), optional :: compressionLevel
     logical                , intent(in   ), optional :: useLatestFormat
 
-    self=hdf5Object(char(fileName),overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes,isTemporary)
+    self=hdf5File(char(fileName),overWrite,readOnly,objectsOverwritable,chunkSize,compressionLevel,sieveBufferSize,useLatestFormat,cacheElementsCount,cacheSizeBytes,isTemporary)
     return
   end function hdf5FileOpenVarStr
 
@@ -8955,7 +8962,7 @@ attributeValue=trim(attributeValue)
        type is (hdf5File     )
           !![
           <conditionalCall>
-           <call>destination=hdf5Object                          (char(self%objectFile),overWrite=.false.,readOnly=self%readOnly,objectsOverwritable=self%isOverwritable{conditions})</call>
+           <call>destination=hdf5File                            (char(self%objectFile),overWrite=.false.,readOnly=self%readOnly,objectsOverwritable=self%isOverwritable{conditions})</call>
            <argument name="compressionLevel" value="self%compressionLevel" condition="self%compressionLevelSet"/>
            <argument name="chunkSize"        value="self%chunkSize"        condition="self%chunkSizeSet"/>
           </conditionalCall>

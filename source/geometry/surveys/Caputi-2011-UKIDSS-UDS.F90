@@ -264,7 +264,7 @@ contains
     use :: Error          , only : Error_Report
     use :: Input_Paths    , only : inputPath        , pathTypeDataDynamic, pathTypeDataStatic
     use :: HDF5_Access    , only : hdf5Access
-    use :: IO_HDF5        , only : hdf5Object, hdf5File
+    use :: IO_HDF5        , only : hdf5File
     use :: String_Handling, only : operator(//)
     use :: System_Command , only : System_Command_Do
     implicit none
@@ -279,7 +279,7 @@ contains
     end if
     ! Read the distribution of random points from file.
     !$ call hdf5Access%set()
-    surveyGeometryRandomsFile=hdf5Object(char(inputPath(pathTypeDataDynamic)//&
+    surveyGeometryRandomsFile=hdf5File(char(inputPath(pathTypeDataDynamic)//&
          &'surveys/UKIDSS_UDS/surveyGeometryRandoms.hdf5')&
          &,readOnly=.true.)
     call surveyGeometryRandomsFile%readDataset('theta',self%randomTheta)

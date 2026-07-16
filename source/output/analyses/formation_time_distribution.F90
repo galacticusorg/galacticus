@@ -397,7 +397,7 @@ contains
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
     use :: HDF5_Access                      , only : hdf5Access
-    use :: IO_HDF5                          , only : hdf5Object, hdf5File, hdf5Group
+    use :: IO_HDF5                          , only : hdf5File, hdf5Group
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
     use :: File_Utilities                   , only : File_Name_Expand
     use :: Virial_Density_Contrast          , only : virialDensityContrastClass
@@ -436,7 +436,7 @@ contains
 
     fileName_=File_Name_Expand(fileName)
     !$ call hdf5Access%set  ()
-    dataFile=hdf5Object(fileName_,readOnly=.true.)
+    dataFile=hdf5File(fileName_,readOnly=.true.)
     simulationGroup=dataFile       %openGroup ('simulation0001/timeFormation'   )
     haveBoundaries =simulationGroup%hasDataset('massParentMinimum')
     call    simulationGroup%readDataset('redshift'              ,redshiftProgenitor_val)

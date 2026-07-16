@@ -149,7 +149,7 @@ contains
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object, hdf5File, hdf5Group, hdf5Dataset
+    use :: IO_HDF5           , only : hdf5File, hdf5Group, hdf5Dataset
     use :: ISO_Varying_String, only : assignment(=), operator(//), varying_string
     use :: String_Handling   , only : operator(//)
     implicit none
@@ -168,7 +168,7 @@ contains
 
       ! Open the HDF5 file.
       !$ call hdf5Access%set()
-      stellarTracks=hdf5Object(char(self%fileName),readOnly=.true.)
+      stellarTracks=hdf5File(char(self%fileName),readOnly=.true.)
       ! Check that this file has the correct format.
       call stellarTracks%readAttribute('fileFormat',fileFormatVersion,allowPseudoScalar=.true.)
       if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('format of stellar tracks file is out of date'//{introspection:location})

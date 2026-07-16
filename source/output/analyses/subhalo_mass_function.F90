@@ -205,7 +205,7 @@ contains
     Constructor for the :galacticus-class:`outputAnalysisSubhaloMassFunction` output analysis class for internal use.
     !!}
     use :: HDF5_Access            , only : hdf5Access
-    use :: IO_HDF5                , only : hdf5Object, hdf5File, hdf5Group
+    use :: IO_HDF5                , only : hdf5File, hdf5Group
     use :: Output_Times           , only : outputTimesClass
     use :: Cosmology_Functions    , only : cosmologyFunctionsClass
     use :: Virial_Density_Contrast, only : virialDensityContrastClass
@@ -232,7 +232,7 @@ contains
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    file             =hdf5Object          (fileName,readOnly=.true.)
+    file             =hdf5File          (fileName,readOnly=.true.)
     massFunctionGroup=file      %openGroup('massFunction'          )
     call file             %readAttribute('label'            ,labelTarget            )
     call file             %readAttribute('redshift'         ,redshift_              )
@@ -578,7 +578,7 @@ contains
     !!}
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5Object, hdf5Group, hdf5Dataset
+    use :: IO_HDF5                         , only : hdf5File, hdf5Group, hdf5Dataset
     use :: Numerical_Constants_Astronomical, only : massSolar
     use :: Units_MetaData                  , only : unitType
     implicit none

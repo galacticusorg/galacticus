@@ -307,7 +307,7 @@ contains
     !!}
     use :: Display                         , only : displayIndent, displayUnindent
     use :: Error                           , only : Error_Report , errorStatusSuccess
-    use :: IO_HDF5                         , only : hdf5Object, hdf5File, hdf5Dataset
+    use :: IO_HDF5                         , only : hdf5File, hdf5Dataset
     use :: HDF5_Access                     , only : hdf5Access
     use :: Numerical_Constants_Astronomical, only : massSolar    , megaParsec
     use :: Numerical_Constants_Math        , only : Pi
@@ -347,7 +347,7 @@ contains
     selfCopy => self
     ! Open the mass function file.
     !$ call hdf5Access%set()
-    massFunctionFile=hdf5Object(self%massFunctionFileName,overWrite=.true.)
+    massFunctionFile=hdf5File(self%massFunctionFileName,overWrite=.true.)
     ! Read the observed mass function if available.
     self%completenessErrorObserved=0.0d0
     if (massFunctionFile%hasDataset  ("massFunctionObserved")) call massFunctionFile%readDataset  ("massFunctionObserved",     massFunctionObserved     )

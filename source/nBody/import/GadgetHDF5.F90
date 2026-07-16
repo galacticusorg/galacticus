@@ -22,7 +22,7 @@ Implements an N-body data importer for Gadget HDF5 files.
 !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
-  use :: IO_HDF5             , only : hdf5Object, hdf5File, hdf5Group, hdf5Dataset
+  use :: IO_HDF5             , only : hdf5File, hdf5Group, hdf5Dataset
 
   !![
   <nbodyImporter name="nbodyImporterGadgetHDF5" docformat="rst">
@@ -210,7 +210,7 @@ contains
        hubbleConstantLittleH=1.0d0
     end if
     ! Open the data file of the current snapshot.
-    self%file=hdf5Object(char(self%fileName),objectsOverwritable=.true.)
+    self%file=hdf5File(char(self%fileName),objectsOverwritable=.true.)
     ! Construct the particle type group to read and verify that it exists.
     write (particleGroupName,'(a8,i1)') "PartType",self%particleType
     if (.not.self%file%hasGroup(particleGroupName)) call Error_Report('particle group does not exist'//{introspection:location})

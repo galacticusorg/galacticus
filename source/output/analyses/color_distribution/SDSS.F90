@@ -96,7 +96,7 @@ contains
     use :: Input_Paths                             , only : inputPath                                         , pathTypeDataStatic
     use :: Geometry_Surveys                        , only : surveyGeometryMonteroDorta2009SDSS
     use :: HDF5_Access                             , only : hdf5Access
-    use :: IO_HDF5                                 , only : hdf5Object, hdf5File, hdf5Group
+    use :: IO_HDF5                                 , only : hdf5File, hdf5Group
     use :: ISO_Varying_String                      , only : var_str                                           , varying_string
     use :: Node_Property_Extractors                , only : nodePropertyExtractorLmnstyStllrCF2000            , nodePropertyExtractorRatio
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
@@ -154,7 +154,7 @@ contains
     ! Construct colors matched to those used by Baldry et al. (2004). Also read magnitude range.
     write (distributionName,'(a,i2.2)') 'distribution',distributionNumber
     !$ call hdf5Access%set()
-    dataFile    =hdf5Object          (char(inputPath(pathTypeDataStatic)//'observations/galaxyColors/colorDistributionsBaldry2004.hdf5'),readOnly=.true.)
+    dataFile    =hdf5File          (char(inputPath(pathTypeDataStatic)//'observations/galaxyColors/colorDistributionsBaldry2004.hdf5'),readOnly=.true.)
     distribution=dataFile  %openGroup(distributionName                                                                                                  )
     call distribution%readDataset  ('color'            ,colors             )
     call distribution%readDataset  ('distribution'     ,functionValueTarget)

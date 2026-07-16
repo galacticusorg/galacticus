@@ -511,7 +511,7 @@ contains
     use :: File_Utilities    , only : Directory_Make, File_Lock     , File_Path, File_Unlock, &
           &                           lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object, hdf5File
+    use :: IO_HDF5           , only : hdf5File
     use :: ISO_Varying_String, only : char          , varying_string
     implicit none
     class(virialDensityContrastPercolation), intent(inout) :: self
@@ -523,7 +523,7 @@ contains
     !$ call hdf5Access%set()
     block
       type(hdf5File  ) :: file
-      file=hdf5Object(self%fileName,overWrite=.true.,readOnly=.false.)
+      file=hdf5File(self%fileName,overWrite=.true.,readOnly=.false.)
       call file%writeAttribute(        self%densityContrastTableTimeMinimum                                                                 ,'timeMinimum'    )
       call file%writeAttribute(        self%densityContrastTableTimeMaximum                                                                 ,'timeMaximum'    )
       call file%writeAttribute(        self%densityContrastTableMassMinimum                                                                 ,'massMinimum'    )
@@ -545,7 +545,7 @@ contains
     !!}
     use :: File_Utilities    , only : File_Exists, File_Lock     , File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object, hdf5File
+    use :: IO_HDF5           , only : hdf5File
     use :: ISO_Varying_String, only : char       , varying_string
     implicit none
     class           (virialDensityContrastPercolation), intent(inout)               :: self
@@ -559,7 +559,7 @@ contains
        !$ call hdf5Access%set()
        block
          type(hdf5File  ) :: file
-         file=hdf5Object(char(self%fileName),readOnly=.true.)
+         file=hdf5File(char(self%fileName),readOnly=.true.)
          call file%readAttribute('timeMinimum'    ,self%densityContrastTableTimeMinimum)
          call file%readAttribute('timeMaximum'    ,self%densityContrastTableTimeMaximum)
          call file%readAttribute('massMinimum'    ,self%densityContrastTableMassMinimum)

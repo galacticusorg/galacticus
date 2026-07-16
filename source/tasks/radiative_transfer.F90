@@ -261,7 +261,7 @@ contains
     use :: Display                 , only : displayIndent                            , displayMessage    , displayUnindent, verbosityLevelStandard
     use :: Error                   , only : Error_Report                             , errorStatusSuccess
     use :: Output_HDF5             , only : outputFile
-    use :: IO_HDF5                 , only : hdf5Object, hdf5Group
+    use :: IO_HDF5                 , only : hdf5File, hdf5Group
     use :: HDF5_Access             , only : hdf5Access
     use :: MPI_Utilities           , only : mpiBarrier                               , mpiSelf
     use :: Statistics_Distributions, only : distributionFunction1DNegativeExponential

@@ -108,7 +108,7 @@ contains
     Constructor for the :galacticus-class:`outputAnalysisSatelliteBoundMass` output analysis class for internal use.
     !!}
     use :: HDF5_Access            , only : hdf5Access
-    use :: IO_HDF5                , only : hdf5Object, hdf5File
+    use :: IO_HDF5                , only : hdf5File
     use :: Numerical_Interpolation, only : GSL_Interp_CSpline
     use :: Table_Labels           , only : extrapolationTypeExtrapolate
     implicit none
@@ -127,7 +127,7 @@ contains
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
-    file=hdf5Object(char(fileName),readOnly=.true.)
+    file=hdf5File(char(fileName),readOnly=.true.)
     call file%readDataset('time'          ,time          )
     call file%readDataset('boundMass'     ,boundMass     )
     call file%readDataset('boundMassError',boundMassError)
@@ -237,7 +237,7 @@ contains
 #endif
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5Object, hdf5Group, hdf5Dataset
+    use :: IO_HDF5                         , only : hdf5File, hdf5Group, hdf5Dataset
     use :: Numerical_Constants_Astronomical, only : gigaYear
     use :: Units_MetaData                  , only : unitType
     implicit none

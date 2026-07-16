@@ -139,7 +139,7 @@ contains
     use            :: Error                           , only : Error_Report
     use            :: Input_Paths                     , only : inputPath              , pathTypeDataDynamic , pathTypeDataStatic
     use            :: HDF5_Access                     , only : hdf5Access
-    use            :: IO_HDF5                         , only : hdf5Object, hdf5File, hdf5Dataset
+    use            :: IO_HDF5                         , only : hdf5File, hdf5Dataset
     use, intrinsic :: ISO_Fortran_Env
     use            :: Numerical_Constants_Astronomical, only : luminositySolar
     use            :: Numerical_Constants_Physical    , only : speedLight
@@ -176,7 +176,7 @@ contains
     makeFile=.false.
     if (File_Exists(self%fileName)) then
        !$ call hdf5Access%set()
-       file=hdf5Object(char(self%fileName),readOnly=.true.)
+       file=hdf5File(char(self%fileName),readOnly=.true.)
        if (file%hasAttribute('fileFormat')) then
           call file%readAttribute('fileFormat',fileFormatCurrentFile,allowPseudoScalar=.true.)
           makeFile=fileFormatCurrentFile /= fileFormatCurrent
@@ -237,7 +237,7 @@ contains
        call displayCounterClear(verbosity=verbosityLevelWorking)
        ! Store the data to file.
        !$ call hdf5Access%set()
-       file=hdf5Object(char(self%fileName),overWrite=.true.)
+       file=hdf5File(char(self%fileName),overWrite=.true.)
        call file   %writeDataset  (wavelength               ,"wavelength"          ,datasetReturned=dataset)
        call dataset%writeAttribute(unitType(1.0d0/metersToAngstroms  ,"Angstroms (Å)"          ,"angstrom" ),"units")
        call file   %writeDataset  (luminosityBolometric     ,"bolometricLuminosity",datasetReturned=dataset)

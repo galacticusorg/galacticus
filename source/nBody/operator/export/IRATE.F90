@@ -144,7 +144,7 @@ contains
     use            :: Display                         , only : displayIndent, displayUnindent, verbosityLevelStandard
     use            :: Error                           , only : Error_Report
     use            :: HDF5_Access                     , only : hdf5Access
-    use            :: IO_HDF5                         , only : hdf5Object, hdf5File, hdf5Group, hdf5Dataset
+    use            :: IO_HDF5                         , only : hdf5File, hdf5Group, hdf5Dataset
     use            :: IO_IRATE                        , only : irate
     use            :: ISO_Varying_String              , only : char
     use            :: Numerical_Constants_Astronomical, only : massSolar    , megaparsec
@@ -201,7 +201,7 @@ contains
          & ) then       
        write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
        !$ call hdf5Access%set()
-       irateFile=hdf5Object(char(self%fileName),readOnly=.false.)
+       irateFile=hdf5File(char(self%fileName),readOnly=.false.)
        snapshotGroup=irateFile    %openGroup(snapshotLabel)
        halosGroup   =snapshotGroup%openGroup('HaloCatalog')
        do i=1,simulations(1)%attributesInteger%size()
@@ -227,7 +227,7 @@ contains
          & ) then       
        write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
        !$ call hdf5Access%set()
-       irateFile=hdf5Object(char(self%fileName),readOnly=.false.)
+       irateFile=hdf5File(char(self%fileName),readOnly=.false.)
        snapshotGroup=irateFile    %openGroup(snapshotLabel)
        halosGroup   =snapshotGroup%openGroup('HaloCatalog')
        do i=1,simulations(1)%propertiesInteger%size()

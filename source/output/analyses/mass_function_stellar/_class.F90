@@ -204,7 +204,7 @@ contains
     Constructor for the :galacticus-class:`outputAnalysisMassFunctionStellar` output analysis class which reads bin information from a standard format file.
     !!}
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object, hdf5File
+    use :: IO_HDF5    , only : hdf5File
     implicit none
     type            (outputAnalysisMassFunctionStellar      )                              :: self
     type            (varying_string                         ), intent(in   )               :: label                              , comment
@@ -224,7 +224,7 @@ contains
     logical                                                                                :: haveTarget
 
     !$ call hdf5Access%set()
-    dataFile=hdf5Object(fileName,readOnly=.true.)
+    dataFile=hdf5File(fileName,readOnly=.true.)
     call    dataFile%readDataset  ('mass'                ,masses                  )
     haveTarget=dataFile%hasDataset('massFunctionObserved').and.dataFile%hasDataset('covariance')
     if (haveTarget) then

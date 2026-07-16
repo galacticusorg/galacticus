@@ -181,7 +181,7 @@ contains
           &                                                 galacticFilterSurveyGeometry                        , enumerationPositionTypeType
     use :: Geometry_Surveys                        , only : surveyGeometryFullSky
     use :: HDF5_Access                             , only : hdf5Access
-    use :: IO_HDF5                                 , only : hdf5Object, hdf5File
+    use :: IO_HDF5                                 , only : hdf5File
     use :: Input_Paths                             , only : inputPath                                           , pathTypeDataStatic
     use :: Node_Property_Extractors                , only : nodePropertyExtractorMassStellar                    , nodePropertyExtractorMassBasic
     use :: Numerical_Comparison                    , only : Values_Agree
@@ -239,7 +239,7 @@ contains
     
     ! Construct the target distribution.
     !$ call hdf5Access%set  ()
-    fileData=hdf5Object(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/fractionOccupation_Local_Group_Nadler2020.hdf5",readOnly=.true.)
+    fileData=hdf5File(char(inputPath(pathTypeDataStatic))//"observations/stellarHaloMassRelation/fractionOccupation_Local_Group_Nadler2020.hdf5",readOnly=.true.)
     call fileData%readDataset('massHalo'          ,massHaloData          )
     call fileData%readDataset('fractionOccupation',fractionOccupationData)
     !$ call hdf5Access%unset()
@@ -511,7 +511,7 @@ contains
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object, hdf5Group
+    use :: IO_HDF5    , only : hdf5File, hdf5Group
     implicit none
     class(outputAnalysisLocalGroupOccupationFraction), intent(inout)           :: self
     type (varying_string                            ), intent(in   ), optional :: groupName

@@ -24,7 +24,7 @@ program Tests_IO_HDF5
   use :: Display           , only : displayVerbositySet, verbosityLevelStandard
   use :: Error             , only : Error_Report
   use :: HDF5              , only : HSIZE_T
-  use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5Object            , hdf5VarDouble       , hdf5VarInteger8  , &
+  use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5File            , hdf5VarDouble       , hdf5VarInteger8  , &
        &                            hdf5VarDouble2D    , hdf5DataTypeDouble    , hdf5File            , hdf5Group        , &
        &                            hdf5Dataset
   use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string      , var_str          , char
@@ -106,7 +106,7 @@ program Tests_IO_HDF5
      block
        type(hdf5File ) :: fileObject
        type(hdf5Group) :: groupObject
-       fileObject=hdf5Object("testSuite/outputs/test.IO.HDF5.hdf5",overWrite=.true.,objectsOverwritable=.true.,useLatestFormat=.true.)
+       fileObject=hdf5File("testSuite/outputs/test.IO.HDF5.hdf5",overWrite=.true.,objectsOverwritable=.true.,useLatestFormat=.true.)
        ! Open an HDF5 group.
        select case (iPass)
        case(1)
@@ -1035,7 +1035,7 @@ program Tests_IO_HDF5
             type(hdf5File ) :: fileObject2
             type(hdf5Group) :: groupObject2
             ! Open the HDF5 file which stores the smallest and the largest 32-bit unsigned integers.
-            fileObject2 =hdf5Object("testSuite/data/IntegerRangeU32.hdf5")
+            fileObject2 =hdf5File("testSuite/data/IntegerRangeU32.hdf5")
             ! Open the root group.
             groupObject2=fileObject2%openGroup("/",comment="Root group.")
             ! Read the dataset.
@@ -1055,7 +1055,7 @@ program Tests_IO_HDF5
      type(hdf5File  ) :: fileObject
      call Unit_Tests_Begin_Group("h5py compatibility")
      call System_Command_Do("./testSuite/scripts/generate_h5py.py")
-     fileObject=hdf5Object("testSuite/outputs/h5py.hdf5",overWrite=.false.,objectsOverwritable=.false.)
+     fileObject=hdf5File("testSuite/outputs/h5py.hdf5",overWrite=.false.,objectsOverwritable=.false.)
      call fileObject%readAttribute("stringAttribute"            ,          varStringValueReread       )
      call fileObject%readAttribute("stringAttribute"            ,          characterValueReread       )
      call Assert("read h5py string attribute (character)",characterValueReread,"this is a variable length string")

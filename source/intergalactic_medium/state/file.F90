@@ -244,7 +244,7 @@ contains
     use :: File_Utilities, only : File_Exists
     use :: Error         , only : Error_Report
     use :: HDF5_Access   , only : hdf5Access
-    use :: IO_HDF5       , only : hdf5Object, hdf5File
+    use :: IO_HDF5       , only : hdf5File
     use :: Table_Labels  , only : extrapolationTypeAbort, extrapolationTypeExtrapolate
     implicit none
     class  (intergalacticMediumStateFile), intent(inout) :: self
@@ -259,7 +259,7 @@ contains
       if (.not.File_Exists(self%fileName)) call Error_Report('Unable to find intergalactic medium state file "' //char(self%fileName)//'"'//{introspection:location})
       !$ call hdf5Access%set()
       ! Open the file.
-      file=hdf5Object(self%fileName,readOnly=.true.)
+      file=hdf5File(self%fileName,readOnly=.true.)
       ! Check the file format version of the file.
       call file%readAttribute('fileFormat',fileFormatVersion)
       if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})

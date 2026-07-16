@@ -31,7 +31,7 @@ program XRay_Absorption_ISM_Wilms2000
   !!}
   use :: Atomic_Cross_Sections_Compton, only : Atomic_Cross_Section_Compton
   use :: Dates_and_Times              , only : Formatted_Date_and_Time
-  use :: IO_HDF5                      , only : hdf5Object, hdf5File, hdf5Dataset
+  use :: IO_HDF5                      , only : hdf5File, hdf5Dataset
   use :: Numerical_Constants_Prefixes , only : kilo
   use :: Numerical_Constants_Units    , only : electronVolt
   use :: Numerical_Ranges             , only : Make_Range
@@ -92,7 +92,7 @@ program XRay_Absorption_ISM_Wilms2000
   end do
 
   ! Open the output file.
-  outputFile=hdf5Object('data/atomic/Interstellar_Absorption_Wilms_2000.hdf5',overWrite=.true.,chunkSize=1024_hsize_t,compressionLevel=9)
+  outputFile=hdf5File('data/atomic/Interstellar_Absorption_Wilms_2000.hdf5',overWrite=.true.,chunkSize=1024_hsize_t,compressionLevel=9)
   ! Write energy table.
   call outputFile%writeDataset(energy(1:energyCount),datasetName="energy",comment="Photon energy in keV",datasetReturned=myDataset)
   call myDataset %writeAttribute(unitType(kilo*electronVolt,"keV","keV"),"units")

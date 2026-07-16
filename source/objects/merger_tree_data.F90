@@ -1592,7 +1592,7 @@ contains
     use :: Error             , only : Error_Report
     use :: HDF5              , only : HSIZE_T        , hsize_t
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object     , hdf5File           , hdf5Group       , hdf5Dataset
+    use :: IO_HDF5           , only : hdf5File           , hdf5Group       , hdf5Dataset
     use :: ISO_Varying_String, only : assignment(=)  , char
     use :: String_Handling   , only : operator(//)
     implicit none
@@ -1624,7 +1624,7 @@ contains
 
     ! Open the output file.
     !$ call hdf5Access%set()
-    outputFile=hdf5Object(outputFileName,overWrite=.not.appendActual,objectsOverwritable=.true.,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
+    outputFile=hdf5File(outputFileName,overWrite=.not.appendActual,objectsOverwritable=.true.,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
 
     ! Write a format version attribute.
     if (.not.fileExists) call outputFile%writeAttribute(2,"formatVersion")
@@ -1845,7 +1845,7 @@ contains
     use :: Error             , only : Error_Report
     use :: HDF5              , only : hsize_t
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object   , hdf5File     , hdf5Group    , hdf5Dataset
+    use :: IO_HDF5           , only : hdf5File     , hdf5Group    , hdf5Dataset
     use :: ISO_Varying_String, only : assignment(=), char
     implicit none
     integer         (kind=hsize_t  )                           , intent(in   ) ::        hdfChunkSize
@@ -1886,7 +1886,7 @@ contains
 
     ! Open the output file.
     !$ call hdf5Access%set()
-    outputFile=hdf5Object(outputFileName,overWrite=.not.appendActual,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
+    outputFile=hdf5File(outputFileName,overWrite=.not.appendActual,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
 
     ! Write the IRATE version.
     if (.not.fileExists) call outputFile%writeAttribute(0,"IRATEVersion")

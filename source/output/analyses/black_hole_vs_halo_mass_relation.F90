@@ -233,7 +233,7 @@ contains
     use :: Error                                 , only : Error_Report
     use :: Geometry_Surveys                      , only : surveyGeometryFullSky
     use :: HDF5_Access                           , only : hdf5Access
-    use :: IO_HDF5                               , only : hdf5Object, hdf5File, hdf5Group
+    use :: IO_HDF5                               , only : hdf5File, hdf5Group
     use :: ISO_Varying_String                    , only : var_str                                                       , varying_string
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo                                 , nodePropertyExtractorMassBlackHole
     use :: Numerical_Constants_Astronomical      , only : massSolar
@@ -309,7 +309,7 @@ contains
 
     ! Open the target data file and read basic information.
     !$ call hdf5Access%set()
-    fileTarget=hdf5Object(self%fileNameTarget,readOnly=.true.)
+    fileTarget=hdf5File(self%fileNameTarget,readOnly=.true.)
     ! Find the requested redshift interval.
     groupRedshiftName=var_str('redshiftInterval')//redshiftInterval
     if (.not.fileTarget%hasGroup(char(groupRedshiftName))) call Error_Report(var_str('redshift interval ')//redshiftInterval//' is not present in `'//self%fileNameTarget//'`'//{introspection:location})
@@ -757,7 +757,7 @@ contains
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object, hdf5Group
+    use :: IO_HDF5    , only : hdf5File, hdf5Group
     implicit none
     class(outputAnalysisBlackHoleVsHaloMassRelation), intent(inout)           :: self
     type (varying_string                           ), intent(in   ), optional :: groupName

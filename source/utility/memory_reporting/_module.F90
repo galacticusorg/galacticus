@@ -289,7 +289,7 @@ contains
     !!{RST
     Output maximum memory usage information to the main output file.
     !!}
-    use :: IO_HDF5    , only : hdf5Object, hdf5Group
+    use :: IO_HDF5    , only : hdf5File, hdf5Group
     use :: HDF5_Access, only : hdf5Access
     use :: Output_HDF5, only : outputFile
     implicit none

@@ -595,7 +595,7 @@ contains
     use :: Histories                     , only : history
     use :: ISO_Varying_String            , only : var_str
     use :: HDF5_Access                   , only : hdf5Access
-    use :: IO_HDF5                       , only : hdf5Object, hdf5File, hdf5Group
+    use :: IO_HDF5                       , only : hdf5File, hdf5Group
     use :: Output_HDF5                   , only : outputFile
     use :: Numerical_Comparison          , only : Values_Agree
     use :: File_Utilities                , only : File_Exists                  , File_Lock                             , File_Unlock, lockDescriptor, &
@@ -673,7 +673,7 @@ contains
          call File_Lock(fileName,fileLock,lockIsShared=.false.)
          if (File_Exists(fileName)) then
             !$ call hdf5Access%set()
-            file=hdf5Object(char(fileName))
+            file=hdf5File(char(fileName))
             if (file%hasDataset('sedTemplate')) then
                if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
                   call displayMessage("reading SED tabulation from file '"                                        //fileName//"'",verbosityLevelWorking)
@@ -699,7 +699,7 @@ contains
                call displayMessage("storing SED tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
             end if
             !$ call hdf5Access%set()
-            file=hdf5Object(char(fileName),overWrite=.false.,readOnly=.false.)
+            file=hdf5File(char(fileName),overWrite=.false.,readOnly=.false.)
             call    file%writeDataset(self %templates            (indexTemplate)%sed       ,'sedTemplate','A matrix mapping star formation history to SED.'                        )
             call    file%writeDataset(self %templates            (indexTemplate)%wavelength,'wavelength' ,'The wavelengths at which the SED is tabulated [Å]'                      )
             call    file%writeDataset(self %metallicityBoundaries                          ,'metallicity','The metallicities at which the star formation history is tabulated [Z☉]')

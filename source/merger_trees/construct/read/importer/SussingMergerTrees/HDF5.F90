@@ -22,7 +22,7 @@
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
-  use :: IO_HDF5                   , only : hdf5Object           , hdf5File            , hdf5Group
+  use :: IO_HDF5                   , only : hdf5File            , hdf5Group
 
   !![
   <mergerTreeImporter name="mergerTreeImporterSussingHDF5" docformat="rst">
@@ -145,7 +145,7 @@ contains
     localSigma8     =self%cosmologicalMassVariance_%sigma8         (                  )
     !$ call hdf5Access%set()
     ! Open the HDF5 file.
-    self%file=hdf5Object(char(fileName),overWrite=.false.)
+    self%file=hdf5File(char(fileName),overWrite=.false.)
     ! Open the snapshots group.
     self%snapshots=self%file%openGroup('Snapshots')
     ! Read expansion factors from the file.

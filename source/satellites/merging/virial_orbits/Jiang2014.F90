@@ -242,7 +242,7 @@ contains
           &                                 File_Unlock                 , lockDescriptor
     use :: Input_Paths             , only : inputPath                   , pathTypeDataDynamic
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5Object, hdf5File
+    use :: IO_HDF5                 , only : hdf5File
     use :: String_Handling         , only : operator(//)
     implicit none
     type            (virialOrbitJiang2014        )                                :: self
@@ -299,7 +299,7 @@ contains
        call File_Lock(fileName,fileLock,lockIsShared=attempt == 0)
        if (File_Exists(fileName)) then
           !$ call hdf5Access%set()
-          file=hdf5Object            (char(fileName)                ,readOnly=.true.                   )
+          file=hdf5File            (char(fileName)                ,readOnly=.true.                   )
           call file%readAttribute    ('limitLower'                  ,     limitLower                   ) 
           call file%readAttribute    ('limitUpper'                  ,     limitUpper                   ) 
           call file%readDatasetStatic('velocityTangentialMean'      ,self%velocityTangentialMean_      )
@@ -376,7 +376,7 @@ contains
              end do
           end do
           !$ call hdf5Access%set()
-          file=hdf5Object         (char(fileName                     )                               ,overWrite=.true.,readOnly=.false.)
+          file=hdf5File         (char(fileName                     )                               ,overWrite=.true.,readOnly=.false.)
           call file%writeAttribute(     limitLower                    ,'limitLower'                                                    ) 
           call file%writeAttribute(     limitUpper                    ,'limitUpper'                                                    ) 
           call file%writeDataset  (self%velocityTangentialMean_       ,'velocityTangentialMean'                                        )

@@ -186,7 +186,7 @@ contains
     Constructor for the :galacticus-class:`posteriorSampleLikelihoodSpinDistribution` posterior sampling likelihood class.
     !!}
     use :: HDF5_Access      , only : hdf5Access
-    use :: IO_HDF5          , only : hdf5Object, hdf5File
+    use :: IO_HDF5          , only : hdf5File
     implicit none
     type            (posteriorSampleLikelihoodSpinDistribution)                        :: self
     character       (len=*                                    ), intent(in   )         :: fileName
@@ -215,7 +215,7 @@ contains
          &                                                         )
     ! Read the target spin distribution from file.
     !$ call hdf5Access%set()
-    spinDistributionFile=hdf5Object(trim(fileName),readOnly=.true.)
+    spinDistributionFile=hdf5File(trim(fileName),readOnly=.true.)
     call spinDistributionFile%readDataset("spinParameter"    ,self%spin             )
     call spinDistributionFile%readDataset("distribution"     ,self%distribution     )
     call spinDistributionFile%readDataset("distributionError",self%distributionError)

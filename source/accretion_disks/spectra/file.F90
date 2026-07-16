@@ -139,7 +139,7 @@ contains
     !!}
     use :: Error       , only : Error_Report
     use :: HDF5_Access , only : hdf5Access
-    use :: IO_HDF5     , only : hdf5Object, hdf5File
+    use :: IO_HDF5     , only : hdf5File
     use :: Table_Labels, only : extrapolationTypeZero, extrapolationTypeFix
     implicit none
     class    (accretionDiskSpectraFile), intent(inout) :: self
@@ -149,7 +149,7 @@ contains
 
     ! Open the file.
     !$ call hdf5Access%set()
-    spectraFile=hdf5Object(fileName,readOnly=.true.)
+    spectraFile=hdf5File(fileName,readOnly=.true.)
     ! Check file format.
     call spectraFile%readAttribute('fileFormat',fileFormatFile,allowPseudoScalar=.true.)
     if (fileFormatFile /= fileFormatCurrent) call Error_Report('file format mismatch'//{introspection:location})

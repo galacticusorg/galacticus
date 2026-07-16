@@ -653,7 +653,7 @@ contains
     use :: File_Utilities       , only : File_Exists              , File_Lock                    , File_Unlock                  , lockDescriptor, &
          &                               Directory_Make           , File_Path
     use :: HDF5_Access          , only : hdf5Access
-    use :: IO_HDF5              , only : hdf5Object, hdf5File
+    use :: IO_HDF5              , only : hdf5File
     use :: Linear_Growth        , only : normalizeMatterDominated
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range               , rangeTypeLinear              , rangeTypeLogarithmic
@@ -704,7 +704,7 @@ contains
           ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
           call File_Lock(self%fileNameNonLinearMap,fileLock,lockIsShared=.true.)
           !$ call hdf5Access%set()
-          file=hdf5Object(self%fileNameNonLinearMap)
+          file=hdf5File(self%fileNameNonLinearMap)
           call file%readDataset('time'               ,times               )
           call file%readDataset('overdensitiesLinear',overdensitiesLinear )
           call file%readDataset('linearNonlinearMap' ,linearNonlinearMap__)
@@ -915,7 +915,7 @@ contains
           ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
           call File_Lock(self%fileNameNonLinearMap,fileLock,lockIsShared=.false.)
           !$ call hdf5Access%set()
-          file=hdf5Object(self%fileNameNonLinearMap,overWrite=.true.,readOnly=.false.)
+          file=hdf5File(self%fileNameNonLinearMap,overWrite=.true.,readOnly=.false.)
           call file%writeDataset(times               ,'time'               )
           call file%writeDataset(overdensitiesLinear ,'overdensitiesLinear')
           call file%writeDataset(linearNonlinearMap__,'linearNonlinearMap' )
@@ -976,7 +976,7 @@ contains
     use :: Error             , only : errorStatusFail, errorStatusSuccess
     use :: File_Utilities    , only : File_Exists
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object, hdf5File
+    use :: IO_HDF5           , only : hdf5File
     use :: ISO_Varying_String, only : char           , varying_string
     use :: Tables            , only : table1D        , table1DLogarithmicLinear
     implicit none
@@ -994,7 +994,7 @@ contains
     if (.not.tableStore) return
     if (File_Exists(fileName)) then
        !$ call hdf5Access%set()
-       file=hdf5Object(fileName,readOnly=.true.)
+       file=hdf5File(fileName,readOnly=.true.)
        call file%readDataset('time',timeTable)
        if     (                                    &
             &   timeTable(1              ) <= time &
@@ -1026,7 +1026,7 @@ contains
     !!}
     use :: File_Utilities    , only : Directory_Make, File_Path
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object, hdf5File
+    use :: IO_HDF5           , only : hdf5File
     use :: ISO_Varying_String, only : char          , varying_string
     use :: Tables            , only : table1D
     implicit none
@@ -1040,7 +1040,7 @@ contains
     if (.not.tableStore) return
     call Directory_Make(File_Path(fileName))
     !$ call hdf5Access%set()
-    file=hdf5Object(fileName,overWrite=.true.,readOnly=.false.)
+    file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
     call file%writeDataset(        storeTable%xs()                     ,'time' )
     call file%writeDataset(reshape(storeTable%ys(),[storeTable%size()]),'value')
     !$ call hdf5Access%unset()

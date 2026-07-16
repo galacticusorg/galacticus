@@ -128,7 +128,7 @@ contains
     use :: Error                                 , only : Error_Report
     use :: Input_Paths                           , only : inputPath                                          , pathTypeDataStatic
     use :: HDF5_Access                           , only : hdf5Access
-    use :: IO_HDF5                               , only : hdf5Object, hdf5File
+    use :: IO_HDF5                               , only : hdf5File
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassBlackHole                 , nodePropertyExtractorMassStellarSpheroid
     use :: Numerical_Comparison                  , only : Values_Agree
     use :: Numerical_Constants_Astronomical      , only : massSolar
@@ -176,7 +176,7 @@ contains
     !!]
     
     !$ call hdf5Access%set()
-    dataFile=hdf5Object(char(inputPath(pathTypeDataStatic)//'/observations/blackHoles/blackHoleMassVsBulgeMass_KormendyHo2013.hdf5'),readOnly=.true.)
+    dataFile=hdf5File(char(inputPath(pathTypeDataStatic)//'/observations/blackHoles/blackHoleMassVsBulgeMass_KormendyHo2013.hdf5'),readOnly=.true.)
     call dataFile%readDataset  ('massBulgeBinned'       ,masses             )
     call dataFile%readAttribute('label'                 ,targetLabel        )
     call dataFile%readDataset  ('massBlackHoleMean'     ,functionValueTarget)

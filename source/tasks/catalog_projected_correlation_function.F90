@@ -322,7 +322,7 @@ contains
     use :: Display                         , only : displayIndent                    , displayMessage                     , displayUnindent
     use :: Error                           , only : Error_Report                     , errorStatusSuccess
     use :: Output_HDF5                     , only : outputFile
-    use :: IO_HDF5                         , only : hdf5Object, hdf5Group, hdf5Dataset
+    use :: IO_HDF5                         , only : hdf5File, hdf5Group, hdf5Dataset
     use :: HDF5_Access                     , only : hdf5Access
     use :: IO_IRATE                        , only : irate
     use :: ISO_Varying_String              , only : varying_string

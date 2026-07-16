@@ -300,7 +300,7 @@ contains
     Constructor for the :galacticus-class:`outputAnalysisConcentrationDistribution` output analysis class which reads all required properties from file.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
-    use :: IO_HDF5                          , only : hdf5Object, hdf5File, hdf5Group
+    use :: IO_HDF5                          , only : hdf5File, hdf5Group
     use :: HDF5_Access                      , only : hdf5Access
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
     use :: Virial_Density_Contrast          , only : virialDensityContrastClass
@@ -327,7 +327,7 @@ contains
          &                                                                                      massMaximum                     , massParticle
 
     !$ call hdf5Access%set  ()
-    dataFile=hdf5Object(fileName,readOnly=.true.)
+    dataFile=hdf5File(fileName,readOnly=.true.)
     simulationGroup=dataFile       %openGroup('simulation0001')
     attributesGroup=simulationGroup%openGroup('simulation'    )
     call simulationGroup   %readDataset  ('concentration'                              ,concentration           )

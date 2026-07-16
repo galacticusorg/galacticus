@@ -54,7 +54,7 @@ contains
     Constructor for the :galacticus-class:`nbodyOperatorFilterID` N-body operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
-    use :: IO_HDF5         , only : hdf5Object, hdf5File, hdf5Group
+    use :: IO_HDF5         , only : hdf5File, hdf5Group
     use :: HDF5_Access     , only : hdf5Access
     use :: String_Handling , only : String_Split_Words, String_Count_Words
     implicit none
@@ -100,7 +100,7 @@ contains
        allocate(idGroup   (String_Count_Words(char(idSelectionDatasetName),"/")-1))
        call String_Split_Words(groupNames,char(idSelectionDatasetName),"/")
        !$ call hdf5Access%set()
-       idFile=hdf5Object(idSelectionFileName)
+       idFile=hdf5File(idSelectionFileName)
        if (size(idGroup) > 0) then
           do i=1,size(idGroup)
              if (i == 1) then

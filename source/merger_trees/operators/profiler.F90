@@ -229,7 +229,7 @@ contains
     !!}
     use :: Output_HDF5, only : outputFile
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object , hdf5Group
+    use :: IO_HDF5    , only : hdf5File , hdf5Group
     implicit none
     class  (mergerTreeOperatorProfiler), intent(inout)               :: self
     type   (hdf5Group                 )                              :: profilerGroup

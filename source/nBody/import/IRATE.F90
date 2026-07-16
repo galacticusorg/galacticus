@@ -166,7 +166,7 @@ contains
     use :: Dictionaries, only : doubleDictionary       , integerSizeTDictionary        , rank1DoublePtrDictionary    , rank1IntegerSizeTPtrDictionary, &
           &                    rank2DoublePtrDictionary, rank2IntegerSizeTPtrDictionary, varyingStringDictionary     , genericDictionary
     use :: HDF5_Access , only : hdf5Access
-    use :: IO_HDF5     , only : H5T_NATIVE_DOUBLES     , H5T_NATIVE_INTEGERS           , hdf5Object, hdf5Group, hdf5Dataset
+    use :: IO_HDF5     , only : H5T_NATIVE_DOUBLES     , H5T_NATIVE_INTEGERS           , hdf5File, hdf5Group, hdf5Dataset
     use :: IO_IRATE    , only : irate
     implicit none
     class           (nbodyImporterIRATE), intent(inout)                              :: self
@@ -209,7 +209,7 @@ contains
     if (.not.self%haveProperties .or. any(self%properties == 'velocity'  )) call simulations(1)%propertiesRealRank1%set('velocity'  ,velocity   )
     write (snapshotLabel,'(a,i5.5)') 'Snapshot',self%snapshot
     !$ call hdf5Access%set()
-    self%file=hdf5Object(self%fileName,readOnly=.true.,objectsOverwritable=.false.)
+    self%file=hdf5File(self%fileName,readOnly=.true.,objectsOverwritable=.false.)
     snapshotGroup            =self%file         %openGroup(snapshotLabel)
     simulations  (1)%analysis=     snapshotGroup%openGroup('HaloCatalog')
     call simulations(1)%analysis%datasets(datasetNames)

@@ -23,7 +23,7 @@
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  use :: IO_HDF5                , only : hdf5Object           , hdf5Group           , hdf5Dataset
+  use :: IO_HDF5                , only : hdf5File           , hdf5Group           , hdf5Dataset
 
   !![
   <mergerTreeOperator name="mergerTreeOperatorMassAccretionHistory" docformat="rst">

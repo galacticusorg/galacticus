@@ -31,7 +31,7 @@ module Input_Parameters
   use, intrinsic :: ISO_C_Binding     , only : c_char         , c_int
   use            :: FoX_dom           , only : node
   use            :: Function_Classes  , only : functionClass
-  use            :: IO_HDF5           , only : hdf5Object, hdf5File, hdf5Group
+  use            :: IO_HDF5           , only : hdf5File, hdf5Group
   use            :: ISO_Varying_String, only : varying_string
   use            :: Kind_Numbers      , only : kind_int8
   use            :: String_Handling   , only : char
@@ -880,7 +880,7 @@ contains
        allocate(self%outputParameters         )
        allocate(self%outputParametersContainer)
        !$ call hdf5Access%  set()
-       self%outputParametersContainer=hdf5Object(                                      &
+       self%outputParametersContainer=hdf5File(                                      &
             &                                    char(                                 &
             &                                         File_Name_Temporary(             &
             &                                                             'glcTmpPar', &

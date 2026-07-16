@@ -126,7 +126,7 @@ contains
     use               :: HDF5                            , only : hsize_t
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: HDF5_Access                     , only : hdf5Access
-    use               :: IO_HDF5                         , only : hdf5Object, hdf5File, hdf5Group
+    use               :: IO_HDF5                         , only : hdf5File, hdf5Group
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
     use               :: ISO_Varying_String              , only : assignment(=)               , char                             , extract     , len           , &
           &                                                       operator(==)                , varying_string                   , operator(//)
@@ -228,7 +228,7 @@ contains
        hdf5ReadScope: block
          type(hdf5File ) :: axionCambOutput
          type(hdf5Group) :: speciesGroup
-         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         axionCambOutput=hdf5File(fileName_,readOnly=.true.)
          call axionCambOutput%readDataset('wavenumber',wavenumbers)
          allocate(transferFunctions(size(wavenumbers),4,size(redshifts)))
          speciesGroup=axionCambOutput%openGroup('darkMatter')
@@ -289,7 +289,7 @@ contains
           hdf5DatasetsScope: block
             type(hdf5File ) :: axionCambOutput
             type(hdf5Group) :: speciesGroup
-            axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+            axionCambOutput=hdf5File(fileName_,readOnly=.true.)
             speciesGroup=axionCambOutput%openGroup('darkMatter')
             call speciesGroup%datasets(datasetNames)
           end block hdf5DatasetsScope
@@ -508,7 +508,7 @@ contains
          type(hdf5File ) :: axionCambOutput
          type(hdf5Group) :: parametersGroup             , extrapolationWavenumberGroup, &
               &             extrapolationGroup          , speciesGroup
-         axionCambOutput=hdf5Object(fileName_,readOnly=.false.,objectsOverwritable=.true.)
+         axionCambOutput=hdf5File(fileName_,readOnly=.false.,objectsOverwritable=.true.)
          call axionCambOutput%writeAttribute('Transfer functions created by AxionCAMB.','description')
          call axionCambOutput%writeAttribute(axionCambFormatVersionCurrent,'fileFormat')
          call axionCambOutput%writeDataset(wavenumbers    ,'wavenumber'                                 ,chunkSize=chunkSize,appendTo=.not.axionCambOutput%hasDataset('wavenumber'))
@@ -558,7 +558,7 @@ contains
        hdf5TransferFunctionDarkMatterScope: block
          type(hdf5File ) :: axionCambOutput
          type(hdf5Group) :: speciesGroup
-         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         axionCambOutput=hdf5File(fileName_,readOnly=.true.)
          call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call transferFunctionDarkMatter     %create(                                                 &
@@ -587,7 +587,7 @@ contains
        hdf5TransferFunctionCDMScope: block
          type(hdf5File ) :: axionCambOutput
          type(hdf5Group) :: speciesGroup
-         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         axionCambOutput=hdf5File(fileName_,readOnly=.true.)
          call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call transferFunctionColdDarkMatter %create(                                                 &
@@ -616,7 +616,7 @@ contains
        hdf5TransferFunctionAxionsScope: block
          type(hdf5File ) :: axionCambOutput
          type(hdf5Group) :: speciesGroup
-         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         axionCambOutput=hdf5File(fileName_,readOnly=.true.)
          call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call transferFunctionFuzzyDarkMatter%create(                                                 &
@@ -645,7 +645,7 @@ contains
        hdf5TransferFunctionBaryonsScope: block
          type(hdf5File ) :: axionCambOutput
          type(hdf5Group) :: speciesGroup
-         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         axionCambOutput=hdf5File(fileName_,readOnly=.true.)
          call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call transferFunctionBaryons        %create(                                                 &

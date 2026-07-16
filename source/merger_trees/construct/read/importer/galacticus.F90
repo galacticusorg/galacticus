@@ -25,7 +25,7 @@
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParametersClass
   use :: Halo_Mass_Functions       , only : haloMassFunctionClass
-  use :: IO_HDF5                   , only : hdf5Object           , hdf5File            , hdf5Group           , hdf5Dataset
+  use :: IO_HDF5                   , only : hdf5File            , hdf5Group           , hdf5Dataset
   use :: Stateful_Types            , only : statefulDouble               , statefulInteger, statefulLogical
 
   ! Enumeration of particle epoch types.
@@ -259,7 +259,7 @@ contains
       type(hdf5Group  ) :: cosmologicalParametersGroup, unitsGroup
       type(hdf5Dataset) :: angularMomentumDataset     , spinDataset
       ! Open the file.
-      self%file=hdf5Object(char(fileName),readOnly=.true.)
+      self%file=hdf5File(char(fileName),readOnly=.true.)
       ! Get the file format version number.
       if (self%file%hasAttribute('formatVersion')) then
          call self%file%readAttribute('formatVersion',self%formatVersion,allowPseudoScalar=.true.)

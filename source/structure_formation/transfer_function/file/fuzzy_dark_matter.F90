@@ -265,7 +265,7 @@ contains
     use :: Error               , only : Error_Report
     use :: File_Utilities      , only : File_Lock     , File_Unlock
     use :: HDF5_Access         , only : hdf5Access
-    use :: IO_HDF5             , only : hdf5Object, hdf5File, hdf5Group
+    use :: IO_HDF5             , only : hdf5File, hdf5Group
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
     class           (transferFunctionFileFuzzyDarkMatter), intent(inout)           :: self
@@ -281,7 +281,7 @@ contains
     hdf5ReadScope: block
       type(hdf5File ) :: fileObject
       type(hdf5Group) :: parametersObject
-      fileObject=hdf5Object(fileName,readOnly=.true.)
+      fileObject=hdf5File(fileName,readOnly=.true.)
       ! Check that the fuzzy dark matter parameters match.
       parametersObject=fileObject%openGroup('parameters')
       call parametersObject%readAttribute('fuzzyDMMass'           ,fuzzyDMMass           )

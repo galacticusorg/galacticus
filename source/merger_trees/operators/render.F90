@@ -137,7 +137,7 @@ contains
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic      , nodeComponentPosition, &
          &                                          treeNode
-    use :: IO_HDF5                         , only : hdf5Object           , hdf5File            , hdf5Dataset
+    use :: IO_HDF5                         , only : hdf5File            , hdf5Dataset
     use :: Merger_Tree_Walkers             , only : mergerTreeWalkerAllNodes
     use :: Numerical_Constants_Astronomical, only : gigaYear                , megaParsec
     use :: Units_MetaData                  , only : unitType
@@ -197,7 +197,7 @@ contains
        position_      (:,iNode) =  position                     %position       (            )
     end do
     ! Open an HDF5 file.
-    fileObject=hdf5Object(fileName,overWrite=.true.,objectsOverwritable=.true.)
+    fileObject=hdf5File(fileName,overWrite=.true.,objectsOverwritable=.true.)
     ! Write the datasets.
     call fileObject %writeDataset  (nodeIndex      ,"nodeIndex"      ,"Node index []"                                  )
     call fileObject %writeDataset  (parentIndex    ,"parentIndex"    ,"Parent index []"                                )

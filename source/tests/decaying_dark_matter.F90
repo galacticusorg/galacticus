@@ -29,7 +29,7 @@ program Test_Decaying_Dark_Matter
   use :: Unit_Tests          , only : Assert                            , Unit_Tests_Begin_Group          , Unit_Tests_End_Group                         , Unit_Tests_Finish                          , &
        &                              compareLessThanOrEqual
   use :: HDF5_Access         , only : hdf5Access
-  use :: IO_HDF5             , only : hdf5Object                        , ioHDF5AccessInitialize, hdf5File
+  use :: IO_HDF5             , only : hdf5File                        , ioHDF5AccessInitialize
   use :: Input_Paths         , only : inputPath                         , pathTypeExec
   use :: ISO_Varying_String  , only : char                              , operator(//)                    , varying_string
   use :: Events_Hooks        , only : eventsHooksInitialize
@@ -61,7 +61,7 @@ program Test_Decaying_Dark_Matter
     type(hdf5File  ) :: file
     !$ call hdf5Access%set()
     fileName=inputPath(pathTypeExec)//"testSuite/data/decayingDarkMatterRetention.hdf5"
-    file    =hdf5Object(fileName,readOnly=.true.)
+    file    =hdf5File(fileName,readOnly=.true.)
     call file%readDataset  ('velocityKick'               ,velocityKicks                    )
     call file%readDataset  ('velocityEscape'             ,velocityEscapes                  )
     call file%readDataset  ('fractionRetained'           ,fractionRetainedTarget           )

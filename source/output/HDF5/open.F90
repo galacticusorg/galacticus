@@ -52,7 +52,7 @@ contains
     use :: File_Utilities    , only : Directory_Make      , File_Name_Expand   , File_Path
     use :: HDF5              , only : hsize_t             , size_t
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : IO_HDF5_Set_Defaults, hdf5Object          , ioHDF5AccessInitialize
+    use :: IO_HDF5           , only : IO_HDF5_Set_Defaults, hdf5File          , ioHDF5AccessInitialize
     use :: ISO_Varying_String, only : var_str             , char                , operator(//)          , extract              , &
          &                            len                 , operator(==)        , adjustl               , trim                 , &
          &                            assignment(=)
@@ -176,7 +176,7 @@ contains
        allocate(outputFile )
        allocate(outputGroup)
        !$ call hdf5Access%set()
-       outputFile=hdf5Object(                                                 &
+       outputFile=hdf5File(                                                 &
             &                                    char(outputScratchFileName), &
             &                overWrite          =.true.                     , &
             &                objectsOverwritable=.true.                     , &

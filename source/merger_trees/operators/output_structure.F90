@@ -21,7 +21,7 @@
   Implements a merger tree operator class which dumps pre-evolution tree structure to the output file.
   !!}
 
-  use :: IO_HDF5                 , only : hdf5Object           , hdf5Group           , hdf5Dataset
+  use :: IO_HDF5                 , only : hdf5File           , hdf5Group           , hdf5Dataset
   use :: Node_Property_Extractors, only : nodePropertyExtractorClass
   
   !![

@@ -108,7 +108,7 @@ contains
     use :: Error                                 , only : Error_Report
     use :: Input_Paths                           , only : inputPath                                         , pathTypeDataStatic
     use :: HDF5_Access                           , only : hdf5Access
-    use :: IO_HDF5                               , only : hdf5Object, hdf5File
+    use :: IO_HDF5                               , only : hdf5File
     use :: ISO_Varying_String                    , only : var_str
     use :: Node_Property_Extractors              , only : nodePropertyExtractorConcentration                , nodePropertyExtractorMassHalo
     use :: Numerical_Comparison                  , only : Values_Agree
@@ -153,7 +153,7 @@ contains
     
     ! Construct mass bins matched to those used by Ludlow et al. (2016).
     !$ call hdf5Access%set()
-    dataFile=hdf5Object(char(inputPath(pathTypeDataStatic)//'darkMatter/concentrationMassRelationCDMLudlow2016.hdf5'),readOnly=.true.)
+    dataFile=hdf5File(char(inputPath(pathTypeDataStatic)//'darkMatter/concentrationMassRelationCDMLudlow2016.hdf5'),readOnly=.true.)
     call dataFile%readDataset('massHalo',massHaloLogarithmic)
     !$ call hdf5Access%unset()
     massHaloLogarithmic=log10(massHaloLogarithmic)

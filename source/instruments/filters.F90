@@ -388,7 +388,7 @@ contains
     !!}
     use :: Output_HDF5              , only : outputFile
     use :: HDF5_Access              , only : hdf5Access
-    use :: IO_HDF5                  , only : hdf5Object, hdf5Group, hdf5Dataset
+    use :: IO_HDF5                  , only : hdf5File, hdf5Group, hdf5Dataset
     use :: Numerical_Constants_Units, only : metersToAngstroms
     use :: Units_MetaData           , only : unitType
     implicit none

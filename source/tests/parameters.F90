@@ -29,7 +29,7 @@ program Test_Parameters
   use :: Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass
   use :: Cosmology_Functions      , only : cosmologyFunctions     , cosmologyFunctionsClass
   use :: Display                   , only : displayVerbositySet     , verbosityLevelStandard
-  use :: IO_HDF5                   , only : hdf5Object              , hdf5File
+  use :: IO_HDF5                   , only : hdf5File
   use :: ISO_Varying_String        , only : assignment(=)           , var_str                      , varying_string
   use :: Input_Parameters          , only : inputParameters         , inputParameter
   use :: Unit_Tests                , only : Assert                  , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
@@ -47,7 +47,7 @@ program Test_Parameters
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
   ! Open an output file.
-  outputFile=hdf5Object("testSuite/outputs/testParameters.hdf5",overWrite=.true.)
+  outputFile=hdf5File("testSuite/outputs/testParameters.hdf5",overWrite=.true.)
   parameterFile  ='testSuite/parameters/testsParameters.xml'
   testParameters=inputParameters(parameterFile,outputParametersGroup=outputFile)
   ! Begin unit tests.

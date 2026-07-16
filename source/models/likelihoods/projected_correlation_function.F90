@@ -183,7 +183,7 @@ contains
     !!}
     use :: Input_Paths      , only : inputPath    , pathTypeDataStatic
     use :: HDF5_Access      , only : hdf5Access
-    use :: IO_HDF5          , only : hdf5Object, hdf5File
+    use :: IO_HDF5          , only : hdf5File
     use :: Linear_Algebra   , only : assignment(=)
     implicit none
     type            (posteriorSampleLikelihoodPrjctdCorrelationFunction)                        :: self
@@ -206,7 +206,7 @@ contains
 
     ! Read the projected correlation function file.
     !$ call hdf5Access%set()
-    file=hdf5Object(char(inputPath(pathTypeDataStatic))//fileName,readOnly=.true.)
+    file=hdf5File(char(inputPath(pathTypeDataStatic))//fileName,readOnly=.true.)
     call file%readDataset("separation"                          ,self%separation                          )
     call file%readDataset("projectedCorrelationFunctionObserved",self%projectedCorrelationFunctionObserved)
     call file%readDataset("covariance"                          ,self%covarianceMatrix                    )

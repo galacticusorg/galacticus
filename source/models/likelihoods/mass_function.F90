@@ -180,7 +180,7 @@ contains
     use :: Display          , only : displayMessage, displayMagenta    , displayReset
     use :: Input_Paths      , only : inputPath     , pathTypeDataStatic
     use :: HDF5_Access      , only : hdf5Access
-    use :: IO_HDF5          , only : hdf5Object, hdf5File
+    use :: IO_HDF5          , only : hdf5File
     use :: Linear_Algebra   , only : assignment(=)
     type            (posteriorSampleLikelihoodMassFunction)                              :: self
     double precision                                       , intent(in   )               :: redshiftMinimum        , redshiftMaximum       , &
@@ -204,7 +204,7 @@ contains
     self%logHaloMassMaximum=log10(haloMassMaximum)
     ! Read the mass function file.
     !$ call hdf5Access%set()
-    massFunctionFile=hdf5Object(char(inputPath(pathTypeDataStatic))//massFunctionFileName,readOnly=.true.)
+    massFunctionFile=hdf5File(char(inputPath(pathTypeDataStatic))//massFunctionFileName,readOnly=.true.)
     call massFunctionFile%readDataset("mass"                ,self%mass                )
     call massFunctionFile%readDataset("massFunctionObserved",self%massFunctionObserved)
     call massFunctionFile%readDataset("covariance"          ,self%covarianceMatrix    )

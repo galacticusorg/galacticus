@@ -81,7 +81,7 @@ contains
           &                           lockDescriptor
     use :: Input_Paths       , only : inputPath                , pathTypeDataDynamic
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object, hdf5File
+    use :: IO_HDF5           , only : hdf5File
     use :: ISO_Varying_String, only : varying_string
     use :: Root_Finder       , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     use :: Table_Labels      , only : extrapolationTypeFix
@@ -109,7 +109,7 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),lockFileDescriptor,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       file=hdf5Object(char(fileName),readOnly=.true.)
+       file=hdf5File(char(fileName),readOnly=.true.)
        call file%readDataset('halfMassRadii',halfMassRadii)
        !$ call hdf5Access%unset()
        call File_Unlock(lockFileDescriptor)
@@ -141,7 +141,7 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),lockFileDescriptor,lockIsShared=.false.)
        !$ call hdf5Access%set()
-       file=hdf5Object(char(fileName),objectsOverwritable=.true.)
+       file=hdf5File(char(fileName),objectsOverwritable=.true.)
        call file%writeDataset(halfMassRadii,'halfMassRadii')
        !$ call hdf5Access%unset()
        call File_Unlock(lockFileDescriptor)

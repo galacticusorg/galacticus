@@ -584,7 +584,7 @@ contains
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5Object, hdf5File
+    use :: IO_HDF5                 , only : hdf5File
     use :: String_Handling         , only : operator(//), stringXMLFormat
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
@@ -670,7 +670,7 @@ contains
              hdf5ErrorScope: block
                type(hdf5File  ) :: errorFile
                errorFileName=self%fileName//".error."//GetPID()
-               errorFile=hdf5Object(char(errorFileName),overWrite=.true.,objectsOverwritable=.true.)
+               errorFile=hdf5File(char(errorFileName),overWrite=.true.,objectsOverwritable=.true.)
                call errorFile%writeAttribute(mass                           ,'mass'                           )
                call errorFile%writeAttribute(rootVariance                   ,'rootVariance'                   )
                call errorFile%writeAttribute(rootVarianceGradient           ,'rootVarianceGradient'           )
@@ -1426,7 +1426,7 @@ contains
     use :: Display       , only : displayMessage           , verbosityLevelWorking
     use :: File_Utilities, only : File_Exists
     use :: HDF5_Access   , only : hdf5Access
-    use :: IO_HDF5       , only : hdf5Object, hdf5File
+    use :: IO_HDF5       , only : hdf5File
     use :: Tables        , only : table1DLogarithmicCSpline, table1DLogarithmicMonotoneCSpline
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
@@ -1473,7 +1473,7 @@ contains
        !$ call hdf5Access%set()
        hdf5ReadScope: block
          type(hdf5File  ) :: dataFile
-         dataFile=hdf5Object(self%fileName,overWrite=.false.,readOnly=.true.)
+         dataFile=hdf5File(self%fileName,overWrite=.false.,readOnly=.true.)
          call dataFile%readDataset  ('times'                      ,     timesTmp                                           )
          call dataFile%readDataset  ('mass'                       ,     massTmp                                            )
          call dataFile%readDataset  ('rootVariance'               ,     rootVarianceTmp                                    )
@@ -1548,7 +1548,7 @@ contains
     use :: Display    , only : displayMessage, verbosityLevelWorking
     use :: HDF5       , only : hsize_t
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object, hdf5File
+    use :: IO_HDF5    , only : hdf5File
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , dimension(:  ), allocatable :: massTmp
@@ -1619,7 +1619,7 @@ contains
        !$ call hdf5Access%set()
        hdf5WriteScope: block
          type(hdf5File  ) :: dataFile
-         dataFile=hdf5Object(self%fileName,overWrite=.true.,objectsOverwritable=.true.,chunkSize=100_hsize_t,compressionLevel=9)
+         dataFile=hdf5File(self%fileName,overWrite=.true.,objectsOverwritable=.true.,chunkSize=100_hsize_t,compressionLevel=9)
          call dataFile%writeDataset  (self%times                      ,'times'                                                                                                 )
          call dataFile%writeDataset  (     massTmp                    ,'mass'                                                                                                  )
          call dataFile%writeDataset  (     rootVarianceTmp            ,'rootVariance'                                                                                          )

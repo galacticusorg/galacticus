@@ -1329,7 +1329,7 @@ contains
     use :: Display           , only : displayIndent       , displayMessage  , displayUnindent, verbosityLevelWorking
     use :: File_Utilities    , only : File_Exists         , File_Name_Expand
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object, hdf5File, hdf5Group
+    use :: IO_HDF5           , only : hdf5File, hdf5Group
     use :: ISO_Varying_String, only : operator(//)        , var_str         , varying_string
     use :: String_Handling   , only : operator(//)
     use :: Table_Labels      , only : extrapolationTypeFix
@@ -1352,7 +1352,7 @@ contains
     hdf5FileScope: block
       type(hdf5File ) :: dataFile
       type(hdf5Group) :: dataGroup
-      dataFile=hdf5Object(self%fileName,readOnly=.true.)
+      dataFile=hdf5File(self%fileName,readOnly=.true.)
       ! Check if the standard table is populated.
       if (dataFile%hasGroup('probability')) then
          ! Deallocate arrays if necessary.
@@ -1494,7 +1494,7 @@ contains
     Write tabulated data on excursion set first crossing probabilities to file.
     !!}
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object, hdf5File, hdf5Group
+    use :: IO_HDF5           , only : hdf5File, hdf5Group
     use :: Display           , only : displayIndent, displayMessage, displayUnindent, verbosityLevelWorking
     use :: HDF5              , only : hsize_t
     use :: ISO_Varying_String, only : operator(//) , var_str       , varying_string
@@ -1513,7 +1513,7 @@ contains
     hdf5FileScope: block
       type(hdf5File ) :: dataFile
       type(hdf5Group) :: dataGroup
-      dataFile=hdf5Object(self%fileName,overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
+      dataFile=hdf5File(self%fileName,overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
       ! Check if the standard table is populated.
       if (self%tableInitialized) then
          dataGroup=dataFile%openGroup("probability")

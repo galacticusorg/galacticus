@@ -323,7 +323,7 @@ contains
          &                                 displayMessage
     use :: Error                  , only : Error_Report
     use :: HDF5_Access            , only : hdf5Access
-    use :: IO_HDF5                , only : hdf5Object, hdf5File, hdf5Group
+    use :: IO_HDF5                , only : hdf5File, hdf5Group
     use :: Numerical_Comparison   , only : Values_Differ
     use :: Numerical_Interpolation, only : GSL_Interp_cSpline
     use :: File_Utilities         , only : File_Name_Expand                , File_Lock                         , File_Unlock
@@ -369,7 +369,7 @@ contains
               &              extrapolationObject, wavenumberObject, &
               &              baryonsGroup
          type(hdf5File ) :: fileObject
-         fileObject=hdf5Object(fileName,readOnly=.true.)
+         fileObject=hdf5File(fileName,readOnly=.true.)
          ! Check that the file has the correct format version number.
          call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
          if (versionNumber /= fileFormatVersionCurrent) call Error_Report("file '"//char(File_Name_Expand(fileName))//"' has the incorrect version number"//{introspection:location})

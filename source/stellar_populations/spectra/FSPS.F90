@@ -124,7 +124,7 @@ contains
     use :: File_Utilities , only : File_Exists                 , File_Lock     , File_Unlock, lockDescriptor, &
          &                         File_Path                   , Directory_Make
     use :: HDF5_Access    , only : hdf5Access
-    use :: IO_HDF5        , only : hdf5Object, hdf5File
+    use :: IO_HDF5        , only : hdf5File
     use :: Interfaces_FSPS, only : Interface_FSPS_SSPs_Tabulate
     use :: Tables         , only : table1D
     implicit none
@@ -147,7 +147,7 @@ contains
              !$ call hdf5Access%set()
              block
                type(hdf5File  ) :: spectraFile
-               spectraFile=hdf5Object(self%fileName,readOnly=.true.)
+               spectraFile=hdf5File(self%fileName,readOnly=.true.)
                call spectraFile%readAttribute('fileFormat',fileFormatVersion)
                if (fileFormatVersion /= fileFormatVersionCurrent) remakeFile=.true.
              end block
