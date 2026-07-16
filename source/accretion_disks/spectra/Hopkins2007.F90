@@ -214,10 +214,10 @@ contains
        do i=1,luminosityBolometricCount
           call displayCounter(int(100.0*dble(i-1)/dble(luminosityBolometricCount)),isNew=i==1,verbosity=verbosityLevelWorking)
           write (label,'(e12.6)') log10(luminosityBolometric(i))
-          escapedExecutable=inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x"
-          escapedExecutable=shellEscape(escapedExecutable)
-          escapedSEDFile=inputPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt"        
-          escapedSEDFile=shellEscape(escapedSEDFile)
+          escapedExecutable=inputPath  (pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x"
+          escapedExecutable=shellEscape(escapedExecutable  )
+          escapedSEDFile   =inputPath  (pathTypeDataDynamic)//"AGN_Spectrum/SED.txt"        
+          escapedSEDFile   =shellEscape(escapedSEDFile     )
           call System_Command_Do(escapedExecutable//" "//label//" > "//escapedSEDFile)
           wavelengthCount=Count_Lines_in_File(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt",";")-4
           if (allocated(wavelength)) then

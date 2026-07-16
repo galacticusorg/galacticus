@@ -256,10 +256,10 @@ contains
                 end if
                 ! Unpack the code.
                 call displayMessage("unpacking CosmicEmu code....",verbosityLevelWorking)
-                escapedZipFile=inputPath(pathTypeDataDynamic)//"CosmicEmu-master.zip"
-                escapedZipFile=shellEscape(escapedZipFile)
-                escapedDynamicPath=inputPath  (pathTypeDataDynamic                                   )
-                escapedDynamicPath=shellEscape(escapedDynamicPath                                    )
+                escapedZipFile    =inputPath  (pathTypeDataDynamic)//"CosmicEmu-master.zip"
+                escapedZipFile    =shellEscape(escapedZipFile     )
+                escapedDynamicPath=inputPath  (pathTypeDataDynamic)
+                escapedDynamicPath=shellEscape(escapedDynamicPath )
                 call System_Command_Do("unzip "//escapedZipFile//" -d "//escapedDynamicPath)
                 if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.c")) &
                      & call Error_Report("failed to unpack CosmicEmu code"//{introspection:location})
@@ -273,12 +273,12 @@ contains
                   & call Error_Report("failed to build Cosmic_Emu code"//{introspection:location})
           end if
           ! Generate the power spectrum.
-          escapedWorkDir      =File_Path  (parameterFile                                                                     )
-          escapedWorkDir      =shellEscape(escapedWorkDir                                                                    )
-          escapedExecutable=inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.exe"
-          escapedExecutable=shellEscape(escapedExecutable)
-          escapedParameterFile=shellEscape(parameterFile                                                                     )
-          escapedPowerSpectrum=shellEscape(powerSpectrumFile                                                                 )
+          escapedWorkDir      =File_Path  (parameterFile      )
+          escapedWorkDir      =shellEscape(escapedWorkDir     )
+          escapedExecutable   =inputPath  (pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.exe"
+          escapedExecutable   =shellEscape(escapedExecutable  )
+          escapedParameterFile=shellEscape(parameterFile      )
+          escapedPowerSpectrum=shellEscape(powerSpectrumFile  )
           call System_Command_Do("cd "//escapedWorkDir//"; "//escapedExecutable//" < "//escapedParameterFile//"; mv EMU0.txt "//escapedPowerSpectrum)
           ! Destroy the parameter file and temporary directory.
           call      File_Remove(          parameterFile )

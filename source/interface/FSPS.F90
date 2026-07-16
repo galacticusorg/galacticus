@@ -99,10 +99,10 @@ contains
              if (.not.File_Exists(tarPath) .or. status /= 0) call Error_Report("failed to download FSPS"//{introspection:location})
           end if
           call displayMessage("unpacking FSPS code....",verbosityLevelWorking)
-          escapedToolsPath=inputPath  (pathTypeTools)
+          escapedToolsPath=inputPath  (pathTypeTools   )
           escapedToolsPath=shellEscape(escapedToolsPath)
-          escapedTarFile  =inputPath  (pathTypeTools)//"FSPS_"//char(fspsVersion)//".tar.gz"
-          escapedTarFile  =shellEscape(escapedTarFile)
+          escapedTarFile  =inputPath  (pathTypeTools   )//"FSPS_"//char(fspsVersion)//".tar.gz"
+          escapedTarFile  =shellEscape(escapedTarFile  )
           command="tar -x -v -z -C "//escapedToolsPath//" -f "//escapedTarFile
           call System_Command_Do(command,status)
           if (status /= 0 .or. .not.File_Exists(fspsPath)) call Error_Report('failed to unpack FSPS code'//{introspection:location})

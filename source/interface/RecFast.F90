@@ -84,8 +84,8 @@ contains
              end block
           end if
           call displayMessage("patching RecFast code....",verbosityLevelWorking)
-          escapedRecfastPath=shellEscape(recfastPath                                                       )
-          escapedPatchSource=inputPath(pathTypeDataStatic)//"patches/RecFast/recfast.for.patch"
+          escapedRecfastPath=shellEscape(recfastPath       )
+          escapedPatchSource=inputPath  (pathTypeDataStatic)//"patches/RecFast/recfast.for.patch"
           escapedPatchSource=shellEscape(escapedPatchSource)
           command="cp "//escapedPatchSource//" "//escapedRecfastPath//"; cd "//escapedRecfastPath//"; patch < recfast.for.patch"
           call System_Command_Do(command,status)
