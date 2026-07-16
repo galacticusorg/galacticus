@@ -99,7 +99,7 @@ contains
              if (.not.File_Exists(tarPath) .or. status /= 0) call Error_Report("failed to download FSPS"//{introspection:location})
           end if
           call displayMessage("unpacking FSPS code....",verbosityLevelWorking)
-          escapedToolsPath=shellEscape(inputPath(pathTypeTools))
+          escapedToolsPath=shellEscape(inputPath(pathTypeTools)                                       )
           escapedTarFile  =shellEscape(inputPath(pathTypeTools)//"FSPS_"//char(fspsVersion)//".tar.gz")
           command="tar -x -v -z -C "//escapedToolsPath//" -f "//escapedTarFile
           call System_Command_Do(command,status)
@@ -236,9 +236,9 @@ contains
              write (outputFile,'(a)' ) "no"                 ! Do not include dust.
              write (outputFile,'(a)' ) char(outputFileName) ! Specify filename.
              close(outputFile)
-             escapedFspsPath  =shellEscape(fspsPath                  )
+             escapedFspsPath  =shellEscape(fspsPath                    )
              escapedExecutable=shellEscape(fspsPath//"/src/autosps.exe")
-             escapedInputFile =shellEscape(fspsInputFileName         )
+             escapedInputFile =shellEscape(fspsInputFileName           )
              call System_Command_Do("export SPS_HOME="//escapedFspsPath//"; "//escapedExecutable//" < "//escapedInputFile)
              call File_Remove(fspsInputFileName)
           end if

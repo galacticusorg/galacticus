@@ -112,7 +112,7 @@ contains
              if (status /= 0 .or. .not.File_Exists(tarBall)) call Error_Report("unable to download CAMB"//{introspection:location})
           end if
           call displayMessage("unpacking CAMB code....",verbosityLevelWorking)
-          escapedToolsPath=shellEscape(inputPath(pathTypeTools))
+          escapedToolsPath=shellEscape(inputPath(pathTypeTools)                                 )
           escapedTarFile  =shellEscape(inputPath(pathTypeTools)//"CAMB_"//cambVersion//".tar.gz")
           command="tar -x -v -z -C "//escapedToolsPath//" -f "//escapedTarFile
           call System_Command_Do(command,status);
@@ -126,7 +126,7 @@ contains
                 if (status /= 0 .or. .not.File_Exists(tarBallForUtils)) call Error_Report("unable to download forutils"//{introspection:location})
              end if
              call displayMessage("unpacking forutils code....",verbosityLevelWorking)
-             escapedForUtilsDir=shellEscape(cambPath//"../forutils")
+             escapedForUtilsDir=shellEscape(cambPath//"../forutils"                             )
              escapedForUtilsTar=shellEscape(cambPath//"../forutils_"//forutilsVersion//".tar.gz")
              command="tar -x -v -z -C "//escapedForUtilsDir//" -f "//escapedForUtilsTar//" --strip-components 1"
              call System_Command_Do(command);

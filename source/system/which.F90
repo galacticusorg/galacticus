@@ -67,7 +67,7 @@ contains
     type     (varying_string)                          :: tempFile    , escapedTempFile
 
     if (present(status)) status=errorStatusSuccess
-    tempFile=File_Name_Temporary("which")
+    tempFile       =File_Name_Temporary("which")
     escapedTempFile=shellEscape(tempFile)
     call System_Command_Do('which '//trim(command)//' > '//char(escapedTempFile),status_)
     if (status_ == 0) then

@@ -270,10 +270,10 @@ contains
                   & call Error_Report("failed to build Cosmic_Emu code"//{introspection:location})
           end if
           ! Generate the power spectrum.
-          escapedWorkDir      =shellEscape(File_Path(parameterFile))
+          escapedWorkDir      =shellEscape(File_Path(parameterFile)                                                          )
           escapedExecutable   =shellEscape(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.exe")
-          escapedParameterFile=shellEscape(parameterFile)
-          escapedPowerSpectrum=shellEscape(powerSpectrumFile)
+          escapedParameterFile=shellEscape(parameterFile                                                                     )
+          escapedPowerSpectrum=shellEscape(powerSpectrumFile                                                                 )
           call System_Command_Do("cd "//escapedWorkDir//"; "//escapedExecutable//" < "//escapedParameterFile//"; mv EMU0.txt "//escapedPowerSpectrum)
           ! Destroy the parameter file and temporary directory.
           call      File_Remove(          parameterFile )
