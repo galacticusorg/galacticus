@@ -28,7 +28,7 @@ module IO_HDF5
   !!{RST
   Implements simple and convenient interfaces to a variety of HDF5 functionality.
   !!}
-  use            :: HDF5              , only : hid_t          , hsize_t, size_t
+  use            :: HDF5              , only : hid_t          , hsize_t, size_t , hdset_reg_ref_t_f
   use, intrinsic :: ISO_C_Binding     , only : c_char         , c_int  , c_ptr , c_size_t
   use            :: ISO_Varying_String, only : varying_string
   use            :: Kind_Numbers      , only : kind_int8
@@ -430,7 +430,24 @@ module IO_HDF5
      !!}
      type(hdf5VlenC), allocatable, dimension(:) :: row
   end type hdf5VlenVlenC
-  
+
+  type :: hdf5Reference
+     !!{RST
+     An internal helper that encapsulates an HDF5 region reference (an ``hdset_reg_ref_t_f`` value) together with the operations to
+     create it from a region of a dataset, write it to and read it from a reference dataset, and dereference it. This is not part of
+     the public HDF5 object hierarchy (it is not exported); it exists only to centralize the region-reference machinery that was
+     otherwise inlined in the ``createReference*`` and dataset-read procedures.
+     !!}
+     private
+     type(hdset_reg_ref_t_f) :: value_
+   contains
+     procedure :: create      => IO_HDF5_Reference_Create
+     procedure :: writeTo     => IO_HDF5_Reference_Write_To
+     procedure :: readFrom    => IO_HDF5_Reference_Read_From
+     procedure :: dereference => IO_HDF5_Reference_Dereference
+     procedure :: region      => IO_HDF5_Reference_Region
+  end type hdf5Reference
+
   ! Interfaces to a small number of HDF5 C API functions that are required due to the limited datatypes supported by the Fortran
   ! API: H5T_Variable_Get() returns the H5T_VARIABLE size constant (not exposed by the Fortran module); and
   ! H5TBread_fields_name() reads a long-integer table column (the Fortran high-level table API has no long-integer interface).
@@ -4363,11 +4380,10 @@ attributeValue=trim(attributeValue)
     Read a {Type¦typeName} array dataset of any rank from ``self`` (a dataset object), into a static array.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : {Type¦h5TypeImport}H5P_DEFAULT_F, H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_STD_REF_DSETREG , &
-         &                                       HID_T                           , HSIZE_T               , h5dclose_f                 , h5dget_space_f      , &
-         &                                       h5dread_f                       , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
-         &                                       h5screate_simple_f              , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
-         &                                       h5sselect_hyperslab_f           , hdset_reg_ref_t_f     , hsize_t                    , size_t
+    use :: HDF5 , only : {Type¦h5TypeImport}H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, HID_T , &
+         &                HSIZE_T, h5dclose_f, h5dget_space_f, h5dread_f , &
+         &                h5sclose_f, h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f , &
+         &                h5sselect_elements_f, h5sselect_hyperslab_f, hsize_t, size_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
@@ -4378,11 +4394,11 @@ attributeValue=trim(attributeValue)
     integer         (kind=HSIZE_T     ), allocatable, dimension(:  )                          :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                       referenceEnd      , referenceStart
     integer         (kind=HSIZE_T     ), allocatable, dimension(:,:)                          :: readSelectionMap
-    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "reference" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
     ! deallocated. This is not an elegant solution, but it works.
-    type            (hdset_reg_ref_t_f), save                                       , target  :: referencedRegion
+    type   (hdf5Reference), save, target :: reference
     integer                                                                                   :: errorCode         , dimensionIndex
     integer         (kind=HSIZE_T     )                                                       :: pointIndex        , pointLeadingCount       , &
          &                                                                                       pointLeadingIndex , pointRemainder
@@ -4447,29 +4463,13 @@ attributeValue=trim(attributeValue)
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
-       ! It is, so read the reference.
-       dataBuffer=c_loc(referencedRegion)
-       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
-       if (errorCode /= 0) then
-          message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Now dereference the pointer.
-       call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
-       if (errorCode < 0) then
-          message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Store the ID of this dataset so that we can replace it later.
-       storedDatasetID=datasetObject%objectID
-       ! The dataset object ID is now replaced with the referenced region ID.
+       ! Read the region reference and dereference it. Store this dataset's identifier so it can be restored later, and replace it
+       ! with the identifier of the dereferenced region.
+       call reference%readFrom   (datasetObject%objectID                     )
+       call reference%dereference(datasetObject%objectID,dereferencedObjectID)
+       storedDatasetID       =datasetObject%objectID
        datasetObject%objectID=dereferencedObjectID
-       ! Get the dataspace for this referenced region.
-       call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
-       if (errorCode /= 0) then
-          message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
+       call reference%region     (dereferencedObjectID  ,datasetDataspaceID  )
     else
        ! Mark as not reference.
        isReference=.false.
@@ -4769,11 +4769,10 @@ attributeValue=trim(attributeValue)
     Read a {Type¦typeName} array dataset of any rank from ``self`` (a dataset object), into an allocatable array.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : {Type¦h5TypeImport}H5P_DEFAULT_F, H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_STD_REF_DSETREG , &
-         &                                       HID_T                           , HSIZE_T               , h5dclose_f                 , h5dget_space_f      , &
-         &                                       h5dread_f                       , h5rdereference_f      , h5rget_region_f            , h5sclose_f          , &
-         &                                       h5screate_simple_f              , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_elements_f, &
-         &                                       h5sselect_hyperslab_f           , hdset_reg_ref_t_f     , hsize_t                    , size_t
+    use :: HDF5 , only : {Type¦h5TypeImport}H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, HID_T , &
+         &                HSIZE_T, h5dclose_f, h5dget_space_f, h5dread_f , &
+         &                h5sclose_f, h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f , &
+         &                h5sselect_elements_f, h5sselect_hyperslab_f, hsize_t, size_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
@@ -4784,11 +4783,11 @@ attributeValue=trim(attributeValue)
     integer         (kind=HSIZE_T     ), allocatable, dimension(:  )                          :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                       referenceEnd      , referenceStart
     integer         (kind=HSIZE_T     ), allocatable, dimension(:,:)                          :: readSelectionMap
-    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "reference" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
     ! deallocated. This is not an elegant solution, but it works.
-    type            (hdset_reg_ref_t_f), save                                      , target   :: referencedRegion
+    type   (hdf5Reference), save, target :: reference
     integer                                                                                   :: errorCode         , dimensionIndex
     integer         (kind=HSIZE_T     )                                                       :: pointIndex        , pointLeadingCount       , &
          &                                                                                       pointLeadingIndex , pointRemainder
@@ -4853,29 +4852,13 @@ attributeValue=trim(attributeValue)
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
-       ! It is, so read the reference.
-       dataBuffer=c_loc(referencedRegion)
-       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
-       if (errorCode /= 0) then
-          message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Now dereference the pointer.
-       call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
-       if (errorCode < 0) then
-          message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Store the ID of this dataset so that we can replace it later.
-       storedDatasetID=datasetObject%objectID
-       ! The dataset object ID is now replaced with the referenced region ID.
+       ! Read the region reference and dereference it. Store this dataset's identifier so it can be restored later, and replace it
+       ! with the identifier of the dereferenced region.
+       call reference%readFrom   (datasetObject%objectID                     )
+       call reference%dereference(datasetObject%objectID,dereferencedObjectID)
+       storedDatasetID       =datasetObject%objectID
        datasetObject%objectID=dereferencedObjectID
-       ! Get the dataspace for this referenced region.
-       call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
-       if (errorCode /= 0) then
-          message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
+       call reference%region     (dereferencedObjectID  ,datasetDataspaceID  )
     else
        ! Mark as not reference.
        isReference=.false.
@@ -5470,11 +5453,10 @@ attributeValue=trim(attributeValue)
     Read a character 1-D array dataset from ``self`` (a dataset object), into a static array.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_STD_REF_DSETREG  , &
-          &                                      HID_T             , HSIZE_T               , h5dclose_f                 , h5dget_space_f       , &
-          &                                      h5dread_f         , h5rdereference_f      , h5rget_region_f            , h5sclose_f           , &
-          &                                      h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, &
-          &                                      hdset_reg_ref_t_f , hsize_t               , h5tclose_f
+    use :: HDF5 , only : H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, HID_T , &
+         &                HSIZE_T, h5dclose_f, h5dget_space_f, h5dread_f , &
+         &                h5sclose_f, h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f , &
+         &                h5sselect_hyperslab_f, hsize_t, h5tclose_f
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)          , trim
     implicit none
@@ -5483,11 +5465,11 @@ attributeValue=trim(attributeValue)
     integer  (kind=HSIZE_T     ), dimension(1), intent(in   ), optional :: readBegin              , readCount
     integer  (kind=HSIZE_T     ), dimension(1)                          :: datasetDimensions      , datasetMaximumDimensions, &
          &                                                                 referenceEnd           , referenceStart
-    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "reference" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
     ! deallocated. This is not an elegant solution, but it works.
-    type     (hdset_reg_ref_t_f), save        , target                  :: referencedRegion
+    type   (hdf5Reference), save, target :: reference
     integer                                                             :: errorCode
     integer  (kind=HID_T       )                                        :: dataTypeID          (6), datasetDataspaceID      , &
          &                                                                 dereferencedObjectID   , memorySpaceID           , &
@@ -5535,29 +5517,13 @@ attributeValue=trim(attributeValue)
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
-       ! It is, so read the reference.
-       dataBuffer=c_loc(referencedRegion)
-       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
-       if (errorCode /= 0) then
-          message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Now dereference the pointer.
-       call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
-       if (errorCode < 0) then
-          message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Store the ID of this dataset so that we can replace it later.
-       storedDatasetID=datasetObject%objectID
-       ! The dataset object ID is now replaced with the referenced region ID.
+       ! Read the region reference and dereference it. Store this dataset's identifier so it can be restored later, and replace it
+       ! with the identifier of the dereferenced region.
+       call reference%readFrom   (datasetObject%objectID                     )
+       call reference%dereference(datasetObject%objectID,dereferencedObjectID)
+       storedDatasetID       =datasetObject%objectID
        datasetObject%objectID=dereferencedObjectID
-       ! Get the dataspace for this referenced region.
-       call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
-       if (errorCode /= 0) then
-          message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
+       call reference%region     (dereferencedObjectID  ,datasetDataspaceID  )
    else
        ! Mark as not reference.
        isReference=.false.
@@ -5770,11 +5736,10 @@ attributeValue=trim(attributeValue)
     Read a character 1-D array dataset from ``self`` (a dataset object), into an allocatable array.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F     , H5S_ALL_F             , H5S_SELECT_SET_F           , H5T_STD_REF_DSETREG  , &
-          &                                      HID_T             , HSIZE_T               , h5dclose_f                 , h5dget_space_f       , &
-          &                                      h5dread_f         , h5rdereference_f      , h5rget_region_f            , h5sclose_f           , &
-          &                                      h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f, h5sselect_hyperslab_f, &
-          &                                      h5tclose_f        , hdset_reg_ref_t_f     , hsize_t
+    use :: HDF5 , only : H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, HID_T , &
+         &                HSIZE_T, h5dclose_f, h5dget_space_f, h5dread_f , &
+         &                h5sclose_f, h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f , &
+         &                h5sselect_hyperslab_f, h5tclose_f, hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_loc
     use            :: ISO_Varying_String, only : assignment(=)     , operator(//)          , trim
     implicit none
@@ -5783,11 +5748,11 @@ attributeValue=trim(attributeValue)
     integer  (kind=HSIZE_T     )             , dimension(1), intent(in   ), optional :: readBegin              , readCount
     integer  (kind=HSIZE_T     )             , dimension(1)                          :: datasetDimensions      , datasetMaximumDimensions, &
          &                                                                              referenceEnd           , referenceStart
-    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "reference" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
     ! deallocated. This is not an elegant solution, but it works.
-    type     (hdset_reg_ref_t_f), save       , target                                :: referencedRegion
+    type   (hdf5Reference), save, target :: reference
     integer                                                                          :: errorCode
     integer  (kind=HID_T       )                                                     :: dataTypeID          (6), datasetDataspaceID      , &
          &                                                                              dereferencedObjectID   , memorySpaceID           , &
@@ -5835,29 +5800,13 @@ attributeValue=trim(attributeValue)
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
-       ! It is, so read the reference.
-       dataBuffer=c_loc(referencedRegion)
-       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
-       if (errorCode /= 0) then
-          message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Now dereference the pointer.
-       call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
-       if (errorCode < 0) then
-          message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Store the ID of this dataset so that we can replace it later.
-       storedDatasetID=datasetObject%objectID
-       ! The dataset object ID is now replaced with the referenced region ID.
+       ! Read the region reference and dereference it. Store this dataset's identifier so it can be restored later, and replace it
+       ! with the identifier of the dereferenced region.
+       call reference%readFrom   (datasetObject%objectID                     )
+       call reference%dereference(datasetObject%objectID,dereferencedObjectID)
+       storedDatasetID       =datasetObject%objectID
        datasetObject%objectID=dereferencedObjectID
-       ! Get the dataspace for this referenced region.
-       call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
-       if (errorCode /= 0) then
-          message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
+       call reference%region     (dereferencedObjectID  ,datasetDataspaceID  )
    else
        ! Mark as not reference.
        isReference=.false.
@@ -6322,11 +6271,10 @@ attributeValue=trim(attributeValue)
     Read a {VlenType¦typeName} 1-D array dataset from ``self`` (a dataset object), into an allocatable array.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , size_t                     , &
-          &                                      H5T_STD_REF_DSETREG , HID_T                , HSIZE_T               , h5dclose_f                 , &
-          &                                      h5dget_space_f      , h5dread_f            , h5rdereference_f      , h5rget_region_f            , &
-          &                                      h5sclose_f          , h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                                      h5sselect_elements_f, h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t
+    use :: HDF5 , only : H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, size_t , &
+         &                HID_T, HSIZE_T, h5dclose_f, h5dget_space_f , &
+         &                h5dread_f, h5sclose_f, h5screate_simple_f, h5sget_select_bounds_f , &
+         &                h5sget_simple_extent_dims_f, h5sselect_elements_f, h5sselect_hyperslab_f, hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_f_pointer         , c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//)         , trim
     implicit none
@@ -6337,11 +6285,11 @@ attributeValue=trim(attributeValue)
     integer         (kind=HSIZE_T        )             , dimension(1  )                          :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                          referenceEnd      , referenceStart
     integer         (kind=HSIZE_T        ), allocatable, dimension(:,:)                          :: readSelectionMap
-    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "reference" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
     ! deallocated. This is not an elegant solution, but it works.
-    type            (hdset_reg_ref_t_f   ), save       , target                                  :: referencedRegion
+    type   (hdf5Reference), save, target :: reference
     integer                                                                                      :: errorCode
     integer         (kind=HSIZE_T        )                                                       :: i
     integer         (kind=HID_T          )                                                       :: datasetDataspaceID, dereferencedObjectID    , &
@@ -6392,29 +6340,13 @@ attributeValue=trim(attributeValue)
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
-       ! It is, so read the reference.
-       dataBuffer=c_loc(referencedRegion)
-       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
-       if (errorCode /= 0) then
-          message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Now dereference the pointer.
-       call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
-       if (errorCode < 0) then
-          message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Store the ID of this dataset so that we can replace it later.
-       storedDatasetID=datasetObject%objectID
-       ! The dataset object ID is now replaced with the referenced region ID.
+       ! Read the region reference and dereference it. Store this dataset's identifier so it can be restored later, and replace it
+       ! with the identifier of the dereferenced region.
+       call reference%readFrom   (datasetObject%objectID                     )
+       call reference%dereference(datasetObject%objectID,dereferencedObjectID)
+       storedDatasetID       =datasetObject%objectID
        datasetObject%objectID=dereferencedObjectID
-       ! Get the dataspace for this referenced region.
-       call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
-       if (errorCode /= 0) then
-          message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
+       call reference%region     (dereferencedObjectID  ,datasetDataspaceID  )
     else
        ! Mark as not reference.
        isReference=.false.
@@ -6698,11 +6630,10 @@ attributeValue=trim(attributeValue)
     Read a varying-length :math:`\times` varying-length 1D double dataset from ``self`` (a dataset object), into an allocatable array.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , size_t                     , &
-          &                                      H5T_STD_REF_DSETREG , HID_T                , HSIZE_T               , h5dclose_f                 , &
-          &                                      h5dget_space_f      , h5dread_f            , h5rdereference_f      , h5rget_region_f            , &
-          &                                      h5sclose_f          , h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                                      h5sselect_elements_f, h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t
+    use :: HDF5 , only : H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, size_t , &
+         &                HID_T, HSIZE_T, h5dclose_f, h5dget_space_f , &
+         &                h5dread_f, h5sclose_f, h5screate_simple_f, h5sget_select_bounds_f , &
+         &                h5sget_simple_extent_dims_f, h5sselect_elements_f, h5sselect_hyperslab_f, hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_f_pointer         , c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//)         , trim
     implicit none
@@ -6713,11 +6644,11 @@ attributeValue=trim(attributeValue)
     integer         (kind=HSIZE_T     )             , dimension(1  )                          :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                       referenceEnd      , referenceStart
     integer         (kind=HSIZE_T     ), allocatable, dimension(:,:)                          :: readSelectionMap
-    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "reference" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
     ! deallocated. This is not an elegant solution, but it works.
-    type            (hdset_reg_ref_t_f), save       , target                                  :: referencedRegion
+    type   (hdf5Reference), save, target :: reference
     integer                                                                                   :: errorCode
     integer         (kind=HSIZE_T     )                                                       :: i                 , j
     integer         (kind=HID_T       )                                                       :: datasetDataspaceID, dereferencedObjectID    , &
@@ -6771,29 +6702,13 @@ attributeValue=trim(attributeValue)
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
-       ! It is, so read the reference.
-       dataBuffer=c_loc(referencedRegion)
-       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
-       if (errorCode /= 0) then
-          message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Now dereference the pointer.
-       call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
-       if (errorCode < 0) then
-          message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Store the ID of this dataset so that we can replace it later.
-       storedDatasetID=datasetObject%objectID
-       ! The dataset object ID is now replaced with the referenced region ID.
+       ! Read the region reference and dereference it. Store this dataset's identifier so it can be restored later, and replace it
+       ! with the identifier of the dereferenced region.
+       call reference%readFrom   (datasetObject%objectID                     )
+       call reference%dereference(datasetObject%objectID,dereferencedObjectID)
+       storedDatasetID       =datasetObject%objectID
        datasetObject%objectID=dereferencedObjectID
-       ! Get the dataspace for this referenced region.
-       call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
-       if (errorCode /= 0) then
-          message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
+       call reference%region     (dereferencedObjectID  ,datasetDataspaceID  )
     else
        ! Mark as not reference.
        isReference=.false.
@@ -7074,11 +6989,10 @@ attributeValue=trim(attributeValue)
     Read a varying-length 2D double dataset from ``self`` (a dataset object), into an allocatable array.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F       , H5S_ALL_F            , H5S_SELECT_SET_F      , size_t                     , &
-          &                                      H5T_STD_REF_DSETREG , HID_T                , HSIZE_T               , h5dclose_f                 , &
-          &                                      h5dget_space_f      , h5dread_f            , h5rdereference_f      , h5rget_region_f            , &
-          &                                      h5sclose_f          , h5screate_simple_f   , h5sget_select_bounds_f, h5sget_simple_extent_dims_f, &
-          &                                      h5sselect_elements_f, h5sselect_hyperslab_f, hdset_reg_ref_t_f     , hsize_t
+    use :: HDF5 , only : H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, size_t , &
+         &                HID_T, HSIZE_T, h5dclose_f, h5dget_space_f , &
+         &                h5dread_f, h5sclose_f, h5screate_simple_f, h5sget_select_bounds_f , &
+         &                h5sget_simple_extent_dims_f, h5sselect_elements_f, h5sselect_hyperslab_f, hsize_t
     use, intrinsic :: ISO_C_Binding     , only : c_f_pointer         , c_loc
     use            :: ISO_Varying_String, only : assignment(=)       , operator(//)         , trim
     implicit none
@@ -7089,11 +7003,11 @@ attributeValue=trim(attributeValue)
     integer         (kind=HSIZE_T     )             , dimension(2  )                          :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                       referenceEnd      , referenceStart
     integer         (kind=HSIZE_T     ), allocatable, dimension(:,:)                          :: readSelectionMap
-    ! <HDF5> Why is "referencedRegion" saved? Because if it is not then it gets dynamically allocated on the stack, which results
+    ! <HDF5> Why is "reference" saved? Because if it is not then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
     ! deallocated. This is not an elegant solution, but it works.
-    type            (hdset_reg_ref_t_f), save       , target                                  :: referencedRegion
+    type   (hdf5Reference), save, target :: reference
     integer                                                                                   :: errorCode
     integer         (kind=HSIZE_T     )                                                       :: i                 , j
     integer         (kind=HID_T       )                                                       :: datasetDataspaceID, dereferencedObjectID, &
@@ -7144,29 +7058,13 @@ attributeValue=trim(attributeValue)
     if (datasetObject%isReference()) then
        ! Mark as a reference.
        isReference=.true.
-       ! It is, so read the reference.
-       dataBuffer=c_loc(referencedRegion)
-       call h5dread_f(datasetObject%objectID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
-       if (errorCode /= 0) then
-          message="unable to read reference in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Now dereference the pointer.
-       call h5rdereference_f(datasetObject%objectID,referencedRegion,dereferencedObjectID,errorCode)
-       if (errorCode < 0) then
-          message="unable to dereference pointer in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
-       ! Store the ID of this dataset so that we can replace it later.
-       storedDatasetID=datasetObject%objectID
-       ! The dataset object ID is now replaced with the referenced region ID.
+       ! Read the region reference and dereference it. Store this dataset's identifier so it can be restored later, and replace it
+       ! with the identifier of the dereferenced region.
+       call reference%readFrom   (datasetObject%objectID                     )
+       call reference%dereference(datasetObject%objectID,dereferencedObjectID)
+       storedDatasetID       =datasetObject%objectID
        datasetObject%objectID=dereferencedObjectID
-       ! Get the dataspace for this referenced region.
-       call h5rget_region_f(dereferencedObjectID,referencedRegion,datasetDataspaceID,errorCode)
-       if (errorCode /= 0) then
-          message="unable to get dataspace of referenced region in dataset '"//datasetObject%objectName//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
+       call reference%region     (dereferencedObjectID  ,datasetDataspaceID  )
     else
        ! Mark as not reference.
        isReference=.false.
@@ -8303,16 +8201,106 @@ attributeValue=trim(attributeValue)
 
   !! Reference routines.
 
+  subroutine IO_HDF5_Reference_Create(self,locationID,objectName,dataspaceID)
+    !!{RST
+    Create a region reference into ``self`` pointing at the region of the object named ``objectName`` (relative to ``locationID``)
+    that is selected in the dataspace ``dataspaceID``.
+    !!}
+    use :: Error, only : Error_Report
+    use :: HDF5 , only : HID_T, h5rcreate_f
+    implicit none
+    class    (hdf5Reference), intent(inout) :: self
+    integer  (kind=HID_T   ), intent(in   ) :: locationID , dataspaceID
+    character(len=*        ), intent(in   ) :: objectName
+    integer                                 :: errorCode
+
+    call h5rcreate_f(locationID,objectName,dataspaceID,self%value_,errorCode)
+    if (errorCode /= 0) call Error_Report("unable to create region reference to '"//objectName//"'"//{introspection:location})
+    return
+  end subroutine IO_HDF5_Reference_Create
+
+  subroutine IO_HDF5_Reference_Write_To(self,datasetID)
+    !!{RST
+    Write the region reference held in ``self`` to the scalar reference dataset ``datasetID``.
+    !!}
+    use            :: Error         , only : Error_Report
+    use            :: HDF5          , only : H5P_DEFAULT_F, H5S_ALL_F, H5T_STD_REF_DSETREG, HID_T, h5dwrite_f
+    use, intrinsic :: ISO_C_Binding , only : c_loc
+    implicit none
+    class  (hdf5Reference), intent(inout), target :: self
+    integer(kind=HID_T   ), intent(in   )         :: datasetID
+    integer                                       :: errorCode
+    type   (c_ptr        )                        :: dataBuffer
+
+    dataBuffer=c_loc(self%value_)
+    call h5dwrite_f(datasetID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
+    if (errorCode /= 0) call Error_Report('unable to write region reference'//{introspection:location})
+    return
+  end subroutine IO_HDF5_Reference_Write_To
+
+  subroutine IO_HDF5_Reference_Read_From(self,datasetID)
+    !!{RST
+    Read a region reference into ``self`` from the scalar reference dataset ``datasetID``.
+    !!}
+    use            :: Error         , only : Error_Report
+    use            :: HDF5          , only : H5P_DEFAULT_F, H5S_ALL_F, H5T_STD_REF_DSETREG, HID_T, h5dread_f
+    use, intrinsic :: ISO_C_Binding , only : c_loc
+    implicit none
+    class  (hdf5Reference), intent(inout), target :: self
+    integer(kind=HID_T   ), intent(in   )         :: datasetID
+    integer                                       :: errorCode
+    type   (c_ptr        )                        :: dataBuffer
+
+    dataBuffer=c_loc(self%value_)
+    call h5dread_f(datasetID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
+    if (errorCode /= 0) call Error_Report('unable to read region reference'//{introspection:location})
+    return
+  end subroutine IO_HDF5_Reference_Read_From
+
+  subroutine IO_HDF5_Reference_Dereference(self,datasetID,dereferencedObjectID)
+    !!{RST
+    Dereference the region reference held in ``self`` (which was read from the dataset ``datasetID``), returning the identifier of
+    the dereferenced object in ``dereferencedObjectID``.
+    !!}
+    use :: Error, only : Error_Report
+    use :: HDF5 , only : HID_T, h5rdereference_f
+    implicit none
+    class  (hdf5Reference), intent(in   ) :: self
+    integer(kind=HID_T   ), intent(in   ) :: datasetID
+    integer(kind=HID_T   ), intent(  out) :: dereferencedObjectID
+    integer                               :: errorCode
+
+    call h5rdereference_f(datasetID,self%value_,dereferencedObjectID,errorCode)
+    if (errorCode < 0) call Error_Report('unable to dereference region reference'//{introspection:location})
+    return
+  end subroutine IO_HDF5_Reference_Dereference
+
+  subroutine IO_HDF5_Reference_Region(self,dereferencedObjectID,dataspaceID)
+    !!{RST
+    Return, in ``dataspaceID``, the dataspace describing the region selected by the reference held in ``self`` within the
+    dereferenced object ``dereferencedObjectID``.
+    !!}
+    use :: Error, only : Error_Report
+    use :: HDF5 , only : HID_T, h5rget_region_f
+    implicit none
+    class  (hdf5Reference), intent(in   ) :: self
+    integer(kind=HID_T   ), intent(in   ) :: dereferencedObjectID
+    integer(kind=HID_T   ), intent(  out) :: dataspaceID
+    integer                               :: errorCode
+
+    call h5rget_region_f(dereferencedObjectID,self%value_,dataspaceID,errorCode)
+    if (errorCode /= 0) call Error_Report('unable to get dataspace of referenced region'//{introspection:location})
+    return
+  end subroutine IO_HDF5_Reference_Region
+
   subroutine IO_HDF5_Create_Reference_Scalar_To_1D(fromGroup,toDataset,referenceName,referenceStart,referenceCount)
     !!{RST
     Create a scalar reference to the 1-D ``toDataset`` in the HDF5 group ``fromGroup``.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
-          &                                      HID_T                , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
-          &                                      h5dget_space_f       , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f, h5dwrite_f
-    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: HDF5              , only : H5S_SELECT_SET_F     , H5T_STD_REF_DSETREG, HID_T          , HSIZE_T           , &
+          &                                      h5dclose_f           , h5dcreate_f        , h5dget_space_f , h5sclose_f        , &
+          &                                      h5screate_simple_f   , h5sselect_hyperslab_f
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
     class    (hdf5Group        )              , intent(inout)         :: fromGroup
@@ -8320,11 +8308,10 @@ attributeValue=trim(attributeValue)
     character(len=*            )              , intent(in   )         :: referenceName
     integer  (kind=HSIZE_T     ), dimension(1), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(1)                        :: datasetDimensions, hyperslabCount, hyperslabStart
-    type     (hdset_reg_ref_t_f)                             , target :: dataReference
+    type     (hdf5Reference    )                             , target :: reference
     integer                                                           :: errorCode        , datasetRank
     integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
     type     (varying_string   )                                      :: message
-    type     (c_ptr            )                                      :: dataBuffer
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -8373,20 +8360,9 @@ attributeValue=trim(attributeValue)
        call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
-    ! Create the reference.
-    call h5rcreate_f(toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID,dataReference,errorCode)
-    if (errorCode /= 0) then
-       message="unable to create reference '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Write the reference dataset.
-    dataBuffer=c_loc(dataReference)
-    call h5dwrite_f(dataSetID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
-    if (errorCode /= 0) then
-       message="unable to write reference '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
+    ! Create the region reference to the selected region of the target dataset, and write it to the reference dataset.
+    call reference%create (toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID)
+    call reference%writeTo(dataSetID                                                                   )
 
     ! Close the dataset dataspace.
     call h5sclose_f(dataSpaceID,errorCode)
@@ -8417,11 +8393,9 @@ attributeValue=trim(attributeValue)
     Create a scalar reference to the 2-D ``toDataset`` in the HDF5 group ``fromGroup``.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
-          &                                      HID_T                , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
-          &                                      h5dget_space_f       , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f, h5dwrite_f
-    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: HDF5              , only : H5S_SELECT_SET_F     , H5T_STD_REF_DSETREG, HID_T          , HSIZE_T           , &
+          &                                      h5dclose_f           , h5dcreate_f        , h5dget_space_f , h5sclose_f        , &
+          &                                      h5screate_simple_f   , h5sselect_hyperslab_f
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
     class    (hdf5Group        )              , intent(inout)         :: fromGroup
@@ -8429,11 +8403,10 @@ attributeValue=trim(attributeValue)
     character(len=*            )              , intent(in   )         :: referenceName
     integer  (kind=HSIZE_T     ), dimension(2), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(2)                        :: datasetDimensions, hyperslabCount, hyperslabStart
-    type     (hdset_reg_ref_t_f)                             , target :: dataReference
+    type     (hdf5Reference    )                             , target :: reference
     integer                                                           :: errorCode        , datasetRank
     integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
     type     (varying_string   )                                      :: message
-    type     (c_ptr            )                                      :: dataBuffer
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -8482,20 +8455,9 @@ attributeValue=trim(attributeValue)
        call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
-    ! Create the reference.
-    call h5rcreate_f(toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID,dataReference,errorCode)
-    if (errorCode /= 0) then
-       message="unable to create reference '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Write the reference dataset.
-    dataBuffer=c_loc(dataReference)
-    call h5dwrite_f(dataSetID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
-    if (errorCode /= 0) then
-       message="unable to write reference '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
+    ! Create the region reference to the selected region of the target dataset, and write it to the reference dataset.
+    call reference%create (toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID)
+    call reference%writeTo(dataSetID                                                                   )
 
     ! Close the dataset dataspace.
     call h5sclose_f(dataSpaceID,errorCode)
@@ -8526,11 +8488,9 @@ attributeValue=trim(attributeValue)
     Create a scalar reference to the 3-D ``toDataset`` in the HDF5 group ``fromGroup``.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
-          &                                      HID_T                , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
-          &                                      h5dget_space_f       , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f, h5dwrite_f
-    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: HDF5              , only : H5S_SELECT_SET_F     , H5T_STD_REF_DSETREG, HID_T          , HSIZE_T           , &
+          &                                      h5dclose_f           , h5dcreate_f        , h5dget_space_f , h5sclose_f        , &
+          &                                      h5screate_simple_f   , h5sselect_hyperslab_f
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
     class    (hdf5Group        )              , intent(inout)         :: fromGroup
@@ -8538,11 +8498,10 @@ attributeValue=trim(attributeValue)
     character(len=*            )              , intent(in   )         :: referenceName
     integer  (kind=HSIZE_T     ), dimension(3), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(3)                        :: datasetDimensions, hyperslabCount, hyperslabStart
-    type     (hdset_reg_ref_t_f)                             , target :: dataReference
+    type     (hdf5Reference    )                             , target :: reference
     integer                                                           :: errorCode        , datasetRank
     integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
     type     (varying_string   )                                      :: message
-    type     (c_ptr            )                                      :: dataBuffer
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -8591,20 +8550,9 @@ attributeValue=trim(attributeValue)
        call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
-    ! Create the reference.
-    call h5rcreate_f(toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID,dataReference,errorCode)
-    if (errorCode /= 0) then
-       message="unable to create reference '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Write the reference dataset.
-    dataBuffer=c_loc(dataReference)
-    call h5dwrite_f(dataSetID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
-    if (errorCode /= 0) then
-       message="unable to write reference '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
+    ! Create the region reference to the selected region of the target dataset, and write it to the reference dataset.
+    call reference%create (toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID)
+    call reference%writeTo(dataSetID                                                                   )
 
     ! Close the dataset dataspace.
     call h5sclose_f(dataSpaceID,errorCode)
@@ -8635,11 +8583,9 @@ attributeValue=trim(attributeValue)
     Create a scalar reference to the 4-D ``toDataset`` in the HDF5 group ``fromGroup``.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
-          &                                      HID_T                , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
-          &                                      h5dget_space_f       , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f, h5dwrite_f
-    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: HDF5              , only : H5S_SELECT_SET_F     , H5T_STD_REF_DSETREG, HID_T          , HSIZE_T           , &
+          &                                      h5dclose_f           , h5dcreate_f        , h5dget_space_f , h5sclose_f        , &
+          &                                      h5screate_simple_f   , h5sselect_hyperslab_f
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
     class    (hdf5Group        )              , intent(inout)         :: fromGroup
@@ -8647,11 +8593,10 @@ attributeValue=trim(attributeValue)
     character(len=*            )              , intent(in   )         :: referenceName
     integer  (kind=HSIZE_T     ), dimension(4), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(4)                        :: datasetDimensions, hyperslabCount, hyperslabStart
-    type     (hdset_reg_ref_t_f)                             , target :: dataReference
+    type     (hdf5Reference    )                             , target :: reference
     integer                                                           :: errorCode        , datasetRank
     integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
     type     (varying_string   )                                      :: message
-    type     (c_ptr            )                                      :: dataBuffer
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -8700,20 +8645,9 @@ attributeValue=trim(attributeValue)
        call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
-    ! Create the reference.
-    call h5rcreate_f(toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID,dataReference,errorCode)
-    if (errorCode /= 0) then
-       message="unable to create reference '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Write the reference dataset.
-    dataBuffer=c_loc(dataReference)
-    call h5dwrite_f(dataSetID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
-    if (errorCode /= 0) then
-       message="unable to write reference '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
+    ! Create the region reference to the selected region of the target dataset, and write it to the reference dataset.
+    call reference%create (toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID)
+    call reference%writeTo(dataSetID                                                                   )
 
     ! Close the dataset dataspace.
     call h5sclose_f(dataSpaceID,errorCode)
@@ -8744,11 +8678,9 @@ attributeValue=trim(attributeValue)
     Create a scalar reference to the 5-D ``toDataset`` in the HDF5 group ``fromGroup``.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F        , H5S_ALL_F        , H5S_SELECT_SET_F, H5T_STD_REF_DSETREG, &
-          &                                      HID_T                , HSIZE_T          , h5dclose_f      , h5dcreate_f        , &
-          &                                      h5dget_space_f       , h5rcreate_f      , h5sclose_f      , h5screate_simple_f , &
-          &                                      h5sselect_hyperslab_f, hdset_reg_ref_t_f, h5dwrite_f
-    use, intrinsic :: ISO_C_Binding     , only : c_loc
+    use            :: HDF5              , only : H5S_SELECT_SET_F     , H5T_STD_REF_DSETREG, HID_T          , HSIZE_T           , &
+          &                                      h5dclose_f           , h5dcreate_f        , h5dget_space_f , h5sclose_f        , &
+          &                                      h5screate_simple_f   , h5sselect_hyperslab_f
     use            :: ISO_Varying_String, only : assignment(=)        , char             , operator(//)    , trim
     implicit none
     class    (hdf5Group        )              , intent(inout)         :: fromGroup
@@ -8756,11 +8688,10 @@ attributeValue=trim(attributeValue)
     character(len=*            )              , intent(in   )         :: referenceName
     integer  (kind=HSIZE_T     ), dimension(5), intent(in   )         :: referenceCount   , referenceStart
     integer  (kind=HSIZE_T     ), dimension(5)                        :: datasetDimensions, hyperslabCount, hyperslabStart
-    type     (hdset_reg_ref_t_f)                             , target :: dataReference
+    type     (hdf5Reference    )                             , target :: reference
     integer                                                           :: errorCode        , datasetRank
     integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID
     type     (varying_string   )                                      :: message
-    type     (c_ptr            )                                      :: dataBuffer
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -8809,20 +8740,9 @@ attributeValue=trim(attributeValue)
        call Error_Report(message//fromGroup%locationReport()//{introspection:location})
     end if
 
-    ! Create the reference.
-    call h5rcreate_f(toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID,dataReference,errorCode)
-    if (errorCode /= 0) then
-       message="unable to create reference '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
-
-    ! Write the reference dataset.
-    dataBuffer=c_loc(dataReference)
-    call h5dwrite_f(dataSetID,H5T_STD_REF_DSETREG,dataBuffer,errorCode,H5S_ALL_F,H5S_ALL_F,H5P_DEFAULT_F)
-    if (errorCode /= 0) then
-       message="unable to write reference '"//trim(referenceName)//"'"
-       call Error_Report(message//fromGroup%locationReport()//{introspection:location})
-    end if
+    ! Create the region reference to the selected region of the target dataset, and write it to the reference dataset.
+    call reference%create (toDataset%parentObject%objectID,char(toDataset%objectName),dataSubsetSpaceID)
+    call reference%writeTo(dataSetID                                                                   )
 
     ! Close the dataset dataspace.
     call h5sclose_f(dataSpaceID,errorCode)
