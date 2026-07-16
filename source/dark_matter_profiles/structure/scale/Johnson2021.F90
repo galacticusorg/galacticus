@@ -51,7 +51,7 @@
 
     .. math::
 
-       E_\mathrm{int} = E_{\mathrm{int}, 0} + \sum_{i=1}^N \left( E_{\mathrm{int}, i} +  E_{\mathrm{orb}, i,0} \right) (1 + \mu)^{-\alpha} (1+b \nu^\beta) w_i 10^{\sigma \mathcal{N}(0,1)},
+       E_\mathrm{int} = E_{\mathrm{int}, 0} + \sum_{i=1}^N \left( E_{\mathrm{int}, i} +  E_{\mathrm{orb}, i,0} \right) (1 + \mu)^{-\alpha} (1+b) \nu^\beta w_i 10^{\sigma \mathcal{N}(0,1)},
 
     where :math:`E_{\mathrm{int}, 0}` is the internal energy of the primary progenitor halo, :math:`E_{\mathrm{int}, i}` is the internal energy of the :math:`i^\mathrm{th}` non-primary progenitor halo, :math:`E_{\mathrm{orb}, i,0}` is the orbital energy of the :math:`i^\mathrm{th}` non-primary progenitor halo about the primary progenitor halo, :math:`\mu = M_i/M_0` is the mass ratio of the :math:`i^\mathrm{th}` non-primary progenitor and the primary progenitor ratio, :math:`\nu` is the peak height parameter for the primary progenitor halo, :math:`w_i` is the subsampling weight of the :math:`i^\mathrm{th}` non-primary progenitor, :math:`\mathcal{N}(0,1)` is a standard normal deviate, :math:`\alpha=`\ ``[massExponent]``, :math:`\beta=`\ ``[peakHeightExponent]``, :math:`b=`\ ``[energyBoost]``, and :math:`\sigma=`\ ``[scatterExcess]``.
 
@@ -91,7 +91,7 @@
 
     .. math::
 
-       E_\mathrm{unres} = u (E_\mathrm{orb} c_\mathrm{orb} f_\mathrm{orb} + E_\mathrm{int} c_\mathrm{int} f_\mathrm{int}) (1+b \nu^\beta),
+       E_\mathrm{unres} = u (E_\mathrm{orb} c_\mathrm{orb} f_\mathrm{orb} + E_\mathrm{int} c_\mathrm{int} f_\mathrm{int}) (1+b) \nu^\beta,
 
     where :math:`u =`\ ``[unresolvedEnergy]``.
 
@@ -799,7 +799,7 @@ contains
                &      *exp(                                                                        &
                &           +node%hostTree%randomNumberGenerator_%standardNormalSample()            &
                &           *sqrt(                                                                  &
-               &                 +(min(energyScatter/abs(energyMean),scatterFractionalMaximum**2)) &
+               &                 +(min(energyScatter/abs(energyMean),scatterFractionalMaximum))**2 &
                &                 *(2.0d0+massFunctionSlopeLogarithmic)                             &
                &                 /(3.0d0+massFunctionSlopeLogarithmic)                             &
                &                 +(self%scatterExcess*log(10.0d0))**2                              &
@@ -817,8 +817,9 @@ contains
           darkMatterProfile_  => darkMatterProfile
           radiusScaleOriginal =  darkMatterProfile%scale(                          )
           radiusScale         =  finder           %find (rootGuess=radiusScaleChild)
+          ! Restore the scale radius mutated by the root finder.
+          call darkMatterProfile%scaleSet(radiusScaleOriginal)
        end if
-       call darkMatterProfile%scaleSet(radiusScaleOriginal)
        call Calculations_Reset(node)
     end if
     return
