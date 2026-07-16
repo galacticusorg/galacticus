@@ -276,7 +276,8 @@ contains
     ! Generate the randoms file if necessary.
     if (.not.File_Exists(inputPath(pathTypeDataDynamic)//&
          & "surveys/UKIDSS_UDS/data/surveyGeometryRandoms.hdf5")) then
-       escapedScript=shellEscape(inputPath(pathTypeDataStatic)//"surveyGeometry/UKIDSS_UDS/surveyGeometryRandoms.py")
+       escapedScript=inputPath(pathTypeDataStatic)//"surveyGeometry/UKIDSS_UDS/surveyGeometryRandoms.py"
+       escapedScript=shellEscape(escapedScript)
        call System_Command_Do(escapedScript)
        if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"surveys/UKIDSS_UDS/surveyGeometryRandoms.hdf5")) call Error_Report('unable to create survey geometry randoms file'//{introspection:location})
     end if

@@ -85,7 +85,8 @@ contains
           end if
           call displayMessage("patching RecFast code....",verbosityLevelWorking)
           escapedRecfastPath=shellEscape(recfastPath                                                       )
-          escapedPatchSource=shellEscape(inputPath(pathTypeDataStatic)//"patches/RecFast/recfast.for.patch")
+          escapedPatchSource=inputPath(pathTypeDataStatic)//"patches/RecFast/recfast.for.patch"
+          escapedPatchSource=shellEscape(escapedPatchSource)
           command="cp "//escapedPatchSource//" "//escapedRecfastPath//"; cd "//escapedRecfastPath//"; patch < recfast.for.patch"
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch RecFast file 'recfast.for'"//{introspection:location})

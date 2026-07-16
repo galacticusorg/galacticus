@@ -103,7 +103,8 @@ contains
           call displayMessage("unpacking CLASS code....",verbosityLevelWorking)
           escapedToolsPath=inputPath(pathTypeTools)
           escapedToolsPath=shellEscape(escapedToolsPath)
-          escapedTarFile  =shellEscape(inputPath(pathTypeTools)//"class_public-"//char(classVersion)//".tar.gz")
+          escapedTarFile=inputPath(pathTypeTools)//"class_public-"//char(classVersion)//".tar.gz"
+          escapedTarFile=shellEscape(escapedTarFile)
           call System_Command_Do("tar -x -v -z -C "//escapedToolsPath//" -f "//escapedTarFile,status)
           if (status /= 0 .or. .not.File_Exists(classPath)) call Error_Report('failed to unpack CLASS code'//{introspection:location})
        end if

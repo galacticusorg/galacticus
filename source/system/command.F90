@@ -53,10 +53,13 @@ contains
     example inline within a ``System_Command_Do`` argument, or as an operand of a concatenation that is passed as an actual
     argument), as gfortran leaks the function result in that case.
 
-    For the same reason, the {\normalfont \ttfamily token} argument passed to ``shellEscape`` must not itself be a bare
-    function call that returns a {\normalfont \ttfamily varying\_string} (e.g. {\normalfont \ttfamily shellEscape(inputPath(...))}),
-    since gfortran leaks that nested function result. Assign such a result to a local variable first, then pass the variable:
-    {\normalfont \ttfamily localVar=inputPath(...)} followed by {\normalfont \ttfamily localVar=shellEscape(localVar)}.
+    For the same reason, the {\normalfont \ttfamily token} argument passed to ``shellEscape`` must not contain a call to a
+    function that returns a {\normalfont \ttfamily varying\_string} (such as {\normalfont \ttfamily inputPath}), whether as the
+    bare argument ({\normalfont \ttfamily shellEscape(inputPath(...))}) or nested within a concatenation
+    ({\normalfont \ttfamily shellEscape(inputPath(...)//"...")}), since gfortran leaks that nested function result. Assign the
+    argument to a local variable first, then escape the variable, e.g. {\normalfont \ttfamily localVar=inputPath(...)//"..."}
+    followed by {\normalfont \ttfamily localVar=shellEscape(localVar)}. Building the value in an assignment is safe; only a
+    {\normalfont \ttfamily varying\_string}-returning function call that appears inside another call's argument list leaks.
     !!}
     use :: ISO_Varying_String, only : varying_string, replace, operator(//)
     implicit none

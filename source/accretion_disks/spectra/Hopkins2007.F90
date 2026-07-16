@@ -202,7 +202,8 @@ contains
        ! Compile the AGN SED code.
        if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) then
           call compilerValidate(languageC,'AGN spectrum')
-          escapedBuildDir=shellEscape(inputPath(pathTypeDataStatic)//"aux/AGN_Spectrum")
+          escapedBuildDir=inputPath(pathTypeDataStatic)//"aux/AGN_Spectrum"
+          escapedBuildDir=shellEscape(escapedBuildDir)
           call System_Command_Do("cd "//char(escapedBuildDir)//"; gcc agn_spectrum.c -o agn_spectrum.x -lm");
           if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) call Error_Report('failed to compile agn_spectrum.c'//{introspection:location})
        end if
@@ -213,8 +214,10 @@ contains
        do i=1,luminosityBolometricCount
           call displayCounter(int(100.0*dble(i-1)/dble(luminosityBolometricCount)),isNew=i==1,verbosity=verbosityLevelWorking)
           write (label,'(e12.6)') log10(luminosityBolometric(i))
-          escapedExecutable=shellEscape(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")
-          escapedSEDFile   =shellEscape(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt"        )
+          escapedExecutable=inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x"
+          escapedExecutable=shellEscape(escapedExecutable)
+          escapedSEDFile=inputPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt"        
+          escapedSEDFile=shellEscape(escapedSEDFile)
           call System_Command_Do(escapedExecutable//" "//label//" > "//escapedSEDFile)
           wavelengthCount=Count_Lines_in_File(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt",";")-4
           if (allocated(wavelength)) then

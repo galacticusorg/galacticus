@@ -114,7 +114,8 @@ contains
           call displayMessage("unpacking CAMB code....",verbosityLevelWorking)
           escapedToolsPath=inputPath(pathTypeTools)
           escapedToolsPath=shellEscape(escapedToolsPath)
-          escapedTarFile  =shellEscape(inputPath(pathTypeTools)//"CAMB_"//cambVersion//".tar.gz")
+          escapedTarFile=inputPath(pathTypeTools)//"CAMB_"//cambVersion//".tar.gz"
+          escapedTarFile=shellEscape(escapedTarFile)
           command="tar -x -v -z -C "//escapedToolsPath//" -f "//escapedTarFile
           call System_Command_Do(command,status);
           if (status /= 0 .or. .not.File_Exists(cambPath)) call Error_Report('failed to unpack CAMB code'//{introspection:location})

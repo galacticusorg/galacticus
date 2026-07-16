@@ -99,9 +99,10 @@ contains
              if (.not.File_Exists(tarPath) .or. status /= 0) call Error_Report("failed to download FSPS"//{introspection:location})
           end if
           call displayMessage("unpacking FSPS code....",verbosityLevelWorking)
-          escapedToolsPath=inputPath(pathTypeTools)
+          escapedToolsPath=inputPath  (pathTypeTools)
           escapedToolsPath=shellEscape(escapedToolsPath)
-          escapedTarFile  =shellEscape(inputPath(pathTypeTools)//"FSPS_"//char(fspsVersion)//".tar.gz")
+          escapedTarFile  =inputPath  (pathTypeTools)//"FSPS_"//char(fspsVersion)//".tar.gz"
+          escapedTarFile  =shellEscape(escapedTarFile)
           command="tar -x -v -z -C "//escapedToolsPath//" -f "//escapedTarFile
           call System_Command_Do(command,status)
           if (status /= 0 .or. .not.File_Exists(fspsPath)) call Error_Report('failed to unpack FSPS code'//{introspection:location})
@@ -110,29 +111,35 @@ contains
        patchPath=fspsPath//"/src/patched.status"
        if (.not.File_Exists(patchPath)) then
           patch=which('patch')
-          escapedPatch      =shellEscape(patch            )
-          escapedSrcPath    =shellEscape(fspsPath//"/src/")
-          escapedPatchSource=shellEscape(inputPath(pathTypeDataStatic)//"patches/FSPS/galacticus_IMF.f90")
+          escapedPatch      =shellEscape(patch             )
+          escapedSrcPath    =shellEscape(fspsPath//"/src/" )
+          escapedPatchSource=inputPath  (pathTypeDataStatic)//"patches/FSPS/galacticus_IMF.f90"
+          escapedPatchSource=shellEscape(escapedPatchSource)
           command="cp "//escapedPatchSource//" "//escapedSrcPath
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to copy FSPS patch 'galacticus_IMF.f90'"//{introspection:location})
-          escapedPatchSource=shellEscape(inputPath(pathTypeDataStatic)//"patches/FSPS/imf.f90.patch")
+          escapedPatchSource=inputPath(pathTypeDataStatic)//"patches/FSPS/imf.f90.patch"
+          escapedPatchSource=shellEscape(escapedPatchSource)
           command="cp "//escapedPatchSource//" "//escapedSrcPath//"; cd "//escapedSrcPath//"; "//escapedPatch//" < imf.f90.patch"
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'imf.f90'"           //{introspection:location})
-          escapedPatchSource=shellEscape(inputPath(pathTypeDataStatic)//"patches/FSPS/ssp_gen.f90.patch")
+          escapedPatchSource=inputPath(pathTypeDataStatic)//"patches/FSPS/ssp_gen.f90.patch"
+          escapedPatchSource=shellEscape(escapedPatchSource)
           command="cp "//escapedPatchSource//" "//escapedSrcPath//"; cd "//escapedSrcPath//"; "//escapedPatch//" < ssp_gen.f90.patch"
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'ssp_gen.f90'"       //{introspection:location})
-          escapedPatchSource=shellEscape(inputPath(pathTypeDataStatic)//"patches/FSPS/sps_vars.f90.patch")
+          escapedPatchSource=inputPath(pathTypeDataStatic)//"patches/FSPS/sps_vars.f90.patch"
+          escapedPatchSource=shellEscape(escapedPatchSource)
           command="cp "//escapedPatchSource//" "//escapedSrcPath//"; cd "//escapedSrcPath//"; "//escapedPatch//" < sps_vars.f90.patch"
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'sps_vars.f90'"      //{introspection:location})
-          escapedPatchSource=shellEscape(inputPath(pathTypeDataStatic)//"patches/FSPS/autosps.f90.patch")
+          escapedPatchSource=inputPath(pathTypeDataStatic)//"patches/FSPS/autosps.f90.patch"
+          escapedPatchSource=shellEscape(escapedPatchSource)
           command="cp "//escapedPatchSource//" "//escapedSrcPath//"; cd "//escapedSrcPath//"; "//escapedPatch//" < autosps.f90.patch"
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'autosps.f90'"       //{introspection:location})
-          escapedPatchSource=shellEscape(inputPath(pathTypeDataStatic)//"patches/FSPS/Makefile.patch")
+          escapedPatchSource=inputPath(pathTypeDataStatic)//"patches/FSPS/Makefile.patch"
+          escapedPatchSource=shellEscape(escapedPatchSource)
           command="cp "//escapedPatchSource//" "//escapedSrcPath//"; cd "//escapedSrcPath//"; "//escapedPatch//" < Makefile.patch"
           call System_Command_Do(command,status)
           if (status /= 0) call Error_Report("failed to patch FSPS file 'Makefile'"          //{introspection:location})
