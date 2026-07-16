@@ -43,7 +43,7 @@
 
    .. math::
 
-      \tilde{P}(k) = \int \frac{1}{\sqrt{2 \pi} \sigma} \exp\left[-\frac{1}{2} \left(\frac{\log k - \log k^\prime}{\sigma}\right)^2\right] P(k^\prime) \mathrm{d}k^\prime,
+      \tilde{P}(k) = \int_0^\infty \frac{1}{\sqrt{2 \pi} \sigma} \exp\left[-\frac{1}{2} \left(\frac{\log k - \log k^\prime}{\sigma}\right)^2\right] P(k^\prime) \mathrm{d}k^\prime,
 
    with the :math:`\log k` terms using natural logarithms, and :math:`\sigma=` ``[powerSpectrumSmoothingWidth]``.
    </description>
