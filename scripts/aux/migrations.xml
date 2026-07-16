@@ -285,6 +285,9 @@
   <migration commit="3148b72923e0261deb472182fee74ccd1a9a7a13">
     <translation function="satellite_orbit_initializor"/>
   </migration>
+  <migration commit="f5362cac8f91d04771a5d9c4a705a0f9f6c6e8e7">
+    <translation function="vitvitska_subresolution_method"/>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />

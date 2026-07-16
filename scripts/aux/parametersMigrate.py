@@ -1310,6 +1310,24 @@ def _ensure_satellite_destruction_timestep(parameters, is_grid):
             parameters.insert(idx, multi_node)
 
 
+def vitvitska_subresolution_method(input_doc, parameters, is_grid):
+    """Special handling to preserve the sub-resolution angular momentum method across the default flip."""
+    nodes = parameters.xpath(".//nodeOperator[@value='haloAngularMomentumVitvitska2002']")
+    if len(nodes) <= 0:
+        return
+    print("   translate special './/nodeOperator[@value='haloAngularMomentumVitvitska2002']'")
+    for node in nodes:
+        # A model that stated its choice explicitly already means what it says - leave it alone.
+        if len(node.findall("useOriginalSubresolutionMethod[@value]")) > 0:
+            continue
+        # The default flipped from `true` to `false`, so an absent parameter used to mean `true`.
+        method_node = etree.Element("useOriginalSubresolutionMethod")
+        method_node.set("value", "true")
+        if is_grid:
+            method_node.set("iterable", "no")
+        node.append(method_node)
+
+
 # ---------------------------------------------------------------------------
 # Dispatch table for special migration functions
 # ---------------------------------------------------------------------------
@@ -1331,6 +1349,7 @@ SPECIAL_FUNCTIONS = {
     "satellite_bound_mass_initializor": satellite_bound_mass_initializor,
     "disk_very_simple_analytic_solver": disk_very_simple_analytic_solver,
     "satellite_orbit_initializor": satellite_orbit_initializor,
+    "vitvitska_subresolution_method": vitvitska_subresolution_method,
 }
 
 
