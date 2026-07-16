@@ -441,6 +441,15 @@ module IO_HDF5
      private
      type(hdset_reg_ref_t_f) :: value_
    contains
+     !![
+     <methods docformat="rst">
+       <method description="Create a region reference from a selected region of a dataset." method="create" />
+       <method description="Write this region reference to a scalar reference dataset." method="writeTo" />
+       <method description="Read this region reference from a scalar reference dataset." method="readFrom" />
+       <method description="Dereference this region reference, returning the identifier of the dereferenced object." method="dereference" />
+       <method description="Return the dataspace of the region selected by this region reference." method="region" />
+     </methods>
+     !!]
      procedure :: create      => IO_HDF5_Reference_Create
      procedure :: writeTo     => IO_HDF5_Reference_Write_To
      procedure :: readFrom    => IO_HDF5_Reference_Read_From
