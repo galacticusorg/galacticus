@@ -299,7 +299,7 @@ contains
        call File_Lock(fileName,fileLock,lockIsShared=attempt == 0)
        if (File_Exists(fileName)) then
           !$ call hdf5Access%set()
-          file=hdf5File            (fileName                ,readOnly=.true.                   )
+          file=hdf5File(fileName,readOnly=.true.)
           call file%readAttribute    ('limitLower'                  ,     limitLower                   ) 
           call file%readAttribute    ('limitUpper'                  ,     limitUpper                   ) 
           call file%readDatasetStatic('velocityTangentialMean'      ,self%velocityTangentialMean_      )
@@ -376,11 +376,11 @@ contains
              end do
           end do
           !$ call hdf5Access%set()
-          file=hdf5File         (fileName                                                    ,overWrite=.true.,readOnly=.false.)
-          call file%writeAttribute(     limitLower                    ,'limitLower'                                                    ) 
-          call file%writeAttribute(     limitUpper                    ,'limitUpper'                                                    ) 
-          call file%writeDataset  (self%velocityTangentialMean_       ,'velocityTangentialMean'                                        )
-          call file%writeDataset  (self%velocityTotalRootMeanSquared_ ,'velocityTotalRootMeanSquared'                                  )
+          file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
+          call file%writeAttribute(     limitLower                    ,'limitLower'                  ) 
+          call file%writeAttribute(     limitUpper                    ,'limitUpper'                  ) 
+          call file%writeDataset  (self%velocityTangentialMean_       ,'velocityTangentialMean'      )
+          call file%writeDataset  (self%velocityTotalRootMeanSquared_ ,'velocityTotalRootMeanSquared')
           do i=1,3
              do j=1,3
                 call file%writeDataset(self%voightDistributions(i,j)%ys(),char(var_str('distribution_')//i//'_'//j))

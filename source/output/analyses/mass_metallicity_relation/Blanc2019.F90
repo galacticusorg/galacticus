@@ -184,7 +184,7 @@ contains
     use :: Star_Formation_Rates_Spheroids            , only : starFormationRateSpheroidsClass
     use :: Star_Formation_Rates_Nuclear_Star_Clusters, only : starFormationRateNuclearStarClustersClass
     use :: String_Handling                           , only : stringXMLFormat
-    use :: ISO_Varying_String, only : operator(//)
+    use :: ISO_Varying_String                        , only : operator(//)
     implicit none
     type            (outputAnalysisMassMetallicityBlanc2019             )                                :: self
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum                                            , &

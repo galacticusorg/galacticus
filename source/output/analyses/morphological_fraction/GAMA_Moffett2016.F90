@@ -162,7 +162,7 @@ contains
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
     use :: Output_Times                          , only : outputTimesClass
     use :: Statistics_Distributions              , only : distributionFunction1DBeta
-    use :: ISO_Varying_String, only : operator(//)
+    use :: ISO_Varying_String                    , only : operator(//)
     implicit none
     type            (outputAnalysisMorphologicalFractionGAMAMoffett2016   )                                :: self
     double precision                                                       , intent(in   )                 :: ratioEarlyType                                                         , ratioEarlyTypeError                     , &
