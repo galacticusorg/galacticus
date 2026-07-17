@@ -28,6 +28,7 @@ from Galacticus.Build.FileChanges                       import update as file_ch
 from Galacticus.Build.ScanCache                         import (
     file_identifier as _file_identifier,
     load_cache      as _load_cache,
+    prune           as _prune_cache,
 )
 from Fortran.Utils                            import UNIT_OPENERS, UNIT_CLOSERS
 from XML.Utils                                import xml_to_dict
@@ -119,6 +120,12 @@ def main(argv=None):
             directives_per_file, have_per_file, update_time,
             storables,
         )
+
+    # Drop cache entries for files no longer among the scan targets (deleted,
+    # or the directive was removed), or their directives would keep feeding
+    # the generated code below forever.
+    _prune_cache(directives_per_file,
+                 {_file_identifier(f) for f in file_names_to_scan})
 
     # Persist the cache.
     with open(blob_path, 'wb') as fh:

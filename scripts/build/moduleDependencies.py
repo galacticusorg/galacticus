@@ -39,6 +39,7 @@ from XML.Utils                    import xml_to_dict
 from Galacticus.Build.ScanCache import (
     file_identifier as _file_identifier,
     load_cache      as _load_cache,
+    prune           as _prune_cache,
 )
 
 
@@ -539,21 +540,23 @@ def main(argv):
     modules_per_file, cache_mtime = _load_cache(blob_path)
     have_per_file = cache_mtime is not None
 
-    # Build the unstripped identifier list used for add/remove detection
-    # (matches the Perl's first `@fileIdentifiers` loop).
-    unstripped_identifiers = []
+    # Build the identifier list used for add/remove detection and the
+    # stale-entry prune below. Canonicalized via `file_identifier()` so it
+    # uses the same key form as the cache entries (the Perl built this list
+    # unstripped, which agreed only for absolute paths).
+    current_identifiers = []
     for desc in descriptors:
         for name in _list_source_files(desc['path']):
-            unstripped_identifiers.append(
-                (desc['path'] + '/' + name).replace('/', '_'),
+            current_identifiers.append(
+                _file_identifier(desc['path'] + '/' + name),
             )
-    unstripped_set = set(unstripped_identifiers)
+    current_identifier_set = set(current_identifiers)
 
     force_rescan = False
     if have_per_file:
-        if any(fid not in modules_per_file for fid in unstripped_identifiers):
+        if any(fid not in modules_per_file for fid in current_identifiers):
             force_rescan = True
-        if any(fid not in unstripped_set for fid in modules_per_file):
+        if any(fid not in current_identifier_set for fid in modules_per_file):
             force_rescan = True
 
     # Decide which files need a (re)scan, preserving the deterministic
@@ -584,6 +587,13 @@ def main(argv):
             scan_list, source_root, locations):
         modules_per_file.pop(file_identifier, None)
         modules_per_file[file_identifier] = entry
+
+    # Drop cache entries for source files that no longer exist, or their
+    # module/submodule rules would be re-emitted into
+    # Makefile_Module_Dependencies forever (phantom dependencies on deleted
+    # files, which survive deleting the generated fragment — it is rebuilt
+    # from this same cache).
+    _prune_cache(modules_per_file, current_identifier_set)
 
     # Build the submodule-by-module map.
     submodules_by_module = _build_submodule_map(modules_per_file)
