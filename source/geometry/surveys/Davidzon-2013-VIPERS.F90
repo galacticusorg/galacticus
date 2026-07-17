@@ -88,11 +88,13 @@ contains
     type   (surveyGeometryDavidzon2013VIPERS)                :: self
     type   (inputParameters                 ), intent(inout) :: parameters
     class  (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
+    class  (randomNumberGeneratorClass      ), pointer       :: randomNumberGenerator_
     integer                                                  :: redshiftBin
 
     ! Check and read parameters.
     !![
-    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
     <inputParameter docformat="rst">
       <name>redshiftBin</name>
       <source>parameters</source>
@@ -101,15 +103,16 @@ contains
       </description>
     </inputParameter>
     !!]
-    self=surveyGeometryDavidzon2013VIPERS(redshiftBin,cosmologyFunctions_)
+    self=surveyGeometryDavidzon2013VIPERS(redshiftBin,cosmologyFunctions_,randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyFunctions_"/>
+    <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="randomNumberGenerator_"/>
     !!]
     return
   end function davidzon2013VIPERSConstructorParameters
 
-  function davidzon2013VIPERSConstructorInternal(redshiftBin,cosmologyFunctions_) result(self)
+  function davidzon2013VIPERSConstructorInternal(redshiftBin,cosmologyFunctions_,randomNumberGenerator_) result(self)
     !!{RST
     Internal constructor for the :cite:t:`davidzon_vimos_2013` mass function class.
     !!}
@@ -117,12 +120,13 @@ contains
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     use :: Error                      , only : Error_Report
     implicit none
-    type            (surveyGeometryDavidzon2013VIPERS)                        :: self
-    integer                                           , intent(in   )         :: redshiftBin
-    class           (cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
-    double precision                                                          :: redshiftMinimum    , redshiftMaximum
+    type            (surveyGeometryDavidzon2013VIPERS)                                  :: self
+    integer                                           , intent(in   )                   :: redshiftBin
+    class           (cosmologyFunctionsClass         ), intent(in   ), target           :: cosmologyFunctions_
+    class           (randomNumberGeneratorClass      ), intent(in   ), target, optional :: randomNumberGenerator_
+    double precision                                                                    :: redshiftMinimum       , redshiftMaximum
     !![
-    <constructorAssign variables="redshiftBin, *cosmologyFunctions_"/>
+    <constructorAssign variables="redshiftBin, *cosmologyFunctions_, *randomNumberGenerator_"/>
     !!]
 
     ! Find distance limits for this redshift bin.
@@ -161,7 +165,8 @@ contains
     type(surveyGeometryDavidzon2013VIPERS), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyFunctions_"/>
+    <objectDestructor name="self%cosmologyFunctions_"   />
+    <objectDestructor name="self%randomNumberGenerator_"/>
     !!]
     return
   end subroutine davidzon2013VIPERSDestructor

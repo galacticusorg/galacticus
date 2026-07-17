@@ -309,7 +309,7 @@ contains
          &        /              (1.0d0+self%exponent) &
          &        *(                                   &
          &          +massUpper_**(1.0d0+self%exponent) &
-         &          +massLower_**(1.0d0+self%exponent) &
+         &          -massLower_**(1.0d0+self%exponent) &
          &         )
     return
   end function chabrier2001NumberCumulative

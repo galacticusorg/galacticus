@@ -127,9 +127,11 @@
    ``powerLaw``
       The cooling function is extrapolated assuming a power-law dependence beyond the relevant limit. This option is only allowed if the cooling function is everywhere positive.
 
-   If the cooling function is everywhere positive the interpolation will be done in the logarithm of temperature, metallicity\footnoteThe exception is if the first cooling function is tabulated for zero metallicity. In that case, a linear interpolation in metallicity is always used between zero and the first non-zero tabulated metallicity. and cooling function. Otherwise, interpolation is linear in these quantities. The cooling function is scaled assuming a quadratic dependence on hydrogen density.
+   If the cooling function is everywhere positive the interpolation will be done in the logarithm of temperature, metallicity\ [#]_ and cooling function. Otherwise, interpolation is linear in these quantities. The cooling function is scaled assuming a quadratic dependence on hydrogen density.
 
    The ``energyContinuum`` and ``powerEmittedFractionalCumulative`` are optional. If present, ``powerEmittedFractionalCumulative`` gives the cumulative emitted power as a function of energy for each tabulated metallicity and temperature. The energies at which the emitted power is tabulated are given by ``energyContinuum``.
+
+   .. [#] The exception is if the first cooling function is tabulated for zero metallicity. In that case, a linear interpolation in metallicity is always used between zero and the first non-zero tabulated metallicity.
    </description>
    <runTimeFileDependencies paths="fileName"/>
   </coolingFunction>

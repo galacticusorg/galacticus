@@ -86,27 +86,17 @@ def _scan_one(file_name):
     # name (e.g. `tests.nodes`) used for the user-facing executable so that
     # `make tests.nodes.exe`, CI matrices, and test harnesses keep working
     # unchanged after the source tree was made hierarchical.
-    obj_root = re.sub(r'\.[fF](90)?t?$', '', file_name)
+    obj_root = re.sub(r'\.[fF](90)?$', '', file_name)
     exe_root = obj_root.replace('/', '.')
 
     exe_name = None if exclude_from_all else exe_root + '.exe'
 
+    # The link procedure itself lives in the main Makefile's LINK_EXECUTABLE canned recipe (which
+    # has a single owner there); each generated rule contributes only the target's dependency line
+    # and a $(call) to that recipe.
     rule = f"""\
-{exe_root}.exe: {work_dir}{obj_root}.o {work_dir}{obj_root}.d $(MAKE_DEPS) $(UPDATE_DEPS)
-\t./scripts/build/parameterDependencies.py `pwd` {obj_root}.exe
-\t$(FCCOMPILER) -c {work_dir}{obj_root}.parameters.F90 -o {work_dir}{obj_root}.parameters.o $(FCFLAGS)
-\t@if echo "$(MAKEFLAGS)" | grep -q -E -- ' -j1( |$$)'; then \\
-\t useLocks=no; \\
-\telif echo "$(MAKEFLAGS)" | grep -q -E -- ' -j( |$$)'; then \\
-\t useLocks=$(LOCKMD5); \\
-\telif echo "$(MAKEFLAGS)" | grep -q -E -- ' -j[0-9]+( |$$)'; then \\
-\t useLocks=$(LOCKMD5); \\
-\telse \\
-\t useLocks=no; \\
-\tfi; \\
-\t./scripts/build/sourceDigests.py `pwd` {obj_root}.exe $$useLocks
-\t$(CCOMPILER) -c {work_dir}{obj_root}.md5s.c -o {work_dir}{obj_root}.md5s.o $(CFLAGS)
-\t+$(FCCOMPILER) `cat {work_dir}{obj_root}.d` {work_dir}{obj_root}.parameters.o {work_dir}{obj_root}.md5s.o -o {exe_root}.exe$(SUFFIX) $(FCFLAGS) $(FCFLAGS_LINK) `./scripts/build/libraryDependencies.py {obj_root}.exe $(FCFLAGS)` 2>&1 | ./scripts/build/postprocessLinker.py
+{exe_root}.exe: {work_dir}{obj_root}.o {work_dir}{obj_root}.d $(MAKE_DEPS)
+\t$(call LINK_EXECUTABLE,{exe_root},{obj_root})
 
 """
     return rule, exe_name

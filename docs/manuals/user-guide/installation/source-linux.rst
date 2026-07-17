@@ -79,16 +79,27 @@ Required
    make
    make install
 
-* HDF5 `v1.14.5 <https://support.hdfgroup.org/releases/hdf5/v1_14/v1_14_5/downloads/hdf5-1.14.5.tar.gz>`_
+* HDF5 `v2.1.0 <https://github.com/HDFGroup/hdf5/releases/download/2.1.0/hdf5-2.1.0.tar.gz>`_ (HDF5 2.x is built with `CMake <https://cmake.org/>`_ version 3.26 or later---which is often available via your distro's package manager---as the Autotools ``./configure`` build system was removed in HDF5 2.0)
 
 .. code-block:: bash
 
-   wget https://support.hdfgroup.org/releases/hdf5/v1_14/v1_14_5/downloads/hdf5-1.14.5.tar.gz
-   tar -vxzf hdf5-1.14.5.tar.gz
-   cd hdf5-1.14.5
-   F9X=gfortran ./configure --prefix=$INSTALL_PATH --enable-fortran --enable-build-mode=production
-   make
-   make install
+   wget https://github.com/HDFGroup/hdf5/releases/download/2.1.0/hdf5-2.1.0.tar.gz
+   tar -vxzf hdf5-2.1.0.tar.gz
+   cd hdf5-2.1.0
+   cmake -S . -B build \
+       -DCMAKE_INSTALL_PREFIX=$INSTALL_PATH \
+       -DCMAKE_BUILD_TYPE=Release \
+       -DCMAKE_C_COMPILER=gcc \
+       -DCMAKE_Fortran_COMPILER=gfortran \
+       -DHDF5_BUILD_FORTRAN=ON \
+       -DHDF5_BUILD_HL_LIB=ON \
+       -DHDF5_ENABLE_DEPRECATED_SYMBOLS=OFF
+   cmake --build build
+   cmake --install build
+
+.. note::
+
+   Galacticus builds against either HDF5 1.14 or HDF5 2.x without modification, so if you already have a working HDF5 1.14 installation you may continue to use it. Support for HDF5 1.x will, however, eventually be deprecated, so HDF5 2.x is recommended for new installations.
 
 * FoX `v4.1.4 <https://github.com/galacticusorg/fox/archive/refs/tags/v4.1.4.tar.gz>`_
 

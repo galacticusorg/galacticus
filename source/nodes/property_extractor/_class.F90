@@ -73,6 +73,28 @@ module Node_Property_Extractors
      ! Nothing to do.
     </code>
    </method>
+   <method name="extractScalar" >
+    <description>
+    Extract a scalar property from the given ``node``. This is a convenience method for callers (such as the
+    ``libgalacticus`` library interface) that hold an extractor through the base class: it dispatches to the
+    ``extract`` method of the scalar extractor subclass, and reports an error for extractors of any other class
+    (whose ``extract`` methods have different signatures).
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <modules>Error</modules>
+    <argument>type(treeNode), intent(inout), target :: node</argument>
+    <code>
+     select type (self)
+     class is (nodePropertyExtractorScalar)
+        nodePropertyExtractorExtractScalar=self%extract(node)
+     class default
+        nodePropertyExtractorExtractScalar=0.0d0
+        call Error_Report('extractScalar requires an extractor of the scalar class'//{introspection:location})
+     end select
+    </code>
+   </method>
   </functionClass>
   !!]
 

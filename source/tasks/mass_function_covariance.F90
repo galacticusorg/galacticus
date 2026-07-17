@@ -29,7 +29,7 @@
    <description>
    A task class which computes and stores covariance matrices for mass functions. In general, for constraints corresponding to mass functions (whether stellar mass or HI mass), the covariance matrix of the observational data is determined using the analytic model of :cite:t:`smith_how_2012`. This requires knowledge of both the survey geometry (angular mask and radial extent as a function of mass) and of the :term:`HOD` of the observed galaxies.
 
-   Details of the survey geometry and depth are given for each individual constraints. Computing the large-scale structure contribution to the covariance function requires integration of the non-linear matter power spectrum over the Fourier transform of the survey window function. We use the method of :cite:t:`peacock_non-linear_1996` to determine the non-linear matter power spectrum, because of its simplicity and speed. We have checked that using a more accurate non-linear matter power spectrum (e.g. :cite:author:`lawrence_coyote_2010` :cite:year:`lawrence_coyote_2010`) makes negligible difference to our results. If the angular power spectrum of the survey mask is available\footnoteTypically if the survey geometry is defined by :term:`mangle` polygons, allowing the angular power spectrum to be found using the :term:`mangle` ``harmonize`` utility., this is used to compute the relation
+   Details of the survey geometry and depth are given for each individual constraints. Computing the large-scale structure contribution to the covariance function requires integration of the non-linear matter power spectrum over the Fourier transform of the survey window function. We use the method of :cite:t:`peacock_non-linear_1996` to determine the non-linear matter power spectrum, because of its simplicity and speed. We have checked that using a more accurate non-linear matter power spectrum (e.g. :cite:author:`lawrence_coyote_2010` :cite:year:`lawrence_coyote_2010`) makes negligible difference to our results. If the angular power spectrum of the survey mask is available\ [#]_, this is used to compute the relation
 
    .. math::
 
@@ -57,6 +57,8 @@
    #. repeat steps 2 and 3 until convergence in the covariance matrix is achieved.
 
    In practice we find that this procedure often leads to an :term:`HOD` and covariance matrix which oscillate between two states in successive iterations. The differences in the covariance matrix are relatively small however, so we choose to conservatively adopt the covariance matrix with the larger values.
+
+   .. [#] Typically if the survey geometry is defined by :term:`mangle` polygons, allowing the angular power spectrum to be found using the :term:`mangle` ``harmonize`` utility.
    </description>
   </task>
   !!]
