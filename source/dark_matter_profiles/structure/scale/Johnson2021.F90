@@ -121,7 +121,12 @@
 
     where :math:`\sigma_\mathrm{e}=`\ ``[scatterExcess]`` accounts for scatter missed by this model.
 
-    The scale radius which corresponds to this energy is then solved for.
+    The scale radius which corresponds to this energy is then solved for. If the total energy is found to be positive the
+    model has failed (no bound profile corresponds to a positive energy), and the scale radius of the primary progenitor is
+    used unchanged. The number of nodes for which this occurs, as a fraction of those to which the energy model was applied,
+    is reported at the end of the run by :galacticus-class:`Johnson2021_Statistics`. The rate of such failures is a function
+    of both mass resolution and power spectrum, so it should be monitored when calibrating this model: it is a bias in
+    precisely the regime of interest.
 
     For halos with mass less than :math:`f_\mathrm{res} M_\mathrm{res}`, where :math:`f_\mathrm{res}=`\ ``[factorMassResolution]`` and :math:`M_\mathrm{res}` is the mass resolution of the merger tree, and for any halo which has no progenitors (a leaf node), the scale radius is instead computed using an alternative method\ [#]_. In these cases, the entire extent of the branch for which this criterion applies is first determined. Each halo in this sub-branch is first assigned a scale radius from a fall-back :galacticus-class:`darkMatterHaloScaleClass` object which should be configured to return a *scatter-free* scale radius for halos of given mass and redshift\ [#]_ Then, a correlated set of random, log-normal deviates are applied to the scale radii of these nodes. That is, the scale radius of the :math:`i^\mathrm{th}` node in such a sub-branch will be :math:`r_\mathrm{s} = \bar{r}_{\mathrm{s}, i} 10^{x_i}` where :math:`x_i` is a normally-distributed random variate with mean zero and dispersion :math:`\sigma^\prime=`\ ``[scatter]``. The deviates :math:`x_i` are assumed to be correlated with correlation matrix:
 
@@ -406,6 +411,7 @@ contains
     Initialize dark matter profile scale radii.
     !!}
     use :: Calculations_Resets             , only : Calculations_Reset
+    use :: Johnson2021_Statistics          , only : johnson2021EnergyModelApplied , johnson2021EnergyModelFailed
     use :: Galacticus_Nodes                , only : nodeComponentBasic            , nodeComponentDarkMatterProfile, nodeComponentSatellite
     use :: Root_Finder                     , only : rootFinder                    , rangeExpandMultiplicative     , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
     use :: Kepler_Orbits                   , only : keplerOrbit
@@ -806,9 +812,16 @@ contains
                &                )                                                                  &
                &          )
        end if
+       ! Accumulate the count of nodes to which the energy model was applied (reported by `Johnson2021_Statistics`).
+       !$omp atomic update
+       johnson2021EnergyModelApplied=johnson2021EnergyModelApplied+1_c_size_t
        ! Check for positive energy.
        if (energyTotal >= 0.0d0) then
-          ! Energy is positive - the model has failed - simply assume no change in the scale radius.
+          ! Energy is positive - the model has failed - simply assume no change in the scale radius. Count the failure: the rate
+          ! at which it occurs depends on both resolution and power spectrum, so it is a bias which would otherwise be silent in
+          ! exactly the regime in which this model is calibrated.
+          !$omp atomic update
+          johnson2021EnergyModelFailed=johnson2021EnergyModelFailed+1_c_size_t
           radiusScale         =  radiusScaleChild
        else
           ! Convert energy back to scale radius.
