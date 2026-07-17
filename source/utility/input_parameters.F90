@@ -443,7 +443,7 @@ contains
     type     (inputParameters)                                           :: self
     type     (varying_string    )              , intent(in   )           :: xmlString
     type     (varying_string    ), dimension(:), intent(in   ), optional :: allowedParameterNames, changeFiles
-    type     (hdf5Group         ), target      , intent(in   ), optional :: outputParametersGroup
+    class    (hdf5Group         ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                    , intent(in   ), optional :: noOutput             , threadSafe
     type     (node              ), pointer                               :: doc                  , parameterNode
     character(len=1             )                                        :: xmlStringStart
@@ -500,7 +500,7 @@ contains
     type     (inputParameters)                                        :: self
     character(len=*          )              , intent(in   )           :: fileName
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames, changeFiles
-    type     (hdf5Group      ), target      , intent(in   ), optional :: outputParametersGroup
+    class    (hdf5Group      ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput             , threadSafe
     type     (xmlNodeList    ), dimension(:), allocatable             :: childNodes           , newNodes
     type     (node           ), pointer                               :: doc                  , parameterNode    , &
@@ -773,7 +773,7 @@ contains
     type     (node           ), pointer     , intent(in   )           :: parametersNode
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
     character(len=*          )              , intent(in   ), optional :: fileName
-    type     (hdf5Group      ), target      , intent(in   ), optional :: outputParametersGroup
+    class    (hdf5Group      ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput                   , noBuild            , &
          &                                                               threadSafe
     type     (resourceManager)              , intent(in   ), optional :: documentManager
