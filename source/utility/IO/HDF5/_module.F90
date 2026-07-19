@@ -1796,7 +1796,7 @@ contains
     Open the named {Type¦typeName} attribute in ``self`` (a group, file, or dataset) and write to it by delegating to the attribute object.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : {Type¦h5TypeImport}HSIZE_T
+    use            :: HDF5              , only : HSIZE_T
     use            :: ISO_Varying_String, only : assignment(=), operator(//), trim
     implicit none
     class    (hdf5AttributableObject), intent(inout)                                                             :: self
@@ -3012,8 +3012,7 @@ contains
     Open and read an varying string scalar attribute in ``self``.
     !!}
     use :: Error             , only : Error_Report
-    use :: HDF5              , only : HID_T        , h5aget_type_f, h5tclose_f, h5tget_size_f, &
-         &                            H5T_String
+    use :: HDF5              , only : HID_T        , h5aget_type_f, h5tclose_f, h5tget_size_f
     use :: ISO_Varying_String, only : assignment(=), operator(//) , trim      , len_trim
     implicit none
     type     (varying_string        ), intent(  out)           :: attributeValue
@@ -5459,7 +5458,7 @@ attributeValue=trim(attributeValue)
     Read a character 1-D array dataset from ``self`` (a dataset object), into a static array.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, HID_T , &
+    use            :: HDF5              , only : H5S_ALL_F, H5S_SELECT_SET_F, HID_T , &
          &                HSIZE_T, h5dclose_f, h5dget_space_f, h5dread_f , &
          &                h5sclose_f, h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f , &
          &                h5sselect_hyperslab_f, hsize_t, h5tclose_f
@@ -5483,7 +5482,6 @@ attributeValue=trim(attributeValue)
     logical                                                             :: isReference            , readSubsection
     type     (hdf5Dataset      )                                        :: datasetObject
     type     (varying_string   )                                        :: datasetNameActual      , message
-    type     (c_ptr            )                                        :: dataBuffer
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -5742,7 +5740,7 @@ attributeValue=trim(attributeValue)
     Read a character 1-D array dataset from ``self`` (a dataset object), into an allocatable array.
     !!}
     use            :: Error             , only : Error_Report
-    use            :: HDF5              , only : H5P_DEFAULT_F, H5S_ALL_F, H5S_SELECT_SET_F, HID_T , &
+    use            :: HDF5              , only : H5S_ALL_F, H5S_SELECT_SET_F, HID_T , &
          &                HSIZE_T, h5dclose_f, h5dget_space_f, h5dread_f , &
          &                h5sclose_f, h5screate_simple_f, h5sget_select_bounds_f, h5sget_simple_extent_dims_f , &
          &                h5sselect_hyperslab_f, h5tclose_f, hsize_t
@@ -5766,7 +5764,6 @@ attributeValue=trim(attributeValue)
     logical                                                                       :: isReference            , readSubsection
     type     (hdf5Dataset   )                                                     :: datasetObject
     type     (varying_string)                                                     :: datasetNameActual      , message
-    type     (c_ptr         )                                                     :: dataBuffer
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
