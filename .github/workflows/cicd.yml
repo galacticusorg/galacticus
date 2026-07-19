@@ -377,6 +377,7 @@ jobs:
           build-args: |
             REPO=${{ github.event.pull_request.head.repo.full_name || github.repository }}
             BRANCH=${{ github.head_ref || github.ref_name }}
+            COMMIT=${{ github.event.pull_request.head.sha || github.sha }}
   # The LaTeX/PDF documentation build has been retired; documentation is now
   # served from reStructuredText on ReadTheDocs (see docs/).
   ### Tools

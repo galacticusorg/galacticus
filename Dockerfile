@@ -5,6 +5,12 @@ ARG TAG=latest
 FROM ghcr.io/galacticusorg/buildenv:${TAG} AS build
 ARG REPO=galacticusorg/galacticus
 ARG BRANCH=master
+## COMMIT pins the build to an exact commit. CI sets this so that the image is built from the same
+## commit as every other job in the run - without it we clone whatever the tip of ${BRANCH} happens
+## to be at build time, which can differ from the commit the workflow was triggered on. Left empty
+## for manual builds, which just take the tip of ${BRANCH}. Must be a full 40-character SHA - the
+## server will not resolve an abbreviated one.
+ARG COMMIT=
 
 # Set build options.
 ## * The flags are also set in galacticus/buildenv:latest so we don't really need to reset them here.
@@ -21,6 +27,12 @@ RUN     pwd && ls
 # Clone datasets.
 RUN     cd /opt &&\
 	git clone --depth 1 -b ${BRANCH} https://github.com/${REPO}.git galacticus &&\
+	if [ -n "${COMMIT}" ]; then\
+	    cd /opt/galacticus &&\
+	    git fetch --depth 1 origin ${COMMIT} &&\
+	    git checkout --detach FETCH_HEAD ;\
+	fi &&\
+	cd /opt &&\
 	git clone --depth 1 https://github.com/galacticusorg/datasets.git datasets
 
 # Build Galacticus.
