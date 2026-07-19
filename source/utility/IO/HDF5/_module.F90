@@ -5274,18 +5274,19 @@ attributeValue=trim(attributeValue)
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
-    ! If this dataset if not overwritable, report an error.
-    if (.not.(self%isOverwritable.or.appendToActual)) then
+    datasetObject=self
+    ! Whether the dataset already contained data (passed by the container variant; a direct self-mode write assumes it did). A
+    ! newly-created dataset (not pre-existing) is always writable even in a non-overwritable object, matching the container logic.
+    preExisted   =.true.
+    if (present(preExistedIn)) preExisted=preExistedIn
+    ! If this dataset pre-existed and is not overwritable, report an error.
+    if (preExisted.and..not.(self%isOverwritable.or.appendToActual)) then
        message="dataset '"//trim(datasetNameActual)//"' is not overwritable"
        call Error_Report(message//self%locationReport()//{introspection:location})
     else
        ! Check that the object is a 1D character.
        call self%assertDatasetType([dataTypeID],1)
     end if
-    datasetObject=self
-    ! Whether the dataset already contained data (passed by the container variant; a direct self-mode write assumes it did).
-    preExisted   =.true.
-    if (present(preExistedIn)) preExisted=preExistedIn
 
     ! If appending is requested, get the size of the existing dataset.
     if (appendToActual.and.preExisted) then
