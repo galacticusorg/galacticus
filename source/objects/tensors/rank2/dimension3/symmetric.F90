@@ -26,8 +26,31 @@ Contains a submodule which provides implementations of functions for rank-2, dim
 submodule (Tensors) Tensor_R2_D3_Sym
   !!{RST
   Provides implementations of functions for rank-2, dimension-3, symmetric tensors.
+
+  The six independent elements of a symmetric 3×3 tensor are stored, packed, in the
+  ``c(6)`` component as the upper triangle in row-major order:
+
+  .. math::
+
+     c = \left( T_{00}, T_{01}, T_{02}, T_{11}, T_{12}, T_{22} \right).
+
+  Almost every operation on a symmetric tensor is therefore just an array operation on
+  ``c``, with three small mappings capturing the packing: ``packedIndex`` maps a pair of
+  (0-based) tensor indices to a storage index, ``multiplicity`` gives how many times each
+  packed element appears in the full 3×3 tensor (twice for off-diagonal elements), and
+  ``diagonalIndices`` lists the storage indices of the diagonal elements.
   !!}
   implicit none
+
+  ! Mapping from a pair of (0-based) tensor indices (i,j) to the packed storage index in c.
+  integer         , dimension(0:2,0:2), parameter :: packedIndex     =reshape([1,2,3,2,4,5,3,5,6],[3,3])
+  ! Names of the packed elements (used for XML input and for dumps).
+  character(len=3), dimension(6      ), parameter :: elementNames    =['x00','x01','x02','x11','x12','x22']
+  ! Multiplicity of each packed element in the full 3×3 tensor (off-diagonal elements
+  ! appear twice); used to weight contractions and projections.
+  double precision, dimension(6      ), parameter :: multiplicity    =[1.0d0,2.0d0,2.0d0,1.0d0,2.0d0,1.0d0]
+  ! Storage indices of the three diagonal elements; used for the trace.
+  integer         , dimension(3      ), parameter :: diagonalIndices =[1,4,6]
 
 contains
 
@@ -36,15 +59,10 @@ contains
     Constructor for ``tensorRank2Dimension3Symmetric`` objects which sets all components to zero.
     !!}
 
-    self%x00=0.0d0
-    self%x01=0.0d0
-    self%x02=0.0d0
-    self%x11=0.0d0
-    self%x12=0.0d0
-    self%x22=0.0d0
+    self%c=0.0d0
     return
   end procedure tensorRank2Dimension3SymmetricNull
-  
+
   function tensorRank2Dimension3SymmetricInternal(x00,x01,x02,x11,x12,x22) result(self)
     !!{RST
     Constructor for ``tensorRank2Dimension3Symmetric`` objects.
@@ -54,13 +72,11 @@ contains
     double precision                                , intent(in   ) :: x00 , x01, &
          &                                                             x02 , x11, &
          &                                                             x12 , x22
-    !![
-    <constructorAssign variables="x00, x01, x02, x11, x12, x22"/>
-    !!]
-    
+
+    self%c=[x00,x01,x02,x11,x12,x22]
     return
   end function tensorRank2Dimension3SymmetricInternal
-  
+
   module procedure Tensor_R2_D3_Sym_Destroy
     !!{RST
     Destroy a ``tensorRank2Dimension3Symmetric`` symmetric object.
@@ -79,47 +95,21 @@ contains
     use :: Error  , only : Error_Report
     use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
     implicit none
-    type     (node       )               , pointer     :: element
-    type     (xmlNodeList), dimension(:) , allocatable :: elementList
-    character(len=3      ), dimension(6) , parameter   :: elementNames=['x00','x01','x02','x11','x12','x22']
-    integer                                            :: i
+    type   (node       )               , pointer     :: element
+    type   (xmlNodeList), dimension(:) , allocatable :: elementList
+    integer                                          :: i
 
-    ! Get the elements
+    ! Get the elements.
     do i=1,6
        !$omp critical (FoX_DOM_Access)
        call XML_Get_Elements_By_Tag_Name(tensorDefinition,elementNames(i),elementList)
        !$omp end critical (FoX_DOM_Access)
        if (size(elementList) > 1) call Error_Report('multiple "'//elementNames(i)//'" values specified'//{introspection:location})
-       if (size(elementList) < 1) call Error_Report('no "'//elementNames(i)//'" value specified'       //{introspection:location})
+       if (size(elementList) < 1) call Error_Report('no "'     //elementNames(i)//'" value specified'  //{introspection:location})
        !$omp critical (FoX_DOM_Access)
        element => elementList(0)%element
+       call extractDataContent(element,self%c(i))
        !$omp end critical (FoX_DOM_Access)
-       select case (elementNames(i))
-       case ( 'x00' )
-          !$omp critical (FoX_DOM_Access)
-          call extractDataContent(element,self%x00)
-          !$omp end critical (FoX_DOM_Access)
-       case ( 'x01' )
-          !$omp critical (FoX_DOM_Access)
-          call extractDataContent(element,self%x01)
-          !$omp end critical (FoX_DOM_Access)
-       case ( 'x02' )
-          !$omp critical (FoX_DOM_Access)
-          call extractDataContent(element,self%x02)
-          !$omp end critical (FoX_DOM_Access)
-       case ( 'x11' )
-          !$omp critical (FoX_DOM_Access)
-          call extractDataContent(element,self%x11)
-          !$omp end critical (FoX_DOM_Access)
-       case ( 'x12' )
-          !$omp critical (FoX_DOM_Access)
-          call extractDataContent(element,self%x12)
-          !$omp end critical (FoX_DOM_Access)
-       case ( 'x22' )
-          !$omp critical (FoX_DOM_Access)
-          call extractDataContent(element,self%x22)
-          !$omp end critical (FoX_DOM_Access)
-       end select
     end do
     return
   end procedure Tensor_R2_D3_Sym_Builder
@@ -132,26 +122,14 @@ contains
     use :: ISO_Varying_String, only : assignment(=) , varying_string
     implicit none
     character(len=22        ) :: label
-    type     (varying_string):: message
+    type     (varying_string) :: message
+    integer                   :: i
 
-    write (label,'(e22.16)') self%x00
-    message='x00: '//label
-    call displayMessage(message,verbosityLevel)
-    write (label,'(e22.16)') self%x01
-    message='x01: '//label
-    call displayMessage(message,verbosityLevel)
-    write (label,'(e22.16)') self%x02
-    message='x02: '//label
-    call displayMessage(message,verbosityLevel)
-    write (label,'(e22.16)') self%x11
-    message='x11: '//label
-    call displayMessage(message,verbosityLevel)
-    write (label,'(e22.16)') self%x12
-    message='x12: '//label
-    call displayMessage(message,verbosityLevel)
-    write (label,'(e22.16)') self%x22
-    message='x22: '//label
-    call displayMessage(message,verbosityLevel)
+    do i=1,6
+       write (label,'(e22.16)') self%c(i)
+       message=elementNames(i)//': '//label
+       call displayMessage(message,verbosityLevel)
+    end do
     return
   end procedure Tensor_R2_D3_Sym_Dump
 
@@ -162,12 +140,7 @@ contains
     implicit none
 
     ! Dump the content.
-    write (fileHandle) self%x00
-    write (fileHandle) self%x01
-    write (fileHandle) self%x02
-    write (fileHandle) self%x11
-    write (fileHandle) self%x12
-    write (fileHandle) self%x22
+    write (fileHandle) self%c
     return
   end procedure Tensor_R2_D3_Sym_Dump_Raw
 
@@ -178,12 +151,7 @@ contains
     implicit none
 
     ! Read the content.
-    read (fileHandle) self%x00
-    read (fileHandle) self%x01
-    read (fileHandle) self%x02
-    read (fileHandle) self%x11
-    read (fileHandle) self%x12
-    read (fileHandle) self%x22
+    read (fileHandle) self%c
     return
   end procedure Tensor_R2_D3_Sym_Read_Raw
 
@@ -194,12 +162,7 @@ contains
     implicit none
 
     ! Zero all elements.
-    self                       %x00=0.0d0
-    self                       %x11=0.0d0
-    self                       %x22=0.0d0
-    self                       %x01=0.0d0
-    self                       %x02=0.0d0
-    self                       %x12=0.0d0
+    self%c=0.0d0
     return
   end procedure Tensor_R2_D3_Sym_Reset
 
@@ -210,12 +173,7 @@ contains
     implicit none
 
     ! Set values to unity.
-    self                       %x00=1.0d0
-    self                       %x11=1.0d0
-    self                       %x22=1.0d0
-    self                       %x01=1.0d0
-    self                       %x02=1.0d0
-    self                       %x12=1.0d0
+    self%c=1.0d0
     return
   end procedure Tensor_R2_D3_Sym_Set_To_Unity
 
@@ -225,13 +183,9 @@ contains
     !!}
     implicit none
 
-    ! Set values to unity.
-    self                       %x00=1.0d0
-    self                       %x11=1.0d0
-    self                       %x22=1.0d0
-    self                       %x01=0.0d0
-    self                       %x02=0.0d0
-    self                       %x12=0.0d0
+    ! Set diagonal elements to unity and off-diagonal elements to zero.
+    self%c                 =0.0d0
+    self%c(diagonalIndices)=1.0d0
     return
   end procedure Tensor_R2_D3_Sym_Set_To_Identity
 
@@ -242,20 +196,7 @@ contains
     implicit none
 
     ! Detect if all tensor elements are zero.
-    Tensor_R2_D3_Sym_Is_Zero=          &
-         &         (                   &
-         &           self%x00 == 0.0d0 &
-         &          .and.              &
-         &           self%x01 == 0.0d0 &
-         &          .and.              &
-         &           self%x02 == 0.0d0 &
-         &          .and.              &
-         &           self%x11 == 0.0d0 &
-         &          .and.              &
-         &           self%x12 == 0.0d0 &
-         &          .and.              &
-         &           self%x22 == 0.0d0 &
-         &         )
+    Tensor_R2_D3_Sym_Is_Zero=all(self%c == 0.0d0)
     return
   end procedure Tensor_R2_D3_Sym_Is_Zero
 
@@ -266,46 +207,12 @@ contains
     use :: Error, only : Error_Report
     implicit none
 
-    select case (i)
-    case (0)
-       select case (j)
-       case (0)
-          Tensor_R2_D3_Sym_Element=self%x00
-          return
-       case (1)
-          Tensor_R2_D3_Sym_Element=self%x01
-          return
-       case (2)
-          Tensor_R2_D3_Sym_Element=self%x02
-          return
-       end select
-    case (1)
-       select case (j)
-       case (0)
-          Tensor_R2_D3_Sym_Element=self%x01
-          return
-       case (1)
-          Tensor_R2_D3_Sym_Element=self%x11
-          return
-       case (2)
-          Tensor_R2_D3_Sym_Element=self%x12
-          return
-       end select
-    case (2)
-       select case (j)
-       case (0)
-          Tensor_R2_D3_Sym_Element=self%x02
-          return
-       case (1)
-          Tensor_R2_D3_Sym_Element=self%x12
-          return
-       case (2)
-          Tensor_R2_D3_Sym_Element=self%x22
-          return
-       end select
-    end select
-    Tensor_R2_D3_Sym_Element=0.0d0
-    call Error_Report('invalid indices'//{introspection:location})
+    if (i < 0 .or. i > 2 .or. j < 0 .or. j > 2) then
+       Tensor_R2_D3_Sym_Element=0.0d0
+       call Error_Report('invalid indices'//{introspection:location})
+    else
+       Tensor_R2_D3_Sym_Element=self%c(packedIndex(i,j))
+    end if
     return
   end procedure Tensor_R2_D3_Sym_Element
 
@@ -315,20 +222,8 @@ contains
     !!}
     implicit none
 
-    Tensor_R2_D3_Sym_Add%x00=tensor1%x00
-    Tensor_R2_D3_Sym_Add%x01=tensor1%x01
-    Tensor_R2_D3_Sym_Add%x02=tensor1%x02
-    Tensor_R2_D3_Sym_Add%x11=tensor1%x11
-    Tensor_R2_D3_Sym_Add%x12=tensor1%x12
-    Tensor_R2_D3_Sym_Add%x22=tensor1%x22
-    if (present(tensor2)) then
-       Tensor_R2_D3_Sym_Add%x00=Tensor_R2_D3_Sym_Add%x00+tensor2%x00
-       Tensor_R2_D3_Sym_Add%x01=Tensor_R2_D3_Sym_Add%x01+tensor2%x01
-       Tensor_R2_D3_Sym_Add%x02=Tensor_R2_D3_Sym_Add%x02+tensor2%x02
-       Tensor_R2_D3_Sym_Add%x11=Tensor_R2_D3_Sym_Add%x11+tensor2%x11
-       Tensor_R2_D3_Sym_Add%x12=Tensor_R2_D3_Sym_Add%x12+tensor2%x12
-       Tensor_R2_D3_Sym_Add%x22=Tensor_R2_D3_Sym_Add%x22+tensor2%x22
-    end if
+    Tensor_R2_D3_Sym_Add%c=tensor1%c
+    if (present(tensor2)) Tensor_R2_D3_Sym_Add%c=Tensor_R2_D3_Sym_Add%c+tensor2%c
     return
   end procedure Tensor_R2_D3_Sym_Add
 
@@ -338,12 +233,7 @@ contains
     !!}
     implicit none
 
-    self%x00=self%x00+increment%x00
-    self%x01=self%x01+increment%x01
-    self%x02=self%x02+increment%x02
-    self%x11=self%x11+increment%x11
-    self%x12=self%x12+increment%x12
-    self%x22=self%x22+increment%x22
+    self%c=self%c+increment%c
     return
   end procedure Tensor_R2_D3_Sym_Increment
 
@@ -354,19 +244,9 @@ contains
     implicit none
 
     if (present(tensor2)) then
-       Tensor_R2_D3_Sym_Subtract%x00=+tensor1%x00-tensor2%x00
-       Tensor_R2_D3_Sym_Subtract%x01=+tensor1%x01-tensor2%x01
-       Tensor_R2_D3_Sym_Subtract%x02=+tensor1%x02-tensor2%x02
-       Tensor_R2_D3_Sym_Subtract%x11=+tensor1%x11-tensor2%x11
-       Tensor_R2_D3_Sym_Subtract%x12=+tensor1%x12-tensor2%x12
-       Tensor_R2_D3_Sym_Subtract%x22=+tensor1%x22-tensor2%x22
+       Tensor_R2_D3_Sym_Subtract%c=+tensor1%c-tensor2%c
     else
-       Tensor_R2_D3_Sym_Subtract%x00=-tensor1%x00
-       Tensor_R2_D3_Sym_Subtract%x01=-tensor1%x01
-       Tensor_R2_D3_Sym_Subtract%x02=-tensor1%x02
-       Tensor_R2_D3_Sym_Subtract%x11=-tensor1%x11
-       Tensor_R2_D3_Sym_Subtract%x12=-tensor1%x12
-       Tensor_R2_D3_Sym_Subtract%x22=-tensor1%x22
+       Tensor_R2_D3_Sym_Subtract%c=-tensor1%c
     end if
     return
   end procedure Tensor_R2_D3_Sym_Subtract
@@ -377,12 +257,7 @@ contains
     !!}
     implicit none
 
-    Tensor_R2_D3_Sym_Scalar_Multiply%x00=tensor1%x00*multiplier
-    Tensor_R2_D3_Sym_Scalar_Multiply%x01=tensor1%x01*multiplier
-    Tensor_R2_D3_Sym_Scalar_Multiply%x02=tensor1%x02*multiplier
-    Tensor_R2_D3_Sym_Scalar_Multiply%x11=tensor1%x11*multiplier
-    Tensor_R2_D3_Sym_Scalar_Multiply%x12=tensor1%x12*multiplier
-    Tensor_R2_D3_Sym_Scalar_Multiply%x22=tensor1%x22*multiplier
+    Tensor_R2_D3_Sym_Scalar_Multiply%c=tensor1%c*multiplier
     return
   end procedure Tensor_R2_D3_Sym_Scalar_Multiply
 
@@ -402,12 +277,7 @@ contains
     !!}
     implicit none
 
-    Tensor_R2_D3_Sym_Max%x00=max(tensor1%x00,tensor2%x00)
-    Tensor_R2_D3_Sym_Max%x01=max(tensor1%x01,tensor2%x01)
-    Tensor_R2_D3_Sym_Max%x02=max(tensor1%x02,tensor2%x02)
-    Tensor_R2_D3_Sym_Max%x11=max(tensor1%x11,tensor2%x11)
-    Tensor_R2_D3_Sym_Max%x12=max(tensor1%x12,tensor2%x12)
-    Tensor_R2_D3_Sym_Max%x22=max(tensor1%x22,tensor2%x22)
+    Tensor_R2_D3_Sym_Max%c=max(tensor1%c,tensor2%c)
     return
   end procedure Tensor_R2_D3_Sym_Max
 
@@ -417,27 +287,22 @@ contains
     !!}
     implicit none
 
-    Tensor_R2_D3_Sym_Scalar_Divide%x00=tensor1%x00/divisor
-    Tensor_R2_D3_Sym_Scalar_Divide%x01=tensor1%x01/divisor
-    Tensor_R2_D3_Sym_Scalar_Divide%x02=tensor1%x02/divisor
-    Tensor_R2_D3_Sym_Scalar_Divide%x11=tensor1%x11/divisor
-    Tensor_R2_D3_Sym_Scalar_Divide%x12=tensor1%x12/divisor
-    Tensor_R2_D3_Sym_Scalar_Divide%x22=tensor1%x22/divisor
+    Tensor_R2_D3_Sym_Scalar_Divide%c=tensor1%c/divisor
     return
   end procedure Tensor_R2_D3_Sym_Scalar_Divide
-  
+
   module procedure Tensor_R2_D3_Sym_Vector_Project
     !!{RST
     Find the magnitude of the projection of a ``tensorRank2Dimension3Symmetric``/vector dot product onto the same vector, :math:`\mathbf{x} \cdot \mathbf{A} \cdot \mathbf{x}`.
     !!}
 
-    Tensor_R2_D3_Sym_Vector_Project=           &
-         & +      self%x00*vector(1)*vector(1) &
-         & +      self%x11*vector(2)*vector(2) &
-         & +      self%x22*vector(3)*vector(3) &
-         & +2.0d0*self%x01*vector(1)*vector(2) &
-         & +2.0d0*self%x02*vector(1)*vector(3) &
-         & +2.0d0*self%x12*vector(2)*vector(3)
+    Tensor_R2_D3_Sym_Vector_Project=            &
+         & +      self%c(1)*vector(1)*vector(1) &
+         & +      self%c(4)*vector(2)*vector(2) &
+         & +      self%c(6)*vector(3)*vector(3) &
+         & +2.0d0*self%c(2)*vector(1)*vector(2) &
+         & +2.0d0*self%c(3)*vector(1)*vector(3) &
+         & +2.0d0*self%c(5)*vector(2)*vector(3)
     return
   end procedure Tensor_R2_D3_Sym_Vector_Project
 
@@ -447,23 +312,18 @@ contains
     !!}
     implicit none
 
-    Tensor_R2_D3_Sym_Double_Contract=  &
-         & +      self%x00*tensor1%x00 &
-         & +      self%x11*tensor1%x11 &
-         & +      self%x22*tensor1%x22 &
-         & +2.0d0*self%x01*tensor1%x01 &
-         & +2.0d0*self%x02*tensor1%x02 &
-         & +2.0d0*self%x12*tensor1%x12
+    ! Off-diagonal elements are counted twice (they appear both above and below the diagonal).
+    Tensor_R2_D3_Sym_Double_Contract=sum(multiplicity*self%c*tensor1%c)
     return
   end procedure Tensor_R2_D3_Sym_Double_Contract
 
- module procedure Tensor_R2_D3_Sym_Contract
+  module procedure Tensor_R2_D3_Sym_Contract
     !!{RST
     Return the contraction (trace) of a ``tensorRank2Dimension3Symmetric``.
     !!}
     implicit none
 
-    Tensor_R2_D3_Sym_Contract=self%x00+self%x11+self%x22
+    Tensor_R2_D3_Sym_Contract=sum(self%c(diagonalIndices))
     return
   end procedure Tensor_R2_D3_Sym_Contract
 
@@ -484,12 +344,7 @@ contains
     !!}
     implicit none
 
-    self%x00=tensorArray(1)
-    self%x01=tensorArray(2)
-    self%x02=tensorArray(3)
-    self%x11=tensorArray(4)
-    self%x12=tensorArray(5)
-    self%x22=tensorArray(6)
+    self%c=tensorArray
     return
   end procedure Tensor_R2_D3_Sym_Deserialize
 
@@ -500,12 +355,7 @@ contains
     implicit none
 
     ! Place tensor into array.
-    tensorArray(1)=self%x00
-    tensorArray(2)=self%x01
-    tensorArray(3)=self%x02
-    tensorArray(4)=self%x11
-    tensorArray(5)=self%x12
-    tensorArray(6)=self%x22
+    tensorArray=self%c
     return
   end procedure Tensor_R2_D3_Sym_Serialize
 
@@ -524,13 +374,8 @@ contains
          &  .or.                        &
          &   matrix(2,3) /= matrix(3,2) &
          & ) call Error_Report('supplied matrix is not symmetric'//{introspection:location})
-    ! Set the values of the tensor object.
-    self%x00=matrix(1,1)
-    self%x01=matrix(1,2)
-    self%x02=matrix(1,3)
-    self%x11=matrix(2,2)
-    self%x12=matrix(2,3)
-    self%x22=matrix(3,3)
+    ! Set the values of the tensor object from the upper triangle of the matrix.
+    self%c=[matrix(1,1),matrix(1,2),matrix(1,3),matrix(2,2),matrix(2,3),matrix(3,3)]
     return
   end procedure Tensor_R2_D3_Sym_From_Matrix
 
@@ -539,16 +384,13 @@ contains
     Construct a matrix from a ``tensorRank2Dimension3Symmetric``.
     !!}
     implicit none
+    integer :: i, j
 
-    Tensor_R2_D3_Sym_To_Matrix(1,1)=self%x00
-    Tensor_R2_D3_Sym_To_Matrix(1,2)=self%x01
-    Tensor_R2_D3_Sym_To_Matrix(1,3)=self%x02
-    Tensor_R2_D3_Sym_To_Matrix(2,1)=self%x01
-    Tensor_R2_D3_Sym_To_Matrix(2,2)=self%x11
-    Tensor_R2_D3_Sym_To_Matrix(2,3)=self%x12
-    Tensor_R2_D3_Sym_To_Matrix(3,1)=self%x02
-    Tensor_R2_D3_Sym_To_Matrix(3,2)=self%x12
-    Tensor_R2_D3_Sym_To_Matrix(3,3)=self%x22
+    do i=1,3
+       do j=1,3
+          Tensor_R2_D3_Sym_To_Matrix(i,j)=self%c(packedIndex(i-1,j-1))
+       end do
+    end do
     return
   end procedure Tensor_R2_D3_Sym_To_Matrix
 
@@ -568,15 +410,7 @@ contains
     !!}
     implicit none
 
-    matrix(1,1)=tensor%x00
-    matrix(1,2)=tensor%x01
-    matrix(1,3)=tensor%x02
-    matrix(2,1)=tensor%x01
-    matrix(2,2)=tensor%x11
-    matrix(2,3)=tensor%x12
-    matrix(3,1)=tensor%x02
-    matrix(3,2)=tensor%x12
-    matrix(3,3)=tensor%x22
+    matrix=tensor%toMatrix()
     return
   end procedure Tensor_R2_D3_Sym_Assign_From
 
@@ -586,24 +420,7 @@ contains
     !!}
     implicit none
 
-    Tensor_R2_D3_Sym_Matrix_Equality= &
-         &  matrix(1,1) == self%x00   &
-         & .and.                      &
-         &  matrix(1,2) == self%x01   &
-         & .and.                      &
-         &  matrix(1,3) == self%x02   &
-         & .and.                      &
-         &  matrix(2,1) == self%x01   &
-         & .and.                      &
-         &  matrix(2,2) == self%x11   &
-         & .and.                      &
-         &  matrix(2,3) == self%x12   &
-         & .and.                      &
-         &  matrix(3,1) == self%x02   &
-         & .and.                      &
-         &  matrix(3,2) == self%x12   &
-         & .and.                      &
-         &  matrix(3,3) == self%x22
+    Tensor_R2_D3_Sym_Matrix_Equality=all(matrix == self%toMatrix())
     return
   end procedure Tensor_R2_D3_Sym_Matrix_Equality
 

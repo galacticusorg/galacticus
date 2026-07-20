@@ -8,7 +8,7 @@ import os
 
 
 from Galacticus.Build.FortranUtils import get_fortran_line
-from Fortran.Utils import UNIT_OPENERS, UNIT_CLOSERS
+from Fortran.Utils import UNIT_OPENERS, UNIT_CLOSERS, check_no_parameterized_derived_type
 from Galacticus.Build.SourceTree.Parse.Declarations import parse_declaration
 
 # ---------------------------------------------------------------------------
@@ -187,6 +187,11 @@ def _parse_units(parent):
         raw_line, processed_line, _ = get_fortran_line(fh)
         if not raw_line and not processed_line:
             break
+
+        # Reject parameterized derived types loudly: the parser and downstream
+        # generators cannot represent type parameters and would silently drop a
+        # PDT from generated code.  See issue #114.
+        check_no_parameterized_derived_type(processed_line)
 
         n_newlines    = raw_line.count('\n')
         line_after    = current_line + n_newlines
