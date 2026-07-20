@@ -156,16 +156,29 @@ module Coordinates
      procedure :: scale             => Coordinates_Cylindrical_Scale
   end type coordinateCylindrical
 
-  ! Null constructor for a Cartesian coordinate. Provided so that the argument-less structure constructor
-  ! `coordinateCartesian()` -- emitted by auto-generated `functionClass` code for methods that return a
-  ! `coordinateCartesian` (e.g. the massDistribution acceleration/positionSample/chandrasekharIntegral) -- is
-  ! valid. This is done via an explicit constructor rather than a default-initializer on the `position`
-  ! component so that ordinary coordinate objects are not zero-initialized on every construction (which,
-  ! because coordinate assignment is a defined assignment with an intent(out) argument, is not elided by the
-  ! compiler and adds measurable cost in coordinate-heavy hot paths).
+  ! Explicit constructors for the coordinate types, allowing e.g. `coordinateCartesian(x,y,z)` and
+  ! `coordinateSpherical(r,theta,phi)`. These are preferred over array assignment (`coord = [a,b,c]`) in new
+  ! code because they make the coordinate system explicit at the construction site (avoiding the footgun where
+  ! a bare array is silently interpreted in whatever system the target happens to be -- see issue \#75).
+  !
+  ! The argument-less `coordinateCartesian()` form is also provided: it is emitted by auto-generated
+  ! `functionClass` code for methods that return a `coordinateCartesian` (e.g. the massDistribution
+  ! acceleration/positionSample/chandrasekharIntegral). Using an explicit constructor rather than a
+  ! default-initializer on the `position` component avoids zero-initializing ordinary coordinate objects on
+  ! every construction (which, because coordinate assignment is a defined assignment with an intent(out)
+  ! argument, the compiler does not elide -- it adds measurable cost in coordinate-heavy hot paths).
   interface coordinateCartesian
      module procedure coordinatesCartesianConstructorNull
+     module procedure coordinatesCartesianConstructor
   end interface coordinateCartesian
+
+  interface coordinateSpherical
+     module procedure coordinatesSphericalConstructor
+  end interface coordinateSpherical
+
+  interface coordinateCylindrical
+     module procedure coordinatesCylindricalConstructor
+  end interface coordinateCylindrical
 
   abstract interface
      double precision function rSphericalSquaredTemplate(self)
@@ -219,6 +232,42 @@ contains
     self%position=0.0d0
     return
   end function coordinatesCartesianConstructorNull
+
+  function coordinatesCartesianConstructor(x,y,z) result(self)
+    !!{RST
+    Constructor for a Cartesian ``coordinate`` object from its :math:`(x,y,z)` components.
+    !!}
+    implicit none
+    type            (coordinateCartesian)                :: self
+    double precision                     , intent(in   ) :: x   , y, z
+
+    self%position=[x,y,z]
+    return
+  end function coordinatesCartesianConstructor
+
+  function coordinatesSphericalConstructor(r,theta,phi) result(self)
+    !!{RST
+    Constructor for a spherical ``coordinate`` object from its :math:`(r,\theta,\phi)` components.
+    !!}
+    implicit none
+    type            (coordinateSpherical)                :: self
+    double precision                     , intent(in   ) :: r   , theta, phi
+
+    self%position=[r,theta,phi]
+    return
+  end function coordinatesSphericalConstructor
+
+  function coordinatesCylindricalConstructor(r,phi,z) result(self)
+    !!{RST
+    Constructor for a cylindrical ``coordinate`` object from its :math:`(r,\phi,z)` components.
+    !!}
+    implicit none
+    type            (coordinateCylindrical)                :: self
+    double precision                       , intent(in   ) :: r   , phi, z
+
+    self%position=[r,phi,z]
+    return
+  end function coordinatesCylindricalConstructor
 
   subroutine Coordinates_Null_From(self,x)
     !!{RST
