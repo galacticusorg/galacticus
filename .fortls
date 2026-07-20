@@ -4,5 +4,6 @@
   "pp_suffixes": [".F90"],
   "lowercase_intrinsics": false,
   "hover_signature": true,
-  "use_signature_help": true
+  "use_signature_help": true,
+  "nthreads": 1
 }
