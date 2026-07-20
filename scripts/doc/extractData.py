@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Scan Fortran90 source code and extract class/method data from .classes.xml files.
 
-Andrew Benson 12-Mar-2010 (original Perl); Python port 2026.
+Andrew Benson 12-Mar-2010
 
 Usage: extractData.py <sourceDir> <outputRoot>
 """
@@ -75,7 +75,7 @@ _FUNCTION_CLASS_EXCLUDES_LC = {n.lower() for n in FUNCTION_CLASS_EXCLUDES}
 def declaration_builder(type_val, variables=True):
     """Build a \\mono{...} LaTeX string for a Fortran type declaration.
 
-    Port of Perl declarationBuilder().  type_val is either a dict (complex type)
+    type_val is either a dict (complex type)
     or one of the literal strings 'subroutine' / 'void' for the void-return
     case.  Both string forms appear in the wild — `_process_function` emits
     `'subroutine'` (the AST node type) for type-bound subroutine bindings,

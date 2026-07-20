@@ -1,8 +1,7 @@
 """Import every source-tree Process submodule, registering all process hooks.
 
 Importing a Process submodule registers its hook with the SourceTree
-pipeline (mirroring the ``use`` statements at the top of the Perl-era
-``SourceTree.pm``). Every driver that runs ``process_tree`` must import the
+pipeline. Every driver that runs ``process_tree`` must import the
 FULL hook set -- a missing import in one driver but not another would
 silently generate different code from the same source. Import this module
 instead of listing the submodules individually:

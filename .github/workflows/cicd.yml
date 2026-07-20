@@ -8,6 +8,7 @@ on:
     # validators in prChecks.yml and the ReadTheDocs build, so they skip this.
     paths: &codePaths
       - 'Makefile'
+      - 'aux/dependencies.yml'
       - 'source/**'
       - 'python/**'
       - 'scripts/build/**'
@@ -70,9 +71,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE
           export GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE
-          python3 scripts/build/parameterSchema.py `pwd` schema/parameters.xsd
-          git diff --exit-code -- schema/parameters.xsd \
-            || { echo "schema/parameters.xsd is out of date; run 'make parameters-schema' and commit."; exit 1; }
+          python3 scripts/build/parameterSchema.py `pwd` schema/parameters.xsd --check
       - run: echo "This job's status is ${{ job.status }}."
   # Build and deploy
   ## Linux
@@ -291,6 +290,11 @@ jobs:
         with:
           name: test-execs-debugging
           path: 'tests.*.exe'
+      - name: Upload Galacticus executable
+        uses: actions/upload-artifact@v7
+        with:
+          name: galacticus-exec-debugging
+          path: 'Galacticus.exe'
       - run: echo "This job's status is ${{ job.status }}."
   ### Library
   Build-Library-Linux:
@@ -376,6 +380,7 @@ jobs:
           build-args: |
             REPO=${{ github.event.pull_request.head.repo.full_name || github.repository }}
             BRANCH=${{ github.head_ref || github.ref_name }}
+            COMMIT=${{ github.event.pull_request.head.sha || github.sha }}
   # The LaTeX/PDF documentation build has been retired; documentation is now
   # served from reStructuredText on ReadTheDocs (see docs/).
   ### Tools
@@ -1109,6 +1114,7 @@ jobs:
                       tests.convex_hulls.exe,
                       tests.comparisons.exe,
                       tests.geometry.coordinate_systems.exe,
+                      tests.coordinates_constructors.exe,
                       tests.dictionaries.exe,
                       tests.hashes.perfect.exe,
                       tests.regular_expressions.exe,
@@ -1210,6 +1216,7 @@ jobs:
                       tests.stellar_populations.luminosities.exe,
                       tests.excursion_sets.exe,
                       tests.merger_tree_branching.exe,
+                      tests.merger_tree_census.exe,
                       tests.event_hooks.exe,
                       tests.tree_branch_destroy.exe,
                       tests.binary_search_trees.exe,
@@ -1374,8 +1381,6 @@ jobs:
                 test-tidallyTruncatedNFWFit.py,
                 test-constraint-deterministic-spins.py,
                 test-constraint-mass-function.py,
-                test-extract-directives.py,
-                test-fortran-utils.py,
                 test-halo-mass-functions.py,
                 test-inactive_luminosities.py,
                 test-interoutput-star-formation-rate.py,
@@ -1428,12 +1433,36 @@ jobs:
                 test-AGNSED.py,
                 test-SIDM-parametric.py,
                 test-objectBuilder-recursion.py,
+                test-objectBuilder-recursion-success.py,
                 test-library-interfaces.py,
                 test-merger-tree-read-ties.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
       artifact: galacticus-exec
+      runPath: ./testSuite
+    secrets: inherit
+  ## Inactive-property models run against the debugging (-DDEBUGGING) executable. Only in debugging builds are the
+  ## run-time checks that no inactive property value is read during active-property evolution (issue #128) compiled
+  ## into the generated property getters. The positive test asserts the check fires on a deliberate erroneous read;
+  ## the remaining models exercise inactive properties (and inactive float rank-0 meta-properties) legitimately and
+  ## must complete without the check firing.
+  Miscellaneous-Debugging:
+    needs: Build-Executables-Debugging-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        file: [ test-inactive-property-read.py,
+                test-inactive_luminosities.py,
+                test-outputSelector.py,
+                test-output-tree-contiguousity.py,
+                test-CGM-mass-cooled.py,
+                test-galacticStructureStateDeallocateBug.py ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: ${{ matrix.file }}
+      artifact: galacticus-exec-debugging
       runPath: ./testSuite
     secrets: inherit
   Miscellaneous-Unexpected:

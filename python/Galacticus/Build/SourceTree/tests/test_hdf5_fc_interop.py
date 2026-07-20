@@ -6,8 +6,7 @@ every line (e.g. " herr_t = c_int").  An earlier draft used `re.match`
 and left the build emitting bare `integer(kind=herr_t)` declarations the
 Fortran compiler couldn't resolve.
 
-The fix uses `re.search` so the regex floats past the leading whitespace,
-matching Perl's `$line =~ m/(\S+)\s*=\s*(\S+)/`.
+The fix uses `re.search` so the regex floats past the leading whitespace.
 """
 
 import textwrap

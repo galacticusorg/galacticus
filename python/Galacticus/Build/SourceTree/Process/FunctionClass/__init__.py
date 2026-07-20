@@ -1,7 +1,6 @@
 """Processes `functionClass` directives: the cornerstone of the Galacticus
 functionClass infrastructure.  This is the first slice (D.7.3a) of a
-three-part port of perl/Galacticus/Build/SourceTree/Process/FunctionClass.pm
-(3105 Perl lines):
+three-part port:
 
   * D.7.3a (this PR) — scaffolding: directive collection, class
     discovery + topo-sort, small method stubs (stateStore / stateRestore /
@@ -51,15 +50,14 @@ from Galacticus.Build.SourceTree.Process.SourceIntrospection import location
 
 
 # ---------------------------------------------------------------------------
-# Small formatting helpers (local equivalents of tiny Perl utilities)
+# Small formatting helpers
 # ---------------------------------------------------------------------------
 
 def _format_variable_definitions(declarations):
     """Render a list of declaration dicts into Fortran declaration lines.
 
-    Lightweight stand-in for Perl `Fortran::Utils::Format_Variable_Definitions`,
-    whose output is a Text::Table-aligned column layout.  We only need
-    functional equivalence here — a simple
+    The output is deliberately simple and unaligned — we only need
+    functional equivalence here, and a simple
         `<intrinsic>(<type>), <attr>, <attr> :: <var>, <var>\\n`
     per declaration is enough to keep the downstream Fortran parser /
     compiler happy.  Matches the subset of features
@@ -87,10 +85,7 @@ def _format_variable_definitions(declarations):
 
 
 def _source_digest_binding(name):
-    """Return the C-binding declaration for the per-class MD5 symbol.
-
-    Mirrors SourceDigest::Binding() at SourceDigest.pm:60-65.
-    """
+    """Return the C-binding declaration for the per-class MD5 symbol."""
     return (
         f'   character(C_Char), dimension(23), bind(C, name="{name}MD5") '
         f':: {name}5\n'
@@ -143,17 +138,15 @@ _LATEX_ESCAPES = {
 
 
 def _latex_encode(s):
-    """Minimal LaTeX special-character escape.  Matches the subset of
-    Perl `LaTeX::Encode::latex_encode` that FunctionClass.pm relies on.
+    """Minimal LaTeX special-character escape covering the subset of
+    characters this pipeline needs.
     """
     return ''.join(_LATEX_ESCAPES.get(c, c) for c in str(s))
 
 
-# Module-level caches.  Perl declares both with `our` so subroutines that
-# `use` this module can read them via the `Process::FunctionClass::<name>`
-# aliases in DeepCopy.pm / StateStore.pm.  The Python helpers take the
-# state explicitly as parameters, so we only use these to avoid repeat
-# parses of the XML files within a single `process_function_class` run.
+# Module-level caches.  The helpers take the state explicitly as
+# parameters, so these exist only to avoid repeat parses of the XML files
+# within a single `process_function_class` run.
 _STATE_STORABLES_CACHE  = None
 _DEEP_COPY_ACTIONS_CACHE = None
 
@@ -194,8 +187,6 @@ def _function_class_instances(state_storables):
 def _is_function_class_pointer(declaration, type_name, state_storables):
     """Return True if `declaration` is a pointer to a registered
     functionClass (or functionClassInstance) whose type is `type_name`.
-
-    Mirrors isFunctionClassPointer() at FunctionClass.pm:1467-1478.
     """
     if declaration.get('intrinsic') not in ('class', 'type'):
         return False
@@ -207,10 +198,7 @@ def _is_function_class_pointer(declaration, type_name, state_storables):
 
 
 def _init_code_content():
-    """Return `(code_content, pre_contains, post_contains)`.
-
-    Mirrors initCodeContent() at FunctionClass.pm:181-214.
-    """
+    """Return `(code_content, pre_contains, post_contains)`."""
     code_content = {
         'module': {
             'preContains':  [],
@@ -243,8 +231,6 @@ def _code_node(content=''):
 def _build_base_method_stubs(directive, methods):
     """Populate `methods` with the default `stateStore`, `stateRestore`,
     `autoHook`, and (optional) `destructor` entries.
-
-    Mirrors buildBaseMethodStubs() at FunctionClass.pm:1480-1546.
     """
     iso_c_module = [{
         'name':      'ISO_C_Binding',
@@ -314,8 +300,6 @@ def _build_base_method_stubs(directive, methods):
 def _build_object_type_method(directive, non_abstract_classes, methods):
     """Populate `methods['objectType']` with the select-type ladder that
     returns the concrete class name (or its short form).
-
-    Mirrors buildObjectTypeMethod() at FunctionClass.pm:1548-1586.
     """
     directive_name = directive['name']
     code = (
@@ -326,9 +310,9 @@ def _build_object_type_method(directive, non_abstract_classes, methods):
     )
     for non_abstract in non_abstract_classes:
         class_name = non_abstract['name']
-        # shortName is computed the same way loadAndSortClasses does — Perl
-        # uses lcfirst unless the remainder is already an all-caps acronym
-        # of 2+ letters.
+        # shortName is computed the same way loadAndSortClasses does —
+        # lowercase the first letter unless the remainder is already an
+        # all-caps acronym of 2+ letters.
         type_short = class_name
         if type_short.startswith(directive_name):
             type_short = type_short[len(directive_name):]
@@ -363,8 +347,7 @@ def _load_and_sort_classes(directive, directive_locations):
     `class_dependencies`, topo-sort, and build the short-name / abstract
     metadata that downstream method builders consume.
 
-    Mirrors loadAndSortClasses() at FunctionClass.pm:104-179.  Returns
-    `(classes_by_type, classes_ordered, non_abstract_classes)`.
+    Returns `(classes_by_type, classes_ordered, non_abstract_classes)`.
     """
     class_locations = list(as_array(
         (directive_locations.get(directive['name']) or {}).get('file')))
@@ -376,9 +359,7 @@ def _load_and_sort_classes(directive, directive_locations):
     for class_location in class_locations:
         class_tree = parse_file(class_location)
         # Process the class tree so Class_Dependencies sees post-processing
-        # structure (declarations, visibilities, etc.).  The Perl call
-        # passes `errorTolerant => 1` — an option ProcessTree does not
-        # consume anywhere in the Perl codebase, so a no-op.
+        # structure (declarations, visibilities, etc.).
         process_tree(class_tree)
 
         class_record, class_deps = class_dependencies(
@@ -468,10 +449,9 @@ def _insert_and_write_output(node, code_content, pre, post, classes, directive):
     the enclosing module.  Additionally, write any per-class submodule
     files to disk.
 
-    Mirrors insertAndWriteOutput() at FunctionClass.pm:1401-1465.  The
-    File::Changes "only if different" semantics are approximated by
-    writing to a temp file and renaming only when the content actually
-    differs (using a simple `os.path.exists` + `open/read` compare).
+    Files are updated only if their content actually changed: write to a
+    temp file and rename only when the content differs (using a simple
+    `os.path.exists` + `open/read` compare).
     """
     tree_pre  = parse_code(
         pre['content'],
@@ -527,8 +507,7 @@ def _insert_and_write_output(node, code_content, pre, post, classes, directive):
         prepend_child_to_node(file_node, [submodule_node])
 
         # Detach any existing links on the pre/post children before
-        # attaching them to the fresh submodule tree (parallels the loop at
-        # FunctionClass.pm:1447-1451).
+        # attaching them to the fresh submodule tree.
         block = code_content['submodule'][class_name]
         for kid in block.get('preContains', []) + block.get('postContains', []):
             kid['parent']  = None
@@ -546,10 +525,8 @@ def _insert_and_write_output(node, code_content, pre, post, classes, directive):
 
 
 def _update_if_changed(target, tmp):
-    """Move `tmp` over `target` only when their contents differ.  Best-effort
-    replacement for the Perl `File::Changes::Update(…, proveUpdate => 'yes')`
-    used by the Perl port; full line-mapping support (the `.lmap` sidecar)
-    is out of scope for this slice.
+    """Move `tmp` over `target` only when their contents differ.  Full
+    line-mapping support (the `.lmap` sidecar) is not implemented.
     """
     if os.path.exists(target):
         try:
@@ -570,10 +547,9 @@ def _update_if_changed(target, tmp):
 # ---------------------------------------------------------------------------
 
 def _levenshtein(a, b):
-    """Iterative Wagner-Fischer edit distance.  Stand-in for Perl
-    Text::Levenshtein::distance used by buildDescriptorMethods when it
-    suggests a "did you mean" alternative for mis-matched parameter
-    names.
+    """Iterative Wagner-Fischer edit distance.  Used by
+    buildDescriptorMethods when it suggests a "did you mean" alternative
+    for mis-matched parameter names.
     """
     if a == b:
         return 0
@@ -617,10 +593,7 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
                            `extends(...)` opener.
       - `failure_message`: list of human-readable reasons the auto
                            descriptor can't be built.
-      - `supported` (int): 1 OK, <1 an explicit failure code per Perl.
-
-    Mirrors the discovery half of buildDescriptorMethods() at
-    FunctionClass.pm:1620-1829.
+      - `supported` (int): 1 OK, <1 an explicit failure code.
     """
     from Galacticus.Build.SourceTree.Process.FunctionClass.Descriptor import (
         potential_descriptor_parameters,
@@ -719,8 +692,7 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
             name   = node['name']
             sig_re = (
                 r'^\s*(recursive\s+)??function\s+' + re.escape(name)
-                + r'\s*\(\s*parameters\s*'
-                + r'(,\s*recursiveConstruct\s*,\s*recursiveSelf\s*)??\)'
+                + r'\s*\(\s*parameters\s*\)'
             )
             if re.match(sig_re, opener):
                 result_m = re.search(
@@ -875,8 +847,7 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
                             failure_message.append(
                                 f"could not find a matching internal object "
                                 f"for object [{obj_name}]")
-        # Perl iterates by descending into `contains` (which holds the
-        # post-contains procedures as children).  In our parse `contains`
+        # In our parse `contains`
         # is a self-closing sibling marker — every post-contains procedure
         # is its sibling, so a plain sibling-walk visits them naturally.
         node = node.get('sibling')
@@ -899,7 +870,7 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
     with the auto-descriptor code that serialises the class's parameter
     constructor into an inputParameters tree.
 
-    Mirrors buildDescriptorMethods() at FunctionClass.pm:1588-2227.  This
+    This
     sub-step (5a) implements the discovery pass and registers a skeleton
     descriptor method with the outer select-type frame; the per-class
     descriptor body (5b) and the hashedDescriptor companion (5c) follow.
@@ -1422,8 +1393,7 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
         # Loop indices for the runtime-file-dependency section and the
         # parameter-loop section share the names i1, i2, …, so we want a
         # single `integer :: i1, …, iN` declaration covering the larger of
-        # the two ranks.  Emitting both separately (matching Perl literally,
-        # which has the same two-emission flaw) produces duplicate
+        # the two ranks.  Emitting both separately produces duplicate
         # `integer :: i1` declarations and gfortran rejects with "Symbol
         # 'i1' at (1) already has basic type of INTEGER".  Fold the
         # file-dependency rank into the running max so the parameter-loop
@@ -1483,7 +1453,7 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
         'code':        descriptor_code,
     }
 
-    # --- hashedDescriptor (mirrors FunctionClass.pm:2157-2227) ---
+    # --- hashedDescriptor ---
     directive_name = directive['name']
     hashed = (
         "logical                        :: includeSourceDigest_\n"
@@ -1549,8 +1519,6 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
     """Populate `methods['allowedParameters']` with the nested
     select-type ladder that announces every parameter name a class
     accepts via its inputParameter / objectBuilder directives.
-
-    Mirrors buildAllowedParametersMethod() at FunctionClass.pm:2230-2535.
     """
     from Galacticus.Build.SourceTree.Process.FunctionClass.LinkedList import (
         allowed_parameters_linked_list,
@@ -1591,30 +1559,27 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
             inner = inner.get('sibling')
 
         # Walk the whole class tree looking for a function named
-        # <constructor>(parameters [, recursiveConstruct, recursiveSelf]).
+        # <constructor>(parameters).
         node = (class_rec.get('tree') or {}).get('firstChild')
         while node is not None:
             if (node.get('type') == 'function'
                     and node.get('name') in constructors):
                 opener = node.get('opener') or ''
                 name   = node['name']
-                # Match `function NAME(parameters [, recursiveConstruct,
-                # recursiveSelf])` with an optional `recursive` prefix.
-                # The mandatory whitespace lives INSIDE the
-                # `(recursive\s+)?` group so non-recursive openers (which
-                # have no leading word and no whitespace) match too —
-                # the previous form `(recursive)??\s+function` required
-                # whitespace before `function` unconditionally and
-                # therefore missed every non-recursive constructor,
-                # leaving the `objects` accumulator empty and the
-                # generated `allowedParameters` method without its
-                # `if (associated(self%X_)) call self%X_%allowedParameters
-                # (allowedParameters,'parameters',.true.)` lines for
-                # nested object pointers.
+                # Match `function NAME(parameters)` with an optional
+                # `recursive` prefix. The mandatory whitespace lives INSIDE
+                # the `(recursive\s+)?` group so non-recursive openers (which
+                # have no leading word and no whitespace) match too — the
+                # previous form `(recursive)??\s+function` required whitespace
+                # before `function` unconditionally and therefore missed every
+                # non-recursive constructor, leaving the `objects` accumulator
+                # empty and the generated `allowedParameters` method without
+                # its `if (associated(self%X_)) call self%X_%allowedParameters
+                # (allowedParameters,'parameters',.true.)` lines for nested
+                # object pointers.
                 sig_re = (
                     r'^\s*(recursive\s+)?function\s+' + re.escape(name)
-                    + r'\s*\(\s*parameters\s*'
-                    + r'(\s*,\s*recursiveConstruct\s*,\s*recursiveSelf\s*)??\)'
+                    + r'\s*\(\s*parameters\s*\)'
                 )
                 if re.match(sig_re, opener):
                     result_m = re.search(
@@ -1963,8 +1928,6 @@ def _build_assignment_method(directive, non_abstract_classes, classes,
                              methods, state_storables):
     """Populate `methods['assignment(=)']` with the defined-assignment
     operator overload.
-
-    Mirrors buildAssignmentMethod() at FunctionClass.pm:2537-2683.
     """
     from Galacticus.Build.SourceTree.Process.FunctionClass.DeepCopy import (
         generate_assignment_allocatable_code,
@@ -2183,8 +2146,6 @@ def _build_deep_copy_methods(directive, non_abstract_classes, classes,
                              state_storables, deep_copy_actions):
     """Populate `methods` with `deepCopy`, `deepCopy_`, `deepCopyReset`,
     `deepCopyFinalize`.
-
-    Mirrors buildDeepCopyMethods() at FunctionClass.pm:2685-2845.
     """
     from Galacticus.Build.SourceTree.Process.FunctionClass.DeepCopy   import (
         deep_copy_declarations,
@@ -2211,7 +2172,12 @@ def _build_deep_copy_methods(directive, non_abstract_classes, classes,
 
     deep_copy['resetCode']    += "self%copiedSelf => null()\n"
     deep_copy['resetCode']    += "select type (self)\n"
-    deep_copy['finalizeCode'] += "self%copiedSelf => null()\n"
+    # NOTE (issue #695, D4): deepCopyFinalize deliberately does NOT null copiedSelf. A generated recursive shim
+    # (<name>Recursive) resolves its weak recursiveSelf pointer to the copy of the real object via
+    # recursiveSelf%copiedSelf, and that resolution runs during deepCopyFinalize. Because finalize is top-down and
+    # the real object is an ancestor of the shim, nulling copiedSelf here would clear it before the shim could read
+    # it. copiedSelf is only ever read inside a deepCopy operation, which always begins with deepCopyReset nulling
+    # it, so leaving it stale between operations is harmless.
     deep_copy['finalizeCode'] += "select type (self)\n"
     deep_copy['code']         += "select type (self)\n"
 
@@ -2403,8 +2369,6 @@ def _build_state_store_methods(directive, non_abstract_classes, classes,
                                methods, state_storables):
     """Populate `methods` with `stateStore`, `stateStore_`, `stateRestore`,
     `stateRestore_`.
-
-    Mirrors buildStateStoreMethods() at FunctionClass.pm:2847-3101.
     """
     from Galacticus.Build.SourceTree.Process.FunctionClass.StateStore  import (
         state_store_variables, state_store_explicit_function,
@@ -2467,29 +2431,10 @@ def _build_state_store_methods(directive, non_abstract_classes, classes,
         state_store_code   += f"type is ({non_abstract['name']})\n"
         state_restore_code += f"type is ({non_abstract['name']})\n"
 
-        if non_abstract.get('recursive') == 'yes':
-            state_store_code   += "if (self%isRecursive) then\n"
-            state_store_code   += (
-                " call displayUnindent('recursive copy - moving to actual',"
-                "verbosity=verbosityLevelWorking)\n"
-            )
-            state_store_code   += (
-                " call self%recursiveSelf%stateStore  "
-                "(stateFile,gslStateFile,stateOperationID)\n"
-            )
-            state_store_code   += " return\n"
-            state_store_code   += "end if\n"
-            state_restore_code += "if (self%isRecursive) then\n"
-            state_restore_code += (
-                " call displayUnindent('recursive copy - moving to actual',"
-                "verbosity=verbosityLevelWorking)\n"
-            )
-            state_restore_code += (
-                " call self%recursiveSelf%stateRestore"
-                "(stateFile,gslStateFile,stateOperationID)\n"
-            )
-            state_restore_code += " return\n"
-            state_restore_code += "end if\n"
+        # NOTE (issue #695): a recursive="yes" class's shim is now a distinct
+        # generated type (<name>Recursive) that overrides stateStore/stateRestore
+        # to forward to recursiveSelf, so the concrete class no longer needs an
+        # isRecursive short-circuit here.
 
         state_store_code   += (
             "if (self%stateOperationID == stateOperationID) then\n")
@@ -2560,7 +2505,7 @@ def _build_state_store_methods(directive, non_abstract_classes, classes,
             if ll_module:
                 state_stores['stateStoreModules'][ll_module] = True
 
-            # Explicit stateStore function (at class level, per Perl).
+            # Explicit stateStore function (at class level).
             ss_block = non_abstract.get('stateStore') or {}
             if (isinstance(ss_block, dict)
                     and isinstance(ss_block.get('stateStore'), dict)
@@ -2577,7 +2522,7 @@ def _build_state_store_methods(directive, non_abstract_classes, classes,
             cls = (None if cls.get('extends') == directive['name']
                    else classes.get(cls.get('extends')))
 
-        # Directive-level excludes (NB: per the Perl, this resets excludes
+        # Directive-level excludes (NB: this deliberately resets excludes
         # AFTER the per-class walk — so any base-class <data> processed below
         # uses the directive-level excludes list).
         ss_block = directive.get('stateStorable') or {}
@@ -2803,8 +2748,6 @@ def _generate_type_definition(directive, methods, pre, node):
     """Emit the `type, extends(...) :: <name>Class` block with methods
     table, generic interfaces, destructor binding, and the module-level
     data declarations.
-
-    Mirrors generateTypeDefinition() at FunctionClass.pm:216-417.
     """
     parent = node['parent']
     directive_name = directive['name']
@@ -2941,9 +2884,8 @@ def _generate_type_definition(directive, methods, pre, node):
 def _method_arguments_to_latex(method):
     """Render each of a method's argument declarations to the LaTeX
     notation FunctionClass embeds into the <methods>/<description>
-    metadata.  Mirrors the nested-regex loop at lines 267-308 of
-    generateTypeDefinition; we lean on our existing `parse_declaration`
-    rather than the Perl-style INTRINSIC_DECLARATIONS indices.
+    metadata.  We lean on our existing `parse_declaration` rather than
+    indexing into INTRINSIC_DECLARATIONS directly.
     """
     args = list(as_array(method.get('argument') or []))
     if not args:
@@ -2979,8 +2921,6 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
     """Emit the `<name>CnstrctrPrmtrs` parameter-driven constructor +
     associated interface + the recursive-build state variables when any
     class opts into recursion.
-
-    Mirrors generateConstructor() at FunctionClass.pm:419-593.
     """
     directive_name = directive['name']
     parent = node['parent']
@@ -2994,14 +2934,11 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
         c.get('recursive') == 'yes' for c in classes_ordered
     )
     if allow_recursion:
-        pre['content'] += (
-            f'   type(inputParameter), pointer :: '
-            f'{directive_name}RecursiveBuildNode => null()\n'
-            f'   class({directive_name}Class), pointer :: '
-            f'{directive_name}RecursiveBuildObject => null()\n'
-            f'   !$omp threadprivate({directive_name}RecursiveBuildNode,'
-            f'{directive_name}RecursiveBuildObject)\n\n'
-        )
+        # A recursive="yes" class detects a bounded construction cycle -- a re-entrant build that re-discovers the
+        # node currently under construction -- by querying the shared object-build stack (see the short-circuit
+        # below), rather than via the per-family thread-private RecursiveBuildNode/RecursiveBuildObject module
+        # variables used previously. The object under construction is recorded on the stack entry by the factory
+        # (Input_Parameters_Build_Stack_Object_Set) after allocation but before dispatch. See issue #695.
         add_uses(parent, {
             'moduleUse': {
                 'Input_Parameters': {'intrinsic': False, 'all': True},
@@ -3049,7 +2986,8 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
     post['content'] += (
         '      use :: Input_Parameters  , only : inputParameter         , '
         'inputParameters        , Input_Parameters_Build_Stack_Push, '
-        'Input_Parameters_Build_Stack_Pop\n'
+        'Input_Parameters_Build_Stack_Pop, Input_Parameters_Build_Stack_Object_Set, '
+        'Input_Parameters_Build_Stack_Recursive_Object\n'
         '      use :: Locks  , only : ompLock\n'
         '      use :: Error  , only : Error_Report\n'
         '      use :: ISO_Varying_String, only : varying_string         , '
@@ -3067,6 +3005,13 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
             '      type     (ompLock        ), save                    :: addLock\n'
             '      logical                   , save                    :: addLockInitialized=.false.\n'
             '      logical                                             :: needLock\n'
+        )
+    if allow_recursion:
+        # Weak pointer to the object already under construction for the re-discovered node, returned by the
+        # object-build-stack query used to detect a bounded construction cycle (issue #695). A recursive="yes"
+        # class implies a <default>, so `parameterNode` above is always declared alongside this.
+        post['content'] += (
+            '      class    (*               ), pointer                 :: recursiveObject\n'
         )
     post['content'] += (
         '      type     (varying_string )                          '
@@ -3119,52 +3064,46 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
             '        subParameters=parameters%subParameters(char(parameterName_))\n'
             f'        allocate({target_name} :: self)\n'
         )
-        if match is not None and match.get('recursive') == 'yes':
-            post['content'] += (
-                f'        {directive_name}RecursiveBuildNode   => parameterNode\n'
-                f'        {directive_name}RecursiveBuildObject => self\n'
-            )
         post['content'] += (
             '        call Input_Parameters_Build_Stack_Push(subParameters%parameters,'
             f"'{directive_name}',{'.true.' if allow_recursion else '.false.'},{loc_expr})\n"
+        )
+        if match is not None and match.get('recursive') == 'yes':
+            # Record the in-progress object on the build-stack entry so a re-entrant build that re-discovers this
+            # node can retrieve it and return a shim wired to it (issue #695).
+            post['content'] += (
+                '        call Input_Parameters_Build_Stack_Object_Set(self)\n'
+            )
+        post['content'] += (
             '        select type (self)\n'
             f'          type is ({target_name})\n'
             f'            self={target_name}(subParameters)\n'
             '         end select\n'
             '        call Input_Parameters_Build_Stack_Pop()\n'
         )
-        if match is not None and match.get('recursive') == 'yes':
-            post['content'] += (
-                f'        {directive_name}RecursiveBuildNode   => null()\n'
-                f'        {directive_name}RecursiveBuildObject => null()\n'
-            )
         post['content'] += '         call parameterNode%objectSet(self)\n'
         post['content'] += '      else\n'
 
     if allow_recursion:
+        # Detect a bounded construction cycle: query the object-build stack for an in-progress object being built
+        # for this same node and class. If found, this build has re-discovered the node currently under
+        # construction, so return the generated shim type -- carrying only a weak recursiveSelf pointer back to the
+        # in-progress object -- instead of building again. See issue #695.
+        shim_type = directive_name + 'Recursive'
         post['content'] += (
             '        parameterNode => parameters%node'
             '(char(parameterName_),requireValue=.true.)\n'
-            f'        if (associated(parameterNode,'
-            f'{directive_name}RecursiveBuildNode)) then\n'
-        )
-        for c in non_abstract_classes:
-            if c.get('recursive') != 'yes':
-                continue
-            class_name = c['name']
-            post['content'] += (
-                f'           select type ({directive_name}RecursiveBuildObject)\n'
-                f'              type is ({class_name})\n'
-                f'              allocate({class_name} :: self)\n'
-                '              select type (self)\n'
-                f'              type is ({class_name})\n'
-                '                 self%isRecursive=.true.\n'
-                f'                 self%recursiveSelf => '
-                f'{directive_name}RecursiveBuildObject\n'
-                '              end select\n'
-                '           end select\n'
-            )
-        post['content'] += (
+            f'        recursiveObject => Input_Parameters_Build_Stack_Recursive_Object'
+            f"(parameterNode,'{directive_name}')\n"
+            '        if (associated(recursiveObject)) then\n'
+            f'           allocate({shim_type} :: self)\n'
+            '           select type (self)\n'
+            f'           type is ({shim_type})\n'
+            '              select type (recursiveObject)\n'
+            f'              class is ({directive_name}Class)\n'
+            '                 self%recursiveSelf => recursiveObject\n'
+            '              end select\n'
+            '           end select\n'
             '           if (needLock) call addLock%unset()\n'
             '           return\n'
             '        end if\n'
@@ -3185,9 +3124,10 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
         post['content'] += f"     case ('{name}')\n"
         post['content'] += f"        allocate({c['name']} :: self)\n"
         if c.get('recursive') == 'yes':
+            # Record the in-progress object on the (already-pushed) build-stack entry so a re-entrant build that
+            # re-discovers this node can retrieve it and return a shim wired to it (issue #695).
             post['content'] += (
-                f"        {directive_name}RecursiveBuildNode   => parameterNode\n"
-                f"        {directive_name}RecursiveBuildObject => self\n"
+                '        call Input_Parameters_Build_Stack_Object_Set(self)\n'
             )
         post['content'] += (
             '        select type (self)\n'
@@ -3195,11 +3135,6 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
             f"            self={c['name']}(subParameters)\n"
             '         end select\n'
         )
-        if c.get('recursive') == 'yes':
-            post['content'] += (
-                f"        {directive_name}RecursiveBuildNode   => null()\n"
-                f"        {directive_name}RecursiveBuildObject => null()\n"
-            )
     post['content'] += '      case default\n'
     post['content'] += (
         "         message='Unrecognized type \"'//trim(instanceName)//'\" "
@@ -3230,7 +3165,7 @@ def _generate_class_submodules(directive, classes_ordered, non_abstract_classes,
     """Populate `code_content['submodule'][<class>]` and append module-level
     interfaces/declarations for every class in the hierarchy.
 
-    Mirrors generateClassSubmodules() at FunctionClass.pm:595-1024.  Walks
+    Walks
     each class's parsed tree, partitioning its content between:
       - the per-class submodule (interior functions, private declarations,
         submodule-scoped variables),
@@ -3386,8 +3321,6 @@ def _emit_submodule_function_interface(class_node, code_content,
     `code_content['module']['interfaces']`.  Also capture the type names
     used in the interface into `module_symbols` so add_uses can later
     import them.
-
-    Mirrors the branch at FunctionClass.pm:657-813.
     """
     interface_opener = _code_node_submodule()
     interface_opener['content'] = 'interface\n'
@@ -3499,8 +3432,7 @@ def _split_external_or_procedure(declaration, function_node,
                                  module_symbols):
     """Split an `external` or `procedure` declaration between module scope
     (dummy-argument matches → interface) and submodule scope (every other
-    variable → local declarations).  Mirrors lines 706-759 of
-    generateClassSubmodules.
+    variable → local declarations).
     """
     from Fortran.Utils import UNIT_OPENERS
     from copy import deepcopy
@@ -3549,8 +3481,7 @@ def _handle_pre_contains_node(class_node, directive, code_content, block,
                               parent, module_scoped, module_symbols,
                               module_use_nodes, submodule_pre):
     """Dispatch a single pre-contains class-tree node to the right output
-    partition.  Mirrors the large if/elif ladder at lines 815-985 of
-    generateClassSubmodules.
+    partition.
     """
     ntype = class_node.get('type')
     directive_name = directive['name']
@@ -3598,7 +3529,7 @@ def _collect_type_bindings_and_module_symbols(class_node, block,
                                               module_symbols):
     """For a `type` node, accumulate the names of bound procedures (→
     block['interfaces']) and the types referenced pre-contains
-    (→ module_symbols).  Mirrors lines 843-880 of generateClassSubmodules.
+    (→ module_symbols).
     """
     post_contains = False
     type_node = class_node.get('firstChild')
@@ -3633,8 +3564,6 @@ def _partition_declaration(class_node, code_content, module_scoped,
                            module_symbols, submodule_pre):
     """Split a `declaration` node's variables into module-scope (public or
     listed in `<scoping>`) vs submodule-scope, rebuilding both sides.
-
-    Mirrors lines 889-980 of generateClassSubmodules.
     """
     from copy import deepcopy
     submodule_declarations = []
@@ -3721,8 +3650,6 @@ def _generate_method_functions(directive, methods, post, node):
     directive-supplied `<code>` block, or calls Error_Report with a
     "null method" message that names the object's concrete class at
     runtime.
-
-    Mirrors generateMethodFunctions() at FunctionClass.pm:1026-1167.
     """
     directive_name = directive['name']
     loc_expr = location(node, node.get('line', 0))
@@ -3871,10 +3798,285 @@ def _generate_method_functions(directive, methods, post, node):
         post['content'] += f'   end {category} {function_name}\n\n'
 
 
+# Framework methods that the recursive shim handles explicitly (i.e. NOT by
+# forwarding to recursiveSelf via the physics-method path). Everything else in
+# the family's `methods` map is a physics method that the shim forwards.
+_SHIM_FRAMEWORK_METHODS = {
+    'stateStore', 'stateRestore', 'stateStore_', 'stateRestore_',
+    'autoHook', 'deepCopy', 'deepCopy_', 'deepCopyReset', 'deepCopyFinalize',
+    'descriptor', 'hashedDescriptor', 'allowedParameters', 'objectType',
+}
+
+def _shim_forward_argument_names(method):
+    """Return the comma-separated actual-argument list for forwarding a call
+    of `method` to recursiveSelf, reconstructed from the argument
+    declarations exactly as _generate_method_functions builds its
+    argument_list (so optional arguments propagate their presence)."""
+    argument_list = ''
+    separator = ''
+    for arg in as_array(method.get('argument') or []):
+        parts = arg.split('::', 1)
+        variables = parts[1].strip() if len(parts) == 2 else ''
+        if re.match(r'^\s*!\$', arg) is not None:
+            argument_list += ' &\n!$ & ' + separator + variables + ' &\n& '
+        else:
+            argument_list += separator + variables
+        separator = ','
+    return argument_list
+
+
+def _generate_recursive_shim(directive, methods, non_abstract_classes,
+                             pre, post, node):
+    """Emit the generated shim type `<name>Recursive` for a functionClass
+    family that contains a recursive="yes" class (issue #695).
+
+    The shim is a lightweight stand-in returned by the factory when a bounded
+    construction cycle re-discovers the object currently under construction. It
+    holds only a weak `recursiveSelf` back-pointer to that object and forwards
+    every method to it; deepCopy, stateStore, descriptor, autoHook and
+    allowedParameters are handled centrally here rather than by ~100 lines of
+    hand-written per-class boilerplate.
+    """
+    parent = node['parent']
+    directive_name = directive['name']
+    shim_type = directive_name + 'Recursive'
+    loc_expr = location(node, node.get('line', 0))
+
+    set_visibility(parent, shim_type, 'public')
+
+    physics = [
+        m for m in sorted(methods)
+        if m not in _SHIM_FRAMEWORK_METHODS
+        and m not in ('destructor', 'assignment(=)')
+    ]
+
+    # ---- type definition ----
+    pre['content'] += f'   type, extends({directive_name}Class) :: {shim_type}\n'
+    pre['content'] += (
+        '     !!{\n'
+        f'     A generated shim for the \\refClass{{{directive_name}Class}} '
+        'family. Returned by the factory when a bounded construction cycle\n'
+        '     re-enters the object currently under construction; forwards every '
+        'method to the (weakly-referenced) real object. See issue \\#695.\n'
+        '     !!}\n'
+    )
+    pre['content'] += (
+        f'     class({directive_name}Class), pointer :: recursiveSelf => null()\n'
+    )
+    pre['content'] += '     logical :: parentDeferred = .false.\n'
+    pre['content'] += '    contains\n'
+    for m in physics:
+        fn = shim_type + _ucfirst(m)
+        pre['content'] += f'     procedure :: {m} => {fn}\n'
+    pre['content'] += (
+        f'     procedure :: allowedParameters => {shim_type}AllowedParameters\n'
+        f'     procedure :: autoHook          => {shim_type}AutoHook\n'
+        f'     procedure :: deepCopy          => {shim_type}DeepCopy\n'
+        f'     procedure :: deepCopyReset     => {shim_type}DeepCopyReset\n'
+        f'     procedure :: deepCopyFinalize  => {shim_type}DeepCopyFinalize\n'
+        f'     procedure :: descriptor        => {shim_type}Descriptor\n'
+        f'     procedure :: hashedDescriptor  => {shim_type}HashedDescriptor\n'
+        f'     procedure :: objectType        => {shim_type}ObjectType\n'
+        f'     procedure :: stateStore        => {shim_type}StateStore\n'
+        f'     procedure :: stateRestore      => {shim_type}StateRestore\n'
+        f'     procedure :: isRecursiveShim   => {shim_type}IsRecursiveShim\n'
+    )
+    pre['content'] += f'   end type {shim_type}\n\n'
+
+    # ---- physics-method forwarders ----
+    for m in physics:
+        method = methods[m]
+        fn = shim_type + _ucfirst(m)
+        arg_names = _shim_forward_argument_names(method)
+        # Rebuild the declaration block (self + arguments) with the shim's own
+        # passed-object type, matching the base binding's self intent/target so
+        # the override interface is compatible.
+        self_intent = method.get('selfIntent', 'inout')
+        self_target = ', target' if method.get('selfTarget') == 'yes' else ''
+        argument_code = (
+            f'      class({shim_type}), intent({self_intent}){self_target} :: self\n'
+        )
+        for arg in as_array(method.get('argument') or []):
+            argument_code += '      ' + arg + '\n'
+        method_type = method.get('type', 'void')
+        recursive_prefix = 'recursive ' if method.get('recursive') == 'yes' else ''
+        elemental_prefix = 'elemental ' if method.get('elemental') == 'yes' else ''
+        self_line = ''
+        type_prefix = ''
+        if method_type == 'void':
+            category = 'subroutine'
+        elif method_type.startswith('class'):
+            category = 'function'
+            self_line = f'      {method_type}, pointer :: {fn}\n'
+        elif method_type.startswith('type') or ',' in method_type:
+            category = 'function'
+            self_line = f'      {method_type} :: {fn}\n'
+        else:
+            category = 'function'
+            type_prefix = method_type + ' '
+        header = f'   {recursive_prefix}{elemental_prefix}{type_prefix}{category} {fn}(self'
+        if arg_names:
+            header += ',' + arg_names
+        header += ')\n'
+        post['content'] += header
+        post['content'] += '      implicit none\n'
+        post['content'] += argument_code
+        post['content'] += self_line
+        call_args = f'({arg_names})' if arg_names else '()'
+        if category == 'subroutine':
+            post['content'] += (
+                f'      call self%recursiveSelf%{m}{call_args}\n'
+            )
+        else:
+            post['content'] += (
+                f'      {fn}=self%recursiveSelf%{m}{call_args}\n'
+            )
+        post['content'] += f'   end {category} {fn}\n\n'
+
+    # ---- framework overrides ----
+    # allowedParameters: no-op (the shim owns no child objects; the real object
+    # already contributed its parameters when it was built).
+    post['content'] += (
+        f'   recursive subroutine {shim_type}AllowedParameters(self,allowedParameters,sourceName,objectsOnly)\n'
+        '      use ISO_Varying_String, only : varying_string\n'
+        '      implicit none\n'
+        f'      class    ({shim_type}   ), intent(inout)                            :: self\n'
+        '      type     (varying_string), dimension(:), allocatable, intent(inout) :: allowedParameters\n'
+        '      character(len=*         )                           , intent(in   ) :: sourceName\n'
+        '      logical                                             , intent(in   ) :: objectsOnly\n'
+        '      !$GLC attributes unused :: self, allowedParameters, sourceName, objectsOnly\n'
+        '      return\n'
+        f'   end subroutine {shim_type}AllowedParameters\n\n'
+    )
+    # autoHook: no-op. The real object already hooked itself when it was built;
+    # the objectBuilder template calls autoHook on the shim too, so forwarding
+    # or a default hook would double-register on calculationResetEvent.
+    post['content'] += (
+        f'   subroutine {shim_type}AutoHook(self)\n'
+        '      implicit none\n'
+        f'      class({shim_type}), intent(inout) :: self\n'
+        '      !$GLC attributes unused :: self\n'
+        '      return\n'
+        f'   end subroutine {shim_type}AutoHook\n\n'
+    )
+    # isRecursiveShim: identifies this object as a shim so the objectBuilder
+    # template skips caching it in the parameter node in place of the real
+    # object (issue #695).
+    post['content'] += (
+        f'   logical function {shim_type}IsRecursiveShim(self)\n'
+        '      implicit none\n'
+        f'      class({shim_type}), intent(in   ) :: self\n'
+        '      !$GLC attributes unused :: self\n'
+        f'      {shim_type}IsRecursiveShim=.true.\n'
+        f'   end function {shim_type}IsRecursiveShim\n\n'
+    )
+    # objectType / descriptor / hashedDescriptor / stateStore / stateRestore:
+    # forward to the real object.
+    post['content'] += (
+        f'   function {shim_type}ObjectType(self,short)\n'
+        '      use ISO_Varying_String, only : varying_string\n'
+        '      implicit none\n'
+        f'      type (varying_string)                            :: {shim_type}ObjectType\n'
+        f'      class({shim_type}   ), intent(inout)             :: self\n'
+        '      logical               , intent(in   ), optional :: short\n'
+        f'      {shim_type}ObjectType=self%recursiveSelf%objectType(short)\n'
+        f'   end function {shim_type}ObjectType\n\n'
+    )
+    post['content'] += (
+        f'   subroutine {shim_type}Descriptor(self,descriptor,includeClass,includeFileModificationTimes)\n'
+        '      use Input_Parameters, only : inputParameters\n'
+        '      implicit none\n'
+        f'      class({shim_type}    ), intent(inout)           :: self\n'
+        '      type (inputParameters), intent(inout)           :: descriptor\n'
+        '      logical               , intent(in   ), optional :: includeClass, includeFileModificationTimes\n'
+        '      call self%recursiveSelf%descriptor(descriptor,includeClass,includeFileModificationTimes)\n'
+        f'   end subroutine {shim_type}Descriptor\n\n'
+    )
+    post['content'] += (
+        f'   function {shim_type}HashedDescriptor(self,includeSourceDigest,includeFileModificationTimes)\n'
+        '      use ISO_Varying_String, only : varying_string\n'
+        '      implicit none\n'
+        f'      type (varying_string)                            :: {shim_type}HashedDescriptor\n'
+        f'      class({shim_type}   ), intent(inout)             :: self\n'
+        '      logical               , intent(in   ), optional :: includeSourceDigest, includeFileModificationTimes\n'
+        f'      {shim_type}HashedDescriptor=self%recursiveSelf%hashedDescriptor(includeSourceDigest,includeFileModificationTimes)\n'
+        f'   end function {shim_type}HashedDescriptor\n\n'
+    )
+    for store in ('stateStore', 'stateRestore'):
+        post['content'] += (
+            f'   subroutine {shim_type}{_ucfirst(store)}(self,stateFile,gslStateFile,stateOperationID)\n'
+            '      use, intrinsic :: ISO_C_Binding, only : c_ptr, c_size_t\n'
+            '      implicit none\n'
+            f'      class  ({shim_type}), intent(inout) :: self\n'
+            '      integer             , intent(in   ) :: stateFile\n'
+            '      type   (c_ptr      ), intent(in   ) :: gslStateFile\n'
+            '      integer(c_size_t   ), intent(in   ) :: stateOperationID\n'
+            f'      call self%recursiveSelf%{store}(stateFile,gslStateFile,stateOperationID)\n'
+            f'   end subroutine {shim_type}{_ucfirst(store)}\n\n'
+        )
+    # deepCopy: the shim is freshly mold-allocated by its owner (base fields at
+    # default, referenceCount=0 -- matching what the generated assignment's
+    # intent(out) reset produces for any copied object), so we only wire the
+    # weak recursiveSelf back-pointer to the copy of the real object. If the
+    # real object has already been copied in this operation its copiedSelf is
+    # set; otherwise we defer resolution to deepCopyFinalize (see D4 note in
+    # _build_deep_copy_methods: copiedSelf is deliberately NOT nulled during
+    # finalize, so it survives for this resolution).
+    post['content'] += (
+        f'   recursive subroutine {shim_type}DeepCopy(self,destination)\n'
+        '      use, intrinsic :: ISO_C_Binding, only : c_size_t\n'
+        '      implicit none\n'
+        f'      class({shim_type}      ), intent(inout), target :: self\n'
+        f'      class({directive_name}Class), intent(inout)     :: destination\n'
+        '      select type (destination)\n'
+        f'      type is ({shim_type})\n'
+        '         if (associated(self%recursiveSelf)) then\n'
+        '            if (associated(self%recursiveSelf%copiedSelf)) then\n'
+        '               destination%recursiveSelf  => self%recursiveSelf%copiedSelf\n'
+        '               destination%parentDeferred =  .false.\n'
+        '            else\n'
+        '               destination%recursiveSelf  => self%recursiveSelf\n'
+        '               destination%parentDeferred =  .true.\n'
+        '            end if\n'
+        '         end if\n'
+        # Match the generated deepCopy: a freshly mold-allocated copy has
+        # referenceCount=0, so reset it to 1 (a live reference held by the
+        # owner) and clear the state-store id -- otherwise the owner's
+        # objectDestructor decrements it to -1 and aborts.
+        '         call destination%referenceCountReset()\n'
+        '         destination%stateOperationID=0_c_size_t\n'
+        '      end select\n'
+        f'   end subroutine {shim_type}DeepCopy\n\n'
+    )
+    post['content'] += (
+        f'   recursive subroutine {shim_type}DeepCopyReset(self)\n'
+        '      implicit none\n'
+        f'      class({shim_type}), intent(inout) :: self\n'
+        '      self%copiedSelf => null()\n'
+        f'   end subroutine {shim_type}DeepCopyReset\n\n'
+    )
+    # deepCopyFinalize: resolve a deferred parent. recursiveSelf currently
+    # points at the ORIGINAL real object; its copiedSelf now holds the copy.
+    post['content'] += (
+        f'   recursive subroutine {shim_type}DeepCopyFinalize(self)\n'
+        '      use Error, only : Error_Report\n'
+        '      implicit none\n'
+        f'      class({shim_type}), intent(inout) :: self\n'
+        '      if (self%parentDeferred) then\n'
+        '         if (associated(self%recursiveSelf).and.associated(self%recursiveSelf%copiedSelf)) then\n'
+        '            self%recursiveSelf  => self%recursiveSelf%copiedSelf\n'
+        '            self%parentDeferred =  .false.\n'
+        '         else\n'
+        f"            call Error_Report('recursive shim parent was not copied'//{loc_expr})\n"
+        '         end if\n'
+        '      end if\n'
+        f'   end subroutine {shim_type}DeepCopyFinalize\n\n'
+    )
+
+
 def _normalise_modules(modules):
     """Normalise the `modules` entry on a method dict into a list of
-    `{name, only}` shapes.  Mirrors the `reftype($method->{'modules'})`
-    branch at generateMethodFunctions.pm:1109-1124.
+    `{name, only}` shapes.
     """
     if isinstance(modules, list):
         return [m for m in modules if isinstance(m, dict) and 'name' in m]
@@ -3893,7 +4095,7 @@ def _normalise_modules(modules):
 
 
 def process_function_class(tree, options):
-    """Mirrors Process_FunctionClass() at FunctionClass.pm:34-102.
+    """Process `functionClass` directives in the tree.
 
     In this D.7.3a slice:
      - The "early pass" that marks every functionClass descendant directive
@@ -3938,10 +4140,9 @@ def process_function_class(tree, options):
         deep_copy_actions   = _load_xml(
             'deepCopyActions.xml', _DEEP_COPY_ACTIONS_HOLDER)
 
-        # Extract `method` sub-directive into a {name: dict} map.  XML::Simple
-        # returns either a flat dict (single method) or a dict-of-dicts
-        # (keyAttr-grouped) in Perl; our xml_to_dict gives a list for
-        # multiple methods, a single dict otherwise.
+        # Extract `method` sub-directive into a {name: dict} map.
+        # xml_to_dict gives a list for multiple methods, a single dict
+        # otherwise.
         methods = {}
         raw_method = directive.get('method')
         if isinstance(raw_method, list):
@@ -3994,6 +4195,12 @@ def process_function_class(tree, options):
             directive, classes_ordered, non_abstract_classes,
             pre, code_content, node)
         _generate_method_functions(directive, methods, post, node)
+
+        # Emit the generated shim type for families that opt in to bounded
+        # construction recursion (issue #695).
+        if any(c.get('recursive') == 'yes' for c in classes_ordered):
+            _generate_recursive_shim(
+                directive, methods, non_abstract_classes, pre, post, node)
 
         _insert_and_write_output(
             node, code_content, pre, post, classes, directive)

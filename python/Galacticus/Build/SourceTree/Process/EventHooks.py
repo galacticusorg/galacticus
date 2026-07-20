@@ -5,8 +5,6 @@ restore subroutines, initializer, wait-time writer, per-call-site
 dispatch blocks, and OpenMP-parallel wrappers.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/EventHooks.pm
 """
 
 import hashlib
@@ -55,8 +53,6 @@ def _load_directive_locations():
 def _interface_type_get(hook):
     """Return the md5_hex of the hook name when an `<interface>` is declared,
     otherwise the string "Unspecified".
-
-    Mirrors interfaceTypeGet() at EventHooks.pm:722-731.
     """
     if isinstance(hook, dict) and 'interface' in hook:
         return hashlib.md5(hook['name'].encode('utf-8')).hexdigest()
@@ -82,8 +78,7 @@ def _substitute(template, subs):
     """Replace every `{$key}` occurrence in `template` with `subs[key]`.
 
     A simple targeted substitutor: keeps Fortran `{…}` sequences and LaTeX
-    `!!\\{` / `!!\\}` blocks untouched.  Matches the Perl
-    `fill_in_string(<<'CODE', PACKAGE => 'code')` idiom without pulling in a
+    `!!\\{` / `!!\\}` blocks untouched, deliberately avoiding a full
     templating engine.
     """
     out = template
@@ -140,10 +135,7 @@ end if
 
 
 def _process_event_hook_call_site(node):
-    """Handle an `<eventHook name=…/>` directive at a call site.
-
-    Mirrors EventHooks.pm:562-631.
-    """
+    """Handle an `<eventHook name=…/>` directive at a call site."""
     directive = node.setdefault('directive', {})
     directive['processed'] = True
 
@@ -191,10 +183,7 @@ call eventsHooksFilterFunction()
 
 
 def _process_openmp_opener(node):
-    """Wrap a non-closer `!$omp parallel` with copy-out + copy-in filter calls.
-
-    Mirrors EventHooks.pm:633-685.
-    """
+    """Wrap a non-closer `!$omp parallel` with copy-out + copy-in filter calls."""
     node['eventFilterInserted'] = 1
     add_uses(node['parent'], {
         'moduleUse': {
@@ -223,10 +212,7 @@ def _process_openmp_opener(node):
 
 
 def _process_openmp_closer(node):
-    """Inject a `call eventsHooksFilterRestore()` before `!$omp end parallel`.
-
-    Mirrors EventHooks.pm:687-717.
-    """
+    """Inject a `call eventsHooksFilterRestore()` before `!$omp end parallel`."""
     node['eventFilterInserted'] = 1
     add_uses(node['parent'], {
         'moduleUse': {
@@ -250,7 +236,6 @@ def _process_openmp_closer(node):
 # pair with attach/detach/isAttached.  Then, across ALL hooks, we synthesize
 # the module-level filter copy-out / copy-in / restore / copy-done subroutines,
 # the initializer, and the (OMPPROFILE-gated) wait-time writer.
-# Mirrors EventHooks.pm:33-561.
 # ---------------------------------------------------------------------------
 
 _HOOK_TYPE_TEMPLATE = """
@@ -464,9 +449,8 @@ def _parse_interface_arguments(interface_text):
     """Extract argument names from the Fortran declarations under a hook's
     `<interface>` tag.
 
-    Mirrors EventHooks.pm:46-59 in spirit: iterate each Fortran line, match
-    against the intrinsic-type patterns, and extract the variable list after
-    the `::` separator.
+    Iterates each Fortran line, matches against the intrinsic-type patterns,
+    and extracts the variable list after the `::` separator.
 
     Note that an attribute list may contain `dimension(:)` (with a colon
     inside the parens), so the line cannot be split on the first `::` found
@@ -510,14 +494,13 @@ def _render_imports_and_uses(hook, manager_parent):
     module_block  = imports_block.get('module') if isinstance(imports_block, dict) else None
     if module_block is None:
         return ''
-    # Perl supports both `{module: {name, symbols}}` (single) and
-    # `{module: {fooMod: {symbols}, barMod: {symbols}}}` (multi — keyAttr-style
-    # keyed by name).  Our xml_to_dict emits a list or a single dict, not the
-    # keyAttr grouping, so we normalise via `as_array`.
+    # The directive XML may hold one `<module>` entry or many.  xml_to_dict
+    # emits a list for many entries and a single dict for one, so normalise
+    # via `as_array`; also accept a dict keyed by module name.
     if isinstance(module_block, dict) and 'name' in module_block:
         modules = [module_block]
     elif isinstance(module_block, dict):
-        # dict keyed by name (one-level Perl-style grouping).
+        # dict keyed by module name.
         modules = [
             dict(attrs, name=name) if isinstance(attrs, dict) else {'name': name}
             for name, attrs in module_block.items()
@@ -565,8 +548,8 @@ def _emit_typed_hook_block(hook, parent_node, manager_parent):
         'location':      loc_expr,
     }
 
-    # The type block itself stays near the directive site (Perl uses
-    # InsertAfterNode for it alongside the module-level event variables).
+    # The type block itself stays near the directive site, alongside the
+    # module-level event variables.
     type_block = _substitute(_HOOK_TYPE_TEMPLATE, subs)
 
     # The subroutine bodies go after the `contains` marker of the manager's
@@ -811,7 +794,7 @@ def _emit_module_level_subs(hooks, parent_node, manager_parent):
 def _process_event_hook_manager(node):
     """Handle a single `<eventHookManager/>` directive.
 
-    Mirrors EventHooks.pm:33-561.  For each non-duplicate `<eventHook>`
+    For each non-duplicate `<eventHook>`
     discovered across all files in directiveLocations/eventHook/file:
       - If the hook declares an `<interface>`, emit the dedicated
         hook{InterfaceType} / eventHook{InterfaceType} types plus the
@@ -856,7 +839,7 @@ def _process_event_hook_manager(node):
 
 
 def process_event_hooks(tree, options):
-    """Mirrors Process_EventHooks() from EventHooks.pm."""
+    """Process event-hook related nodes throughout the tree."""
     # Materialise the walk up front because we mutate the tree as we go.
     for node in list(walk_tree(tree)):
         ntype = node.get('type')

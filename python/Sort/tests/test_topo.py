@@ -1,11 +1,10 @@
-"""Tests for `Sort.Topo.sort` (port of Perl Sort::Topo).
+"""Tests for `Sort.Topo.sort`.
 
 Recent history (commits 4ca9596d, 62314942) shows the algorithm direction
-was toggled twice during the port -- the canonical ordering convention is
-subtle ("dependencies[X] = [Y]" reads as "X depends on Y, so Y emits
-first"), and the related Perl module's docstring/algorithm mismatch
-masked the issue for years.  These tests pin down the current convention
-so any future regression is caught.
+was toggled twice -- the canonical ordering convention is subtle
+("dependencies[X] = [Y]" reads as "X depends on Y, so Y emits first").
+These tests pin down the current convention so any future regression is
+caught.
 """
 
 import pytest
@@ -57,9 +56,9 @@ def test_diamond_dependency_orders_root_first():
 
 def test_dependencies_outside_objects_set_are_ignored():
     """Names referenced in `dependencies` that aren't in `objects` must NOT
-    be added to the output, and must NOT cause an error.  Mirrors
-    Sort::Topo's tolerance of dangling references in `static_link_dependencies`-
-    style configurations."""
+    be added to the output, and must NOT cause an error -- dangling
+    references occur in `static_link_dependencies`-style configurations
+    and must be tolerated."""
     out = sort(['A', 'B'], {'B': ['A', 'X', 'Y']})
     assert set(out) == {'A', 'B'}
     assert _index(out, 'A') < _index(out, 'B')
@@ -80,8 +79,7 @@ def test_empty_objects_returns_empty_list():
 
 def test_self_dependency_raises_RuntimeError():
     """`{A: [A]}` is a degenerate cycle; the wrapper translates graphlib's
-    CycleError into a `RuntimeError("circular dependency")` to match the
-    Perl `die`."""
+    CycleError into a `RuntimeError("circular dependency")`."""
     with pytest.raises(RuntimeError, match="circular"):
         sort(['A'], {'A': ['A']})
 

@@ -3,8 +3,7 @@ of a node and reduce the results.
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/TreeNodes/Map.pm.  Five hooks
-on the `functions` phase:
+Five hooks on the `functions` phase:
 
   Tree_Node_Map_Optimizations — enumeration constants for optimized
                                 map dispatch.
@@ -40,7 +39,7 @@ _TENSOR_OPERATOR = {'summation': '+'                                    }
 def Tree_Node_Map_Optimizations(build):
     """Emit `optimizeFor<Method><Reduction>` integer parameters.
 
-    Mirrors `Tree_Node_Map_Optimizations`.  Generates one parameter per
+    Generates one parameter per
     (mappable bound function, reduction) pair, numbered from 0 upwards.
     """
     base_type = build.get('types', {}).get('nodeComponent') or {}
@@ -67,7 +66,7 @@ def Tree_Node_Map_Optimizations(build):
 def Tree_Node_Map_Void(build):
     """Generate `treeNodeMapVoid`.
 
-    Mirrors `Tree_Node_Map_Void`.  Iterates each active component class
+    Iterates each active component class
     and applies `mapFunction(self%component<Class>(i))` to every member.
     """
     function = {
@@ -107,7 +106,7 @@ def Tree_Node_Map_Void(build):
 
 
 def Tree_Node_Map_Double0(build):
-    """Generate `treeNodeMapDouble0`.  Mirrors `Tree_Node_Map_Double0`."""
+    """Generate `treeNodeMapDouble0`."""
     _build_reducing_map(
         build,
         function_name='treeNodeMapDouble0',
@@ -149,7 +148,7 @@ def Tree_Node_Map_Double0(build):
 
 
 def Tree_Node_Map_Double1(build):
-    """Generate `treeNodeMapDouble1`.  Mirrors `Tree_Node_Map_Double1`."""
+    """Generate `treeNodeMapDouble1`."""
     _build_reducing_map(
         build,
         function_name='treeNodeMapDouble1',
@@ -194,7 +193,7 @@ def Tree_Node_Map_Double1(build):
 
 
 def Tree_Node_Map_TensorR2D3(build):
-    """Generate `treeNodeMapTensorR2D3`.  Mirrors `Tree_Node_Map_TensorR2D3`."""
+    """Generate `treeNodeMapTensorR2D3`."""
     _build_reducing_map(
         build,
         function_name='treeNodeMapTensorR2D3',
@@ -297,8 +296,8 @@ def _build_reducing_map(build, *, function_name, method_name, result_var,
         for reduction in bf['mappable'].split(':'):
             if reduction not in identity:
                 # Reduction not supported by this map kind (e.g. tensor
-                # has no `product`). Match Perl: KeyError-on-undef,
-                # which is benign when the table simply omits an entry.
+                # has no `product`) — benign when the table simply omits
+                # an entry.
                 continue
             else_ = '' if first_optimization else 'else '
             content += (
@@ -369,8 +368,7 @@ def _has_mappable_bound_functions(base_type):
 
 def _active_classes(build):
     """Yield each component-class dict whose name is in
-    `componentClassListActive`.  Mirrors the Perl pattern of
-    `foreach class ( hashList(componentClasses) ) { next unless grep ... }`.
+    `componentClassListActive`.
     """
     active = set(build.get('componentClassListActive') or [])
     for class_dict in (build.get('componentClasses') or {}).values():
@@ -381,8 +379,6 @@ def _active_classes(build):
 def _class_overrides(class_dict, method_name):
     """Return True if any member of `class_dict` carries a binding whose
     `method` field matches `method_name`.
-
-    Mirrors the Perl `grep {…} map {@{$_->{'bindings'}->{'binding'}}} @members`.
     """
     for member in class_dict.get('members') or []:
         bindings = (member.get('bindings') or {}).get('binding') or []
@@ -409,7 +405,8 @@ def _ucfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Map.pm:23-29.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('treeNodeMap', 'functions', Tree_Node_Map_Optimizations)

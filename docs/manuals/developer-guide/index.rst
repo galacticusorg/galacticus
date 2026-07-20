@@ -5,6 +5,7 @@ Developer Guide
    :maxdepth: 2
 
    development
+   editor-setup
    coding
    continuous-integration
    methods

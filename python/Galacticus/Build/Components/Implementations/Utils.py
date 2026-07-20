@@ -2,7 +2,6 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/Implementations/Utils.pm.
 Two hooks on `functions`:
   - Implementation_Is_Active      — emits one `<member>IsActive`
                                     boolean accessor per (class, member).
@@ -27,7 +26,7 @@ logger = logging.getLogger(__name__)
 def Implementation_Is_Active(build):
     """Generate one `<class><Member>IsActive` per (class, member).
 
-    Mirrors `Implementation_Is_Active`.  Each function reads the
+    Each function reads the
     matching `IsActiveValue` module variable.
     """
     for class_dict in (build.get('componentClasses') or {}).values():
@@ -58,9 +57,8 @@ def Implementation_Is_Active(build):
 def Implementation_Function_Iterator(build):
     """Drive the `implementationIteratedFunctions` phase.
 
-    Mirrors `Implementation_Function_Iterator`.  Walks the
-    `component_utils` registry; for every owner that registered any
-    `implementationIteratedFunctions`, calls each function once per
+    Walks the `component_utils` registry; for every owner that registered
+    any `implementationIteratedFunctions`, calls each function once per
     `(class, member)` pair.
     """
     for owner_name in sorted(component_utils.keys()):
@@ -82,13 +80,13 @@ def Implementation_Function_Iterator(build):
 
 
 # ---------------------------------------------------------------------------
-# Free helpers shared with sister modules — exact ports of the Perl
-# `hasRealEvolvers` / `hasRealNonTrivialEvolvers` / `listRealEvolvers`.
+# Free helpers shared with sister modules: `has_real_evolvers` /
+# `has_real_non_trivial_evolvers` / `list_real_evolvers`.
 # ---------------------------------------------------------------------------
 
 def has_real_evolvers(member):
     """Return True if `member` has at least one non-virtual, evolvable
-    property.  Mirrors `hasRealEvolvers`.
+    property.
     """
     return any(
         not (p.get('attributes') or {}).get('isVirtual')
@@ -99,8 +97,7 @@ def has_real_evolvers(member):
 
 def has_real_non_trivial_evolvers(member):
     """Return True if `member` has at least one non-virtual, evolvable
-    property whose data is rank > 0 or non-double.  Mirrors
-    `hasRealNonTrivialEvolvers`.
+    property whose data is rank > 0 or non-double.
     """
     for p in _component_properties(member):
         attrs = p.get('attributes') or {}
@@ -118,8 +115,6 @@ def has_real_non_trivial_evolvers(member):
 
 def list_real_evolvers(member):
     """Return the list of non-virtual, evolvable properties on `member`.
-
-    Mirrors `listRealEvolvers`.
     """
     return [
         p for p in _component_properties(member)

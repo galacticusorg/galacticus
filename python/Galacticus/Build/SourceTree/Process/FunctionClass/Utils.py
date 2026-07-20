@@ -1,8 +1,6 @@
 """Small utility helpers shared by the functionClass pipeline.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionClass/Utils.pm
 """
 
 import re
@@ -14,11 +12,11 @@ from Galacticus.Build.SourceTree import walk_tree
 def _walk_forward(node):
     """Yield `node` and every subsequent node in depth-first order.
 
-    Mirrors Perl `Walk_Tree`'s forward-walk semantics, which — unlike our
-    Python `walk_tree(subtree)` generator — also continues through siblings
-    and up-then-siblings past the starting point.  We materialise this by
-    starting at the top of the tree, collecting every node into a list,
-    and iterating from the given node's position onward.
+    Unlike `walk_tree(subtree)`, this walk does not stop at the end of the
+    starting node's subtree — it continues through siblings and
+    up-then-siblings all the way through the rest of the whole tree.  We
+    materialise this by starting at the top of the tree, collecting every
+    node into a list, and iterating from the given node's position onward.
     """
     root = node
     while root.get('parent') is not None:
@@ -40,8 +38,6 @@ def class_dependencies(class_node, directive_name):
       - the ordered list of type-dependency names the class pulls in (its
         parent type plus any `class(…)` / `type(…)` members whose type is
         itself an instance of the same functionClass family).
-
-    Mirrors Class_Dependencies() at FunctionClass/Utils.pm:20-62.
     """
     class_record = {}
     dependencies = []
@@ -81,15 +77,12 @@ def class_dependencies(class_node, directive_name):
                 child = child.get('sibling')
             break
 
-    # uniq + sort as in Perl (`uniq(sort(@dependencies))`).
+    # Deduplicate and sort the dependency list.
     return class_record, sorted(set(dependencies))
 
 
 def latex_breakable(text):
-    """Insert a LaTeX soft hyphen between every lower→upper case transition.
-
-    Mirrors LaTeX_Breakable() at Utils.pm:64-68.
-    """
+    """Insert a LaTeX soft hyphen between every lower→upper case transition."""
     return re.sub(r'([a-z])([A-Z])', r'\1\\-\2', text or '')
 
 

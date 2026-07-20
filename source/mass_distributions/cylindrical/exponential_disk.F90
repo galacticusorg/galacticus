@@ -832,14 +832,14 @@ contains
     use :: Numerical_Constants_Astronomical, only : gigaYear     , gravitationalConstant_internal, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    double precision                                 , dimension(3)  :: exponentialDiskAcceleration
+    type            (coordinateCartesian            )                :: exponentialDiskAcceleration
     class           (massDistributionExponentialDisk), intent(inout) :: self
     class           (coordinate                     ), intent(in   ) :: coordinates
-    double precision                                 , dimension(3)  :: positionCartesian
+    double precision                                 , dimension(3)  :: positionCartesian         , accelerationVector
     type            (coordinateCylindrical          )                :: coordinatesCylindrical
     type            (coordinateCartesian            )                :: coordinatesCartesian
     double precision                                                 :: accelerationRadial        , accelerationVertical
-    
+
     ! Get position in cylindrical and Cartesian coordinate systems.
     coordinatesCylindrical=coordinates
     coordinatesCartesian  =coordinates
@@ -850,23 +850,24 @@ contains
     call self%accelerationInterpolate(coordinatesCylindrical,accelerationRadial,accelerationVertical)
     ! Convert components of the acceleration vector to Cartesian coordinate system.
     if (abs(accelerationRadial) > 0.0d0) then
-       exponentialDiskAcceleration(1:2)=+           accelerationRadial             &
-            &                           *           positionCartesian       (1:2)  &
-            &                           /           coordinatesCylindrical%r(   )
+       accelerationVector(1:2)=+           accelerationRadial             &
+            &                  *           positionCartesian       (1:2)  &
+            &                  /           coordinatesCylindrical%r(   )
     else
-       exponentialDiskAcceleration(1:2)=+0.0d0
+       accelerationVector(1:2)=+0.0d0
     end if
-    exponentialDiskAcceleration   (3  )=+           accelerationVertical           &
-         &                              *sign(1.0d0,coordinatesCylindrical%z(   ))
+    accelerationVector   (3  )=+           accelerationVertical           &
+         &                     *sign(1.0d0,coordinatesCylindrical%z(   ))
     ! For dimensionful profiles apply the unit conversions and scalings.
-    if (.not.self%isDimensionless())                                   &
-         & exponentialDiskAcceleration=+exponentialDiskAcceleration    &
-         &                             *kilo                           &
-         &                             *gigaYear                       &
-         &                             /megaParsec                     &
-         &                             *gravitationalConstant_internal &
-         &                             *self%mass                      &
-         &                             /self%scaleRadius**2
+    if (.not.self%isDimensionless())                     &
+         & accelerationVector=+accelerationVector        &
+         &                    *kilo                           &
+         &                    *gigaYear                       &
+         &                    /megaParsec                     &
+         &                    *gravitationalConstant_internal &
+         &                    *self%mass                      &
+         &                    /self%scaleRadius**2
+    exponentialDiskAcceleration=accelerationVector
     return
   end function exponentialDiskAcceleration
 
@@ -1623,10 +1624,11 @@ contains
     !!{RST
     Sample a position from an exponential disk distribution.
     !!}
+    use :: Coordinates             , only : coordinateCartesian, assignment(=)
     use :: Lambert_Ws              , only : Lambert_Wm1
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    double precision                                 , dimension(3)  :: exponentialDiskPositionSample
+    type            (coordinateCartesian            )                :: exponentialDiskPositionSample
     class           (massDistributionExponentialDisk), intent(inout) :: self
     class           (randomNumberGeneratorClass     ), intent(inout) :: randomNumberGenerator_
     double precision                                                 :: radius                       , height, &

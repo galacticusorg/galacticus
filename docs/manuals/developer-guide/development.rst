@@ -513,4 +513,4 @@ where :math:`i_\mathrm{start}` and :math:`i_\mathrm{end}` are the start and end 
 A historical note
 ~~~~~~~~~~~~~~~~~
 
-The build scripts were ported file-by-file from Perl originals in 2026. Docstrings citing ``<name>.pl:<line>`` refer to those removed Perl sources — they document which Perl idiom a piece of Python deliberately mirrors, and remain useful when investigating subtle behaviors inherited from the port. The Perl files are retrievable from git history (they were removed in commits ``5278aadf8`` and ``33dfc7939``).
+The build scripts were ported file-by-file from Perl originals in 2026. The Perl sources were removed in commits ``5278aadf8`` and ``33dfc7939`` and remain retrievable from git history. Comments in the Python code do not cite the Perl originals; where the port deliberately preserved non-obvious behavior (for example, to keep generated code or build caches stable), the constraint is documented in place, in its own terms. Consult the removed Perl sources via git history if you need to trace the origin of such a behavior.
