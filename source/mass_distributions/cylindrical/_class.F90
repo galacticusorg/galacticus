@@ -80,40 +80,39 @@ contains
     use :: Galactic_Structure_Options      , only : componentTypeAll              , massTypeAll        , enumerationComponentTypeType, enumerationMassTypeType
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
-    use :: Linear_Algebra                  , only : vector                        , matrix             , assignment(=)
     implicit none
-    type            (coordinateCartesian              )                :: cylindricalChandrasekharIntegral
-    class           (massDistributionCylindrical      ), intent(inout) :: self
-    class           (massDistributionClass            ), intent(inout) :: massDistributionEmbedding                           , massDistributionPerturber
-    double precision                                   , intent(in   ) :: massPerturber
-    class           (coordinate                       ), intent(in   ) :: coordinates
-    type            (coordinateCartesian              ), intent(in   ) :: velocity
-    double precision                                   , dimension(3)  :: velocityCartesian_                                  , integralVector                  , &
-         &                                                                accelerationArray
-    double precision                                   , parameter     :: toomreQRadiusHalfMass                        =1.50d0  ! The Toomre Q-parameter at the disk half-mass radius (Benson et al.,
+    type            (coordinateCartesian              )                 :: cylindricalChandrasekharIntegral
+    class           (massDistributionCylindrical      ), intent(inout)  :: self
+    class           (massDistributionClass            ), intent(inout)  :: massDistributionEmbedding                           , massDistributionPerturber
+    double precision                                   , intent(in   )  :: massPerturber
+    class           (coordinate                       ), intent(in   )  :: coordinates
+    type            (coordinateCartesian              ), intent(in   )  :: velocity
+    double precision                                   , dimension(3  ) :: velocityCartesian_                                  , integralVector                  , &
+         &                                                                  accelerationArray
+    double precision                                   , parameter      :: toomreQRadiusHalfMass                        =1.50d0  ! The Toomre Q-parameter at the disk half-mass radius (Benson et al.,
     ! 2004 , https://ui.adsabs.harvard.edu/abs/2004MNRAS.351.1215B, Appendix A).
-    double precision                                   , parameter     :: toomreQFactor                                =3.36d0  ! The factor appearing in the definition of the Toomre Q-parameter for
+    double precision                                   , parameter      :: toomreQFactor                                =3.36d0  ! The factor appearing in the definition of the Toomre Q-parameter for
     ! a stellar disk (Binney & Tremaine, eqn. 6.71).
-    double precision                                   , dimension(3)  :: velocityDisk                                         , velocityRelative                , &
-         &                                                                positionCartesianMidplane                                 , &
-         &                                                                positionCylindricalHalfMass                          , positionCartesian
-    type            (massDistributionGaussianEllipsoid), save          :: velocityDistribution
-    logical                                            , save          :: velocityDistributionInitialized              =.false.
+    double precision                                   , dimension(3  ) :: velocityDisk                                         , velocityRelative                , &
+         &                                                                  positionCartesianMidplane                                 , &
+         &                                                                  positionCylindricalHalfMass                          , positionCartesian
+    type            (massDistributionGaussianEllipsoid), save           :: velocityDistribution
+    logical                                            , save           :: velocityDistributionInitialized              =.false.
     !$omp threadprivate(velocityDistribution,velocityDistributionInitialized)
-    type            (coordinateCartesian              )                :: coordinates_                                         , coordinatesMidplane             , &
-         &                                                                coordinatesMidplaneHalfMass                          , velocityCartesian
-    double precision                                                   :: velocityDispersionRadial                             , velocityDispersionAzimuthal     , &
-         &                                                                velocityDispersionVertical                           , velocityCircular                , &
-         &                                                                velocityCircularHalfMassRadius                       , velocityCircularSquaredGradient , &
-         &                                                                velocityCircularSquaredGradientHalfMassRadius        , density                         , &
-         &                                                                densityMidPlane                                      , densitySurface                  , &
-         &                                                                heightScale                                          , radiusMidplane                  , &
-         &                                                                frequencyCircular                                    , frequencyEpicyclic              , &
-         &                                                                frequencyCircularHalfMassRadius                      , frequencyEpicyclicHalfMassRadius, &
-         &                                                                densitySurfaceRadiusHalfMass                         , velocityDispersionRadialHalfMass, &
-         &                                                                velocityDispersionMaximum                            , velocityRelativeMagnitude       , &
-         &                                                                factorSuppressionExtendedMass
-    type            (matrix                           )                :: rotation
+    type            (coordinateCartesian              )                 :: coordinates_                                         , coordinatesMidplane             , &
+         &                                                                 coordinatesMidplaneHalfMass                          , velocityCartesian
+    double precision                                                    :: velocityDispersionRadial                             , velocityDispersionAzimuthal     , &
+         &                                                                 velocityDispersionVertical                           , velocityCircular                , &
+         &                                                                 velocityCircularHalfMassRadius                       , velocityCircularSquaredGradient , &
+         &                                                                 velocityCircularSquaredGradientHalfMassRadius        , density                         , &
+         &                                                                 densityMidPlane                                      , densitySurface                  , &
+         &                                                                 heightScale                                          , radiusMidplane                  , &
+         &                                                                 frequencyCircular                                    , frequencyEpicyclic              , &
+         &                                                                 frequencyCircularHalfMassRadius                      , frequencyEpicyclicHalfMassRadius, &
+         &                                                                 densitySurfaceRadiusHalfMass                         , velocityDispersionRadialHalfMass, &
+         &                                                                 velocityDispersionMaximum                            , velocityRelativeMagnitude       , &
+         &                                                                 factorSuppressionExtendedMass
+    double precision                                   , dimension(3,3) :: rotation
 
     ! Initialize the result to zero so that early returns below yield a well-defined (zero) integral.
     cylindricalChandrasekharIntegral              =  [0.0d0,0.0d0,0.0d0]
