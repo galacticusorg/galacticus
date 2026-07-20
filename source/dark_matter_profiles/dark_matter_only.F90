@@ -27,7 +27,7 @@
   !![
   <darkMatterProfile name="darkMatterProfileDarkMatterOnly" docformat="rst">
    <description>
-   An implementation of non-dark-matter-only dark matter halo profiles that returns the unmodified dark-matter-only profile, i.e. baryonic effects on the dark matter distribution are ignored. Whether to compute velocity dispersions via the Chandrasekhar integral is controlled by ``[chandrasekharIntegralComputeVelocityDispersion]``.
+   An implementation of non-dark-matter-only dark matter halo profiles that returns the unmodified dark-matter-only profile, i.e. baryonic effects on the dark matter distribution are ignored.
    </description>
   </darkMatterProfile>
   !!]
@@ -36,10 +36,9 @@
      A class implementing non-dark-matter-only dark matter halo profiles which are unchanged from their dark-matter-only counterpart.
      !!}
      private
-     class           (cosmologyParametersClass ), pointer :: cosmologyParameters_                           => null()
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_                          => null()
+     class           (cosmologyParametersClass ), pointer :: cosmologyParameters_  => null()
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
      double precision                                     :: darkMatterFraction
-     logical                                              :: chandrasekharIntegralComputeVelocityDispersion
    contains
      final     ::        darkMatterOnlyDestructor
      procedure :: get => darkMatterOnlyGet
@@ -61,25 +60,16 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type   (darkMatterProfileDarkMatterOnly)                :: self
-    type   (inputParameters                ), intent(inout) :: parameters
-    class  (cosmologyParametersClass       ), pointer       :: cosmologyParameters_
-    class  (darkMatterProfileDMOClass      ), pointer       :: darkMatterProfileDMO_
-    logical                                                 :: chandrasekharIntegralComputeVelocityDispersion
+    type (darkMatterProfileDarkMatterOnly)                :: self
+    type (inputParameters                ), intent(inout) :: parameters
+    class(cosmologyParametersClass       ), pointer       :: cosmologyParameters_
+    class(darkMatterProfileDMOClass      ), pointer       :: darkMatterProfileDMO_
 
     !![
-    <inputParameter docformat="rst">
-      <name>chandrasekharIntegralComputeVelocityDispersion</name>
-      <defaultValue>.true.</defaultValue>
-      <description>
-      If true, the Chandrasekhar integral is computed using the velocity dispersion, :math:`\sigma_mathrm{r}(r)`. Otherwise, the velocity dispersion is approximated as :math:`V_\mathrm{c}(r)/\sqrt{2}`.
-      </description>
-      <source>parameters</source>
-    </inputParameter>
     <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
-    self=darkMatterProfileDarkMatterOnly(chandrasekharIntegralComputeVelocityDispersion,cosmologyParameters_,darkMatterProfileDMO_)
+    self=darkMatterProfileDarkMatterOnly(cosmologyParameters_,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_" />
@@ -88,7 +78,7 @@ contains
     return
   end function darkMatterOnlyConstructorParameters
 
-  function darkMatterOnlyConstructorInternal(chandrasekharIntegralComputeVelocityDispersion,cosmologyParameters_,darkMatterProfileDMO_) result(self)
+  function darkMatterOnlyConstructorInternal(cosmologyParameters_,darkMatterProfileDMO_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`darkMatterProfileDarkMatterOnly` non-dark-matter-only dark matter halo profile class.
     !!}
@@ -96,9 +86,8 @@ contains
     type   (darkMatterProfileDarkMatterOnly)                        :: self
     class  (cosmologyParametersClass       ), intent(in   ), target :: cosmologyParameters_
     class  (darkMatterProfileDMOClass      ), intent(in   ), target :: darkMatterProfileDMO_
-    logical                                 , intent(in   )         :: chandrasekharIntegralComputeVelocityDispersion
     !![
-    <constructorAssign variables="chandrasekharIntegralComputeVelocityDispersion, *cosmologyParameters_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="*cosmologyParameters_, *darkMatterProfileDMO_"/>
     !!]
 
     ! Evaluate the dark matter fraction.
@@ -159,11 +148,10 @@ contains
           !![
 	  <referenceConstruct object="massDistribution_">
 	    <constructor>
-	      massDistributionSphericalScaler(                                                                                                    &amp;
-	        &amp;                         factorScalingLength                           =     1.0d0                                         , &amp;
-	        &amp;                         factorScalingMass                             =self%darkMatterFraction                            , &amp;
-	        &amp;                         massDistribution_                             =     massDistributionDMO                           , &amp;
-	        &amp;                         chandrasekharIntegralComputeVelocityDispersion=self%chandrasekharIntegralComputeVelocityDispersion  &amp;	      
+	      massDistributionSphericalScaler(                                              &amp;
+	        &amp;                         factorScalingLength=     1.0d0              , &amp;
+	        &amp;                         factorScalingMass  =self%darkMatterFraction , &amp;
+	        &amp;                         massDistribution_  =     massDistributionDMO  &amp;
 	        &amp;                        )
 	    </constructor>
 	  </referenceConstruct>

@@ -290,6 +290,9 @@
   </migration>
 
   <!-- Known default values for parameters -->
+  <migration commit="938122648f2740d19a67598157de78201a17e4b7">
+    <translation function="chandrasekhar_suppress_extended_mass"/>
+  </migration>
   <default parameter="componentBlackHole"             value="standard"        />
   <default parameter="componentDisk"                  value="standard"        />
   <default parameter="componentHotHalo"               value="standard"        />
