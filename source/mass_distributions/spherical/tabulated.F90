@@ -918,7 +918,7 @@ contains
     Read tabulated data from file.
     !!}
     use :: HDF5_Access    , only : hdf5Access
-    use :: IO_HDF5        , only : hdf5Object
+    use :: IO_HDF5        , only : hdf5File
     use :: String_Handling, only : String_Upper_Case_First
     use :: Display        , only : displayMessage         , verbosityLevelWorking
     implicit none
@@ -926,7 +926,7 @@ contains
     type   (varying_string                    ), intent(in   ) :: fileName  , quantityName
     type   (massDistributionContainer         ), intent(inout) :: container
     type   (massDistributionTabulation        ), intent(inout) :: tabulation
-    type   (hdf5Object                        )                :: file
+    type   (hdf5File                          )                :: file
     integer(c_size_t                          )                :: i
 
     if (allocated(tabulation%table)) deallocate(tabulation%table)
@@ -936,7 +936,7 @@ contains
     if (.not.allocated(tabulation%parametersInverseStep)) allocate(tabulation%parametersInverseStep(container%countParameters(tabulation)))
     if (.not.allocated(tabulation%countParameters      )) allocate(tabulation%countParameters      (container%countParameters(tabulation)))
     !$ call hdf5Access%set()
-    file=hdf5Object(char(fileName),readOnly=.true.)
+    file=hdf5File(fileName,readOnly=.true.)
     call    file%readAttribute(char(quantityName)//'RadiusMinimum'                                                                    ,tabulation%radiusMinimum           )
     call    file%readAttribute(char(quantityName)//'RadiusMaximum'                                                                    ,tabulation%radiusMaximum           )
     call    file%readAttribute(char(quantityName)//'RadiusInverseStep'                                                                ,tabulation%radiusInverseStep       )
@@ -959,7 +959,7 @@ contains
     Read tabulated data from file.
     !!}
     use :: HDF5_Access    , only : hdf5Access
-    use :: IO_HDF5        , only : hdf5Object
+    use :: IO_HDF5        , only : hdf5File
     use :: String_Handling, only : String_Upper_Case_First
     use :: Display        , only : displayMessage         , verbosityLevelWorking
     implicit none
@@ -967,12 +967,12 @@ contains
     type   (varying_string                    ), intent(in   ) :: fileName  , quantityName
     type   (massDistributionContainer         ), intent(inout) :: container
     type   (massDistributionTabulation        ), intent(in   ) :: tabulation
-    type   (hdf5Object                        )                :: file
+    type   (hdf5File                          )                :: file
     integer(c_size_t                          )                :: i
 
     call displayMessage("writing tabulated "//char(quantityName)//" profile to '"//char(fileName)//"'",verbosityLevelWorking)
     !$ call hdf5Access%set()
-   file=hdf5Object(char(fileName),overWrite=.true.)
+   file=hdf5File(fileName,overWrite=.true.)
     call    file%writeAttribute(tabulation%radiusMinimum           ,char(quantityName)//'RadiusMinimum'                                                                                                                  )
     call    file%writeAttribute(tabulation%radiusMaximum           ,char(quantityName)//'RadiusMaximum'                                                                                                                  )
     call    file%writeAttribute(tabulation%radiusInverseStep       ,char(quantityName)//'RadiusInverseStep'                                                                                                              )

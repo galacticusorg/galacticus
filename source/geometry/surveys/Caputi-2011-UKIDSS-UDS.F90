@@ -264,13 +264,13 @@ contains
     use :: Error          , only : Error_Report
     use :: Input_Paths    , only : inputPath        , pathTypeDataDynamic, pathTypeDataStatic
     use :: HDF5_Access    , only : hdf5Access
-    use :: IO_HDF5        , only : hdf5Object
+    use :: IO_HDF5        , only : hdf5File
     use :: String_Handling, only : operator(//)
     use :: System_Command , only : System_Command_Do, shellEscape
     use :: ISO_Varying_String, only : varying_string, assignment(=)
     implicit none
     class(surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
-    type (hdf5Object                       )                :: surveyGeometryRandomsFile
+    type (hdf5File                         )                :: surveyGeometryRandomsFile
     type (varying_string                   )                :: escapedScript
 
     ! Generate the randoms file if necessary.
@@ -283,8 +283,8 @@ contains
     end if
     ! Read the distribution of random points from file.
     !$ call hdf5Access%set()
-    surveyGeometryRandomsFile=hdf5Object(char(inputPath(pathTypeDataDynamic)//&
-         &'surveys/UKIDSS_UDS/surveyGeometryRandoms.hdf5')&
+    surveyGeometryRandomsFile=hdf5File(inputPath(pathTypeDataDynamic)//&
+         &'surveys/UKIDSS_UDS/surveyGeometryRandoms.hdf5'&
          &,readOnly=.true.)
     call surveyGeometryRandomsFile%readDataset('theta',self%randomTheta)
     call surveyGeometryRandomsFile%readDataset('phi'  ,self%randomPhi  )

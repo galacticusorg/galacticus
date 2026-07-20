@@ -151,7 +151,7 @@ contains
     use               :: HDF5                            , only : hsize_t
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: HDF5_Access                     , only : hdf5Access
-    use               :: IO_HDF5                         , only : hdf5Object
+    use               :: IO_HDF5                         , only : hdf5File                    , hdf5Group
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
     use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract       , len           , &
           &                                                       operator(//)                , operator(==)       , varying_string
@@ -170,27 +170,27 @@ contains
     implicit none
     class           (cosmologyParametersClass), intent(inout)                   :: cosmologyParameters_
     double precision                          , intent(in   ), dimension(:    ) :: redshifts
-    double precision                          , intent(in   )                   :: wavenumberRequired                      , wavenumberMaximum
+    double precision                          , intent(in   )                   :: wavenumberRequired                  , wavenumberMaximum
     integer                                   , intent(in   ), optional         :: countPerDecade
     type            (varying_string          ), intent(  out), optional         :: fileName
-    type            (table1DGeneric          ), intent(  out), optional         :: perturbationsDarkMatter                 , perturbationsBaryons
+    type            (table1DGeneric          ), intent(  out), optional         :: perturbationsDarkMatter             , perturbationsBaryons
     logical                                   , intent(inout), optional         :: wavenumberMaximumReached
-    double precision                          , allocatable  , dimension(:    ) :: wavenumbers                             , wavenumbersLogarithmic, &
-         &                                                                         perturbations_                          , redshiftsCombined
+    double precision                          , allocatable  , dimension(:    ) :: wavenumbers                         , wavenumbersLogarithmic      , &
+         &                                                                         perturbations_                      , redshiftsCombined
     double precision                          , allocatable  , dimension(:,:,:) :: perturbations
-    character       (len= 9                  ), allocatable  , dimension(:    ) :: redshiftLabels                          , redshiftLabelsCombined
-    integer         (c_size_t                ), allocatable  , dimension(:    ) :: redshiftRanks                           , redshiftRanksCombined
+    character       (len= 9                  ), allocatable  , dimension(:    ) :: redshiftLabels                      , redshiftLabelsCombined
+    integer         (c_size_t                ), allocatable  , dimension(:    ) :: redshiftRanks                       , redshiftRanksCombined
     type            (varying_string          ), allocatable  , dimension(:    ) :: datasetNames
-    integer         (hsize_t                 ), parameter                       :: chunkSize                   =100_hsize_t
+    integer         (hsize_t                 ), parameter                       :: chunkSize               =100_hsize_t
     type            (lockDescriptor          )                                  :: fileLock
-    integer                                                                     :: i                                       , j                     , &
+    integer                                                                     :: i                                   , j                           , &
          &                                                                         countRedshiftsUnique
-    type            (hdf5Object              )                                  :: classOutput                             , parametersGroup       , &
-         &                                                                         extrapolationWavenumberGroup            , extrapolationGroup    , &
-         &                                                                         speciesGroup
-    character       (len=32                  )                                  :: parameterLabel                          , datasetName           , &
+    type            (hdf5File                )                                  :: classOutput
+    type            (hdf5Group               )                                  :: parametersGroup                     , extrapolationWavenumberGroup, &
+         &                                                                         extrapolationGroup                  , speciesGroup
+    character       (len=32                  )                                  :: parameterLabel                      , datasetName                 , &
          &                                                                         redshiftLabel
-    type            (varying_string          )                                  :: uniqueLabel                             , fileName_
+    type            (varying_string          )                                  :: uniqueLabel                         , fileName_
     type            (inputParameters         )                                  :: descriptor
     logical                                                                     :: allEpochsFound
     !![
@@ -234,7 +234,7 @@ contains
        allEpochsFound=.true.
        !$ call hdf5Access%set()
        hdf5ReadScope: block
-         classOutput=hdf5Object(fileName_)
+         classOutput=hdf5File(fileName_)
          call classOutput%readDataset('wavenumber',wavenumbers)
          allocate(perturbations(size(wavenumbers),3,size(redshifts)))
          speciesGroup=classOutput%openGroup('darkMatter')
@@ -264,7 +264,7 @@ contains
        if (File_Exists(fileName_)) then
           !$ call hdf5Access%set       (               )
           hdf5DatasetsScope: block
-            classOutput=hdf5Object(fileName_)
+            classOutput=hdf5File(fileName_)
             speciesGroup=classOutput%openGroup('darkMatter')
             call    speciesGroup%datasets(datasetNames   )
           end block hdf5DatasetsScope
@@ -306,7 +306,7 @@ contains
        ! Construct the output HDF5 file.
        !$ call hdf5Access  %set()
        hdf5WriteScope: block
-         classOutput=hdf5Object(fileName_,objectsOverwritable=.true.)
+         classOutput=hdf5File(fileName_,objectsOverwritable=.true.)
          call    classOutput %writeAttribute('Perturbations created by CLASS.','description')
          call    classOutput %writeAttribute(classFormatVersionCurrent,'fileFormat')
          call    classOutput %writeDataset(wavenumbers ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not. classOutput%hasDataset('wavenumber'))
@@ -337,7 +337,7 @@ contains
     if (present(perturbationsDarkMatter)) then
        !$ call hdf5Access%set()
        hdf5DarkMatterScope: block
-         classOutput=hdf5Object(fileName_)
+         classOutput=hdf5File(fileName_)
          call classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call perturbationsDarkMatter%create(                                                 &
@@ -363,7 +363,7 @@ contains
     if (present(perturbationsBaryons)) then
        !$ call hdf5Access%set()
        hdf5BaryonsScope: block
-         classOutput=hdf5Object(fileName_)
+         classOutput=hdf5File(fileName_)
          call    classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call perturbationsBaryons   %create(                                                    &
@@ -403,7 +403,7 @@ contains
     use               :: HDF5                            , only : hsize_t
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: HDF5_Access                     , only : hdf5Access
-    use               :: IO_HDF5                         , only : hdf5Object
+    use               :: IO_HDF5                         , only : hdf5File                    , hdf5Group
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
     use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract       , len           , &
           &                                                       operator(//)                , operator(==)       , varying_string
@@ -424,7 +424,7 @@ contains
     type            (varying_string          ), intent(  out), optional         :: fileName
     type            (table1DGeneric          ), intent(  out), optional         :: transferFunctionDarkMatter              , transferFunctionBaryons
     logical                                   , intent(inout), optional         :: wavenumberMaximumReached
-    double precision                          , allocatable  , dimension(:    ) :: wavenumbers                             , wavenumbersLogarithmic  , &
+    double precision                          , allocatable  , dimension(:    ) :: wavenumbers                             , wavenumbersLogarithmic      , &
          &                                                                         transferFunctionLogarithmic             , redshiftsCombined
     double precision                          , allocatable  , dimension(:,:,:) :: transferFunctions
     character       (len= 9                  ), allocatable  , dimension(:    ) :: redshiftLabels                          , redshiftLabelsCombined
@@ -432,12 +432,12 @@ contains
     type            (varying_string          ), allocatable  , dimension(:    ) :: datasetNames
     integer         (hsize_t                 ), parameter                       :: chunkSize                   =100_hsize_t
     type            (lockDescriptor          )                                  :: fileLock
-    integer                                                                     :: i                                       , j                       , &
+    integer                                                                     :: i                                       , j                           , &
          &                                                                         countRedshiftsUnique
-    type            (hdf5Object              )                                  :: classOutput                             , parametersGroup         , &
-         &                                                                         extrapolationWavenumberGroup            , extrapolationGroup      , &
-         &                                                                         speciesGroup
-    character       (len=32                  )                                  :: parameterLabel                          , datasetName             , &
+    type            (hdf5File                )                                  :: classOutput
+    type            (hdf5Group               )                                  :: parametersGroup                         , extrapolationWavenumberGroup, &
+         &                                                                         extrapolationGroup                      , speciesGroup
+    character       (len=32                  )                                  :: parameterLabel                          , datasetName                 , &
          &                                                                         redshiftLabel
     type            (varying_string          )                                  :: uniqueLabel                             , fileName_
     type            (inputParameters         )                                  :: descriptor
@@ -483,7 +483,7 @@ contains
        allEpochsFound=.true.
        !$ call hdf5Access%set()
        hdf5ReadScope: block
-         classOutput=hdf5Object(char(fileName_))
+         classOutput=hdf5File(fileName_)
          call classOutput%readDataset('wavenumber',wavenumbers)
          allocate(transferFunctions(size(wavenumbers),3,size(redshifts)))
          speciesGroup=classOutput%openGroup('darkMatter')
@@ -513,7 +513,7 @@ contains
        if (File_Exists(fileName_)) then
           !$ call hdf5Access%set()
           hdf5DatasetsScope: block
-            classOutput=hdf5Object(char(fileName_))
+            classOutput=hdf5File(fileName_)
             speciesGroup=classOutput%openGroup('darkMatter')
             call speciesGroup%datasets(datasetNames)
           end block hdf5DatasetsScope
@@ -555,7 +555,7 @@ contains
        ! Construct the output HDF5 file.
        !$ call hdf5Access%set()
        hdf5WriteScope: block
-         classOutput=hdf5Object(char(fileName_),objectsOverwritable=.true.)
+         classOutput=hdf5File(fileName_,objectsOverwritable=.true.)
          call classOutput %writeAttribute('Transfer functions created by CLASS.','description')
          call classOutput %writeAttribute(classFormatVersionCurrent,'fileFormat')
          call classOutput %writeDataset(wavenumbers ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not. classOutput%hasDataset('wavenumber'))
@@ -586,7 +586,7 @@ contains
     if (present(transferFunctionDarkMatter)) then
        !$ call hdf5Access%set()
        hdf5DarkMatterScope: block
-         classOutput=hdf5Object(char(fileName_))
+         classOutput=hdf5File(fileName_)
          call classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call transferFunctionDarkMatter%create(                                                 &
@@ -613,7 +613,7 @@ contains
     if (present(transferFunctionBaryons)) then
        !$ call hdf5Access%set()
        hdf5BaryonsScope: block
-         classOutput=hdf5Object(char(fileName_))
+         classOutput=hdf5File(fileName_)
          call classOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call transferFunctionBaryons   %create(                                                 &
@@ -652,7 +652,7 @@ contains
     use               :: Input_Paths                     , only : inputPath               , pathTypeDataDynamic
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: HDF5_Access                     , only : hdf5Access
-    use               :: IO_HDF5                         , only : hdf5Object
+    use               :: IO_HDF5                         , only : hdf5File
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
     use               :: ISO_Varying_String              , only : varying_string          , char               , operator(//)
@@ -662,7 +662,7 @@ contains
     implicit none
     class    (cosmologyParametersClass), intent(inout)                   :: cosmologyParameters_
     type     (lockDescriptor          )                                  :: fileLock
-    type     (hdf5Object              )                                  :: classOutput
+    type     (hdf5File                )                                  :: classOutput
     character(len=32                  )                                  :: parameterLabel
     type     (varying_string          )                                  :: uniqueLabel                , fileName
     type     (inputParameters         )                                  :: descriptor
@@ -691,7 +691,7 @@ contains
     if (File_Exists(fileName)) then
        !$ call hdf5Access %set          (                             )
        hdf5ReadScope: block
-         classOutput=hdf5Object(char(fileName))
+         classOutput=hdf5File(fileName)
          call    classOutput%readAttribute('normalization',normalization)      
        end block hdf5ReadScope
        !$ call hdf5Access %unset        (                             )
@@ -701,7 +701,7 @@ contains
        ! Construct the output HDF5 file.
        !$ call hdf5Access %set           (                              )
        hdf5WriteScope: block
-         classOutput=hdf5Object(char(fileName),objectsOverwritable=.true.)
+         classOutput=hdf5File(fileName,objectsOverwritable=.true.)
          call    classOutput%writeAttribute(normalization ,'normalization')
        end block hdf5WriteScope
        !$ call hdf5Access %unset         (                              )

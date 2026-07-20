@@ -169,7 +169,7 @@ contains
     use :: Input_Paths                               , only : inputPath                                          , pathTypeDataStatic
     use :: Geometry_Surveys                          , only : surveyGeometryLiWhite2009SDSS
     use :: HDF5_Access                               , only : hdf5Access
-    use :: IO_HDF5                                   , only : hdf5Object
+    use :: IO_HDF5                                   , only : hdf5File
     use :: Node_Property_Extractors                  , only : nodePropertyExtractorMassStellar                   , nodePropertyExtractorMetallicityISM
     use :: Numerical_Constants_Astronomical          , only : massSolar
     use :: Output_Analyses_Options                   , only : outputAnalysisCovarianceModelBinomial
@@ -184,6 +184,7 @@ contains
     use :: Star_Formation_Rates_Spheroids            , only : starFormationRateSpheroidsClass
     use :: Star_Formation_Rates_Nuclear_Star_Clusters, only : starFormationRateNuclearStarClustersClass
     use :: String_Handling                           , only : stringXMLFormat
+    use :: ISO_Varying_String                        , only : operator(//)
     implicit none
     type            (outputAnalysisMassMetallicityBlanc2019             )                                :: self
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum                                            , &
@@ -225,7 +226,7 @@ contains
     logical                                                              , parameter                     :: likelihoodNormalize                             =.false.
     integer         (c_size_t                                           ), parameter                     :: bufferCount                                     =10
     integer         (c_size_t                                           )                                :: iBin                                                    , binCount
-    type            (hdf5Object                                         )                                :: dataFile
+    type            (hdf5File                                           )                                :: dataFile
     integer                                                                                              :: indexOxygen
     type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
@@ -234,7 +235,7 @@ contains
     
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
-    dataFile=hdf5Object(char(inputPath(pathTypeDataStatic))//"observations/abundances/massMetallicityRelationBlanc2019.hdf5",readOnly=.true.)
+    dataFile=hdf5File(inputPath(pathTypeDataStatic)//"observations/abundances/massMetallicityRelationBlanc2019.hdf5",readOnly=.true.)
     call dataFile%readDataset("massStellar"               ,masses             )
     call dataFile%readDataset("abundanceOxygenMean"       ,functionValueTarget)
     call dataFile%readDataset("abundanceOxygen16PercentCI",function16Target   )

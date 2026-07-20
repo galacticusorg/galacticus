@@ -1431,11 +1431,11 @@ contains
     !!}
     use :: File_Utilities    , only : File_Exists, File_Lock, File_Unlock, lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5File
     use :: ISO_Varying_String, only : char
     implicit none
     class           (virialOrbitLossCone)             , intent(inout) :: self
-    type            (hdf5Object                                      )                             :: file
+    type            (hdf5File                                        )                             :: file
     type            (lockDescriptor                                  )                             :: fileLock
     !$GLC attributes unused :: self
 
@@ -1455,7 +1455,7 @@ contains
           deallocate(self%interpolatorMass                    )
        end if
        !$ call hdf5Access%set()
-       file=hdf5Object(char(self%fileName))
+       file=hdf5File(self%fileName)
        call file%readAttribute('time'                                ,     self%time                                 )
        call file%readAttribute('massMinimum'                         ,     self%massMinimum                          )
        call file%readAttribute('massMaximum'                         ,     self%massMaximum                          )
@@ -1485,18 +1485,18 @@ contains
     use :: File_Utilities    , only : Directory_Make, File_Lock, File_Path, File_Unlock, &
           &                           lockDescriptor
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5File
     use :: ISO_Varying_String, only : char
     implicit none
     class(virialOrbitLossCone), intent(inout) :: self
-    type (hdf5Object         )                :: file
+    type (hdf5File           )                :: file
     type (lockDescriptor     )                :: fileLock
 
     call Directory_Make(File_Path(self%fileName))
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock     (self%fileName,fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
-    file=hdf5Object(char(self%fileName),overWrite=.true.,readOnly=.false.)
+    file=hdf5File(self%fileName,overWrite=.true.,readOnly=.false.)
     call file%writeAttribute(self%time                                ,'time'                                )
     call file%writeAttribute(self%massMinimum                         ,'massMinimum'                         )
     call file%writeAttribute(self%massMaximum                         ,'massMaximum'                         )

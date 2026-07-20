@@ -31,7 +31,7 @@ module Input_Parameters
   use, intrinsic :: ISO_C_Binding     , only : c_char         , c_int
   use            :: FoX_dom           , only : node
   use            :: Function_Classes  , only : functionClass
-  use            :: IO_HDF5           , only : hdf5Object
+  use            :: IO_HDF5           , only : hdf5File, hdf5Group
   use            :: ISO_Varying_String, only : varying_string
   use            :: Kind_Numbers      , only : kind_int8
   use            :: String_Handling   , only : char
@@ -133,17 +133,18 @@ module Input_Parameters
   
   type :: inputParameters
      private
-     type   (documentWrapper  ), pointer, public :: document               => null()
-     type   (node             ), pointer         :: rootNode               => null()
-     type   (hdf5Object       ), pointer         :: outputParameters       => null() , outputParametersContainer        => null()
-     type   (resourceManager  )                  :: outputParametersManager          , outputParametersContainerManager          , &
+     type   (documentWrapper  ), pointer, public :: document                  => null()
+     type   (node             ), pointer         :: rootNode                  => null()
+     type   (hdf5Group        ), pointer         :: outputParameters          => null()
+     type   (hdf5File         ), pointer         :: outputParametersContainer => null()
+     type   (resourceManager  )                  :: outputParametersManager             , outputParametersContainerManager          , &
           &                                         documentManager
-     type   (inputParameter   ), pointer, public :: parameters             => null()
-     type   (inputParameters)  , pointer, public :: parent                 => null() , original                         => null()
-     logical                                     :: outputParametersCopied =  .false., outputParametersTemporary        = .false., &
-          &                                         isNull                 =  .false., strict                           = .false.
+     type   (inputParameter   ), pointer, public :: parameters                => null()
+     type   (inputParameters)  , pointer, public :: parent                    => null() , original                         => null()
+     logical                                     :: outputParametersCopied    =  .false., outputParametersTemporary        = .false., &
+          &                                         isNull                    =  .false., strict                           = .false.
      type   (integerDictionary), allocatable     :: warnedDefaults
-     type   (ompLock          ), pointer         :: lock                   => null()
+     type   (ompLock          ), pointer         :: lock                      => null()
      type   (resourceManager  )                  :: lockManager
    contains
      !![
@@ -492,7 +493,7 @@ contains
     type     (inputParameters)                                           :: self
     type     (varying_string    )              , intent(in   )           :: xmlString
     type     (varying_string    ), dimension(:), intent(in   ), optional :: allowedParameterNames, changeFiles
-    type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
+    class    (hdf5Group         ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                    , intent(in   ), optional :: noOutput             , threadSafe
     type     (node              ), pointer                               :: doc                  , parameterNode
     character(len=1             )                                        :: xmlStringStart
@@ -549,7 +550,7 @@ contains
     type     (inputParameters)                                        :: self
     character(len=*          )              , intent(in   )           :: fileName
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames, changeFiles
-    type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
+    class    (hdf5Group      ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput             , threadSafe
     type     (xmlNodeList    ), dimension(:), allocatable             :: childNodes           , newNodes
     type     (node           ), pointer                               :: doc                  , parameterNode    , &
@@ -822,7 +823,7 @@ contains
     type     (node           ), pointer     , intent(in   )           :: parametersNode
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
     character(len=*          )              , intent(in   ), optional :: fileName
-    type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
+    class    (hdf5Group      ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput                   , noBuild            , &
          &                                                               threadSafe
     type     (resourceManager)              , intent(in   ), optional :: documentManager
@@ -929,18 +930,16 @@ contains
        allocate(self%outputParameters         )
        allocate(self%outputParametersContainer)
        !$ call hdf5Access%  set()
-       self%outputParametersContainer=hdf5Object(                                      &
-            &                                    char(                                 &
-            &                                         File_Name_Temporary(             &
-            &                                                             'glcTmpPar', &
+       self%outputParametersContainer=hdf5File(                                 &
+            &                                  File_Name_Temporary(             &
+            &                                                      'glcTmpPar', &
 #ifdef __APPLE__
-            &                                                             '/tmp'       &
+            &                                                      '/tmp'       &
 #else
-            &                                                             '/dev/shm'   &
+            &                                                      '/dev/shm'   &
 #endif
-            &                                                            )             &
-            &                                         )                              , &
-            &                                    isTemporary=.true.                    &
+            &                                                     )           , &
+            &                                    isTemporary=.true.             &
             &                                   )
        self%outputParameters         =self%outputParametersContainer%openGroup('Parameters',attributesCompactMaxiumum=0)
        self%outputParametersCopied   =.false.
@@ -1848,7 +1847,7 @@ contains
     Return the HDF5 group to which this parameters content will be written.
     !!}
     implicit none
-    type(hdf5Object      )                :: parametersGroup
+    type(hdf5Group       )                :: parametersGroup
     class(inputParameters), intent(inout) :: self
 
     if (self%outputParameters%isOpen()) call self%outputParameters%deepCopy(parametersGroup)
@@ -1863,7 +1862,7 @@ contains
     use :: ISO_Varying_String, only : char
     implicit none
     class(inputParameters), intent(inout) :: self
-    type (hdf5Object     ), intent(inout) :: outputGroup
+    class(hdf5Group      ), intent(inout) :: outputGroup
     class(*              ), pointer       :: dummyPointer_
 
     !$ call hdf5Access%set()

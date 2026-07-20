@@ -162,7 +162,7 @@ contains
     use            :: HDF5                            , only : hsize_t
     use            :: Hashes_Cryptographic            , only : Hash_MD5
     use            :: HDF5_Access                     , only : hdf5Access
-    use            :: IO_HDF5                         , only : hdf5Object
+    use            :: IO_HDF5                         , only : hdf5File                    , hdf5Group
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: ISO_Varying_String              , only : assignment(=)               , char                            , extract       , len           , &
           &                                                    operator(//)                , operator(==)                    , varying_string
@@ -258,8 +258,9 @@ contains
           allEpochsFound=.true.
           !$ call hdf5Access%set()
           hdf5ReadScope: block
-            type(hdf5Object) :: cambOutput, speciesGroup
-            cambOutput=hdf5Object(fileName_,readOnly=.true.)
+            type(hdf5File ) :: cambOutput
+            type(hdf5Group) :: speciesGroup
+            cambOutput=hdf5File(fileName_,readOnly=.true.)
             call cambOutput%readDataset('wavenumber',wavenumbers)
             allocate(transferFunctions(size(wavenumbers),2,size(redshifts)))
             speciesGroup=cambOutput%openGroup('darkMatter')
@@ -296,8 +297,9 @@ contains
              if (File_Exists(fileName_)) then
                 !$ call hdf5Access%set()
                 hdf5DatasetsScope: block
-                  type(hdf5Object) :: cambOutput, speciesGroup
-                  cambOutput  =hdf5Object(fileName_,readOnly=.true.)
+                  type(hdf5File ) :: cambOutput
+                  type(hdf5Group) :: speciesGroup
+                  cambOutput  =hdf5File(fileName_,readOnly=.true.)
                   speciesGroup=cambOutput%openGroup('darkMatter')
                   call speciesGroup%datasets(datasetNames)
                 end block hdf5DatasetsScope
@@ -493,10 +495,10 @@ contains
              ! Construct the output HDF5 file.
              !$ call hdf5Access%set()
              hdf5WriteScope: block
-               type(hdf5Object) :: speciesGroup      , parametersGroup             , &
-                    &              extrapolationGroup, extrapolationWavenumberGroup, &
-                    &              cambOutput
-               cambOutput=hdf5Object(fileName_,readOnly=.false.,objectsOverwritable=.true.)
+               type(hdf5File ) :: cambOutput
+               type(hdf5Group) :: speciesGroup      , parametersGroup             , &
+                    &              extrapolationGroup, extrapolationWavenumberGroup
+               cambOutput=hdf5File(fileName_,readOnly=.false.,objectsOverwritable=.true.)
                call cambOutput%writeAttribute('Transfer functions created by CAMB.','description')
                call cambOutput%writeAttribute(cambFormatVersionCurrent,'fileFormat')
                call cambOutput%writeDataset  (wavenumbers             ,'wavenumber'                                  ,chunkSize=chunkSize,appendTo=.not.  cambOutput%hasDataset('wavenumber'))
@@ -529,8 +531,9 @@ contains
        if (present(transferFunctionDarkMatter)) then
           !$ call hdf5Access%set()
           hdf5TransferDarkMatterScope: block
-            type(hdf5Object) :: cambOutput, speciesGroup
-            cambOutput=hdf5Object(fileName_,readOnly=.true.)
+            type(hdf5File ) :: cambOutput
+            type(hdf5Group) :: speciesGroup
+            cambOutput=hdf5File(fileName_,readOnly=.true.)
             call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
             wavenumbersLogarithmic=log(wavenumbersLogarithmic)
             extrapolationType     =extrapolationTypeExtrapolate
@@ -555,8 +558,9 @@ contains
        if (present(transferFunctionBaryons)) then
           !$ call hdf5Access%set()
           hdf5TransferFunctionBaryonsScope: block
-            type(hdf5Object) :: cambOutput, speciesGroup
-            cambOutput=hdf5Object(fileName_,readOnly=.true.)
+            type(hdf5File ) :: cambOutput
+            type(hdf5Group) :: speciesGroup
+            cambOutput=hdf5File(fileName_,readOnly=.true.)
             call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
             wavenumbersLogarithmic=log(wavenumbersLogarithmic)
             extrapolationType     =extrapolationTypeExtrapolate

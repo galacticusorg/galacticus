@@ -104,15 +104,15 @@ contains
     use :: FoX_DOM           , only : node
     use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5File             , hdf5Group
     use :: IO_XML            , only : XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, XML_Parse
     use :: ISO_Varying_String, only : varying_string       , char                             , operator(//)
     implicit none
     type     (metaTreeProcessingTimeFile)                            :: self
     type     (varying_string            ), intent(in   )             :: fileName
     type     (node                      ), pointer                   :: doc              , fit
-    type     (hdf5Object                )                            :: file             , metaDataGroup, &
-         &                                                              timingDataGroup
+    type     (hdf5File                  )                            :: file
+    type     (hdf5Group                 )                            :: metaDataGroup    , timingDataGroup
     double precision                     , allocatable, dimension(:) :: coefficients
     integer                                                          :: ioStatus         , lengthName
     character(len=1024                  )                            :: fileNameCharacter
@@ -129,7 +129,7 @@ contains
          & ) then
        ! The file is a Galacticus HDF5 output file - read the fit coefficients written by the tree processing timer operator.
        !$ call hdf5Access%set()
-       file=hdf5Object(char(fileName),readOnly=.true.)
+       file=hdf5File(fileName,readOnly=.true.)
        if (.not.file%hasGroup('metaData')) call Error_Report('tree timing file "'//char(fileName)//'" contains no "metaData" group'//{introspection:location})
        metaDataGroup=file%openGroup('metaData')
        if (.not.metaDataGroup%hasGroup('treeTiming')) call Error_Report('tree timing file "'//char(fileName)//'" contains no "metaData/treeTiming" group'//{introspection:location})

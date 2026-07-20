@@ -505,7 +505,7 @@ contains
           &                                 File_Unlock          , lockDescriptor
     use :: Input_Paths             , only : inputPath            , pathTypeDataDynamic
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5Object
+    use :: IO_HDF5                 , only : hdf5File
     use :: ISO_Varying_String      , only : char                 , operator(//)        , varying_string
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
@@ -530,7 +530,7 @@ contains
     if (self%accelerationInitialized) return
     block
       type   (varying_string) :: fileName
-      type   (hdf5Object    ) :: file
+      type   (hdf5File      ) :: file
       type   (lockDescriptor) :: fileLock
       integer                 :: iLock
 
@@ -549,10 +549,10 @@ contains
          call File_Lock(fileName,fileLock,lockIsShared=iLock == 1)
          if (File_Exists(fileName)) then
             !$ call hdf5Access%set()
-            file=hdf5Object      (char(fileName      ),readOnly=.true.             )
-            call file%readDataset(     'x'            ,self%accelerationX          )
-            call file%readDataset(     'scaleLength'  ,self%accelerationScaleLength)
-            call file%readDataset(     'acceleration' ,self%accelerationVector     )
+            file=hdf5File(fileName,readOnly=.true.)
+            call file%readDataset('x'            ,self%accelerationX          )
+            call file%readDataset('scaleLength'  ,self%accelerationScaleLength)
+            call file%readDataset('acceleration' ,self%accelerationVector     )
             !$ call hdf5Access%unset()
             call File_Unlock(fileLock,sync=.false.)
             exit
@@ -608,10 +608,10 @@ contains
             call displayCounterClear(       verbosityLevelWorking)
             call displayUnindent     ("done",verbosityLevelWorking)
             !$ call hdf5Access%set()
-            file=hdf5Object       (char   (fileName                    )               ,overWrite=.true.,readOnly=.false.)
-            call file%writeDataset(        self%accelerationX           ,'x'                                             )
-            call file%writeDataset(        self%accelerationScaleLength ,'scaleLength'                                   )
-            call file%writeDataset(        self%accelerationVector      ,'acceleration'                                  )
+            file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
+            call file%writeDataset(self%accelerationX           ,'x'           )
+            call file%writeDataset(self%accelerationScaleLength ,'scaleLength' )
+            call file%writeDataset(self%accelerationVector      ,'acceleration')
             !$ call hdf5Access%unset()
             call File_Unlock(fileLock)
          end if

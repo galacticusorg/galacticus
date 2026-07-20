@@ -23,7 +23,7 @@
 
   use :: Cosmology_Functions               , only : cosmologyFunctions   , cosmologyFunctionsClass
   use :: Galactic_Filters                  , only : galacticFilter       , galacticFilterClass
-  use :: IO_HDF5                           , only : hdf5Object
+  use :: IO_HDF5                           , only : hdf5File             , hdf5Group
   use :: Kind_Numbers                      , only : kind_int8
   use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
   use :: Node_Property_Extractors          , only : nodePropertyExtractor, nodePropertyExtractorClass
@@ -35,7 +35,7 @@
      !!}
      logical                                 :: doubleAttributesWritten, integerAttributesWritten, &
           &                                     opened
-     type   (hdf5Object                    ) :: hdf5Group              , nodeDataGroup
+     type   (hdf5Group                     ) :: hdf5Group              , nodeDataGroup
      type   (enumerationOutputGroupTypeType) :: type_
    contains
      !![
@@ -80,7 +80,7 @@
      private
      logical                                                                   :: outputReferences
      type            (varying_string              )                            :: outputsGroupName
-     type            (hdf5Object                  )                            :: outputsGroup
+     type            (hdf5Group                   )                            :: outputsGroup
      logical                                                                   :: outputsGroupOpened
      integer         (c_size_t                    )                            :: outputGroupsCount       =  0_c_size_t
      integer                                                                   :: doublePropertyCount                  , integerPropertyCount
@@ -239,7 +239,7 @@ contains
     use            :: Error              , only : Error_Report
     use            :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
     use            :: HDF5_Access        , only : hdf5Access
-    use            :: IO_HDF5            , only : hdf5Object
+    use            :: IO_HDF5            , only : hdf5File                , hdf5Dataset
     use, intrinsic :: ISO_C_Binding      , only : c_size_t
     use            :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
@@ -254,7 +254,7 @@ contains
     type            (mergerTree                    )               , pointer  :: currentTree
     type            (mergerTreeWalkerAllNodes      )                          :: treeWalker
     integer                                                                   :: iProperty
-    type            (hdf5Object                    )                          :: toDataset
+    type            (hdf5Dataset                   )                          :: toDataset
     !![
     <optionalArgument name="outputType" defaultsTo="outputGroupTypeTree"/>
     !!]
@@ -724,12 +724,12 @@ contains
     Dump the contents of the integer properties buffer to the Galacticus output file.
     !!}
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object
+    use :: IO_HDF5    , only : hdf5File  , hdf5Dataset
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     integer(c_size_t                   ), intent(in   ) :: indexOutput
     integer                                             :: iProperty  , iMetaDatum
-    type   (hdf5Object                 )                :: dataset    
+    type   (hdf5Dataset                )                :: dataset
 
     ! Write integer data from the buffer.
     if (self%integerPropertyCount > 0) then
@@ -782,13 +782,13 @@ contains
     Dump the contents of the double precision properties buffer to the Galacticus output file.
     !!}
     use            :: HDF5_Access  , only : hdf5Access
-    use            :: IO_HDF5      , only : hdf5Object
+    use            :: IO_HDF5      , only : hdf5File  , hdf5Dataset
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     integer(c_size_t                   ), intent(in   ) :: indexOutput
     integer                                             :: iProperty  , iMetaDatum
-    type   (hdf5Object                 )                :: dataset
+    type   (hdf5Dataset                )                :: dataset
     
     ! Write double data from the buffer.
     if (self%doublePropertyCount > 0) then

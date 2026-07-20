@@ -261,7 +261,7 @@ contains
     use :: Display                 , only : displayIndent                            , displayMessage    , displayUnindent, verbosityLevelStandard
     use :: Error                   , only : Error_Report                             , errorStatusSuccess
     use :: Output_HDF5             , only : outputFile
-    use :: IO_HDF5                 , only : hdf5Object
+    use :: IO_HDF5                 , only : hdf5File                                 , hdf5Group
     use :: HDF5_Access             , only : hdf5Access
     use :: MPI_Utilities           , only : mpiBarrier                               , mpiSelf
     use :: Statistics_Distributions, only : distributionFunction1DNegativeExponential
@@ -281,7 +281,7 @@ contains
     double precision                                                                         :: opticalDepthToInteraction, opticalDepthToCellBoundary, &
          &                                                                                      absorptionCoefficient    , lengthToCellBoundary      , &
          &                                                                                      lengthTraversed
-    type            (hdf5Object                               )                              :: outputGroup              , iterationOutputGroup
+    type            (hdf5Group                                )                              :: outputGroup              , iterationOutputGroup
     character       (len=128                                  )                              :: message                  , label
     type            (timer                                    )                              :: timer_                   , timerTotal_               , &
          &                                                                                      timerIteration_

@@ -103,7 +103,7 @@ contains
     use            :: Output_HDF5       , only : outputFile
     use            :: HDF5_Access       , only : hdf5Access
     use            :: Input_Paths       , only : inputPath                        , pathTypeDataStatic
-    use            :: IO_HDF5           , only : hdf5Object
+    use            :: IO_HDF5           , only : hdf5Group
     use            :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , XML_Parse
     use            :: ISO_Varying_String, only : varying_string                   , char
     use            :: String_Handling   , only : String_C_to_Fortran
@@ -113,7 +113,7 @@ contains
     integer                            :: ioErr
     character(len= 41       )          :: gitHashDatasets
     character(len=128       )          :: textBufferFixed
-    type     (hdf5Object    )          :: versionGroup
+    type     (hdf5Group     )          :: versionGroup
     type     (varying_string)          :: runTime        , inputPathStatic
 #ifndef GIT2AVAIL
     integer                            :: status         , hashUnit
@@ -189,12 +189,12 @@ contains
     Output final version information to the main output file.
     !!}
     use :: Dates_and_Times   , only : Formatted_Date_and_Time
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5Group
     use :: HDF5_Access       , only : hdf5Access
     use :: Output_HDF5       , only : outputFile
     use :: ISO_Varying_String, only : varying_string
     implicit none
-    type            (hdf5Object    ) :: versionGroup
+    type            (hdf5Group     ) :: versionGroup
     type            (varying_string) :: runTime
     integer         (c_size_t      ) :: countEndClockSystem, rateClockSystem
     double precision                 :: timeRunDuration

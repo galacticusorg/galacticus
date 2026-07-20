@@ -388,13 +388,14 @@ contains
     !!}
     use :: Output_HDF5              , only : outputFile
     use :: HDF5_Access              , only : hdf5Access
-    use :: IO_HDF5                  , only : hdf5Object
+    use :: IO_HDF5                  , only : hdf5File         , hdf5Group, hdf5Dataset
     use :: Numerical_Constants_Units, only : metersToAngstroms
     use :: Units_MetaData           , only : unitType
     implicit none
-    type            (hdf5Object) :: filtersGroup       , dataset
-    integer                      :: i
-    double precision             :: wavelengthEffective
+    type            (hdf5Group  ) :: filtersGroup
+    type            (hdf5Dataset) :: dataset
+    integer                       :: i
+    double precision              :: wavelengthEffective
     
     if (countFilterResponses == 0) return
     ! Ensure effective wavelengths are set.

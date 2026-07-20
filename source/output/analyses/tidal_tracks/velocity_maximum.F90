@@ -254,14 +254,15 @@ contains
 #endif
     use :: Output_HDF5   , only : outputFile
     use :: HDF5_Access   , only : hdf5Access
-    use :: IO_HDF5       , only : hdf5Object
+    use :: IO_HDF5       , only : hdf5File  , hdf5Group, hdf5Dataset
     use :: Units_MetaData, only : unitType
     implicit none
     class           (outputAnalysisTidalTracksVelocityMaximum), intent(inout)              :: self
     type            (varying_string                          ), intent(in   ), optional    :: groupName
-    type            (hdf5Object                              )               , target      :: analysesGroup                 , subGroup
-    type            (hdf5Object                              )               , pointer     :: inGroup
-    type            (hdf5Object                              )                             :: analysisGroup                 , dataset
+    type            (hdf5Group                               )               , target      :: analysesGroup                 , subGroup
+    type            (hdf5Group                               )               , pointer     :: inGroup
+    type            (hdf5Group                               )                             :: analysisGroup
+    type            (hdf5Dataset                             )                             :: dataset
 #ifdef USEMPI
     integer                                                                                :: offset
     integer                                                   , dimension(:) , allocatable :: countPointsOnTrack

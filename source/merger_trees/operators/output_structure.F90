@@ -21,7 +21,7 @@
   Implements a merger tree operator class which dumps pre-evolution tree structure to the output file.
   !!}
 
-  use :: IO_HDF5                 , only : hdf5Object
+  use :: IO_HDF5                 , only : hdf5File                  , hdf5Group, hdf5Dataset
   use :: Node_Property_Extractors, only : nodePropertyExtractorClass
   
   !![
@@ -37,7 +37,7 @@
      !!}
      private
      class(nodePropertyExtractorClass), pointer :: nodePropertyExtractor_ => null()
-     type (hdf5Object                )          :: outputGroup
+     type (hdf5Group                 )          :: outputGroup
    contains
      final     ::                        outputStructureDestructor
      procedure :: operatePreEvolution => outputStructureOperatePreEvolution
@@ -134,7 +134,8 @@ contains
     type            (mergerTreeWalkerIsolatedNodes    )                              :: treeWalker
     integer                                                                          :: countNodes           , countPropertiesInteger, &
          &                                                                              countPropertiesDouble, i
-    type            (hdf5Object                       )                              :: treeGroup            , dataset
+    type            (hdf5Group                        )                              :: treeGroup
+    type            (hdf5Dataset                      )                              :: dataset
 
     !$ call hdf5Access%set  ()
     if (.not.self%outputGroup%isOpen()) self%outputGroup=outputFile%openGroup("mergerTreeStructures","Pre-evolution structures of merger trees.")

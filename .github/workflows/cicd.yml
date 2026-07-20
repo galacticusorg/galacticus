@@ -101,7 +101,10 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           export BUILDPATH=./work/build
           set -o pipefail
-          make GALACTICUS_BUILD_OPTION=compileprof -j4 Galacticus.exe 2>&1 | tee build.log
+          # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
+          # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
+          # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          make GALACTICUS_BUILD_OPTION=compileprof -j2 Galacticus.exe 2>&1 | tee build.log
           set +o pipefail
           python3 ./scripts/build/buildProfiler.py build.log buildProfile.html --durationMinimum 20
           grep -vqzi error:          build.log || (echo "FAIL: errors found in build.log"          && false)
@@ -153,7 +156,10 @@ jobs:
           # Disable link-time optimization: `make all` builds a very large number of executables, and running
           # LTO on each one makes this job prohibitively slow. LTO is retained in jobs that build only a single
           # executable (e.g. Galacticus.exe). See the LTO option in the Makefile.
-          make -j4 LTO=disabled all 2>&1 | tee build.log
+          # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
+          # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
+          # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          make -j2 LTO=disabled all 2>&1 | tee build.log
           set +o pipefail
           ! grep -n Error: build.log
           ! grep -n Warning: build.log
@@ -193,7 +199,10 @@ jobs:
           export GALACTICUS_FCFLAGS="$GALACTICUS_FCFLAGS -pg"
           export GALACTICUS_CFLAGS="$GALACTICUS_CFLAGS -pg"
           export GALACTICUS_CPPFLAGS="$GALACTICUS_CPPFLAGS -pg"
-          make -j4 Galacticus.exe
+          # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
+          # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
+          # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          make -j2 Galacticus.exe
       - name: Upload executables
         uses: actions/upload-artifact@v7
         with:
@@ -222,7 +231,10 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          make -j4 Galacticus.exe
+          # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
+          # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
+          # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          make -j2 Galacticus.exe
       - name: Upload executables
         uses: actions/upload-artifact@v7
         with:
@@ -250,7 +262,10 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          make -j4 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
+          # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
+          # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
+          # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          make -j2 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v7
         with:
@@ -284,7 +299,10 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          make -j4 Galacticus.exe tests.debugging.exe
+          # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
+          # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
+          # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          make -j2 Galacticus.exe tests.debugging.exe
       - name: Upload test code executables
         uses: actions/upload-artifact@v7
         with:

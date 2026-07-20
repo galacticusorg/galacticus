@@ -25,7 +25,7 @@
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParametersClass
   use :: Halo_Mass_Functions       , only : haloMassFunctionClass
-  use :: IO_HDF5                   , only : hdf5Object
+  use :: IO_HDF5                   , only : hdf5File                     , hdf5Group      , hdf5Dataset
   use :: Stateful_Types            , only : statefulDouble               , statefulInteger, statefulLogical
 
   ! Enumeration of particle epoch types.
@@ -64,7 +64,8 @@
      class           (haloMassFunctionClass                     ), pointer                   :: haloMassFunction_         => null()
      class           (cosmologyParametersClass                  ), pointer                   :: cosmologyParameters_      => null()
      class           (cosmologicalMassVarianceClass             ), pointer                   :: cosmologicalMassVariance_ => null()
-     type            (hdf5Object                                )                            :: file                               , forestHalos
+     type            (hdf5File                                  )                            :: file
+     type            (hdf5Group                                 )                            :: forestHalos
      type            (statefulInteger                           )                            :: hasSubhalos                        , areSelfContained              , &
           &                                                                                     includesHubbleFlow                 , periodicPositions             , &
           &                                                                                     lengthStatus
@@ -80,7 +81,7 @@
      integer                                                     , allocatable, dimension(:) :: firstNodes                         , nodeCounts
      integer         (kind=kind_int8                            ), allocatable, dimension(:) :: forestIndices
      double precision                                            , allocatable, dimension(:) :: weights
-     type            (hdf5Object                                )                            :: particles
+     type            (hdf5Group                                 )                            :: particles
      type            (enumerationGalacticusParticleEpochTypeType)                            :: particleEpochType
      type            (varying_string                            )                            :: particleEpochDataSetName
      character       (len=32                                    )                            :: forestHalosGroupName               , forestContainmentAttributeName, &
@@ -255,10 +256,10 @@ contains
     localSigma8     =self%cosmologicalMassVariance_%sigma8         (                  )
     !$ call hdf5Access%set()
     block
-      type(hdf5Object) :: cosmologicalParametersGroup, unitsGroup , &
-           &              angularMomentumDataset     , spinDataset
+      type(hdf5Group  ) :: cosmologicalParametersGroup, unitsGroup
+      type(hdf5Dataset) :: angularMomentumDataset     , spinDataset
       ! Open the file.
-      self%file=hdf5Object(char(fileName),readOnly=.true.)
+      self%file=hdf5File(fileName,readOnly=.true.)
       ! Get the file format version number.
       if (self%file%hasAttribute('formatVersion')) then
          call self%file%readAttribute('formatVersion',self%formatVersion,allowPseudoScalar=.true.)
@@ -611,7 +612,7 @@ contains
     class           (mergerTreeImporterGalacticus), intent(inout)           :: self
     double precision                              , intent(in   )           :: time
     integer                                       , intent(  out), optional :: status
-    type            (hdf5Object                  )                          :: simulationGroup
+    type            (hdf5Group                   )                          :: simulationGroup
 
     if (.not.self%length%isSet) then
        !$ call hdf5Access%set()
@@ -695,7 +696,7 @@ contains
     use :: Sorting                         , only : sortIndex
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout)             :: self
-    type            (hdf5Object                  )                            :: treeIndexGroup
+    type            (hdf5Group                   )                            :: treeIndexGroup
     integer         (kind=kind_int8              ), allocatable, dimension(:) :: descendantIndex
     double precision                              , allocatable, dimension(:) :: nodeMass           , treeMass    , &
          &                                                                       nodeTime           , treeTime

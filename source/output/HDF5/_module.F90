@@ -26,7 +26,7 @@ module Output_HDF5
   Manages HDF5 output from Galacticus.
   !!}
   use :: HDF5   , only : HSIZE_T
-  use :: IO_HDF5, only : hdf5Object
+  use :: IO_HDF5, only : hdf5File, hdf5Group
   implicit none
   public
 
@@ -34,7 +34,8 @@ module Output_HDF5
   logical                            :: outputFileIsOpen      =.false.
 
   ! Galacticus output file object.
-  type   (hdf5Object  ), allocatable :: outputFile                   , outputGroup
+  type   (hdf5File    ), allocatable :: outputFile
+  type   (hdf5Group   ), allocatable :: outputGroup
 
   ! Chunk size.
   integer(kind=HSIZE_T)              :: hdf5ChunkSize         =+1

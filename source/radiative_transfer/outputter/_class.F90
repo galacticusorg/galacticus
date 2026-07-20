@@ -25,7 +25,7 @@ module Radiative_Transfer_Outputters
   !!{RST
   Provides a class that implements outputters for radiative transfer calculations.
   !!}
-  use :: IO_HDF5                         , only : hdf5Object
+  use :: IO_HDF5                         , only : hdf5File                          , hdf5Group
   use :: Radiative_Transfer_Photon_Packet, only : radiativeTransferPhotonPacketClass
   use :: Radiative_Transfer_Sources      , only : radiativeTransferSourceClass
   private
@@ -55,7 +55,7 @@ module Radiative_Transfer_Outputters
     <type>void</type>
     <pass>yes</pass>
     <argument>class(radiativeTransferSourceClass), intent(inout) :: radiativeTransferSource_</argument>
-    <argument>type (hdf5Object                  ), intent(inout) :: outputGroup</argument>
+    <argument>type (hdf5Group                   ), intent(inout) :: outputGroup</argument>
     <code>
      !$GLC attributes unused :: self, radiativeTransferSource_, outputGroup
     </code>
@@ -87,7 +87,7 @@ module Radiative_Transfer_Outputters
     </description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>type (hdf5Object), intent(inout) :: outputGroup</argument>
+    <argument>type (hdf5Group), intent(inout) :: outputGroup</argument>
     <code>
      !$GLC attributes unused :: self, outputGroup
     </code>

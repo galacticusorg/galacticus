@@ -540,7 +540,7 @@ contains
          &                            displayReset
     use :: Error             , only : Error_Report                        , errorStatusSuccess
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5File                            , hdf5Dataset
     use :: ISO_Varying_String, only : varying_string
     use :: Table_Labels      , only : enumerationExtrapolationTypeEncode  , extrapolationTypeFix, extrapolationTypeExtrapolate, extrapolationTypeZero, &
          &                            enumerationExtrapolationTypeDescribe
@@ -550,13 +550,13 @@ contains
     double precision                        , parameter     :: metallicityLogarithmicZero=-999.0d0
     type            (varying_string        )                :: limitType
     integer                                                 :: fileFormatVersion                  , status
-    type            (hdf5Object            )                :: coolingFunctionFile                , metallicityDataset, &
-         &                                                     temperatureDataset
+    type            (hdf5File              )                :: coolingFunctionFile
+    type            (hdf5Dataset           )                :: metallicityDataset                 , temperatureDataset
     
     !$ call hdf5Access%set()
     ! Read the file.
     call displayIndent('Reading file: '//char(fileName),verbosityLevelWorking)
-    coolingFunctionFile=hdf5Object(fileName,readOnly=.true.)
+    coolingFunctionFile=hdf5File(fileName,readOnly=.true.)
     ! Check the file format version of the file.
     call coolingFunctionFile%readAttribute('fileFormat',fileFormatVersion)
     if (fileFormatVersion /= fileFormatVersionCurrent) call Error_Report('file format version is out of date'//{introspection:location})

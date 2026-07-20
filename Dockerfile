@@ -35,9 +35,11 @@ RUN     cd /opt &&\
 	cd /opt &&\
 	git clone --depth 1 https://github.com/galacticusorg/datasets.git datasets
 
-# Build Galacticus.
+# Build Galacticus. Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large
+# generated `_class` units peak ~10 GB and OOM the ~16 GB runner (matches the -j2 backoff applied to the
+# Linux executable jobs in .github/workflows/cicd.yml).
 RUN     cd /opt/galacticus &&\
-	make -j4 Galacticus.exe &&\
+	make -j2 Galacticus.exe &&\
 	rm -rf work/build
 
 # Build external tools.
