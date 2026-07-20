@@ -82,12 +82,14 @@ contains
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Linear_Algebra                  , only : vector                        , matrix             , assignment(=)
     implicit none
-    double precision                                   , dimension(3)  :: cylindricalChandrasekharIntegral
+    type            (coordinateCartesian              )                :: cylindricalChandrasekharIntegral
     class           (massDistributionCylindrical      ), intent(inout) :: self
     class           (massDistributionClass            ), intent(inout) :: massDistributionEmbedding                           , massDistributionPerturber
     double precision                                   , intent(in   ) :: massPerturber
-    class           (coordinate                       ), intent(in   ) :: coordinates                                         , velocity
-    double precision                                   , dimension(3)  :: velocityCartesian_
+    class           (coordinate                       ), intent(in   ) :: coordinates
+    type            (coordinateCartesian              ), intent(in   ) :: velocity
+    double precision                                   , dimension(3)  :: velocityCartesian_                                  , integralVector                  , &
+         &                                                                accelerationArray
     double precision                                   , parameter     :: toomreQRadiusHalfMass                        =1.50d0  ! The Toomre Q-parameter at the disk half-mass radius (Benson et al.,
     ! 2004 , https://ui.adsabs.harvard.edu/abs/2004MNRAS.351.1215B, Appendix A).
     double precision                                   , parameter     :: toomreQFactor                                =3.36d0  ! The factor appearing in the definition of the Toomre Q-parameter for
@@ -113,6 +115,8 @@ contains
          &                                                                factorSuppressionExtendedMass
     type            (matrix                           )                :: rotation
 
+    ! Initialize the result to zero so that early returns below yield a well-defined (zero) integral.
+    cylindricalChandrasekharIntegral              =  [0.0d0,0.0d0,0.0d0]
     coordinates_                                  =   coordinates
     positionCartesian                             =   coordinates_
     positionCartesianMidplane                     =  [     positionCartesian(1),positionCartesian(2),0.0d0]
@@ -137,10 +141,7 @@ contains
     densityMidPlane             =+self%density       (coordinatesMidplane        )
     densitySurface              =+self%surfaceDensity(coordinatesMidplane        )
     densitySurfaceRadiusHalfMass=+self%surfaceDensity(coordinatesMidplaneHalfMass)
-    if (density <= 0.0d0) then
-       cylindricalChandrasekharIntegral=0.0d0
-       return
-    end if
+    if (density <= 0.0d0) return
     heightScale                 =+0.5d0           &
          &                       *densitySurface  &
          &                       /densityMidPlane
@@ -191,10 +192,12 @@ contains
     ! the disk.
     factorSuppressionExtendedMass=min(1.0d0,massDistributionPerturber%massEnclosedBySphere(heightScale)/massPerturber)
     ! Evaluate the integral.
-    cylindricalChandrasekharIntegral=+density                                                     &
-         &                           *velocityDistribution         %acceleration(coordinates_)    &
-         &                           /velocityDispersionMaximum                               **2 &
+    accelerationArray               =velocityDistribution%acceleration(coordinates_)
+    integralVector                  =+density                          &
+         &                           *accelerationArray                &
+         &                           /velocityDispersionMaximum    **2 &
          &                           *factorSuppressionExtendedMass
+    cylindricalChandrasekharIntegral=integralVector
     return
   end function cylindricalChandrasekharIntegral
 

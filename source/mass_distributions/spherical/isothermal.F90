@@ -627,14 +627,15 @@ contains
     !!{RST
     Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
     !!}
+    use :: Coordinates             , only : coordinateCartesian, assignment(=)
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    double precision                            , dimension(3)  :: position
+    type            (coordinateCartesian        )               :: position
     class           (massDistributionIsothermal), intent(inout) :: self
     class           (randomNumberGeneratorClass), intent(inout) :: randomNumberGenerator_
 
-    position=0.0d0
-    call Error_Report('can not sample positions, mass is unbounded'//{introspection:location})   
+    position=[0.0d0,0.0d0,0.0d0]
+    call Error_Report('can not sample positions, mass is unbounded'//{introspection:location})
     return
   end function isothermalPositionSample
 
