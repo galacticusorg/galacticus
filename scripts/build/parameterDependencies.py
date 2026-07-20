@@ -14,8 +14,7 @@ Outputs:
     subroutine allocating a `varying_string` array of the names.
   * `$BUILDPATH/<target>.blob` -- pickle cache of per-file parameter sets.
 
-Mirrors scripts/build/parameterDependencies.pl.
-Andrew Benson (ported to Python 2026).
+Andrew Benson (2026).
 """
 
 import os
@@ -37,8 +36,7 @@ _EXCLUDED_INCLUDES = frozenset({'fftw3.f03'})
 
 def _object_files_from_dep(dependency_file_name, build_path):
     """Extract every `<build>/<name>.o` path from `<target>.d` and return the
-    bare `<name>.o` list.  Mirrors the regex map at
-    parameterDependencies.pl:29.
+    bare `<name>.o` list.
     """
     if not os.path.exists(dependency_file_name):
         return []
@@ -54,7 +52,7 @@ def _object_files_from_dep(dependency_file_name, build_path):
 
 def _slurp_lines_if_present(path):
     """Return the list of chomped lines from `path`, or `[]` if it does not
-    exist.  Mirrors `read_file(path, chomp => 1, err_mode => 'quiet')`.
+    exist.
     """
     if not os.path.exists(path):
         return []
@@ -67,8 +65,7 @@ _INCLUDE_LINE_RE = re.compile(r"""^\s*include\s*['"]([^'"]+)['"]""")
 
 def _find_included_files(file_path, build_path):
     """Return every `<build>/<leaf>` referenced via `include '<leaf>'` in
-    `file_path`, skipping any leaf in `_EXCLUDED_INCLUDES`.  Mirrors the
-    map at parameterDependencies.pl:85-89.
+    `file_path`, skipping any leaf in `_EXCLUDED_INCLUDES`.
     """
     includes = []
     for line in _slurp_lines_if_present(file_path):

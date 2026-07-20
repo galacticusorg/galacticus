@@ -16,8 +16,8 @@ advanced. They share a common protocol:
   deliberately preserves the blob mtime when content is unchanged so the
   freshness window matches a serial run.
 
-Historically each script carried its own copy of these helpers (a legacy of
-the Perl-to-Python port); they live here so fixes land once.
+Historically each script carried its own copy of these helpers; they live
+here so fixes land once.
 """
 
 import os
@@ -31,10 +31,9 @@ def file_identifier(path):
     """Return the canonical blob-cache key for a source-file path.
 
     Slashes become underscores and a leading ``.`` (optionally followed by
-    ``_``) is stripped -- mirrors the Perl
-    ``(my $id = $path) =~ s/\\//_/g; $id =~ s/^\\._??//;`` idiom. The strip
-    is a no-op for the absolute paths make passes; it matters only for
-    hand-run invocations using ``./``-relative paths.
+    ``_``) is stripped. The strip is a no-op for the absolute paths make
+    passes; it matters only for hand-run invocations using ``./``-relative
+    paths.
     """
     return re.sub(r'^\._?', '', path.replace('/', '_'))
 

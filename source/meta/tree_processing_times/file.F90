@@ -43,6 +43,8 @@ Implements a merger tree processing time estimator using a polynomial relation r
       &lt;/timing&gt;
 
    where the array of coefficients give the values :math:`C_0`, :math:`C_1` and :math:`C_2`.
+
+   Alternatively, if the ``[fileName]`` has an ``.hdf5`` or ``.h5`` extension it is assumed to be a Galacticus output file from a previous run of the same (or a similar) model in which the :galacticus-class:`mergerTreeOperatorTreeProcessingTimer` operator was active. In that case the fit coefficients are read directly from the ``metaData/treeTiming/fitCoefficientMass`` dataset, so that ``&lt;metaTreeProcessingTime value="file"&gt;&lt;fileName value="previousRun.hdf5"/&gt;&lt;/metaTreeProcessingTime&gt;`` &quot;just works&quot; without any manual fitting step.
    </description>
   </metaTreeProcessingTime>
   !!]
@@ -51,10 +53,12 @@ Implements a merger tree processing time estimator using a polynomial relation r
      A merger tree processing time estimator using a polynomial relation read from file.
      !!}
      private
-     double precision                , dimension(0:2) :: fitCoefficient
+     double precision                , dimension(0:2) :: fitCoefficient          , fitCoefficientCountNodes
+     logical                                          :: haveCountNodesFit=.false.
      type            (varying_string)                 :: fileName
    contains
-     procedure :: time => fileTime
+     procedure :: time             => fileTime
+     procedure :: timeByCountNodes => fileTimeByCountNodes
   end type metaTreeProcessingTimeFile
 
   interface metaTreeProcessingTimeFile
@@ -99,24 +103,59 @@ contains
     !!}
     use :: FoX_DOM           , only : node
     use :: Error             , only : Error_Report
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
     use :: IO_XML            , only : XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, XML_Parse
-    use :: ISO_Varying_String, only : varying_string       , char
+    use :: ISO_Varying_String, only : varying_string       , char                             , operator(//)
     implicit none
-    type   (metaTreeProcessingTimeFile)                :: self
-    type   (varying_string            ), intent(in   ) :: fileName
-    type   (node                      ), pointer       :: doc     , fit
-    integer                                            :: ioStatus
+    type     (metaTreeProcessingTimeFile)                            :: self
+    type     (varying_string            ), intent(in   )             :: fileName
+    type     (node                      ), pointer                   :: doc              , fit
+    type     (hdf5Object                )                            :: file             , metaDataGroup, &
+         &                                                              timingDataGroup
+    double precision                     , allocatable, dimension(:) :: coefficients
+    integer                                                          :: ioStatus         , lengthName
+    character(len=1024                  )                            :: fileNameCharacter
     !![
     <constructorAssign variables="fileName"/>
     !!]
-    
-    ! Parse the fit file.
-    !$omp critical (FoX_DOM_Access)
-    doc => XML_Parse(fileName,iostat=ioStatus)
-    if (ioStatus /= 0) call Error_Report('Unable to find or parse tree timing file'//{introspection:location})
-    fit => XML_Get_First_Element_By_Tag_Name(doc,"fit")
-    call XML_Array_Read_Static(fit,"coefficient",self%fitCoefficient)
-    !$omp end critical (FoX_DOM_Access)
+
+    fileNameCharacter=char    (fileName         )
+    lengthName       =len_trim(fileNameCharacter)
+    if     (                                                                                      &
+         &   (lengthName >= 5 .and. fileNameCharacter(max(1,lengthName-4):lengthName) == ".hdf5") &
+         &  .or.                                                                                  &
+         &   (lengthName >= 3 .and. fileNameCharacter(max(1,lengthName-2):lengthName) == ".h5"  ) &
+         & ) then
+       ! The file is a Galacticus HDF5 output file - read the fit coefficients written by the tree processing timer operator.
+       !$ call hdf5Access%set()
+       file=hdf5Object(char(fileName),readOnly=.true.)
+       if (.not.file%hasGroup('metaData')) call Error_Report('tree timing file "'//char(fileName)//'" contains no "metaData" group'//{introspection:location})
+       metaDataGroup=file%openGroup('metaData')
+       if (.not.metaDataGroup%hasGroup('treeTiming')) call Error_Report('tree timing file "'//char(fileName)//'" contains no "metaData/treeTiming" group'//{introspection:location})
+       timingDataGroup=metaDataGroup%openGroup('treeTiming')
+       if (.not.timingDataGroup%hasDataset('fitCoefficientMass')) call Error_Report('tree timing file "'//char(fileName)//'" contains no "metaData/treeTiming/fitCoefficientMass" dataset - was the "mergerTreeOperatorTreeProcessingTimer" operator active in the run that produced it?'//{introspection:location})
+       call timingDataGroup%readDataset('fitCoefficientMass',coefficients)
+       if (size(coefficients) /= 3) call Error_Report('expected 3 fit coefficients in tree timing file "'//char(fileName)//'"'//{introspection:location})
+       self%fitCoefficient=coefficients
+       ! Also read the node-count-based fit if present (used for the read path, where node counts are known but masses are not).
+       if (timingDataGroup%hasDataset('fitCoefficientCountNodes')) then
+          call timingDataGroup%readDataset('fitCoefficientCountNodes',coefficients)
+          if (size(coefficients) == 3) then
+             self%fitCoefficientCountNodes=coefficients
+             self%haveCountNodesFit       =.true.
+          end if
+       end if
+       !$ call hdf5Access%unset()
+    else
+       ! Parse the fit file as an XML document.
+       !$omp critical (FoX_DOM_Access)
+       doc => XML_Parse(fileName,iostat=ioStatus)
+       if (ioStatus /= 0) call Error_Report('Unable to find or parse tree timing file'//{introspection:location})
+       fit => XML_Get_First_Element_By_Tag_Name(doc,"fit")
+       call XML_Array_Read_Static(fit,"coefficient",self%fitCoefficient)
+       !$omp end critical (FoX_DOM_Access)
+    end if
     return
   end function fileConstructorInternal
 
@@ -138,4 +177,30 @@ contains
     fileTime=10.0d0**fileTime
     return
   end function fileTime
+
+  double precision function fileTimeByCountNodes(self,countNodes)
+    !!{RST
+    Return an estimate of the time needed to process a tree with the given number of nodes, using the node-count-based fit read from
+    file. Returns a negative value if no node-count-based fit is available (e.g. the file was supplied in the legacy XML format,
+    which contains only the mass-based fit).
+    !!}
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    implicit none
+    class           (metaTreeProcessingTimeFile), intent(inout) :: self
+    integer         (c_size_t                  ), intent(in   ) :: countNodes
+    integer                                                     :: i
+    double precision                                            :: countNodesLogarithmic
+
+    if (.not.self%haveCountNodesFit .or. countNodes <= 0_c_size_t) then
+       fileTimeByCountNodes=-1.0d0
+       return
+    end if
+    countNodesLogarithmic=log10(dble(countNodes))
+    fileTimeByCountNodes=0.0d0
+    do i=0,2
+       fileTimeByCountNodes=fileTimeByCountNodes+self%fitCoefficientCountNodes(i)*countNodesLogarithmic**i
+    end do
+    fileTimeByCountNodes=10.0d0**fileTimeByCountNodes
+    return
+  end function fileTimeByCountNodes
 

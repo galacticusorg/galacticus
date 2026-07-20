@@ -3,14 +3,13 @@
 covering module `use`s, library linking, OpenMP helpers, `eventHook` /
 `functionClass` wiring, and GraphViz source-tree visualisation.
 
-Follows the same preprocessor-conditional and directive-aware scanning
-logic as the Perl original, including detection of `-D<NAME>` flags in
-`FCFLAGS` (across active `ifdef`/`ifeq` branches of every `Makefile*`)
-plus any macros defined via `$(GALACTICUS_FCFLAGS)` or produced by the
-configured C compiler's `-dM -E` output.
+The scanning is preprocessor-conditional and directive-aware, including
+detection of `-D<NAME>` flags in `FCFLAGS` (across active `ifdef`/`ifeq`
+branches of every `Makefile*`) plus any macros defined via
+`$(GALACTICUS_FCFLAGS)` or produced by the configured C compiler's
+`-dM -E` output.
 
-Mirrors scripts/build/useDependencies.pl.
-Andrew Benson (ported to Python 2026).
+Andrew Benson (2026).
 """
 
 import os
@@ -131,8 +130,8 @@ def _collect_preprocessor_directives(build_path):
 
     Parses every `Makefile*` (under the project root and under
     `$BUILDPATH`) for `-D<NAME>` flags on active `FCFLAGS += …` lines,
-    honouring `ifdef`/`ifeq`/`endif` conditionals the same way the Perl
-    original does.  Falls back to the C compiler's `-dM -E` output for
+    honouring `ifdef`/`ifeq`/`endif` conditionals.  Falls back to the C
+    compiler's `-dM -E` output for
     any toolchain-provided macros, and merges `GALACTICUS_FCFLAGS` env
     var contents if set.
     """
@@ -243,9 +242,7 @@ def _find_containing_module(file_path, state_storables):
     the first `<X>` directive whose `XClass` is registered as a functionClass
     in `state_storables` and use its `module` attribute.
 
-    Mirrors the two `while (my $line = <$file>)` blocks at
-    useDependencies.pl:232-252 and 259-279.  Returns the bare module name
-    or `None` if no module could be located.
+    Returns the bare module name or `None` if no module could be located.
     """
     module_name        = None
     function_class_key = None
@@ -296,7 +293,7 @@ def _functionclass_state_storables_map(state_storables):
 
 def _modules_from_eventhook(event_hook):
     """Return every module-name dict an `eventHook` directive's `import` block
-    references.  Mirrors useDependencies.pl:198-208.
+    references.
     """
     imp = event_hook.get('import')
     if not isinstance(imp, dict):
@@ -313,9 +310,9 @@ def _modules_from_eventhook(event_hook):
 
 
 def _method_iter(function_class):
-    """Iterate over a functionClass directive's methods.  Mirrors
-    useDependencies.pl:298:
-        exists($method->{'name'}) ? $method : map { $method->{$k} } keys
+    """Iterate over a functionClass directive's methods.  A single method
+    dict (one carrying a `name` key) is returned as-is; otherwise the dict's
+    values are the methods.
     """
     method = function_class.get('method')
     if method is None:
@@ -332,13 +329,13 @@ def _method_iter(function_class):
 def _method_module_names(method):
     """Return the list of module names referenced by a single method.
 
-    Mirrors useDependencies.pl:298-321.  `modules` can be:
+    `modules` can be:
       * an attribute-form scalar `modules="A B C"` -- space-separated names;
       * a dict from one `<modules>` block with `<name>` (+ `<only>`) children
         -- Python xml_to_dict representation;
       * a list of such dicts when the method has multiple `<modules>` blocks;
-      * an XML::Simple-style dict keyed by module name (legacy Perl
-        representation preserved for compatibility).
+      * a dict keyed by module name (legacy representation preserved
+        for compatibility).
     """
     mods = method.get('modules')
     if mods is None:
@@ -422,9 +419,8 @@ def _apply_directive_requirements(entry, source_file, directives,
     """Consume the directives dict and stage all the implicit module /
     library dependencies they imply.
 
-    Mirrors useDependencies.pl:181-323.  Mutates `entry` (the per-file
-    record), `event_hook_modules`, `uses_per_file`, and
-    `file_names_to_process` in place.
+    Mutates `entry` (the per-file record), `event_hook_modules`,
+    `uses_per_file`, and `file_names_to_process` in place.
     """
     fc_map = _functionclass_state_storables_map(state_storables)
 
@@ -463,7 +459,7 @@ def _apply_directive_requirements(entry, source_file, directives,
         uses_per_file['eventHooksManager']['fileIdentifier'] = file_identifier
 
     # functionsGlobal: type=pointers and type=establish impose different
-    # module requirements (see useDependencies.pl:215-253).
+    # module requirements.
     if directives['functionsGlobal']:
         has_pointers  = any(
             d.get('type') == 'pointers'  for d in directives['functionsGlobal']
@@ -602,8 +598,7 @@ def _update_conditional_compile(stack, preprocessor_directives):
 
     Entries flagged `unknown` (a `#if <expression>` or a chain containing
     `#elif`) are treated as active regardless of `#else` flips — every
-    branch of an unevaluable conditional is scanned. Mirrors the foreach
-    loop at useDependencies.pl:374-383, with the unknown-entry extension.
+    branch of an unevaluable conditional is scanned.
     """
     for entry in stack:
         if entry.get('unknown'):
@@ -619,7 +614,7 @@ def _scan_source_file(sources_entry, file_names_to_process, source_file,
                      directives, locations, root_source_dir, work_dir,
                      preprocessor_directives_set):
     """Drain `file_names_to_process`, performing the line-by-line scan that
-    populates `sources_entry`.  Mirrors useDependencies.pl:324-461.
+    populates `sources_entry`.
     """
     while file_names_to_process:
         full_path = file_names_to_process.pop()
@@ -740,10 +735,6 @@ def _scan_source_file(sources_entry, file_names_to_process, source_file,
                             # Store in the same `<build>/<lower>.mod` form
                             # that `modulesUsed` uses, so the self-reference
                             # filter in _write_makefile can actually match.
-                            # The Perl original stored `ModuleName.mod`
-                            # here -- case preserved, no path -- which
-                            # meant the filter was a no-op; fixed in the
-                            # Python port.
                             sources_entry['modulesProvided'][
                                 work_dir + module_name.lower() + '.mod'
                             ] = True
@@ -828,9 +819,8 @@ def _source_files_to_process(root_source_dir, build_path):
     if os.path.isdir(libgalacticus_dir):
         directories.append(libgalacticus_dir)
 
-    # Perl strips `<root>/source` or `$BUILDPATH` prefixes to derive the
-    # per-file `subDirectoryName` field.  Matching regex:
-    #   s/^(<root>/source|<BUILDPATH>)/?//
+    # Strip `<root>/source` or `$BUILDPATH` prefixes (plus any trailing
+    # `/`) to derive the per-file `subDirectoryName` field.
     prefix_re = re.compile(
         r'^(' + re.escape(root_source) + r'|' + re.escape(build_path) + r')/?'
     )
@@ -860,8 +850,7 @@ def _source_files_to_process(root_source_dir, build_path):
 
 def _finalise_event_hooks_manager(uses_per_file, event_hook_modules):
     """Inject accumulated event-hook module deps into the file that carries
-    the `eventHookManager` directive (if any).  Mirrors useDependencies.pl:
-    464-470.
+    the `eventHookManager` directive (if any).
     """
     manager = uses_per_file.get('eventHooksManager')
     if not manager:
@@ -880,7 +869,7 @@ def _finalise_event_hooks_manager(uses_per_file, event_hook_modules):
 def _build_submodule_map(uses_per_file, work_dir):
     """Return `{work_dir+lc(mod): [submodule names]}` covering both
     functionClass-synthesised submodules and Fortran `submodule (…)`
-    statements.  Mirrors useDependencies.pl:472-489.
+    statements.
     """
     submodules = {}
     for file_id, entry in uses_per_file.items():
@@ -915,9 +904,7 @@ def _build_submodule_map(uses_per_file, work_dir):
 
 def _write_makefile(path, uses_per_file, source_files, submodules,
                     work_dir):
-    """Emit `Makefile_Use_Dependencies`.  Mirrors useDependencies.pl:
-    491-557.
-    """
+    """Emit `Makefile_Use_Dependencies`."""
     with open(path, 'w') as mk:
         for sf in source_files:
             file_identifier = _file_identifier(sf['fullPathFileName'])

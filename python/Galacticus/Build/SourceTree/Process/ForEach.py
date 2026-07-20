@@ -3,8 +3,6 @@ array of arbitrary rank, expanding `{index}` / `{{index}}` / `%index%`
 placeholders in the directive's inline content.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/ForEach.pm
 """
 
 
@@ -16,10 +14,7 @@ from Galacticus.Build.SourceTree.Parse.ModuleUses   import add_uses
 
 
 def _rank_from_declaration(parent, variable):
-    """Return the array rank of `variable` declared under `parent`, 0 if scalar.
-
-    Mirrors the `dimension(...)` inspection in ForEach.pm:27-33.
-    """
+    """Return the array rank of `variable` declared under `parent`, 0 if scalar."""
     declaration = get_declaration(parent, variable)
     for attr in declaration.get('attributes') or []:
         if attr.startswith('dimension'):
@@ -42,7 +37,7 @@ def _declaration_has_generic_placeholder(parent, variable):
 
 
 def process_for_each(tree, options):
-    """Mirrors Process_ForEach() from ForEach.pm."""
+    """Process `forEach` directives in the tree."""
     for node in walk_tree(tree):
         if node.get('type') != 'forEach':
             continue
@@ -74,7 +69,7 @@ def process_for_each(tree, options):
                 'attributes': [],
             }])
 
-        # Placeholder expansion values.  Mirrors ForEach.pm:51-53.
+        # Placeholder expansion values.
         if rank == 0:
             indexes_format = "'(a1)'"
             indexes        = "'.'"
@@ -135,7 +130,7 @@ def process_for_each(tree, options):
                 'moduleOrder': ['ISO_C_Binding'],
             })
 
-            # Build the format-string setup block (ForEach.pm:111-118).
+            # Build the format-string setup block.
             fmt  = (
                 "write (indexesFormatMeta_,'(\"(\"\"i\"\",i\",i2.2,\".\",i2.2,\")\")') "
                 "1+int(log10(dble(huge(0_c_size_t)))),"

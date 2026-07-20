@@ -2,9 +2,8 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components.pm: the top-level `component`
-handler invoked by scripts/build/buildCode.py.  The driver itself is
-small — it owns three things:
+The top-level `component` handler invoked by scripts/build/buildCode.py.
+The driver itself is small — it owns three things:
 
   1. `validate` — XSD-validate the directive body against
      schema/componentSchema.xsd.
@@ -38,8 +37,6 @@ from Galacticus.Build.Components.CodeGeneration import (
 
 # Import sister modules eagerly so they register their own hooks at the
 # same time the framework itself registers `component` with `Hooks`.
-# Mirrors the chain of `use Galacticus::Build::Components::*;` lines in
-# perl/Galacticus/Build/Components.pm.
 from Galacticus.Build.Components import (  # noqa: F401
     DataTypes,
     NullFunctions,
@@ -113,7 +110,7 @@ def _register():
 def validate(document_string, file_name):
     """Validate `document_string` against schema/componentSchema.xsd.
 
-    Mirrors `Components_Validate`.  Uses `lxml.etree.XMLSchema`; if `lxml`
+    Uses `lxml.etree.XMLSchema`; if `lxml`
     is unavailable we silently skip validation.
     """
     try:
@@ -142,9 +139,8 @@ def validate(document_string, file_name):
 def parse_directive(build):
     """Store the current `<component>` directive on `build['components']`.
 
-    Keys are `<class><name>` with each side `ucfirst`-ed, matching Perl's
-    `ucfirst($class).ucfirst($name)`.  Duplicate IDs are fatal (Perl
-    `die`s in the same spot).
+    Keys are `<class><name>` with each side `ucfirst`-ed.  Duplicate IDs
+    are fatal.
     """
     document = build.get('currentDocument')
     if document is None:
@@ -171,7 +167,7 @@ def parse_directive(build):
 # Generate
 # ---------------------------------------------------------------------------
 
-# Phase order matches Perl Components_Generate_Output (Components.pm:122).
+# Phase order determines the order of generated code — do not reorder phases.
 _PHASES = (
     'preValidate',
     'default',
@@ -188,9 +184,8 @@ _PHASES = (
 def generate_output(build):
     """Run the phased hook pipeline and serialise the result.
 
-    Each phase calls every hook registered under that phase, in the
-    sub-module-registration order returned by `sorted()` over the owner
-    keys (matching Perl `sortedKeys`).  Output is appended to
+    Each phase calls every hook registered under that phase, iterating
+    owner keys in `sorted()` order.  Output is appended to
     `build['content']`, which the buildCode.py driver writes to disk.
     """
     build.setdefault('content',   '')
@@ -326,11 +321,8 @@ def interfaces_serialize(build):
     """Append every abstract interface in `build['interfaces']` to
     `build['content']`.
 
-    The Perl version uses `Text::Template`'s embedded-Perl form to render
-    each interface; we explicitly compute the parts we need (subroutine vs.
-    function, return-name conventions, importables) and string-build the
-    block, since lifting Perl expression evaluation into Python isn't
-    worth the complexity.
+    We explicitly compute the parts we need (subroutine vs. function,
+    return-name conventions, importables) and string-build the block.
     """
     logger.info("   --> Serialize interfaces...")
     for interface in (build.get('interfaces') or {}).values():
@@ -456,18 +448,15 @@ def functions_serialize(build):
 def bound_function_table(object_name, bindings):
     """Render a list of type-bound function bindings as a Fortran block.
 
-    Mirrors Perl `boundFunctionTable` (Components.pm:153-238) including its
-    optional `<methods>…</methods>` description preamble.  We don't try to
-    reproduce Text::Table's column-aligned layout — the Fortran compiler
+    Includes the optional `<methods>…</methods>` description preamble.
+    The table is deliberately not column-aligned — the Fortran compiler
     accepts any reasonable spacing.
     """
     enriched = []
     for b in bindings:
-        # Match Perl's `cmp` semantics: descriptor name takes precedence;
-        # otherwise stringify `function` (which may be a list for `generic`
-        # bindings).  For lists we join with commas so the sort is at least
-        # deterministic — Perl stringified array refs to `ARRAY(0xHEX)`,
-        # making the order effectively random there.
+        # Sort key: descriptor name takes precedence; otherwise stringify
+        # `function` (which may be a list for `generic` bindings).  For
+        # lists we join with commas so the sort is deterministic.
         if 'descriptor' in b:
             function_name = b['descriptor']['name']
         else:
@@ -540,9 +529,8 @@ def bound_function_table(object_name, bindings):
 # ---------------------------------------------------------------------------
 # Variable-definition formatter
 #
-# Stand-in for Perl `Fortran::Utils::Format_Variable_Definitions` — the
-# alignment-rich Text::Table output that the Perl tooling builds.  The
-# downstream Fortran compiler does not care about column alignment, so we
+# Declarations are deliberately not column-aligned: the downstream Fortran
+# compiler does not care about column alignment, so we
 # produce one declaration per logical variable group.  This is sufficient
 # for the components build whose only consumer is the Fortran source
 # preprocessor.
@@ -596,6 +584,5 @@ def _ucfirst(text):
 
 
 # Register handlers eagerly so `import Galacticus.Build.Components` is
-# enough to wire the dispatcher up — matches Perl's load-time
-# `%Galacticus::Build::Hooks::moduleHooks = (..., component => {...})`.
+# enough to wire the dispatcher up.
 _register()

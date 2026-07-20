@@ -71,9 +71,10 @@ def test_build_stack_push_is_placed_after_recursive_short_circuit():
     src = inspect.getsource(_generate_constructor)
     push = "Input_Parameters_Build_Stack_Push(subParameters%parameters"
     ladder = "select case (char(instanceName))"
-    short_circuit = "RecursiveBuildNode)) then"
-    # The recursive short-circuit is generated before the main ladder, and
-    # the ladder push follows the 'select case' opener.
+    short_circuit = "if (associated(recursiveObject)) then"
+    # The recursive short-circuit (a build-stack query for the in-progress
+    # object, issue #695) is generated before the main ladder, and the ladder
+    # push follows the 'select case' opener.
     assert src.index(short_circuit) < src.index(ladder), src
     assert src.index(push) < src.index(ladder) and \
            src.rindex(push) > src.index(short_circuit), src

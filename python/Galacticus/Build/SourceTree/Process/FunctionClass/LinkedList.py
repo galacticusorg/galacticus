@@ -1,8 +1,6 @@
 """Linked-list code generation helpers for the functionClass pipeline.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionClass/LinkedList.pm
 """
 
 
@@ -13,9 +11,8 @@ from Galacticus.Build.SourceTree.Process.SourceIntrospection import location
 def _substitute(template, subs):
     """Replace `{$key}` placeholders in `template` with values from `subs`.
 
-    Same targeted substituter used by Process/EventHooks.py: matches the
-    Perl `fill_in_string(<<'CODE', PACKAGE => 'code')` idiom without
-    pulling in a templating engine.
+    Same targeted substituter used by Process/EventHooks.py — deliberately
+    avoids pulling in a templating engine.
     """
     out = template
     for key, value in subs.items():
@@ -27,7 +24,7 @@ def linked_list_register_variable(linked_list, linked_list_variables,
                                   *variable_names):
     """Add a `type({ll.type}), pointer :: <names>` declaration to
     `linked_list_variables`, unless a declaration of the same type already
-    exists.  Mirrors linkedListRegisterVariable() at LinkedList.pm:21-36.
+    exists.
     """
     for existing in linked_list_variables:
         if (existing.get('type') is not None
@@ -131,7 +128,7 @@ def deep_copy_linked_list(class_record, non_abstract_class,
 
     Returns `(deepCopy, deepCopyReset, deepCopyFinalize, module)`.  Every
     returned code string is empty (and module is None) when the class has
-    no `<linkedList>` metadata — matching the Perl early-return.
+    no `<linkedList>` metadata.
     """
     if 'linkedList' not in class_record:
         return '', '', '', None
@@ -212,9 +209,8 @@ end do
 def state_store_linked_list(class_record, non_abstract_class,
                             linked_list_variables):
     """Generate state-store / state-restore Fortran code for the linked-list
-    block.  Returns `(input_code, output_code, module)` or
-    `('', '', '', None)` [sic - Perl mis-returns an extra empty string in
-    the no-op path].  We normalise to a 3-tuple here.
+    block.  Returns `(input_code, output_code, module)`; the no-op path is
+    normalised to the same 3-tuple shape.
     """
     if 'linkedList' not in class_record:
         return '', '', None

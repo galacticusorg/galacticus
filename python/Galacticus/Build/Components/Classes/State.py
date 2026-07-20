@@ -2,8 +2,7 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/Classes/State.pm.  Two
-`classIteratedFunctions` hooks: `Class_State` declares the
+Two `classIteratedFunctions` hooks: `Class_State` declares the
 class-scope variables (default component, allocator template,
 meta-property bookkeeping arrays); `Class_Size_Of` emits the
 byte-count accessor.
@@ -19,7 +18,7 @@ def Class_State(build, class_dict):
     """Declare the module-scope variables that hold runtime state for
     a component class.
 
-    Mirrors `Class_State`.  Always emits the `default<Class>Component`
+    Always emits the `default<Class>Component`
     holder.  For active classes, also emits an allocator template plus
     six pairs of meta-property bookkeeping arrays (labels, names,
     creator flags, count) and an extra evolvable pair for `floatRank0`.
@@ -92,7 +91,7 @@ def Class_State(build, class_dict):
 
 def Class_Size_Of(build, class_dict):
     """Generate `nodeComponent<Class>SizeOf` returning the in-memory
-    size of the component instance.  Mirrors `Class_Size_Of`.
+    size of the component instance.
     """
     cap       = _ucfirst(class_dict['name'])
     type_name = 'nodeComponent' + cap

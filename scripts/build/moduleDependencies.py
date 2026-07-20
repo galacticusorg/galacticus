@@ -20,8 +20,7 @@ Results are cached in `Makefile_Module_Dependencies.blob` (pickle) so
 subsequent runs only rescan the files whose mtimes have advanced past the
 cache's own mtime.
 
-Mirrors scripts/build/moduleDependencies.pl.
-Andrew Benson (ported to Python 2026).
+Andrew Benson (2026).
 """
 
 import os
@@ -112,7 +111,7 @@ def _list_source_files(directory):
 def _find_function_class_submodules(directive_name, function_class_file,
                                     source_root):
     """Return the list of submodule records produced by one `functionClass`
-    directive.  Mirrors moduleDependencies.pl:97-133.
+    directive.
     """
     # Regex is dynamic: the class name is substituted in.
     type_re = re.compile(
@@ -176,10 +175,7 @@ def _scan_file(file_path, entry, source_root):
 
     `include`d files are not followed: a Fortran `include` cannot introduce
     a `module`/`submodule` statement in this codebase (module declarations
-    are never placed in include files), and the include-following the Perl
-    original attempted was inert anyway — its `include\\s+'(\\w+)'` regex
-    could not match any real include in the tree (all include file names
-    contain a `.`, which `\\w` excludes).
+    are never placed in include files).
     """
     in_xml   = False
     in_latex = False
@@ -335,8 +331,7 @@ def _build_submodule_map(modules_per_file):
 # ---------------------------------------------------------------------------
 
 def _write_makefile(path, modules_per_file, submodules_by_module, work_dir):
-    """Write `Makefile_Module_Dependencies`.  Mirrors the output loop at
-    moduleDependencies.pl:207-300.
+    """Write `Makefile_Module_Dependencies`.
     """
     with open(path, 'w') as mk:
         for file_identifier in sorted(modules_per_file):
@@ -539,8 +534,7 @@ def main(argv):
     modules_per_file, cache_mtime = _load_cache(blob_path)
     have_per_file = cache_mtime is not None
 
-    # Build the unstripped identifier list used for add/remove detection
-    # (matches the Perl's first `@fileIdentifiers` loop).
+    # Build the unstripped identifier list used for add/remove detection.
     unstripped_identifiers = []
     for desc in descriptors:
         for name in _list_source_files(desc['path']):

@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Script to generate post-processed halo mass function models and plots.
 
-Python port of constraints/pipelines/darkMatter/haloMassFunctionPostProcess.pl
-Andrew Benson (ported to Python 2026)
+Andrew Benson (2026)
 """
 
 import argparse
@@ -62,7 +61,7 @@ def _parse_args():
 # ---------------------------------------------------------------------------
 
 def _build_jobs(entries, options):
-    """Return list of Perl-style job dicts for the four model variants."""
+    """Return list of job dicts for the four model variants."""
     galacticus_exe = os.environ['GALACTICUS_EXEC_PATH'] + '/Galacticus.exe'
     pipeline_path  = os.environ['GALACTICUS_EXEC_PATH'] + '/constraints/pipelines/darkMatter/'
     force          = options['force']
@@ -145,7 +144,7 @@ def _plot_entry(entry, options):
     non_fit         = np.where((count_target > 0) & (mass_target <  mass_halo_min))[0]
     hmf_err[non_zero] /= np.sqrt(count_target[non_zero].astype(float))
 
-    # Determine axis ranges (decade-rounded, matching Perl floor/ceil logic).
+    # Determine axis ranges (decade-rounded).
     x_min = 10 ** np.floor(np.log10(mass_target[non_zero].min()))
     x_max = 10 ** np.ceil( np.log10(mass_target[non_zero].max()))
     y_min = 10 ** np.floor(np.log10(hmf_target[non_zero].min()))
@@ -236,7 +235,7 @@ def main():
         entry['fileParameters'] = options['outputDirectory'] + f'haloMassFunctionBase_{identifier}.xml'
         entry['filePrefix']     = options['outputDirectory'] + f'haloMassFunction_{identifier}'
 
-    # Group by (suite, group, resolution, simulation, redshift) — mirrors Perl %setsRealization.
+    # Group by (suite, group, resolution, simulation, redshift).
     sets_realization = {}
     for entry in entries:
         key = (

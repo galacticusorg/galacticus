@@ -2,8 +2,6 @@
 postOutput, output.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Classes/Output.pm.
 """
 
 import re
@@ -17,7 +15,7 @@ from Galacticus.Build.Components.Utils import (
 )
 
 
-# Output.pm:278-283 — map from property type to (label, intrinsic, type).
+# Map from property type to (label, intrinsic, type).
 _INTRINSIC_TYPE_MAP = {
     'double':       {'label': 'double',  'intrinsic': 'double precision'                       },
     'integer':      {'label': 'integer', 'intrinsic': 'integer',          'type': 'kind_int8'  },
@@ -26,7 +24,7 @@ _INTRINSIC_TYPE_MAP = {
 
 
 def Class_Dump_ASCII(build, class_dict):
-    """Generate `nodeComponent<Class>DumpASCII`.  Mirrors `Class_Dump_ASCII`."""
+    """Generate `nodeComponent<Class>DumpASCII`."""
     name = class_dict['name']
     if name not in (build.get('componentClassListActive') or []):
         return
@@ -58,7 +56,7 @@ def Class_Dump_ASCII(build, class_dict):
 
 def Class_Output_Count(build, class_dict):
     """Generate `<class>OutputCount` — delegates to the default
-    component instance.  Mirrors `Class_Output_Count`.
+    component instance.
     """
     name = class_dict['name']
     if name not in (build.get('componentClassListActive') or []):
@@ -112,7 +110,7 @@ def Class_Output_Count(build, class_dict):
 
 
 def Class_Output_Names(build, class_dict):
-    """Generate `<class>OutputNames`.  Mirrors `Class_Output_Names`."""
+    """Generate `<class>OutputNames`."""
     name = class_dict['name']
     if name not in (build.get('componentClassListActive') or []):
         return
@@ -184,7 +182,7 @@ def Class_Output_Names(build, class_dict):
 
 def Class_Output(build, class_dict):
     """Generate `<class>Output` — populate output buffers from the
-    properties of every active member.  Mirrors `Class_Output`.
+    properties of every active member.
     """
     name = class_dict['name']
     if name not in (build.get('componentClassListActive') or []):
@@ -297,7 +295,7 @@ def Class_Output(build, class_dict):
     for m in sorted(modules_required):
         function['modules'].append(m)
 
-    # Unused argument list — mirrors the nestedmap at Output.pm:344-359.
+    # Unused argument list.
     arguments_unused = []
     for key in sorted(argument_usage.keys()):
         if argument_usage[key]:
@@ -411,9 +409,9 @@ def Class_Output(build, class_dict):
 
 def Class_Post_Output(build, class_dict):
     """Generate `<class>PostOutput` — no-op stub.
-    Mirrors `Class_Post_Output`.
 
-    Note this hook does NOT skip inactive classes (matches Perl).
+    Note this hook does NOT skip inactive classes, unlike its sister
+    hooks in this module.
     """
     name      = class_dict['name']
     cap       = _ucfirst(name)
@@ -457,7 +455,8 @@ def _ucfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Classes/Output.pm:23-28.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('classesOutput', 'classIteratedFunctions', Class_Dump_ASCII)

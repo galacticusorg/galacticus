@@ -12,8 +12,7 @@ Writes, under `$BUILDPATH`:
     * `codeDirectives.blob`    -- pickle cache of per-file directive info
       so subsequent runs skip unchanged sources.
 
-Mirrors scripts/build/codeDirectivesParse.pl.
-Andrew Benson (ported to Python 2026).
+Andrew Benson (2026).
 """
 
 import os
@@ -68,8 +67,6 @@ _SOURCE_SUFFIX_RE = re.compile(r'\.(f|f90|c|cpp|h)$', re.IGNORECASE)
 def _collect_included_files(file_path, source_directory):
     """Return the list of `include '<leaf>'` files referenced by `file_path`
     that exist under `source_directory` (after `.inc` -> `.Inc` fix-up).
-
-    Mirrors the `map { … include … }` block at codeDirectivesParse.pl:84-92.
     """
     included = []
     with open(file_path, 'r', errors='replace') as fh:
@@ -88,8 +85,6 @@ def _collect_included_files(file_path, source_directory):
 def _add_implicit_directives(directive, per_file_entry, file_name, file_path):
     """For functionClass directives, inject implicit `stateful` /
     `functionClassDestroy` task dependencies into `per_file_entry`.
-
-    Mirrors addImplicitDirectives() at codeDirectivesParse.pl:214-242.
     """
     is_function_class = directive.get('rootElementType') == 'functionClass'
     implicit_map = {
@@ -295,7 +290,7 @@ def main(argv):
     source_file_names.sort()
 
     # Build the UNSTRIPPED identifier list used for the new/removed-file
-    # checks below.  Matches the first `@fileIdentifiers` loop in the Perl.
+    # checks below.
     file_identifiers = [
         (source_directory + '/' + name).replace('/', '_')
         for name in source_file_names
