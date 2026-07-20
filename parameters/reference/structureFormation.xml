@@ -46,7 +46,9 @@
       <wavenumberScaledMinimum     value="0.000625389301867094"/>
     </powerSpectrumWindowFunction>
     <!-- Use a non-environmentally-dependent critical overdensity here. -->
-    <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+    <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="darkMatterParticleCDM.xml" xpointer="xpointer(parameters/*)" />
+    </criticalOverdensity>
   </haloMassFunction>
   <haloEnvironment value="normal">
     <!-- Use environmental overdensities drawn from a normal distribution conditioned upon the fact that the region has not exceeded

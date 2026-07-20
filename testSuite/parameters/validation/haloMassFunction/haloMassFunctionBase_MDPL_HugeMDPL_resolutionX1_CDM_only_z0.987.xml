@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+
+  <!-- Output control -->
+  <outputFileName value="testSuite/outputs/validation/haloMassFunction/haloMassFunction_MDPL_HugeMDPL_resolutionX1_CDM_only_z0.987.hdf5"/>
+  <outputTimes value="list">
+    <redshifts value="0.987"/>
+  </outputTimes>  
+
+  <!-- Include cosmology and mass function parameters -->
+  <xi:include href="haloMassFunctionParameters.xml"                                                                       xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../../../constraints/pipelines/darkMatter/simulation_MDPL_HugeMDPL.xml"            xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../../../constraints/pipelines/darkMatter/cosmology_MDPL.xml"                                           xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../../../constraints/pipelines/darkMatter/powerSpectrumEffective_MDPL.xml"                              xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="haloMassFunction_MDPL.xml"                                 xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../../../constraints/pipelines/darkMatter/transferFunction_MDPL_CDM.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <!-- Particle mass at the current resolution -->
+  <massParticleAtResolution value="=[simulation/massParticle/resolutionX1]" ignoreWarnings="true"/>
+
+  <!-- Detection efficiency -->
+  <detectionMassMinimumParticleCount value="=[haloMassFunctionParameters/massMinimumParticleCountMDPL1]"  ignoreWarnings="true"/>
+  <detectionEfficiencyAtMassMinimum  value="=[haloMassFunctionParameters/efficiencyAtMassMinimumMDPL1]"   ignoreWarnings="true"/>
+  <detectionExponentMass             value="=[haloMassFunctionParameters/exponentMassDetectionMDPL1]"     ignoreWarnings="true"/>
+  <detectionExponentRedshift         value="=[haloMassFunctionParameters/exponentRedshiftDetectionMDPL1]" ignoreWarnings="true"/>
+
+  <!-- Use the simulation variance perturbation relevant to this simulation -->
+  <perturbationFractional value="=[haloMassFunctionParameters/perturbationCubeHugeMDPL]"/>
+
+</parameters>
