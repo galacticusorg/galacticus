@@ -250,8 +250,13 @@ module Galacticus_Nodes
   integer, parameter, public :: solutionTypeAnalytical=1
   
   ! State for rate computations.
-  integer           , public :: rateComputeState    =propertyTypeActive
+  integer           , public :: rateComputeState      =propertyTypeActive
   !$omp threadprivate(rateComputeState)
+
+  ! True while derivatives of active properties are being evaluated - used (in debugging builds) to
+  ! validate that no inactive property value is read during active property evolution.
+  logical           , public :: evaluationActiveRHS   =.false.
+  !$omp threadprivate(evaluationActiveRHS)
 
   ! Memoized massDistributions
   type :: massDistributionArray

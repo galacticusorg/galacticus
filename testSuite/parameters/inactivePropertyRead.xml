@@ -1,17 +1,20 @@
 <?xml version='1.0' encoding='UTF-8'?>
+<!-- Default parameters for Galacticus v0.9.4 -->
+
+<!-- 30-October-2011                          -->
+
 <parameters>
   <formatVersion>2</formatVersion>
   <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
 
-  <verbosityLevel value="working"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
   <componentBlackHole value="standard"/>
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="standard">
-    <inactiveLuminositiesStellar value="true"/>
     <toleranceAbsoluteMass value="1.0e-6"/>
+    <inactiveLuminositiesStellar value="true"/>
     <massDistributionDisk value="exponentialDisk">
       <dimensionless value="true"/>
     </massDistributionDisk>
@@ -19,20 +22,17 @@
   <componentHotHalo value="standard">
     <starveSatellites value="false"/>
   </componentHotHalo>
-  <componentSatellite value="standard">
-    <inactiveBoundMass value="true"/>
-  </componentSatellite>
+  <componentSatellite value="standard"/>
   <componentSpheroid value="standard">
     <ratioAngularMomentumScaleRadius value="0.5"/>
     <efficiencyEnergeticOutflow value="1.0e-2"/>
-    <inactiveLuminositiesStellar value="true"/>
     <toleranceAbsoluteMass value="1.0e-6"/>
+    <inactiveLuminositiesStellar value="true"/>
     <massDistributionSpheroid value="hernquist">
       <dimensionless value="true"/>
     </massDistributionSpheroid>
   </componentSpheroid>
   <componentSpin value="scalar"/>
-  
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>
   <cosmologyParameters value="simple">
@@ -73,27 +73,9 @@
   <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 
   <!-- Merger tree building options -->
-  <mergerTreeConstructor value="build"/>
-  <mergerTreeBuilder value="smoothAccretion">
-    <massHaloDeclineFactor value="0.9"/>
-  </mergerTreeBuilder>
-  <mergerTreeBuildMasses value="sampledDistributionPseudoRandom">
-    <massTreeMinimum value="1.0e10"/>
-    <massTreeMaximum value="1.0e15"/>
-    <treesPerDecade value="10"/>
-  </mergerTreeBuildMasses>
-  <mergerTreeBuildMassDistribution value="powerLaw">
-    <exponent value="1.0"/>
-  </mergerTreeBuildMassDistribution>
-  <mergerTreeMassResolution value="fixed">
-    <massResolution value="1.0e8"/>
-  </mergerTreeMassResolution>
-
-  <!-- Mass accretion history -->
-  <darkMatterHaloMassAccretionHistory value="hearin2021Stochastic"/>
-
-  <!-- Meta-analysis -->
-  <mergerTreeOperator value="treeProcessingTimer"/>
+  <mergerTreeConstructor value="fullySpecified">
+    <fileName value="testSuite/parameters/inactiveLuminositiesTree.xml"/>
+  </mergerTreeConstructor>
 
   <!-- Substructure hierarchy options -->
   <mergerTreeNodeMerger value="singleLevelHierarchy"/>
@@ -112,18 +94,9 @@
   </haloSpinDistribution>
 
   <!-- Halo accretion options -->
-  <accretionHalo value="simple">
-    <redshiftReionization value="10.5"/>
-    <velocitySuppressionReionization value="35.0"/>
-  </accretionHalo>
+  <accretionHalo value="zero"/>
 
   <!-- Hot halo gas cooling model options -->
-  <hotHaloOutflowStripping value="standard">
-     <efficiency value="0.1"/>
-  </hotHaloOutflowStripping>
-  <coolingInfallTorque value="fixed">
-     <fractionLossAngularMomentum value="0.3"/>
-  </coolingInfallTorque>
   <hotHaloMassDistribution value="betaProfile"/>
   <hotHaloTemperatureProfile value="virial"/>
   <hotHaloMassDistributionCoreRadius value="virialFraction">
@@ -136,6 +109,12 @@
   <hotHaloOutflowReincorporation value="haloDynamicalTime">
     <multiplier value="5.0"/>
   </hotHaloOutflowReincorporation>
+  <hotHaloOutflowStripping value="standard">
+     <efficiency value="0.1"/>
+  </hotHaloOutflowStripping>
+  <coolingInfallTorque value="fixed">
+     <fractionLossAngularMomentum value="0.3"/>
+  </coolingInfallTorque>
   <coolingFunction value="atomicCIECloudy"/>
   <coolingRadius value="simple"/>
   <coolingRate value="whiteFrenk1991">
@@ -154,9 +133,7 @@
   <hotHaloRamPressureForce value="font2008"/>
   <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
   <!-- Galactic structure solver options -->
-  <galacticStructureSolver value="equilibrium">
-    <solveForInactiveProperties value="false"/>
-  </galacticStructureSolver>
+  <galacticStructureSolver value="simple"/>
   <darkMatterProfile value="adiabaticGnedin2004">
     <A value="0.73"/>
     <omega value="0.7"/>
@@ -232,8 +209,27 @@
   <mergerRemnantSize value="cole2000">
     <energyOrbital value="1"/>
   </mergerRemnantSize>
-  <!-- Node evolution and physics -->
+
+  <!-- Spheroid options -->
+  <!-- Numerical tolerances -->
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="1.0e-6"/>
+    <odeToleranceRelative value="1.0e-6"/>
+    <odeAlgorithm value="bdf"/>
+    <odeLatentIntegratorOrder value="15"/>
+  </mergerTreeNodeEvolver>
+
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolver>
+
+  <!-- Physics -->
   <nodeOperator value="multi">
+    <!-- Test operator: deliberately reads the (inactive) disk stellar luminosities during active-property     -->
+    <!-- differential evolution. In a debugging build this must trigger the run-time inactive-property-read     -->
+    <!-- check introduced for issue #128.                                                                       -->
+    <nodeOperator value="testInactivePropertyRead"/>
     <!-- Cosmological epoch -->
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
@@ -241,16 +237,14 @@
     <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleSet"/>
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
-     <!-- Halo spins -->
-    <nodeOperator value="haloAngularMomentumRandomWalk">
-      <angularMomentumVarianceSpecific value="1.0e-3"/>
+    <!-- Halo spins -->
+    <nodeOperator value="haloAngularMomentumRandom">
+      <factorReset value="2.0"/>
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Satellite evolution -->
     <nodeOperator value="satelliteMergingTime"/>
-    <nodeOperator value="satelliteMassLoss">
-      <massBoundIsInactive value="true"/>
-    </nodeOperator>
+    <nodeOperator value="satelliteMassLoss"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks">
       <luminositiesStellarInactive value="true"/>
@@ -263,7 +257,8 @@
       <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>
         <stellarFeedbackOutflows value="powerLaw">
-          <velocityCharacteristic value="250.0"/>
+          <velocityCharacteristic value="0.0"/>
+          <!--250-->
           <exponent value="3.5"/>
         </stellarFeedbackOutflows>
       </stellarFeedbackOutflows>
@@ -272,16 +267,14 @@
       <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>
         <stellarFeedbackOutflows value="powerLaw">
-          <velocityCharacteristic value="100.0"/>
+          <velocityCharacteristic value="0.0"/>
+          <!--100-->
           <exponent value="3.5"/>
         </stellarFeedbackOutflows>
       </stellarFeedbackOutflows>
     </nodeOperator>
     <!-- Bar instability in galactic disks -->
     <nodeOperator value="barInstability">
-      <!-- Stellar luminosities are solved as inactive properties (see the disk/spheroid components above), so bar   -->
-      <!-- instability must be told this too - otherwise it reads the (inactive, and therefore stale during active   -->
-      <!-- property evolution) stellar luminosities. See issue #128.                                                 -->
       <luminositiesStellarInactive value="true"/>
       <galacticDynamicsBarInstability value="efstathiou1982">
 	<stabilityThresholdGaseous value="0.7"/>
@@ -313,35 +306,22 @@
     </nodeOperator>
     <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
   </nodeOperator>
-  
-  <!-- Evolvers -->
-  <mergerTreeEvolver value="standard">
-    <timestepHostAbsolute value="1.0"/>
-    <timestepHostRelative value="0.1"/>
-  </mergerTreeEvolver>
-  <mergerTreeNodeEvolver value="standard">
-    <odeToleranceAbsolute value="0.01"/>
-    <odeToleranceRelative value="0.01"/>
-    <odeAlgorithm value="bdf"/>
-    <odeLatentIntegratorType value="trapezoidal"/>
-    <odeLatentIntegratorOrder value="15"/>
-    <reuseODEStepSize value="true"/>
-  </mergerTreeNodeEvolver>
+
   <!-- Output options -->
-  <outputFileName value="testSuite/outputs/outputSelector.hdf5"/>
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputter>
-  <outputTimes value="uniformSpacingInRedshift">
-    <redshiftMinimum value="0.0"/>
-    <redshiftMaximum value="3.0"/>
-    <countRedshifts value="151"/>
+
+  <!-- ODE solver and luminosities -->
+  <verbosityLevel value="working"/>
+  <odeLatentIntegratorType value="trapezoidal"/>
+  <outputTimes value="list">
+    <redshifts value="0.0 0.5 1.0 2.0"/>
   </outputTimes>
-  <nodePropertyExtractor value="outputSelector">
-    <outputTimes value="list">
-      <redshifts value="0.04 2.34"/>
-    </outputTimes>
-    <nodePropertyExtractor value="indicesTree"/>
-  </nodePropertyExtractor>
- 
+  <luminosityFilter value="SDSS_g SDSS_r"/>
+  <luminosityType value="observed observed"/>
+  <luminosityRedshift value="all all"/>
+  <luminosityPostprocessSet value="default default"/>
+  <outputFileName value="testSuite/outputs/inactivePropertyRead.hdf5"/>
+
 </parameters>
