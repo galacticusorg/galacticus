@@ -25,8 +25,16 @@ jobs:
           file: aux/dependencies.yml
           version_name: camb
           repo: cmbant/CAMB
-      - name: Create Pull Request
+      - name: Guard against overwriting human commits
         if: ${{ env.appid != '' }}
+        id: guard
+        uses: ./.github/actions/dependencyBranchGuard
+        with:
+          branch: depup/${{ steps.depup.outputs.repo }}
+          base: ${{ github.ref_name }}
+          token: ${{ steps.generate-token.outputs.token }}
+      - name: Create Pull Request
+        if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
         uses: peter-evans/create-pull-request@v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -57,8 +65,16 @@ jobs:
           file: aux/dependencies.yml
           version_name: forutils
           repo: cmbant/forutils
-      - name: Create Pull Request
+      - name: Guard against overwriting human commits
         if: ${{ env.appid != '' }}
+        id: guard
+        uses: ./.github/actions/dependencyBranchGuard
+        with:
+          branch: depup/${{ steps.depup.outputs.repo }}
+          base: ${{ github.ref_name }}
+          token: ${{ steps.generate-token.outputs.token }}
+      - name: Create Pull Request
+        if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
         uses: peter-evans/create-pull-request@v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -90,8 +106,16 @@ jobs:
           version_name: class
           repo: lesgourg/class_public
           tag: true
-      - name: Create Pull Request
+      - name: Guard against overwriting human commits
         if: ${{ env.appid != '' }}
+        id: guard
+        uses: ./.github/actions/dependencyBranchGuard
+        with:
+          branch: depup/${{ steps.depup.outputs.repo }}
+          base: ${{ github.ref_name }}
+          token: ${{ steps.generate-token.outputs.token }}
+      - name: Create Pull Request
+        if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
         uses: peter-evans/create-pull-request@v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -122,8 +146,16 @@ jobs:
           file: aux/dependencies.yml
           version_name: fsps
           repo: cconroy20/fsps
-      - name: Create Pull Request
+      - name: Guard against overwriting human commits
         if: ${{ env.appid != '' }}
+        id: guard
+        uses: ./.github/actions/dependencyBranchGuard
+        with:
+          branch: depup/${{ steps.depup.outputs.repo }}
+          base: ${{ github.ref_name }}
+          token: ${{ steps.generate-token.outputs.token }}
+      - name: Create Pull Request
+        if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
         uses: peter-evans/create-pull-request@v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -160,8 +192,16 @@ jobs:
           fi
           echo "latest=${versionFull}" >> "$GITHUB_OUTPUT"
           echo "branch=cloudy" >> "$GITHUB_OUTPUT"
-      - name: Create Pull Request
+      - name: Guard against overwriting human commits
         if: ${{ env.appid != '' }}
+        id: guard
+        uses: ./.github/actions/dependencyBranchGuard
+        with:
+          branch: depup/${{ steps.depup.outputs.branch }}
+          base: ${{ github.ref_name }}
+          token: ${{ steps.generate-token.outputs.token }}
+      - name: Create Pull Request
+        if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
         uses: peter-evans/create-pull-request@v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"
@@ -192,8 +232,16 @@ jobs:
           file: aux/dependencies.yml
           version_name: mangle
           repo: galacticusorg/mangle
-      - name: Create Pull Request
+      - name: Guard against overwriting human commits
         if: ${{ env.appid != '' }}
+        id: guard
+        uses: ./.github/actions/dependencyBranchGuard
+        with:
+          branch: depup/${{ steps.depup.outputs.repo }}
+          base: ${{ github.ref_name }}
+          token: ${{ steps.generate-token.outputs.token }}
+      - name: Create Pull Request
+        if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
         uses: peter-evans/create-pull-request@v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
