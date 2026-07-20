@@ -131,7 +131,12 @@ def Class_Create_By_Interrupt(build, class_dict):
     cap       = _ucfirst(name)
     type_name = 'nodeComponent' + cap
 
-    content = f"{name} => self%{name}(autoCreate=.true.)\n"
+    # `timeEnd` is part of the interrupt-procedure interface signature but is
+    # not needed when simply auto-creating the component.
+    content = (
+        "!$GLC attributes unused :: timeEnd\n"
+        f"{name} => self%{name}(autoCreate=.true.)\n"
+    )
 
     function = {
         'type':        'void',

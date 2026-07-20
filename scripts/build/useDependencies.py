@@ -45,7 +45,7 @@ _BLOB_VERSION = 2
 _DIRECTIVE_NAMES = (
     'functionClass', 'inputParameter', 'enumeration',
     'eventHook', 'eventHookStatic', 'eventHookManager',
-    'functionsGlobal', 'objectDestructor',
+    'functionsGlobal', 'objectDestructor', 'componentBuilder',
 )
 
 # Read-only context shared with forked scan workers (inherited via copy-on-write,
@@ -434,6 +434,26 @@ def _apply_directive_requirements(entry, source_file, directives,
                 if locations else None,
             )
         entry['modulesUsed'].append(work_dir + 'function_classes.mod')
+
+    # componentBuilder: the node-component class hierarchy is synthesized and
+    # grafted into the *preprocessed* `_class.p.F90` during preprocessing (see
+    # Galacticus.Build.SourceTree.Process.ComponentBuilder), so the generated
+    # `use` statements — of the per-component `*_Data` modules (via the
+    # `include`d bound-functions sources) and of the standard modules the
+    # generated procedures reference — live in that preprocessed file, not in
+    # this source file.  Push it onto the scan stack so its module uses (and its
+    # bound-functions `include`s) are attributed to `_class.o`, reproducing the
+    # dependency set that the retired `include 'objects.nodes.components.inc'`
+    # line produced by include-following.  (The Makefile orders
+    # Makefile_Use_Dependencies after `_class.p.F90`, so it exists here.)
+    if directives['componentBuilder']:
+        sub_dir  = source_file['subDirectoryName']
+        work_sub = work_dir + (sub_dir + '/' if sub_dir else '')
+        preprocessed = work_sub + re.sub(
+            r'\.F90$', '.p.F90', source_file['fileName'],
+        )
+        file_names_to_process.append(preprocessed)
+        entry['files'].append(preprocessed)
 
     # eventHook: track a cross-file pool of imported modules that will be
     # injected into the eventHooksManager-owning file during aggregation.

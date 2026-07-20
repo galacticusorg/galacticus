@@ -2,8 +2,9 @@
 
 Andrew Benson (ported to Python 2026)
 
-The top-level `component` handler invoked by scripts/build/buildCode.py.
-The driver itself is small — it owns three things:
+The top-level `component` handler, driven by the `componentBuilder` SourceTree
+process hook (Galacticus.Build.SourceTree.Process.ComponentBuilder).  The driver
+itself is small — it owns three things:
 
   1. `validate` — XSD-validate the directive body against
      schema/componentSchema.xsd.
@@ -28,15 +29,14 @@ logger = logging.getLogger(__name__)
 
 
 from Galacticus.Build.FileChanges        import update as file_changes_update
-from Galacticus.Build          import Hooks
 from Galacticus.Build.Components import Utils
 from Galacticus.Build.Components.CodeGeneration import (
     function_arguments,
     importables,
 )
 
-# Import sister modules eagerly so they register their own hooks at the
-# same time the framework itself registers `component` with `Hooks`.
+# Import sister modules eagerly so they register their phase functions on
+# `Utils.component_utils` at import time.
 from Galacticus.Build.Components import (  # noqa: F401
     DataTypes,
     NullFunctions,
@@ -85,22 +85,11 @@ from Galacticus.Build.Components.TreeNodes import Utils          as _TreeNodesUt
 from Galacticus.Build.Components.TreeNodes import ODESolver      as _TreeNodesODESolver       # noqa: F401
 
 
-# ---------------------------------------------------------------------------
-# Hook registration
-# ---------------------------------------------------------------------------
-
-def _register():
-    """Register the component handler with the global hooks registry.
-
-    Imported sister modules add themselves to `Utils.component_utils` at
-    their own import time; the registration here is the build's `validate`
-    / `parse` / `generate` entry points.
-    """
-    Hooks.module_hooks['component'] = {
-        'validate': validate,
-        'parse':    parse_directive,
-        'generate': generate_output,
-    }
+# The public entry points of this package are `validate`, `parse_directive`,
+# and `generate_output` (defined below).  They are driven directly by the
+# `componentBuilder` SourceTree process hook
+# (Galacticus.Build.SourceTree.Process.ComponentBuilder); imported sister
+# modules add themselves to `Utils.component_utils` at their own import time.
 
 
 # ---------------------------------------------------------------------------
@@ -186,7 +175,7 @@ def generate_output(build):
 
     Each phase calls every hook registered under that phase, iterating
     owner keys in `sorted()` order.  Output is appended to
-    `build['content']`, which the buildCode.py driver writes to disk.
+    `build['content']`, which the componentBuilder hook grafts into the tree.
     """
     build.setdefault('content',   '')
     build.setdefault('types',     {})
@@ -581,8 +570,3 @@ def format_variable_definitions(declarations, indent=2):
 
 def _ucfirst(text):
     return text[:1].upper() + text[1:] if text else text
-
-
-# Register handlers eagerly so `import Galacticus.Build.Components` is
-# enough to wire the dispatcher up.
-_register()

@@ -2,8 +2,8 @@
 `scripts/build/` catalog scripts.
 
 Several build scripts (moduleDependencies, useDependencies, sourceDigests,
-parameterDependencies, deepCopyActions, stateStorables, codeDirectivesParse,
-buildCode) cache per-source-file scan results in a pickle blob under
+parameterDependencies, deepCopyActions, stateStorables, codeDirectivesParse)
+cache per-source-file scan results in a pickle blob under
 ``$BUILDPATH`` so that subsequent runs rescan only files whose mtimes have
 advanced. They share a common protocol:
 

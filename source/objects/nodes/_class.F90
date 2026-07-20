@@ -278,13 +278,10 @@ module Galacticus_Nodes
      module procedure Tree_Node_Constructor
   end interface treeNode
 
-  ! Include node methods.
+  ! Build and insert the node-component class hierarchy (see
+  ! Galacticus.Build.SourceTree.Process.ComponentBuilder).
   !![
-  <include directive="component" type="component">
-  !!]
-  include 'objects.nodes.components.inc'
-  !![
-  </include>
+  <componentBuilder/>
   !!]
 
   !
