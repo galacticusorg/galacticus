@@ -1,10 +1,9 @@
-"""Tests for `List.ExtraUtils` (port of Perl List::ExtraUtils).
+"""Tests for `List.ExtraUtils`.
 
 These functions are small, pure, and used widely across the codebase but
 previously had zero coverage.  The intent of these tests is to lock down
-the documented behaviour against the Perl reference (None handling,
-scalar-vs-list dispatch, dict-keyed-vs-list-of-dicts coercion) so any
-accidental change is caught.
+the documented behaviour (None handling, scalar-vs-list dispatch,
+dict-keyed-vs-list-of-dicts coercion) so any accidental change is caught.
 """
 
 from List.ExtraUtils import smart_push, as_array, hash_list, sorted_keys
@@ -15,7 +14,7 @@ from List.ExtraUtils import smart_push, as_array, hash_list, sorted_keys
 # ---------------------------------------------------------------------------
 
 def test_smart_push_none_is_noop():
-    """A None item must not modify the array (mirrors Perl `defined($item)`)."""
+    """A None item must not modify the array."""
     arr = [1, 2]
     smart_push(arr, None)
     assert arr == [1, 2]
@@ -77,16 +76,15 @@ def test_hash_list_empty_dict_returns_empty():
 
 
 def test_hash_list_returns_values_sorted_by_key():
-    """Returned values are emitted in `sorted(keys())` order — the Perl
-    reference always sorted lexicographically, and downstream code relies on
-    deterministic ordering for code generation."""
+    """Returned values are emitted in `sorted(keys())` order — downstream
+    code relies on deterministic ordering for code generation."""
     d = {'banana': 2, 'apple': 1, 'cherry': 3}
     assert hash_list(d) == [1, 2, 3]
 
 
 def test_hash_list_with_key_as_stamps_key_into_each_value_dict():
     """When `key_as` is given, the dict key is stamped into each value
-    dict under that field name (mutating in place, like Perl)."""
+    dict under that field name (mutating in place)."""
     d = {'A': {'value': 1}, 'B': {'value': 2}}
     out = hash_list(d, key_as='name')
     assert out == [{'value': 1, 'name': 'A'}, {'value': 2, 'name': 'B'}]

@@ -1,8 +1,6 @@
 """Per-implementation type-name accessor.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Implementations/Names.pm.
 """
 from __future__ import annotations
 
@@ -12,8 +10,6 @@ from Galacticus.Build.Components.Utils import register
 def Implementation_Type(build: dict, class_dict: dict, member: dict) -> None:
     """Generate `nodeComponent<Class><Member>Type` returning a static
     `'nodeComponent:<class>:<member>'` label.
-
-    Mirrors `Implementation_Type`.
     """
     cap_class  = _ucfirst(class_dict['name'])
     cap_member = _ucfirst(member['name'])

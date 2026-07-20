@@ -1,0 +1,47 @@
+name: Guard a dependency branch against being overwritten
+description: |
+  Determines whether `peter-evans/create-pull-request` may safely update a dependency branch.
+
+  That action force-pushes its branch to "base branch + its own single commit", so any commits
+  pushed to the branch by a human are silently discarded. This guard reports whether the branch
+  already carries more than the bot's own commit; callers should skip the update when it does,
+  leaving the human's work in place. The bot resumes updating the dependency once the branch has
+  been merged or deleted.
+inputs:
+  branch:
+    description: 'Name of the dependency branch that would be updated'
+    required: true
+  base:
+    description: 'Branch that the dependency branch is compared against'
+    required: true
+  token:
+    description: 'GitHub token'
+    required: true
+outputs:
+  skip:
+    description: "'true' if the branch carries commits beyond the bot's own and must not be overwritten"
+    value: ${{ steps.guard.outputs.skip }}
+runs:
+  using: 'composite'
+  steps:
+      - name: Check for commits beyond the bot's own
+        id: guard
+        shell: bash
+        env:
+          GH_TOKEN:   ${{ inputs.token      }}
+          BRANCH:     ${{ inputs.branch     }}
+          BASE:       ${{ inputs.base       }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          if ! gh api "repos/${REPOSITORY}/branches/${BRANCH}" > /dev/null 2>&1; then
+            echo "Branch '${BRANCH}' does not exist - it is safe to create."
+            exit 0
+          fi
+          countAhead=$(gh api "repos/${REPOSITORY}/compare/${BASE}...${BRANCH}" --jq .ahead_by)
+          echo "Branch '${BRANCH}' is ${countAhead} commit(s) ahead of '${BASE}'."
+          # A branch holding only the bot's own dependency commit is one ahead of the base, and may
+          # be force-pushed freely. Anything more means somebody has added work on top of it.
+          if [ "${countAhead}" -gt 1 ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Dependency branch not updated::Refusing to update '${BRANCH}': it is ${countAhead} commits ahead of '${BASE}', so it carries work beyond this bot's own dependency commit. Updating it would force-push over that work. Merge or delete the branch to re-enable automatic updates."
+          fi

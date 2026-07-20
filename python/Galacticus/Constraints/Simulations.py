@@ -1,6 +1,5 @@
 """Provides utilities for iterating over simulation data structures used as constraints.
 
-Python port of perl/Galacticus/Constraints/Simulations.pm
 Andrew Benson (ported to Python 2026)
 """
 
@@ -17,7 +16,8 @@ from XML.Utils import xml_to_dict
 
 logger = logging.getLogger(__name__)
 
-__all__ = ['select_simulations', 'match_selection', 'iterate', 'parse_simulations_xml']
+__all__ = ['select_simulations', 'match_selection', 'iterate', 'parse_simulations_xml',
+           'detection_class_name', 'write_hmf_mappings_file']
 
 
 def select_simulations(options):
@@ -321,7 +321,77 @@ def parse_simulations_xml(path):
     return result
 
 
-# Perl-compatible camelCase aliases for public API.
+def detection_class_name(suite, group):
+    """Return the detection-efficiency class name for a (suite, group).
+
+    Combines the suite's matched-detection suite (or its own name, with any ':'
+    stripped) with the group's ``detectionEfficiencyClass``. This is the suffix on
+    the per-class detection parameters in ``haloMassFunctionParameters.xml``
+    (e.g. ``massMinimumParticleCount{class}``, ``exponentMassDetection{class}``).
+    """
+    suite_name_det = suite.get('matchedDetection', {}).get('suite', suite['name'])
+    suite_name_det = suite_name_det.replace(':', '')
+    return suite_name_det + group.get('detectionEfficiencyClass', '')
+
+
+def _isolation_bias_label(suite, group):
+    """The isolation-bias parameter label for a (suite, group). Mirrors the
+    halo-mass-function generator's Step A."""
+    group_short = group.get('shortName', group['name'])
+    if 'matchedIsolation' in suite:
+        label = suite['matchedIsolation']['suite'] + group_short
+    else:
+        label = suite['name'] + group_short
+    return label.replace(':', '_')
+
+
+def write_hmf_mappings_file(output_dir, suite, group):
+    """Write the shared halo-mass-function parameter mappings for a (suite, group).
+
+    The halo mass function model (``haloMassFunction_{suite}.xml``) references several
+    *bare* parameter names — ``detectionExponentMass``, ``perturbationFractional``,
+    ``isolationBias`` — that resolve to per-class/per-group calibrated values in
+    ``haloMassFunctionParameters.xml``. Those mappings previously lived only in the HMF
+    base file; this writes them to a single file that both the halo-mass-function and
+    progenitor stages XInclude, so the same model resolves in either stage.
+
+    Only the mappings whose bare name is *actually referenced by the model* (read from
+    the processed ``haloMassFunction_{suite}.xml`` in *output_dir*) are emitted, so the
+    file tracks any ``--removeX`` pruning and per-suite model differences. (The
+    ``haloEnvironment`` object used by some suites is not a bare-name mapping and is not
+    handled here.) Idempotent; returns the written path.
+    """
+    suite_name = suite['name']
+    model_path = f"{output_dir}haloMassFunction_{suite_name}.xml"
+    model_xml  = open(model_path).read() if os.path.exists(model_path) else ''
+
+    lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<parameters>']
+    if '[detectionExponentMass]' in model_xml:
+        c = detection_class_name(suite, group)
+        lines += [
+            f'  <detectionMassMinimumParticleCount value="=[haloMassFunctionParameters/massMinimumParticleCount{c}]" ignoreWarnings="true"/>',
+            f'  <detectionEfficiencyAtMassMinimum  value="=[haloMassFunctionParameters/efficiencyAtMassMinimum{c}]"  ignoreWarnings="true"/>',
+            f'  <detectionExponentMass             value="=[haloMassFunctionParameters/exponentMassDetection{c}]"     ignoreWarnings="true"/>',
+            f'  <detectionExponentRedshift         value="=[haloMassFunctionParameters/exponentRedshiftDetection{c}]" ignoreWarnings="true"/>',
+        ]
+    if '[perturbationFractional]' in model_xml:
+        lbl = 'Cube' + group['name']
+        lines.append(f'  <perturbationFractional value="=[haloMassFunctionParameters/perturbation{lbl}]"/>')
+    if '[isolationBias]' in model_xml:                       # Symphony / COZMIC only
+        lbl = _isolation_bias_label(suite, group)
+        lines += [
+            f'  <isolationBias         value="=[haloMassFunctionParameters/isolationBias{lbl}]"         ignoreWarnings="true"/>',
+            f'  <isolationBiasExponent value="=[haloMassFunctionParameters/isolationBiasExponent{lbl}]" ignoreWarnings="true"/>',
+        ]
+    lines += ['</parameters>', '']
+
+    path = f"{output_dir}haloMassFunctionMappings_{suite_name}_{group['name']}.xml"
+    with open(path, 'w') as fh:
+        fh.write('\n'.join(lines))
+    return path
+
+
+# Legacy camelCase API aliases.
 selectSimulations    = select_simulations
 matchSelection       = match_selection
 parseSimulationsXml  = parse_simulations_xml

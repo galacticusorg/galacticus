@@ -2,18 +2,16 @@
 """Scan source code for `!![...!!]` directives and emit the build-time catalog.
 
 Writes, under `$BUILDPATH`:
-    * `directiveLocations.xml` -- XML map of non-include directive name ->
-      list of source files that contain the directive.
-    * `Makefile_Directives`    -- build rules for every include directive
-      (`<file>.Inc.up` / `<file>.Inc` targets) plus implicit dependencies
-      for functionClass-preprocessed files and `Makefile_Use_Dependencies`.
-    * `<directive>.xml`        -- one file per include directive, atomically
-      updated only when its XML content actually changes.
+    * `directiveLocations.xml` -- XML map of directive name -> list of source
+      files that contain the directive.
+    * `Makefile_Directives`    -- extra prerequisites for functionClass- and
+      componentBuilder-preprocessed files, plus the ordering of
+      `Makefile_Use_Dependencies` and `Makefile_Component_Includes` after the
+      preprocessed `_class` file.
     * `codeDirectives.blob`    -- pickle cache of per-file directive info
       so subsequent runs skip unchanged sources.
 
-Mirrors scripts/build/codeDirectivesParse.pl.
-Andrew Benson (ported to Python 2026).
+Andrew Benson (2026).
 """
 
 import os
@@ -60,16 +58,12 @@ def _save_cache(blob_path, cache):
 # ---------------------------------------------------------------------------
 
 _INCLUDE_LINE_RE  = re.compile(r"""^\s*include\s*['"]([^'"]+)['"]\s*$""")
-_INCLUDE_BODY_RE  = re.compile(r"""^\s*\#?\s*include\s*["'<]([^"'>]+)["'>]""",
-                               re.IGNORECASE | re.MULTILINE)
 _SOURCE_SUFFIX_RE = re.compile(r'\.(f|f90|c|cpp|h)$', re.IGNORECASE)
 
 
 def _collect_included_files(file_path, source_directory):
     """Return the list of `include '<leaf>'` files referenced by `file_path`
     that exist under `source_directory` (after `.inc` -> `.Inc` fix-up).
-
-    Mirrors the `map { … include … }` block at codeDirectivesParse.pl:84-92.
     """
     included = []
     with open(file_path, 'r', errors='replace') as fh:
@@ -88,8 +82,6 @@ def _collect_included_files(file_path, source_directory):
 def _add_implicit_directives(directive, per_file_entry, file_name, file_path):
     """For functionClass directives, inject implicit `stateful` /
     `functionClassDestroy` task dependencies into `per_file_entry`.
-
-    Mirrors addImplicitDirectives() at codeDirectivesParse.pl:214-242.
     """
     is_function_class = directive.get('rootElementType') == 'functionClass'
     implicit_map = {
@@ -157,58 +149,29 @@ def _scan_one(task):
             current, '*', set_root_element_type=True,
         ):
             root_type = directive.get('rootElementType')
-            if root_type == 'include':
-                # Include directive: record the source file and the
-                # include file name, drop `content`, and XML-serialize
-                # the remaining attributes for the per-directive file.
-                directive['source'] = current
-                content = directive.get('content', '')
-                if isinstance(content, str):
-                    m = _INCLUDE_BODY_RE.search(content)
-                    if m:
-                        include_leaf = m.group(1)
-                        # The generated raw include under BUILDPATH is named
-                        # `<base>.p.Inc`, not `<base>.Inc`: the latter differs
-                        # from the processed `<base>.inc` only by case, and on
-                        # case-insensitive filesystems (macOS APFS) the two
-                        # would be the same file.
-                        include_leaf = re.sub(r'\.inc$', '.p.Inc',
-                                              include_leaf)
-                        directive['fileName'] = os.path.join(
-                            build_path, include_leaf,
-                        )
-                directive.pop('content', None)
+            # Remember the source file for every directive.  (The `<include>`
+            # directive mechanism was retired when the `component` builder moved
+            # into the SourceTree preprocessor — see
+            # Galacticus.Build.SourceTree.Process.ComponentBuilder — so every
+            # directive is now handled the same way.)
+            non_include = entry.setdefault('nonIncludeDirectives', {})
+            slot = non_include.setdefault(
+                root_type, {'files': [], 'dependency': []},
+            )
+            slot['files'].append(file_path)
 
-                directive_name = (
-                    directive.get('name')
-                    or directive.get('directive')
+            if root_type == 'functionClass':
+                preprocessed = re.sub(
+                    r'\.F90$', '.p.F90',
+                    os.path.join(build_path, source_file_name),
                 )
-                key = f"{directive_name}.{directive.get('type')}"
-                entry.setdefault('includeDirectives', {})[key] = {
-                    'source':   current,
-                    'fileName': directive.get('fileName'),
-                    'xml':      dict_to_xml_string(root_type, directive),
-                }
-            else:
-                # Non-include directive: remember the source file.
-                non_include = entry.setdefault('nonIncludeDirectives', {})
-                slot = non_include.setdefault(
-                    root_type, {'files': [], 'dependency': []},
+                entry.setdefault(
+                    'functionClasses', {},
+                )[directive['name']] = preprocessed
+                _add_implicit_directives(
+                    directive, entry,
+                    preprocessed, preprocessed,
                 )
-                slot['files'].append(file_path)
-
-                if root_type == 'functionClass':
-                    preprocessed = re.sub(
-                        r'\.F90$', '.p.F90',
-                        os.path.join(build_path, source_file_name),
-                    )
-                    entry.setdefault(
-                        'functionClasses', {},
-                    )[directive['name']] = preprocessed
-                    _add_implicit_directives(
-                        directive, entry,
-                        preprocessed, preprocessed,
-                    )
 
     return file_identifier, entry
 
@@ -225,7 +188,7 @@ def _scan_one(task):
 # that the serial run keeps distinct. Keep this set in sync with the literal
 # keys/values produced by `_scan_one`.
 _ENTRY_LITERALS = {
-    'files', 'includeDirectives', 'source', 'fileName', 'xml',
+    'files',
     'nonIncludeDirectives', 'dependency', 'functionClasses',
     'galacticusStateRetrieveTask', 'galacticusStateStoreTask',
     'functionClassDestroyTask',
@@ -295,7 +258,7 @@ def main(argv):
     source_file_names.sort()
 
     # Build the UNSTRIPPED identifier list used for the new/removed-file
-    # checks below.  Matches the first `@fileIdentifiers` loop in the Perl.
+    # checks below.
     file_identifiers = [
         (source_directory + '/' + name).replace('/', '_')
         for name in source_file_names
@@ -344,12 +307,9 @@ def main(argv):
     # -----------------------------------------------------------------------
     # Reduce across files.
     # -----------------------------------------------------------------------
-    include_directives      = {}
     non_include_directives  = {}
     function_classes        = {}
     for entry in directives_per_file.values():
-        for k, v in (entry.get('includeDirectives') or {}).items():
-            include_directives[k] = v
         for directive, data in (entry.get('nonIncludeDirectives') or {}).items():
             merged = non_include_directives.setdefault(
                 directive, {'files': [], 'dependency': []},
@@ -381,85 +341,18 @@ def main(argv):
     )
 
     # -----------------------------------------------------------------------
-    # Makefile_Directives plus per-directive XML files.
+    # Makefile_Directives.
     # -----------------------------------------------------------------------
     # Written UNCONDITIONALLY (fresh mtime on every run), NOT only-if-changed.
     # Makefile_Directives is `-include`d by the main Makefile, whose rule for
     # it runs this script; make re-executes itself (re-reading the regenerated
     # Makefile_Directives) only when the file is updated by that rule. A stable
     # mtime would suppress that restart on a clean build, so make would never
-    # re-read the rules for the generated `include`-directive files nor the
-    # ordering line making Makefile_Use_Dependencies depend on them — see the
-    # Makefile_Directives rule comment in the main Makefile.
+    # re-read the functionClass / componentBuilder extra-dependency lines nor
+    # the ordering lines below — see the Makefile_Directives rule comment in the
+    # main Makefile.
     makefile_path = os.path.join(build_path, 'Makefile_Directives')
     with open(makefile_path, 'w') as mk:
-        for directive in sorted(include_directives):
-            info      = include_directives[directive]
-            file_name = re.sub(r'\.inc$', '.p.Inc', info['fileName'])
-
-            # Extra dependencies per directive-key suffix. NOTE: no directive
-            # of these kinds (`<base>.function`, `<base>.moduleUse`,
-            # `<base>.functionCall`) currently exists in the source tree — the
-            # only include directive is `type="component"` — so these branches
-            # are retained as future-proofing for directive types the
-            # generator machinery supports.
-            extra_deps = []
-            m = re.match(r'^([a-zA-Z0-9_]+)\.function$', directive)
-            if m:
-                base = m.group(1)
-                extra_deps.extend(
-                    sorted(non_include_directives.get(base, {}).get('files', []))
-                )
-            m = re.match(r'^([a-zA-Z0-9_]+)\.(moduleUse|functionCall)$',
-                         directive)
-            if m:
-                base = m.group(1)
-                deps = non_include_directives.get(base, {}).get('dependency')
-                if deps:
-                    extra_deps.extend(deps)
-
-            # The component include is generated by buildCode.py via the
-            # `Galacticus.Build.Components` package; make its Python sources
-            # prerequisites so edits to the generators trigger regeneration.
-            if file_name.endswith('objects.nodes.components.p.Inc'):
-                components_root = os.path.join(
-                    install_directory,
-                    'python', 'Galacticus', 'Build', 'Components',
-                )
-                python_sources = []
-                for root, _, files in os.walk(components_root):
-                    if '__pycache__' in root.split(os.sep):
-                        continue
-                    python_sources.extend(
-                        os.path.join(root, name)
-                        for name in files if name.endswith('.py')
-                    )
-                extra_deps.extend(sorted(python_sources))
-
-            directive_xml = os.path.join(build_path, directive + '.xml')
-            # stateStorables.xml / deepCopyActions.xml are prerequisites
-            # because buildCode.py runs the full source-tree process pipeline,
-            # whose hooks read both catalogs (mirrors the `%.p.F90.up` rule in
-            # the main Makefile).
-            mk.write(
-                f"{file_name}.up: {directive_xml} {' '.join(extra_deps)}"
-                " $(BUILDPATH)/hdf5FCInterop.dat"
-                " $(BUILDPATH)/openMPCriticalSections.xml"
-                " $(BUILDPATH)/stateStorables.xml"
-                " $(BUILDPATH)/deepCopyActions.xml\n"
-            )
-            mk.write(
-                f"\t./scripts/build/buildCode.py {install_directory}"
-                f" {directive_xml}\n"
-            )
-            mk.write(f"{file_name}: {file_name}.up\n\n")
-
-            # Per-directive XML, atomic update.
-            tmp = directive_xml + '.tmp'
-            with open(tmp, 'w') as fh:
-                fh.write(info['xml'])
-            file_changes_update(directive_xml, tmp)
-
         # Extra dependencies: object files of functionClass-bearing sources
         # pick up every other source that carries the same directive.
         for directive_name in sorted(function_classes):
@@ -469,28 +362,77 @@ def main(argv):
             )
             mk.write(f"{preprocessed}.up: {' '.join(deps)}\n\n")
 
-        # Makefile_Use_Dependencies must be rebuilt after the include files
-        # have been constructed.
-        use_deps = sorted(
-            re.sub(r'\.inc$', '.p.Inc', info['fileName'])
-            for info in include_directives.values()
+        # The `componentBuilder` directive (in objects/nodes/_class.F90)
+        # synthesizes the node-component class hierarchy at preprocess time (see
+        # Galacticus.Build.SourceTree.Process.ComponentBuilder). Make the
+        # preprocessed `_class` file depend on every `<component>` directive file
+        # and on the component generator's Python sources (excluding the
+        # generators' own unit tests), so editing any of them re-preprocesses
+        # `_class.F90`. Also add stateStorables.xml / deepCopyActions.xml, which
+        # the process pipeline reads while expanding the grafted component code
+        # (the generic `%.p.F90.up` rule does not list them).
+        component_builder_targets = []
+        builder_files = sorted(
+            non_include_directives.get('componentBuilder', {}).get('files', [])
         )
-        mk.write(
-            os.path.join(build_path, 'Makefile_Use_Dependencies')
-            + ": " + ' '.join(use_deps) + "\n\n"
-        )
+        if builder_files:
+            component_files = sorted(
+                non_include_directives.get('component', {}).get('files', [])
+            )
+            components_root = os.path.join(
+                install_directory,
+                'python', 'Galacticus', 'Build', 'Components',
+            )
+            generator_sources = []
+            for root, _, files in os.walk(components_root):
+                parts = root.split(os.sep)
+                if '__pycache__' in parts or 'tests' in parts:
+                    continue
+                generator_sources.extend(
+                    os.path.join(root, name)
+                    for name in files if name.endswith('.py')
+                )
+            builder_deps = (
+                component_files
+                + sorted(generator_sources)
+                + [
+                    os.path.join(build_path, 'stateStorables.xml'),
+                    os.path.join(build_path, 'deepCopyActions.xml'),
+                ]
+            )
+            for builder_file in builder_files:
+                relative     = os.path.relpath(builder_file, source_directory)
+                preprocessed = os.path.join(
+                    build_path, re.sub(r'\.F90$', '.p.F90', relative),
+                )
+                component_builder_targets.append(preprocessed)
+                mk.write(f"{preprocessed}.up: {' '.join(builder_deps)}\n\n")
 
-        # Makefile_Component_Includes include (must live here because it
-        # depends on objects.nodes.components.p.Inc built via this Makefile).
+        component_builder_targets.sort()
+
+        # Makefile_Use_Dependencies must be rebuilt after the component code has
+        # been grafted into the preprocessed `_class` file: useDependencies scans
+        # that preprocessed file to recover the generated `use` statements (of
+        # the per-component `*_Data` modules) and the `include`d bound-functions
+        # sources.
+        if component_builder_targets:
+            mk.write(
+                os.path.join(build_path, 'Makefile_Use_Dependencies')
+                + ": " + ' '.join(component_builder_targets) + "\n\n"
+            )
+
+        # Makefile_Component_Includes carries the dependency of `_class.o` /
+        # `_class.p.F90` on the per-component bound-functions include files; it is
+        # (re)written by the component generator as `_class.F90` is preprocessed,
+        # so it must be built after the preprocessed `_class` file.
         mk.write(
             f"-include {os.path.join(build_path, 'Makefile_Component_Includes')}\n"
         )
-        mk.write(
-            os.path.join(build_path, 'Makefile_Component_Includes')
-            + ": "
-            + os.path.join(build_path, 'objects.nodes.components.p.Inc')
-            + "\n\n"
-        )
+        if component_builder_targets:
+            mk.write(
+                os.path.join(build_path, 'Makefile_Component_Includes')
+                + ": " + ' '.join(component_builder_targets) + "\n\n"
+            )
 
     # -----------------------------------------------------------------------
     # Persist per-file cache.

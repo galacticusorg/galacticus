@@ -2439,6 +2439,7 @@
           <xs:enumeration value="stellarFeedbackDisks"/>
           <xs:enumeration value="stellarFeedbackSpheroids"/>
           <xs:enumeration value="subsubhaloPromotion"/>
+          <xs:enumeration value="testInactivePropertyRead"/>
           <xs:enumeration value="tidalHeatingSpheroids"/>
           <xs:enumeration value="tidalMassLossDisks"/>
           <xs:enumeration value="tidalMassLossSoliton"/>
@@ -3348,8 +3349,10 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="chandrasekhar1943"/>
           <xs:enumeration value="kaur2018"/>
+          <xs:enumeration value="lancaster2020"/>
           <xs:enumeration value="massRatioThreshold"/>
           <xs:enumeration value="petts2015"/>
+          <xs:enumeration value="scale"/>
           <xs:enumeration value="zero"/>
          </xs:restriction>
         </xs:simpleType>
@@ -4577,6 +4580,22 @@
           <xs:enumeration value="FoF"/>
           <xs:enumeration value="default"/>
           <xs:enumeration value="topHat"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="massRatioDistribution">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="hinkley"/>
+          <xs:enumeration value="normal"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>

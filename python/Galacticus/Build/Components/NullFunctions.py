@@ -3,7 +3,7 @@ components-build pipeline.
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/NullFunctions.pm.  A null
+A null
 function is a placeholder type-bound implementation that satisfies a
 Fortran type's contract for a property method (get / set / rate / scale
 / analytic / inactive) when no real implementation is needed.  The
@@ -20,9 +20,8 @@ from Galacticus.Build.Components.Utils import (
 )
 
 
-# Module-level fingerprint cache.  Mirrors Perl `my %nullFunctionFingerprints`
-# at NullFunctions.pm:20: a single build process generates each unique null
-# function exactly once.
+# Module-level fingerprint cache: a single build process generates each
+# unique null function exactly once.
 _null_function_fingerprints = set()
 
 
@@ -38,8 +37,6 @@ def create_null_function(build, descriptor):
                     `"analytic"`, `"inactive"`.
     * `intent`    — `"in"` / `"inout"` / `"out"` for the `self` argument.
     * `property`  — sub-dict carrying at least `type` and `rank`.
-
-    Mirrors Perl `createNullFunction`.
     """
     prop = descriptor['property']
     fingerprint = ":".join(str(descriptor[k]) for k in ('selfType', 'attribute', 'intent')) \
@@ -129,8 +126,8 @@ def create_null_function(build, descriptor):
             f"createNullFunction: attribute '{attribute}' not supported"
         )
 
-    # Mark every variable as unused for GCC, matching Perl's `!$GLC
-    # attributes unused :: …` line.
+    # Mark every variable as unused for GCC via a `!$GLC attributes
+    # unused :: …` line.
     unused_names = []
     for v in variables:
         unused_names.extend(v.get('variables') or [])

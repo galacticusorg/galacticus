@@ -266,15 +266,19 @@ contains
     use :: HDF5_Access    , only : hdf5Access
     use :: IO_HDF5        , only : hdf5File
     use :: String_Handling, only : operator(//)
-    use :: System_Command , only : System_Command_Do
+    use :: System_Command , only : System_Command_Do, shellEscape
+    use :: ISO_Varying_String, only : varying_string, assignment(=)
     implicit none
     class(surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
     type (hdf5File                         )                :: surveyGeometryRandomsFile
+    type (varying_string                   )                :: escapedScript
 
     ! Generate the randoms file if necessary.
     if (.not.File_Exists(inputPath(pathTypeDataDynamic)//&
          & "surveys/UKIDSS_UDS/data/surveyGeometryRandoms.hdf5")) then
-       call System_Command_Do(inputPath(pathTypeDataStatic)//"surveyGeometry/UKIDSS_UDS/surveyGeometryRandoms.py")
+       escapedScript=inputPath  (pathTypeDataStatic)//"surveyGeometry/UKIDSS_UDS/surveyGeometryRandoms.py"
+       escapedScript=shellEscape(escapedScript     )
+       call System_Command_Do(escapedScript)
        if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"surveys/UKIDSS_UDS/surveyGeometryRandoms.hdf5")) call Error_Report('unable to create survey geometry randoms file'//{introspection:location})
     end if
     ! Read the distribution of random points from file.

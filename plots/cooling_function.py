@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
 # Make a plot of the specified cooling function file.
-# Andrew Benson (27-Jan-2009) [Perl]; ported to Python
+# Andrew Benson (27-Jan-2009)
 
 if len(sys.argv) < 2 or len(sys.argv) > 3:
     print("Usage: cooling_function.py <coolingFunctionFile> [<pdfFile>]", file=sys.stderr)

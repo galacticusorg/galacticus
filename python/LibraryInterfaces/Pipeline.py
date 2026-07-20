@@ -345,7 +345,7 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
                    constructor_overrides=()):
     """Assign appropriate C types for each argument.
 
-    Mirrors Perl assignCTypes().  Accepts a list of raw Fortran-declaration
+    Accepts a list of raw Fortran-declaration
     dicts and returns a new list of :class:`ArgSpec` objects.  Processes in
     reverse so that the ``_ID`` companion argument for functionClass parameters
     can be inserted immediately after its parent without disturbing the rest
@@ -1022,7 +1022,7 @@ def assign_c_attributes(argument_list):
 def build_python_reassignments(argument_list):
     """Set py_pass_as and py_reassignment for functionClass args.
 
-    Mirrors Perl buildPythonReassignments().  Processes in reverse so that when
+    Processes in reverse so that when
     a functionClass arg is encountered, its _ID companion is already sitting at
     the front of new_list (it was the immediately preceding arg in forward
     order, so the last one pushed in reverse order).
@@ -1369,7 +1369,7 @@ def build_fortran_reassignments(argument_list, func_class, implementation,
                                 lib_function_classes=None):
     """Generate Fortran reassignments for cross-language type conversions.
 
-    Mirrors Perl buildFortranReassignments().  Processes in reverse (same
+    Processes in reverse (same
     pop/unshift skeleton as the other builders); no new args are inserted so
     the order is unchanged.
 

@@ -4,8 +4,7 @@ Launch sets of Galacticus models, iterating over sets of parameters and
 performing analysis on the results.  Supports launching on a variety of
 platforms via launch-method hooks.
 
-Python port of ./scripts/aux/launch.py
-Andrew Benson (11-June-2010; major re-write 01-February-2014; Python port 2026)
+Andrew Benson (11-June-2010; major re-write 01-February-2014)
 """
 
 import sys
@@ -26,7 +25,7 @@ from XML.Utils import xml_to_dict
 # XML utilities
 # ---------------------------------------------------------------------------
 
-# Element names that Perl XML::Simple ForceArray would always wrap in a list.
+# Element names that are always parsed as lists, even when only one is present.
 _FORCE_ARRAY = frozenset({"modify", "value", "parameter", "parameters", "requirement"})
 
 
@@ -187,17 +186,14 @@ def _parse_launch_script(filename: str) -> dict:
         "verbosity":          0,
         "md5Names":           "no",
         "useStateFile":       "no",
-        "compressModels":     "no",
         "launchMethod":       "local",
         "modelRootDirectory": "./models",
         "baseParameters":     "",
         "doAnalysis":         "no",
-        "splitModels":        1,
     }
     for key, val in defaults.items():
         script.setdefault(key, val)
-    script["verbosity"]   = int(script["verbosity"])
-    script["splitModels"] = int(script["splitModels"])
+    script["verbosity"] = int(script["verbosity"])
     return script
 
 
@@ -208,7 +204,7 @@ def _parse_launch_script(filename: str) -> dict:
 def _unfold_parameters(parameter_set: dict) -> list:
     """Expand array-valued parameters into a flat list of single-value dicts.
 
-    Python port of Perl's unfoldParameters().  Two-phase algorithm:
+    Two-phase algorithm:
       Phase 1 - expand arrays (iterable elements) into separate parameter sets.
       Phase 2 - move parameters with a 'parameterLevel' attribute up the hierarchy.
     """
@@ -289,8 +285,8 @@ def _unfold_parameters(parameter_set: dict) -> list:
                 is_numeric = False
 
             if is_numeric and level_num < 0:
-                # Move parameter up the hierarchy.
-                # Perl loop: while level <= 0 -> move up, increment level.
+                # Move parameter up the hierarchy: while level <= 0, move up
+                # one level and increment level.
                 cur_level = level_num
                 target    = node
                 while cur_level <= 0:
@@ -325,20 +321,7 @@ def _unfold_parameters(parameter_set: dict) -> list:
 # ---------------------------------------------------------------------------
 
 def _post_analyze(job: dict, launch_script: dict):
-    """Run analysis for a completed model (mirrors PostProcess::Analyze)."""
-    mg = str(job["mergeGroup"])
-    launch_script.setdefault("mergeGroups", {}).setdefault(mg, []).append(job["directory"])
-    if len(launch_script["mergeGroups"][mg]) < launch_script["splitModels"]:
-        return
-    if launch_script["splitModels"] > 1:
-        hdf5_files = " ".join(
-            d + "/galacticus.hdf5" for d in launch_script["mergeGroups"][mg]
-        )
-        subprocess.run(
-            f"{os.environ.get('GALACTICUS_EXEC_PATH', '')}/scripts/aux/Merge_Models.pl"
-            f" {hdf5_files} {launch_script['mergeGroups'][mg][0]}/galacticusMerged.hdf5",
-            shell=True,
-        )
+    """Run analysis for a completed model."""
     if job.get("analysis"):
         sh = os.path.join(job["directory"], "analysis.sh")
         with open(sh, "w") as f:
@@ -352,7 +335,7 @@ def _post_analyze(job: dict, launch_script: dict):
 
 
 def _post_failed(job: dict, launch_script: dict):
-    """Report a failed Galacticus run (mirrors PostProcess::Failed)."""
+    """Report a failed Galacticus run."""
     import shutil as _sh
     for fname in os.listdir("."):
         if re.match(r"core\.\d+$", fname):
@@ -368,16 +351,6 @@ def _post_failed(job: dict, launch_script: dict):
     if os.path.isfile(log):
         with open(log) as f:
             print("Log follows:\n" + f.read())
-
-
-def _post_cleanup(job: dict, launch_script: dict):
-    """Compress model output if requested (mirrors PostProcess::CleanUp)."""
-    if launch_script.get("compressModels") == "yes":
-        subprocess.run(
-            f"{os.environ.get('GALACTICUS_EXEC_PATH', '')}/scripts/aux/Compress_Directory.pl"
-            f" {job['directory']}",
-            shell=True,
-        )
 
 
 # ---------------------------------------------------------------------------
@@ -449,7 +422,6 @@ def _local_run_models(i_thread: int, thread_count: int,
             _post_analyze(job, launch_script)
         else:
             _post_failed(job, launch_script)
-        _post_cleanup(job, launch_script)
 
 
 # ---------------------------------------------------------------------------
@@ -472,8 +444,6 @@ def _pbs_validate(launch_script: dict):
         "analyze":                 "yes",
     }.items():
         pbs.setdefault(key, val)
-    if pbs.get("analyze") == "yes" and launch_script["splitModels"] > 1:
-        sys.exit("PBS::Validate: cannot analyze models on PBS when splitting models")
 
 
 def _pbs_output_file(output_file: str, launch_script: dict) -> str:
@@ -508,7 +478,6 @@ def _pbs_launch(jobs: list, launch_script: dict, options: dict):
                 print(f" -> PBS job {jid} has finished; post-processing....")
                 finished = True
                 _post_analyze(pbs_jobs[jid]["job"], launch_script)
-                _post_cleanup(pbs_jobs[jid]["job"], launch_script)
                 del pbs_jobs[jid]
 
         if model_queue and (len(pbs_jobs) < job_max or job_max < 0):
@@ -626,8 +595,6 @@ def _slurm_validate(launch_script: dict):
         "analyze":                 "yes",
     }.items():
         slurm.setdefault(key, val)
-    if slurm.get("analyze") == "yes" and launch_script["splitModels"] > 1:
-        sys.exit("SLURM::Validate: cannot analyze models on SLURM when splitting models")
 
 
 def _slurm_output_file(output_file: str, launch_script: dict) -> str:
@@ -660,7 +627,6 @@ def _slurm_launch(jobs: list, launch_script: dict, options: dict):
             if jid not in running:
                 print(f" -> SLURM job {jid} has finished; post-processing....")
                 _post_analyze(slurm_jobs[jid]["job"], launch_script)
-                _post_cleanup(slurm_jobs[jid]["job"], launch_script)
                 del slurm_jobs[jid]
 
         if model_queue and (len(slurm_jobs) < max_q or max_q < 0):
@@ -901,7 +867,6 @@ def _mono_pbs_launch(jobs: list, launch_script: dict, _options: dict):
     for job in jobs:
         if mono.get("analyze") != "yes":
             _post_analyze(job, launch_script)
-        _post_cleanup(job, launch_script)
 
 
 def _mono_set_env(mono: dict, shell: str) -> str:
@@ -985,104 +950,93 @@ def _construct_models(launch_script: dict) -> list:
         model_base = (raw_label if isinstance(raw_label, str) and raw_label
                       else "galacticus")
 
-        unfolded    = _unfold_parameters(parameter_set)
-        i_model     = 0
-        merge_group = 0
+        unfolded = _unfold_parameters(parameter_set)
+        i_model  = 0
 
         for parameter_data in unfolded:
-            merge_group += 1
+            i_model += 1
+            launch_script["modelCounter"] += 1
+            random_seed += 1
 
-            for worker in range(1, launch_script["splitModels"] + 1):
-                i_model += 1
-                launch_script["modelCounter"] += 1
-                random_seed += 1
+            run_on = (launch_script["modelCounter"] % launch_script["instanceCount"]) + 1
 
-                run_on = (launch_script["modelCounter"] % launch_script["instanceCount"]) + 1
+            # Determine model label.
+            lbl = parameter_data.get("label")
+            if isinstance(lbl, dict):
+                model_label = lbl.get("value", f"{i_model_set}:{i_model}")
+            elif isinstance(lbl, str) and lbl:
+                model_label = lbl
+            else:
+                model_label = f"{i_model_set}:{i_model}"
 
-                if launch_script["splitModels"] > 1:
-                    parameter_data["treeEvolveWorkerNumber"] = {"value": str(worker)}
-                    parameter_data["treeEvolveWorkerCount"]  = {
-                        "value": str(launch_script["splitModels"])
-                    }
+            output_dir = (f"{launch_script['modelRootDirectory']}"
+                          f"/{model_base}_{model_label}")
 
-                # Determine model label.
-                lbl = parameter_data.get("label")
-                if isinstance(lbl, dict):
-                    model_label = lbl.get("value", f"{i_model_set}:{i_model}")
-                elif isinstance(lbl, str) and lbl:
-                    model_label = lbl
-                else:
-                    model_label = f"{i_model_set}:{i_model}"
-
+            descriptor = None
+            if launch_script["md5Names"] == "yes":
+                descriptor = json.dumps(parameter_data, sort_keys=True, default=str)
+                md5_hash   = hashlib.md5(descriptor.encode()).hexdigest()
                 output_dir = (f"{launch_script['modelRootDirectory']}"
-                              f"/{model_base}_{model_label}")
+                              f"/{model_base}_{md5_hash}")
 
-                descriptor = None
-                if launch_script["md5Names"] == "yes":
-                    descriptor = json.dumps(parameter_data, sort_keys=True, default=str)
-                    md5_hash   = hashlib.md5(descriptor.encode()).hexdigest()
-                    output_dir = (f"{launch_script['modelRootDirectory']}"
-                                  f"/{model_base}_{md5_hash}")
+            # Skip if directory already exists or this is the wrong instance.
+            if os.path.exists(output_dir) or run_on != launch_script["thisInstance"]:
+                continue
 
-                # Skip if directory already exists or this is the wrong instance.
-                if os.path.exists(output_dir) or run_on != launch_script["thisInstance"]:
-                    continue
+            os.makedirs(output_dir, exist_ok=True)
 
-                os.makedirs(output_dir, exist_ok=True)
+            if descriptor is not None:
+                with open(os.path.join(output_dir, "md5Descriptor.txt"), "w") as fh:
+                    fh.write(descriptor + "\n")
 
-                if descriptor is not None:
-                    with open(os.path.join(output_dir, "md5Descriptor.txt"), "w") as fh:
-                        fh.write(descriptor + "\n")
+            output_hdf5 = os.path.join(output_dir, "galacticus.hdf5")
 
-                output_hdf5 = os.path.join(output_dir, "galacticus.hdf5")
+            # Load optional base parameters.
+            parameters: dict = {}
+            base_file = launch_script.get("baseParameters", "")
+            if base_file:
+                parameters = xml_to_dict(
+                    ET.parse(base_file).getroot(),
+                    force_array=frozenset(),
+                )
 
-                # Load optional base parameters.
-                parameters: dict = {}
-                base_file = launch_script.get("baseParameters", "")
-                if base_file:
-                    parameters = xml_to_dict(
-                        ET.parse(base_file).getroot(),
-                        force_array=frozenset(),
-                    )
+            # Set output file name via launch-method hook.
+            parameters["outputFileName"] = {
+                "value": _MODULE_HOOKS[method]["outputFileName"](output_hdf5, launch_script)
+            }
 
-                # Set output file name via launch-method hook.
-                parameters["outputFileName"] = {
-                    "value": _MODULE_HOOKS[method]["outputFileName"](output_hdf5, launch_script)
+            # Set random seed if not already in base parameters.
+            if "randomNumberGenerator" not in parameters:
+                parameters["randomNumberGenerator"] = {
+                    "value": "GSL",
+                    "seed":  {"value": str(random_seed)},
                 }
 
-                # Set random seed if not already in base parameters.
-                if "randomNumberGenerator" not in parameters:
-                    parameters["randomNumberGenerator"] = {
-                        "value": "GSL",
-                        "seed":  {"value": str(random_seed)},
-                    }
+            # State restore file.
+            if launch_script.get("useStateFile") == "yes":
+                state_root = re.sub(r"\.hdf5$", "",
+                                    parameters["outputFileName"]["value"])
+                parameters["stateFileRoot"] = {"value": state_root}
 
-                # State restore file.
-                if launch_script.get("useStateFile") == "yes":
-                    state_root = re.sub(r"\.hdf5$", "",
-                                        parameters["outputFileName"]["value"])
-                    parameters["stateFileRoot"] = {"value": state_root}
+            # Merge model-specific parameters (overrides base).
+            for key, val in parameter_data.items():
+                parameters[key] = val
 
-                # Merge model-specific parameters (overrides base).
-                for key, val in parameter_data.items():
-                    parameters[key] = val
+            # Write parameters.xml.
+            with open(os.path.join(output_dir, "parameters.xml"), "w") as fh:
+                fh.write(_xml_out(parameters, root_name="parameters"))
 
-                # Write parameters.xml.
-                with open(os.path.join(output_dir, "parameters.xml"), "w") as fh:
-                    fh.write(_xml_out(parameters, root_name="parameters"))
+            # Analysis command.
+            analysis = None
+            if launch_script.get("doAnalysis") == "yes":
+                analysis = f"{launch_script['analysisScript']} {output_dir}\n"
 
-                # Analysis command.
-                analysis = None
-                if launch_script.get("doAnalysis") == "yes":
-                    analysis = f"{launch_script['analysisScript']} {output_dir}\n"
-
-                jobs.append({
-                    "label":        model_label,
-                    "directory":    output_dir,
-                    "analysis":     analysis,
-                    "mergeGroup":   merge_group,
-                    "modelCounter": launch_script["modelCounter"],
-                })
+            jobs.append({
+                "label":        model_label,
+                "directory":    output_dir,
+                "analysis":     analysis,
+                "modelCounter": launch_script["modelCounter"],
+            })
 
     return jobs
 

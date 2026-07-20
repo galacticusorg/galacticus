@@ -1,8 +1,6 @@
 """Contains a Python module which implements parsing of directives in the Galacticus preprocessor system.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Parse/Directives.pm
 """
 
 import re
@@ -49,7 +47,6 @@ if _HAS_LXML:
 def _load_state_storables():
     """Load $BUILDPATH/stateStorables.xml once and cache it.
 
-    Mirrors the Perl `our $stateStorables` caching pattern at Directives.pm:20-25.
     Returns None if BUILDPATH is unset or the file is missing.
     """
     global _state_storables, _state_storables_loaded
@@ -71,8 +68,6 @@ def _load_state_storables():
 
 
 # XSD schema templates.  `{name}` is filled in with the directive name.
-# Mirrors the `fill_in_string` templates at Directives.pm:123-250 (functionClass)
-# and Directives.pm:255-273 (eventHookStatic).
 _FUNCTION_CLASS_SCHEMA = """<?xml version="1.0"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:element name="{name}">
@@ -229,12 +224,11 @@ _EVENT_HOOK_STATIC_SCHEMA = """<?xml version="1.0"?>
 """
 
 
-def _validate_directive(directive_name, xml_text, context_node):
+def _validate_directive(directive_name, xml_text, context_node, line_number):
     """Validate the directive XML against the appropriate XSD schema if possible.
 
-    Mirrors the validation block at Directives.pm:119-288.  If lxml is not
-    installed, or no schema applies, validation is skipped silently (matching
-    the Perl code's behavior when $BUILDPATH is unset).
+    If lxml is not installed, or no schema applies, validation is skipped
+    silently.
     """
     if not _HAS_LXML:
         return
@@ -279,14 +273,18 @@ def _validate_directive(directive_name, xml_text, context_node):
         file_name = file_node.get('name') if file_node else 'unknown'
         raise RuntimeError(
             f"Parse_Directives: validation of directive '{directive_name}' failed "
-            f"in file {file_name} at line {context_node.get('line', 0)}:\n"
+            f"in file {file_name} at line {line_number}:\n"
             f"{schema.error_log}")
 
 
-def _parse_directive_xml(xml_text, context_node):
+def _parse_directive_xml(xml_text, context_node, line_number):
     """Parse accumulated XML text into a directive node dict.
 
-    Mirrors the `XML::Simple->XMLin(..., keepRoot => 1)` call at Directives.pm:111.
+    `line_number` is the absolute (1-based) line number, in the original
+    source file, of the directive's first line — it becomes the directive
+    node's `line`, which downstream process hooks (ObjectBuilder, …) embed
+    in `{introspection:location}` expansions.
+
     Returns None if the text does not parse as XML.
     """
     try:
@@ -306,7 +304,7 @@ def _parse_directive_xml(xml_text, context_node):
         elem = list(elem)[0]
 
     directive_name = elem.tag
-    _validate_directive(directive_name, xml_text, context_node)
+    _validate_directive(directive_name, xml_text, context_node, line_number)
     directive_dict = xml_to_dict(elem)
     return {
         'type':       directive_name,
@@ -315,14 +313,12 @@ def _parse_directive_xml(xml_text, context_node):
         'firstChild': None,
         'sibling':    None,
         'source':     context_node.get('source', 'unknown'),
-        'line':       context_node.get('line',   0),
+        'line':       line_number,
     }
 
 
 def parse_directives(tree):
     """Walk the tree replacing XML directive comment blocks with directive nodes.
-
-    Mirrors Parse_Directives() from perl/Galacticus/Build/SourceTree/Parse/Directives.pm.
 
     Directives are delimited by:
       !![          (opening marker)
@@ -332,8 +328,8 @@ def parse_directives(tree):
     A single `!![ ... !!]` block may contain *multiple* sibling directive
     tags (e.g. six `<constant ... />` in a row).  Each is emitted as its
     own directive node, wrapped in synthetic `!![ ... !!]` markers — this
-    matches the Perl behaviour and prevents the XML parser from collapsing
-    the siblings into a synthetic `<root>` wrapper node.
+    prevents the XML parser from collapsing the siblings into a synthetic
+    `<root>` wrapper node.
     """
     from Galacticus.Build.SourceTree import walk_tree, replace_node, _make_code_node
 
@@ -355,11 +351,15 @@ def parse_directives(tree):
         in_xml         = False
         in_directive   = False
         directive_root = None
+        # Absolute (1-based) line tracking in the original source file.
+        current_line   = node['line']   # line number of the line being read
+        code_run_line  = node['line']   # first line of the buffered code run
+        dir_run_line   = node['line']   # first line of the current directive
 
         def _flush_code_buf():
             if raw_code_buf:
                 new_nodes.append(_make_code_node(
-                    ''.join(raw_code_buf), node['source'], node['line']))
+                    ''.join(raw_code_buf), node['source'], code_run_line))
                 raw_code_buf.clear()
 
         def _emit_directive(pending_dir):
@@ -372,7 +372,11 @@ def parse_directives(tree):
                 'sibling':    None,
                 'firstChild': None,
                 'source':     node['source'],
-                'line':       node['line'],
+                # The serialized content starts with the `!![` marker, one
+                # line before the directive tag itself, so the line-map
+                # anchor sits on the marker; the directive node's own
+                # `line` stays on the tag for {introspection:location}.
+                'line':       dir_run_line - 1,
             }
             _flush_code_buf()
             new_nodes.append(pending_dir)
@@ -385,7 +389,7 @@ def parse_directives(tree):
                 # own end tag (rare — usually directives self-close before this).
                 if raw_dir_buf:
                     xml_text    = ''.join(raw_dir_buf)
-                    pending_dir = _parse_directive_xml(xml_text, node)
+                    pending_dir = _parse_directive_xml(xml_text, node, dir_run_line)
                     if pending_dir:
                         _emit_directive(pending_dir)
                     else:
@@ -395,7 +399,7 @@ def parse_directives(tree):
                         new_nodes.append(_make_code_node(
                             (raw_opener or '') + ''.join(raw_dir_lines)
                             + raw_line,
-                            node['source'], node['line']))
+                            node['source'], dir_run_line))
                     raw_dir_buf.clear()
                     raw_dir_lines.clear()
                 raw_opener     = None
@@ -403,13 +407,21 @@ def parse_directives(tree):
                 in_directive   = False
                 directive_root = None
                 in_xml         = False
+                current_line  += 1
                 continue
 
             if re.match(r'^\s*!!\[', raw_line):
+                # Close the current code run here: the marker line (and any
+                # non-directive XML block it opens) is dropped from the
+                # output, so code resuming after the block must start a new
+                # node — otherwise its `.lmap` anchor would be off by the
+                # number of dropped lines.
+                _flush_code_buf()
                 in_xml     = True
                 raw_opener = raw_line
-                # Mirror Perl: derive `!!]` from `!![` by replacing `[` → `]`.
+                # Derive `!!]` from `!![` by replacing `[` → `]`.
                 raw_closer = raw_opener.replace('[', ']')
+                current_line += 1
                 continue
 
             if in_xml:
@@ -417,14 +429,14 @@ def parse_directives(tree):
                 if m and not in_directive:
                     directive_root = m.group(1)
                     in_directive   = True
+                    dir_run_line   = current_line
                 if in_directive:
                     stripped = stripped.replace('&nbsp;', ' ')
                     raw_dir_buf.append(stripped)
                     raw_dir_lines.append(raw_line)
                     # Three end-tag forms: a closing `</tag>`, a self-closing
                     # `<tag attr=…/>` (attributes may contain `/` — e.g. URLs —
-                    # so use `.*` greedily, matching Perl's
-                    # `\s*<tag\s.*\/>`), or a bare `<tag/>`.
+                    # so use `.*` greedily), or a bare `<tag/>`.
                     end1 = re.search(
                         r'</\s*' + re.escape(directive_root) + r'\s*>', stripped)
                     end2 = re.search(
@@ -434,7 +446,7 @@ def parse_directives(tree):
                         r'\s*<' + re.escape(directive_root) + r'\s*/>', stripped)
                     if end1 or end2 or end3:
                         xml_text    = ''.join(raw_dir_buf)
-                        pending_dir = _parse_directive_xml(xml_text, node)
+                        pending_dir = _parse_directive_xml(xml_text, node, dir_run_line)
                         if pending_dir:
                             _emit_directive(pending_dir)
                         else:
@@ -443,18 +455,22 @@ def parse_directives(tree):
                             new_nodes.append(_make_code_node(
                                 (raw_opener or '') + ''.join(raw_dir_lines)
                                 + (raw_closer or ''),
-                                node['source'], node['line']))
+                                node['source'], dir_run_line))
                         raw_dir_buf.clear()
                         raw_dir_lines.clear()
                         in_directive   = False
                         directive_root = None
+                current_line += 1
                 continue
 
+            if not raw_code_buf:
+                code_run_line = current_line
             raw_code_buf.append(raw_line)
+            current_line += 1
 
         if raw_code_buf:
             new_nodes.append(_make_code_node(
-                ''.join(raw_code_buf), node['source'], node['line']))
+                ''.join(raw_code_buf), node['source'], code_run_line))
 
         if len(new_nodes) != 1 or new_nodes[0] is not node:
             nodes_to_replace.append((node, new_nodes))
@@ -465,9 +481,8 @@ def parse_directives(tree):
 def post_process_directives(tree):
     """Verify that every directive node has been processed.
 
-    Mirrors PostProcess_Directives() at Directives.pm:347-361.  Called after
-    the Process/* passes complete; raises RuntimeError on the first unprocessed
-    directive encountered.
+    Called after the Process/* passes complete; raises RuntimeError on the
+    first unprocessed directive encountered.
 
     Directives whose type is in the `NonProcessed` exemption list are
     forgiven even if they have no `processed` flag — code-generating hooks

@@ -70,14 +70,15 @@ contains
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//), replace    , &
           &                           varying_string
     use :: String_Handling   , only : stringSubstitute
-    use :: System_Command    , only : System_Command_Do
+    use :: System_Command    , only : System_Command_Do, shellEscape
     use :: System_Download   , only : download
     use :: System_Compilers  , only : compiler         , compilerOptions      , languageC   , compilerValidate
     implicit none
     type   (varying_string), intent(  out)           :: classPath, classVersion
     logical                , intent(in   ), optional :: static
     integer                                          :: status
-    type   (varying_string)                          :: command
+    type   (varying_string)                          :: command         , escapedToolsPath, &
+         &                                              escapedTarFile  , escapedClassPath
     type   (lockDescriptor)                          :: fileLock
     !![
     <optionalArgument name="static" defaultsTo=".false." />
@@ -100,11 +101,16 @@ contains
              if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeTools)//"class_public-"//char(classVersion)//".tar.gz")) call Error_Report("unable to download CLASS"//{introspection:location})
           end if
           call displayMessage("unpacking CLASS code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeTools)//" -f "//inputPath(pathTypeTools)//"class_public-"//char(classVersion)//".tar.gz",status)
-          if (status /= 0 .or. .not.File_Exists(classPath)) call Error_Report('failed to unpack CLASS code'//{introspection:location})        
+          escapedToolsPath=inputPath  (pathTypeTools   )
+          escapedToolsPath=shellEscape(escapedToolsPath)
+          escapedTarFile  =inputPath  (pathTypeTools   )//"class_public-"//char(classVersion)//".tar.gz"
+          escapedTarFile  =shellEscape(escapedTarFile  )
+          call System_Command_Do("tar -x -v -z -C "//escapedToolsPath//" -f "//escapedTarFile,status)
+          if (status /= 0 .or. .not.File_Exists(classPath)) call Error_Report('failed to unpack CLASS code'//{introspection:location})
        end if
        call displayMessage("compiling CLASS code",verbosityLevelWorking)
-       command='cd '//classPath//'; cp Makefile Makefile.tmp; '
+       escapedClassPath=shellEscape(classPath)
+       command='cd '//escapedClassPath//'; cp Makefile Makefile.tmp; '
        ! Include Galacticus compilation flags here.
        command=command//'sed -E -i~ s/"^CC[[:space:]]+=[[:space:]]+gcc"/"CC='//char(stringSubstitute(compiler(languageC),"/","\/"))//'"/ Makefile.tmp; sed -E -i~ s/"^(CC|LD)FLAG = "/"\1FLAG = '//char(stringSubstitute(compilerOptions(languageC),"/","\/"))
        if (static_) command=command//' -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive'
@@ -722,7 +728,7 @@ contains
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use               :: Sorting                         , only : sortIndex
     use               :: String_Handling                 , only : operator(//)
-    use               :: System_Command                  , only : System_Command_Do
+    use               :: System_Command                  , only : System_Command_Do       , shellEscape
     implicit none
     class           (cosmologyParametersClass), intent(inout)                                          :: cosmologyParameters_
     double precision                          , intent(in   ), optional, dimension(:    )              :: redshifts
@@ -744,7 +750,8 @@ contains
          &                                                                                                j
     type            (varying_string          )                                                         :: classVersion                     , parameterFile          , &
          &                                                                                                classPath                        , workPath               , &
-         &                                                                                                transferFileName
+         &                                                                                                transferFileName                 , escapedExecutable      , &
+         &                                                                                                escapedParameterFile             , escapedLogFile
     logical                                                                                            :: found                            , haveTransferFunctions  , &
          &                                                                                                haveNormalization                , havePerturbations
     double precision                                                                                   :: sigma8                           , wavenumberCLASS
@@ -836,7 +843,10 @@ contains
     write (classParameterFile,'(a)') ''
     close(classParameterFile)
     ! Run CLASS.
-    call System_Command_Do(classPath//"class "//parameterFile//" > "//workPath//"/class.log")
+    escapedExecutable   =shellEscape(classPath//"class"    )
+    escapedParameterFile=shellEscape(parameterFile         )
+    escapedLogFile      =shellEscape(workPath//"/class.log")
+    call System_Command_Do(escapedExecutable//" "//escapedParameterFile//" > "//escapedLogFile)
     ! Extract the ratio σ₈²/Aₛ.
     if (haveNormalization) then
        found=.false.

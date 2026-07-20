@@ -1,8 +1,6 @@
 """Per-implementation output methods: outputCount / outputNames / postOutput.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Implementations/Output.pm.
 """
 
 import re
@@ -18,7 +16,7 @@ from Galacticus.Build.Components.Utils import (
 
 def _output_common_tasks(build, class_dict, member, function, type_suffixes):
     """Append common bookkeeping (modules, derived-type locals, unused-args
-    line) to `function`.  Mirrors `Implementation_Output_Common_Tasks`.
+    line) to `function`.
     """
     # Determine which arguments are read by the body.  `extends` adds a
     # parent-call line that uses every argument, so all are flagged used.
@@ -63,7 +61,7 @@ def _output_common_tasks(build, class_dict, member, function, type_suffixes):
 
     # Build the unused-arguments line.  For `integer`/`double`, expand to
     # one entry per `type_suffixes` element; for other names, just the
-    # name itself.  Mirrors the inner nestedmap at Output.pm:378.
+    # name itself.
     unused_keys = [k for k in sorted(arguments_used.keys())
                    if not arguments_used[k]]
     unused_args = []
@@ -81,8 +79,6 @@ def _output_common_tasks(build, class_dict, member, function, type_suffixes):
 
 def Implementation_Output_Count(build, class_dict, member):
     """Generate `<class><Member>OutputCount`.
-
-    Mirrors `Implementation_Output_Count`.
     """
     cap_class  = _ucfirst(class_dict['name'])
     cap_member = _ucfirst(member['name'])
@@ -190,8 +186,6 @@ def Implementation_Output_Count(build, class_dict, member):
 
 def Implementation_Output_Names(build, class_dict, member):
     """Generate `<class><Member>OutputNames`.
-
-    Mirrors `Implementation_Output_Names`.
     """
     cap_class  = _ucfirst(class_dict['name'])
     cap_member = _ucfirst(member['name'])
@@ -344,7 +338,7 @@ def Implementation_Output_Names(build, class_dict, member):
 def Implementation_Post_Output(build, class_dict, member):
     """Generate `<class><Member>PostOutput`.
 
-    Mirrors `Implementation_Post_Output`.  Skipped entirely when no
+    Skipped entirely when no
     body would be emitted (no parent extends, no derived-type
     properties).
     """
@@ -412,7 +406,8 @@ def _ucfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Implementations/Output.pm:25-28.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('implementationsOutput', 'implementationIteratedFunctions', Implementation_Output_Count)

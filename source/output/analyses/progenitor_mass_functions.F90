@@ -21,10 +21,11 @@
   Implements a concentration distribution output analysis class for dark matter halo progenitor mass functions.
   !!}
   
-  use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
-  use :: Galactic_Filters                , only : galacticFilterAll
-  use :: Node_Property_Extractors        , only : nodePropertyExtractorMassHalo
-  use :: Output_Analysis_Weight_Operators, only : outputAnalysisWeightOperatorNbodyMass
+  use :: Dark_Matter_Profiles_DMO              , only : darkMatterProfileDMOClass
+  use :: Galactic_Filters                      , only : galacticFilterAll
+  use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo
+  use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorNbodyMass
+  use :: Output_Analysis_Distribution_Operators, only : enumerationMassRatioDistributionType
 
   !![
   <outputAnalysis name="outputAnalysisProgenitorMassFunction" docformat="rst">
@@ -68,6 +69,7 @@
           &                                                                                weightsFinalized                                , likelihoodInCounts                  , &
           &                                                                                fillInZeroBins
      type            (varying_string                       )                            :: fileName
+     type            (enumerationMassRatioDistributionType )                            :: massRatioDistribution
   contains
      final     ::                     progenitorMassFunctionDestructor
      procedure :: newTree          => progenitorMassFunctionNewTree
@@ -93,14 +95,16 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`outputAnalysisProgenitorMassFunction` output analysis class which takes a parameter set as input.
     !!}
-    use :: Cosmology_Functions              , only : cosmologyFunctionsClass
-    use :: Input_Parameters                 , only : inputParameter            , inputParameters
-    use :: ISO_Varying_String               , only : char
-    use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
-    use :: Virial_Density_Contrast          , only : virialDensityContrastClass
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
+    use :: Input_Parameters                      , only : inputParameter            , inputParameters
+    use :: ISO_Varying_String                    , only : char                      , var_str
+    use :: Statistics_NBody_Halo_Mass_Errors     , only : nbodyHaloMassErrorClass
+    use :: Virial_Density_Contrast               , only : virialDensityContrastClass
+    use :: Output_Analysis_Distribution_Operators, only : enumerationMassRatioDistributionType, enumerationMassRatioDistributionEncode
     implicit none
     type            (outputAnalysisProgenitorMassFunction)                              :: self
     type            (inputParameters                     ), intent(inout)               :: parameters
+    type            (enumerationMassRatioDistributionType)                              :: massRatioDistributionValue
     class           (cosmologyFunctionsClass             ), pointer                     :: cosmologyFunctions_
     class           (cosmologyParametersClass            ), pointer                     :: cosmologyParameters_
     class           (nbodyHaloMassErrorClass             ), pointer                     :: nbodyHaloMassError_
@@ -118,7 +122,8 @@ contains
     integer         (c_size_t                            )                              :: countMassRatio
     integer                                                                             :: indexParent                     , indexRedshift
     type            (varying_string                      )                              :: label                           , comment                   , &
-         &                                                                                 targetLabel                     , fileName
+         &                                                                                 targetLabel                     , fileName                  , &
+         &                                                                                 massRatioDistribution
     logical                                                                             :: alwaysIsolatedOnly              , covarianceDiagonalize     , &
          &                                                                                 covarianceTargetOnly            , likelihoodInLog           , &
          &                                                                                 likelihoodNormalize             , likelihoodInCounts        , &
@@ -240,7 +245,16 @@ contains
       Redshift of the parent halos.
       </description>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>massRatioDistribution</name>
+      <source>parameters</source>
+      <defaultValue>var_str('normal')</defaultValue>
+      <description>
+      The model to use for the distribution of the ratio of the (error-convolved) progenitor and parent halo masses: ``normal`` (a Gaussian/linearized approximation) or ``hinkley`` (the exact distribution of the ratio of two correlated normal deviates).
+      </description>
+    </inputParameter>
     !!]
+    massRatioDistributionValue=enumerationMassRatioDistributionEncode(char(massRatioDistribution),includesPrefix=.false.)
     if (parameters%isPresent('fileName')) then
        !![
        <inputParameter docformat="rst">
@@ -286,7 +300,7 @@ contains
          </description>
        </inputParameter>
        !!]
-       self=outputAnalysisProgenitorMassFunction(char(fileName),label,comment,targetLabel,indexParent,indexRedshift,redshiftParent,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,fillInZeroBins,rootVarianceTargetFractional,likelihoodInLog,likelihoodInCounts,likelihoodNormalize,alwaysIsolatedOnly,darkMatterProfileDMO_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_)
+       self=outputAnalysisProgenitorMassFunction(char(fileName),label,comment,targetLabel,indexParent,indexRedshift,redshiftParent,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,fillInZeroBins,rootVarianceTargetFractional,likelihoodInLog,likelihoodInCounts,likelihoodNormalize,alwaysIsolatedOnly,darkMatterProfileDMO_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_,massRatioDistribution=massRatioDistributionValue)
     else
        !![
        <inputParameter docformat="rst">
@@ -430,7 +444,8 @@ contains
           &amp;                                    virialDensityContrast_                                                                             , &amp;
           &amp;                                    virialDensityContrastDefinition_                                                                   , &amp;
           &amp;                                    nbodyHaloMassError_                                                                                , &amp;
-          &amp;                                    outputTimes_                                                                                         &amp;
+          &amp;                                    outputTimes_                                                                                       , &amp;
+          &amp;                                    massRatioDistribution=massRatioDistributionValue                                                     &amp;
           &amp;                                    {conditions}                                                                                         &amp;
           &amp;                                   )
         </call>
@@ -454,18 +469,20 @@ contains
     return
   end function progenitorMassFunctionConstructorParameters
   
-  function progenitorMassFunctionConstructorFile(fileName,label,comment,targetLabel,indexParent,indexRedshift,redshiftParent,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,fillInZeroBins,rootVarianceTargetFractional,likelihoodInLog,likelihoodInCounts,likelihoodNormalize,alwaysIsolatedOnly,darkMatterProfileDMO_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_) result(self)
+  function progenitorMassFunctionConstructorFile(fileName,label,comment,targetLabel,indexParent,indexRedshift,redshiftParent,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,fillInZeroBins,rootVarianceTargetFractional,likelihoodInLog,likelihoodInCounts,likelihoodNormalize,alwaysIsolatedOnly,darkMatterProfileDMO_,cosmologyFunctions_,cosmologyParameters_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_,massRatioDistribution) result(self)
     !!{RST
     Constructor for the :galacticus-class:`outputAnalysisProgenitorMassFunction` output analysis class which reads all required properties from file.
     !!}
-    use :: Cosmology_Functions              , only : cosmologyFunctionsClass
-    use :: HDF5_Access                      , only : hdf5Access
-    use :: IO_HDF5                          , only : hdf5File                  , hdf5Group
-    use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
-    use :: Virial_Density_Contrast          , only : virialDensityContrastClass
+    use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
+    use :: HDF5_Access                           , only : hdf5Access
+    use :: IO_HDF5                               , only : hdf5File                             , hdf5Group
+    use :: Statistics_NBody_Halo_Mass_Errors     , only : nbodyHaloMassErrorClass
+    use :: Virial_Density_Contrast               , only : virialDensityContrastClass
+    use :: Output_Analysis_Distribution_Operators, only : enumerationMassRatioDistributionType
     implicit none
     type            (outputAnalysisProgenitorMassFunction)                                               :: self
     character       (len=*                               ), intent(in   )                                :: fileName
+    type            (enumerationMassRatioDistributionType), intent(in   ), optional                      :: massRatioDistribution
     type            (varying_string                      ), intent(in   )                                :: label                          , targetLabel               , &
          &                                                                                                  comment
     integer                                               , intent(in   )                                :: indexParent                    , indexRedshift
@@ -536,14 +553,14 @@ contains
     timeProgenitor    =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftProgenitor))
     timeParent        =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftParent    ))
     ! Build the object.
-    self              =outputAnalysisProgenitorMassFunction(label,comment,massRatio(1),massRatio(size(massRatio)),size(massRatio,kind=c_size_t),massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,fillInZeroBins,rootVarianceTargetFractional,likelihoodInLog,likelihoodInCounts,likelihoodNormalize,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget,functionCountTarget)
+    self              =outputAnalysisProgenitorMassFunction(label,comment,massRatio(1),massRatio(size(massRatio)),size(massRatio,kind=c_size_t),massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,fillInZeroBins,rootVarianceTargetFractional,likelihoodInLog,likelihoodInCounts,likelihoodNormalize,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget,functionCountTarget,massRatioDistribution=massRatioDistribution)
     !![
     <constructorAssign variables="fileName, indexParent, indexRedshift"/>
     !!]
     return
   end function progenitorMassFunctionConstructorFile
 
-  function progenitorMassFunctionConstructorInternal(label,comment,massRatioMinimum,massRatioMaximum,countMassRatio,massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,fillInZeroBins,rootVarianceTargetFractional,likelihoodInLog,likelihoodInCounts,likelihoodNormalize,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget,functionCountTarget) result(self)
+  function progenitorMassFunctionConstructorInternal(label,comment,massRatioMinimum,massRatioMaximum,countMassRatio,massParentMinimum,massParentMaximum,timeProgenitor,timeParent,alwaysIsolatedOnly,massRatioLikelihoodMinimum,massRatioLikelihoodMaximum,covarianceDiagonalize,covarianceTargetOnly,fillInZeroBins,rootVarianceTargetFractional,likelihoodInLog,likelihoodInCounts,likelihoodNormalize,darkMatterProfileDMO_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,virialDensityContrastDefinition_,nbodyHaloMassError_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget,functionCountTarget,massRatioDistribution) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`outputAnalysisProgenitorMassFunction` output analysis class.
     !!}
@@ -557,7 +574,7 @@ contains
     use :: Cosmology_Parameters                    , only : cosmologyParametersSimple
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                                  , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog, outputAnalysisDistributionNormalizerSequence
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorProperty            , outputAnalysisWeightOperatorSequence        , outputAnalysisWeightOperatorSubsampling       , weightOperatorList
-    use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorMassRatioNBody
+    use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorMassRatioNBody, enumerationMassRatioDistributionType        , massRatioDistributionNormal
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10         , outputAnalysisPropertyOperatorIdentity      , outputAnalysisPropertyOperatorLog10
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
@@ -586,6 +603,7 @@ contains
     double precision                                                  , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                                  , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
     integer         (c_size_t                                        ), intent(in   ), optional, dimension(:  ) :: functionCountTarget
+    type            (enumerationMassRatioDistributionType            ), intent(in   ), optional                 :: massRatioDistribution
     double precision                                                  , parameter                               :: timeTolerance                                  =3.0d-03
     double precision                                                  , parameter                               :: massRatioBuffer                                =1.0d-01
     integer                                                           , parameter                               :: covarianceBinomialBinsPerDecade                =2
@@ -622,9 +640,11 @@ contains
     type            (outputAnalysisTargetDataStandard                )                                          :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="massRatioMinimum, massRatioMaximum, countMassRatio, massParentMinimum, massParentMaximum, timeProgenitor, timeParent, alwaysIsolatedOnly, massRatioLikelihoodMinimum, massRatioLikelihoodMaximum, covarianceDiagonalize, covarianceTargetOnly, fillInZeroBins, rootVarianceTargetFractional, likelihoodInLog, likelihoodInCounts, likelihoodNormalize, functionCountTarget, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *virialDensityContrastDefinition_, *nbodyHaloMassError_, *outputTimes_"/>
+    <optionalArgument name="massRatioDistribution" defaultsTo="massRatioDistributionNormal"/>
     !!]
+    self%massRatioDistribution=massRatioDistribution_
 
-    ! Validate.    
+    ! Validate.
     !! Evaluating the likelihood in counts (using a negative binomial likelihood) requires that we ignore covariance in the model
     !! (so covarianceTargetOnly must be true), and that the correlation between bins is ignored (so covarianceDiagonalize must be
     !! true).
@@ -779,7 +799,7 @@ contains
     ! Build an identity distribution operator.
     allocate(     outputAnalysisDistributionOperator_)
     !![
-    <referenceConstruct                             object="outputAnalysisDistributionOperator_"      constructor="outputAnalysisDistributionOperatorMassRatioNBody(massParentMinimum,massParentMaximum,     timeParent                      ,nbodyHaloMassError_            ,self%galacticFilterParentMass_)"/>
+    <referenceConstruct                             object="outputAnalysisDistributionOperator_"      constructor="outputAnalysisDistributionOperatorMassRatioNBody(massParentMinimum,massParentMaximum,     timeParent                      ,nbodyHaloMassError_            ,self%galacticFilterParentMass_,massRatioDistribution_)"/>
     !!]
     ! Determine number of buffer bins.
     bufferCount=0_c_size_t
