@@ -19,7 +19,26 @@ def parse_file(filename):
     """Read a Fortran source file and return the root AST node."""
     with open(filename, 'r', errors='replace') as fh:
         content = fh.read()
-    return parse_code(content, name=os.path.basename(filename), source=filename)
+    return parse_code(content, name=_name_relative_to_source(filename),
+                      source=filename)
+
+
+def _name_relative_to_source(filename):
+    """Return `filename` relative to its innermost `source/` directory.
+
+    The `source/` tree is organized hierarchically, so a bare basename is
+    ambiguous (many subdirectories contain e.g. an `_class.F90`).  The file
+    node's `name` — reported by `{introspection:location}` expansions and
+    build error messages — therefore carries the path below `source/`
+    (e.g. `intergalactic_medium/state/internal.F90`).  Files that do not
+    live under a `source/` directory (generated includes under $BUILDPATH,
+    test fixtures) keep their basename.
+    """
+    parts = os.path.normpath(filename).split(os.sep)
+    for i in range(len(parts) - 2, -1, -1):
+        if parts[i] == 'source':
+            return '/'.join(parts[i + 1:])
+    return os.path.basename(filename)
 
 
 def parse_code(code, name='<string>', source=None, instrument=True):
@@ -153,35 +172,45 @@ def _make_code_node(content, source, line, parent=None):
     }
 
 
-def _parse_units(parent):
+def _parse_units(parent, first_line=None):
     """Split parent['content'] into child nodes (clean implementation).
 
     parent['content'] is expected to already have any embedded LaTeX/XML
     blocks commented out by _comment_embedded() — every line stored in a
     code/opener/closer field is the same line we will later serialize, so
     the round-trip output is valid Fortran.
+
+    `first_line` is the absolute (1-based) line number, in the original
+    source file, of the first line of parent['content'].  When omitted it
+    is derived from parent['line'], which for a root file node (line 0)
+    yields line 1.  Every child node's `line` is set to the absolute
+    1-based line number of its first line — these feed the `.lmap`
+    line-number mappings and the `{introspection:location}` expansions,
+    so they must survive arbitrarily deep nesting.
     """
     content   = parent.get('content', '')
     source    = parent.get('source', 'unknown')
-    base_line = parent.get('line',   0)
+    if first_line is None:
+        first_line = parent.get('line', 0) + 1
 
     import io
     fh = io.StringIO(content)
 
-    # Each stack entry: [node_dict, inner_lines_list]
+    # Each stack entry: [node_dict, inner_lines_list].  inner_lines_list
+    # holds (absolute_line, raw_text) tuples for buffered source lines and
+    # ('\x00NODE\x00', node) sentinels for pre-built child nodes.
     stack         = []
     top_children  = []
     raw_code_buf  = []
-    raw_code_line = base_line
-    current_line  = base_line
+    raw_code_line = first_line
+    current_line  = first_line   # absolute line number of the next unread line
 
     def flush_code(destination_list):
-        nonlocal raw_code_buf, raw_code_line
+        nonlocal raw_code_buf
         if raw_code_buf:
             destination_list.append(
                 _make_code_node(''.join(raw_code_buf), source, raw_code_line))
             raw_code_buf  = []
-            raw_code_line = current_line
 
     while True:
         raw_line, processed_line, _ = get_fortran_line(fh)
@@ -194,6 +223,7 @@ def _parse_units(parent):
         check_no_parameterized_derived_type(processed_line)
 
         n_newlines    = raw_line.count('\n')
+        start_line    = current_line
         line_after    = current_line + n_newlines
 
         # ---- check for a closer matching the innermost open unit ----
@@ -204,7 +234,7 @@ def _parse_units(parent):
                 top_node['closer'] = raw_line
                 # Recurse into the accumulated inner content.
                 # inner_lines may contain pre-built sentinel nodes interspersed
-                # with raw string chunks, so use _children_from_mixed_lines.
+                # with raw line chunks, so use _children_from_mixed_lines.
                 inner_lines = stack[-1][1]
                 if inner_lines:
                     inner_children = _children_from_mixed_lines(inner_lines, top_node)
@@ -216,9 +246,8 @@ def _parse_units(parent):
                     # (raw_code_buf accumulates top-level code; it would be
                     # empty here in practice, but handle defensively.)
                     if raw_code_buf:
-                        stack[-1][1].append(''.join(raw_code_buf))
+                        stack[-1][1].append((raw_code_line, ''.join(raw_code_buf)))
                         raw_code_buf  = []
-                        raw_code_line = line_after
                     # The closed node goes into the outer unit's inner lines as
                     # a pre-built node object (we mark it with a sentinel key).
                     stack[-1][1].append(('\x00NODE\x00', top_node))
@@ -253,9 +282,8 @@ def _parse_units(parent):
             # Flush pending raw code to the appropriate destination.
             if stack:
                 if raw_code_buf:
-                    stack[-1][1].append(''.join(raw_code_buf))
+                    stack[-1][1].append((raw_code_line, ''.join(raw_code_buf)))
                     raw_code_buf  = []
-                    raw_code_line = line_after
             else:
                 flush_code(top_children)
 
@@ -268,7 +296,7 @@ def _parse_units(parent):
                 'firstChild': None,
                 'sibling':    None,
                 'source':     source,
-                'line':       current_line,
+                'line':       start_line,
             }
 
             # moduleProcedure and `contains` are self-closing: the former has
@@ -298,8 +326,10 @@ def _parse_units(parent):
 
         # ---- plain code line ----
         if stack:
-            stack[-1][1].append(raw_line)
+            stack[-1][1].append((start_line, raw_line))
         else:
+            if not raw_code_buf:
+                raw_code_line = start_line
             raw_code_buf.append(raw_line)
 
         current_line = line_after
@@ -335,41 +365,49 @@ def _children_from_mixed_lines(inner_lines, parent):
     """Build child node list from inner_lines.
 
     inner_lines is a list where each element is either:
-      - a string — a raw Fortran source line (already commented for embedded
-        LaTeX/XML by _comment_embedded()), or
+      - an (absolute_line, text) 2-tuple — a raw Fortran source chunk
+        (already commented for embedded LaTeX/XML by _comment_embedded())
+        together with the 1-based line number of its first line in the
+        original source file, or
       - a ('\x00NODE\x00', node) 2-tuple — a pre-built child node injected
         when a sub-unit closed while an outer unit was still open.
 
-    Runs of plain strings are joined and re-parsed via _parse_units(); pre-
-    built nodes pass through unchanged.
+    Runs of raw chunks are joined and re-parsed via _parse_units(), passing
+    the absolute line number of the run's first line so that the resulting
+    child nodes carry correct original-source line numbers; pre-built nodes
+    pass through unchanged.
     """
     children = []
     line_buf = []
+    run_line = None
     source   = parent.get('source', 'unknown')
-    line     = parent.get('line',   0)
 
     def _flush():
+        nonlocal run_line
         if not line_buf:
             return
         dummy = {
             'content': ''.join(line_buf),
             'source':  source,
-            'line':    line,
+            'line':    run_line,
         }
-        children.extend(_parse_units(dummy))
+        children.extend(_parse_units(dummy, first_line=run_line))
         line_buf.clear()
+        run_line = None
 
     for item in inner_lines:
-        if isinstance(item, tuple) and item[0] == '\x00NODE\x00':
+        if not (isinstance(item, tuple) and len(item) == 2):
+            raise TypeError(
+                f"_children_from_mixed_lines: expected an (line, text) or "
+                f"sentinel tuple, got {type(item).__name__!r}: {item!r}"
+            )
+        if item[0] == '\x00NODE\x00':
             _flush()
             children.append(item[1])
-        elif isinstance(item, str):
-            line_buf.append(item)
         else:
-            raise TypeError(
-                f"_children_from_mixed_lines: expected a string or sentinel "
-                f"tuple, got {type(item).__name__!r}: {item!r}"
-            )
+            if not line_buf:
+                run_line = item[0]
+            line_buf.append(item[1])
     _flush()
     return children
 
@@ -622,11 +660,14 @@ def _pass_declarations(tree):
         decl_buf  = []
         decls     = []
         implicit_none = False
+        code_line     = node['line']   # absolute line of first buffered code line
+        decl_line     = node['line']   # absolute line of first buffered decl line
+        current_line  = node['line']   # absolute line of the next unread line
 
         def flush_code():
             if code_buf:
                 new_nodes.append(_make_code_node(
-                    ''.join(code_buf), node['source'], node['line']))
+                    ''.join(code_buf), node['source'], code_line))
                 code_buf.clear()
 
         def flush_decls():
@@ -640,7 +681,7 @@ def _pass_declarations(tree):
                     'firstChild':   None,
                     'sibling':      None,
                     'source':       node['source'],
-                    'line':         node['line'],
+                    'line':         decl_line,
                 }
                 # Store raw text in firstChild so serialize() can reconstruct
                 # the original source.
@@ -651,7 +692,7 @@ def _pass_declarations(tree):
                     'sibling':    None,
                     'firstChild': None,
                     'source':     node['source'],
-                    'line':       node['line'],
+                    'line':       decl_line,
                 }
                 new_nodes.append(dn)
                 decl_buf.clear()
@@ -665,6 +706,8 @@ def _pass_declarations(tree):
             if not raw_line and not processed_line:
                 break
 
+            start_line = current_line
+
             is_decl = False
             if re.match(r'^\s*implicit\s+none\s*$', processed_line, re.IGNORECASE):
                 is_decl       = True
@@ -673,15 +716,22 @@ def _pass_declarations(tree):
             decl = parse_declaration(processed_line)
             if decl:
                 is_decl = True
+                decl['line'] = start_line
 
             if is_decl:
                 flush_code()
+                if not decl_buf:
+                    decl_line = start_line
                 decl_buf.append(raw_line)
                 if decl:
                     decls.append(decl)
             else:
                 flush_decls()
+                if not code_buf:
+                    code_line = start_line
                 code_buf.append(raw_line)
+
+            current_line = start_line + raw_line.count('\n')
 
         flush_decls()
         flush_code()
@@ -768,14 +818,17 @@ def _serialize(node, annotate, strip_mappings):
     current       = node
 
     while current:
-        # Emit line-mapping annotation for this node.
+        # Emit line-mapping annotation for this node.  In strip mode the
+        # recorded output line is 1-based (the node's first line in the
+        # stripped output), matching the `line_number + 1` used when inner
+        # annotations are collected below — postprocess.py's remap
+        # arithmetic needs every entry on the same basis.
         if annotate and 'source' in current and 'line' in current:
-            mapping_line = f'!--> {current["line"]} {line_number} "{current["source"]}"\n'
             if strip_mappings:
-                mappings += mapping_line
+                mappings += f'!--> {current["line"]} {line_number + 1} "{current["source"]}"\n'
             else:
+                serialization += f'!--> {current["line"]} {line_number} "{current["source"]}"\n'
                 line_number   += 1
-                serialization += mapping_line
 
         # Serialize this node's own content.
         if current.get('type') == 'code':

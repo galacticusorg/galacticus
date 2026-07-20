@@ -29,13 +29,16 @@ def process_debug_mpi(tree, options):
         if node.get('type') != 'code':
             continue
         new_content = []
-        line_number = node.get('line', 0)
+        # node['line'] is the absolute 1-based line number of the node's
+        # first line, so it applies to the first statement directly and is
+        # advanced by the raw lines consumed after each statement.
+        line_number = node.get('line', 1)
         fh = io.StringIO(node.get('content', ''))
         while True:
             raw_line, processed_line, _ = get_fortran_line(fh)
             if not raw_line and not processed_line:
                 break
-            line_number += 1
+            n_raw_lines = raw_line.count('\n')
 
             m = re.search(r'mpiSelf%([a-zA-Z0-9_]+)', processed_line)
             if m:
@@ -54,6 +57,7 @@ def process_debug_mpi(tree, options):
                     + "\n" + raw_line
                 )
             new_content.append(raw_line)
+            line_number += n_raw_lines
 
         node['content'] = ''.join(new_content)
 

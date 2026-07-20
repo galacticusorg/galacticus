@@ -71,6 +71,7 @@ def parse_module_uses(tree):
 
         raw_code_line   = line_no
         raw_use_line    = line_no
+        pp_first_line   = line_no   # first line of the buffered pp-directive run
         current_line    = line_no
 
         fh = io.StringIO(content)
@@ -123,6 +124,8 @@ def parse_module_uses(tree):
             if not raw_line and not processed_line:
                 # EOF — flush whatever is pending
                 if raw_pp_buf:
+                    if not raw_code_buf:
+                        raw_code_line = pp_first_line
                     raw_code_buf.extend(raw_pp_buf)
                     raw_pp_buf.clear()
                 _flush_code()
@@ -138,6 +141,11 @@ def parse_module_uses(tree):
             if is_use:
                 # Flush any preceding plain code first.
                 _flush_code()
+                # A new use block starts on the first absorbed preprocessor
+                # line (if any) — the block's emitted content begins there,
+                # so its `.lmap` anchor must too.
+                if not raw_use_buf:
+                    raw_use_line = pp_first_line if raw_pp_buf else current_line
                 # Absorb any buffered preprocessor lines into the use block.
                 if raw_pp_buf:
                     raw_use_buf.extend(raw_pp_buf)
@@ -194,6 +202,8 @@ def parse_module_uses(tree):
                     is_use = True
                     raw_use_buf.append(raw_line)
                 else:
+                    if not raw_pp_buf:
+                        pp_first_line = current_line
                     raw_pp_buf.append(raw_line)
 
                 # Update the preprocessor stack.
@@ -213,6 +223,8 @@ def parse_module_uses(tree):
             else:
                 # Plain code line — close any open use block first.
                 _flush_uses()
+                if not raw_code_buf:
+                    raw_code_line = pp_first_line if raw_pp_buf else current_line
                 if raw_pp_buf:
                     raw_code_buf.extend(raw_pp_buf)
                     raw_pp_buf.clear()
