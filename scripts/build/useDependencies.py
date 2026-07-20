@@ -33,6 +33,7 @@ from Galacticus.Build.Libraries import (
 from Galacticus.Build.ScanCache import (
     file_identifier as _file_identifier,
     load_cache      as _load_cache,
+    prune           as _prune_cache,
 )
 
 
@@ -1089,16 +1090,18 @@ def main(argv):
 
     source_files = _source_files_to_process(root_source_dir, build_path)
 
-    # Cache-invalidation: add/remove detection.
-    unstripped_ids = [
-        sf['fullPathFileName'].replace('/', '_') for sf in source_files
+    # Cache-invalidation: add/remove detection (and the stale-entry prune
+    # below). Identifiers are canonicalized via `file_identifier()` so they
+    # use the same key form as the cache entries.
+    current_ids = [
+        _file_identifier(sf['fullPathFileName']) for sf in source_files
     ]
-    unstripped_set = set(unstripped_ids)
+    current_id_set = set(current_ids)
     force_rescan = False
     if have_per_file:
-        if any(fid not in uses_per_file for fid in unstripped_ids):
+        if any(fid not in uses_per_file for fid in current_ids):
             force_rescan = True
-        if any(fid not in unstripped_set
+        if any(fid not in current_id_set
                for fid in uses_per_file
                if fid != 'eventHooksManager'):
             force_rescan = True
@@ -1140,6 +1143,14 @@ def main(argv):
         event_hook_modules.extend(file_event_hook_modules)
         if 'eventHooksManager' in manager:
             uses_per_file['eventHooksManager'] = manager['eventHooksManager']
+
+    # Drop cache entries for source files that no longer exist, or their
+    # `use` and submodule rules would be re-emitted into
+    # Makefile_Use_Dependencies forever (phantom dependencies on deleted
+    # files). The `eventHooksManager` key is bookkeeping, not a per-file
+    # entry, so it is preserved.
+    _prune_cache(uses_per_file, current_id_set,
+                 reserved={'eventHooksManager'})
 
     _finalise_event_hooks_manager(uses_per_file, event_hook_modules)
 

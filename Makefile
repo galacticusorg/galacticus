@@ -281,11 +281,16 @@ SOURCEDIRS := source $(call rsubdirs,source)
 vpath %.F90 $(SOURCEDIRS)
 # Preprocessing depends on stateStorables.xml and deepCopyActions.xml because the preprocessor's
 # process hooks (StateStorable, DeepCopyActions, FunctionClass) read them at run time — generated
-# state-store and deep-copy code embeds knowledge of every cataloged type. Both catalogs are
-# written only-if-changed, so this triggers a re-preprocess sweep only when catalog content
-# actually changes (e.g. a stateStorable type is added or removed), and the `.up` sentinel then
-# limits recompilation to files whose preprocessed output really differs.
-$(BUILDPATH)/%.p.F90.up : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
+# state-store and deep-copy code embeds knowledge of every cataloged type. It likewise depends on
+# directiveLocations.xml, which the EventHooks, EventHooksStatic, FunctionsGlobal, InputParameter,
+# MetaPropertyDatabase, and FunctionClass hooks read: e.g. the static event hook expansion in
+# source/output/HDF5/open.F90 becomes a literal call list built from the catalog, so adding or
+# removing a directive elsewhere must re-preprocess its consumers or the new hook is silently
+# dropped from the binary. All catalogs are written only-if-changed, so this triggers a
+# re-preprocess sweep only when catalog content actually changes (e.g. a stateStorable type or a
+# directive is added or removed), and the `.up` sentinel then limits recompilation to files whose
+# preprocessed output really differs.
+$(BUILDPATH)/%.p.F90.up : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml $(BUILDPATH)/directiveLocations.xml
 	./scripts/build/preprocess.py source/$*.F90 $(BUILDPATH)/$*.p.F90
 $(BUILDPATH)/%.p.F90 : $(BUILDPATH)/%.p.F90.up
 	@true
@@ -315,15 +320,20 @@ endif
 # compiler failure that emits no "Error:" line — an internal compiler error, a segfault, an OOM
 # kill — would be reported as success, leaving a missing or stale object file that only surfaces
 # later as a confusing link error. Capturing and testing both statuses makes such failures fail the
-# recipe immediately. (libraryInterfacesDependencies.py emits a mirror of this recipe for the
-# library wrapper units — keep the two in sync.)
+# recipe immediately. The diag file name carries the recipe shell's PID so that two makes running
+# concurrently on one tree do not delete each other's diag files mid-compile — without it, the
+# doomed `rm`/redirect races surface as scattered "No such file or directory" failures on a
+# different random handful of targets each run, which reads exactly like a filesystem problem.
+# (libraryInterfacesDependencies.py emits a mirror of this recipe for the library wrapper units —
+# keep the two in sync.)
 $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	@mkdir -p $(BUILDPATH)/moduleBuild
-	$(FCCOMPILER) -c $(BUILDPATH)/$*.p.F90 -o $(BUILDPATH)/$*.o $(FCFLAGS) > $(BUILDPATH)/$*.o.diag 2>&1; \
+	diag=$(BUILDPATH)/$*.o.diag.$$$$; \
+	$(FCCOMPILER) -c $(BUILDPATH)/$*.p.F90 -o $(BUILDPATH)/$*.o $(FCFLAGS) > $$diag 2>&1; \
 	compileStatus=$$?; \
-	./scripts/build/postprocess.py $(BUILDPATH)/$*.p.F90 < $(BUILDPATH)/$*.o.diag; \
+	./scripts/build/postprocess.py $(BUILDPATH)/$*.p.F90 < $$diag; \
 	postprocessStatus=$$?; \
-	rm -f $(BUILDPATH)/$*.o.diag; \
+	rm -f $$diag; \
 	[ $$compileStatus -eq 0 ] && [ $$postprocessStatus -eq 0 ]
 	@mlist=`cat $(BUILDPATH)/$*.m` ; \
 	for mod in $$mlist ; \
@@ -758,7 +768,7 @@ $(BUILDPATH)/openMPCriticalSections.count.inc $(BUILDPATH)/openMPCriticalSection
 # script touches the `.up` sentinel on every run but rewrites the .xml only when its content
 # changed, so a regeneration that finds no new critical sections does not cascade into
 # re-preprocessing every source file (the `%.p.F90.up` rules depend on the .xml).
-$(BUILDPATH)/openMPCriticalSections.xml.up: ./scripts/build/enumerateOpenMPCriticalSections.py $(call rwildcard,source,*.F90) $(call rwildcard,source,*.f90) $(call rwildcard,source,*.F) $(call rwildcard,source,*.f)
+$(BUILDPATH)/openMPCriticalSections.xml.up: ./scripts/build/enumerateOpenMPCriticalSections.py $(call rwildcard,source,*.F90) $(call rwildcard,source,*.f90) $(call rwildcard,source,*.F) $(call rwildcard,source,*.f) $(SOURCEDIRS)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/enumerateOpenMPCriticalSections.py `pwd`
 $(BUILDPATH)/openMPCriticalSections.xml: $(BUILDPATH)/openMPCriticalSections.xml.up
@@ -807,7 +817,7 @@ tidy:
 all: deps $(all_exes)
 
 # Rules for building dependency Makefiles.
-$(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.py $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(ALLSOURCESINC)
+$(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.py $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(ALLSOURCESINC) $(SOURCEDIRS)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/moduleDependencies.py `pwd`
 
@@ -817,7 +827,7 @@ $(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.py
 ifneq ($(IS_LIB_BUILD),)
 USE_DEPS_LIBRARY_PREREQS = $(BUILDPATH)/Makefile_Library_Dependencies $(BUILDPATH)/libgalacticus.Inc
 endif
-$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.py $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(USE_DEPS_LIBRARY_PREREQS) $(ALLSOURCESINC)
+$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.py $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(USE_DEPS_LIBRARY_PREREQS) $(ALLSOURCESINC) $(SOURCEDIRS)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/useDependencies.py `pwd`
 
@@ -839,17 +849,23 @@ $(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.py $(BUI
 # "remade by its rule", never restarted, and so ran useDependencies.py once — before those includes
 # existed — missing every `use` they contribute and producing link-time "undefined reference"
 # failures for node-component data modules, etc.
-$(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.py ./scripts/build/stateStorables.py ./scripts/build/deepCopyActions.py $(ALLSOURCES)
+# $(SOURCEDIRS) is a prerequisite (here and on the other tree-scanning rules below) because
+# $(ALLSOURCES) lists only files that still exist: DELETING a source file changes no listed mtime,
+# so without the directory prerequisites the catalogs would never regenerate after a deletion and
+# the stale fragments would keep a phantom dependency on the deleted file ("No rule to make
+# target ..."). A deletion (or rename) bumps the containing directory's mtime, which is exactly
+# the signal make needs.
+$(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.py ./scripts/build/stateStorables.py ./scripts/build/deepCopyActions.py $(ALLSOURCES) $(SOURCEDIRS)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/codeDirectivesParse.py `pwd`
 	./scripts/build/stateStorables.py `pwd`
 	./scripts/build/deepCopyActions.py `pwd`
 
-$(BUILDPATH)/Makefile_Include_Dependencies: ./scripts/build/includeDependencies.py $(ALLSOURCES)
+$(BUILDPATH)/Makefile_Include_Dependencies: ./scripts/build/includeDependencies.py $(ALLSOURCES) $(SOURCEDIRS)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/includeDependencies.py `pwd`
 
-$(BUILDPATH)/Makefile_All_Execs: ./scripts/build/findExecutables.py $(ALLSOURCES)
+$(BUILDPATH)/Makefile_All_Execs: ./scripts/build/findExecutables.py $(ALLSOURCES) $(SOURCEDIRS)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/findExecutables.py `pwd`
 

@@ -24,6 +24,7 @@ from Galacticus.Build.FileChanges               import update as file_changes_up
 from Galacticus.Build.ScanCache                 import (
     file_identifier as _file_identifier,
     load_cache      as _load_cache,
+    prune           as _prune_cache,
 )
 from Galacticus.Build.Directives      import extract_directives
 from Galacticus.Build.ParallelScan    import scan as parallel_scan
@@ -257,10 +258,14 @@ def main(argv):
                     os.path.relpath(os.path.join(dirpath, f), source_directory))
     source_file_names.sort()
 
-    # Build the UNSTRIPPED identifier list used for the new/removed-file
-    # checks below.
+    # Build the identifier list used for the new/removed-file checks and the
+    # stale-entry prune below. Canonicalized via `file_identifier()` so it uses
+    # the SAME key form as the cache entries; were it built unstripped it would
+    # agree with the cache keys only for the absolute paths make passes, and a
+    # `./`-relative invocation would make every cached key look removed — and,
+    # with pruning, silently discard the whole cache.
     file_identifiers = [
-        (source_directory + '/' + name).replace('/', '_')
+        _file_identifier(source_directory + '/' + name)
         for name in source_file_names
     ]
     file_identifier_set = set(file_identifiers)
@@ -303,6 +308,14 @@ def main(argv):
             scan_list, source_directory, build_path):
         directives_per_file.pop(file_identifier, None)
         directives_per_file[file_identifier] = _canonicalize(entry)
+
+    # Drop cache entries for source files that no longer exist. The rescan
+    # above only ever replaces entries for surviving files, so without this a
+    # deleted file's directives would be re-emitted into directiveLocations.xml
+    # and Makefile_Directives forever — a phantom make dependency on a file
+    # that is gone, which survives even deleting the generated fragments
+    # (they are rebuilt from this same cache).
+    _prune_cache(directives_per_file, file_identifier_set)
 
     # -----------------------------------------------------------------------
     # Reduce across files.
