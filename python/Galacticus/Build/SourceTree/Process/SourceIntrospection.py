@@ -3,8 +3,6 @@ into an expression that reports the enclosing file/module/subroutine chain
 and line number at runtime.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/SourceIntrospection.pm
 """
 
 import re
@@ -18,7 +16,7 @@ def instrument(code):
     """Tag every `{introspection:location[:compact]}` placeholder with the
     source line number on which it appears.
 
-    Mirrors Instrument() from SourceIntrospection.pm:28-43.  Intended to run
+    Intended to run
     once at parse time, before the tree is built: the line numbers baked in
     here are consumed later by `process_source_introspection` to emit the
     actual location expression.
@@ -39,9 +37,8 @@ def location(node, line_number, compact=False):
     """Build the Fortran expression that names every structural ancestor of
     `node` plus `line_number`.
 
-    Mirrors Location() from SourceIntrospection.pm:74-110.  The emitted text
-    is a `//`-concatenated expression that is safe to splice into any string
-    context in Fortran — exactly what the Perl version produces.
+    The emitted text is a `//`-concatenated expression that is safe to
+    splice into any string context in Fortran.
     """
     if compact:
         expr = "''"
@@ -72,8 +69,6 @@ def location(node, line_number, compact=False):
 def process_source_introspection(tree, options):
     """Replace tagged `{introspection:location:NNN}` placeholders with the
     result of `location(node, NNN)`.
-
-    Mirrors Process_Source_Introspection() from SourceIntrospection.pm:45-72.
     """
     pattern = re.compile(r'\{introspection:location(:compact)?:(\d+)\}')
 

@@ -1,13 +1,9 @@
-"""Deep-copy code generation helpers for the functionClass pipeline.
+"""Deep-copy code generation helpers for the functionClass pipeline:
+`deep_copy_copied_self_block`, `generate_assignment_allocatable_code`,
+and `deep_copy_declarations`.  The stateStorables / deepCopyActions data
+are taken as explicit parameters, decoupling the helpers from any global.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionClass/DeepCopy.pm
-— all three exported functions (`deep_copy_copied_self_block`,
-`generate_assignment_allocatable_code`, `deep_copy_declarations`).  Perl
-aliases `$stateStorables` / `$deepCopyActions` from the parent package
-at compile time; we take both as explicit parameters instead — cleaner
-Python and decouples the helper from a global.
 """
 
 import re
@@ -25,8 +21,8 @@ from Galacticus.Build.SourceTree.Process.SourceIntrospection import location
 
 
 # ---------------------------------------------------------------------------
-# stateStorables shape helpers — bridge our xml_to_dict output to the
-# Perl `$stateStorables->{functionClasses}` keyAttr-keyed shape.
+# stateStorables shape helpers — bridge our xml_to_dict output to a
+# name-keyed functionClasses dict.
 # ---------------------------------------------------------------------------
 
 def _function_class_name_set(state_storables):
@@ -47,8 +43,6 @@ def deep_copy_copied_self_block(deep_copy, name, declaration,
                                 non_abstract_class, indent=''):
     """Append the `copiedSelf` select-type deep-copy block to
     `deep_copy['assignments']`.
-
-    Mirrors deepCopyCopiedSelfBlock() at DeepCopy.pm:20-37.
     """
     node = non_abstract_class.get('node') or {}
     loc_expr = location(node, node.get('line', 0))
@@ -75,10 +69,7 @@ def generate_assignment_allocatable_code(assignment, declaration, name,
 
     `assignment['code']` is mutated in place.  `rank_maximum_ref` is a
     mutable single-element list used to signal the caller the maximum rank
-    seen across calls (Perl passes a scalar by reference; Python idiomatic
-    equivalent is a 1-element list).
-
-    Mirrors generateAssignmentAllocatableCode() at DeepCopy.pm:39-75.
+    seen across calls.
     """
     assignment.setdefault('code', '')
     assignment['code'] += (
@@ -128,9 +119,9 @@ def deep_copy_declarations(class_record, non_abstract_class, node,
                            state_storables, deep_copy_actions):
     """Process one node's declarations for deep copy.
 
-    Mirrors deepCopyDeclarations() at DeepCopy.pm:77-257.  `deep_copy` is
-    the shared accumulator dict populated by FunctionClass's main driver
-    (see the Perl parent package).  Keys we touch: `assignments`,
+    `deep_copy` is
+    the shared accumulator dict populated by FunctionClass's main driver.
+    Keys we touch: `assignments`,
     `resetCode`, `finalizeCode`, `needReferenceCount`, `rankMaximum`,
     `modules`, `resetModules`, `finalizeModules`.
     `found_deep_copy_names` is appended to when a member named in
@@ -154,8 +145,8 @@ def deep_copy_declarations(class_record, non_abstract_class, node,
             continue
         intrinsic  = declaration.get('intrinsic') or ''
         type_raw   = declaration.get('type') or ''
-        # Perl strips only leading/trailing whitespace when intrinsic is
-        # class or type; we replicate for the same cases.
+        # Whitespace is deliberately stripped only when intrinsic is class or
+        # type — selective stripping is preserved behavior.
         type_stripped = (type_raw.strip()
                          if intrinsic in ('class', 'type')
                          else type_raw)

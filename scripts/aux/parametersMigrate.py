@@ -196,12 +196,12 @@ def git_ancestry(hash_from, hash_to):
             message += f" Git error: {e.stderr.strip()}"
         raise RuntimeError(message) from e
     hashes = [h for h in result.stdout.strip().split("\n") if h]
-    hashes.reverse()  # Oldest first, matching Perl's reverse(@ancestry)
+    hashes.reverse()  # Oldest first.
     return hashes
 
 
 # ---------------------------------------------------------------------------
-# Migrate function (Perl lines 136-369) -- placeholder for Step 3
+# Migrate function
 # ---------------------------------------------------------------------------
 
 def migrate(input_doc, parameters, root_level, is_grid, input_filename, options, hash_head, is_in_git, migrations):
@@ -393,7 +393,7 @@ def migrate(input_doc, parameters, root_level, is_grid, input_filename, options,
 
 
 # ---------------------------------------------------------------------------
-# Special migration functions (Perl lines 371-1110)
+# Special migration functions
 # ---------------------------------------------------------------------------
 
 
@@ -1309,6 +1309,33 @@ def _ensure_satellite_destruction_timestep(parameters, is_grid):
             multi_node.append(destruction_node)
             parameters.insert(idx, multi_node)
 
+def johnson2021_correlated_branches(input_doc, parameters, is_grid):
+    """Pin parameter settings to those consistent with behavior prior to adding correlated scale radii along branches."""
+    defaults = {
+        "factorMassResolution": "0.0",
+        "scatter": "0.0",
+        "scatterExcess": "0.0",
+        "correlationRateDecay": "0.0",
+        "correlationExponent": "0.0",
+        "countSampleEnergyUnresolved": "1",
+        "acceptUnboundOrbits": "true",
+    }
+    accept_type_nodes = parameters.xpath(".//darkMatterProfileScaleRadius[@value='johnson2021']")
+    if len(accept_type_nodes) == 0:
+        return
+    for accept_type in accept_type_nodes:
+        print(f"   translate special './/darkMatterProfileScaleRadius[@value=\"'johnson2021\"]'")
+        component_properties = {}
+        # Extract all sub-parameters.
+        for node_child in accept_type.xpath("*[@value]"):
+            component_properties[node_child.tag] = node_child.get("value")
+        for param_name, param_value in defaults.items():
+            if param_name not in component_properties:
+                param = etree.Element(param_name)
+                param.set("value", param_value)
+                accept_type.append(param)
+                print("append",param_name, param_value)
+
 
 # ---------------------------------------------------------------------------
 # Dispatch table for special migration functions
@@ -1331,6 +1358,7 @@ SPECIAL_FUNCTIONS = {
     "satellite_bound_mass_initializor": satellite_bound_mass_initializor,
     "disk_very_simple_analytic_solver": disk_very_simple_analytic_solver,
     "satellite_orbit_initializor": satellite_orbit_initializor,
+    "johnson2021_correlated_branches": johnson2021_correlated_branches,
 }
 
 

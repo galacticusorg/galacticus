@@ -1,8 +1,6 @@
 """Contains a Python module which implements parsing of module uses in the Galacticus preprocessor system.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Parse/ModuleUses.pm
 """
 
 import re
@@ -17,8 +15,8 @@ from Galacticus.Build.FortranUtils import get_fortran_line
 # `useCache=lastCache`) parses as `use Cache, only : =lastCache`, fabricating
 # a bogus module-use node in the middle of a procedure body (issue #1030).
 # The lookahead requires a non-identifier character (whitespace, `,`, or `::`)
-# to follow `use`, mirroring the Perl original's mandatory separator while
-# also accepting the `use::module` spelling the Perl regex wrongly rejected.
+# to follow `use`, while still accepting the `use::module` spelling that was
+# historically rejected (issue #1030).
 _MODULE_USE_RE = re.compile(
     r'^\s*(!\$)?\s*use(?![a-zA-Z0-9_])\s*(,\s*(intrinsic))?\s*(::)?\s*([a-zA-Z0-9_]+)'
     r'\s*(,\s*only\s*:)?\s*([a-zA-Z0-9_()/=*\-+.,\s]+)?\s*$',
@@ -49,7 +47,6 @@ def _condition_key(entry):
 def parse_module_uses(tree):
     """Walk the tree parsing Fortran 'use' statements into moduleUse nodes.
 
-    Mirrors Parse_ModuleUses() from perl/Galacticus/Build/SourceTree/Parse/ModuleUses.pm.
     Called by _pass_module_uses() in Galacticus.Build.SourceTree.
     """
     from Galacticus.Build.SourceTree import walk_tree, replace_node, _make_code_node
@@ -251,7 +248,6 @@ def parse_module_uses(tree):
 def update_uses(uses_node):
     """Regenerate formatted Fortran 'use' statements from structured node data.
 
-    Mirrors UpdateUses() from perl/Galacticus/Build/SourceTree/Parse/ModuleUses.pm.
     Rewrites uses_node['firstChild']['content'] in place.
     """
     from Galacticus.Build.FortranUtils import get_fortran_line
@@ -368,8 +364,6 @@ def update_uses(uses_node):
 
 def add_uses(node, module_uses_node):
     """Add module uses to an existing node, creating a moduleUse child if needed.
-
-    Mirrors AddUses() from perl/Galacticus/Build/SourceTree/Parse/ModuleUses.pm.
 
     Parameters
     ----------

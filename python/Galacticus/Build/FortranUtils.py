@@ -138,8 +138,6 @@ def _find_comment_position(line: str) -> int:
 def extract_bracketed(text: str, brackets: str = "()") -> tuple[str | None, str, str | None]:
     """Find and extract the first balanced bracket pair in text.
 
-    Port of Perl Text::Balanced::extract_bracketed.
-
     Returns (extracted, remainder, prefix) where extracted includes the bracket
     chars themselves, or (None, text, None) if no balanced pair is found.
 
@@ -178,10 +176,7 @@ def extract_bracketed(text: str, brackets: str = "()") -> tuple[str | None, str,
 
 def extract_variables(variable_list: str, lower_case: bool = True,
                       keep_qualifiers: bool = False, remove_spaces: bool = True) -> list[str]:
-    """Given the post-'::' section of a Fortran variable declaration, return a list of names.
-
-    Port of Fortran::Utils::Extract_Variables (perl/Fortran/Utils.pm).
-    """
+    """Given the post-'::' section of a Fortran variable declaration, return a list of names."""
     if variable_list is None:
         return []
 
@@ -259,10 +254,10 @@ _processed_files_cache = {}
 def get_matching_lines(file_name: str, regex: re.Pattern[str]) -> list[dict]:
     """Return every processed Fortran line in `file_name` that matches `regex`.
 
-    Mirrors Perl Fortran::Utils::Get_Matching_Lines.  Each returned entry is
-    a dict with keys 'line' (the processed line) and 'submatches' (the list
-    of capture groups from the match).  Processed-line lists are cached per
-    file across calls, matching the Perl module's `%processedFiles` cache.
+    Each returned entry is a dict with keys 'line' (the processed line) and
+    'submatches' (the list of capture groups from the match).  Processed-line
+    lists are cached per file across calls; the cache is never invalidated,
+    so a file changed on disk after its first read will not be re-read.
     """
     if isinstance(regex, str):
         regex = re.compile(regex)
@@ -293,9 +288,9 @@ def read_file(file_name: str, *, state: str = 'raw', follow_includes: bool = Fal
               strip_empty: bool = False) -> str:
     """Return the (optionally preprocessed) text of `file_name`.
 
-    Mirrors Perl Fortran::Utils::read_file.  Follows `include '…'` statements
-    when `follow_includes=True`, searching `include_locations` with `.inc` /
-    `.Inc` suffixes.  `state` is one of `'raw'`, `'processed'`, `'comments'`.
+    Follows `include '…'` statements when `follow_includes=True`, searching
+    `include_locations` with `.inc` / `.Inc` suffixes.  `state` is one of
+    `'raw'`, `'processed'`, `'comments'`.
     """
     if include_locations is None:
         include_locations = []
@@ -304,7 +299,7 @@ def read_file(file_name: str, *, state: str = 'raw', follow_includes: bool = Fal
     if strip_regex is not None and isinstance(strip_regex, str):
         strip_regex = re.compile(strip_regex)
 
-    # Perl prepends an empty string to the list of include locations so that
+    # Prepend an empty string to the list of include locations so that
     # the bare `<dir>/<name>` path is tried first.
     all_include_locations = [''] + list(include_locations)
 
@@ -330,9 +325,9 @@ def read_file(file_name: str, *, state: str = 'raw', follow_includes: bool = Fal
                     if m:
                         include_leaf = m.group(1)
                         if include_leaf not in include_files_excluded:
-                            # Perl: `$fileNames[0] =~ s/\/[^\/]+$/\//` — strip basename,
-                            # leaving the directory with a trailing slash (or the
-                            # original path unchanged if there was no slash).
+                            # Strip the basename, leaving the directory with a
+                            # trailing slash (or the original path unchanged if
+                            # there was no slash).
                             cur_dir = re.sub(r'/[^/]+$', '/', file_names[0])
                             if cur_dir == file_names[0]:
                                 cur_dir = ''

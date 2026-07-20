@@ -2,8 +2,6 @@
 inactive / analytic + auto-create rate functions on the class type.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Properties/Evolve.pm.
 """
 
 import os
@@ -51,7 +49,7 @@ def _impl_type(class_dict, member):
 
 
 def Build_Count_Functions(build, class_dict, member, prop):
-    """Generate `<class><Member><Prop>Count`.  Mirrors `Build_Count_Functions`."""
+    """Generate `<class><Member><Prop>Count`."""
     if not _evolvable(prop):
         return
     impl_type = _impl_type(class_dict, member)
@@ -98,7 +96,7 @@ def Build_Count_Functions(build, class_dict, member, prop):
 
 
 def Build_Rate_Get_Functions(build, class_dict, member, prop):
-    """Generate `<class><Member><Prop>RateGet`.  Mirrors `Build_Rate_Get_Functions`."""
+    """Generate `<class><Member><Prop>RateGet`."""
     if not _evolvable(prop):
         return
 
@@ -202,7 +200,7 @@ def Build_Rate_Get_Functions(build, class_dict, member, prop):
 
 
 def Build_Rate_Functions(build, class_dict, member, prop):
-    """Generate `<class><Member><Prop>Rate(Intrinsic)?`.  Mirrors `Build_Rate_Functions`."""
+    """Generate `<class><Member><Prop>Rate(Intrinsic)?`."""
     if not _evolvable(prop):
         return
 
@@ -409,8 +407,8 @@ def Build_Rate_Functions(build, class_dict, member, prop):
 
 
 def Build_Auto_Create_Rate_Functions(build, class_dict, member, prop):
-    """Mirrors `Build_Auto_Create_Rate_Functions`.  Bound to the
-    component class type, not the implementation.
+    """Generate the `<class><Prop>Rate` auto-create rate function — bound
+    to the component class type, not the implementation.
     """
     attrs = prop.get('attributes') or {}
     if (
@@ -496,7 +494,7 @@ def Build_Auto_Create_Rate_Functions(build, class_dict, member, prop):
 
 
 def Build_Scale_Functions(build, class_dict, member, prop):
-    """Mirrors `Build_Scale_Functions`."""
+    """Generate `<class><Member><Prop>Scale`."""
     if not _evolvable(prop):
         return
     type_descriptor, _ = data_object_definition(prop.get('data') or {}, match_only=True)
@@ -555,7 +553,7 @@ def Build_Scale_Functions(build, class_dict, member, prop):
 
 
 def Build_Inactive_Functions(build, class_dict, member, prop):
-    """Mirrors `Build_Inactive_Functions`."""
+    """Generate `<class><Member><Prop>Inactive`."""
     if not _evolvable(prop):
         return
     impl_type = _impl_type(class_dict, member)
@@ -612,7 +610,7 @@ def Build_Inactive_Functions(build, class_dict, member, prop):
 
 
 def Build_Analytic_Functions(build, class_dict, member, prop):
-    """Mirrors `Build_Analytic_Functions`."""
+    """Generate `<class><Member><Prop>Analytic`."""
     if not _evolvable(prop):
         return
     impl_type = _impl_type(class_dict, member)
@@ -697,7 +695,8 @@ def _ucfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Properties/Evolve.pm:21-29.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('propertiesEvolve', 'propertyIteratedFunctions', Build_Count_Functions)

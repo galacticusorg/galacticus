@@ -5,8 +5,6 @@ procedure-pointer declarations + `_Null` default implementations
 table.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionsGlobal.pm
 """
 
 import os
@@ -34,8 +32,8 @@ _STATE_STORABLES     = None
 
 
 def _load_xml_once():
-    """Load directiveLocations.xml + stateStorables.xml once, matching Perl's
-    module-global `our $directiveLocations` / `our $stateStorables` idiom.
+    """Load directiveLocations.xml + stateStorables.xml once, caching at
+    module scope.
     """
     global _DIRECTIVE_LOCATIONS, _STATE_STORABLES
     if _DIRECTIVE_LOCATIONS is not None and _STATE_STORABLES is not None:
@@ -56,7 +54,7 @@ def _load_xml_once():
 def _collect_function_globals(directive_locations):
     """Walk every file listed under directiveLocations/functionGlobal/file,
     extracting every `<functionGlobal>` directive and tagging each with the
-    file it came from.  Mirrors FunctionsGlobal.pm:42-48.
+    file it came from.
     """
     block = directive_locations.get('functionGlobal') or {}
     files = list(as_array(block.get('file')))
@@ -86,10 +84,7 @@ def _argument_names(arguments):
 
 
 def _render_null_definitions(function_globals):
-    """Render the `_Null` subprogram bodies for every functionGlobal.
-
-    Mirrors the block at FunctionsGlobal.pm:64-103.
-    """
+    """Render the `_Null` subprogram bodies for every functionGlobal."""
     out = ""
     for fg in function_globals:
         void = fg.get('type') == 'void'
@@ -124,7 +119,7 @@ def _render_null_definitions(function_globals):
 def _collect_module_uses_for_establish(function_globals, class_module_map):
     """Build the `moduleUse` dict required by the `establish` path.
 
-    Mirrors FunctionsGlobal.pm:112-124: for each functionGlobal, parse the
+    For each functionGlobal, parse the
     containing file, and for every module at file-scope (or every
     functionClass whose class module is recorded in stateStorables.xml)
     add a `use <module>, only : <unitName>` entry.
@@ -154,7 +149,7 @@ def _collect_module_uses_for_establish(function_globals, class_module_map):
 
 
 def process_functions_global(tree, options):
-    """Mirrors Process_FunctionsGlobal() from FunctionsGlobal.pm."""
+    """Process `functionsGlobal` directives in the tree."""
     directive_locations, state_storables = _load_xml_once()
     class_module_map = _class_module_map(state_storables)
 

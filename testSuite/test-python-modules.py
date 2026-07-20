@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Compile every Python source file in the repository to catch syntax errors.
-
-Replaces the former `test-perl-modules.py`, which ran `perl -c` over the
-`.pl` and `perl/**/*.pm` trees.  Now that the build pipeline is pure
-Python, this is the equivalent sweep for `*.py` files.
-"""
+"""Compile every Python source file in the repository to catch syntax errors."""
 
 import py_compile
 import pathlib

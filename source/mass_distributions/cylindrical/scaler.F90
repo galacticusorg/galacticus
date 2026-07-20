@@ -537,25 +537,29 @@ contains
     !!{RST
     Computes the gravitational acceleration at ``coordinates`` for a scaled cylindrical distribution.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gigaYear, gravitationalConstant_internal, megaParsec
+    use :: Coordinates                     , only : assignment(=), coordinateCartesian
+    use :: Numerical_Constants_Astronomical, only : gigaYear     , gravitationalConstant_internal, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    double precision                                   , dimension(3)  :: cylindricalScalerAcceleration
+    type            (coordinateCartesian              )                :: cylindricalScalerAcceleration
     class           (massDistributionCylindricalScaler), intent(inout) :: self
     class           (coordinate                       ), intent(in   ) :: coordinates
     class           (coordinate                       ), allocatable   :: coordinatesScaled
+    double precision                                   , dimension(3)  :: accelerationVector
 
     call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
-    cylindricalScalerAcceleration=+self%massDistribution_%acceleration       (coordinatesScaled) &
-         &                        *self                  %factorScalingMass                      &
-         &                        /self                  %factorScalingLength**2
-    if (self%massDistribution_%isDimensionless())                        &
-         & cylindricalScalerAcceleration=+cylindricalScalerAcceleration  &
-         &                               *kilo                           &
-         &                               *gigaYear                       &
-         &                               /megaParsec                     &
-         &                               *gravitationalConstant_internal
-       return
+    accelerationVector=self%massDistribution_%acceleration(coordinatesScaled)
+    accelerationVector=+accelerationVector                    &
+         &             *self%factorScalingMass                &
+         &             /self%factorScalingLength**2
+    if (self%massDistribution_%isDimensionless())             &
+         & accelerationVector=+accelerationVector             &
+         &                    *kilo                           &
+         &                    *gigaYear                       &
+         &                    /megaParsec                     &
+         &                    *gravitationalConstant_internal
+    cylindricalScalerAcceleration=accelerationVector
+    return
   end function cylindricalScalerAcceleration
 
   function cylindricalScalerTidalTensor(self,coordinates)
@@ -583,12 +587,15 @@ contains
     !!{RST
     Sample a position from a scaled cylindrical distribution.
     !!}
+    use :: Coordinates, only : coordinateCartesian, assignment(=)
     implicit none
-    double precision                                   , dimension(3)  :: cylindricalScalerPositionSample
+    type            (coordinateCartesian              )                :: cylindricalScalerPositionSample
     class           (massDistributionCylindricalScaler), intent(inout) :: self
     class           (randomNumberGeneratorClass       ), intent(inout) :: randomNumberGenerator_
+    double precision                                   , dimension(3)  :: positionArray
 
-    cylindricalScalerPositionSample=+self%massDistribution_%positionSample     (randomNumberGenerator_) &
-         &                          *self                  %factorScalingLength
+    positionArray                  =self%massDistribution_%positionSample(randomNumberGenerator_)
+    positionArray                  =+positionArray*self%factorScalingLength
+    cylindricalScalerPositionSample=positionArray
     return
   end function cylindricalScalerPositionSample
