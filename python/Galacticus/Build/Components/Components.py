@@ -3,7 +3,7 @@ pipeline.
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/Components.pm: a single hook on
+A single hook on
 the `types` phase that defines `nodeComponent`, the abstract base type
 every per-class component derives from.  The type carries the standard
 set of ~25 type-bound methods (lifecycle, ODE solver, output, mass
@@ -21,7 +21,7 @@ from Galacticus.Build.Components.Classes.MetaProperties import meta_property_typ
 def Build_Node_Component_Class(build):
     """Define `nodeComponent` on `build['types']`.
 
-    Mirrors `Build_Node_Component_Class`.  The body is almost entirely
+    The body is almost entirely
     declarative — the data structure here matches the dict passed to
     Components/__init__.py's `derived_types_serialize`.
     """
@@ -97,11 +97,9 @@ def _meta_property_arg_doc(mpt):
 
 
 # ---------------------------------------------------------------------------
-# Standard type-bound function table.  Verbatim translation of the array
-# at Components.pm:29-210.  Each entry mirrors the Perl dict literal —
-# field names are quoted strings on the Perl side (`type`, `name`,
-# `function`, `description`, `returnType`, `arguments`, optional
-# `mappable`).
+# Standard type-bound function table.  Each entry is a dict with fields
+# `type`, `name`, `function`, `description`, `returnType`, `arguments`,
+# and optional `mappable`.
 # ---------------------------------------------------------------------------
 
 _BASE_BOUND_FUNCTIONS = [

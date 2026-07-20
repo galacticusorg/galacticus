@@ -37,8 +37,7 @@ from Galacticus.Build.SourceTree.Process      import process_tree
 import Galacticus.Build.Components            # registers the `component` hook on import
 from Galacticus._logging                      import configure_default as _configure_default
 
-# Show INFO-level diagnostic output from the library modules (mirrors the
-# verbose `print()`-driven output of the Perl-era driver).
+# Show INFO-level diagnostic output from the library modules.
 _configure_default()
 
 # Register every source-tree process hook (the full set — see Process/all.py).
@@ -56,8 +55,7 @@ _INCLUDE_RE      = re.compile(r"^\s*include\s*['\"]([^'\"]+)['\"]\s*$")
 # block) — `<foo …>` or `<foo …/>`.
 _DIRECTIVE_OPEN_RE = re.compile(r'^\s*(<\s*([a-zA-Z]+)\b[^>]*>)\s*$')
 
-# `XMLin($xml, ForceArray => ["data","property","binding"])` — the Perl
-# driver always lifts these tags into lists so downstream consumers can
+# These tags are always lifted into lists so downstream consumers can
 # iterate uniformly.
 _FORCE_ARRAY = {'data', 'property', 'binding'}
 
@@ -100,9 +98,9 @@ def main(argv=None):
     build['currentFileName'] = ""
     build['codeType']        = "fortran"
 
-    # Per-file directive cache.  Persists between runs so that files whose
-    # mtime is older than the cache get skipped.  Mirrors Perl's `Storable`
-    # blob at `<fileName>.blob`.
+    # Per-file directive cache.  Persists between runs (as a blob at
+    # `<fileName>.blob`) so that files whose mtime is older than the cache
+    # get skipped.
     blob_path           = build['fileName'] + '.blob'
     directives_per_file, update_time = _load_cache(blob_path)
     have_per_file       = update_time is not None
@@ -156,11 +154,11 @@ def main(argv=None):
             # `annotate=True` emits the `!--> <origLine> <outLine> "<source>"`
             # line-number mapping comments that the rest of the Galacticus
             # build pipeline expects ahead of each node's serialised content.
-            # Perl's Serialize() defaults to annotated; the Python port
-            # defaults to off so existing in-process callers (Generics,
-            # FunctionClass, …) get pure Fortran back, but `buildCode.py`
-            # is producing an `.Inc` for downstream stages and needs the
-            # markers.
+            # The library's serialize() defaults to annotate=False so
+            # in-process callers (Generics, FunctionClass, …) get pure
+            # Fortran back, but `buildCode.py` is producing an `.Inc` for
+            # downstream stages and needs the markers — hence the explicit
+            # `annotate=True` here.
             out.write(SourceTree.serialize(
                 process_tree(
                     SourceTree.parse_code(build['content'], build['fileName'])
@@ -185,9 +183,8 @@ def _xml_load_optional(path):
 def _xml_load(path):
     """Load `path` and return its root element as a dict.
 
-    Matches Perl `XMLin($file, KeyAttr => [])`: same defaults as
-    `xml_to_dict` (no `keyed_tags`, single same-tag children become a dict,
-    multiples become a list).
+    Uses the same defaults as `xml_to_dict` (no `keyed_tags`, single
+    same-tag children become a dict, multiples become a list).
     """
     tree = ET.parse(path)
     return xml_to_dict(tree.getroot())
@@ -230,8 +227,7 @@ def _scan_file(file_name, build, source_directory,
     `<{directive}>` block, and stash the result in
     `directives_per_file[file_id]`.
 
-    The work mirrors buildCode.pl's main `foreach my $fileName (@fileNamesToScan)`
-    loop: each include file is processed in the module-name context of its
+    Each include file is processed in the module-name context of its
     parent so that a directive appearing inside an inclusion gets the
     correct `moduleName`.  Files whose recorded mtime predates the cache are
     skipped wholesale.
@@ -242,8 +238,7 @@ def _scan_file(file_name, build, source_directory,
     # older than the cache, nothing has changed.
     if have_per_file and file_identifier in directives_per_file:
         recorded = directives_per_file[file_identifier].get('files', [])
-        # Perl tests `-M $_ < $updateTime` — i.e. *any* recorded file
-        # newer than the cache forces a rescan.
+        # *Any* recorded file newer than the cache forces a rescan.
         if not any(
             os.path.exists(p) and os.path.getmtime(p) > update_time
             for p in recorded
@@ -299,7 +294,7 @@ def _process_until_include_or_eof(fh, frame, build, source_directory,
             # For C/C++ the raw and processed forms are the same single line;
             # `get_fortran_line`'s continuation-joining does not apply. Read
             # ONE line and use it for both — mirrors `_consume_until_close`
-            # below and the Perl original. (A previous
+            # below. (A previous
             # `(fh.readline(), fh.readline(), '')` here read two lines per
             # iteration, so `raw_line`/`processed_line` were different,
             # consecutive lines and every other line was skipped.)
@@ -418,8 +413,8 @@ def _consume_until_close(fh, build, xml_tag, frame, source_directory,
 def _parse_directive(xml_code, frame, build):
     """Parse one `xml_code` block and return a directive dict.
 
-    Mirrors Perl's `XMLin($xml_code, ForceArray => ["data","property",
-    "binding"])`.  Failure is fatal — Perl `die`s in the same spot.
+    The `data`, `property`, and `binding` tags are always lifted into
+    lists.  Failure to parse is fatal.
     """
     try:
         elem = ET.fromstring(xml_code)

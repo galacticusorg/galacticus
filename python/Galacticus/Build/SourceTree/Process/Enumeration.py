@@ -3,8 +3,6 @@ or file, synthesizes the enumeration type, its equality operator, and
 (optionally) validator / encode / decode / describe helpers.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/Enumeration.pm
 """
 
 from List.ExtraUtils                                         import as_array
@@ -25,12 +23,6 @@ def _insert_code_tree(parent, source_text, inserter):
     """Parse `source_text` into a subtree and insert its direct children into
     `parent` via `inserter` (one of insert_after_node / insert_pre_contains /
     insert_post_contains).
-
-    Mirrors the Perl idiom
-        my $sub  = ParseCode($text, '…');
-        my @kids = Children($sub);
-        Insert…($target, \\@kids);
-    used throughout Enumeration.pm.
 
     The synthetic sub-tree is parsed with the OUTER source's name as its
     `source` attribution.  Keeping the outer file's name on every node
@@ -54,14 +46,12 @@ def _insert_code_tree(parent, source_text, inserter):
 
 
 # ---------------------------------------------------------------------------
-# Generated-code builders (one per Perl sub-block)
+# Generated-code builders (one per generated construct)
 # ---------------------------------------------------------------------------
 
 def _emit_type_definition(name, entries, indexing, visibility, validator):
     """Emit the `type, extends(enumerationType) :: enumerationXType` block,
     the per-member `parameter` values, and optionally the Min/Max/Count.
-
-    Mirrors Enumeration.pm:36-58.
     """
     lines  = "  ! Auto-generated enumeration\n"
     lines += f"  type, extends(enumerationType) :: enumeration{name}Type\n"
@@ -98,9 +88,7 @@ def _emit_type_definition(name, entries, indexing, visibility, validator):
 
 
 def _emit_equality_function(name):
-    """Emit the `enumerationXIsEqual` pure elemental function.  Mirrors
-    Enumeration.pm:78-91.
-    """
+    """Emit the `enumerationXIsEqual` pure elemental function."""
     fn = f"enumeration{_ucfirst(name)}IsEqual"
     out  = "\n"
     out += "  ! Auto-generated enumeration function\n"
@@ -124,7 +112,7 @@ def _emit_equality_function(name):
 
 
 def _emit_validator_function(name):
-    """Emit the `enumerationXIsValid` validator.  Mirrors Enumeration.pm:98-112."""
+    """Emit the `enumerationXIsValid` validator."""
     fn = f"enumeration{_ucfirst(name)}IsValid"
     out  = "\n"
     out += "  ! Auto-generated enumeration function\n"
@@ -147,8 +135,7 @@ def _emit_validator_function(name):
 def _emit_encode_function(name, entries, indexing, on_error, node):
     """Emit the four-overload encode function family + its two interfaces.
 
-    Mirrors Enumeration.pm:121-239.  Returns (function_text, interface_text,
-    public_function_name).
+    Returns (function_text, interface_text, public_function_name).
     """
     fn = f"enumeration{_ucfirst(name)}Encode"
     status_arg = "" if on_error else ",status"
@@ -281,10 +268,7 @@ def _emit_encode_function(name, entries, indexing, on_error, node):
 
 
 def _emit_decode_function(name, entries, indexing, on_error, node):
-    """Emit the decode function family + its interface.
-
-    Mirrors Enumeration.pm:243-315.
-    """
+    """Emit the decode function family + its interface."""
     fn = f"enumeration{_ucfirst(name)}Decode"
 
     interface  = f" interface {fn}\n"
@@ -365,10 +349,8 @@ def _emit_decode_function(name, entries, indexing, on_error, node):
 def _emit_description_function(name, entries, indexing):
     """Emit `enumerationXDescription{Enumerator,ID}` + its interface.
 
-    Mirrors Enumeration.pm:319-385.  The body of the ID function includes a
-    `select case` whose text is built separately in Perl and spliced via
-    `InsertAfterNode`; here we concatenate it directly into the source text
-    before re-parsing.
+    The body of the ID function includes a `select case` whose text is
+    concatenated directly into the source text before re-parsing.
     """
     fn = f"enumeration{_ucfirst(name)}Description"
 
@@ -422,9 +404,7 @@ def _emit_description_function(name, entries, indexing):
 
 
 def _emit_describe_function(name, entries):
-    """Emit the unconditional `enumerationXDescribe` function.  Mirrors
-    Enumeration.pm:387-431.
-    """
+    """Emit the unconditional `enumerationXDescribe` function."""
     fn = f"enumeration{_ucfirst(name)}Describe"
 
     out  = "\n"
@@ -466,7 +446,7 @@ def _emit_describe_function(name, entries):
 # ---------------------------------------------------------------------------
 
 def process_enumerations(tree, options):
-    """Mirrors Process_Enumerations() from Enumeration.pm."""
+    """Process `enumeration` directives in the tree."""
     for node in walk_tree(tree):
         if node.get('type') != 'enumeration':
             continue
@@ -520,7 +500,7 @@ def process_enumerations(tree, options):
             _insert_code_tree(parent, enc_iface, inserter=insert_pre_contains)
             set_visibility(parent, enc_name, visibility)
 
-        # --- Decode + Description (paired in Perl, toggled by decodeFunction) ---
+        # --- Decode + Description (both toggled by decodeFunction) ---
         if decode_on:
             dec_text, dec_iface, dec_name = _emit_decode_function(
                 name, entries, indexing, on_error, node)

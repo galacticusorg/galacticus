@@ -11,8 +11,7 @@ Three bug classes:
   2. A self-closing tag whose attributes contain `/` (typically URLs in
      `<reference>`) was missed by the original `<tag\s[^>]*\/>` regex,
      because `[^>]` was inadvertently overrestrictive on text containing
-     `/`.  The fix uses `.` (any char incl. `/`) and matches Perl's
-     regex.
+     `/`.  The fix uses `.` (any char incl. `/`).
 
   3. `post_process_directives` must forgive directives whose type is in
      the NonProcessed exemption list (e.g. `<methods>` injected late by

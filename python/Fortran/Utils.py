@@ -2,7 +2,6 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors the subset of perl/Fortran/Utils.pm used by the Galacticus build system.
 The get_fortran_line() function lives in Galacticus.Build.FortranUtils; import
 it from there when needed.
 """
@@ -107,9 +106,9 @@ UNIT_OPENERS = {
             re.IGNORECASE,
         ),
     },
-    # `contains` marker — self-closing.  Perl's parser makes `contains` a
-    # container whose children are the post-contains subprograms; here it
-    # stays a sibling marker which keeps the parser logic simple, yet lets
+    # `contains` marker — self-closing.  Rather than a container whose
+    # children are the post-contains subprograms, `contains` is a sibling
+    # marker, which keeps the parser logic simple, yet lets
     # `insert_pre_contains` / `insert_post_contains` anchor on it.
     'contains': {
         'unit_name': -1,
@@ -320,8 +319,6 @@ INTRINSIC_DECLARATIONS = {
 def extract_variables(variable_list, keep_qualifiers=False, lower_case=True, remove_spaces=True):
     """Parse the post-'::' section of a Fortran declaration line into variable names.
 
-    Mirrors Perl Fortran::Utils::Extract_Variables().
-
     Parameters
     ----------
     variable_list : str or None
@@ -463,20 +460,16 @@ def extract_variables(variable_list, keep_qualifiers=False, lower_case=True, rem
 def unformat_variables(variable_string):
     """Parse a Fortran variable declaration string into a structured dict.
 
-    Mirrors Perl `Fortran::Utils::Unformat_Variables`.  Returns None if
-    the input doesn't parse as a valid declaration.
+    Returns None if the input doesn't parse as a valid declaration.
 
     The returned dict carries `intrinsic`, `variables` (with qualifiers
     preserved), `variableNames` (without qualifiers), and optionally
     `type` and `attributes`.
 
-    The Perl original walks the `INTRINSIC_DECLARATIONS` regex table
-    and indexes capture groups by position, but the Python ports of
-    those regexes use slightly different capture-group structures
-    (non-capturing type brackets) than the Perl versions.  Rather than
-    keep two versions of the regex table in sync we just split the
-    string at the `::` separator, find the matching intrinsic prefix,
-    extract any `(...)` type bracket, and treat whatever remains as
+    Rather than walking the `INTRINSIC_DECLARATIONS` regex table and
+    indexing capture groups by position, we just split the string at
+    the `::` separator, find the matching intrinsic prefix, extract
+    any `(...)` type bracket, and treat whatever remains as
     attributes.  Equivalent semantics, simpler implementation.
     """
     if variable_string is None or '::' not in variable_string:
@@ -490,7 +483,7 @@ def unformat_variables(variable_string):
     head = m.group(2).rstrip()
 
     # Match against each intrinsic in turn — the first that matches
-    # wins.  Use the same intrinsic names as the Perl table; multi-word
+    # wins.  These names are the canonical intrinsic set; multi-word
     # intrinsics (`double precision`, `double complex`) need a flexible
     # whitespace pattern.
     intrinsic_patterns = [

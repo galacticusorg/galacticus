@@ -5,8 +5,6 @@ reference-counted get / release / build / copy code and wiring in the
 required moduleUse imports and local declarations.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/ObjectBuilder.pm
 """
 
 import os
@@ -76,16 +74,15 @@ def _dict_to_parameters_xml(data):
     """Serialize a parsed `<default>` directive block back to a compact
     `<parameters …/>` XML string.
 
-    Mirrors the Perl idiom
-        my $xml = XML::Simple->XMLout($dict, RootName => 'parameters');
-        $xml =~ s/\\s*\\n\\s*//g; $xml =~ s/\\s{2,}/ /g;
-    with XML::Simple's default attribute-promotion semantics (scalar leaves
-    become attributes on the enclosing element).
+    Output-format contract: scalar leaves become attributes on the enclosing
+    element, and the result is a compact single line suitable for embedding
+    in generated Fortran.
     """
     root = ET.Element('parameters')
     _fill_element(root, data)
     text = ET.tostring(root, encoding='unicode')
-    # Compact whitespace to match Perl's normalised single-line output.
+    # Normalise to a compact single line — a format requirement for the
+    # generated code.
     text = re.sub(r'\s*\n\s*', '', text)
     text = re.sub(r'\s{2,}', ' ', text)
     return text
@@ -290,8 +287,7 @@ def _handle_object_builder(node, state_storables, function_classes):
         })
 
     # Main module-use block.  The class-providing module is skipped when the
-    # enclosing node is part of the same module that declares the class
-    # (`isSelf` in Perl).
+    # enclosing node is part of the same module that declares the class.
     class_key = directive['class'] + 'Class'
     class_entry = function_classes.get(class_key) or {}
     module_name = class_entry.get('module')
@@ -399,8 +395,8 @@ def _handle_object_builder(node, state_storables, function_classes):
 
     # Make `source` and `self` have a `target` attribute if they don't
     # already have `target`/`pointer`, so that `=>` / `isAssociated(...)`
-    # work on them.  Perl tracks done-work via
-    # `$parent->{objectBuilderAttributes}->{<source>}`.
+    # work on them.  Done-work is tracked per source name in
+    # `parent['objectBuilderAttributes']`.
     attrs_map = parent.setdefault('objectBuilderAttributes', {})
     src_name = directive['source']
     if src_name not in attrs_map:
@@ -513,7 +509,7 @@ def _handle_deep_copy(node):
 # ---------------------------------------------------------------------------
 
 def process_object_builder(tree, options):
-    """Mirrors Process_ObjectBuilder() from ObjectBuilder.pm."""
+    """Process functionClass lifecycle directives in the tree."""
     state_storables  = _load_state_storables()
     function_classes = _function_classes_by_name(state_storables)
 

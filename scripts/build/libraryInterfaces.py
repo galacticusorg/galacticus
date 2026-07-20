@@ -52,7 +52,7 @@ _CLASS_HIERARCHY = {}
 
 
 def main():
-    """Main entry point — mirrors libraryInterfaces.pl."""
+    """Main entry point."""
 
     # Initialize code and Python interface structures
     code = {'main': []}
@@ -391,7 +391,7 @@ def _process_implementations(func_class, directive_locations, state_storables,
         if not name_constructor:
             name_constructor = impl_name
 
-        # classID is assigned to every file, even abstract/excluded ones (mirrors Perl).
+        # classID is assigned to every file, even abstract/excluded ones.
         class_id += 1
 
         # impl_conf was already fetched up front so the interface-block

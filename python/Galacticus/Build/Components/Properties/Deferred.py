@@ -2,7 +2,6 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/Properties/Deferred.pm.
 Four propertyIteratedFunctions hooks emit module-scope procedure
 pointers + IsAttached flags + wrapper functions + attacher methods
 for each `isDeferred` attribute (`get` / `set` / `rate`) on every
@@ -17,8 +16,7 @@ from Galacticus.Build.Components.NullFunctions import create_null_function
 from Galacticus.Build.Components.Properties.Utils import attribute_adjective
 
 
-# Module-level pointer-creation cache.  Mirrors `%createdPointers` at
-# Properties/Deferred.pm:33 — across all calls to
+# Module-level pointer-creation cache — across all calls to
 # `Properties_Deferred_Pointers` we emit each unique pointer once.
 _created_pointers = set()
 
@@ -32,7 +30,9 @@ def _deferred_attributes(prop):
 
 
 def Properties_Deferred_Pointers(build, class_dict, member, prop):
-    """Mirrors `Properties_Deferred_Pointers`."""
+    """Declare the module-level `…Deferred` procedure pointer and
+    `…IsAttchdVl` flag for each deferred property method.
+    """
     if not _deferred_attributes(prop):
         return
     attach_to = class_dict['name'] + _ucfirst(member['name'])
@@ -84,7 +84,9 @@ def reset_pointer_cache():
 
 
 def Properties_Deferred_Get_Functions(build, class_dict, member, prop):
-    """Mirrors `Properties_Deferred_Get_Functions`."""
+    """Generate the deferred `<prop>` get method — delegates to the
+    attached deferred function.
+    """
     attrs        = prop.get('attributes')  or {}
     get_function = prop.get('getFunction') or {}
     if not (
@@ -144,7 +146,9 @@ def Properties_Deferred_Get_Functions(build, class_dict, member, prop):
 
 
 def Properties_Deferred_Set_Functions(build, class_dict, member, prop):
-    """Mirrors `Properties_Deferred_Set_Functions`."""
+    """Generate the deferred `<prop>Set` method — delegates to the
+    attached deferred function.
+    """
     attrs        = prop.get('attributes')  or {}
     set_function = prop.get('setFunction') or {}
     if not (
@@ -202,7 +206,9 @@ def Properties_Deferred_Set_Functions(build, class_dict, member, prop):
 
 
 def Properties_Deferred_Rate_Functions(build, class_dict, member, prop):
-    """Mirrors `Properties_Deferred_Rate_Functions`."""
+    """Generate the deferred `<prop>Rate` method — delegates to the
+    attached deferred function.
+    """
     attrs = prop.get('attributes') or {}
     if not (
         'rate' in _deferred_attributes(prop)
@@ -218,7 +224,7 @@ def Properties_Deferred_Rate_Functions(build, class_dict, member, prop):
     impl_type   = 'nodeComponent' + _ucfirst(class_dict['name']) + _ucfirst(member['name'])
 
     # Skip if a `<prop>Rate` already bound (e.g. from Set or another
-    # path).  Mirrors Perl's `grep {...} boundFunctions` check.
+    # path).
     bound = build.setdefault('types', {}).setdefault(impl_type, {}) \
                                           .setdefault('boundFunctions', [])
     if any(b.get('name') == prop['name'] + 'Rate' for b in bound):
@@ -274,8 +280,6 @@ def Properties_Deferred_Rate_Functions(build, class_dict, member, prop):
 def _generate_deferred_attacher(component, prop, build, method):
     """Emit `<...>Function` attacher and `<...>IsAttached` query
     methods on the component's nodeComponent type.
-
-    Mirrors `Generate_Deferred_Function_Attacher`.
     """
     method_suffix = '' if method == 'get' else _ucfirst(method)
     component_class_name = component['class']
@@ -367,7 +371,8 @@ def _lcfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Properties/Deferred.pm:24-28.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('propertiesDeferred', 'propertyIteratedFunctions',
