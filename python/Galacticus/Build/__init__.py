@@ -23,7 +23,4 @@ Submodules:
   used when a directive's context within the file is needed.
 * :mod:`Galacticus.Build.StateStorables` -- support for the state-storable
   serialization metadata.
-
-These modules mirror (a subset of) the corresponding Perl modules under
-``perl/Galacticus/Build/``.
 """

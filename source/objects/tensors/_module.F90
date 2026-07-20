@@ -61,7 +61,10 @@ module Tensors
      A rank 2, three dimensional, symmetric tensor.
      !!}
      private
-     double precision :: x00,x01,x02,x11,x12,x22
+     ! The six independent elements are stored, packed, as the upper triangle
+     ! in row-major order: c(1)=(0,0), c(2)=(0,1), c(3)=(0,2), c(4)=(1,1),
+     ! c(5)=(1,2), c(6)=(2,2). See the packedIndex mapping in the submodule.
+     double precision, dimension(6) :: c
    contains
      !![
      <methods docformat="rst">
@@ -130,10 +133,12 @@ module Tensors
      module procedure tensorRank2Dimension3SymmetricInternal
   end interface tensorRank2Dimension3Symmetric
   
-  ! Identity, unitary, and null tensors.
-  type(tensorRank2Dimension3Symmetric), public :: tensorIdentityR2D3Sym=tensorRank2Dimension3Symmetric(1.0d0,0.0d0,0.0d0,1.0d0,0.0d0,1.0d0)
-  type(tensorRank2Dimension3Symmetric), public :: tensorUnitR2D3Sym    =tensorRank2Dimension3Symmetric(1.0d0,1.0d0,1.0d0,1.0d0,1.0d0,1.0d0)
-  type(tensorRank2Dimension3Symmetric), public :: tensorNullR2D3Sym    =tensorRank2Dimension3Symmetric(0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0)
+  ! Identity, unitary, and null tensors. These are initialized via the derived-type
+  ! structure constructor (supplying the packed element array directly), rather than
+  ! the generic function constructor, as required for a constant initialization expression.
+  type(tensorRank2Dimension3Symmetric), public :: tensorIdentityR2D3Sym=tensorRank2Dimension3Symmetric([1.0d0,0.0d0,0.0d0,1.0d0,0.0d0,1.0d0])
+  type(tensorRank2Dimension3Symmetric), public :: tensorUnitR2D3Sym    =tensorRank2Dimension3Symmetric([1.0d0,1.0d0,1.0d0,1.0d0,1.0d0,1.0d0])
+  type(tensorRank2Dimension3Symmetric), public :: tensorNullR2D3Sym    =tensorRank2Dimension3Symmetric([0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0])
 
   ! Interfaces to type-bound functions.
   interface

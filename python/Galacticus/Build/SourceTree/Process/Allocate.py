@@ -3,8 +3,6 @@ whose rank is inferred from the variable's declaration and whose shape is
 drawn from either a `shape=` or `size=` argument on the directive.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/Allocate.pm
 """
 
 
@@ -21,7 +19,7 @@ def _declaration_rank(parent, variable):
     declaration = get_declaration(parent, variable)
     for attr in declaration.get('attributes') or []:
         if attr.startswith('dimension'):
-            # Count commas inside dimension(...).  Perl: ($attribute =~ tr/,//)+1
+            # Count commas inside dimension(...): rank = comma count + 1.
             return attr.count(',') + 1
     return 0
 
@@ -63,7 +61,7 @@ def _inside_generic_template(node):
 
 
 def process_allocate(tree, options):
-    """Mirrors Process_Allocate() from Allocate.pm."""
+    """Process `allocate` directives in the tree."""
     for node in walk_tree(tree):
         if node.get('type') != 'allocate':
             continue

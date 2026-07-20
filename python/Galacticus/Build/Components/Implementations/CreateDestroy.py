@@ -1,8 +1,6 @@
 """Per-implementation lifecycle methods: initialize / destroy / builder.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Implementations/CreateDestroy.pm.
 """
 
 import re
@@ -23,7 +21,7 @@ _SELF_REF_RE = re.compile(r'self([a-zA-Z]+)\s*%')
 def Implementation_Creation(build, class_dict, member):
     """Generate `nodeComponent<Class><Member>Initialize`.
 
-    Mirrors `Implementation_Creation`.  Allocates parent state, walks
+    Allocates parent state, walks
     `selfXxx%` references in classDefault.code to add cross-component
     pointer locals, and either initialises every non-virtual property
     from its `classDefault.code` or sets it to the matching null value.
@@ -63,9 +61,9 @@ def Implementation_Creation(build, class_dict, member):
         if attrs.get('isVirtual') or 'code' not in class_default:
             continue
         code = class_default['code']
-        # Strip and discover every `selfXxx%` reference.  Match order
-        # matches Perl's iterative `s///` which short-circuits on
-        # already-seen names via `%requiredComponents`.
+        # Strip and discover every `selfXxx%` reference.  Initialization
+        # lines are emitted in first-reference order, deduplicated by
+        # already-seen names — callers rely on this ordering.
         cursor = code
         while True:
             m = _SELF_REF_RE.search(cursor)
@@ -141,9 +139,10 @@ def Implementation_Creation(build, class_dict, member):
                 ptype in ('double', 'longInteger')
                 and rank == 1
             ):
-                # Mirror the Perl `join(",", "0" x $rank)`: when rank==1
-                # this evaluates to `"0"` (a single zero) — so the Fortran
-                # emits `allocate(...Data(0))`.  Faithfully reproduced.
+                # When rank==1 this evaluates to `"0"` (a single zero) — so
+                # the Fortran emits `allocate(...Data(0))`.  This zero-size
+                # allocate quirk is deliberately preserved to keep the
+                # generated code identical.
                 zeros = ','.join(['0'] * rank)
                 content += (
                     f"allocate(self%{prop['name']}Data({zeros}))\n"
@@ -196,8 +195,6 @@ def Implementation_Creation(build, class_dict, member):
 
 def Implementation_Finalization(build, class_dict, member):
     """Generate `nodeComponent<Class><Member>Finalize`.
-
-    Mirrors `Implementation_Finalization`.
     """
     cap_class   = _ucfirst(class_dict['name'])
     cap_member  = _ucfirst(member['name'])
@@ -262,7 +259,7 @@ def Implementation_Finalization(build, class_dict, member):
 def Implementation_Builder(build, class_dict, member):
     """Generate `nodeComponent<Class><Member>Builder`.
 
-    Mirrors `Implementation_Builder`.  Walks the FoX_DOM XML
+    Walks the FoX_DOM XML
     sub-elements named after each non-virtual property and emits the
     appropriate `extractDataContent` / `%builder()` calls.  Active
     classes also walk the matching meta-property name list.
@@ -503,7 +500,8 @@ def _ucfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Implementations/CreateDestroy.pm:24-28.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('implementationsCreateDestroy', 'implementationIteratedFunctions',

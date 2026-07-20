@@ -466,13 +466,14 @@ contains
     return
   end function Coordinates_Cartesian_Scalar_Divide
   
-  !![
-  <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336" docformat="rst">
-    <description>
-    This function is needed to allow scaling of coordinate objects. It should not be needed as we overload the * and / operators for coordinate objects. But, until finalization is completed, function results are not finalized causing the overloaded * and / operators to leak memory. This is a workaround to avoid that.
-    </description>
-  </workaround>
-  !!]
+  ! The scale() method scales a coordinate in-place, populating an allocatable, polymorphic result. Unlike
+  ! the overloaded operator(*)/operator(/)---which return function results and so require an
+  ! already-allocated (typically concrete-typed) assignment target---scale() can target an unallocated
+  ! `class(coordinate), allocatable` argument directly (assigning an operator result to such a target would
+  ! instead invoke the defined assignment on the unallocated, abstract-typed LHS and fail). It is therefore
+  ! the scaling idiom used by the polymorphic scaler decorators. (Historically this was documented as a
+  ! gfortran PR 37336 finalization workaround; that leak is fixed in gfortran >= 13, but scale() is retained
+  ! because it remains the only way to scale into an unallocated polymorphic target.)
   subroutine Coordinates_Cartesian_Scale(self,scalar,selfScaled)
     !!{RST
     Scale a Cartesian ``coordinate`` object by a scalar.
@@ -667,13 +668,7 @@ contains
     return
   end function Coordinates_Spherical_Scalar_Divide
 
-  !![
-  <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336" docformat="rst">
-    <description>
-    This function is needed to allow scaling of coordinate objects. It should not be needed as we overload the * and / operators for coordinate objects. But, until finalization is completed, function results are not finalized causing the overloaded * and / operators to leak memory. This is a workaround to avoid that.
-    </description>
-  </workaround>
-  !!]
+  ! See the note on Coordinates_Cartesian_Scale for why scale() is retained alongside the * and / operators.
   subroutine Coordinates_Spherical_Scale(self,scalar,selfScaled)
     !!{RST
     Scale a spherical ``coordinate`` object by a scalar.
@@ -842,13 +837,7 @@ contains
     return
   end function Coordinates_Cylindrical_Scalar_Divide
 
-  !![
-  <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336" docformat="rst">
-    <description>
-    This function is needed to allow scaling of coordinate objects. It should not be needed as we overload the * and / operators for coordinate objects. But, until finalization is completed, function results are not finalized causing the overloaded * and / operators to leak memory. This is a workaround to avoid that.
-    </description>
-  </workaround>
-  !!]
+  ! See the note on Coordinates_Cartesian_Scale for why scale() is retained alongside the * and / operators.
   subroutine Coordinates_Cylindrical_Scale(self,scalar,selfScaled)
     !!{RST
     Scale a cylindrical ``coordinate`` object by a scalar.

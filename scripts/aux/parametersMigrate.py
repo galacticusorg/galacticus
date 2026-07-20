@@ -196,12 +196,12 @@ def git_ancestry(hash_from, hash_to):
             message += f" Git error: {e.stderr.strip()}"
         raise RuntimeError(message) from e
     hashes = [h for h in result.stdout.strip().split("\n") if h]
-    hashes.reverse()  # Oldest first, matching Perl's reverse(@ancestry)
+    hashes.reverse()  # Oldest first.
     return hashes
 
 
 # ---------------------------------------------------------------------------
-# Migrate function (Perl lines 136-369) -- placeholder for Step 3
+# Migrate function
 # ---------------------------------------------------------------------------
 
 def migrate(input_doc, parameters, root_level, is_grid, input_filename, options, hash_head, is_in_git, migrations):
@@ -393,7 +393,7 @@ def migrate(input_doc, parameters, root_level, is_grid, input_filename, options,
 
 
 # ---------------------------------------------------------------------------
-# Special migration functions (Perl lines 371-1110)
+# Special migration functions
 # ---------------------------------------------------------------------------
 
 

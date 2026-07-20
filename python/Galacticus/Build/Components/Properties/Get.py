@@ -1,8 +1,6 @@
 """Per-property `<prop>` getters bound at the component level.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Properties/Get.pm.
 """
 
 
@@ -25,8 +23,6 @@ def Bind_Get_Functions(build, class_dict, member, prop):
     """Bind a compile-time custom get function to the component
     implementation when the user supplied one (`getFunction.build` is
     False) and the property's `get` is not deferred.
-
-    Mirrors `Bind_Get_Functions`.
     """
     attrs = prop.get('attributes') or {}
     get_function = prop.get('getFunction') or {}
@@ -51,7 +47,7 @@ def Bind_Get_Functions(build, class_dict, member, prop):
 
 def Build_Get_Functions(build, class_dict, member, prop):
     """Build the auto-generated get function for a non-deferred,
-    non-virtual gettable property.  Mirrors `Build_Get_Functions`.
+    non-virtual gettable property.
     """
     attrs = prop.get('attributes') or {}
     get_function = prop.get('getFunction') or {}

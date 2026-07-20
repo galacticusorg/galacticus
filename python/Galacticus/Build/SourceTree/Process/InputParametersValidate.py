@@ -3,8 +3,6 @@ against the `allowedParameters` list of the enclosing function-class
 object, optionally with multi-parameter and extra-allowed-name lists.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/InputParametersValidate.pm
 """
 
 import os
@@ -41,8 +39,6 @@ def _load_state_storables():
 def _function_class_result_name(parent_function):
     """Return the `result(...)` identifier for a function opener, or the
     function's own name if no explicit `result(...)` is present.
-
-    Mirrors the regex at InputParametersValidate.pm:105-109.
     """
     opener = parent_function.get('opener') or ''
     m = re.search(r'result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$', opener)
@@ -52,7 +48,7 @@ def _function_class_result_name(parent_function):
 
 
 def process_input_parameters_validate(tree, options):
-    """Mirrors Process_InputParametersValidate() from InputParametersValidate.pm."""
+    """Process `inputParametersValidate` directives in the tree."""
     state_storables = _load_state_storables()
     class_names     = _shared_function_class_names(state_storables)
 

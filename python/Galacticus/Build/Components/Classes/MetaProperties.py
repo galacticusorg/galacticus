@@ -2,17 +2,15 @@
 `meta_property_types` data table.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Classes/MetaProperties.pm.
 """
 
 
 
 from Galacticus.Build.Components.Utils import register
 
-# The order of entries is preserved verbatim from the Perl module so that
-# generated identifier suffixes (`Float`, `LongInteger`, `Integer` × ranks
-# 0/1) keep matching what the rest of the pipeline expects.
+# The order of entries fixes the generated identifier suffixes (`Float`,
+# `LongInteger`, `Integer` × ranks 0/1) that the rest of the pipeline
+# expects — do not reorder.
 meta_property_types = [
     {'label': 'float',       'intrinsic': 'double precision',                          'rank': 0},
     {'label': 'float',       'intrinsic': 'double precision',                          'rank': 1},
@@ -26,8 +24,6 @@ meta_property_types = [
 def Class_Meta_Property_Get(build, class_dict):
     """Generate one `<class><Label>Rank<N>MetaPropertyGet` per
     meta-property type, returning the stored value.
-
-    Mirrors `Class_Meta_Property_Get`.
     """
     name      = class_dict['name']
     cap       = _ucfirst(name)
@@ -190,8 +186,6 @@ def Class_Meta_Property_Get_Reference(build, class_dict):
 def Class_Meta_Property_Set(build, class_dict):
     """Generate one `<class><Label>Rank<N>MetaPropertySet` per
     meta-property type, storing the provided value.
-
-    Mirrors `Class_Meta_Property_Set`.
     """
     name      = class_dict['name']
     cap       = _ucfirst(name)

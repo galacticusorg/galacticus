@@ -2,8 +2,7 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/TreeNodes/Output.pm.  Four
-hooks on the `functions` phase: `outputCount`, `outputNames`,
+Four hooks on the `functions` phase: `outputCount`, `outputNames`,
 `output`, and `postOutput`.  Each emits boilerplate for the
 node-level output properties (currently just `subsamplingWeight`)
 and then delegates to every active component class member.
@@ -15,8 +14,7 @@ from Galacticus.Build.Components.Utils import register
 
 
 # ---------------------------------------------------------------------------
-# Node-level output properties.  Mirrors the small `@nodePropertiesOutputList`
-# array at Output.pm:31-42.
+# Node-level output properties.
 # ---------------------------------------------------------------------------
 
 _NODE_PROPERTIES_OUTPUT_LIST = [
@@ -33,7 +31,7 @@ _NODE_PROPERTIES_OUTPUT_LIST = [
 
 
 def Tree_Node_Output_Count(build):
-    """Generate `treeNodeOutputCount`.  Mirrors `Tree_Node_Output_Count`."""
+    """Generate `treeNodeOutputCount`."""
     function = {
         'type':        'void',
         'name':        'treeNodeOutputCount',
@@ -91,7 +89,7 @@ def Tree_Node_Output_Count(build):
 
 
 def Tree_Node_Output_Names(build):
-    """Generate `treeNodeOutputNames`.  Mirrors `Tree_Node_Output_Names`."""
+    """Generate `treeNodeOutputNames`."""
     function = {
         'type':        'void',
         'name':        'treeNodeOutputNames',
@@ -188,7 +186,7 @@ def Tree_Node_Output_Names(build):
 
 
 def Tree_Node_Output(build):
-    """Generate `treeNodeOutput`.  Mirrors `Tree_Node_Output`."""
+    """Generate `treeNodeOutput`."""
     function = {
         'type':        'void',
         'name':        'treeNodeOutput',
@@ -283,7 +281,7 @@ def Tree_Node_Output(build):
 
 
 def Tree_Node_Post_Output(build):
-    """Generate `treeNodePostOutput`.  Mirrors `Tree_Node_Post_Output`."""
+    """Generate `treeNodePostOutput`."""
     function = {
         'type':        'void',
         'name':        'treeNodePostOutput',
@@ -349,7 +347,8 @@ def _ucfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Output.pm:21-26.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('treeNodeOutput', 'functions', Tree_Node_Output_Count)

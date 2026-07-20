@@ -5,8 +5,6 @@ call the requested `setTo` / `methodCall` actions declared per level of
 the inheritance chain.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/DeepCopyActions.pm
 """
 
 import re
@@ -32,8 +30,7 @@ def _parse_type_opener(opener):
     """Return (type_name, extends_name_or_None, abstract_bool) parsed from a
     `type [, attr, ... ::] name` opener line, or None if unparseable.
 
-    Mirrors the regex branch at DeepCopyActions.pm:41-55.  Openers containing
-    `{…}` generic placeholders are ignored (Perl's explicit carve-out).
+    Openers containing `{…}` generic placeholders are deliberately ignored.
     """
     if '{' in opener:
         return None
@@ -55,10 +52,7 @@ def _parse_type_opener(opener):
 
 
 def _emit_deep_copy_action(class_name, classes, directive):
-    """Render the generated `XDeepCopyActions` subroutine text.
-
-    Mirrors DeepCopyActions.pm:76-135.
-    """
+    """Render the generated `XDeepCopyActions` subroutine text."""
     out  = f"subroutine {class_name}DeepCopyActions(self)\n"
     out += " !!{\n"
     out += " Perform actions needed for deep copy of this object.\n"
@@ -68,7 +62,8 @@ def _emit_deep_copy_action(class_name, classes, directive):
     out += " select type (self)\n"
 
     # Emit one `type is (Sub)` branch per non-abstract class descended from
-    # the target class.  The Perl code walks classes in sorted-key order.
+    # the target class.  Walking classes in sorted-key order makes the
+    # generated Fortran deterministic.
     for sub_name in sorted(classes.keys()):
         info = classes[sub_name]
         if info['abstract']:
@@ -88,8 +83,7 @@ def _emit_deep_copy_action(class_name, classes, directive):
 
         # For each ancestor level (including sub_name itself), pull setTo /
         # methodCall actions declared at that level, provided the target
-        # class has any declarations in its body (matches Perl's
-        # `$classNode->{'type'} eq "declaration"` guard).
+        # class has any declarations in its body.
         method_calls = []
         cursor = sub_name
         while cursor is not None:
@@ -148,7 +142,7 @@ def _insert_parsed(parent, source_text, run_process_tree=False):
 
 
 def process_deep_copy_actions(tree, options):
-    """Mirrors Process_DeepCopyActions() from DeepCopyActions.pm."""
+    """Process `deepCopyActions` directives in the tree."""
     directive_nodes = []
     classes         = {}
 

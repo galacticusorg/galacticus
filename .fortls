@@ -1,0 +1,9 @@
+{
+  "source_dirs": ["source/**"],
+  "excl_dirs": ["build", "work", "docs", "aux", "testSuite", ".git"],
+  "pp_suffixes": [".F90"],
+  "lowercase_intrinsics": false,
+  "hover_signature": true,
+  "use_signature_help": true,
+  "nthreads": 1
+}

@@ -1,8 +1,6 @@
 """Per-class generic ASCII-serialization stub.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Classes/Serialization.pm.
 """
 
 
@@ -16,8 +14,6 @@ def Class_Serialize_ASCII(build, class_dict):
     parent-class stub that just emits a single `'<class>: generic'`
     line.  Concrete implementations override this in the
     Implementations stage.
-
-    Mirrors `Class_Serialize_ASCII`.
     """
     name      = class_dict['name']
     cap       = _ucfirst(name)

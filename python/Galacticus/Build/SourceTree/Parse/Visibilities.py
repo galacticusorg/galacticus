@@ -1,8 +1,6 @@
 """Contains a Python module which implements parsing of visibilities in the Galacticus preprocessor system.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Parse/Visibilities.pm
 """
 
 import re
@@ -15,10 +13,7 @@ _VISIBILITY_RE = re.compile(r'^\s*(public|private)\s*(::)?\s*(.*?)\s*$', re.IGNO
 
 
 def parse_visibilities(tree):
-    """Walk the tree parsing Fortran visibility statements into visibility nodes.
-
-    Mirrors Parse_Visibilities() from perl/Galacticus/Build/SourceTree/Parse/Visibilities.pm.
-    """
+    """Walk the tree parsing Fortran visibility statements into visibility nodes."""
     from Galacticus.Build.SourceTree import walk_tree, replace_node, _make_code_node
 
     nodes_to_replace = []
@@ -89,8 +84,8 @@ def parse_visibilities(tree):
                 raw_vis_buf.append(raw_line)
                 level = m.group(1).lower()
                 names = m.group(3)
-                # Mirror Perl: each line clears then repopulates the bucket for
-                # this visibility level.
+                # Replace, don't merge: each line clears then repopulates the
+                # bucket for this visibility level.
                 visibilities[level] = {}
                 if names:
                     for sym in re.split(r'\s*,\s*', names):
@@ -118,8 +113,7 @@ def parse_visibilities(tree):
 def update_visibilities(visibilities_node):
     """Regenerate Fortran visibility statements from a visibility node.
 
-    Mirrors UpdateVisibilities() from Parse/Visibilities.pm.  Rewrites
-    visibilities_node['firstChild']['content'] in place.
+    Rewrites visibilities_node['firstChild']['content'] in place.
     """
     content = "! Galacticus::Build::SourceTree::Parse::Visibilities(): updated\n"
     vis = visibilities_node.get('visibility', {}) or {}

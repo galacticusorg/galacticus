@@ -3,8 +3,7 @@ attributes.
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/Attributes.pm.  Registers four
-pipeline hooks:
+Registers four pipeline hooks:
 
   preValidate  → Validate_Deferreds_Functionless
   default      → Default_Functions
@@ -23,7 +22,7 @@ from Galacticus.Build.Components.Utils import (
 
 def Validate_Deferreds_Functionless(build: dict) -> None:
     """Forbid build-time `xxxFunction` elements on a property whose `xxx`
-    method is also flagged deferred.  Mirrors `Validate_Deferreds_Functionless`.
+    method is also flagged deferred.
     """
     for component in (build.get('components') or {}).values():
         if 'properties' not in component:
@@ -47,7 +46,7 @@ def Default_Functions(build: dict) -> None:
     """Fill in default `rateFunction` / `getFunction` / `setFunction`
     entries on every component property.
 
-    Mirrors `Default_Functions`.  Each `getFunction` / `setFunction` is
+    Each `getFunction` / `setFunction` is
     normalised to a dict with `content` (the Fortran symbol name) and
     `build` (True if the build system needs to emit a body, False if the
     user supplied one in the XML).
@@ -84,8 +83,6 @@ def Default_Functions(build: dict) -> None:
 def Validate_Boolean(build: dict) -> None:
     """Require `isSettable` / `isGettable` / `isEvolvable` to be `"true"`
     or `"false"`, and convert each to a Python `bool`.
-
-    Mirrors `Validate_Boolean`.
     """
     for component in (build.get('components') or {}).values():
         if 'properties' not in component:
@@ -116,8 +113,6 @@ def Validate_Boolean(build: dict) -> None:
 
 def Validate_Evolvable_Intrinsics(build: dict) -> None:
     """Forbid evolvable intrinsic properties whose type is not `double`.
-
-    Mirrors `Validate_Evolvable_Intrinsics`.
     """
     for component in (build.get('components') or {}).values():
         if 'properties' not in component:
@@ -136,7 +131,8 @@ def Validate_Evolvable_Intrinsics(build: dict) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Phase ordering matches Perl.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('attributes', 'preValidate',  Validate_Deferreds_Functionless)

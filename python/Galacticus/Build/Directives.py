@@ -2,9 +2,7 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Directives.pm — specifically Extract_Directive
-(incremental single-directive iterator) and Extract_Directives (return-all
-wrapper).  This is distinct from SourceTree.Parse.Directives.parse_directives,
+This is distinct from SourceTree.Parse.Directives.parse_directives,
 which walks an already-parsed AST; the functions here open a file on disk and
 extract its directives without building a SourceTree.
 """
@@ -31,7 +29,7 @@ _CLOSE_TAG_RE     = re.compile(r'</([a-zA-Z0-9]+)>')
 
 def _matches_conditions(directive: dict, conditions: dict | None) -> bool:
     """Return True when every key/value in `conditions` is present and equal in
-    `directive`.  Mirrors the inner filter loop at Directives.pm:55-65.
+    `directive`.
     """
     if not conditions:
         return True
@@ -53,8 +51,7 @@ def extract_directives(file_name: str, directive_name,
     cost N reads); use `set_root_element_type=True` to recover which name
     each returned directive matched.
 
-    Mirrors Perl Extract_Directives (Directives.pm:80-98) plus the underlying
-    state machine from Extract_Directive (Directives.pm:11-78):
+    The extraction state machine works as follows:
 
     - Lines matching `^\\s*!![ ` start an XML section.
     - Lines matching `^\\s*!!]` end the current XML section.
@@ -69,7 +66,7 @@ def extract_directives(file_name: str, directive_name,
     ----------
     file_name : str
         Path to a Fortran source file.  If it does not exist, an empty list
-        is returned (matches Perl's `return unless -e $fileName`).
+        is returned.
     directive_name : str
         Either a specific root element name, or `'*'` to match any.
     conditions : dict, optional
@@ -82,7 +79,7 @@ def extract_directives(file_name: str, directive_name,
     -------
     list[dict]
         Each directive's XML, converted via `xml_to_dict`, without the root
-        element wrapper (matching Perl's `$directive->{$rootName}` unwrap).
+        element wrapper.
     """
     if not os.path.exists(file_name):
         return []
@@ -135,9 +132,8 @@ def _parse_xml_block(xml_text: str, file_name: str, directive_name,
     """Parse one accumulated XML block and return a dict if the root matches
     `directive_name`, else None.
 
-    Matches the Perl error-handling idiom: any XML parse failure is fatal
-    (raised as RuntimeError) since the caller has no way to recover; Perl
-    `die`s in the same spot.
+    Any XML parse failure is fatal (raised as RuntimeError) since the
+    caller has no way to recover.
     """
     try:
         elem = ET.fromstring(xml_text)
