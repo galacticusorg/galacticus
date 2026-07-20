@@ -102,7 +102,7 @@ contains
     Estimate the remaining time to process the tree.
     !!}
     use   , intrinsic :: ISO_C_Binding      , only : c_size_t
-    !$ use            :: OMP_Lib            , only : OMP_Get_Num_Threads
+    !$ use            :: OMP_Lib            , only : OMP_Get_WTime           , OMP_In_Parallel
     use               :: Galacticus_Nodes   , only : treeNode                , nodeComponentBasic
     use               :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
@@ -122,10 +122,15 @@ contains
     timeRemaining=-1.0d0
     ! Determine if this is the first estimate to be made for this tree.
     isFirst=.not.tree%properties%exists('metaTreeProcessingTimeLast')
-    ! Find the current CPU time and decide if we want to make an estimate of the remaining time.
+    ! Find the current time and decide if we want to make an estimate of the remaining time. When evolving in parallel we use the
+    ! wall-clock time (via OMP_Get_WTime), so that the elapsed-time-vs-work extrapolation is consistent regardless of how many
+    ! threads are cooperating on this tree; otherwise (serial) we fall back to the CPU time.
+    !$ if (OMP_In_Parallel()) then
+    !$    timeCPU=OMP_Get_WTime()
+    !$ else
     call CPU_Time(timeCPU_)
     timeCPU=dble(timeCPU_)
-    !$ timeCPU=timeCPU/dble(OMP_Get_Num_Threads())
+    !$ end if
     if (isFirst) then
        compute=.true.
     else

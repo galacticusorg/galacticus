@@ -2,8 +2,7 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/TreeNodes/Classes.pm.  Two
-`classIteratedFunctions` hooks — each runs once per component class
+Two `classIteratedFunctions` hooks — each runs once per component class
 during the `Class_Function_Iterator` sub-iteration of the `functions`
 phase.
 """
@@ -17,8 +16,7 @@ def Tree_Node_Class_Count(build, class_dict):
     """Generate `treeNode.<class>Count()` returning the number of
     instances of a given component class on a node.
 
-    Mirrors `Tree_Node_Class_Count`.  Components.pm:50 — for inactive
-    classes the body is just an `Error_Report` call.
+    For inactive classes the body is just an `Error_Report` call.
     """
     name = class_dict['name']
     cap  = _ucfirst(name)
@@ -80,7 +78,7 @@ def Tree_Node_Class_Get(build, class_dict):
     """Generate `treeNode.<class>()` returning the component instance,
     optionally auto-creating one if none exists.
 
-    Mirrors `Tree_Node_Class_Get`.  Recursive — the function body calls
+    Recursive — the function body calls
     `self%<class>Create()` when `autoCreate` is requested.
     """
     name = class_dict['name']

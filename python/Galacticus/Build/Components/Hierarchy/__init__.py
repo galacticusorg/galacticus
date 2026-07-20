@@ -2,8 +2,7 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/Hierarchy.pm.  Two
-`functions`-phase hooks emitting `nodeClassHierarchyInitialize` and
+Two `functions`-phase hooks emitting `nodeClassHierarchyInitialize` and
 `nodeClassHierarchyFinalize`.
 """
 
@@ -19,7 +18,7 @@ _OUTPUT_CONDITION_RE = re.compile(r'\[\[([^\]]+)\]\]')
 def Hierarchy_Initialization(build):
     """Generate `nodeClassHierarchyInitialize`.
 
-    Mirrors `Hierarchy_Initialization`.  Reads run-time parameters that
+    Reads run-time parameters that
     select which implementation each component class uses, then
     allocates `default<Class>Component` from the matching template and
     flips on `nodeComponent<Full>IsActiveValue` for the chosen
@@ -109,7 +108,7 @@ def Hierarchy_Initialization(build):
                     ext = comp['extends']
                     cursor = _ucfirst(ext['class']) + _ucfirst(ext['name'])
                     content += (
-                        f"\tnodeComponent{cursor}IsActiveValue=.true.\n"
+                        f"        nodeComponent{cursor}IsActiveValue=.true.\n"
                     )
                 else:
                     cursor = ""
@@ -184,7 +183,7 @@ def Hierarchy_Initialization(build):
 def Hierarchy_Finalization(build):
     """Generate `nodeClassHierarchyFinalize`.
 
-    Mirrors `Hierarchy_Finalization`.  Decrements the init counter and,
+    Decrements the init counter and,
     if zero, deallocates every `default<Class>Component` and tears down
     the mass-distributions cache.
     """
@@ -230,7 +229,8 @@ def _ucfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Hierarchy.pm:23-26.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('hierarchy', 'functions', Hierarchy_Initialization)

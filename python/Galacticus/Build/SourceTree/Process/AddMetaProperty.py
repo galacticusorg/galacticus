@@ -4,8 +4,6 @@ object, with a `<component>:<name>` prefix and the isCreator /
 isEvolvable flags set per the directive.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/AddMetaProperty.pm
 """
 
 
@@ -21,7 +19,7 @@ _BOOLEAN = {'no': '.false.', 'yes': '.true.'}
 
 
 def process_add_meta_property(tree, options):
-    """Mirrors Process_AddMetaProperty() from AddMetaProperty.pm."""
+    """Process `addMetaProperty` directives in the tree."""
     for node in walk_tree(tree):
         if node.get('type') != 'addMetaProperty':
             continue
@@ -35,8 +33,8 @@ def process_add_meta_property(tree, options):
         directive.setdefault('isEvolvable', 'no')
         directive.setdefault('isCreator',   'no')
 
-        # Perl stores directive values as strings; normalise `rank` for the
-        # numeric comparisons below.
+        # Directive values arrive as strings from XML parsing; normalise
+        # `rank` for the numeric comparisons below.
         try:
             rank = int(directive['rank'])
         except (TypeError, ValueError):

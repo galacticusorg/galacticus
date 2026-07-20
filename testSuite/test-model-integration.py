@@ -195,9 +195,7 @@ def build_launch_script(method, queue_config):
     queue_section.setdefault("ompThreads",  "1")
     return {
         "verbosity":          1,
-        "splitModels":        1,
         "modelRootDirectory": "outputs/test-model-integration",
-        "compressModels":     "no",
         "useStateFile":       "no",
         "emailReport":        "no",
         "launchMethod":       method,
@@ -237,7 +235,6 @@ def calibrate_model(modelName, fileName, randomSeed, gitRevision, calibrateCount
             "directory":    realDir,
             "label":        f"{modelName}{i}",
             "modelCounter": i,
-            "mergeGroup":   i,
             "analysis":     None,
         })
 

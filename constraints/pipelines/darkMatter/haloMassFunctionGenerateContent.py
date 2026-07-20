@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Script to generate content for halo mass function constraint pipeline.
 
-Python port of constraints/pipelines/darkMatter/haloMassFunctionGenerateContent.pl
-Andrew Benson (ported to Python 2026)
+Andrew Benson (2026)
 """
 
 import argparse
@@ -34,9 +33,9 @@ _configure_default()
 def _remove_hmf_nodes(root, removal_value):
     """Splice out <haloMassFunction value=removal_value> nodes from the chain.
 
-    Mirrors the Perl linked-list traversal: the removed node is discarded along
-    with any non-haloMassFunction children it carries; only its inner
-    <haloMassFunction> child is promoted into its place.
+    The removed node is discarded along with any non-haloMassFunction
+    children it carries; only its inner <haloMassFunction> child is promoted
+    into its place.
     """
     parent = root
     child  = parent.find('haloMassFunction')

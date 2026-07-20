@@ -1,6 +1,7 @@
 """Provides XML element-to-dict conversion utilities.
 
-Mirrors Perl XML::Simple default behaviour, with optional KeyAttr and ForceArray support.
+Attributes and child elements are merged into plain dicts, with optional
+key-attribute and force-array support.
 Andrew Benson (2026)
 """
 from __future__ import annotations
@@ -19,12 +20,11 @@ def xml_to_dict(
 ) -> dict | str:
     """Recursively convert an XML element to nested Python dicts/lists/strings.
 
-    Mirrors Perl XML::Simple default behaviour:
+    Conversion rules:
     - Element attributes are merged into the result dict.
     - Multiple same-tag children -> list; single same-tag child -> dict.
     - force_array: set of tag names always returned as a list (even if only one element).
-    - keyed_tags:  set of tag names whose children are keyed by their 'name' attribute
-                   (mirrors XML::Simple KeyAttr behaviour).
+    - keyed_tags:  set of tag names whose children are keyed by their 'name' attribute.
     - Text-only elements (no attributes, no children) -> plain string.
     - Elements with text plus attributes/children -> text stored under 'content' key.
 
@@ -57,8 +57,7 @@ def xml_to_dict(
             text = ''
     else:
         # Single-line text (descriptions, parameter values, etc.) — strip
-        # surrounding whitespace as the XML::Simple-style port has done
-        # since day one.
+        # surrounding whitespace as this module has done since day one.
         text = text.strip()
     if text:
         if result:
@@ -69,9 +68,7 @@ def xml_to_dict(
 
 
 def dict_to_xml_string(root_name: str, data: dict) -> str:
-    """Serialise `data` to a pretty-printed XML string, XML::Simple-style.
-
-    Mirrors Perl `XML::Simple::XMLout($data, RootName => root_name, NoAttr => 1)`:
+    """Serialise `data` to a pretty-printed XML string in no-attribute style:
     every dict key becomes a child element (no attributes); list values are
     rendered as repeated sibling elements; scalars become the element text.
     Dict keys are emitted in sorted order for deterministic output.

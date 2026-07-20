@@ -1,8 +1,6 @@
 """Generic-component ODE-solver helpers.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Hierarchy/ODESolver.pm.
 """
 
 
@@ -14,7 +12,7 @@ def Component_ODE_Name_From_Index(build):
     """Generate `nodeComponentNameFromIndex` — a stub bound to the
     abstract `nodeComponent` type.
 
-    Mirrors `Component_ODE_Name_From_Index`.  The generic parent class
+    The generic parent class
     has no properties of its own, so the returned name is just `'?'`.
     """
     function = {

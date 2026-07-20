@@ -285,6 +285,9 @@
   <migration commit="3148b72923e0261deb472182fee74ccd1a9a7a13">
     <translation function="satellite_orbit_initializor"/>
   </migration>
+  <migration commit="befbbb8d669ec76a2ddf0299ed7da8f31077700e">
+    <translation function="johnson2021_correlated_branches"/>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />

@@ -2,8 +2,6 @@
 Fortran type / attribute strings.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/DataTypes.pm.
 """
 
 
@@ -11,9 +9,10 @@ Mirrors perl/Galacticus/Build/Components/DataTypes.pm.
 from Galacticus.Build.Components.Utils import intrinsic_types
 
 
-# Minimal LaTeX special-character escape — covers the cases that the Perl
-# `LaTeX::Encode` module produces for type strings ("integer", type names,
-# etc.).  Matches the subset already used in
+# Minimal LaTeX special-character escape — a deliberately minimal subset
+# covering the characters that appear in type strings ("integer", type
+# names, etc.), kept consistent with historical generated output.  Matches
+# the subset already used in
 # python/Galacticus/Build/SourceTree/Process/FunctionClass/__init__.py.
 _LATEX_ESCAPES = {
     '\\': r'\textbackslash{}',
@@ -35,8 +34,6 @@ def _latex_encode(text):
 
 def data_object_primitive_name(data_object, *, match_only=False):
     """Return `(name, type, attribute_list)` for `data_object`.
-
-    Mirrors Perl `dataObjectPrimitiveName`:
 
     * `name`            — the Fortran type spec, e.g. `"double precision"`
                           or `"type(massDistribution)"`.
@@ -89,7 +86,7 @@ def data_object_primitive_name(data_object, *, match_only=False):
 def data_object_doc_name(data_object):
     """Return the LaTeX-encoded display name used in component documentation.
 
-    Mirrors Perl `dataObjectDocName`.  Always returns the `\\textcolor{red}
+    Always returns the `\\textcolor{red}
     {\\textless …\\textgreater}` form, with `\\textless` and `\\textgreater`
     typeset literally so the LaTeX renderer sees them as `<` and `>`.
     """
@@ -111,7 +108,7 @@ def data_object_doc_name(data_object):
 def data_object_name(data_object):
     """Return the canonical `nodeData…` identifier for a property.
 
-    Mirrors Perl `dataObjectName`.  The generated name carries the
+    The generated name carries the
     intrinsic-type-derived suffix (`Integer`, `DoublePrecision`, …) plus
     `Scalar` / `<rank>D` and an optional `Evolvable` marker.
     """
@@ -125,9 +122,10 @@ def data_object_name(data_object):
         name += ''.join(_ucfirst(part) for part in intrinsic_types[type_label].split())
     else:
         name += _ucfirst(type_label)
-    # Perl: `exists($rank)` always takes the "Scalar" branch; the "<rank>D"
-    # branch is unreachable in practice (it reads $rank under elsif !exists).
-    # Mirrored faithfully — callers only ever pass descriptors with rank set.
+    # The "<rank>D" branch is deliberately dead: callers only ever pass
+    # descriptors with rank set, so the "Scalar" branch always wins.  This
+    # historical generator behavior is preserved to keep generated names
+    # stable.
     if 'rank' in data_object:
         name += "Scalar"
     elif type_label != "void":
@@ -140,7 +138,7 @@ def data_object_name(data_object):
 def data_object_definition(data_object, *, match_only=False):
     """Return `(declaration_dict, label)` describing a property's variable.
 
-    Mirrors Perl `dataObjectDefinition`.  `declaration_dict` is suitable
+    `declaration_dict` is suitable
     for handing to `format_variable_definitions` (carrying `intrinsic`,
     `type` if applicable, and `attributes`).  `label` is the
     CamelCase-ified type used elsewhere in the build pipeline.

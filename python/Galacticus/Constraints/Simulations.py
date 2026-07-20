@@ -1,6 +1,5 @@
 """Provides utilities for iterating over simulation data structures used as constraints.
 
-Python port of perl/Galacticus/Constraints/Simulations.pm
 Andrew Benson (ported to Python 2026)
 """
 
@@ -392,7 +391,7 @@ def write_hmf_mappings_file(output_dir, suite, group):
     return path
 
 
-# Perl-compatible camelCase aliases for public API.
+# Legacy camelCase API aliases.
 selectSimulations    = select_simulations
 matchSelection       = match_selection
 parseSimulationsXml  = parse_simulations_xml

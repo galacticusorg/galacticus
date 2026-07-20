@@ -18,12 +18,22 @@ implementation) is provided separately by scripts/build/parameterValidate.py.
 
 Usage:
     parameterSchema.py <sourceDirectory> [<outputFile>]
+                       [--check] [--jobs N] [--no-cache]
 
 `<outputFile>` defaults to `<sourceDirectory>/schema/parameters.xsd`.
+
+`--check` writes nothing and exits 1 if the committed schema is not what would
+be generated -- for CI and for the pre-commit hook.
+
+The catalog scan runs over a process pool sized from `GALACTICUS_BUILD_JOBS`,
+make's `-j`, or make's jobserver when invoked from a `+`-marked recipe, and
+re-reads only those source files whose mtime has advanced past the scan cache
+under `$BUILDPATH` (`--no-cache` to rescan everything).
 
 Andrew Benson (2026).
 """
 
+import argparse
 import collections
 import os
 import sys
@@ -31,7 +41,7 @@ import sys
 sys.path.insert(0, os.path.join(
     os.path.dirname(os.path.abspath(__file__)), os.pardir, os.pardir, 'python'))
 
-from Galacticus.Parameters.catalog import build_catalog
+from Galacticus.Parameters.catalog import build_catalog, default_cache_path
 
 
 # Root elements of non-parameter files that live in the same directories as
@@ -176,23 +186,66 @@ def build_schema(catalog):
     return '\n'.join(out)
 
 
+def _parse_arguments(argv):
+    parser = argparse.ArgumentParser(
+        prog='parameterSchema.py',
+        description='Generate the Galacticus parameter-file XSD from the '
+                    'parameter catalog.')
+    parser.add_argument('sourceDirectory',
+                        help='Galacticus root directory (containing `source/`).')
+    parser.add_argument('outputFile', nargs='?', default=None,
+                        help='Schema to write. Default: '
+                             '<sourceDirectory>/schema/parameters.xsd')
+    parser.add_argument('--check', action='store_true',
+                        help='Do not write; exit 1 if <outputFile> differs from '
+                             'the schema that would be generated.')
+    parser.add_argument('--jobs', '-j', type=int, default=None, metavar='N',
+                        help='Parallel workers for the source scan. Default: '
+                             'GALACTICUS_BUILD_JOBS, else make\'s -j/jobserver.')
+    parser.add_argument('--no-cache', action='store_true',
+                        help='Ignore (and do not update) the per-file scan '
+                             'cache, rescanning every source file.')
+    return parser.parse_args(argv[1:])
+
+
 def main(argv):
-    if len(argv) not in (2, 3):
-        print("Usage: parameterSchema.py <sourceDirectory> [<outputFile>]",
-              file=sys.stderr)
-        return 1
-    source_directory = argv[1]
-    output_path = argv[2] if len(argv) == 3 else os.path.join(
+    arguments = _parse_arguments(argv)
+    source_directory = arguments.sourceDirectory
+    output_path = arguments.outputFile or os.path.join(
         source_directory, 'schema', 'parameters.xsd')
     os.environ.setdefault('GALACTICUS_EXEC_PATH', source_directory)
-    catalog = build_catalog(os.path.join(source_directory, 'source'))
-    with open(output_path, 'w') as fh:
-        fh.write(build_schema(catalog))
+
+    source_root = os.path.join(source_directory, 'source')
+    catalog = build_catalog(
+        source_root,
+        jobs=arguments.jobs,
+        cache_path=None if arguments.no_cache else default_cache_path(source_root))
+    schema = build_schema(catalog)
+
     n_fc = sum(1 for b in catalog['functionClasses'].values()
                if b.get('implementations'))
-    print(f"wrote {output_path} ({n_fc} functionClass selectors, "
-          f"{len(_enum_parameter_elements(catalog))} enumeration parameters)",
-          file=sys.stderr)
+    summary = (f"{n_fc} functionClass selectors, "
+               f"{len(_enum_parameter_elements(catalog))} enumeration parameters")
+
+    if arguments.check:
+        try:
+            with open(output_path) as fh:
+                current = fh.read()
+        except OSError:
+            current = None
+        if current == schema:
+            print(f"{output_path} is up to date ({summary})", file=sys.stderr)
+            return 0
+        reason = ("does not exist" if current is None
+                  else "is out of date")
+        print(f"{output_path} {reason} ({summary}).\n"
+              f"Run `make parameters-schema` and commit the result.",
+              file=sys.stderr)
+        return 1
+
+    with open(output_path, 'w') as fh:
+        fh.write(schema)
+    print(f"wrote {output_path} ({summary})", file=sys.stderr)
     return 0
 
 

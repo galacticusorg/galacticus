@@ -3,8 +3,6 @@ initialization block from `scripts/aux/migrations.xml` and adds the
 backing character array declaration.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/ParameterMigration.pm
 """
 
 import os
@@ -34,7 +32,7 @@ def _read_migrations():
 
 
 def process_parameter_migration(tree, options):
-    """Mirrors Process_ParameterMigration() from ParameterMigration.pm."""
+    """Process `parameterMigration` directives in the tree."""
     for node in walk_tree(tree):
         if node.get('type') != 'parameterMigration':
             continue

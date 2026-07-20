@@ -249,7 +249,7 @@ class SLURMManager(QueueManager):
 
 
 def translate_job(job):
-    """Translate Perl-style job dict keys to Python queueManager keys."""
+    """Translate legacy-style job dict keys to queueManager keys."""
     j = dict(job)
     if 'ompThreads' in j:
         j['countOpenMPThreads'] = j.pop('ompThreads')
@@ -265,7 +265,7 @@ def translate_job(job):
 
 
 def submit_jobs(manager, jobs):
-    """Submit a list of Perl-style job dicts via the Python queue manager."""
+    """Submit a list of legacy-style job dicts via the queue manager."""
     if jobs:
         manager.submitJobs([translate_job(j) for j in jobs])
 
