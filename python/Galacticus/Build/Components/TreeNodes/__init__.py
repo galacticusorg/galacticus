@@ -2,7 +2,7 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/TreeNodes.pm.  Two hooks:
+Two hooks:
 
   types     → Build_Tree_Node_Class    — declares the `treeNode` Fortran
                                          type with all of its
@@ -23,7 +23,7 @@ from Galacticus.Build.Components.Utils import register
 def Build_Tree_Node_Class(build):
     """Define `treeNode` on `build['types']`.
 
-    Mirrors `Build_Tree_Node_Class`.  Almost entirely declarative; only
+    Almost entirely declarative; only
     the per-class data-content section depends on
     `componentClassListActive` (populated by Classes/Gather_Classes).
     """
@@ -50,8 +50,6 @@ def Build_Tree_Node_Class(build):
 
 def Insert_Interrupt_Interface(build):
     """Emit the `interruptTask` abstract interface.
-
-    Mirrors `Insert_Interrupt_Interface`.
     """
     build.setdefault('interfaces', {})['interruptTask'] = {
         'name':      'interruptTask',
@@ -74,8 +72,7 @@ def Insert_Interrupt_Interface(build):
 
 
 # ---------------------------------------------------------------------------
-# Standard data content for the `treeNode` type.  Verbatim from
-# TreeNodes.pm:253-291.
+# Standard data content for the `treeNode` type.
 # ---------------------------------------------------------------------------
 
 _BASE_DATA_CONTENT = [
@@ -120,7 +117,7 @@ _BASE_DATA_CONTENT = [
 ]
 
 # ---------------------------------------------------------------------------
-# Standard type-bound function table.  Verbatim from TreeNodes.pm:32-251.
+# Standard type-bound function table.
 # ---------------------------------------------------------------------------
 
 _BASE_BOUND_FUNCTIONS = [

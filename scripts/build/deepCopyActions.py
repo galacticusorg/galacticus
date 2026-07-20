@@ -10,8 +10,7 @@ inheritance chain rooted at the directive's `class`.
 Writes `$BUILDPATH/deepCopyActions.xml` and caches per-file results in
 `$BUILDPATH/deepCopyActions.blob`.
 
-Mirrors scripts/build/deepCopyActions.pl.
-Andrew Benson (ported to Python 2026).
+Andrew Benson (2026).
 """
 
 import os

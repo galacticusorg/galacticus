@@ -886,5 +886,13 @@ parameters-catalog: $(BUILDPATH)/parameters.catalog.json
 # committed (so editors can reference it). Regenerate with `make parameters-schema`
 # after changing functionClass implementations or enumerations; CI checks it is
 # up to date.
+# The `+` marks these as recipes that participate in the jobserver, so the source
+# scan sizes its worker pool from the job slots `make` actually has free.
 parameters-schema:
-	./scripts/build/parameterSchema.py `pwd` schema/parameters.xsd
+	+./scripts/build/parameterSchema.py `pwd` schema/parameters.xsd
+
+# Report whether the committed schema is up to date, without rewriting it. Exits
+# non-zero if it would change (used by CI and by the pre-commit hook installed
+# from scripts/build/hooks/pre-commit).
+parameters-schema-check:
+	+./scripts/build/parameterSchema.py `pwd` schema/parameters.xsd --check

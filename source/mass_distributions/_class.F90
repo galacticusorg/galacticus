@@ -25,7 +25,7 @@ module Mass_Distributions
   !!{RST
   Implements a class that provides mass distributions.
   !!}
-  use :: Coordinates               , only : coordinate
+  use :: Coordinates               , only : coordinate                       , coordinateCartesian
   use :: Galactic_Structure_Options, only : enumerationComponentTypeType     , enumerationMassTypeType, massTypeAll           , massTypeDark                     , &
        &                                    massTypeBaryonic                 , massTypeGalactic       , massTypeGaseous       , massTypeStellar                  , &
        &                                    massTypeBlackHole                , componentTypeAll       , componentTypeUnknown  , massTypeUnknown                  , &
@@ -174,7 +174,7 @@ module Mass_Distributions
     <description>
     Return the gravitational acceleration due to the distribution at the given coordinates.
     </description>
-    <type>double precision, dimension(3)</type>
+    <type>type(coordinateCartesian)</type>
     <pass>yes</pass>
     <argument>class(coordinate), intent(in   ) :: coordinates  </argument>
    </method>
@@ -651,13 +651,17 @@ module Mass_Distributions
    </method>
    <method name="chandrasekharIntegral" >
     <description>
-    Return the Chandrasekhar integral of the distribution.
+    Return the Chandrasekhar integral of the distribution. The ``velocity`` is a Cartesian velocity vector (a
+    ``coordinateCartesian`` object); this is the only representation the implementations support and typing it
+    explicitly avoids the silent, incorrect point-transformation of a velocity expressed in a non-Cartesian
+    basis (see issue \#75).
     </description>
-    <type>double precision, dimension(3)</type>
+    <type>type(coordinateCartesian)</type>
     <pass>yes</pass>
     <argument>class           (massDistributionClass), intent(inout) :: massDistributionEmbedding, massDistributionPerturber</argument>
     <argument>double precision                       , intent(in   ) :: massPerturber                                       </argument>
-    <argument>class           (coordinate           ), intent(in   ) :: coordinates              , velocity                 </argument>
+    <argument>class           (coordinate           ), intent(in   ) :: coordinates                                         </argument>
+    <argument>type            (coordinateCartesian  ), intent(in   ) :: velocity                                            </argument>
    </method>
    <method name="radiusFreefall" >
     <description>
@@ -697,7 +701,7 @@ module Mass_Distributions
     <description>
     Return a position sampled from the distribution.
     </description>
-    <type>double precision, dimension(3)</type>
+    <type>type(coordinateCartesian)</type>
     <pass>yes</pass>
     <argument>class(randomNumberGeneratorClass  ), intent(inout) :: randomNumberGenerator_</argument>
    </method>

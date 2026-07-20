@@ -97,7 +97,7 @@ program Test_Mass_Distributions
   double precision                                         , parameter                                       :: epsilonFiniteDifference              =0.01d0
   character       (len=4                                  )                                                  :: label
   double precision                                         , dimension(3,3)                                  :: tidalTensorComponents                                                                                                   , tidalTensorSphericalComponents
-  double precision                                         , dimension(3  )                                  :: acceleration
+  double precision                                         , dimension(3  )                                  :: acceleration                                                                                                            , accelerationReference
   double precision                                         , dimension(4  )                                  :: massPatejLoeb                                                                                                           , densityPatejLoeb                                 , &
        &                                                                                                        densitySlopePatejLoeb                                                                                                   , densityMomentPatejLoeb                           , &
        &                                                                                                        potentialPatejLoeb
@@ -385,16 +385,20 @@ program Test_Mass_Distributions
         write (label,'(f4.1)') radius
         ! Vertically above the disk.
         position=[radius,0.0d0,0.0d0]
-        call Assert("[r,θ,φ] = ["//trim(label)//",0  , 0  ]",massDistribution_%acceleration(position),[0.0d0,0.0d0,-1.0d0/radius**2],absTol=1.0d-6,relTol=1.0d-3)
+        accelerationReference=massDistribution_%acceleration(position)
+        call Assert("[r,θ,φ] = ["//trim(label)//",0  , 0  ]",accelerationReference,[0.0d0,0.0d0,-1.0d0/radius**2],absTol=1.0d-6,relTol=1.0d-3)
         ! Vertically below the disk.
         position=[radius,Pi,0.0d0]
-        call Assert("[r,θ,φ] = ["//trim(label)//",π  , 0  ]",massDistribution_%acceleration(position),[0.0d0,0.0d0,+1.0d0/radius**2],absTol=1.0d-6,relTol=1.0d-3)
+        accelerationReference=massDistribution_%acceleration(position)
+        call Assert("[r,θ,φ] = ["//trim(label)//",π  , 0  ]",accelerationReference,[0.0d0,0.0d0,+1.0d0/radius**2],absTol=1.0d-6,relTol=1.0d-3)
         ! Disk plane, along +x-axis.
         position=[radius,Pi/2.0d0,0.0d0]
-        call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",massDistribution_%acceleration(position),[-1.0d0/radius**2,0.0d0,0.0d0],absTol=1.0d-6,relTol=1.0d-2)
+        accelerationReference=massDistribution_%acceleration(position)
+        call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",accelerationReference,[-1.0d0/radius**2,0.0d0,0.0d0],absTol=1.0d-6,relTol=1.0d-2)
         ! Disk plane, along -y-axis.
         position=[radius,Pi/2.0d0,-Pi/2.0d0]
-        call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",massDistribution_%acceleration(position),[0.0d0,+1.0d0/radius**2,0.0d0],absTol=1.0d-6,relTol=1.0d-2)
+        accelerationReference=massDistribution_%acceleration(position)
+        call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",accelerationReference,[0.0d0,+1.0d0/radius**2,0.0d0],absTol=1.0d-6,relTol=1.0d-2)
      end do
      call Unit_Tests_End_Group()
      ! Test that gravitational tidal tensor matches expectations for a point mass distribution at large radii.
@@ -435,10 +439,12 @@ program Test_Mass_Distributions
      write (label,'(f4.1)') radius
      ! Disk plane, along +x-axis.
      position=[radius,Pi/2.0d0,0.0d0]
-     call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",massDistribution_%acceleration(position),[-1.0d0,0.0d0,0.0d0]*massDistribution_%rotationCurve(radius)**2/radius,absTol=1.0d-6,relTol=1.0d-1)
+     accelerationReference=massDistribution_%acceleration(position)
+     call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",accelerationReference,[-1.0d0,0.0d0,0.0d0]*massDistribution_%rotationCurve(radius)**2/radius,absTol=1.0d-6,relTol=1.0d-1)
      ! Disk plane, along -y-axis.
      position=[radius,Pi/2.0d0,-Pi/2.0d0]
-     call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",massDistribution_%acceleration(position),[0.0d0,+1.0d0,0.0d0]*massDistribution_%rotationCurve(radius)**2/radius,absTol=1.0d-6,relTol=1.0d-1)
+     accelerationReference=massDistribution_%acceleration(position)
+     call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",accelerationReference,[0.0d0,+1.0d0,0.0d0]*massDistribution_%rotationCurve(radius)**2/radius,absTol=1.0d-6,relTol=1.0d-1)
      call Unit_Tests_End_Group()
   class default
      call Error_Report('unknown mass distribution'//{introspection:location})
@@ -480,16 +486,20 @@ program Test_Mass_Distributions
            write (label,'(f4.1)') radius
            ! Along the +z axis.
            position=[radius,0.0d0,0.0d0]
-           call Assert("[r,θ,φ] = ["//trim(label)//",0  , 0  ]",massDistribution_%acceleration(position),[0.0d0,0.0d0,-1.0d0/radius**2],absTol=1.0d-6,relTol=3.0d-2)
+           accelerationReference=massDistribution_%acceleration(position)
+           call Assert("[r,θ,φ] = ["//trim(label)//",0  , 0  ]",accelerationReference,[0.0d0,0.0d0,-1.0d0/radius**2],absTol=1.0d-6,relTol=3.0d-2)
            ! Along the -z axis.
            position=[radius,Pi   ,0.0d0]
-           call Assert("[r,θ,φ] = ["//trim(label)//",π  , 0  ]",massDistribution_%acceleration(position),[0.0d0,0.0d0,+1.0d0/radius**2],absTol=1.0d-6,relTol=3.0d-2)
+           accelerationReference=massDistribution_%acceleration(position)
+           call Assert("[r,θ,φ] = ["//trim(label)//",π  , 0  ]",accelerationReference,[0.0d0,0.0d0,+1.0d0/radius**2],absTol=1.0d-6,relTol=3.0d-2)
            ! x-y plane, along +x-axis.
            position                      =[radius,Pi/2.0d0,0.0d0]
-           call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",massDistribution_%acceleration(position),[-1.0d0/radius**2,0.0d0,0.0d0],absTol=1.0d-6,relTol=3.0d-2)
+           accelerationReference=massDistribution_%acceleration(position)
+           call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",accelerationReference,[-1.0d0/radius**2,0.0d0,0.0d0],absTol=1.0d-6,relTol=3.0d-2)
            ! x-y plane, along -y-axis.
            position                      =[radius,Pi/2.0d0,-Pi/2.0d0]
-           call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",massDistribution_%acceleration(position),[0.0d0,+1.0d0/radius**2,0.0d0],absTol=1.0d-6,relTol=3.0d-2)
+           accelerationReference=massDistribution_%acceleration(position)
+           call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",accelerationReference,[0.0d0,+1.0d0/radius**2,0.0d0],absTol=1.0d-6,relTol=3.0d-2)
         end do
         call Unit_Tests_End_Group()
         ! Test that acceleration due to rotated ellipsoid matches the rotated acceleration of an unrotated ellipsoid.
@@ -498,7 +508,8 @@ program Test_Mass_Distributions
         acceleration=massDistributionRotated%acceleration(position)     ! Evaluate the acceleration in the rotated distribution at the rotated position.
         acceleration=[acceleration(2),-acceleration(1),acceleration(3)] ! De-rotate the acceleration due to the rotated distribution.
         position   =[1.0d0,Pi/2.0d0,Pi/4.0d0]                           ! Evaluate the acceleration in the un-rotated distribution at the un-rotated position.
-        call Assert("[r,θ,φ] = [1,π/2,π/4]",massDistribution_%acceleration(position),acceleration,absTol=1.0d-6,relTol=1.0d-6)
+        accelerationReference=massDistribution_%acceleration(position)
+        call Assert("[r,θ,φ] = [1,π/2,π/4]",accelerationReference,acceleration,absTol=1.0d-6,relTol=1.0d-6)
         call Unit_Tests_End_Group()
         class default
         call Error_Report('unknown mass distribution'//{introspection:location})
@@ -533,16 +544,20 @@ program Test_Mass_Distributions
              &       *radius*exp(-0.5d0*radius**2)
         ! Along the +z axis.
         position=[radius,0.0d0,0.0d0]
-        call Assert("[r,θ,φ] = ["//trim(label)//",0  , 0  ]",massDistribution_%acceleration(position),[0.0d0,0.0d0,-massFraction/radius**2],absTol=1.0d-6,relTol=2.0d-2)
+        accelerationReference=massDistribution_%acceleration(position)
+        call Assert("[r,θ,φ] = ["//trim(label)//",0  , 0  ]",accelerationReference,[0.0d0,0.0d0,-massFraction/radius**2],absTol=1.0d-6,relTol=2.0d-2)
         ! Along the -z axis.
         position=[radius,Pi   ,0.0d0]
-        call Assert("[r,θ,φ] = ["//trim(label)//",π  , 0  ]",massDistribution_%acceleration(position),[0.0d0,0.0d0,+massFraction/radius**2],absTol=1.0d-6,relTol=2.0d-2)
+        accelerationReference=massDistribution_%acceleration(position)
+        call Assert("[r,θ,φ] = ["//trim(label)//",π  , 0  ]",accelerationReference,[0.0d0,0.0d0,+massFraction/radius**2],absTol=1.0d-6,relTol=2.0d-2)
         ! x-y plane, along +x-axis.
         position                      =[radius,Pi/2.0d0,0.0d0]
-        call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",massDistribution_%acceleration(position),[-massFraction/radius**2,0.0d0,0.0d0],absTol=1.0d-6,relTol=2.0d-2)
+        accelerationReference=massDistribution_%acceleration(position)
+        call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",accelerationReference,[-massFraction/radius**2,0.0d0,0.0d0],absTol=1.0d-6,relTol=2.0d-2)
         ! x-y plane, along -y-axis.
         position                      =[radius,Pi/2.0d0,-Pi/2.0d0]
-        call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",massDistribution_%acceleration(position),[0.0d0,+massFraction/radius**2,0.0d0],absTol=1.0d-6,relTol=2.0d-2)
+        accelerationReference=massDistribution_%acceleration(position)
+        call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",accelerationReference,[0.0d0,+massFraction/radius**2,0.0d0],absTol=1.0d-6,relTol=2.0d-2)
      end do
      call Unit_Tests_End_Group()
   class default

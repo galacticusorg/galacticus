@@ -2,8 +2,6 @@
 rate / scale / inactive / analytic.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Classes/Evolve.pm.
 """
 
 import os
@@ -13,10 +11,7 @@ from Galacticus.Build.Components.Utils import register, offset_name
 
 
 def _is_debugging():
-    """Return True iff `GALACTICUS_FCFLAGS` carries `-DDEBUGGING`.
-
-    Mirrors `$ENV{'GALACTICUS_FCFLAGS'} =~ m/(^|\\s)\\-DDEBUGGING($|\\s)/`.
-    """
+    """Return True iff `GALACTICUS_FCFLAGS` carries `-DDEBUGGING`."""
     flags = os.environ.get('GALACTICUS_FCFLAGS', '')
     for tok in flags.split():
         if tok == '-DDEBUGGING':
@@ -25,9 +20,7 @@ def _is_debugging():
 
 
 def Build_Meta_Rate_Functions(build, class_dict):
-    """Generate `<class>FloatRank0MetaPropertyRate`.  Mirrors
-    `Build_Meta_Rate_Functions`.
-    """
+    """Generate `<class>FloatRank0MetaPropertyRate`."""
     name      = class_dict['name']
     type_name = 'nodeComponent' + _ucfirst(name)
     active    = name in (build.get('componentClassListActive') or [])
@@ -129,9 +122,7 @@ def Build_Meta_Rate_Functions(build, class_dict):
 
 
 def Build_Meta_Scale_Functions(build, class_dict):
-    """Generate `<class>FloatRank0MetaPropertyScale`.  Mirrors
-    `Build_Meta_Scale_Functions`.
-    """
+    """Generate `<class>FloatRank0MetaPropertyScale`."""
     name      = class_dict['name']
     type_name = 'nodeComponent' + _ucfirst(name)
     active    = name in (build.get('componentClassListActive') or [])
@@ -178,9 +169,7 @@ def Build_Meta_Scale_Functions(build, class_dict):
 
 
 def Build_Meta_Inactive_Functions(build, class_dict):
-    """Generate `<class>FloatRank0MetaPropertyJcbnZr`.  Mirrors
-    `Build_Meta_Inactive_Functions`.
-    """
+    """Generate `<class>FloatRank0MetaPropertyJcbnZr`."""
     name      = class_dict['name']
     type_name = 'nodeComponent' + _ucfirst(name)
     active    = name in (build.get('componentClassListActive') or [])
@@ -219,9 +208,7 @@ def Build_Meta_Inactive_Functions(build, class_dict):
 
 
 def Build_Meta_Analytic_Functions(build, class_dict):
-    """Generate `<class>FloatRank0MetaPropertyAlytc`.  Mirrors
-    `Build_Meta_Analytic_Functions`.
-    """
+    """Generate `<class>FloatRank0MetaPropertyAlytc`."""
     name      = class_dict['name']
     type_name = 'nodeComponent' + _ucfirst(name)
     active    = name in (build.get('componentClassListActive') or [])
@@ -278,7 +265,8 @@ def _ucfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Classes/Evolve.pm:23-27.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('classesEvolve', 'classIteratedFunctions', Build_Meta_Rate_Functions)

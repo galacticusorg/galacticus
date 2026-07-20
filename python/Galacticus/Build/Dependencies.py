@@ -2,9 +2,8 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Dependencies.pm — specifically Dependency_Sort,
-in its minimal subset used by SourceTree.Process.EventHooksStatic: no
-`sortName` aliasing, no `re:` regex keys.
+Implements the minimal subset used by SourceTree.Process.EventHooksStatic:
+no `sortName` aliasing, no `re:` regex keys.
 """
 from __future__ import annotations
 
@@ -26,9 +25,7 @@ def dependency_sort(tasks: dict[str, dict]) -> list[str]:
     Returns
     -------
     list[str]
-        Task names in an order consistent with what Perl `Dependency_Sort`
-        actually emits (which is the opposite of what its docstring says
-        — see the Notes below).
+        Task names in dependency order (see the Notes below).
 
     Notes
     -----
@@ -36,18 +33,9 @@ def dependency_sort(tasks: dict[str, dict]) -> list[str]:
       - `X.after  = Y` →  X comes AFTER  Y in the output (Y precedes X).
       - `X.before = Y` →  X comes BEFORE Y in the output (X precedes Y).
 
-    Implementation note (subtle).  Perl's `Sort::Topo` documents its
-    `dependencies` argument as "key X → array of names X depends on",
-    but its actual algorithm emits the *array element* later than the
-    key (so `dependencies[X] = [Y]` makes X precede Y in the output —
-    the opposite of what its docstring says).  Perl `Dependency_Sort`
-    relied on that inversion: for `X.after = Y` it pushed
-    `dependencies[Y] += [X]`, and the broken docstring + broken
-    algorithm cancelled out to give the right answer.
-
-    Our Python `Sort.Topo` wraps `graphlib.TopologicalSorter`, which
-    matches the standard "X depends on Y → Y first" convention.  So
-    we build edges the way the standard reading dictates:
+    `Sort.Topo` wraps `graphlib.TopologicalSorter`, which follows the
+    standard "X depends on Y → Y first" convention.  So we build edges
+    the way the standard reading dictates:
       - `X.after  = Y` → `deps[X] += [Y]` ("X depends on Y", Y first).
       - `X.before = Y` → `deps[Y] += [X]` ("Y depends on X", X first).
     """

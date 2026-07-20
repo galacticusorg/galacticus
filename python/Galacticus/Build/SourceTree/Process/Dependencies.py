@@ -3,8 +3,6 @@ dependencies manifest and emits initialization calls populating the
 dependency registry at runtime.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/Dependencies.pm
 """
 
 import re
@@ -18,8 +16,7 @@ from Galacticus.Build.SourceTree.Process import register_process
 def _read_dependencies():
     """Read `$GALACTICUS_EXEC_PATH/aux/dependencies.yml` into {name: version}.
 
-    Mirrors the reader at Dependencies.pm:23-32.  Any line that does not match
-    `<name>: <version>` is a fatal error.
+    Any line that does not match `<name>: <version>` is a fatal error.
     """
     exec_path = os.environ.get('GALACTICUS_EXEC_PATH')
     if not exec_path:
@@ -38,7 +35,7 @@ def _read_dependencies():
 
 
 def process_dependencies(tree, options):
-    """Mirrors Process_Dependencies() from Dependencies.pm."""
+    """Process `dependenciesInitialize` directives in the tree."""
     for node in walk_tree(tree):
         if node.get('type') != 'dependenciesInitialize':
             continue

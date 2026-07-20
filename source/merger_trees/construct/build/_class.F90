@@ -71,6 +71,8 @@
      final     ::                    buildDestructor
      procedure :: construct       => buildConstruct
      procedure :: constructMasses => buildConstructMasses
+     procedure :: countTrees      => buildCountTrees
+     procedure :: treeMasses      => buildTreeMasses
   end type mergerTreeConstructorBuild
 
   interface mergerTreeConstructorBuild
@@ -392,4 +394,31 @@ contains
     end if
     return
   end subroutine buildConstructMasses
+
+  function buildCountTrees(self) result(countTrees)
+    !!{RST
+    Return the total number of trees that will be built. The set of tree masses is constructed first if necessary.
+    !!}
+    implicit none
+    integer(c_size_t                  )                :: countTrees
+    class  (mergerTreeConstructorBuild), intent(inout) :: self
+
+    call self%constructMasses()
+    countTrees=self%treeCount
+    return
+  end function buildCountTrees
+
+  subroutine buildTreeMasses(self,masses)
+    !!{RST
+    Return the root masses of the trees that will be built. The set of tree masses is constructed first if necessary.
+    !!}
+    implicit none
+    class           (mergerTreeConstructorBuild), intent(inout)                            :: self
+    double precision                            , intent(  out), allocatable, dimension(:) :: masses
+
+    call self%constructMasses()
+    allocate(masses(self%treeCount))
+    masses=self%treeMass
+    return
+  end subroutine buildTreeMasses
 

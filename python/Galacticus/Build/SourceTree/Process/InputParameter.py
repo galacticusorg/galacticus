@@ -4,8 +4,6 @@ a Fortran variable to a named run-time parameter, and ensures the enclosing
 subprogram imports `Input_Parameters`.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/InputParameter.pm
 """
 
 import os
@@ -21,7 +19,7 @@ from Galacticus.Build.SourceTree.Parse.ModuleUses import add_uses
 
 def _read_executables(build_path):
     """Return the list of non-test executables listed on `all_exes = …` of
-    `$BUILDPATH/Makefile_All_Execs`.  Mirrors InputParameter.pm:25-34.
+    `$BUILDPATH/Makefile_All_Execs`.
     """
     path = os.path.join(build_path, 'Makefile_All_Execs')
     executables = []
@@ -40,9 +38,8 @@ def _read_executables(build_path):
 def _read_dependencies(build_path, executables):
     """For each executable, parse `<exe>.d` and collect its object-file stems.
 
-    Mirrors InputParameter.pm:36-48.  Missing `.d` files are silently skipped
-    (Perl's `-e` guard).  The returned shape — `{exe: {stem: True}}` — matches
-    Perl's `$dependencies->{$exe}->{$stem} = 1` idiom.
+    Missing `.d` files are silently skipped.  The returned shape is
+    `{exe: {stem: True}}`.
     """
     dependencies = {}
     for executable in executables:
@@ -60,14 +57,14 @@ def _read_dependencies(build_path, executables):
 
 
 def process_input_parameters(tree, options):
-    """Mirrors Process_InputParameters() from InputParameter.pm."""
+    """Process `inputParameter` directives in the tree."""
     build_path = os.environ.get('BUILDPATH')
     if not build_path:
         raise RuntimeError(
             "process_input_parameters: BUILDPATH is not set")
 
-    # The executables/dependencies/directiveLocations reads are performed even
-    # when no inputParameter directives exist — matches Perl's eager load.
+    # The executables/dependencies/directiveLocations reads are deliberately
+    # performed even when no inputParameter directives exist.
     executables  = _read_executables(build_path)
     _dependencies = _read_dependencies(build_path, executables)
     _directive_locations_path = os.path.join(build_path, 'directiveLocations.xml')

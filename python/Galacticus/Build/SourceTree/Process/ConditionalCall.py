@@ -3,8 +3,6 @@ over the set of argument conditions, calling the underlying routine once
 per boolean combination with only the arguments whose condition is true.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/ConditionalCall.pm
 """
 
 import re
@@ -21,9 +19,8 @@ from Galacticus.Build.SourceTree.Parse.Declarations import (
 def _normalize_arguments(raw):
     """Return a dict-of-dicts keyed by argument name.
 
-    Our xml_to_dict (unlike Perl's XML::Simple with its default KeyAttr)
-    does not group same-tag children by their `name` attribute.  Accept
-    whichever shape it returned:
+    xml_to_dict does not group same-tag children by their `name` attribute,
+    so accept whichever shape it returned:
 
       - list of dicts (multiple `<argument …/>`)          → key by name
       - dict with no nested dicts (single `<argument …/>`) → wrap as {name: dict}
@@ -47,9 +44,8 @@ def _normalize_arguments(raw):
 def _argument_condition(argument):
     """Return the Fortran expression representing this argument's condition.
 
-    Mirrors ConditionalCall.pm:42-49.  Prefers `parameterPresent` (which
-    becomes a call to the parameter's `isPresent` method) over a literal
-    `condition` attribute.
+    Prefers `parameterPresent` (which becomes a call to the parameter's
+    `isPresent` method) over a literal `condition` attribute.
     """
     if 'parameterPresent' in argument:
         param_name = argument.get('parameterName', argument['name'])
@@ -60,7 +56,7 @@ def _argument_condition(argument):
 
 
 def process_conditional_call(tree, options):
-    """Mirrors Process_ConditionalCall() from ConditionalCall.pm."""
+    """Process `conditionalCall` directives in the tree."""
     for node in walk_tree(tree):
         if node.get('type') != 'conditionalCall':
             continue
@@ -75,8 +71,8 @@ def process_conditional_call(tree, options):
         arguments = _normalize_arguments(directive['argument'])
 
         # Attach each argument's resolved condition text and build the unique
-        # condition list.  The ordering here (sorted by condition string) is
-        # the ordering Perl uses for id assignment below.
+        # condition list.  Sorting by condition string fixes the condition-id
+        # assignment below, making the generated code deterministic.
         for arg in arguments.values():
             arg['conditionActual'] = _argument_condition(arg)
 
@@ -131,7 +127,7 @@ def process_conditional_call(tree, options):
 def _render_call(call_template, arguments, bits, condition_id):
     """Render one `<call>` template for one boolean state `bits`.
 
-    Mirrors ConditionalCall.pm:74-100: lines without `{conditions}` are copied
+    Lines without `{conditions}` are copied
     verbatim; the `{conditions}` line becomes the call with only those
     optional arguments whose condition is true in this state.  Raises if the
     template contains no `{conditions}` marker at all.

@@ -35,9 +35,10 @@
      A spherical collapse solver for universes consisting of baryons, collisionless matter, and dark energy.
      !!}
      private
-     class  (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     logical                                    :: baryonsCluster
-     integer                                    :: tablePointsPerOctave
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     logical                                             :: baryonsCluster
+     integer                                             :: tablePointsPerOctave
+     double precision                                    :: perturbationSmall
    contains
      final     ::             baryonsDarkMatterDarkEnergyDestructor
      procedure :: tabulate => baryonsDarkMatterDarkEnergyTabulate
@@ -52,9 +53,9 @@
   end interface sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
 
   ! Variables used in root finding.
-  double precision :: OmegaBaryonEpochal, expansionFactor_, hubbleTimeEpochalSquared
+  double precision :: OmegaBaryonEpochal, expansionFactor_, hubbleTimeEpochalSquared, perturbationSmall_
   logical          :: baryonsCluster
-  !$omp threadprivate(OmegaBaryonEpochal,baryonsCluster,expansionFactor_,hubbleTimeEpochalSquared)
+  !$omp threadprivate(OmegaBaryonEpochal,baryonsCluster,expansionFactor_,hubbleTimeEpochalSquared,perturbationSmall_)
 
 contains
 
@@ -64,14 +65,15 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type   (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)                :: self
-    type   (inputParameters                                   ), intent(inout) :: parameters
-    class  (cosmologyFunctionsClass                           ), pointer       :: cosmologyFunctions_
-    class  (cosmologyParametersClass                          ), pointer       :: cosmologyParameters_
-    type   (varying_string                                    )                :: energyFixedAt
-    logical                                                                    :: baryonsCluster
-    integer                                                                    :: tablePointsPerOctave
-
+    type           (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)                :: self
+    type           (inputParameters                                   ), intent(inout) :: parameters
+    class          (cosmologyFunctionsClass                           ), pointer       :: cosmologyFunctions_
+    class          (cosmologyParametersClass                          ), pointer       :: cosmologyParameters_
+    type           (varying_string                                    )                :: energyFixedAt
+    logical                                                                            :: baryonsCluster
+    integer                                                                            :: tablePointsPerOctave
+    double precision                                                                   :: perturbationSmall
+    
     !![
     <inputParameter docformat="rst">
       <name>baryonsCluster</name>
@@ -96,10 +98,18 @@ contains
       The number of points per octave of time at which to tabulate solutions.
       </description>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>perturbationSmall</name>
+      <source>parameters</source>
+      <defaultValue>1.0d-3</defaultValue>
+      <description>
+	The largest initial perturbation considered to be sufficiently small. Larger initial perturbations will trigger an error.
+      </description>
+    </inputParameter>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
-    self=sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(baryonsCluster,tablePointsPerOctave,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_)
+    self=sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(baryonsCluster,tablePointsPerOctave,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),perturbationSmall,cosmologyParameters_,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -108,7 +118,7 @@ contains
     return
   end function baryonsDarkMatterDarkEnergyConstructorParameters
 
-  function baryonsDarkMatterDarkEnergyConstructorInternal(baryonsCluster,tablePointsPerOctave,energyFixedAt,cosmologyParameters_,cosmologyFunctions_) result(self)
+  function baryonsDarkMatterDarkEnergyConstructorInternal(baryonsCluster,tablePointsPerOctave,energyFixedAt,perturbationSmall,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`sphericalCollapseSolverBaryonsDarkMatterDarkEnergy` spherical collapse solver class.
     !!}
@@ -117,14 +127,15 @@ contains
     use :: ISO_Varying_String, only : operator(//)
     use :: Linear_Growth     , only : linearGrowthCollisionlessMatter, linearGrowthNonClusteringBaryonsDarkMatter
     implicit none
-    type   (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)                        :: self
-    logical                                                    , intent(in   )         :: baryonsCluster
-    integer                                                    , intent(in   )         :: tablePointsPerOctave
-    type   (enumerationCllsnlssMttrDarkEnergyFixedAtType      ), intent(in   )         :: energyFixedAt
-    class  (cosmologyFunctionsClass                           ), intent(in   ), target :: cosmologyFunctions_
-    class  (cosmologyParametersClass                          ), intent(in   ), target :: cosmologyParameters_
+    type   (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)                                 :: self
+    logical                                                             , intent(in   )         :: baryonsCluster
+    integer                                                             , intent(in   )         :: tablePointsPerOctave
+    type            (enumerationCllsnlssMttrDarkEnergyFixedAtType      ), intent(in   )         :: energyFixedAt
+    double precision                                                    , intent(in   )         :: perturbationSmall
+    class           (cosmologyFunctionsClass                           ), intent(in   ), target :: cosmologyFunctions_
+    class           (cosmologyParametersClass                          ), intent(in   ), target :: cosmologyParameters_
     !![
-    <constructorAssign variables="baryonsCluster, tablePointsPerOctave, energyFixedAt, *cosmologyFunctions_, *cosmologyParameters_"/>
+    <constructorAssign variables="baryonsCluster, tablePointsPerOctave, energyFixedAt, perturbationSmall, *cosmologyFunctions_, *cosmologyParameters_"/>
     !!]
 
     self%fileNameCriticalOverdensity  =inputPath(pathTypeDataDynamic)                                                       // &
@@ -323,6 +334,8 @@ contains
              ! Get the current expansion factor.
              time_           =sphericalCollapse_ %x              (iTime)
              expansionFactor_=cosmologyFunctions_%expansionFactor(time_)
+             ! Store the "small perturbation" limit.
+             perturbationSmall_=self%perturbationSmall
              ! Initial guess for the range of the initial perturbation amplitude. Since we expect a collapsing perturbation to have
              ! linear theory amplitude of order unity at the time of collapse, and since linear perturbations grow proportional to
              ! the expansion factor in an Einstein-de Sitter universe with no baryons, we use an initial guess for the lower and
@@ -535,8 +548,27 @@ contains
     integer                                                           :: odeStatus
 
     ! Validate the perturbation overdensity.
-    if (perturbationOverdensityInitial < 0.0d+0) call Error_Report('initial overdensity of perturbation should be non-negative'//{introspection:location})
-    if (perturbationOverdensityInitial > 1.0d-3) call Error_Report('initial overdensity of perturbation should be small'       //{introspection:location})
+    if (perturbationOverdensityInitial < 0.0d+0                ) then
+       block
+         type     (varying_string) :: message
+         character(len=12        ) :: label
+         message='initial overdensity of perturbation should be non-negative'
+         write (label,'(e12.6)') perturbationOverdensityInitial
+         message=message//" ("//label//" < 0)"
+         call Error_Report(message//{introspection:location})
+       end block
+    end if
+    if (perturbationOverdensityInitial > perturbationSmall_) then
+       block
+         type     (varying_string) :: message
+         character(len=12        ) :: label1 , label2
+         message='initial overdensity of perturbation should be small'
+         write (label1,'(e12.6)') perturbationOverdensityInitial
+         write (label2,'(e12.6)') perturbationSmall_
+         message=message//" ("//label1//" > "//label2//")"
+         call Error_Report(message//{introspection:location})
+       end block
+    end if
     ! Specify a sufficiently early time.
     expansionFactorInitial=expansionFactorInitialFraction
     ! Find the corresponding cosmic time.

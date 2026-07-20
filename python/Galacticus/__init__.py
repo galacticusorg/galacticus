@@ -1,7 +1,6 @@
 """Galacticus Python support package.
 
-Hosts the build-system and constraint-pipeline modules that were ported from
-the legacy ``perl/Galacticus/`` tree:
+Hosts the build-system and constraint-pipeline modules:
 
 * :mod:`Galacticus.Build` -- code generation and source-tree processing used
   while compiling Galacticus (component hierarchies, directive extraction,

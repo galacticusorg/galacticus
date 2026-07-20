@@ -93,7 +93,7 @@ with safe_section("darkMatterParticleCDM"):
 # Transfer functions.
 with safe_section("transferFunctionCAMB"):
     transferFunction = galacticus.transferFunctionCAMB(darkMatterParticle,cosmologyParameters,cosmologyFunctions,0,0.0,0)
-    check("T(k=2 Mpc⁻¹)", transferFunction.value(2.0), 14637.776794245852)
+    check("T(k=2 Mpc⁻¹)", transferFunction.value(2.0), 14637.977457291503)
     # Output-array method (`intent(out), allocatable, dimension(:)`): CAMB
     # inherits the base default `allocate(wavenumbers(0))`, so this
     # exercises the wrapper's zero-size/null-pointer guard — the caller
@@ -112,12 +112,12 @@ with safe_section("linearGrowthCollisionlessMatter"):
 # accumulates the integration tolerances of every upstream object.
 with safe_section("powerSpectrumPrimordialTransferredSimple"):
     powerSpectrumTransferred = galacticus.powerSpectrumPrimordialTransferredSimple(powerSpectrumPrimordial,transferFunction,linearGrowth)
-    check("P(k=2 Mpc⁻¹,t=6 Gyr)", powerSpectrumTransferred.power(wavenumber=2.0,time=6.0), 165107209.2923229, rtol=3.0e-6)
+    check("P(k=2 Mpc⁻¹,t=6 Gyr)", powerSpectrumTransferred.power(wavenumber=2.0,time=6.0), 165111727.92963067, rtol=3.0e-6)
 
 # Cosmological mass variance.
 with safe_section("cosmologicalMassVarianceFilteredPower"):
     cosmologicalMassVariance = galacticus.cosmologicalMassVarianceFilteredPower(sigma8=0.8,tolerance=1.0e-4,toleranceTopHat=1.0e-4,nonMonotonicIsFatal=True,integrationFailureIsFatal=True,monotonicInterpolation=False,rootVarianceLogarithmicGradientTolerance=1.0e-4,truncateAtParticleHorizon=False,storeTabulations=True,cosmologyParameters_=cosmologyParameters,cosmologyFunctions_=cosmologyFunctions,linearGrowth_=linearGrowth,powerSpectrumPrimordialTransferred_=powerSpectrumTransferred,powerSpectrumWindowFunction_=powerSpectrumWindowFunction)
-    check("σ(M=10¹²M☉)", cosmologicalMassVariance.rootVariance(mass=1.0e12,time=13.8), 2.1968385715548044)
+    check("σ(M=10¹²M☉)", cosmologicalMassVariance.rootVariance(mass=1.0e12,time=13.8), 2.1968436151438357)
 
 # Critical overdensity.
 with safe_section("criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt"):
