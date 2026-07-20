@@ -1,0 +1,26 @@
+{
+  // Extensions recommended for working on Galacticus. VSCode will offer to
+  // install these when the workspace is opened.
+  "recommendations": [
+    // Fortran: syntax highlighting, linting, and the fortls language server.
+    "fortran-lang.linter-gfortran",
+    // Python.
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    // XML + XSD validation (parameter files validate against schema/).
+    "redhat.vscode-xml",
+    // YAML (.github workflows, dependabot, etc.).
+    "redhat.vscode-yaml",
+    // reStructuredText: provides the `text.restructuredtext` grammar that the
+    // Galacticus extension injects into `!!{RST ... !!}` docstring blocks.
+    "trond-snekvik.simple-rst",
+    // Richer RST features (live preview, linting) — optional.
+    "lextudio.restructuredtext",
+    // C (a handful of .c sources under source/).
+    "ms-vscode.cpptools",
+    // Galacticus-specific: highlights embedded XML directives and RST
+    // docstrings inside .F90 files, plus the "open docs for functionClass"
+    // command.
+    "GalacticusOrg.galacticus-code"
+  ]
+}
