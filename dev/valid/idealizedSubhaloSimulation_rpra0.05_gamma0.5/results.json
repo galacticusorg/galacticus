@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "abc87c1cb585b2257ae634c3fbb8f326c90371e3",
-        "message": "Merge pull request #1245 from galacticusorg/dependabot/pip/nbsphinx-gte-0.9.8\n\nchore(deps): update nbsphinx requirement from >=0.9.5 to >=0.9.8\n",
-        "timestamp": "2026-07-13 15:18:00+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/abc87c1cb585b2257ae634c3fbb8f326c90371e3"
+        "id": "7b8382082e295748f204b4a71e38bc1f6d18f1aa",
+        "message": "ci: replace obsoleted test with new test\n",
+        "timestamp": "2026-07-20 14:43:48-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/7b8382082e295748f204b4a71e38bc1f6d18f1aa"
     },
     "results": [
         {
@@ -22,7 +22,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Simulations",
                 "comment": "Analysis of the satellite bound mass vs. time.",
                 "description": "Satellite bound mass fraction vs. time.",
-                "logLikelihood": "23.380593533083903",
+                "logLikelihood": "23.380563623848634",
                 "type": "function1D",
                 "xDataset": "time",
                 "yDataset": "fractionBoundMass",
@@ -39,11 +39,11 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     1.0,
-                    0.15914134027346233,
-                    0.040631166523596066,
-                    0.01281234328821004,
-                    0.0039773358130556925,
-                    0.0010622525871488138
+                    0.15914134026895943,
+                    0.04063149686540769,
+                    0.012812196437532307,
+                    0.003977320081712772,
+                    0.0010622441334117753
                 ],
                 "yDatasetTarget": [
                     1.0,
@@ -65,7 +65,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Simulations",
                 "comment": "Analysis of the satellite maximum circular velocity radius vs. time.",
                 "description": "Satellite maximum circular velocity radius fraction vs. time.",
-                "logLikelihood": "8.011134821970838",
+                "logLikelihood": "8.011134796029255",
                 "type": "function1D",
                 "xDataset": "time",
                 "yDataset": "fractionRadiusVelocityMaximum",
@@ -82,11 +82,11 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     1.0,
-                    0.4431424423202707,
-                    0.30338859139630653,
-                    0.23156508071108095,
-                    0.18105031691132717,
-                    0.14123201145869632
+                    0.44314244231698985,
+                    0.3033885913536173,
+                    0.231565080469886,
+                    0.18105031667319968,
+                    0.14123201131141472
                 ],
                 "yDatasetTarget": [
                     1.0,
@@ -108,7 +108,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Simulations",
                 "comment": "Analysis of the satellite maximum circular velocity vs. time.",
                 "description": "Satellite maximum circular velocity fraction vs. time.",
-                "logLikelihood": "10.110599764478055",
+                "logLikelihood": "10.110599703460778",
                 "type": "function1D",
                 "xDataset": "time",
                 "yDataset": "fractionVelocityMaximum",
@@ -125,11 +125,11 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     1.0,
-                    0.6855574666693585,
-                    0.45462980045671947,
-                    0.3030289277290307,
-                    0.19546230259240363,
-                    0.1169796894896982
+                    0.6855574666651025,
+                    0.454629800371348,
+                    0.3030289272059981,
+                    0.19546230210241264,
+                    0.11697968921162581
                 ],
                 "yDatasetTarget": [
                     1.0,

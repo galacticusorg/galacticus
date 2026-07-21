@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "abc87c1cb585b2257ae634c3fbb8f326c90371e3",
-        "message": "Merge pull request #1245 from galacticusorg/dependabot/pip/nbsphinx-gte-0.9.8\n\nchore(deps): update nbsphinx requirement from >=0.9.5 to >=0.9.8\n",
-        "timestamp": "2026-07-13 15:18:00+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/abc87c1cb585b2257ae634c3fbb8f326c90371e3"
+        "id": "7b8382082e295748f204b4a71e38bc1f6d18f1aa",
+        "message": "ci: replace obsoleted test with new test\n",
+        "timestamp": "2026-07-20 14:43:48-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/7b8382082e295748f204b4a71e38bc1f6d18f1aa"
     },
     "results": [
         {
@@ -22,7 +22,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Simulations",
                 "comment": "Analysis of the satellite bound mass vs. time.",
                 "description": "Satellite bound mass fraction vs. time.",
-                "logLikelihood": "26.85204754908515",
+                "logLikelihood": "26.852047760516193",
                 "type": "function1D",
                 "xDataset": "time",
                 "yDataset": "fractionBoundMass",
@@ -41,13 +41,13 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     1.0,
-                    0.24938002663101305,
-                    0.1246336368754983,
-                    0.06672156530363245,
-                    0.035707791686569026,
-                    0.018445362154870137,
-                    0.008445042213254254,
-                    0.002464989936547807
+                    0.24938002603558176,
+                    0.12463363764581534,
+                    0.06672156531024744,
+                    0.03570779216451851,
+                    0.018445362155935313,
+                    0.008445042205959355,
+                    0.0024649898464462992
                 ],
                 "yDatasetTarget": [
                     1.0,
@@ -71,7 +71,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Simulations",
                 "comment": "Analysis of the satellite maximum circular velocity radius vs. time.",
                 "description": "Satellite maximum circular velocity radius fraction vs. time.",
-                "logLikelihood": "12.856479837303228",
+                "logLikelihood": "12.856479837471014",
                 "type": "function1D",
                 "xDataset": "time",
                 "yDataset": "fractionRadiusVelocityMaximum",
@@ -90,13 +90,13 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     1.0,
-                    0.6305587832376307,
-                    0.5047112519848909,
-                    0.4429047187327392,
-                    0.4133866936348482,
-                    0.4049776702981788,
-                    0.42045445061534886,
-                    0.4821448660616679
+                    0.6305587832429284,
+                    0.5047112519917563,
+                    0.4429047187368886,
+                    0.41338669363680347,
+                    0.4049776702979733,
+                    0.4204544506127817,
+                    0.4821448660560999
                 ],
                 "yDatasetTarget": [
                     1.0,
@@ -120,7 +120,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Simulations",
                 "comment": "Analysis of the satellite maximum circular velocity vs. time.",
                 "description": "Satellite maximum circular velocity fraction vs. time.",
-                "logLikelihood": "11.535714177834446",
+                "logLikelihood": "11.53571417805581",
                 "type": "function1D",
                 "xDataset": "time",
                 "yDataset": "fractionVelocityMaximum",
@@ -139,13 +139,13 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     1.0,
-                    0.8254565108886199,
-                    0.6696509332423282,
-                    0.534524639193074,
-                    0.42391858144809946,
-                    0.3287509709843626,
-                    0.24633870483837864,
-                    0.17218122106837988
+                    0.8254565108933719,
+                    0.669650933254115,
+                    0.5345246392049581,
+                    0.4239185814588312,
+                    0.32875097099269307,
+                    0.2463387048447321,
+                    0.17218122107214537
                 ],
                 "yDatasetTarget": [
                     1.0,

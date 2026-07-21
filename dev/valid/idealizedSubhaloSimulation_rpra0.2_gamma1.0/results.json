@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "abc87c1cb585b2257ae634c3fbb8f326c90371e3",
-        "message": "Merge pull request #1245 from galacticusorg/dependabot/pip/nbsphinx-gte-0.9.8\n\nchore(deps): update nbsphinx requirement from >=0.9.5 to >=0.9.8\n",
-        "timestamp": "2026-07-13 15:18:00+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/abc87c1cb585b2257ae634c3fbb8f326c90371e3"
+        "id": "7b8382082e295748f204b4a71e38bc1f6d18f1aa",
+        "message": "ci: replace obsoleted test with new test\n",
+        "timestamp": "2026-07-20 14:43:48-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/7b8382082e295748f204b4a71e38bc1f6d18f1aa"
     },
     "results": [
         {

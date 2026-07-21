@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "abc87c1cb585b2257ae634c3fbb8f326c90371e3",
-        "message": "Merge pull request #1245 from galacticusorg/dependabot/pip/nbsphinx-gte-0.9.8\n\nchore(deps): update nbsphinx requirement from >=0.9.5 to >=0.9.8\n",
-        "timestamp": "2026-07-13 15:18:00+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/abc87c1cb585b2257ae634c3fbb8f326c90371e3"
+        "id": "7b8382082e295748f204b4a71e38bc1f6d18f1aa",
+        "message": "ci: replace obsoleted test with new test\n",
+        "timestamp": "2026-07-20 14:43:48-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/7b8382082e295748f204b4a71e38bc1f6d18f1aa"
     },
     "results": [
         {
@@ -22,7 +22,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Simulations",
                 "comment": "Analysis of the satellite bound mass vs. time.",
                 "description": "Satellite bound mass fraction vs. time.",
-                "logLikelihood": "48.17851211077791",
+                "logLikelihood": "48.17793618582197",
                 "type": "function1D",
                 "xDataset": "time",
                 "yDataset": "fractionBoundMass",
@@ -46,18 +46,18 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     1.0,
-                    0.12561090335114927,
-                    0.07574721860003016,
-                    0.053290627413722,
-                    0.040957255940145924,
-                    0.0332852095506418,
-                    0.02808911998953781,
-                    0.024344152933353975,
-                    0.02151251198687464,
-                    0.01929761310351664,
-                    0.01751432750700524,
-                    0.016044914236913465,
-                    0.014812623559634905
+                    0.12561324832613627,
+                    0.07574735882964213,
+                    0.0532905799833206,
+                    0.040957377497537036,
+                    0.03328542152212054,
+                    0.02808918553526531,
+                    0.024344278200883515,
+                    0.021512633860265157,
+                    0.019297647958063987,
+                    0.017514253611200545,
+                    0.016044953361816428,
+                    0.014812804119346514
                 ],
                 "yDatasetTarget": [
                     1.0,
@@ -86,7 +86,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Simulations",
                 "comment": "Analysis of the satellite maximum circular velocity radius vs. time.",
                 "description": "Satellite maximum circular velocity radius fraction vs. time.",
-                "logLikelihood": "35.33237553449608",
+                "logLikelihood": "35.33267078477542",
                 "type": "function1D",
                 "xDataset": "time",
                 "yDataset": "fractionRadiusVelocityMaximum",
@@ -110,18 +110,18 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     1.0,
-                    0.5067146058863341,
-                    0.3470224405050555,
-                    0.2679066723057859,
-                    0.2206163318090134,
-                    0.18920361606492875,
-                    0.16681154101233203,
-                    0.14991890617296416,
-                    0.1367149593586889,
-                    0.1260319164876796,
-                    0.11721396711482819,
-                    0.1097643108027407,
-                    0.10338978381771341
+                    0.506714546640725,
+                    0.3470223896781366,
+                    0.26790666229034416,
+                    0.2206164360740757,
+                    0.18920390648779006,
+                    0.1668119302302945,
+                    0.14991923235865012,
+                    0.136715230128771,
+                    0.12603216733179556,
+                    0.11721422490945982,
+                    0.10976457589515091,
+                    0.1033901046402469
                 ],
                 "yDatasetTarget": [
                     1.0,
@@ -150,7 +150,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Simulations",
                 "comment": "Analysis of the satellite maximum circular velocity vs. time.",
                 "description": "Satellite maximum circular velocity fraction vs. time.",
-                "logLikelihood": "23.79174603971727",
+                "logLikelihood": "23.791787929097257",
                 "type": "function1D",
                 "xDataset": "time",
                 "yDataset": "fractionVelocityMaximum",
@@ -174,18 +174,18 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     1.0,
-                    0.8546359246832883,
-                    0.7739081588893105,
-                    0.7222246831712203,
-                    0.6857945936629049,
-                    0.6584541932212541,
-                    0.6369828440648193,
-                    0.6194294031909867,
-                    0.6047324376395037,
-                    0.5921046358644267,
-                    0.5811088695053532,
-                    0.571360757326596,
-                    0.5626451085088173
+                    0.8546358991895143,
+                    0.7739081286861904,
+                    0.7222246759589078,
+                    0.6857946797766246,
+                    0.6584544600267666,
+                    0.6369832340656646,
+                    0.6194297549959839,
+                    0.6047327488845059,
+                    0.5921049409335764,
+                    0.581109199252093,
+                    0.5713611123132561,
+                    0.5626455565118377
                 ],
                 "yDatasetTarget": [
                     1.0,
