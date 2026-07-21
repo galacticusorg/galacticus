@@ -28,7 +28,7 @@ module Dependencies
   use :: Dictionaries, only : varyingStringDictionary
   implicit none
   private
-  public :: dependencyVersion
+  public :: dependencyVersion, dependencyVersionLabel
 
   type   (varyingStringDictionary) :: dependencies_
   logical                          :: initialized  =.false.
@@ -70,5 +70,20 @@ contains
     end if
     return
   end function dependencyVersion
-  
+
+  function dependencyVersionLabel(dependency)
+    !!{RST
+    Return a label recording the version of a named dependency, for inclusion in the key of an on-disk cache whose content
+    depends on that dependency. Without this, a cache keyed only on a Galacticus source digest is not invalidated when the
+    dependency version is changed in ``aux/dependencies.yml``, so a stale cached result is silently reused.
+    !!}
+    use :: ISO_Varying_String, only : varying_string, operator(//), assignment(=)
+    implicit none
+    type     (varying_string)                :: dependencyVersionLabel
+    character(len=*         ), intent(in   ) :: dependency
+
+    dependencyVersionLabel="_dependency:"//trim(dependency)//"="//dependencyVersion(trim(dependency))
+    return
+  end function dependencyVersionLabel
+
 end module Dependencies

@@ -123,6 +123,7 @@ contains
     !!{RST
     Return the survey solid angle computed from :term:`mangle` polygons.
     !!}
+    use :: Dependencies   , only : dependencyVersion
     use :: Error          , only : Error_Report
     use :: Geometry_Mangle, only : geometryMangleSolidAngle
     use :: String_Handling, only : operator(//)
@@ -149,7 +150,9 @@ contains
     if (.not.self%solidAnglesInitialized) then
        if (.not.self%solidAnglesInitialized) then
           call self%mangleFiles(mangleFiles)
-          self%solidAngles           =geometryMangleSolidAngle(mangleFiles,char(self%mangleDirectory()//"solidAngles.hdf5"))
+          ! The mangle version forms part of the cached file name, so that solid angles computed by an earlier mangle are not
+          ! silently reused after the version is changed in `aux/dependencies.yml`.
+          self%solidAngles           =geometryMangleSolidAngle(mangleFiles,char(self%mangleDirectory()//"solidAngles_v"//dependencyVersion("mangle")//".hdf5"))
           self%solidAnglesInitialized=.true.
        end if
     end if
@@ -273,6 +276,7 @@ contains
     !!{RST
     Return the survey angular power :math:`C^{ij}_\ell` from :term:`mangle` polygons.
     !!}
+    use :: Dependencies   , only : dependencyVersion
     use :: Error          , only : Error_Report
     use :: Geometry_Mangle, only : geometryMangleAngularPower
     use :: String_Handling, only : operator(//)
@@ -297,7 +301,8 @@ contains
     if (.not.self%angularPowerInitialized) then
        if (.not.self%angularPowerInitialized) then
           call self%mangleFiles(mangleFiles)
-          self%angularPowerSpectra    =geometryMangleAngularPower(mangleFiles,self%angularPowerMaximumDegree(),char(self%mangleDirectory()//"angularPower.hdf5"))
+          ! As for solid angles, the mangle version forms part of the cached file name.
+          self%angularPowerSpectra    =geometryMangleAngularPower(mangleFiles,self%angularPowerMaximumDegree(),char(self%mangleDirectory()//"angularPower_v"//dependencyVersion("mangle")//".hdf5"))
           self%angularPowerInitialized=.true.
        end if
     end if

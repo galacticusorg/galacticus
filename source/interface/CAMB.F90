@@ -82,7 +82,8 @@ contains
          &                                                url              , tarBallForUtils   , &
          &                                                escapedToolsPath , escapedTarFile    , &
          &                                                escapedForUtilsDir, escapedForUtilsTar, &
-         &                                                escapedCambPath
+         &                                                escapedCambPath   , stampForUtils     , &
+         &                                                escapedForUtilsStamp
     type     (lockDescriptor)                          :: fileLock
     !![
     <optionalArgument name="static" defaultsTo=".false." />
@@ -97,8 +98,12 @@ contains
     makeFileForUtils=cambPath//"../forutils/Makefile"
     tarBall         =inputPath(pathTypeTools)//"CAMB_"//char(cambVersion)//".tar.gz"
     tarBallForUtils =cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz"
+    ! CAMB's build system requires forutils to be unpacked to a fixed path relative to the CAMB source, so the directory name can
+    ! not carry the forutils version. Instead, record the unpacked version in a stamp file. A change of forutils version then
+    ! leaves no matching stamp, forcing forutils to be re-unpacked and CAMB to be rebuilt against it.
+    stampForUtils   =cambPath//"../forutils/.galacticusForUtilsVersion_"//char(forutilsVersion)
     ! Build the CAMB code.
-    if (.not.File_Exists(executable)) then
+    if (.not.File_Exists(executable) .or. .not.File_Exists(stampForUtils)) then
        call compilerValidate(languageFortran,'CAMB')
        call Directory_Make(cambPath                                      )
        call File_Lock     (cambPath//"camb",fileLock,lockIsShared=.false.)
@@ -119,22 +124,27 @@ contains
           command="tar -x -v -z -C "//escapedToolsPath//" -f "//escapedTarFile
           call System_Command_Do(command,status);
           if (status /= 0 .or. .not.File_Exists(cambPath)) call Error_Report('failed to unpack CAMB code'//{introspection:location})
-          ! Download the "forutils" package if necessary.
-          if (.not.File_Exists(makeFileForUtils)) then
-             if (.not.File_Exists(tarBallForUtils)) then
-                call displayMessage("downloading forutils code....",verbosityLevelWorking)
-                url="https://github.com/cmbant/forutils/archive/refs/tags/"//forutilsVersion//".tar.gz"
-                call download(url,tarBallForUtils,status=status,retries=5,retryWait=60)
-                if (status /= 0 .or. .not.File_Exists(tarBallForUtils)) call Error_Report("unable to download forutils"//{introspection:location})
-             end if
-             call displayMessage("unpacking forutils code....",verbosityLevelWorking)
-             escapedForUtilsDir=shellEscape(cambPath//"../forutils"                             )
-             escapedForUtilsTar=shellEscape(cambPath//"../forutils_"//forutilsVersion//".tar.gz")
-             command="tar -x -v -z -C "//escapedForUtilsDir//" -f "//escapedForUtilsTar//" --strip-components 1"
-             call System_Command_Do(command);
-             if (status /= 0 .or. .not.File_Exists(makeFileForUtils)) call Error_Report('failed to unpack forutils code'//{introspection:location})
+       end if
+       ! Unpack the "forutils" package at the required version if not already present. Any previously-unpacked version is removed
+       ! first, so that a change of forutils version does not leave a mixture of the two.
+       if (.not.File_Exists(stampForUtils)) then
+          if (.not.File_Exists(tarBallForUtils)) then
+             call displayMessage("downloading forutils code....",verbosityLevelWorking)
+             url="https://github.com/cmbant/forutils/archive/refs/tags/"//forutilsVersion//".tar.gz"
+             call download(url,tarBallForUtils,status=status,retries=5,retryWait=60)
+             if (status /= 0 .or. .not.File_Exists(tarBallForUtils)) call Error_Report("unable to download forutils"//{introspection:location})
           end if
-       end if       
+          call displayMessage("unpacking forutils code....",verbosityLevelWorking)
+          escapedForUtilsDir  =shellEscape(cambPath//"../forutils"                             )
+          escapedForUtilsTar  =shellEscape(cambPath//"../forutils_"//forutilsVersion//".tar.gz")
+          escapedForUtilsStamp=shellEscape(stampForUtils                                       )
+          command="rm -rf "//escapedForUtilsDir//"; mkdir -p "//escapedForUtilsDir//"; tar -x -v -z -C "//escapedForUtilsDir//" -f "//escapedForUtilsTar//" --strip-components 1"
+          call System_Command_Do(command,status);
+          if (status /= 0 .or. .not.File_Exists(makeFileForUtils)) call Error_Report('failed to unpack forutils code'//{introspection:location})
+          command="touch "//escapedForUtilsStamp
+          call System_Command_Do(command,status);
+          if (status /= 0 .or. .not.File_Exists(stampForUtils)) call Error_Report('failed to stamp forutils version'//{introspection:location})
+       end if
        call displayMessage("compiling CAMB code",verbosityLevelWorking)
        escapedCambPath=shellEscape(cambPath)
        command='cd '//escapedCambPath//'; sed -E -i~ s/"ifortErr[[:space:]]*=.*"/"ifortErr = 1"/ Makefile; sed -E -i~ s/"gfortErr[[:space:]]*=.*"/"gfortErr = 0"/ Makefile; sed -E -i~ s/"gfortran"/"'//stringSubstitute(compiler(languageFortran),"/","\/")//'"/ Makefile; sed -E -i~ s/"gfortran"/"'//stringSubstitute(compiler(languageFortran),"/","\/")//'"/ ../forutils/Makefile_compiler; sed -E -i~ s/"^FFLAGS[[:space:]]*\+=[[:space:]]*\-march=native"/"FFLAGS+="/ Makefile; sed -E -i~ s/"^FFLAGS[[:space:]]*=[[:space:]]*.*"/"FFLAGS = -cpp -Ofast -fopenmp '//stringSubstitute(compilerOptions(languageFortran),"/","\/")
@@ -154,6 +164,7 @@ contains
     Run CAMB as necessary to compute transfer functions.
     !!}
     use            :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
+    use            :: Dependencies                    , only : dependencyVersion           , dependencyVersionLabel
     use            :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make                  , File_Exists   , File_Lock     , &
          &                                                     File_Path                   , File_Remove                     , File_Unlock   , lockDescriptor, &
          &                                                     File_Name_Temporary
@@ -231,7 +242,9 @@ contains
     ! Add the unique label string to the descriptor.
     uniqueLabel=descriptor%serializeToString()       // &
          &      "_sourceDigest:"                     // &
-         &      String_C_To_Fortran(cambSourceDigest)
+         &      String_C_To_Fortran(cambSourceDigest)// &
+         &      dependencyVersionLabel("camb"    )   // &
+         &      dependencyVersionLabel("forutils")
     call descriptor%destroy()
     ! Build the file name.
     fileName_=inputPath(pathTypeDataDynamic)               // &
@@ -501,6 +514,8 @@ contains
                cambOutput=hdf5File(fileName_,readOnly=.false.,objectsOverwritable=.true.)
                call cambOutput%writeAttribute('Transfer functions created by CAMB.','description')
                call cambOutput%writeAttribute(cambFormatVersionCurrent,'fileFormat')
+               call cambOutput%writeAttribute(dependencyVersion("camb"    ),'versionCAMB'    )
+               call cambOutput%writeAttribute(dependencyVersion("forutils"),'versionForUtils')
                call cambOutput%writeDataset  (wavenumbers             ,'wavenumber'                                  ,chunkSize=chunkSize,appendTo=.not.  cambOutput%hasDataset('wavenumber'))
                speciesGroup=cambOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
                do i=1,countRedshiftsUnique

@@ -65,6 +65,11 @@ Implements a nonlinear power spectrum class in which the nonlinear power spectru
   ! Wavenumber range used for testing shape of primordial power spectrum.
   double precision, parameter :: wavenumberLong=0.01d0, wavenumberShort=1.0d0
 
+  ! Generate a source digest.
+  !![
+  <sourceDigest name="cosmicEmuSourceDigest"/>
+  !!]
+
 contains
 
   function cosmicEmuConstructorParameters(parameters) result(self)
@@ -167,14 +172,17 @@ contains
     Return a nonlinear power spectrum equal using the code of :cite:t:`lawrence_coyote_2010`.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
+    use :: Dependencies        , only : dependencyVersion
     use :: Display             , only : displayMessage              , verbosityLevelWorking
     use :: File_Utilities      , only : Count_Lines_In_File         , Directory_Make       , File_Exists, File_Lock, &
          &                              File_Name_Temporary         , Directory_Remove     , File_Unlock, File_Path, &
          &                              File_Remove
     use :: Error               , only : Error_Report
+    use :: Hashes_Cryptographic, only : Hash_MD5
     use :: Input_Paths         , only : inputPath                   , pathTypeDataDynamic
     use :: ISO_Varying_String  , only : varying_string
     use :: Numerical_Comparison, only : Values_Differ
+    use :: String_Handling     , only : String_C_To_Fortran
     use :: System_Command      , only : System_Command_Do           , shellEscape
     use :: System_Compilers    , only : languageC                   , compilerValidate
     use :: System_Download     , only : download
@@ -187,7 +195,9 @@ contains
          &                                                              parameters        , escapedZipFile      , &
          &                                                              escapedDynamicPath , escapedBuildDir     , &
          &                                                              escapedWorkDir     , escapedExecutable   , &
-         &                                                              escapedParameterFile, escapedPowerSpectrum
+         &                                                              escapedParameterFile, escapedPowerSpectrum, &
+         &                                                              cosmicEmuVersion    , cosmicEmuPath       , &
+         &                                                              uniqueLabel
     character       (len=32                         )                :: parameterLabel
     integer                                                          :: iWavenumber   , powerSpectrumUnit, &
          &                                                              status
@@ -197,9 +207,19 @@ contains
        ! Store the new time and find the corresponding redshift.
        self%timePrevious=time
        redshift         =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
-       ! Generate parameters and a file name for this power spectrum.
+       ! Generate parameters and a file name for this power spectrum. CosmicEmu publishes no releases, so it is pinned to a
+       ! specific commit, and unpacked to a directory named for that commit. That commit, along with a digest of this source
+       ! file, forms part of the cache key - without it, a power spectrum emulated by an earlier CosmicEmu would be silently
+       ! reused after the pin was moved.
+       cosmicEmuVersion =dependencyVersion("cosmicemu")
+       cosmicEmuPath    =inputPath(pathTypeDataDynamic)//"CosmicEmu-"//cosmicEmuVersion
+       uniqueLabel      ="_version:"                                  // &
+            &            cosmicEmuVersion                             // &
+            &            "_sourceDigest:"                             // &
+            &            String_C_To_Fortran(cosmicEmuSourceDigest)
        call Directory_Make(inputPath(pathTypeDataDynamic)//"largeScaleStructure")
        powerSpectrumFile=inputPath(pathTypeDataDynamic)//"largeScaleStructure/powerSpectrumCosmicEmu"
+       powerSpectrumFile=powerSpectrumFile//"_"//Hash_MD5(uniqueLabel)
        parameterFile    =File_Name_Temporary("cosmicEmuParameters",char(inputPath(pathTypeDataDynamic)//"largeScaleStructure"))//"/xstar.dat"
        call Directory_Make(File_Path(parameterFile))
        parameters       =''
@@ -242,40 +262,40 @@ contains
           write (powerSpectrumUnit,'(a)') char(parameters)
           close(powerSpectrumUnit)
           ! Check for presence of the executable.
-          call Directory_Make(inputPath(pathTypeDataDynamic)//"CosmicEmu-master")
-          if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/emu.exe")) then
+          call Directory_Make(cosmicEmuPath)
+          if (.not.File_Exists(cosmicEmuPath//"/emu.exe")) then
              call compilerValidate(languageC,'CosmicEmu')
              ! Check for presence of the source code.
-             if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.c")) then
+             if (.not.File_Exists(cosmicEmuPath//"/2022-Mira-Titan-IV/P_cb/emu.c")) then
                 ! Download the code.
-                if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu-master.zip")) then
+                if (.not.File_Exists(cosmicEmuPath//".zip")) then
                    call displayMessage("downloading CosmicEmu code....",verbosityLevelWorking)
-                   call download("https://github.com/lanl/CosmicEmu/archive/refs/heads/master.zip",char(inputPath(pathTypeDataDynamic))//"CosmicEmu-master.zip",status=status)
-                   if (status /= 0 .or. .not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu-master.zip")) &
+                   call download("https://github.com/lanl/CosmicEmu/archive/"//char(cosmicEmuVersion)//".zip",char(cosmicEmuPath)//".zip",status=status)
+                   if (status /= 0 .or. .not.File_Exists(cosmicEmuPath//".zip")) &
                         & call Error_Report("failed to download CosmicEmu code"//{introspection:location})
                 end if
                 ! Unpack the code.
                 call displayMessage("unpacking CosmicEmu code....",verbosityLevelWorking)
-                escapedZipFile    =inputPath  (pathTypeDataDynamic)//"CosmicEmu-master.zip"
+                escapedZipFile    =cosmicEmuPath//".zip"
                 escapedZipFile    =shellEscape(escapedZipFile     )
                 escapedDynamicPath=inputPath  (pathTypeDataDynamic)
                 escapedDynamicPath=shellEscape(escapedDynamicPath )
                 call System_Command_Do("unzip "//escapedZipFile//" -d "//escapedDynamicPath)
-                if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.c")) &
+                if (.not.File_Exists(cosmicEmuPath//"/2022-Mira-Titan-IV/P_cb/emu.c")) &
                      & call Error_Report("failed to unpack CosmicEmu code"//{introspection:location})
              end if
              ! Build the code.
              call displayMessage("compiling CosmicEmu code....",verbosityLevelWorking)
-             escapedBuildDir=inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb"
+             escapedBuildDir=cosmicEmuPath//"/2022-Mira-Titan-IV/P_cb"
              escapedBuildDir=shellEscape(escapedBuildDir)
              call System_Command_Do("cd "//escapedBuildDir//"; sed -i~ -r s/""^(\s*gcc.*\-lm)(\s+.*)$""/""\1 \-I\`gsl\-config \-\-prefix\`\2\n""/ makefile; make");
-             if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.exe")) &
+             if (.not.File_Exists(cosmicEmuPath//"/2022-Mira-Titan-IV/P_cb/emu.exe")) &
                   & call Error_Report("failed to build Cosmic_Emu code"//{introspection:location})
           end if
           ! Generate the power spectrum.
           escapedWorkDir      =File_Path  (parameterFile      )
           escapedWorkDir      =shellEscape(escapedWorkDir     )
-          escapedExecutable   =inputPath  (pathTypeDataDynamic)//"CosmicEmu-master/2022-Mira-Titan-IV/P_cb/emu.exe"
+          escapedExecutable   =cosmicEmuPath//"/2022-Mira-Titan-IV/P_cb/emu.exe"
           escapedExecutable   =shellEscape(escapedExecutable  )
           escapedParameterFile=shellEscape(parameterFile      )
           escapedPowerSpectrum=shellEscape(powerSpectrumFile  )

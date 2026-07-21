@@ -144,6 +144,7 @@ contains
     Run CLASS as necessary to compute perturbations.
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
+    use               :: Dependencies                    , only : dependencyVersion           , dependencyVersionLabel
     use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists   , File_Lock     , &
          &                                                        File_Path                   , File_Remove        , File_Unlock   , lockDescriptor
     use               :: Error                           , only : Error_Report
@@ -214,9 +215,10 @@ contains
     write (parameterLabel,'(i4)'  ) countPerDecade_
     call descriptor%addParameter("countPerDecade",parameterLabel)
     ! Add the unique label string to the descriptor.
-    uniqueLabel=descriptor%serializeToString()       // &
-         &      "_sourceDigest:"                     // &
-         &      String_C_To_Fortran(classSourceDigest)
+    uniqueLabel=descriptor%serializeToString()        // &
+         &      "_sourceDigest:"                      // &
+         &      String_C_To_Fortran(classSourceDigest)// &
+         &      dependencyVersionLabel("class")
     call descriptor%destroy()
     ! Build the file name.
     fileName_=char(inputPath(pathTypeDataDynamic))                    // &
@@ -309,6 +311,7 @@ contains
          classOutput=hdf5File(fileName_,objectsOverwritable=.true.)
          call    classOutput %writeAttribute('Perturbations created by CLASS.','description')
          call    classOutput %writeAttribute(classFormatVersionCurrent,'fileFormat')
+         call    classOutput %writeAttribute(dependencyVersion("class"),'versionCLASS')
          call    classOutput %writeDataset(wavenumbers ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not. classOutput%hasDataset('wavenumber'))
          speciesGroup=classOutput%openGroup('darkMatter','Group containing perturbations for dark matter.')
          do i=1,countRedshiftsUnique
@@ -396,6 +399,7 @@ contains
     Run CLASS as necessary to compute transfer functions.
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
+    use               :: Dependencies                    , only : dependencyVersion           , dependencyVersionLabel
     use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists   , File_Lock     , &
          &                                                        File_Path                   , File_Remove        , File_Unlock   , lockDescriptor
     use               :: Error                           , only : Error_Report
@@ -463,9 +467,10 @@ contains
     write (parameterLabel,'(i4)'  ) countPerDecade_
     call descriptor%addParameter("countPerDecade",parameterLabel)
     ! Add the unique label string to the descriptor.
-    uniqueLabel=descriptor%serializeToString()       // &
-         &      "_sourceDigest:"                     // &
-         &      String_C_To_Fortran(classSourceDigest)
+    uniqueLabel=descriptor%serializeToString()        // &
+         &      "_sourceDigest:"                      // &
+         &      String_C_To_Fortran(classSourceDigest)// &
+         &      dependencyVersionLabel("class")
     call descriptor%destroy()
     ! Build the file name.
     fileName_=char(inputPath(pathTypeDataDynamic))                        // &
@@ -558,6 +563,7 @@ contains
          classOutput=hdf5File(fileName_,objectsOverwritable=.true.)
          call classOutput %writeAttribute('Transfer functions created by CLASS.','description')
          call classOutput %writeAttribute(classFormatVersionCurrent,'fileFormat')
+         call classOutput %writeAttribute(dependencyVersion("class"),'versionCLASS')
          call classOutput %writeDataset(wavenumbers ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not. classOutput%hasDataset('wavenumber'))
          speciesGroup=classOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
          do i=1,countRedshiftsUnique
@@ -647,6 +653,7 @@ contains
     Run CLASS to compute the ratio :math:`\sigma_8^2/A_s`.
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass
+    use               :: Dependencies                    , only : dependencyVersion       , dependencyVersionLabel
     use               :: File_Utilities                  , only : Directory_Make          , File_Exists       , File_Lock     , File_Unlock, &
          &                                                        File_Path               , lockDescriptor
     use               :: Input_Paths                     , only : inputPath               , pathTypeDataDynamic
@@ -676,7 +683,8 @@ contains
     ! Add the unique label string to the descriptor.
     uniqueLabel=descriptor%serializeToString()        // &
          &      "_sourceDigest:"                      // &
-         &      String_C_To_Fortran(classSourceDigest)
+         &      String_C_To_Fortran(classSourceDigest)// &
+         &      dependencyVersionLabel("class")
     call descriptor%destroy()
     ! Build the file name.
     fileName=char(inputPath(pathTypeDataDynamic))                    // &
@@ -702,7 +710,8 @@ contains
        !$ call hdf5Access %set           (                              )
        hdf5WriteScope: block
          classOutput=hdf5File(fileName,objectsOverwritable=.true.)
-         call    classOutput%writeAttribute(normalization ,'normalization')
+         call    classOutput%writeAttribute(normalization              ,'normalization')
+         call    classOutput%writeAttribute(dependencyVersion("class"),'versionCLASS' )
        end block hdf5WriteScope
        !$ call hdf5Access %unset         (                              )
     end if

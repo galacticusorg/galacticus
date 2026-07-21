@@ -64,6 +64,7 @@ contains
     !!{RST
     Initialize the interface with AxionCAMB, including downloading and compiling AxionCAMB if necessary.
     !!}
+    use :: Dependencies      , only : dependencyVersion
     use :: File_Utilities    , only : File_Exists      , File_Lock            , File_Unlock , lockDescriptor, &
          &                            Directory_Make
     use :: Display           , only : displayMessage   , verbosityLevelWorking
@@ -73,6 +74,7 @@ contains
           &                           varying_string
     use :: String_Handling   , only : stringSubstitute
     use :: System_Command    , only : System_Command_Do, shellEscape
+    use :: System_Download   , only : download
     use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran, compilerValidate
     implicit none
     type   (varying_string), intent(  out)           :: axionCambPath, axionCambVersion
@@ -80,27 +82,41 @@ contains
     integer                                          :: status
     type   (varying_string)                          :: command
     type   (lockDescriptor)                          :: fileLock
-    type   (varying_string)                          :: lockPath     , exePath, &
-         &                                              escapedAxionCambPath
+    type   (varying_string)                          :: lockPath     , exePath        , &
+         &                                              tarBall      , url            , &
+         &                                              escapedAxionCambPath          , &
+         &                                              escapedToolsPath, escapedTarFile
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
 
-    ! Set path and version
-    axionCambPath   =inputPath(pathTypeTools)//"AxionCAMB/"
-    lockPath        =inputPath(pathTypeTools)//"axion_camb"
+    ! Set path and version. AxionCAMB publishes no releases, so it is pinned to a specific commit, and unpacked to a directory
+    ! named for that commit so that a change of pin forces a rebuild.
+    axionCambVersion=dependencyVersion("axioncamb")
+    axionCambPath   =inputPath(pathTypeTools)//"axionCAMB-"//axionCambVersion//"/"
+    lockPath        =inputPath(pathTypeTools)//"axion_camb_"//axionCambVersion
     exePath         =axionCambPath//"camb"
-    axionCambVersion="?"
-    call File_Lock(char(lockPath),fileLock,lockIsShared=.false.)
+    call Directory_Make(inputPath(pathTypeTools))
+    call File_Lock     (char(lockPath),fileLock,lockIsShared=.false.)
     ! Build the AxionCAMB code.
     if (.not.File_Exists(exePath)) then
        call compilerValidate(languageFortran,'AxionCAMB')
        if (.not.File_Exists(axionCambPath)) then
           ! Download AxionCAMB if necessary.
-          call displayMessage("downloading AxionCAMB code....",verbosityLevelWorking)
-          escapedAxionCambPath=shellEscape(axionCambPath)
-          call System_Command_Do("git clone https://github.com/dgrin1/axionCAMB.git "//escapedAxionCambPath,status)
-          if (status /= 0 .or. .not.File_Exists(axionCambPath)) call Error_Report("unable to download AxionCAMB"//{introspection:location})
+          tarBall=inputPath(pathTypeTools)//"axionCAMB_"//axionCambVersion//".tar.gz"
+          if (.not.File_Exists(tarBall)) then
+             call displayMessage("downloading AxionCAMB code....",verbosityLevelWorking)
+             url="https://github.com/dgrin1/axionCAMB/archive/"//axionCambVersion//".tar.gz"
+             call download(url,tarBall,status=status,retries=5,retryWait=60)
+             if (status /= 0 .or. .not.File_Exists(tarBall)) call Error_Report("unable to download AxionCAMB"//{introspection:location})
+          end if
+          call displayMessage("unpacking AxionCAMB code....",verbosityLevelWorking)
+          escapedToolsPath=inputPath  (pathTypeTools )
+          escapedToolsPath=shellEscape(escapedToolsPath)
+          escapedTarFile  =shellEscape(tarBall         )
+          command="tar -x -v -z -C "//escapedToolsPath//" -f "//escapedTarFile
+          call System_Command_Do(char(command),status)
+          if (status /= 0 .or. .not.File_Exists(axionCambPath)) call Error_Report("failed to unpack AxionCAMB code"//{introspection:location})
        end if
        call displayMessage("compiling AxionCAMB code",verbosityLevelWorking)
        escapedAxionCambPath=shellEscape(axionCambPath)
@@ -121,6 +137,7 @@ contains
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
     use               :: Dark_Matter_Particles           , only : darkMatterParticleClass     , darkMatterParticleFuzzyDarkMatter
+    use               :: Dependencies                    , only : dependencyVersion           , dependencyVersionLabel
     use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make                   , File_Exists , File_Lock     , &
           &                                                       File_Path                   , File_Remove                      , File_Unlock , lockDescriptor, &
           &                                                       File_Name_Temporary
@@ -212,7 +229,8 @@ contains
     ! Add the unique label string to the descriptor.
     uniqueLabel=descriptor%serializeToString()            // &
          &      "_sourceDigest:"                          // &
-         &      String_C_To_Fortran(axionCambSourceDigest)
+         &      String_C_To_Fortran(axionCambSourceDigest)// &
+         &      dependencyVersionLabel("axioncamb")
     call descriptor%destroy()
     ! Build the file name.
     fileName_=char(inputPath(pathTypeDataDynamic))                            // &
@@ -517,6 +535,7 @@ contains
          axionCambOutput=hdf5File(fileName_,readOnly=.false.,objectsOverwritable=.true.)
          call axionCambOutput%writeAttribute('Transfer functions created by AxionCAMB.','description')
          call axionCambOutput%writeAttribute(axionCambFormatVersionCurrent,'fileFormat')
+         call axionCambOutput%writeAttribute(dependencyVersion("axioncamb"),'versionAxionCAMB')
          call axionCambOutput%writeDataset(wavenumbers    ,'wavenumber'                                 ,chunkSize=chunkSize,appendTo=.not.axionCambOutput%hasDataset('wavenumber'))
          speciesGroup=axionCambOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
          do i=1,countRedshiftsUnique
