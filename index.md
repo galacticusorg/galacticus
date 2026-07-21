@@ -50,6 +50,14 @@ _[Du et al. (2024)](https://ui.adsabs.harvard.edu/abs/2024arXiv240309597D)_
 
 8 metric(s).
 
+## [Halo mass function](groups/haloMassFunction.html)
+
+Halo mass function model calibrated against the MDPL, Symphony, and COZMIC simulation suites.
+
+_[Benson et al. (2026)](https://ui.adsabs.harvard.edu/abs/2026arXiv260612137B)_
+
+8 metric(s).
+
 ## [Milky Way model](groups/milkyWayModel.html)
 
 Full Milky Way galaxy formation model.
