@@ -676,8 +676,14 @@ def render_constants(constants: list[dict], glsmap: dict) -> str:
             if c.get('gslSymbol'):
                 extras.append(f'value from GSL ``{c["gslSymbol"]}``')
             if c.get('reference'):
-                extras.append(f'`{c["reference"]} <{c["referenceURL"]}>`_'
-                              if c.get('referenceURL') else c['reference'])
+                # References are LaTeX — often a bare ``\cite{…}`` — so convert
+                # them, except when they label an explicit URL (then the text is
+                # the link text and must stay literal).
+                extras.append(
+                    f'`{c["reference"]} <{c["referenceURL"]}>`_'
+                    if c.get('referenceURL') else
+                    re.sub(r'\s*\n\s*', ' ',
+                           latex_to_rst(c['reference'], glsmap)).strip())
             if c.get('externalDescription'):
                 extras.append(f'`more <{c["externalDescription"]}>`_')
             body = (desc or '—') + ('\n\n' + '; '.join(extras) if extras else '')
