@@ -1,0 +1,190 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Regression test: CGM ram pressure stripping must be applied to a satellite
+     whose CGM outer radius exceeds its virial radius.
+
+     Prior to the CGM refactors the hot halo outer radius was clamped to the
+     virial radius, so the guard `radiusOuter <= radiusVirial` in the ram
+     pressure stripping node operator was identically satisfied and stripping
+     always fired for satellites. After the refactor the clamp is optional (it
+     now lives in the CGMOuterRadiusVirialRadius node operator), and the outer
+     radius only tracks the virial radius to floating point accuracy. Whenever
+     it landed fractionally above the virial radius, stripping was silently
+     disabled and the satellite retained its gas.
+
+     This model makes that regime explicit and large rather than a ~1e-6
+     floating point accident: the satellite's CGM outer radius is initialized at
+     1.5x its virial radius in the tree file. Cooling, star formation and
+     feedback are all absent, so ram pressure stripping is the ONLY process that
+     can change the satellite's hot halo mass.
+
+     NOTE: the CGMOuterRadiusVirialRadius node operator must NOT be included.
+     It analytically re-clamps the outer radius to the virial radius and would
+     erase the configuration under test. -->
+
+<parameters>
+  <formatVersion>2</formatVersion>
+
+  <!-- Random number generation -->
+  <randomNumberGenerator value="GSL">
+    <seed value="8122"/>
+  </randomNumberGenerator>
+
+  <!-- Task -->
+  <task value="evolveForests"/>
+
+  <!-- Component selection: hot halo + orbiting satellite only. No disk,
+       spheroid or black hole, so there is no star formation or feedback. -->
+  <componentBasic             value="standard"/>
+  <componentBlackHole         value="null"    />
+  <componentDarkMatterProfile value="scale"   />
+  <componentDisk              value="null"    />
+  <componentHotHalo           value="standard"/>
+  <componentSatellite         value="orbiting"/>
+  <componentSpheroid          value="null"    />
+  <componentSpin              value="null"    />
+
+  <!-- Dark matter properties -->
+  <darkMatterParticle value="CDM"/>
+
+  <!-- Cosmology: static universe keeps the virial radius fixed, so the
+       outerRadius > radiusVirial condition set up in the tree file persists for
+       the whole evolution instead of drifting. -->
+  <cosmologyFunctions  value="staticUniverse"/>
+  <cosmologyParameters value="simple"         >
+    <HubbleConstant  value="67.36000"/>
+    <OmegaMatter     value=" 0.31530"/>
+    <OmegaDarkEnergy value=" 0.68470"/>
+    <OmegaBaryon     value=" 0.04930"/>
+    <temperatureCMB  value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Structure formation options -->
+  <linearGrowth          value="collisionlessMatter"/>
+  <virialDensityContrast value="fixed"               >
+    <densityContrastValue value="329.6207717164546"/>
+    <densityType          value="mean"             />
+  </virialDensityContrast>
+
+  <!-- Merger tree: a single, fully-specified host + subhalo pair. -->
+  <mergerTreeConstructor value="fullySpecified">
+    <fileName value="testSuite/parameters/cgmRamPressureOuterRadiusTree.xml"/>
+  </mergerTreeConstructor>
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfile              value="darkMatterOnly"/>
+  <darkMatterProfileDMO           value="NFW"           />
+  <darkMatterProfileConcentration value="fixed"          >
+    <concentration value="10.0"/>
+  </darkMatterProfileConcentration>
+
+  <!-- No halo accretion: the CGM mass is fixed except for ram pressure
+       stripping. -->
+  <accretionHalo value="zero"/>
+
+  <!-- Hot halo gas model: a beta profile gives a finite, non-zero density at
+       the outer radius, which the stripping mass loss rate requires. -->
+  <hotHaloMassDistribution value="betaProfile"/>
+
+  <!-- Ram pressure stripping physics -->
+  <hotHaloRamPressureStripping  value="font2008"          />
+  <hotHaloRamPressureForce      value="font2008"          />
+  <hotHaloRamPressureTimescale  value="haloDynamicalTime" />
+  <hotHaloOutflowStripping      value="zero"              />
+
+  <!-- Galactic structure solver -->
+  <galacticStructureSolver value="fixed"/>
+
+  <!-- Satellite orbits -->
+  <virialOrbit value="isotropic">
+    <virialOrbit value="benson2005"/>
+  </virialOrbit>
+  <satelliteDynamicalFriction value="zero"/>
+  <satelliteTidalStripping    value="zero"/>
+  <satelliteTidalHeatingRate  value="zero"/>
+  <mergerRemnantSize          value="null"/>
+
+  <!-- Node evolution and physics. Deliberately minimal: orbital evolution plus
+       CGM ram pressure stripping, and nothing that could add to or remove from
+       the hot halo by another channel. -->
+  <nodeOperator value="multi">
+    <nodeOperator value="cosmicTime"                          />
+    <nodeOperator value="DMOInterpolate"                      />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"   />
+    <nodeOperator value="satelliteOrbit"                      />
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"   >
+      <!-- This reproduces the actual failure mode, and is the entire point of
+           the test, so do not "tidy" it away.
+
+           The standard hot halo component's outerRadius getter is deferred and
+           clamps its result to [0.1*rVir, rVir], where rVir comes from the
+           darkMatterHaloScale object the COMPONENT builds (from its own
+           subParameters). The ram pressure stripping node operator builds a
+           SEPARATE darkMatterHaloScale object (from the top-level parameters)
+           and compared the clamped radius against ITS virial radius. The guard
+           therefore never compared like with like, and whenever the two objects
+           disagreed (in practice by a relative 1e-6 to 1e-4) the outer radius
+           came out fractionally above the virial radius and ram pressure
+           stripping was silently skipped.
+
+           Setting a larger virial density contrast here makes the operator's
+           virial radius smaller than the component's by a controlled factor
+           (rVir scales as densityContrast^(-1/3), so 8x contrast gives 0.5x
+           radius) instead of by a floating point accident. The regime under
+           test is then entered deliberately and by a wide margin. -->
+      <darkMatterHaloScale value="virialDensityContrastDefinition">
+        <virialDensityContrast value="fixed">
+          <densityContrastValue value="2636.9661737316368"/>
+          <densityType          value="mean"              />
+        </virialDensityContrast>
+      </darkMatterHaloScale>
+    </nodeOperator>
+  </nodeOperator>
+
+  <!-- Numerical tolerances -->
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="1.0e-4"/>
+    <odeToleranceRelative value="1.0e-4"/>
+  </mergerTreeNodeEvolver>
+  <!-- timestepHostRelative MUST be zero: a non-zero value makes the evolver
+       compute an expansion timescale as 1/expansionRate, which divides by zero
+       in a static universe. -->
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute             value="1.00"/>
+    <timestepHostRelative             value="0.00"/>
+    <fractionTimestepSatelliteMinimum value="0.75"/>
+    <backtrackToSatellites            value="true"/>
+  </mergerTreeEvolver>
+  <mergerTreeEvolveTimestep value="multi">
+    <mergerTreeEvolveTimestep value="simple"    >
+      <timeStepAbsolute value="1.000"/>
+      <timeStepRelative value="0.000"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="satellite" >
+      <timeOffsetMaximumAbsolute value="0.010"/>
+      <timeOffsetMaximumRelative value="0.001"/>
+    </mergerTreeEvolveTimestep>
+  </mergerTreeEvolveTimestep>
+
+  <!-- Output: the first output is at the initial time so the test can verify
+       its own precondition (outerRadius > radiusVirial) rather than assume it. -->
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+  <outputTimes value="list">
+    <times value="1.0 10.0"/>
+  </outputTimes>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"      />
+    <!-- virialProperties reports darkMatterHaloScale_%radiusVirial(node), which
+         is precisely the quantity the ram pressure stripping guard compared the
+         outer radius against. Using it (rather than the radiusVirial extractor,
+         which re-derives a radius from its own density contrast definition)
+         means the test checks its precondition against the same number the code
+         under test uses. -->
+    <nodePropertyExtractor value="virialProperties" />
+  </nodePropertyExtractor>
+
+  <outputFileName value="testSuite/outputs/cgmRamPressureOuterRadius.hdf5"/>
+
+</parameters>
