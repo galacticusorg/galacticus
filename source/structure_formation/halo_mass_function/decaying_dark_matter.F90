@@ -270,14 +270,10 @@ contains
     double precision                                                              :: logMassCollapsed, mass0   , &
          &                                                                           gradientLog     , jacobian
 
-    ! The mapping table is (re)tabulated on demand---when the epoch changes or a collapsed mass outside
-    ! the tabulated range is requested---which mutates and reallocates shared table state. As the
-    ! differential is evaluated concurrently (the halo mass function task loops over masses within an
-    ! OpenMP parallel region), the entire evaluation is performed within a critical section: this protects
-    ! not only the (double-checked) retabulation but also the interpolation, which would otherwise be able
-    ! to read the interpolator while another thread rebuilds it. The wrapped mass function's own lazy
-    ! tabulation uses a differently-named critical section, so nesting here is safe.
-    !$omp critical (haloMassFunctionDecayingDarkMatterTabulate)
+    ! (Re)tabulate the mass mapping on demand: when the epoch changes, or when the requested collapsed
+    ! mass falls outside the currently-tabulated range (which extends the range and rebuilds the table).
+    ! No locking is required as the halo mass function task deep-copies this object per OpenMP thread, so
+    ! the tabulated state mutated here is thread-private.
     if (.not.self%tabulated .or. time /= self%timeTabulated .or. mass < self%massCollapsedMinimum .or. mass > self%massCollapsedMaximum) &
          & call decayingDarkMatterTabulate(self,time,mass)
     ! Invert the mapping: find the Lagrangian mass M₀ corresponding to the collapsed mass, and the
@@ -292,7 +288,6 @@ contains
          &           *gradientLog
     decayingDarkMatterDifferential=+self%massFunction_%differential(time,mass0,node=node) &
          &                         *jacobian
-    !$omp end critical (haloMassFunctionDecayingDarkMatterTabulate)
     return
   end function decayingDarkMatterDifferential
 
