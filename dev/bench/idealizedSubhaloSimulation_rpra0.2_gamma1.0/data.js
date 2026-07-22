@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784610212373,
+  "lastUpdate": 1784693837240,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=1.0)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "da79ef87c3e645c1a9bcd7c9ead0e194288def69",
-          "message": "fix: Correct description",
-          "timestamp": "2024-07-25T08:13:30-07:00",
-          "tree_id": "4b1fd0373fa3d06a1405e30565edad86409e03cd",
-          "url": "https://github.com/galacticusorg/galacticus/commit/da79ef87c3e645c1a9bcd7c9ead0e194288def69"
-        },
-        "date": 1721953333423,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
-            "value": 30.5921378545015,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": 16.7577755419615,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
-            "value": 17.5163186371832,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9900,6 +9861,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/7b8382082e295748f204b4a71e38bc1f6d18f1aa"
         },
         "date": 1784610211823,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": 30.59213755756872,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": 16.75777555466471,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": 17.51631864678526,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "7ccee793c100d43f06a33d7ab4cdf7a59b8536c8",
+          "message": "ci: update gh-pages analysis thresholds\n\nAdd halo mass function metrics (COZMIC, MDPL, Symphony) and refresh\ncurrent/threshold values from the latest analysis run.",
+          "timestamp": "2026-07-21T15:57:10-07:00",
+          "tree_id": "7dc49e42433465665ece78a3f1bc36f3bb74c749",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7ccee793c100d43f06a33d7ab4cdf7a59b8536c8"
+        },
+        "date": 1784693835921,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
