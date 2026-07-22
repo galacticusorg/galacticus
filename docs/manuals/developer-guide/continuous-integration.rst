@@ -131,3 +131,24 @@ tests; if your change touches the model, run the relevant ``testSuite/test-*.py`
 script(s) too. See the repository's `CONTRIBUTING.md
 <https://github.com/galacticusorg/galacticus/blob/master/CONTRIBUTING.md>`_ for
 the full checklist.
+
+.. _manual-sec-mergingPullRequests:
+
+Merging pull requests
+---------------------
+
+Pull requests are merged with a **merge commit**. Do not squash-merge or
+rebase-merge them.
+
+This is not merely a matter of taste in history: parameter file migrations
+(:galacticus-ref:`parameterMigrations`) are keyed by the full hash of the commit
+that introduced each change, and ``parametersMigrate.py`` matches those hashes
+against the repository's git ancestry by exact string equality. Squash- and
+rebase-merging both rewrite commit hashes, which would leave every affected
+``migrations.xml`` entry pointing at a commit that no longer exists in the
+history. Such a migration matches nothing and is silently skipped — no error is
+raised, and parameter files quietly stop migrating correctly.
+
+Preserving commit hashes on merge is therefore a correctness requirement, and
+applies to every pull request, since a later branch may add a migration keyed to
+a commit merged earlier.

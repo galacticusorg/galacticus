@@ -148,6 +148,10 @@ When your changes are ready:
 
 5. **Respond to code review** - A maintainer will review your PR and may request changes. This is normal and helps maintain code quality!
 
+6. **Merging** - Pull requests are merged with a **merge commit**; we do not squash-merge or rebase-merge. This preserves commit hashes, which is a correctness requirement rather than a style preference: parameter file migrations in `scripts/aux/migrations.xml` are keyed by the hash of the commit that introduced each change, and a migration whose hash is absent from the history is *silently skipped*. See [Merging pull requests](https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/continuous-integration.html#merging-pull-requests).
+
+   For the same reason, if you **rebase or amend** a branch that adds an entry to `migrations.xml`, update that entry's `commit` attribute to the new hash before pushing, and re-run the migration on a representative parameter file to confirm the expected `Updating to revision <hash>` line still appears.
+
 ## Contributor Attribution
 
 We use inline markers to track who contributed to each part of the code. This is automatically extracted to generate contributor lists.
