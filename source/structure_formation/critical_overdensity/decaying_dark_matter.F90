@@ -63,11 +63,11 @@ dark matter (DDM) of :cite:t:`montandon_decaying_2026`.
      ! constructorAssign rather than declared as our own members.
      class           (criticalOverdensityClass), pointer :: criticalOverdensity_ => null()
      class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
-     double precision                                    :: lifetime                       , velocityKick
+     double precision                                    :: lifetime                            , velocityKick
      ! Cache of epoch-dependent (but mass-independent) quantities.
-     double precision                                    :: timeCached           =-huge(0.0d0)
-     double precision                                    :: deltaCLargeCached              , deltaCSmallCached, &
-          &                                                 massScale1Cached              , deltaCEdSCached
+     double precision                                    :: timeCached           =  -huge(0.0d0)
+     double precision                                    :: deltaCLargeCached                   , deltaCSmallCached, &
+          &                                                 massScale1Cached                    , deltaCEdSCached
    contains
      final     ::                    decayingDarkMatterDestructor
      procedure :: value           => decayingDarkMatterValue
@@ -95,12 +95,12 @@ contains
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (criticalOverdensityDecayingDarkMatter)                :: self
-    type (inputParameters                       ), intent(inout) :: parameters
-    class(criticalOverdensityClass              ), pointer       :: criticalOverdensity_
-    class(cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
-    class(cosmologicalMassVarianceClass         ), pointer       :: cosmologicalMassVariance_
-    class(linearGrowthClass                     ), pointer       :: linearGrowth_
-    class(darkMatterParticleClass               ), pointer       :: darkMatterParticle_
+    type (inputParameters                      ), intent(inout) :: parameters
+    class(criticalOverdensityClass             ), pointer       :: criticalOverdensity_
+    class(cosmologyFunctionsClass              ), pointer       :: cosmologyFunctions_
+    class(cosmologicalMassVarianceClass        ), pointer       :: cosmologicalMassVariance_
+    class(linearGrowthClass                    ), pointer       :: linearGrowth_
+    class(darkMatterParticleClass              ), pointer       :: darkMatterParticle_
 
     !![
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
@@ -129,11 +129,11 @@ contains
     use :: Error                , only : Error_Report
     implicit none
     type (criticalOverdensityDecayingDarkMatter)                        :: self
-    class(criticalOverdensityClass              ), target, intent(in   ) :: criticalOverdensity_
-    class(cosmologyFunctionsClass               ), target, intent(in   ) :: cosmologyFunctions_
-    class(cosmologicalMassVarianceClass         ), target, intent(in   ) :: cosmologicalMassVariance_
-    class(linearGrowthClass                     ), target, intent(in   ) :: linearGrowth_
-    class(darkMatterParticleClass               ), target, intent(in   ) :: darkMatterParticle_
+    class(criticalOverdensityClass             ), target, intent(in   ) :: criticalOverdensity_
+    class(cosmologyFunctionsClass              ), target, intent(in   ) :: cosmologyFunctions_
+    class(cosmologicalMassVarianceClass        ), target, intent(in   ) :: cosmologicalMassVariance_
+    class(linearGrowthClass                    ), target, intent(in   ) :: linearGrowth_
+    class(darkMatterParticleClass              ), target, intent(in   ) :: darkMatterParticle_
     !![
     <constructorAssign variables="*criticalOverdensity_, *cosmologyFunctions_, *cosmologicalMassVariance_, *linearGrowth_, *darkMatterParticle_"/>
     !!]
@@ -174,24 +174,24 @@ contains
     at the given cosmic time and (Lagrangian) mass. Epoch-dependent (mass-independent) quantities are
     cached, since the halo mass function evaluates this at many masses for a single epoch.
     !!}
-    use :: Decaying_Dark_Matter_Spherical_Collapse, only : decayingDarkMatterEpsilon               , decayingDarkMatterGammaTilde, &
-         &                                                  decayingDarkMatterJIntegral            , decayingDarkMatterDeltaCLarge, &
-         &                                                  decayingDarkMatterDeltaCSmall          , decayingDarkMatterMassScale1 , &
-         &                                                  decayingDarkMatterDeltaCFit            , decayingDarkMatterCriticalOverdensityEdS
+    use :: Decaying_Dark_Matter_Spherical_Collapse, only : decayingDarkMatterEpsilon    , decayingDarkMatterGammaTilde            , &
+         &                                                 decayingDarkMatterJIntegral  , decayingDarkMatterDeltaCLarge           , &
+         &                                                 decayingDarkMatterDeltaCSmall, decayingDarkMatterMassScale1            , &
+         &                                                 decayingDarkMatterDeltaCFit  , decayingDarkMatterCriticalOverdensityEdS
     implicit none
     class           (criticalOverdensityDecayingDarkMatter), intent(inout) :: self
-    double precision                                       , intent(in   ) :: timeValue, mass
+    double precision                                       , intent(in   ) :: timeValue , mass
     double precision                                                       :: gammaTilde, epsilon, jIntegral
 
     ! Update the cache of epoch-dependent quantities if the epoch has changed.
     if (timeValue /= self%timeCached) then
-       gammaTilde            =decayingDarkMatterGammaTilde            (timeValue,self%lifetime         )
-       epsilon               =decayingDarkMatterEpsilon              (          self%velocityKick     )
-       jIntegral             =decayingDarkMatterJIntegral            (gammaTilde                       )
-       self%deltaCLargeCached=decayingDarkMatterDeltaCLarge          (gammaTilde,epsilon    ,jIntegral)
-       self%deltaCSmallCached=decayingDarkMatterDeltaCSmall          (gammaTilde                       )
-       self%massScale1Cached =decayingDarkMatterMassScale1           (self%velocityKick,gammaTilde,timeValue)
-       self%deltaCEdSCached  =decayingDarkMatterCriticalOverdensityEdS(                                )
+       gammaTilde            =decayingDarkMatterGammaTilde            (     timeValue   ,self%lifetime              )
+       epsilon               =decayingDarkMatterEpsilon               (                  self%velocityKick          )
+       jIntegral             =decayingDarkMatterJIntegral             (     gammaTilde                              )
+       self%deltaCLargeCached=decayingDarkMatterDeltaCLarge           (     gammaTilde  ,     epsilon     ,jIntegral)
+       self%deltaCSmallCached=decayingDarkMatterDeltaCSmall           (     gammaTilde                              )
+       self%massScale1Cached =decayingDarkMatterMassScale1            (self%velocityKick,     gammaTilde  ,timeValue)
+       self%deltaCEdSCached  =decayingDarkMatterCriticalOverdensityEdS(                                             )
        self%timeCached       =timeValue
     end if
     correction=+decayingDarkMatterDeltaCFit(mass,self%deltaCLargeCached,self%deltaCSmallCached,self%massScale1Cached) &
@@ -234,9 +234,9 @@ contains
     !$GLC attributes unused :: node
 
     if (.not.present(mass)) call Error_Report('mass is required for this critical overdensity class'//{introspection:location})
-    timeValue             =decayingDarkMatterEpoch(self,time,expansionFactor)
-    decayingDarkMatterValue=+self%criticalOverdensity_%value(time,expansionFactor,collapsing,mass) &
-         &                  *decayingDarkMatterCorrection(self,timeValue,mass)
+    timeValue              =+decayingDarkMatterEpoch(self,time,expansionFactor)
+    decayingDarkMatterValue=+self%criticalOverdensity_%value                       (     time     ,expansionFactor,collapsing,mass) &
+         &                  *                          decayingDarkMatterCorrection(self,timeValue                           ,mass)
     return
   end function decayingDarkMatterValue
 
@@ -250,19 +250,20 @@ contains
     use :: Error, only : Error_Report
     implicit none
     class           (criticalOverdensityDecayingDarkMatter), intent(inout)           :: self
-    double precision                                       , intent(in   ), optional :: time      , expansionFactor
+    double precision                                       , intent(in   ), optional :: time             , expansionFactor
     logical                                                , intent(in   ), optional :: collapsing
     double precision                                       , intent(in   ), optional :: mass
     type            (treeNode                             ), intent(inout), optional :: node
     double precision                                       , parameter               :: fractionalStep=1.0d-4
-    double precision                                                                 :: timeValue     , timeStep    , &
-         &                                                                              correction    , gradientCorrection
+    double precision                                                                 :: timeValue            , timeStep          , &
+         &                                                                              correction           , gradientCorrection
     !$GLC attributes unused :: node
 
     if (.not.present(mass)) call Error_Report('mass is required for this critical overdensity class'//{introspection:location})
-    timeValue         =decayingDarkMatterEpoch(self,time,expansionFactor)
-    timeStep          =fractionalStep*timeValue
-    correction        =decayingDarkMatterCorrection(self,timeValue         ,mass)
+    timeValue         =+decayingDarkMatterEpoch(self,time,expansionFactor)
+    timeStep          =+fractionalStep &
+         &             *timeValue
+    correction        =+  decayingDarkMatterCorrection(self,timeValue         ,mass)
     gradientCorrection=+(                                                             &
          &               +decayingDarkMatterCorrection(self,timeValue+timeStep,mass)  &
          &               -decayingDarkMatterCorrection(self,timeValue-timeStep,mass)  &
@@ -285,19 +286,20 @@ contains
     use :: Error, only : Error_Report
     implicit none
     class           (criticalOverdensityDecayingDarkMatter), intent(inout)           :: self
-    double precision                                       , intent(in   ), optional :: time      , expansionFactor
+    double precision                                       , intent(in   ), optional :: time                 , expansionFactor
     logical                                                , intent(in   ), optional :: collapsing
     double precision                                       , intent(in   ), optional :: mass
     type            (treeNode                             ), intent(inout), optional :: node
     double precision                                       , parameter               :: fractionalStep=1.0d-4
-    double precision                                                                 :: timeValue     , massStep    , &
-         &                                                                              correction    , gradientCorrection
+    double precision                                                                 :: timeValue            , massStep          , &
+         &                                                                              correction           , gradientCorrection
     !$GLC attributes unused :: node
 
     if (.not.present(mass)) call Error_Report('mass is required for this critical overdensity class'//{introspection:location})
-    timeValue         =decayingDarkMatterEpoch(self,time,expansionFactor)
-    massStep          =fractionalStep*mass
-    correction        =decayingDarkMatterCorrection(self,timeValue,mass         )
+    timeValue         =+decayingDarkMatterEpoch(self,time,expansionFactor)
+    massStep          =+fractionalStep &
+         &             *mass
+    correction        =+  decayingDarkMatterCorrection(self,timeValue,mass         )
     gradientCorrection=+(                                                            &
          &               +decayingDarkMatterCorrection(self,timeValue,mass+massStep) &
          &               -decayingDarkMatterCorrection(self,timeValue,mass-massStep) &

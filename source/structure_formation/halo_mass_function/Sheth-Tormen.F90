@@ -46,12 +46,12 @@ Implements a :cite:t:`sheth_ellipsoidal_2001` dark matter halo mass function cla
        <method description="Return the parameter :math:`A` in the :cite:t:`sheth_ellipsoidal_2001` halo mass function fit." method="normalization" />
      </methods>
      !!]
-     final     ::                  shethTormenDestructor
-     procedure :: differential  => shethTormenDifferential
+     final     ::                                   shethTormenDestructor
+     procedure :: differential                   => shethTormenDifferential
      procedure :: isCriticalOverdensityDependent => shethTormenIsCriticalOverdensityDependent
-     procedure :: a             => shethTormenA
-     procedure :: p             => shethTormenP
-     procedure :: normalization => shethTormenNormalization
+     procedure :: a                              => shethTormenA
+     procedure :: p                              => shethTormenP
+     procedure :: normalization                  => shethTormenNormalization
   end type haloMassFunctionShethTormen
 
   interface haloMassFunctionShethTormen

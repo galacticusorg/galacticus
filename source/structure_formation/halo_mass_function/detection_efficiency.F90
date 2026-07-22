@@ -40,8 +40,8 @@ Implements a dark matter halo mass function class which modifies another mass fu
      class           (haloMassFunctionClass  ), pointer :: massFunction_       => null()
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
    contains
-     final     ::                 detectionEfficiencyDestructor
-     procedure :: differential => detectionEfficiencyDifferential
+     final     ::                                   detectionEfficiencyDestructor
+     procedure :: differential                   => detectionEfficiencyDifferential
      procedure :: isCriticalOverdensityDependent => detectionEfficiencyIsCriticalOverdensityDependent
   end type haloMassFunctionDetectionEfficiency
 

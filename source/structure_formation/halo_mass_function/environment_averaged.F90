@@ -40,8 +40,8 @@ Implements a dark matter halo mass function class which averages another (presum
      double precision                                 :: factorMatching                        , timeMatching
      logical                                          :: includeUnoccupiedVolume
    contains
-     final     ::                 environmentAveragedDestructor
-     procedure :: differential => environmentAveragedDifferential
+     final     ::                                   environmentAveragedDestructor
+     procedure :: differential                   => environmentAveragedDifferential
      procedure :: isCriticalOverdensityDependent => environmentAveragedIsCriticalOverdensityDependent
   end type haloMassFunctionEnvironmentAveraged
 
@@ -263,9 +263,9 @@ contains
     implicit none
     class(haloMassFunctionEnvironmentAveraged), intent(inout) :: self
 
-    environmentAveragedIsCriticalOverdensityDependent=                                                    &
-         &  self%haloMassFunctionConditioned_  %isCriticalOverdensityDependent()                          &
-         &  .or.                                                                                          &
+    environmentAveragedIsCriticalOverdensityDependent=                           &
+         &  self%haloMassFunctionConditioned_  %isCriticalOverdensityDependent() &
+         &  .or.                                                                 &
          &  self%haloMassFunctionUnconditioned_%isCriticalOverdensityDependent()
     return
   end function environmentAveragedIsCriticalOverdensityDependent

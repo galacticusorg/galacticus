@@ -39,10 +39,10 @@ Contains a module which implements a dark matter halo mass function class which 
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      class           (haloMassFunctionClass  ), pointer :: massFunction_       => null()
    contains
-     final     ::                 multiplierDestructor
-     procedure :: differential => multiplierDifferential
+     final     ::                                   multiplierDestructor
+     procedure :: differential                   => multiplierDifferential
      procedure :: isCriticalOverdensityDependent => multiplierIsCriticalOverdensityDependent
-     procedure :: integrated   => multiplierIntegrated
+     procedure :: integrated                     => multiplierIntegrated
   end type haloMassFunctionMultiplier
 
   interface haloMassFunctionMultiplier

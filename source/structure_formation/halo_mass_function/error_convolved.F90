@@ -40,8 +40,8 @@ Implements a dark matter halo mass function class which modifies another mass fu
      class           (haloMassFunctionClass  ), pointer :: massFunctionIntrinsic      => null()
      class           (nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_        => null()
    contains
-     final     ::                 errorConvolvedDestructor
-     procedure :: differential => errorConvolvedDifferential
+     final     ::                                   errorConvolvedDestructor
+     procedure :: differential                   => errorConvolvedDifferential
      procedure :: isCriticalOverdensityDependent => errorConvolvedIsCriticalOverdensityDependent
   end type haloMassFunctionErrorConvolved
 

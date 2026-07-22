@@ -44,8 +44,8 @@ Contains a  module which  implements a  dark matter  halo mass function  class w
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_   => null()
      class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_     => null()
     contains
-     final     ::                 fofBiasDestructor
-     procedure :: differential => fofBiasDifferential
+     final     ::                                   fofBiasDestructor
+     procedure :: differential                   => fofBiasDifferential
      procedure :: isCriticalOverdensityDependent => fofBiasIsCriticalOverdensityDependent
   end type haloMassFunctionFofBias
 

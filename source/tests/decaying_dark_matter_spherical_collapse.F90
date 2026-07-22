@@ -29,12 +29,12 @@ program Test_Decaying_Dark_Matter_Spherical_Collapse
   !!{RST
   Tests of the revised spherical collapse model for decaying dark matter.
   !!}
-  use :: Display                                , only : displayVerbositySet             , verbosityLevelStandard
-  use :: Unit_Tests                             , only : Assert                          , Unit_Tests_Begin_Group       , Unit_Tests_End_Group    , Unit_Tests_Finish, &
-       &                                                 compareLessThan
+  use :: Display                                , only : displayVerbositySet                     , verbosityLevelStandard
+  use :: Unit_Tests                             , only : Assert                                  , Unit_Tests_Begin_Group       , Unit_Tests_End_Group           , &
+       &                                                 Unit_Tests_Finish                       , compareLessThan
   use :: Decaying_Dark_Matter_Spherical_Collapse, only : decayingDarkMatterCriticalOverdensityEdS, decayingDarkMatterGammaTilde , decayingDarkMatterEpsilon      , &
-       &                                                 decayingDarkMatterJIntegral     , decayingDarkMatterDeltaCLarge, decayingDarkMatterDeltaCSmall , &
-       &                                                 decayingDarkMatterMassScale1    , decayingDarkMatterDeltaCFit  , decayingDarkMatterMassCollapsed
+       &                                                 decayingDarkMatterJIntegral             , decayingDarkMatterDeltaCLarge, decayingDarkMatterDeltaCSmall  , &
+       &                                                 decayingDarkMatterMassScale1            , decayingDarkMatterDeltaCFit  , decayingDarkMatterMassCollapsed
   implicit none
   double precision, parameter :: timeCollapse=13.8d0 ! Gyr, corresponding to z=0.
   double precision            :: deltaCEdS
@@ -44,61 +44,60 @@ program Test_Decaying_Dark_Matter_Spherical_Collapse
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Decaying dark matter: revised spherical collapse")
 
-  deltaCEdS=decayingDarkMatterCriticalOverdensityEdS()
-
   ! Einstein-de Sitter critical overdensity [Montandon et al. (2026), their eq. 32].
   call Unit_Tests_Begin_Group("Critical overdensity: limits and fitting function")
+  deltaCEdS=decayingDarkMatterCriticalOverdensityEdS()
   call Assert("Einstein-de Sitter critical overdensity",deltaCEdS,1.68647020d0,relTol=1.0d-5)
 
   ! The J integral [their eq. 38] is negative (collapse is delayed) and grows in magnitude with the
   ! dimensionless decay rate. These are constant-independent (analytic + quadrature).
-  call Assert("J(gammaTilde) is negative",decayingDarkMatterJIntegral(0.69d0),0.0d0,compareLessThan)
-  call Assert("J(gammaTilde=0.69)"       ,decayingDarkMatterJIntegral(0.69d0),-7.60137d0,relTol=1.0d-3)
+  call Assert("J(Γ̃     ) is negative",decayingDarkMatterJIntegral(0.69d0),+0.00000d0,compareLessThan)
+  call Assert("J(Γ̃=0.69)"            ,decayingDarkMatterJIntegral(0.69d0),-7.60137d0,relTol=1.0d-3  )
 
-  ! Small-mass plateau [their eq. 42]: depends only on the lifetime (via gammaTilde), and is larger for
+  ! Small-mass plateau [their eq. 42]: depends only on the lifetime (via Γ̃), and is larger for
   ! shorter lifetimes. Constant-independent.
   call Assert("small-mass plateau, lifetime= 5 Gyr",deltaCSmallExcess( 5.0d0),2.700269d0,relTol=1.0d-3)
   call Assert("small-mass plateau, lifetime=10 Gyr",deltaCSmallExcess(10.0d0),1.449455d0,relTol=1.0d-3)
   call Assert("small-mass plateau, lifetime=20 Gyr",deltaCSmallExcess(20.0d0),0.755020d0,relTol=1.0d-3)
 
-  ! The transition mass scale M1 [their eq. 44] scales as v_k^3. This ratio is independent of the
+  ! The transition mass scale M₁ [their eq. 44] scales as vₖ³. This ratio is independent of the
   ! normalization.
-  call Assert("transition mass scale M1 ~ v_k^3",massScale1Ratio(625.0d0,100.0d0),244.140625d0,relTol=1.0d-6)
+  call Assert("transition mass scale M₁ ~ vₖ³",massScale1Ratio(625.0d0,100.0d0),244.140625d0,relTol=1.0d-6)
 
-  ! Absolute normalization of M1 [their eq. 44]. The target values were obtained by digitizing the
-  ! delta_c(M0) curves of their Fig. 5 (which is drawn at z=1.083, i.e. t_coll=5.558 Gyr for their
-  ! cosmology) and fitting their eq. 43 to each curve with M1 free. This pins the one otherwise
+  ! Absolute normalization of M₁ [their eq. 44]. The target values were obtained by digitizing the
+  ! δ_c(M₀) curves of their Fig. 5 (which is drawn at z=1.083, i.e. t_coll=5.558 Gyr for their
+  ! cosmology) and fitting their eq. 43 to each curve with M₁ free. This pins the one otherwise
   ! uncertain constant in the model; note that their eq. 45 is only an order-of-magnitude analytic
-  ! rationale for the v_k^3 scaling and exceeds the calibrated value by a factor of ~200.
-  call Assert("transition mass scale M1, lifetime= 5 Gyr, v_k= 100 km/s",massScale1At(5.558d0, 5.0d0, 100.0d0),3.741d9 ,relTol=1.5d-1)
-  call Assert("transition mass scale M1, lifetime= 5 Gyr, v_k= 707 km/s",massScale1At(5.558d0, 5.0d0, 707.0d0),1.291d12,relTol=1.5d-1)
-  call Assert("transition mass scale M1, lifetime=20 Gyr, v_k=1880 km/s",massScale1At(5.558d0,20.0d0,1880.0d0),4.072d13,relTol=3.0d-1)
+  ! rationale for the vₖ³ scaling and exceeds the calibrated value by a factor of ~200.
+  call Assert("transition mass scale M₁, lifetime= 5 Gyr, vₖ= 100 km/s",massScale1At(5.558d0, 5.0d0, 100.0d0),3.741d9 ,relTol=1.5d-1)
+  call Assert("transition mass scale M₁, lifetime= 5 Gyr, vₖ= 707 km/s",massScale1At(5.558d0, 5.0d0, 707.0d0),1.291d12,relTol=1.5d-1)
+  call Assert("transition mass scale M₁, lifetime=20 Gyr, vₖ=1880 km/s",massScale1At(5.558d0,20.0d0,1880.0d0),4.072d13,relTol=3.0d-1)
 
   ! Full fitting function [their eq. 43] recovers the two plateaux and is monotonically decreasing in
   ! mass (delta_c larger at small mass).
-  call Assert("delta_c(M0) decreases with mass",deltaCFitFull(1.0d18,timeCollapse,20.0d0,2250.0d0),deltaCFitFull(1.0d12,timeCollapse,20.0d0,2250.0d0),compareLessThan)
+  call Assert("δ_c(M₀) decreases with mass",deltaCFitFull(1.0d18,timeCollapse,20.0d0,2250.0d0),deltaCFitFull(1.0d12,timeCollapse,20.0d0,2250.0d0),compareLessThan)
   call Unit_Tests_End_Group()
 
-  ! Mass mapping M_coll/M0 [their eq. 46]. These values match the theory curves of their Fig. 8 (four
+  ! Mass mapping M_coll/M₀ [their eq. 46]. These values match the theory curves of their Fig. 8 (four
   ! N-body models, z=0). They depend only weakly on the physical constants (through the turnaround
   ! radius), so a modest tolerance is used.
   call Unit_Tests_Begin_Group("Mass mapping: collapsed vs. Lagrangian mass")
-  call Assert("Gamma^-1=10 Gyr, v_k=1250 km/s, M0=1e14",massCollapsedFraction(1.0d14,10.0d0,1250.0d0),0.299075d0,relTol=5.0d-3)
-  call Assert("Gamma^-1=10 Gyr, v_k=1250 km/s, M0=1e15",massCollapsedFraction(1.0d15,10.0d0,1250.0d0),0.838012d0,relTol=5.0d-3)
-  call Assert("Gamma^-1= 5 Gyr, v_k= 625 km/s, M0=1e14",massCollapsedFraction(1.0d14, 5.0d0, 625.0d0),0.685252d0,relTol=5.0d-3)
-  call Assert("Gamma^-1= 5 Gyr, v_k= 625 km/s, M0=1e15",massCollapsedFraction(1.0d15, 5.0d0, 625.0d0),0.990827d0,relTol=5.0d-3)
-  call Assert("Gamma^-1=20 Gyr, v_k= 625 km/s, M0=1e14",massCollapsedFraction(1.0d14,20.0d0, 625.0d0),0.824764d0,relTol=5.0d-3)
-  call Assert("Gamma^-1=20 Gyr, v_k=2250 km/s, M0=1e14",massCollapsedFraction(1.0d14,20.0d0,2250.0d0),0.506446d0,relTol=5.0d-3)
+  call Assert("Γ⁻¹=10 Gyr, vₖ=1250 km/s, M₀=1e14",massCollapsedFraction(1.0d14,10.0d0,1250.0d0),0.299075d0,relTol=5.0d-3)
+  call Assert("Γ⁻¹=10 Gyr, vₖ=1250 km/s, M₀=1e15",massCollapsedFraction(1.0d15,10.0d0,1250.0d0),0.838012d0,relTol=5.0d-3)
+  call Assert("Γ⁻¹= 5 Gyr, vₖ= 625 km/s, M₀=1e14",massCollapsedFraction(1.0d14, 5.0d0, 625.0d0),0.685252d0,relTol=5.0d-3)
+  call Assert("Γ⁻¹= 5 Gyr, vₖ= 625 km/s, M₀=1e15",massCollapsedFraction(1.0d15, 5.0d0, 625.0d0),0.990827d0,relTol=5.0d-3)
+  call Assert("Γ⁻¹=20 Gyr, vₖ= 625 km/s, M₀=1e14",massCollapsedFraction(1.0d14,20.0d0, 625.0d0),0.824764d0,relTol=5.0d-3)
+  call Assert("Γ⁻¹=20 Gyr, vₖ=2250 km/s, M₀=1e14",massCollapsedFraction(1.0d14,20.0d0,2250.0d0),0.506446d0,relTol=5.0d-3)
   call Unit_Tests_End_Group()
 
-  ! Limits recovering LCDM: as v_k -> 0 (transition mass -> 0, all masses in the large-mass regime) or
-  ! as the lifetime -> infinity (gammaTilde -> 0), the critical overdensity returns to its EdS value and
+  ! Limits recovering LCDM: as vₖ → 0 (transition mass → 0, all masses in the large-mass regime) or
+  ! as the lifetime → infinity (Γ̃ → 0), the critical overdensity returns to its EdS value and
   ! the collapsed mass returns to the Lagrangian mass. These are structural and constant-independent.
   call Unit_Tests_Begin_Group("Cold dark matter limits")
-  call Assert("v_k -> 0: delta_c -> EdS"      ,deltaCFitFull        (1.0d14,timeCollapse,10.0d0,1.0d-1)-deltaCEdS,1.0d-4,compareLessThan)
-  call Assert("v_k -> 0: M_coll -> M0"        ,massCollapsedFraction(1.0d14,             10.0d0,1.0d-1)          ,1.0d0 ,relTol=1.0d-4  )
-  call Assert("lifetime -> inf: delta_c -> EdS",deltaCFitFull       (1.0d14,timeCollapse,1.0d6 ,1250.0d0)-deltaCEdS,1.0d-3,compareLessThan)
-  call Assert("lifetime -> inf: M_coll -> M0"  ,massCollapsedFraction(1.0d14,            1.0d6 ,1250.0d0)         ,1.0d0 ,relTol=1.0d-3  )
+  call Assert("vₖ → 0: δ_c → EdS"        ,deltaCFitFull        (1.0d14,timeCollapse,10.0d0,   1.0d-1)-deltaCEdS,1.0d-4,compareLessThan)
+  call Assert("vₖ → 0: M_coll → M₀"      ,massCollapsedFraction(1.0d14,             10.0d0,   1.0d-1)          ,1.0d+0,relTol=1.0d-4  )
+  call Assert("lifetime → ∞: δ_c → EdS"  ,deltaCFitFull        (1.0d14,timeCollapse, 1.0d6,1250.0d+0)-deltaCEdS,1.0d-3,compareLessThan)
+  call Assert("lifetime → ∞: M_coll → M₀",massCollapsedFraction(1.0d14,              1.0d6,1250.0d+0)          ,1.0d+0,relTol=1.0d-3  )
   call Unit_Tests_End_Group()
 
   ! End unit tests.
@@ -114,8 +113,8 @@ contains
     implicit none
     double precision, intent(in   ) :: lifetime
 
-    deltaCSmallExcess=+decayingDarkMatterDeltaCSmall(decayingDarkMatterGammaTilde(timeCollapse,lifetime)) &
-         &            -decayingDarkMatterCriticalOverdensityEdS()
+    deltaCSmallExcess=+decayingDarkMatterDeltaCSmall           (decayingDarkMatterGammaTilde(timeCollapse,lifetime)) &
+         &            -decayingDarkMatterCriticalOverdensityEdS(                                                   )
     return
   end function deltaCSmallExcess
 
@@ -127,7 +126,7 @@ contains
     double precision, intent(in   ) :: velocityKick1, velocityKick2
     double precision                :: gammaTilde
 
-    gammaTilde     =decayingDarkMatterGammaTilde(timeCollapse,10.0d0)
+    gammaTilde     =+decayingDarkMatterGammaTilde(timeCollapse ,10.0d0                 )
     massScale1Ratio=+decayingDarkMatterMassScale1(velocityKick1,gammaTilde,timeCollapse) &
          &          /decayingDarkMatterMassScale1(velocityKick2,gammaTilde,timeCollapse)
     return
@@ -155,13 +154,13 @@ contains
     double precision                :: gammaTilde , epsilon      , jIntegral, deltaCLarge, &
          &                             deltaCSmall, massScale1
 
-    gammaTilde   =decayingDarkMatterGammaTilde (timeCollapse_,lifetime               )
-    epsilon      =decayingDarkMatterEpsilon    (velocityKick                          )
-    jIntegral    =decayingDarkMatterJIntegral  (gammaTilde                            )
-    deltaCLarge  =decayingDarkMatterDeltaCLarge(gammaTilde   ,epsilon      ,jIntegral )
-    deltaCSmall  =decayingDarkMatterDeltaCSmall(gammaTilde                            )
-    massScale1   =decayingDarkMatterMassScale1 (velocityKick ,gammaTilde   ,timeCollapse_)
-    deltaCFitFull=decayingDarkMatterDeltaCFit  (mass0        ,deltaCLarge  ,deltaCSmall,massScale1)
+    gammaTilde   =decayingDarkMatterGammaTilde (timeCollapse_,lifetime                            )
+    epsilon      =decayingDarkMatterEpsilon    (velocityKick                                      )
+    jIntegral    =decayingDarkMatterJIntegral  (gammaTilde                                        )
+    deltaCLarge  =decayingDarkMatterDeltaCLarge(gammaTilde   ,epsilon    ,jIntegral               )
+    deltaCSmall  =decayingDarkMatterDeltaCSmall(gammaTilde                                        )
+    massScale1   =decayingDarkMatterMassScale1 (velocityKick ,gammaTilde ,timeCollapse_           )
+    deltaCFitFull=decayingDarkMatterDeltaCFit  (mass0        ,deltaCLarge,deltaCSmall  ,massScale1)
     return
   end function deltaCFitFull
 

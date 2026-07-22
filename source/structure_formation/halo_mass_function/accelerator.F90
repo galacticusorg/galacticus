@@ -48,12 +48,12 @@ Implements a dark matter halo mass function class which accelerates another mass
        <method method="tabulate" description="Tabulate the mass function."/>
      </methods>
      !!]
-     final     ::                 acceleratorDestructor
-     procedure :: differential => acceleratorDifferential
+     final     ::                                   acceleratorDestructor
+     procedure :: differential                   => acceleratorDifferential
      procedure :: isCriticalOverdensityDependent => acceleratorIsCriticalOverdensityDependent
-     procedure :: integrated   => acceleratorIntegrated
-     procedure :: massFraction => acceleratorMassFraction
-     procedure :: tabulate     => acceleratorTabulate
+     procedure :: integrated                     => acceleratorIntegrated
+     procedure :: massFraction                   => acceleratorMassFraction
+     procedure :: tabulate                       => acceleratorTabulate
   end type haloMassFunctionAccelerator
 
   interface haloMassFunctionAccelerator

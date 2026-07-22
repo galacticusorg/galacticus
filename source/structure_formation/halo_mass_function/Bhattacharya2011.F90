@@ -51,15 +51,15 @@
        <method description="Return the parameter :math:`\bar{A}` in the :cite:t:`bhattacharya_mass_2011` halo mass function fit." method="normalization" />
      </methods>
      !!]
-     final     ::                  bhattacharya2011Destructor
-     procedure :: differential  => bhattacharya2011Differential
+     final     ::                                   bhattacharya2011Destructor
+     procedure :: differential                   => bhattacharya2011Differential
      procedure :: isCriticalOverdensityDependent => bhattacharya2011IsCriticalOverdensityDependent
-     procedure :: a             => bhattacharya2011A
-     procedure :: b             => bhattacharya2011B
-     procedure :: c             => bhattacharya2011C
-     procedure :: p             => bhattacharya2011P
-     procedure :: q             => bhattacharya2011Q
-     procedure :: normalization => bhattacharya2011Normalization
+     procedure :: a                              => bhattacharya2011A
+     procedure :: b                              => bhattacharya2011B
+     procedure :: c                              => bhattacharya2011C
+     procedure :: p                              => bhattacharya2011P
+     procedure :: q                              => bhattacharya2011Q
+     procedure :: normalization                  => bhattacharya2011Normalization
   end type haloMassFunctionBhattacharya2011
 
   interface haloMassFunctionBhattacharya2011

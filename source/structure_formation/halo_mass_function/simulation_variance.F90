@@ -43,8 +43,8 @@ Implements a dark matter halo mass function class which modifies another mass fu
      class           (darkMatterHaloBiasClass), pointer :: darkMatterHaloBias_  => null()
      class           (powerSpectrumClass     ), pointer :: powerSpectrum_       => null()
    contains
-     final     ::                 simulationVarianceDestructor
-     procedure :: differential => simulationVarianceDifferential
+     final     ::                                   simulationVarianceDestructor
+     procedure :: differential                   => simulationVarianceDifferential
      procedure :: isCriticalOverdensityDependent => simulationVarianceIsCriticalOverdensityDependent
   end type haloMassFunctionSimulationVariance
 

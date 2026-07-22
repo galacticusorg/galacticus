@@ -19,7 +19,7 @@
 
 !!{RST
 Contains a module which implements a dark matter halo mass function class for decaying dark matter (DDM)
-cosmologies, following the revised spherical collapse model of :cite:t:`montandon_decaying_2026`.
+models, following the revised spherical collapse model of :cite:t:`montandon_decaying_2026`.
 !!}
 
   use :: Dark_Matter_Particles  , only : darkMatterParticleClass
@@ -28,7 +28,7 @@ cosmologies, following the revised spherical collapse model of :cite:t:`montando
   !![
   <haloMassFunction name="haloMassFunctionDecayingDarkMatter" docformat="rst">
    <description>
-   A dark matter halo mass function class for decaying dark matter (:term:`DDM`) cosmologies, following
+   A dark matter halo mass function class for decaying dark matter (:term:`DDM`) models, following
    the revised spherical collapse model of :cite:t:`montandon_decaying_2026`. The decay of dark matter
    causes each halo to lose mass, so that the observed collapsed mass :math:`M_\mathrm{coll}` is smaller
    than the initial Lagrangian mass :math:`M_0` from which the perturbation formed. This class wraps
@@ -66,16 +66,16 @@ cosmologies, following the revised spherical collapse model of :cite:t:`montando
      private
      class           (haloMassFunctionClass  ), pointer                   :: massFunction_       => null()
      class           (darkMatterParticleClass), pointer                   :: darkMatterParticle_ => null()
-     double precision                                                     :: lifetime                     , velocityKick, &
-          &                                                                  massMinimum                  , massMaximum
+     double precision                                                     :: lifetime                           , velocityKick         , &
+          &                                                                  massMinimum                        , massMaximum
      integer                                                              :: countTable
-     ! Cache of the (epoch-dependent) M_coll(M_0) mapping.
-     double precision                         , allocatable, dimension(:) :: logMass0Table                , logMassCollapsedTable
+     ! Cache of the (epoch-dependent) M_coll(M₀) mapping.
+     double precision                         , allocatable, dimension(:) :: logMass0Table                      , logMassCollapsedTable
      type            (interpolator           )                            :: interpolator_
-     double precision                                                     :: timeTabulated       =-huge(0.0d0)
+     double precision                                                     :: timeTabulated       =  -huge(0.0d0)
    contains
-     final     ::                 decayingDarkMatterDestructor
-     procedure :: differential => decayingDarkMatterDifferential
+     final     ::                                   decayingDarkMatterDestructor
+     procedure :: differential                   => decayingDarkMatterDifferential
      procedure :: isCriticalOverdensityDependent => decayingDarkMatterIsCriticalOverdensityDependent
   end type haloMassFunctionDecayingDarkMatter
 
@@ -165,22 +165,22 @@ contains
        call Error_Report('a decaying dark matter particle ([darkMatterParticleDecayingDarkMatter]) is required'//{introspection:location})
     end select
     ! Warn if the wrapped mass function will not respond to the (mass-dependent) DDM critical overdensity,
-    ! in which case the DDM suppression---which is carried entirely by delta_c(M_0)---would be lost and
+    ! in which case the DDM suppression---which is carried entirely by δ_c(M_0)---would be lost and
     ! only the mass remapping applied.
     if (.not.self%massFunction_%isCriticalOverdensityDependent())                                                                            &
-         & call Warn(                                                                                                                         &
-         &           'haloMassFunctionDecayingDarkMatter: the wrapped halo mass function does not depend on the critical overdensity for'  // &
-         &           ' collapse, so the decaying dark matter suppression (which is carried by a mass-dependent critical overdensity) will' // &
-         &           ' be lost and only the mass remapping applied. Use an f(nu)-type mass function (e.g. shethTormen) configured with a'  // &
+         & call Warn(                                                                                                                        &
+         &           'haloMassFunctionDecayingDarkMatter: the wrapped halo mass function does not depend on the critical overdensity for' // &
+         &           ' collapse, so the decaying dark matter suppression (which is carried by a mass-dependent critical overdensity) will'// &
+         &           ' be lost and only the mass remapping applied. Use an f(nu)-type mass function (e.g. shethTormen) configured with a' // &
          &           ' [criticalOverdensityDecayingDarkMatter] critical overdensity.'                                                        &
          &          )
     ! Set up the (fixed) grid of Lagrangian masses at which the mapping to collapsed mass is tabulated.
     allocate(self%logMass0Table        (countTable))
     allocate(self%logMassCollapsedTable(countTable))
     do i=1,countTable
-       self%logMass0Table(i)=+log(massMinimum)                          &
-            &                +(log(massMaximum)-log(massMinimum))       &
-            &                *dble(i-1)                                 &
+       self%logMass0Table(i)=+ log(massMinimum)                   &
+            &                +(log(massMaximum)-log(massMinimum)) &
+            &                *dble(i         -1)                  &
             &                /dble(countTable-1)
     end do
     return
@@ -217,11 +217,11 @@ contains
     double precision                                                    :: mass0, massCollapsed
 
     do i=1,self%countTable
-       mass0                          =+exp(self%logMass0Table(i))
-       massCollapsed                  =decayingDarkMatterMassCollapsed(mass0,time,self%lifetime,self%velocityKick)
-       self%logMassCollapsedTable(i)  =+log(massCollapsed)
+       mass0                        =+exp(self%logMass0Table(i))
+       massCollapsed                =decayingDarkMatterMassCollapsed(mass0,time,self%lifetime,self%velocityKick)
+       self%logMassCollapsedTable(i)=+log(massCollapsed)
     end do
-    ! Build an interpolator for the inverse mapping, log(M_0) as a function of log(M_coll).
+    ! Build an interpolator for the inverse mapping, log(M₀) as a function of log(M_coll).
     self%interpolator_=interpolator(self%logMassCollapsedTable,self%logMass0Table,interpolationType=GSL_Interp_Linear,extrapolationType=extrapolationTypeExtrapolate)
     self%timeTabulated=time
     return
@@ -235,22 +235,22 @@ contains
     !!}
     implicit none
     class           (haloMassFunctionDecayingDarkMatter), intent(inout), target   :: self
-    double precision                                    , intent(in   )           :: time      , mass
+    double precision                                    , intent(in   )           :: time            , mass
     type            (treeNode                          ), intent(inout), optional :: node
-    double precision                                                              :: logMassCollapsed, mass0, &
+    double precision                                                              :: logMassCollapsed, mass0   , &
          &                                                                           gradientLog     , jacobian
 
     ! (Re)tabulate the mass mapping if the epoch has changed.
     if (time /= self%timeTabulated) call decayingDarkMatterTabulate(self,time)
-    ! Invert the mapping: find the Lagrangian mass M_0 corresponding to the collapsed mass, and the
-    ! logarithmic gradient d ln M_0 / d ln M_coll.
+    ! Invert the mapping: find the Lagrangian mass M₀ corresponding to the collapsed mass, and the
+    ! logarithmic gradient d ln M₀ / d ln M_coll.
     logMassCollapsed=+log(mass)
     mass0           =+exp(self%interpolator_%interpolate(logMassCollapsed))
     gradientLog     =+    self%interpolator_%derivative (logMassCollapsed)
-    ! Jacobian of the change of variables, dM_0/dM_coll = (M_0/M_coll) (d ln M_0 / d ln M_coll)
+    ! Jacobian of the change of variables, dM₀/dM_coll = (M₀/M_coll) (d ln M₀ / d ln M_coll)
     ! [Montandon et al. (2026), their eq. 8].
-    jacobian        =+mass0                                    &
-         &           /mass                                     &
+    jacobian        =+mass0       &
+         &           /mass        &
          &           *gradientLog
     decayingDarkMatterDifferential=+self%massFunction_%differential(time,mass0,node=node) &
          &                         *jacobian

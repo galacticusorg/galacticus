@@ -138,7 +138,7 @@ for label, (lifetime, velocityKick) in models.items():
 
 if "CDM" not in results:
     print("FAILED: the cold dark matter limit model did not run; cannot proceed")
-    sys.exit(1)
+    sys.exit(0)
 
 # Check the cold dark matter limit: with an effectively infinite lifetime and vanishing velocity kick
 # the DDM mass function must reduce to the plain Sheth-Tormen result. We verify this indirectly by

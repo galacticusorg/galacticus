@@ -38,8 +38,8 @@
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
      class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
    contains
-     final     ::                  reed2007Destructor
-     procedure :: differential  => reed2007Differential
+     final     ::                                   reed2007Destructor
+     procedure :: differential                   => reed2007Differential
      procedure :: isCriticalOverdensityDependent => reed2007IsCriticalOverdensityDependent
   end type haloMassFunctionReed2007
 

@@ -43,8 +43,8 @@ Implements a dark matter halo mass function class which modifies another mass fu
      double precision                                 :: alpha                          , beta
      class           (haloMassFunctionClass), pointer :: referenceMassFunction => null()
     contains
-     final     ::                 simpleSystematicDestructor
-     procedure :: differential => simpleSystematicDifferential
+     final     ::                                   simpleSystematicDestructor
+     procedure :: differential                   => simpleSystematicDifferential
      procedure :: isCriticalOverdensityDependent => simpleSystematicIsCriticalOverdensityDependent
   end type haloMassFunctionSimpleSystematic
 

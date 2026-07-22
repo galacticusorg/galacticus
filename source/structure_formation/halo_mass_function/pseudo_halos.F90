@@ -46,10 +46,10 @@
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_    => null()
      class           (haloEnvironmentClass   ), pointer :: haloEnvironment_       => null()
    contains
-     final     ::                 pseudoHalosDestructor
-     procedure :: differential => pseudoHalosDifferential
+     final     ::                                   pseudoHalosDestructor
+     procedure :: differential                   => pseudoHalosDifferential
      procedure :: isCriticalOverdensityDependent => pseudoHalosIsCriticalOverdensityDependent
-     procedure :: integrated   => pseudoHalosIntegrated
+     procedure :: integrated                     => pseudoHalosIntegrated
   end type haloMassFunctionPseudoHalos
 
   interface haloMassFunctionPseudoHalos
