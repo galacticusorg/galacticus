@@ -25,7 +25,6 @@ module Node_Component_Hot_Halo_Standard
   !!{RST
   Implements the standard hot halo node component.
   !!}
-  use :: Accretion_Halos                           , only : accretionHaloClass
   use :: Chemical_Reaction_Rates                   , only : chemicalReactionRateClass
   use :: Chemical_States                           , only : chemicalStateClass
   use :: Cosmology_Functions                       , only : cosmologyFunctionsClass
@@ -43,10 +42,9 @@ module Node_Component_Hot_Halo_Standard
   implicit none
   private
   public :: Node_Component_Hot_Halo_Standard_Initialize         , Node_Component_Hot_Halo_Standard_Thread_Initialize, &
-       &    Node_Component_Hot_Halo_Standard_Scale_Set          , Node_Component_Hot_Halo_Standard_Tree_Initialize  , &
-       &    Node_Component_Hot_Halo_Standard_Post_Step          , Node_Component_Hot_Halo_Standard_State_Restore    , &
-       &    Node_Component_Hot_Halo_Standard_Thread_Uninitialize, Node_Component_Hot_Halo_Standard_Pre_Evolve       , &
-       &    Node_Component_Hot_Halo_Standard_State_Store
+       &    Node_Component_Hot_Halo_Standard_Scale_Set          , Node_Component_Hot_Halo_Standard_Post_Step        , &
+       &    Node_Component_Hot_Halo_Standard_State_Restore      , Node_Component_Hot_Halo_Standard_Pre_Evolve       , &
+       &    Node_Component_Hot_Halo_Standard_Thread_Uninitialize, Node_Component_Hot_Halo_Standard_State_Store
 
   !![
   <component>
@@ -205,7 +203,6 @@ module Node_Component_Hot_Halo_Standard
   class(darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_
   class(hotHaloMassDistributionClass       ), pointer :: hotHaloMassDistribution_
   class(hotHaloTemperatureProfileClass     ), pointer :: hotHaloTemperatureProfile_
-  class(accretionHaloClass                 ), pointer :: accretionHalo_
   class(coolingInfallTorqueClass           ), pointer :: coolingInfallTorque_
   class(hotHaloRamPressureStrippingClass   ), pointer :: hotHaloRamPressureStripping_
   class(hotHaloRamPressureTimescaleClass   ), pointer :: hotHaloRamPressureTimescale_
@@ -213,7 +210,7 @@ module Node_Component_Hot_Halo_Standard
   class(hotHaloOutflowStrippingClass       ), pointer :: hotHaloOutflowStripping_
   class(chemicalStateClass                 ), pointer :: chemicalState_
   class(cosmologyParametersClass           ), pointer :: cosmologyParameters_
-  !$omp threadprivate(cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,accretionHalo_,chemicalState_,hotHaloRamPressureStripping_,hotHaloRamPressureTimescale_,cosmologyParameters_,hotHaloOutflowReincorporation_,hotHaloOutflowStripping_,coolingInfallTorque_)
+  !$omp threadprivate(cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,chemicalState_,hotHaloRamPressureStripping_,hotHaloRamPressureTimescale_,cosmologyParameters_,hotHaloOutflowReincorporation_,hotHaloOutflowStripping_,coolingInfallTorque_)
 
   ! Internal count of abundances and chemicals.
   integer                                                                         :: abundancesCount                                             , chemicalsCount
@@ -368,7 +365,6 @@ contains
        <objectBuilder class="darkMatterHaloScale"           name="darkMatterHaloScale_"           source="subParameters"/>
        <objectBuilder class="hotHaloMassDistribution"       name="hotHaloMassDistribution_"       source="subParameters"/>
        <objectBuilder class="hotHaloTemperatureProfile"     name="hotHaloTemperatureProfile_"     source="subParameters"/>
-       <objectBuilder class="accretionHalo"                 name="accretionHalo_"                 source="subParameters"/>
        <objectBuilder class="coolingInfallTorque"           name="coolingInfallTorque_"           source="subParameters"/>
        <objectBuilder class="chemicalState"                 name="chemicalState_"                 source="subParameters"/>
        <objectBuilder class="hotHaloRamPressureStripping"   name="hotHaloRamPressureStripping_"   source="subParameters"/>
@@ -414,7 +410,6 @@ contains
        <objectDestructor name="darkMatterHaloScale_"          />
        <objectDestructor name="hotHaloMassDistribution_"      />
        <objectDestructor name="hotHaloTemperatureProfile_"    />
-       <objectDestructor name="accretionHalo_"                />
        <objectDestructor name="coolingInfallTorque_"          />
        <objectDestructor name="chemicalState_"                />
        <objectDestructor name="hotHaloRamPressureStripping_"  />
@@ -842,57 +837,6 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Standard_Scale_Set
 
-  !![
-  <mergerTreeInitializeTask function="Node_Component_Hot_Halo_Standard_Tree_Initialize"/>
-  !!]
-  subroutine Node_Component_Hot_Halo_Standard_Tree_Initialize(node)
-    !!{RST
-    Initialize the contents of the hot halo component for any sub-resolution accretion (i.e. the gas that would have been accreted if the merger tree had infinite resolution).
-    !!}
-    use :: Accretion_Halos , only : accretionModeHot         , accretionModeTotal
-    use :: Galacticus_Nodes, only : defaultHotHaloComponent  , nodeComponentBasic, nodeComponentHotHalo, nodeEvent, &
-          &                         nodeEventSubhaloPromotion, treeNode          , nodeComponentSpin
-    implicit none
-    type            (treeNode            ), intent(inout), pointer :: node
-    class           (nodeComponentHotHalo)               , pointer :: currentHotHaloComponent
-    class           (nodeEvent           )               , pointer :: event
-    double precision                                               :: failedMass             , massHotHalo
-
-    ! If the node has a child or the standard hot halo is not active, then return immediately.
-    if (associated(node%firstChild).or..not.defaultHotHaloComponent%standardIsActive()) return
-
-    ! Search for a subhalo promotion events associated with this node.
-    event => node%event
-    do while (associated(event))
-       ! Check if this event:
-       !  a) is a subhalo promotion event;
-       !  b) has no associated task (which means this is the node being promoted to, not the node being promoted itself).
-       ! Do not assign any mass to such nodes, as they should receive gas from the node which is promoted to them.
-       select type (event)
-       type is (nodeEventSubhaloPromotion)
-          if (.not.associated(event%task)) return
-       end select
-       event => event%next
-    end do
-
-    ! Get the hot halo component.
-    currentHotHaloComponent => node%hotHalo()
-    ! Ensure that it is of unspecified class.
-    select type (currentHotHaloComponent)
-    type is (nodeComponentHotHalo)
-      ! Get the mass of hot gas accreted and the mass that failed to accrete.
-       massHotHalo=accretionHalo_%accretedMass      (node,accretionModeHot  )
-       failedMass =accretionHalo_%failedAccretedMass(node,accretionModeTotal)
-       ! If either is non-zero, then create a hot halo component and add these masses to it.
-       if (massHotHalo > 0.0d0 .or. failedMass > 0.0d0) then
-          ! NOTE: This call is required only to set up the initial outer radius. Once that is initialized by a nodeOperator, this
-          !       call (and the remainder of this function) can be removed.
-          call Node_Component_Hot_Halo_Standard_Create(node)
-       end if
-    end select
-    return
-  end subroutine Node_Component_Hot_Halo_Standard_Tree_Initialize
-
   subroutine Node_Component_Hot_Halo_Standard_Create(node)
     !!{RST
     Creates a hot halo component for ``node``.
@@ -1037,7 +981,7 @@ contains
 
     call displayMessage('Storing state for: componentHotHalo -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="cosmologyFunctions_ darkMatterHaloScale_ hotHaloMassDistribution_ hotHaloTemperatureProfile_ accretionHalo_ chemicalState_ hotHaloRamPressureStripping_ hotHaloRamPressureTimescale_ cosmologyParameters_ hotHaloOutflowReincorporation_ hotHaloOutflowStripping_ coolingInfallTorque_"/>
+    <stateStore variables="cosmologyFunctions_ darkMatterHaloScale_ hotHaloMassDistribution_ hotHaloTemperatureProfile_ chemicalState_ hotHaloRamPressureStripping_ hotHaloRamPressureTimescale_ cosmologyParameters_ hotHaloOutflowReincorporation_ hotHaloOutflowStripping_ coolingInfallTorque_"/>
     !!]
     return
   end subroutine Node_Component_Hot_Halo_Standard_State_Store
@@ -1058,7 +1002,7 @@ contains
 
     call displayMessage('Retrieving state for: componentHotHalo -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="cosmologyFunctions_ darkMatterHaloScale_ hotHaloMassDistribution_ hotHaloTemperatureProfile_ accretionHalo_ chemicalState_ hotHaloRamPressureStripping_ hotHaloRamPressureTimescale_ cosmologyParameters_ hotHaloOutflowReincorporation_ hotHaloOutflowStripping_ coolingInfallTorque_"/>
+    <stateRestore variables="cosmologyFunctions_ darkMatterHaloScale_ hotHaloMassDistribution_ hotHaloTemperatureProfile_ chemicalState_ hotHaloRamPressureStripping_ hotHaloRamPressureTimescale_ cosmologyParameters_ hotHaloOutflowReincorporation_ hotHaloOutflowStripping_ coolingInfallTorque_"/>
     !!]
     return
   end subroutine Node_Component_Hot_Halo_Standard_State_Restore
