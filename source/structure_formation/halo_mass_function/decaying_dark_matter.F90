@@ -171,13 +171,13 @@ contains
        call Error_Report('a decaying dark matter particle ([darkMatterParticleDecayingDarkMatter]) is required'//{introspection:location})
     end select
     ! Warn if the wrapped mass function will not respond to the (mass-dependent) DDM critical overdensity,
-    ! in which case the DDM suppression---which is carried entirely by δ_c(M_0)---would be lost and
+    ! in which case the DDM suppression---which is carried entirely by δ_c(M₀)---would be lost and
     ! only the mass remapping applied.
     if (.not.self%massFunction_%isCriticalOverdensityDependent())                                                                            &
          & call Warn(                                                                                                                        &
          &           'haloMassFunctionDecayingDarkMatter: the wrapped halo mass function does not depend on the critical overdensity for' // &
          &           ' collapse, so the decaying dark matter suppression (which is carried by a mass-dependent critical overdensity) will'// &
-         &           ' be lost and only the mass remapping applied. Use an f(nu)-type mass function (e.g. shethTormen) configured with a' // &
+         &           ' be lost and only the mass remapping applied. Use an f(ν)-type mass function (e.g. shethTormen) configured with a'  // &
          &           ' [criticalOverdensityDecayingDarkMatter] critical overdensity.'                                                        &
          &          )
     ! The mapping between Lagrangian and collapsed mass is tabulated lazily (and re-tabulated as the epoch
@@ -214,12 +214,12 @@ contains
     use :: Numerical_Ranges                       , only : Make_Range                     , rangeTypeLogarithmic
     use :: Table_Labels                           , only : extrapolationTypeExtrapolate
     implicit none
-    class           (haloMassFunctionDecayingDarkMatter), intent(inout) :: self
-    double precision                                    , intent(in   ) :: time
+    class           (haloMassFunctionDecayingDarkMatter), intent(inout)           :: self
+    double precision                                    , intent(in   )           :: time
     double precision                                    , intent(in   ), optional :: mass
-    integer                                                             :: i          , countTable
-    double precision                                                    :: massMinimum, massMaximum, &
-         &                                                                 stepFactor
+    integer                                                                       :: i          , countTable
+    double precision                                                              :: massMinimum, massMaximum, &
+         &                                                                           stepFactor
 
     massMinimum=self%massMinimum
     massMaximum=self%massMaximum
@@ -241,7 +241,7 @@ contains
     ! Build the grid of Lagrangian masses at the fixed resolution.
     countTable=int(log10(massMaximum/massMinimum)*self%pointsPerDecade)+1
     if (allocated(self%logMass0Table        )) deallocate(self%logMass0Table        )
-    if (allocated(self%logMassCollapsedTable )) deallocate(self%logMassCollapsedTable)
+    if (allocated(self%logMassCollapsedTable)) deallocate(self%logMassCollapsedTable)
     allocate(self%logMass0Table        (countTable))
     allocate(self%logMassCollapsedTable(countTable))
     self%logMass0Table=log(Make_Range(massMinimum,massMaximum,countTable,rangeTypeLogarithmic))
