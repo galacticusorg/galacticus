@@ -67,12 +67,32 @@ runs:
         # `brew update`. Remove the unused tap to keep CI logs clean. The `|| true`
         # guards against runner images that don't ship the tap.
         brew untap aws/tap 2>/dev/null || true
-        # Refresh the formula index first: the runner image ships an older
-        # `gcc` (e.g. 15.2.0) and a stale tap that reports it as current, so a
-        # bare `brew install gcc` is a no-op and no `gcc-16` binary appears.
+        # Refresh the formula index first so the versioned `gcc@16` formula and
+        # its current bottle are visible to the install below.
         brew update
-        brew install gcc
-        brew upgrade gcc
+        # Install GCC 16 via the versioned `gcc@16` formula rather than the
+        # unversioned `gcc`. The unversioned formula tracks whatever Homebrew
+        # calls latest, so when it eventually moves to GCC 17 a bare
+        # `brew install gcc` would stop providing the `gcc-16` binary that
+        # CCOMPILER expects; `gcc@16` pins us deterministically until we choose
+        # to bump. Guard the commands so the common already-current case stays
+        # silent instead of emitting a "gcc@16 <version> already installed"
+        # warning on every build: install only when absent, upgrade only when
+        # actually outdated.
+        if ! brew list --versions gcc@16 >/dev/null 2>&1; then
+          brew install gcc@16
+        elif [[ -n "$(brew outdated gcc@16)" ]]; then
+          brew upgrade gcc@16
+        fi
+        # The runner image pre-installs the unversioned `gcc` formula, which
+        # (while it is still GCC 16) provides the same `gcc-16`/`g++-16`/
+        # `gfortran-16` symlinks as `gcc@16` and would collide with them. Unlink
+        # it (no-op once Homebrew's `gcc` moves to 17 and stops owning `*-16`,
+        # or if the image ever drops it) and force `gcc@16` to own the links so
+        # the `*-16` binaries CCOMPILER/FCCOMPILER/CPPCOMPILER expect resolve to
+        # the pinned toolchain.
+        brew unlink gcc 2>/dev/null || true
+        brew link --overwrite gcc@16
     - name: Install guile
       shell: bash
       run: |
