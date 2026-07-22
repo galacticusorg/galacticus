@@ -1337,6 +1337,25 @@ def johnson2021_correlated_branches(input_doc, parameters, is_grid):
                 print("append",param_name, param_value)
 
 
+def chandrasekhar_suppress_extended_mass(input_doc, parameters, is_grid):
+    """Disable the extended-mass suppression of the Chandrasekhar integral for heated DMO profiles.
+
+    Commit 938122648 introduced a factor in the spherical Chandrasekhar integral (used to compute
+    dynamical friction) that suppresses the integral to account for the finite extent of the
+    perturbing subhalo. This factor now defaults to being applied. Parameter files predating that
+    commit expect the prior behavior (no suppression), so we explicitly disable it here by adding
+    `chandrasekharIntegralSuppressExtendedMass=false` to any heated dark matter profile.
+    """
+    for heated in parameters.xpath(".//darkMatterProfileDMO[@value='heated']"):
+        # Skip if the option is already set explicitly.
+        if len(heated.xpath("./chandrasekharIntegralSuppressExtendedMass[@value]")) > 0:
+            continue
+        print("   append chandrasekharIntegralSuppressExtendedMass false")
+        new_elem = etree.Element("chandrasekharIntegralSuppressExtendedMass")
+        new_elem.set("value", "false")
+        heated.append(new_elem)
+
+
 # ---------------------------------------------------------------------------
 # Dispatch table for special migration functions
 # ---------------------------------------------------------------------------
@@ -1359,6 +1378,7 @@ SPECIAL_FUNCTIONS = {
     "disk_very_simple_analytic_solver": disk_very_simple_analytic_solver,
     "satellite_orbit_initializor": satellite_orbit_initializor,
     "johnson2021_correlated_branches": johnson2021_correlated_branches,
+    "chandrasekhar_suppress_extended_mass": chandrasekhar_suppress_extended_mass,
 }
 
 

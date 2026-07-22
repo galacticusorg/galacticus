@@ -290,6 +290,14 @@
   </migration>
 
   <!-- Known default values for parameters -->
+  <migration commit="938122648f2740d19a67598157de78201a17e4b7">
+    <translation function="chandrasekhar_suppress_extended_mass"/>
+  </migration>
+  <migration commit="74b18cd7c3510fa2a2aaf2890fa2cd44c3d55301">
+    <translation xpath="//chandrasekharIntegralComputeVelocityDispersion[@value]">
+      <remove/>
+    </translation>
+  </migration>
   <default parameter="componentBlackHole"             value="standard"        />
   <default parameter="componentDisk"                  value="standard"        />
   <default parameter="componentHotHalo"               value="standard"        />
