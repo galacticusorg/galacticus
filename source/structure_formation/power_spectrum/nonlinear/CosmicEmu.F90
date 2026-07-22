@@ -189,17 +189,17 @@ contains
     use :: Table_Labels        , only : extrapolationTypeExtrapolate
     implicit none
     class           (powerSpectrumNonlinearCosmicEmu), intent(inout) :: self
-    double precision                                 , intent(in   ) :: time          , waveNumber
+    double precision                                 , intent(in   ) :: time                , waveNumber
     double precision                                                 :: redshift
-    type            (varying_string                 )                :: parameterFile     , powerSpectrumFile   , &
-         &                                                              parameters        , escapedZipFile      , &
-         &                                                              escapedDynamicPath , escapedBuildDir     , &
-         &                                                              escapedWorkDir     , escapedExecutable   , &
+    type            (varying_string                 )                :: parameterFile       , powerSpectrumFile   , &
+         &                                                              parameters          , escapedZipFile      , &
+         &                                                              escapedDynamicPath  , escapedBuildDir     , &
+         &                                                              escapedWorkDir      , escapedExecutable   , &
          &                                                              escapedParameterFile, escapedPowerSpectrum, &
          &                                                              cosmicEmuVersion    , cosmicEmuPath       , &
          &                                                              uniqueLabel
     character       (len=32                         )                :: parameterLabel
-    integer                                                          :: iWavenumber   , powerSpectrumUnit, &
+    integer                                                          :: iWavenumber         , powerSpectrumUnit   , &
          &                                                              status
 
     ! If the time has changed, recompute the power spectrum.
@@ -293,12 +293,12 @@ contains
                   & call Error_Report("failed to build Cosmic_Emu code"//{introspection:location})
           end if
           ! Generate the power spectrum.
-          escapedWorkDir      =File_Path  (parameterFile      )
-          escapedWorkDir      =shellEscape(escapedWorkDir     )
+          escapedWorkDir      =File_Path  (parameterFile    )
+          escapedWorkDir      =shellEscape(escapedWorkDir   )
           escapedExecutable   =cosmicEmuPath//"/2022-Mira-Titan-IV/P_cb/emu.exe"
-          escapedExecutable   =shellEscape(escapedExecutable  )
-          escapedParameterFile=shellEscape(parameterFile      )
-          escapedPowerSpectrum=shellEscape(powerSpectrumFile  )
+          escapedExecutable   =shellEscape(escapedExecutable)
+          escapedParameterFile=shellEscape(parameterFile    )
+          escapedPowerSpectrum=shellEscape(powerSpectrumFile)
           call System_Command_Do("cd "//escapedWorkDir//"; "//escapedExecutable//" < "//escapedParameterFile//"; mv EMU0.txt "//escapedPowerSpectrum)
           ! Destroy the parameter file and temporary directory.
           call      File_Remove(          parameterFile )

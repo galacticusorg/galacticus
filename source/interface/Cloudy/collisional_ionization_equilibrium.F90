@@ -334,9 +334,9 @@ contains
     warn on a mismatch instead, leaving regeneration to the user.
     !!}
     use :: Dependencies      , only : dependencyVersion
-    use :: Display           , only : displayMessage, verbosityLevelWarn
+    use :: Display           , only : displayMessage   , verbosityLevelWarn
     use :: IO_HDF5           , only : hdf5File
-    use :: ISO_Varying_String, only : varying_string, operator(//)         , operator(/=)
+    use :: ISO_Varying_String, only : varying_string   , operator(//)      , operator(/=)
     implicit none
     type     (hdf5File      ), intent(inout) :: tableFile
     type     (varying_string), intent(in   ) :: fileName

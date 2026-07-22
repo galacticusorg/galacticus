@@ -126,9 +126,9 @@ contains
     ! reused after the code was updated.
     call Interface_RecFast_Initialize(recfastPath,recfastVersion)
     ! Construct the file name.
-    uniqueLabel  ="_version:"                                      // &
-         &        recfastVersion                                   // &
-         &        "_sourceDigest:"                                 // &
+    uniqueLabel  ="_version:"                              // &
+         &        recfastVersion                           // &
+         &        "_sourceDigest:"                         // &
          &        String_C_To_Fortran(recFastSourceDigest)
     self%fileName=inputPath(pathTypeDataDynamic)//'intergalacticMedium/recFast'
     self%fileName=self%fileName//'_'//Hash_MD5(uniqueLabel)

@@ -77,15 +77,15 @@ contains
     use :: System_Download   , only : download
     use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran, compilerValidate
     implicit none
-    type   (varying_string), intent(  out)           :: axionCambPath, axionCambVersion
+    type   (varying_string), intent(  out)           :: axionCambPath       , axionCambVersion
     logical                , intent(in   ), optional :: static
     integer                                          :: status
     type   (varying_string)                          :: command
     type   (lockDescriptor)                          :: fileLock
-    type   (varying_string)                          :: lockPath     , exePath        , &
-         &                                              tarBall      , url            , &
-         &                                              escapedAxionCambPath          , &
-         &                                              escapedToolsPath, escapedTarFile
+    type   (varying_string)                          :: lockPath            , exePath         , &
+         &                                              tarBall             , url             , &
+         &                                              escapedAxionCambPath                  , &
+         &                                              escapedToolsPath    , escapedTarFile
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
@@ -533,9 +533,9 @@ contains
          type(hdf5Group) :: parametersGroup             , extrapolationWavenumberGroup, &
               &             extrapolationGroup          , speciesGroup
          axionCambOutput=hdf5File(fileName_,readOnly=.false.,objectsOverwritable=.true.)
-         call axionCambOutput%writeAttribute('Transfer functions created by AxionCAMB.','description')
-         call axionCambOutput%writeAttribute(axionCambFormatVersionCurrent,'fileFormat')
-         call axionCambOutput%writeAttribute(dependencyVersion("axioncamb"),'versionAxionCAMB')
+         call axionCambOutput%writeAttribute('Transfer functions created by AxionCAMB.','description'     )
+         call axionCambOutput%writeAttribute(axionCambFormatVersionCurrent             ,'fileFormat'      )
+         call axionCambOutput%writeAttribute(dependencyVersion("axioncamb")            ,'versionAxionCAMB')
          call axionCambOutput%writeDataset(wavenumbers    ,'wavenumber'                                 ,chunkSize=chunkSize,appendTo=.not.axionCambOutput%hasDataset('wavenumber'))
          speciesGroup=axionCambOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
          do i=1,countRedshiftsUnique

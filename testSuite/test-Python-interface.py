@@ -98,7 +98,7 @@ with safe_section("transferFunctionCAMB"):
     # a later, wider request re-runs CAMB and overwrites the file with 151 points out to k_max ≈
     # 8577, which is coarser near k=2 and shifts this value by ~4e-6 fractionally. Both tabulations
     # are self-consistent, so the spread is the accuracy this implementation actually delivers, not
-    # a regression. Do not tighten without fixing the underlying tabulation - see issue.
+    # a regression. Do not tighten without fixing the underlying tabulation.
     check("T(k=2 Mpc⁻¹)", transferFunction.value(2.0), 14637.977457291503, rtol=1.0e-4)
     # Output-array method (`intent(out), allocatable, dimension(:)`): CAMB
     # inherits the base default `allocate(wavenumbers(0))`, so this

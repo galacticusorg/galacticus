@@ -73,16 +73,16 @@ contains
     use :: System_Download   , only : download
     use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran, compilerValidate
     implicit none
-    type     (varying_string), intent(  out)           :: cambPath       , cambVersion
+    type     (varying_string), intent(  out)           :: cambPath            , cambVersion
     logical                  , intent(in   ), optional :: static
     integer                                            :: status
-    type     (varying_string)                          :: command          , forutilsVersion   , &
-         &                                                makeFile         , makeFileForUtils  , &
-         &                                                tarBall          , executable        , &
-         &                                                url              , tarBallForUtils   , &
-         &                                                escapedToolsPath , escapedTarFile    , &
-         &                                                escapedForUtilsDir, escapedForUtilsTar, &
-         &                                                escapedCambPath   , stampForUtils     , &
+    type     (varying_string)                          :: command             , forutilsVersion   , &
+         &                                                makeFile            , makeFileForUtils  , &
+         &                                                tarBall             , executable        , &
+         &                                                url                 , tarBallForUtils   , &
+         &                                                escapedToolsPath    , escapedTarFile    , &
+         &                                                escapedForUtilsDir  , escapedForUtilsTar, &
+         &                                                escapedCambPath     , stampForUtils     , &
          &                                                escapedForUtilsStamp
     type     (lockDescriptor)                          :: fileLock
     !![

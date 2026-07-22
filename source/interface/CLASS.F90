@@ -309,9 +309,9 @@ contains
        !$ call hdf5Access  %set()
        hdf5WriteScope: block
          classOutput=hdf5File(fileName_,objectsOverwritable=.true.)
-         call    classOutput %writeAttribute('Perturbations created by CLASS.','description')
-         call    classOutput %writeAttribute(classFormatVersionCurrent,'fileFormat')
-         call    classOutput %writeAttribute(dependencyVersion("class"),'versionCLASS')
+         call    classOutput %writeAttribute('Perturbations created by CLASS.','description' )
+         call    classOutput %writeAttribute(classFormatVersionCurrent        ,'fileFormat'  )
+         call    classOutput %writeAttribute(dependencyVersion("class")       ,'versionCLASS')
          call    classOutput %writeDataset(wavenumbers ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not. classOutput%hasDataset('wavenumber'))
          speciesGroup=classOutput%openGroup('darkMatter','Group containing perturbations for dark matter.')
          do i=1,countRedshiftsUnique
@@ -400,8 +400,8 @@ contains
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
     use               :: Dependencies                    , only : dependencyVersion           , dependencyVersionLabel
-    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists   , File_Lock     , &
-         &                                                        File_Path                   , File_Remove        , File_Unlock   , lockDescriptor
+    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make        , File_Exists   , File_Lock     , &
+         &                                                        File_Path                   , File_Remove           , File_Unlock   , lockDescriptor
     use               :: Error                           , only : Error_Report
     use               :: Input_Paths                     , only : inputPath                   , pathTypeDataDynamic
     use               :: HDF5                            , only : hsize_t
@@ -409,8 +409,8 @@ contains
     use               :: HDF5_Access                     , only : hdf5Access
     use               :: IO_HDF5                         , only : hdf5File                    , hdf5Group
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract       , len           , &
-          &                                                       operator(//)                , operator(==)       , varying_string
+    use               :: ISO_Varying_String              , only : assignment(=)               , char                  , extract       , len           , &
+          &                                                       operator(//)                , operator(==)          , varying_string
     use               :: Input_Parameters                , only : inputParameters
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use               :: Numerical_Interpolation         , only : GSL_Interp_cSpline
@@ -561,9 +561,9 @@ contains
        !$ call hdf5Access%set()
        hdf5WriteScope: block
          classOutput=hdf5File(fileName_,objectsOverwritable=.true.)
-         call classOutput %writeAttribute('Transfer functions created by CLASS.','description')
-         call classOutput %writeAttribute(classFormatVersionCurrent,'fileFormat')
-         call classOutput %writeAttribute(dependencyVersion("class"),'versionCLASS')
+         call classOutput %writeAttribute('Transfer functions created by CLASS.','description' )
+         call classOutput %writeAttribute(classFormatVersionCurrent             ,'fileFormat'  )
+         call classOutput %writeAttribute(dependencyVersion("class")            ,'versionCLASS')
          call classOutput %writeDataset(wavenumbers ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not. classOutput%hasDataset('wavenumber'))
          speciesGroup=classOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
          do i=1,countRedshiftsUnique
@@ -654,7 +654,7 @@ contains
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass
     use               :: Dependencies                    , only : dependencyVersion       , dependencyVersionLabel
-    use               :: File_Utilities                  , only : Directory_Make          , File_Exists       , File_Lock     , File_Unlock, &
+    use               :: File_Utilities                  , only : Directory_Make          , File_Exists           , File_Lock     , File_Unlock, &
          &                                                        File_Path               , lockDescriptor
     use               :: Input_Paths                     , only : inputPath               , pathTypeDataDynamic
     use               :: Hashes_Cryptographic            , only : Hash_MD5
@@ -662,7 +662,7 @@ contains
     use               :: IO_HDF5                         , only : hdf5File
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use               :: ISO_Varying_String              , only : varying_string          , char               , operator(//)
+    use               :: ISO_Varying_String              , only : varying_string          , char                  , operator(//)
     use               :: Input_Parameters                , only : inputParameters
     use               :: String_Handling                 , only : String_C_To_Fortran     , operator(//)
     use               :: System_Command                  , only : System_Command_Do
@@ -710,7 +710,7 @@ contains
        !$ call hdf5Access %set           (                              )
        hdf5WriteScope: block
          classOutput=hdf5File(fileName,objectsOverwritable=.true.)
-         call    classOutput%writeAttribute(normalization              ,'normalization')
+         call    classOutput%writeAttribute(normalization             ,'normalization')
          call    classOutput%writeAttribute(dependencyVersion("class"),'versionCLASS' )
        end block hdf5WriteScope
        !$ call hdf5Access %unset         (                              )
