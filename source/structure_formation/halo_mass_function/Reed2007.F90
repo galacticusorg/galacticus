@@ -40,6 +40,7 @@
    contains
      final     ::                  reed2007Destructor
      procedure :: differential  => reed2007Differential
+     procedure :: isCriticalOverdensityDependent => reed2007IsCriticalOverdensityDependent
   end type haloMassFunctionReed2007
 
   interface haloMassFunctionReed2007
@@ -182,3 +183,16 @@ contains
     end if
     return
   end function reed2007Differential
+
+  logical function reed2007IsCriticalOverdensityDependent(self)
+    !!{RST
+    Return true as the :cite:t:`reed_halo_2007` halo mass function is built on an $f(\nu)$ multiplicity
+    that consumes the (possibly mass-dependent) critical overdensity for collapse.
+    !!}
+    implicit none
+    class(haloMassFunctionReed2007), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    reed2007IsCriticalOverdensityDependent=.true.
+    return
+  end function reed2007IsCriticalOverdensityDependent

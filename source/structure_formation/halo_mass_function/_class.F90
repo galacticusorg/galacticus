@@ -138,6 +138,17 @@ module Halo_Mass_Functions
      return
     </code>
    </method>
+   <method name="isCriticalOverdensityDependent" >
+    <description>
+    Return true if the differential halo mass function depends on the critical overdensity for collapse ($\delta_\mathrm{c}$) object supplied to this class. This is used to detect mass functions that are compatible with models encoded through a mass-dependent critical overdensity (for example, the decaying dark matter model). Mass functions built on an $f(\nu)$ multiplicity that consume the critical overdensity return true, while pure $f(\sigma)$ fits, or those whose collapse barrier is provided through an excursion set object, return false. The default implementation returns false.
+    </description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+     haloMassFunctionIsCriticalOverdensityDependent=.false.
+    </code>
+   </method>
    <data>double precision                                    :: time_                         </data>
    <data>class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()</data>
    <data>type            (treeNode                ), pointer :: node                 => null()</data>

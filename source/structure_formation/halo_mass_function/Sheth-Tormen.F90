@@ -48,6 +48,7 @@ Implements a :cite:t:`sheth_ellipsoidal_2001` dark matter halo mass function cla
      !!]
      final     ::                  shethTormenDestructor
      procedure :: differential  => shethTormenDifferential
+     procedure :: isCriticalOverdensityDependent => shethTormenIsCriticalOverdensityDependent
      procedure :: a             => shethTormenA
      procedure :: p             => shethTormenP
      procedure :: normalization => shethTormenNormalization
@@ -200,6 +201,19 @@ contains
          &                  )
     return
   end function shethTormenDifferential
+
+  logical function shethTormenIsCriticalOverdensityDependent(self)
+    !!{RST
+    Return true as the \gls{sheth}-\gls{tormen} halo mass function is built on an $f(\nu)$ multiplicity
+    that consumes the (possibly mass-dependent) critical overdensity for collapse.
+    !!}
+    implicit none
+    class(haloMassFunctionShethTormen), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    shethTormenIsCriticalOverdensityDependent=.true.
+    return
+  end function shethTormenIsCriticalOverdensityDependent
 
   double precision function shethTormenA(self,time,mass)
     !!{RST

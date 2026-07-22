@@ -42,6 +42,7 @@ Implements a dark matter halo mass function class which modifies another mass fu
    contains
      final     ::                 detectionEfficiencyDestructor
      procedure :: differential => detectionEfficiencyDifferential
+     procedure :: isCriticalOverdensityDependent => detectionEfficiencyIsCriticalOverdensityDependent
   end type haloMassFunctionDetectionEfficiency
 
   interface haloMassFunctionDetectionEfficiency
@@ -178,3 +179,15 @@ contains
     end if
     return
   end function detectionEfficiencyDifferential
+
+  logical function detectionEfficiencyIsCriticalOverdensityDependent(self)
+    !!{RST
+    Return whether the differential halo mass function depends on the critical overdensity for
+    collapse, by forwarding the query to the wrapped halo mass function.
+    !!}
+    implicit none
+    class(haloMassFunctionDetectionEfficiency), intent(inout) :: self
+
+    detectionEfficiencyIsCriticalOverdensityDependent=self%massFunction_%isCriticalOverdensityDependent()
+    return
+  end function detectionEfficiencyIsCriticalOverdensityDependent

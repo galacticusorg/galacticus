@@ -41,6 +41,7 @@ Contains a module which implements a dark matter halo mass function class which 
    contains
      final     ::                 multiplierDestructor
      procedure :: differential => multiplierDifferential
+     procedure :: isCriticalOverdensityDependent => multiplierIsCriticalOverdensityDependent
      procedure :: integrated   => multiplierIntegrated
   end type haloMassFunctionMultiplier
 
@@ -148,6 +149,18 @@ contains
          &       *    self%massFunction_      %differential   (time,mass,node)
     return
   end function multiplierDifferential
+
+  logical function multiplierIsCriticalOverdensityDependent(self)
+    !!{RST
+    Return whether the differential halo mass function depends on the critical overdensity for
+    collapse, by forwarding the query to the wrapped halo mass function.
+    !!}
+    implicit none
+    class(haloMassFunctionMultiplier), intent(inout) :: self
+
+    multiplierIsCriticalOverdensityDependent=self%massFunction_%isCriticalOverdensityDependent()
+    return
+  end function multiplierIsCriticalOverdensityDependent
 
   double precision function multiplierIntegrated(self,time,massLow,massHigh,node,status) result(massFunction)
     !!{RST

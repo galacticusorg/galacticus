@@ -46,6 +46,7 @@ Contains a  module which  implements a  dark matter  halo mass function  class w
     contains
      final     ::                 fofBiasDestructor
      procedure :: differential => fofBiasDifferential
+     procedure :: isCriticalOverdensityDependent => fofBiasIsCriticalOverdensityDependent
   end type haloMassFunctionFofBias
 
   interface haloMassFunctionFofBias
@@ -341,3 +342,15 @@ contains
          &              /massJacobian
     return
   end function fofBiasDifferential
+
+  logical function fofBiasIsCriticalOverdensityDependent(self)
+    !!{RST
+    Return whether the differential halo mass function depends on the critical overdensity for
+    collapse, by forwarding the query to the wrapped halo mass function.
+    !!}
+    implicit none
+    class(haloMassFunctionFofBias), intent(inout) :: self
+
+    fofBiasIsCriticalOverdensityDependent=self%massFunctionIntrinsic%isCriticalOverdensityDependent()
+    return
+  end function fofBiasIsCriticalOverdensityDependent

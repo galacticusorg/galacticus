@@ -42,6 +42,7 @@ Implements a dark matter halo mass function class which averages another (presum
    contains
      final     ::                 environmentAveragedDestructor
      procedure :: differential => environmentAveragedDifferential
+     procedure :: isCriticalOverdensityDependent => environmentAveragedIsCriticalOverdensityDependent
   end type haloMassFunctionEnvironmentAveraged
 
   interface haloMassFunctionEnvironmentAveraged
@@ -252,3 +253,19 @@ contains
     end function environmentAveragedIntegrand
 
   end function environmentAveragedDifferential
+
+  logical function environmentAveragedIsCriticalOverdensityDependent(self)
+    !!{RST
+    Return whether the differential halo mass function depends on the critical overdensity for
+    collapse. As this class draws on both a conditioned and an unconditioned mass function, it
+    depends on the critical overdensity if either of them does.
+    !!}
+    implicit none
+    class(haloMassFunctionEnvironmentAveraged), intent(inout) :: self
+
+    environmentAveragedIsCriticalOverdensityDependent=                                                    &
+         &  self%haloMassFunctionConditioned_  %isCriticalOverdensityDependent()                          &
+         &  .or.                                                                                          &
+         &  self%haloMassFunctionUnconditioned_%isCriticalOverdensityDependent()
+    return
+  end function environmentAveragedIsCriticalOverdensityDependent

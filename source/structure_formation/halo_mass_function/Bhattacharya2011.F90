@@ -53,6 +53,7 @@
      !!]
      final     ::                  bhattacharya2011Destructor
      procedure :: differential  => bhattacharya2011Differential
+     procedure :: isCriticalOverdensityDependent => bhattacharya2011IsCriticalOverdensityDependent
      procedure :: a             => bhattacharya2011A
      procedure :: b             => bhattacharya2011B
      procedure :: c             => bhattacharya2011C
@@ -253,6 +254,19 @@ contains
          &                       )
     return
   end function bhattacharya2011Differential
+
+  logical function bhattacharya2011IsCriticalOverdensityDependent(self)
+    !!{RST
+    Return true as the :cite:t:`bhattacharya_dark_2011` halo mass function is built on an $f(\nu)$
+    multiplicity that consumes the (possibly mass-dependent) critical overdensity for collapse.
+    !!}
+    implicit none
+    class(haloMassFunctionBhattacharya2011), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    bhattacharya2011IsCriticalOverdensityDependent=.true.
+    return
+  end function bhattacharya2011IsCriticalOverdensityDependent
 
   double precision function bhattacharya2011A(self,time,mass)
     !!{RST
