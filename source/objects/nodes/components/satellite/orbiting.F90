@@ -106,9 +106,6 @@ module Node_Component_Satellite_Orbiting
   class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
   !$omp threadprivate(darkMatterHaloScale_)
 
-  ! Option controlling whether or not unbound virial orbits are acceptable.
-  logical :: acceptUnboundOrbits
-
   ! A threadprivate object used to track to which thread events are attached.
   integer :: thread
   !$omp threadprivate(thread)
@@ -122,27 +119,15 @@ contains
     !!{RST
     Initializes the orbiting satellite methods module.
     !!}
-    use :: Galacticus_Nodes  , only : defaultSatelliteComponent, nodeComponentSatelliteOrbiting
-    use :: Input_Parameters  , only : inputParameter           , inputParameters
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatelliteOrbiting
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type(inputParameters               ), intent(inout) :: parameters
     type(nodeComponentSatelliteOrbiting)                :: satellite
-    type(inputParameters               )                :: subParameters
+    !$GLC attributes unused :: parameters
 
     ! Initialize the module if necessary.
     if (defaultSatelliteComponent%orbitingIsActive()) then
-       ! Find our parameters.
-       subParameters=parameters%subParameters('componentSatellite')
-       !![
-       <inputParameter docformat="rst">
-         <name>acceptUnboundOrbits</name>
-         <defaultValue>.false.</defaultValue>
-         <description>
-         If true, accept unbound virial orbits for satellites, otherwise reject them.
-         </description>
-         <source>subParameters</source>
-       </inputParameter>
-       !!]
        ! Specify the function to use for setting virial orbits.
        call satellite%virialOrbitSetFunction(Node_Component_Satellite_Orbiting_Virial_Orbit_Set)
        call satellite%virialOrbitFunction   (Node_Component_Satellite_Orbiting_Virial_Orbit    )
