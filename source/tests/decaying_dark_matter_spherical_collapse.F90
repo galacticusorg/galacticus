@@ -82,12 +82,12 @@ program Test_Decaying_Dark_Matter_Spherical_Collapse
   ! N-body models, z=0). They depend only weakly on the physical constants (through the turnaround
   ! radius), so a modest tolerance is used.
   call Unit_Tests_Begin_Group("Mass mapping: collapsed vs. Lagrangian mass")
-  call Assert("Γ⁻¹=10 Gyr, vₖ=1250 km/s, M₀=1e14",massCollapsedFraction(1.0d14,10.0d0,1250.0d0),0.299075d0,relTol=5.0d-3)
-  call Assert("Γ⁻¹=10 Gyr, vₖ=1250 km/s, M₀=1e15",massCollapsedFraction(1.0d15,10.0d0,1250.0d0),0.838012d0,relTol=5.0d-3)
-  call Assert("Γ⁻¹= 5 Gyr, vₖ= 625 km/s, M₀=1e14",massCollapsedFraction(1.0d14, 5.0d0, 625.0d0),0.685252d0,relTol=5.0d-3)
-  call Assert("Γ⁻¹= 5 Gyr, vₖ= 625 km/s, M₀=1e15",massCollapsedFraction(1.0d15, 5.0d0, 625.0d0),0.990827d0,relTol=5.0d-3)
-  call Assert("Γ⁻¹=20 Gyr, vₖ= 625 km/s, M₀=1e14",massCollapsedFraction(1.0d14,20.0d0, 625.0d0),0.824764d0,relTol=5.0d-3)
-  call Assert("Γ⁻¹=20 Gyr, vₖ=2250 km/s, M₀=1e14",massCollapsedFraction(1.0d14,20.0d0,2250.0d0),0.506446d0,relTol=5.0d-3)
+  call Assert("Γ⁻¹=10 Gyr, vₖ=1250 km/s, M₀=10¹⁴M☉",massCollapsedFraction(1.0d14,10.0d0,1250.0d0),0.299075d0,relTol=5.0d-3)
+  call Assert("Γ⁻¹=10 Gyr, vₖ=1250 km/s, M₀=10¹⁵M☉",massCollapsedFraction(1.0d15,10.0d0,1250.0d0),0.838012d0,relTol=5.0d-3)
+  call Assert("Γ⁻¹= 5 Gyr, vₖ= 625 km/s, M₀=10¹⁴M☉",massCollapsedFraction(1.0d14, 5.0d0, 625.0d0),0.685252d0,relTol=5.0d-3)
+  call Assert("Γ⁻¹= 5 Gyr, vₖ= 625 km/s, M₀=10¹⁵M☉",massCollapsedFraction(1.0d15, 5.0d0, 625.0d0),0.990827d0,relTol=5.0d-3)
+  call Assert("Γ⁻¹=20 Gyr, vₖ= 625 km/s, M₀=10¹⁴M☉",massCollapsedFraction(1.0d14,20.0d0, 625.0d0),0.824764d0,relTol=5.0d-3)
+  call Assert("Γ⁻¹=20 Gyr, vₖ=2250 km/s, M₀=10¹⁴M☉",massCollapsedFraction(1.0d14,20.0d0,2250.0d0),0.506446d0,relTol=5.0d-3)
   call Unit_Tests_End_Group()
 
   ! Limits recovering LCDM: as vₖ → 0 (transition mass → 0, all masses in the large-mass regime) or
