@@ -25,7 +25,6 @@
   use :: Numerical_Random_Numbers  , only : randomNumberGeneratorClass
   use :: Output_Times              , only : outputTimesClass
   use :: Merger_Tree_Construction  , only : mergerTreeConstructorClass
-  use :: Merger_Tree_Initialization, only : mergerTreeInitializorClass
   use :: Merger_Tree_Operators     , only : mergerTreeOperatorClass
   use :: Merger_Trees_Evolve       , only : mergerTreeEvolverClass
   use :: Nodes_Operators           , only : nodeOperatorClass
@@ -48,7 +47,6 @@
      class  (mergerTreeOperatorClass    ), pointer :: mergerTreeOperator_       => null()
      class  (mergerTreeEvolverClass     ), pointer :: mergerTreeEvolver_        => null()
      class  (mergerTreeOutputterClass   ), pointer :: mergerTreeOutputter_      => null()
-     class  (mergerTreeInitializorClass ), pointer :: mergerTreeInitializor_    => null()
      class  (nodeOperatorClass          ), pointer :: nodeOperator_             => null()
      class  (evolveForestsWorkShareClass), pointer :: evolveForestsWorkShare_   => null()
      class  (outputTimesClass           ), pointer :: outputTimes_              => null()
@@ -96,7 +94,6 @@ contains
     class(universeOperatorClass      ), pointer               :: universeOperator_
     class(mergerTreeEvolverClass     ), pointer               :: mergerTreeEvolver_
     class(mergerTreeOutputterClass   ), pointer               :: mergerTreeOutputter_
-    class(mergerTreeInitializorClass ), pointer               :: mergerTreeInitializor_
     class(randomNumberGeneratorClass ), pointer               :: randomNumberGenerator_
     class(mergerTreeSeedsClass       ), pointer               :: mergerTreeSeeds_
     class(*                          ), pointer               :: dummyPointer_
@@ -135,14 +132,13 @@ contains
     <objectBuilder class="universeOperator"       name="universeOperator_"       source="parameters"/>
     <objectBuilder class="mergerTreeEvolver"      name="mergerTreeEvolver_"      source="parameters"/>
     <objectBuilder class="mergerTreeOutputter"    name="mergerTreeOutputter_"    source="parameters"/>
-    <objectBuilder class="mergerTreeInitializor"  name="mergerTreeInitializor_"  source="parameters"/>
     <objectBuilder class="randomNumberGenerator"  name="randomNumberGenerator_"  source="parameters"/>
     <objectBuilder class="mergerTreeSeeds"        name="mergerTreeSeeds_"        source="parameters"/>
     !!]
     if (associated(parametersRoot)) then
-       self=taskPostprocessForests(fileName,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parametersRoot)
+       self=taskPostprocessForests(fileName,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,randomNumberGenerator_,mergerTreeSeeds_,parametersRoot)
     else
-       self=taskPostprocessForests(fileName,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters    )
+       self=taskPostprocessForests(fileName,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,randomNumberGenerator_,mergerTreeSeeds_,parameters    )
     end if
     !![
     <inputParametersValidate source="parameters"/>
@@ -171,14 +167,13 @@ contains
     <objectDestructor name="universeOperator_"      />
     <objectDestructor name="mergerTreeEvolver_"     />
     <objectDestructor name="mergerTreeOutputter_"   />
-    <objectDestructor name="mergerTreeInitializor_" />
     <objectDestructor name="randomNumberGenerator_" />
     <objectDestructor name="mergerTreeSeeds_"       />
     !!]
     return
   end function postprocessForestsConstructorParameters
 
-  function postprocessForestsConstructorInternal(fileName,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,mergerTreeInitializor_,randomNumberGenerator_,mergerTreeSeeds_,parameters) result(self)
+  function postprocessForestsConstructorInternal(fileName,mergerTreeConstructor_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,randomNumberGenerator_,mergerTreeSeeds_,parameters) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`taskPostprocessForests` task class.
     !!}
@@ -196,11 +191,10 @@ contains
     class(universeOperatorClass      ), intent(in   ), target :: universeOperator_
     class(mergerTreeEvolverClass     ), intent(in   ), target :: mergerTreeEvolver_
     class(mergerTreeOutputterClass   ), intent(in   ), target :: mergerTreeOutputter_
-    class(mergerTreeInitializorClass ), intent(in   ), target :: mergerTreeInitializor_
     class(randomNumberGeneratorClass ), intent(in   ), target :: randomNumberGenerator_
     class(mergerTreeSeedsClass       ), intent(in   ), target :: mergerTreeSeeds_
     !![
-    <constructorAssign variables="fileName, *mergerTreeConstructor_, *mergerTreeOperator_, *nodeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_, *mergerTreeInitializor_, *randomNumberGenerator_, *mergerTreeSeeds_, *parameters"/>
+    <constructorAssign variables="fileName, *mergerTreeConstructor_, *mergerTreeOperator_, *nodeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_, *randomNumberGenerator_, *mergerTreeSeeds_, *parameters"/>
     !!]
 
     return 
@@ -224,7 +218,6 @@ contains
     <objectDestructor name="self%universeOperator_"      />
     <objectDestructor name="self%mergerTreeEvolver_"     />
     <objectDestructor name="self%mergerTreeOutputter_"   />
-    <objectDestructor name="self%mergerTreeInitializor_" />
     <objectDestructor name="self%randomNumberGenerator_" />
     <objectDestructor name="self%mergerTreeSeeds_"       />
     !!]
