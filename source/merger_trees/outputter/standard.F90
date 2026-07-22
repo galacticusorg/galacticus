@@ -283,7 +283,7 @@ contains
              ! Get the basic component.
              basic => node%basic()
              ! Perform our output for nodes at the output time.
-             if (basic%time() == time) call self%output(node,indexOutput,time)
+             if (basic%time() == time) call self%output(node,indexOutput,time,outputType_)
           end do
           ! Finished output.
           if     (                                                                     &
@@ -372,7 +372,7 @@ contains
     self%integerPropertiesWritten=0
     self%doublePropertiesWritten =0
     ! Perform our output.
-    call self%output(node,indexOutput,basic%time())
+    call self%output(node,indexOutput,basic%time(),outputType_)
     ! Finished output.
     if     (                                                                     &
          &   (                                                                   &
@@ -389,7 +389,7 @@ contains
     return
   end subroutine standardOutputNode
 
-  subroutine standardOutput(self,node,indexOutput,time)
+  subroutine standardOutput(self,node,indexOutput,time,outputType)
     !!{RST
     Output the provided node.
     !!}
@@ -400,23 +400,24 @@ contains
          &                                  nodePropertyExtractorArray, nodePropertyExtractorList, nodePropertyExtractorList2D       , nodePropertyExtractorIntegerList
     use :: Poly_Ranks              , only : polyRankInteger           , polyRankDouble           , assignment(=)
     implicit none
-    class           (mergerTreeOutputterStandard), intent(inout)                   :: self
-    type            (treeNode                   ), intent(inout)                   :: node
-    integer         (c_size_t                   ), intent(in   )                   :: indexOutput
-    double precision                             , intent(in   )                   :: time
-    integer         (kind_int8                  ), allocatable  , dimension(:    ) :: integerTuple
-    double precision                             , allocatable  , dimension(:    ) :: doubleTuple
-    integer         (kind_int8                  ), allocatable  , dimension(:,:  ) :: integerArray
-    double precision                             , allocatable  , dimension(:,:  ) :: doubleArray
-    double precision                             , allocatable  , dimension(:,:,:) :: doubleArray2D
-    type            (polyRankInteger            ), allocatable  , dimension(:    ) :: integerProperties
-    type            (polyRankDouble             ), allocatable  , dimension(:    ) :: doubleProperties
-    integer                                      , allocatable  , dimension(:    ) :: doubleRanks      , integerRanks
-    integer         (c_size_t                   ), allocatable  , dimension(:    ) :: shape_
-    integer                                                                        :: doubleProperty   , integerProperty, &
-         &                                                                            i
-    logical                                                                        :: nodePassesFilter
-    type            (multiCounter               )                                  :: instance
+    class           (mergerTreeOutputterStandard   ), intent(inout)                   :: self
+    type            (treeNode                      ), intent(inout)                   :: node
+    integer         (c_size_t                      ), intent(in   )                   :: indexOutput
+    double precision                                , intent(in   )                   :: time
+    type            (enumerationOutputGroupTypeType), intent(in   )                   :: outputType
+    integer         (kind_int8                     ), allocatable  , dimension(:    ) :: integerTuple
+    double precision                                , allocatable  , dimension(:    ) :: doubleTuple
+    integer         (kind_int8                     ), allocatable  , dimension(:,:  ) :: integerArray
+    double precision                                , allocatable  , dimension(:,:  ) :: doubleArray
+    double precision                                , allocatable  , dimension(:,:,:) :: doubleArray2D
+    type            (polyRankInteger               ), allocatable  , dimension(:    ) :: integerProperties
+    type            (polyRankDouble                ), allocatable  , dimension(:    ) :: doubleProperties
+    integer                                         , allocatable  , dimension(:    ) :: doubleRanks      , integerRanks
+    integer         (c_size_t                      ), allocatable  , dimension(:    ) :: shape_
+    integer                                                                           :: doubleProperty   , integerProperty, &
+         &                                                                               i
+    logical                                                                           :: nodePassesFilter
+    type            (multiCounter                  )                                  :: instance
 
     ! Reset calculations (necessary in case the last node to be evolved is the first one we output, in which case
     ! calculations would not be automatically reset because the node unique ID will not have changed).
@@ -681,11 +682,15 @@ contains
           if (self% doubleBufferCount == self% doubleBufferSize) call self%extendDoubleBuffer ()
        end do
     end if
-    ! Perform any extra output tasks.
+    ! Perform any extra output tasks. These are skipped for trajectory output. Subscribers to this event hook (e.g. the standard
+    ! disk, spheroid, and nuclear star cluster components) *modify* the state of the node - specifically, they advance the star
+    ! formation history to the next output. Since trajectory output occurs during differential evolution (and many times per node)
+    ! allowing that to happen would corrupt the star formation histories and inject spurious data into the regular outputs.
+    if (outputType == outputGroupTypeTrajectory) return
     !![
     <eventHook name="mergerTreeExtraOutput">
       <callWith>node,indexOutput,node%hostTree,nodePassesFilter,treeLock</callWith>
-    </eventHook>  
+    </eventHook>
     !!]
     return
   end subroutine standardOutput
@@ -1288,11 +1293,16 @@ contains
     !$ call hdf5Access%unset()
     ! Create the group if it has not been created.
     if (.not.self%outputGroups(indexOutput)%opened) then
-       ! Create a name for the group.
-       groupName='Output'
-       groupName=groupName//indexOutput
-       ! Create a comment for the group.
-       description='Data for output number '
+       ! Create a name and comment for the group. Trajectory output groups accumulate records for a single node over many times, so
+       ! are named accordingly (and, below, are not given the time-related attributes which would be meaningless in that case).
+       if (outputType == outputGroupTypeTrajectory) then
+          groupName  ='Trajectory'
+          description='Trajectory data for tracked node number '
+       else
+          groupName  ='Output'
+          description='Data for output number '
+       end if
+       groupName  =groupName  //indexOutput
        description=description//indexOutput
        ! Create a group for the tree.
        !$ call hdf5Access%set()
@@ -1303,20 +1313,27 @@ contains
        self%outputGroups(indexOutput)%doubleAttributesWritten =.false.
        ! Record the "type" of output for this group.
        call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(enumerationOutputGroupTypeDecode(outputType,includePrefix=.false.),'outputType')
-       ! Add the time to this group.
-       expansionFactor    =+self%cosmologyFunctions_%expansionFactor (time)
-       if (expansionFactor > 1.0d0) then
-          distanceComoving=-1.0d0
-       else if (expansionFactor == 1.0d0) then
-          distanceComoving=+0.0d0
+       ! Add the time to this group. For trajectory output the group accumulates records spanning a range of times, so a single
+       ! time attribute would be meaningless - the time of each record is instead available on a per-record basis via the
+       ! `nodePropertyExtractorTime` property extractor.
+       if (outputType == outputGroupTypeTrajectory) then
+          call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(gigaYear        ,'timeUnitInSI'          )
+          call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(megaParsec      ,'distanceUnitInSI'      )
        else
-          distanceComoving=+self%cosmologyFunctions_%distanceComoving(time)
+          expansionFactor    =+self%cosmologyFunctions_%expansionFactor (time)
+          if (expansionFactor > 1.0d0) then
+             distanceComoving=-1.0d0
+          else if (expansionFactor == 1.0d0) then
+             distanceComoving=+0.0d0
+          else
+             distanceComoving=+self%cosmologyFunctions_%distanceComoving(time)
+          end if
+          call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(time            ,'outputTime'            )
+          call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(gigaYear        ,'timeUnitInSI'          )
+          call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(megaParsec      ,'distanceUnitInSI'      )
+          call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(expansionFactor ,'outputExpansionFactor' )
+          call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(distanceComoving,'outputComovingDistance')
        end if
-       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(time            ,'outputTime'            )
-       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(gigaYear        ,'timeUnitInSI'          )
-       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(megaParsec      ,'distanceUnitInSI'      )
-       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(expansionFactor ,'outputExpansionFactor' )
-       call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(distanceComoving,'outputComovingDistance')
        !$ call hdf5Access%unset()
     end if
     return

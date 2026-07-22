@@ -1471,7 +1471,8 @@ jobs:
                 test-objectBuilder-recursion.py,
                 test-objectBuilder-recursion-success.py,
                 test-library-interfaces.py,
-                test-merger-tree-read-ties.py ]
+                test-merger-tree-read-ties.py,
+                test-node-trajectory.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
