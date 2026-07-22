@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "7b8382082e295748f204b4a71e38bc1f6d18f1aa",
-        "message": "ci: replace obsoleted test with new test\n",
-        "timestamp": "2026-07-20 14:43:48-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/7b8382082e295748f204b4a71e38bc1f6d18f1aa"
+        "id": "7ccee793c100d43f06a33d7ab4cdf7a59b8536c8",
+        "message": "ci: update gh-pages analysis thresholds\n\nAdd halo mass function metrics (COZMIC, MDPL, Symphony) and refresh\ncurrent/threshold values from the latest analysis run.\n",
+        "timestamp": "2026-07-21 15:57:10-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/7ccee793c100d43f06a33d7ab4cdf7a59b8536c8"
     },
     "results": [
         {
