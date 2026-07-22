@@ -1469,6 +1469,7 @@ jobs:
                 test-merger-tree-export.sh,
                 test-AGNSED.py,
                 test-SIDM-parametric.py,
+                test-decaying-dark-matter-halo-mass-function.py,
                 test-objectBuilder-recursion.py,
                 test-objectBuilder-recursion-success.py,
                 test-library-interfaces.py,

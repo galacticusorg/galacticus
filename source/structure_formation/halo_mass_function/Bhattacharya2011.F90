@@ -257,7 +257,7 @@ contains
 
   logical function bhattacharya2011IsCriticalOverdensityDependent(self)
     !!{RST
-    Return true as the :cite:t:`bhattacharya_dark_2011` halo mass function is built on an $f(\nu)$
+    Return true as the :cite:t:`bhattacharya_dark_2011` halo mass function is built on an :math:`f(\nu)`
     multiplicity that consumes the (possibly mass-dependent) critical overdensity for collapse.
     !!}
     implicit none

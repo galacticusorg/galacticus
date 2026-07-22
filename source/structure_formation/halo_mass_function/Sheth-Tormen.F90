@@ -204,7 +204,7 @@ contains
 
   logical function shethTormenIsCriticalOverdensityDependent(self)
     !!{RST
-    Return true as the \gls{sheth}-\gls{tormen} halo mass function is built on an $f(\nu)$ multiplicity
+    Return true as the Sheth-Tormen halo mass function is built on an :math:`f(\nu)` multiplicity
     that consumes the (possibly mass-dependent) critical overdensity for collapse.
     !!}
     implicit none

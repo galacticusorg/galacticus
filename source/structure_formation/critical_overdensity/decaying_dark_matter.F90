@@ -39,13 +39,13 @@ dark matter (DDM) of :cite:t:`montandon_decaying_2026`.
    normalized to the Einstein--de Sitter value, the :term:`CDM` limit (:math:`v_k\rightarrow0` or
    infinite lifetime) recovers the wrapped critical overdensity exactly. The decay lifetime and
    velocity kick are taken from a :cite:t:`montandon_decaying_2026` decaying dark matter particle
-   (:xref:`darkMatterParticleDecayingDarkMatter`).
+   (:galacticus-class:`darkMatterParticleDecayingDarkMatter`).
 
    .. warning::
 
       In the model of :cite:t:`montandon_decaying_2026` all DDM physics is encoded through the critical
       overdensity (and, for the halo mass function, a mass remapping); the variance
-      :math:`\sigma(M)` is computed from the \emph{unmodified} :math:`\Lambda`CDM linear power
+      :math:`\sigma(M)` is computed from the *unmodified* :math:`\Lambda`CDM linear power
       spectrum. This class must therefore be used with a standard :math:`\Lambda`CDM
       ``cosmologicalMassVariance``/``transferFunction`` --- combining it with a suppressed
       (DDM/:term:`WDM`) transfer function would double-count the small-scale suppression.
@@ -55,7 +55,7 @@ dark matter (DDM) of :cite:t:`montandon_decaying_2026`.
   type, extends(criticalOverdensityClass) :: criticalOverdensityDecayingDarkMatter
      !!{RST
      A critical overdensity for collapse class implementing the decaying dark matter model of
-     \cite{montandon_decaying_2026}.
+     :cite:t:`montandon_decaying_2026`.
      !!}
      private
      ! Note: cosmologyFunctions_, cosmologicalMassVariance_, and linearGrowth_ are members of the base
@@ -138,11 +138,13 @@ contains
     <constructorAssign variables="*criticalOverdensity_, *cosmologyFunctions_, *cosmologicalMassVariance_, *linearGrowth_, *darkMatterParticle_"/>
     !!]
 
-    ! Extract the decay lifetime and velocity kick from the (decaying dark matter) particle.
-    select type (darkMatterParticle_)
+    ! Extract the decay lifetime and velocity kick from the (decaying dark matter) particle. Note that we
+    ! must select on our own (assigned) pointer to the particle, as the accessor methods require an
+    ! `intent(inout)` object.
+    select type (particle_ => self%darkMatterParticle_)
     class is (darkMatterParticleDecayingDarkMatter)
-       self%lifetime    =darkMatterParticle_%lifetime    ()
-       self%velocityKick=darkMatterParticle_%velocityKick()
+       self%lifetime    =particle_%lifetime    ()
+       self%velocityKick=particle_%velocityKick()
     class default
        call Error_Report('a decaying dark matter particle ([darkMatterParticleDecayingDarkMatter]) is required'//{introspection:location})
     end select
@@ -168,7 +170,7 @@ contains
 
   double precision function decayingDarkMatterCorrection(self,timeValue,mass) result(correction)
     !!{RST
-    Return the DDM correction factor $\delta_\mathrm{c}^\mathrm{fit}(M_0)/\delta_\mathrm{c}^\mathrm{EdS}$
+    Return the DDM correction factor :math:`\delta_\mathrm{c}^\mathrm{fit}(M_0)/\delta_\mathrm{c}^\mathrm{EdS}`
     at the given cosmic time and (Lagrangian) mass. Epoch-dependent (mass-independent) quantities are
     cached, since the halo mass function evaluates this at many masses for a single epoch.
     !!}

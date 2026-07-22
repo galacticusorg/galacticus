@@ -20,7 +20,7 @@
 !!{RST
 Contains a program to test the revised spherical collapse model for decaying dark matter (DDM) of
 :cite:t:`montandon_decaying_2026`, as implemented in the
-{\normalfont \ttfamily Decaying\_Dark\_Matter\_Spherical\_Collapse} module. Target values are taken
+``Decaying_Dark_Matter_Spherical_Collapse`` module. Target values are taken
 from an independent (Python) reimplementation of the paper's equations and cross-checked against the
 paper's figures (their Figs. 5 and 8).
 !!}
@@ -61,9 +61,18 @@ program Test_Decaying_Dark_Matter_Spherical_Collapse
   call Assert("small-mass plateau, lifetime=10 Gyr",deltaCSmallExcess(10.0d0),1.449455d0,relTol=1.0d-3)
   call Assert("small-mass plateau, lifetime=20 Gyr",deltaCSmallExcess(20.0d0),0.755020d0,relTol=1.0d-3)
 
-  ! The transition mass scale M1 [their eqs. 44,45] scales as v_k^3. This ratio is independent of the
-  ! physical constants.
+  ! The transition mass scale M1 [their eq. 44] scales as v_k^3. This ratio is independent of the
+  ! normalization.
   call Assert("transition mass scale M1 ~ v_k^3",massScale1Ratio(625.0d0,100.0d0),244.140625d0,relTol=1.0d-6)
+
+  ! Absolute normalization of M1 [their eq. 44]. The target values were obtained by digitizing the
+  ! delta_c(M0) curves of their Fig. 5 (which is drawn at z=1.083, i.e. t_coll=5.558 Gyr for their
+  ! cosmology) and fitting their eq. 43 to each curve with M1 free. This pins the one otherwise
+  ! uncertain constant in the model; note that their eq. 45 is only an order-of-magnitude analytic
+  ! rationale for the v_k^3 scaling and exceeds the calibrated value by a factor of ~200.
+  call Assert("transition mass scale M1, lifetime= 5 Gyr, v_k= 100 km/s",massScale1At(5.558d0, 5.0d0, 100.0d0),3.741d9 ,relTol=1.5d-1)
+  call Assert("transition mass scale M1, lifetime= 5 Gyr, v_k= 707 km/s",massScale1At(5.558d0, 5.0d0, 707.0d0),1.291d12,relTol=1.5d-1)
+  call Assert("transition mass scale M1, lifetime=20 Gyr, v_k=1880 km/s",massScale1At(5.558d0,20.0d0,1880.0d0),4.072d13,relTol=3.0d-1)
 
   ! Full fitting function [their eq. 43] recovers the two plateaux and is monotonically decreasing in
   ! mass (delta_c larger at small mass).
@@ -100,7 +109,7 @@ contains
 
   double precision function deltaCSmallExcess(lifetime)
     !!{RST
-    Return the small-mass plateau excess $\delta_\mathrm{c}^\mathrm{small}-\delta_\mathrm{c}^\mathrm{EdS}$ for the given lifetime (Gyr).
+    Return the small-mass plateau excess :math:`\delta_\mathrm{c}^\mathrm{small}-\delta_\mathrm{c}^\mathrm{EdS}` for the given lifetime (Gyr).
     !!}
     implicit none
     double precision, intent(in   ) :: lifetime
@@ -112,7 +121,7 @@ contains
 
   double precision function massScale1Ratio(velocityKick1,velocityKick2)
     !!{RST
-    Return the ratio of transition mass scales $M_1(v_{k,1})/M_1(v_{k,2})$ (which should equal $(v_{k,1}/v_{k,2})^3$).
+    Return the ratio of transition mass scales :math:`M_1(v_{k,1})/M_1(v_{k,2})` (which should equal :math:`(v_{k,1}/v_{k,2})^3`).
     !!}
     implicit none
     double precision, intent(in   ) :: velocityKick1, velocityKick2
@@ -124,9 +133,21 @@ contains
     return
   end function massScale1Ratio
 
+  double precision function massScale1At(timeCollapse_,lifetime,velocityKick)
+    !!{RST
+    Return the transition mass scale :math:`M_1` (in :math:`\mathrm{M}_\odot`) at the given collapse
+    time (Gyr), lifetime (Gyr), and velocity kick (km/s).
+    !!}
+    implicit none
+    double precision, intent(in   ) :: timeCollapse_, lifetime, velocityKick
+
+    massScale1At=decayingDarkMatterMassScale1(velocityKick,decayingDarkMatterGammaTilde(timeCollapse_,lifetime),timeCollapse_)
+    return
+  end function massScale1At
+
   double precision function deltaCFitFull(mass0,timeCollapse_,lifetime,velocityKick)
     !!{RST
-    Return the full mass-dependent critical overdensity $\delta_\mathrm{c}^\mathrm{fit}(M_0)$, assembled
+    Return the full mass-dependent critical overdensity :math:`\delta_\mathrm{c}^\mathrm{fit}(M_0)`, assembled
     from the module's individual ingredients.
     !!}
     implicit none
@@ -146,7 +167,7 @@ contains
 
   double precision function massCollapsedFraction(mass0,lifetime,velocityKick)
     !!{RST
-    Return the ratio of collapsed mass to Lagrangian mass, $M_\mathrm{coll}/M_0$.
+    Return the ratio of collapsed mass to Lagrangian mass, :math:`M_\mathrm{coll}/M_0`.
     !!}
     implicit none
     double precision, intent(in   ) :: mass0, lifetime, velocityKick

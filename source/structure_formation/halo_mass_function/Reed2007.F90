@@ -186,7 +186,7 @@ contains
 
   logical function reed2007IsCriticalOverdensityDependent(self)
     !!{RST
-    Return true as the :cite:t:`reed_halo_2007` halo mass function is built on an $f(\nu)$ multiplicity
+    Return true as the :cite:t:`reed_halo_2007` halo mass function is built on an :math:`f(\nu)` multiplicity
     that consumes the (possibly mass-dependent) critical overdensity for collapse.
     !!}
     implicit none

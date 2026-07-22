@@ -19,30 +19,35 @@
 
 !!{RST
 Contains a module which implements the revised spherical collapse model for decaying dark matter (DDM)
-cosmologies of \cite{montandon_decaying_2026}. This provides the mass-dependent critical overdensity
-for collapse, $\delta_\mathrm{c}(M_0)$, and the mapping between the initial Lagrangian mass, $M_0$,
-and the observed collapsed mass, $M_\mathrm{coll}$, both of which are used to build the DDM halo mass
+cosmologies of :cite:t:`montandon_decaying_2026`. This provides the mass-dependent critical overdensity
+for collapse, :math:`\delta_\mathrm{c}(M_0)`, and the mapping between the initial Lagrangian mass, :math:`M_0`,
+and the observed collapsed mass, :math:`M_\mathrm{coll}`, both of which are used to build the DDM halo mass
 function.
 
-\emph{Note on unit conventions.} All physical computations in this module are performed in SI units
-(the inputs---mass in $\mathrm{M}_\odot$, times in Gyr, and velocity kick in km/s---are converted to
-SI on entry). Only dimensionless combinations ($\epsilon$, $\xi$, $\beta$, $\tilde{\Gamma}$), ratios
-($M_\mathrm{coll}/M_0$, $\delta_\mathrm{c}$ fractions), and the transition mass scale $M_1$ (returned
-in $\mathrm{M}_\odot$) are exposed.
+*Note on unit conventions.* All physical computations in this module are performed in SI units
+(the inputs---mass in :math:`\mathrm{M}_\odot`, times in Gyr, and velocity kick in km/s---are converted to
+SI on entry). Only dimensionless combinations (:math:`\epsilon`, :math:`\xi`, :math:`\beta`, :math:`\tilde{\Gamma}`), ratios
+(:math:`M_\mathrm{coll}/M_0`, :math:`\delta_\mathrm{c}` fractions), and the transition mass scale :math:`M_1` (returned
+in :math:`\mathrm{M}_\odot`) are exposed.
 
-\emph{Note on the Einstein--de Sitter (EdS) internal relations.} Following
-\cite{montandon_decaying_2026}, the DDM corrections are evaluated using EdS relations \emph{internally}
-even when the host cosmology is $\Lambda$CDM: the turnaround time is $t_\mathrm{ta}=t_\mathrm{coll}/2$,
-the turnaround radius follows from Kepler's relation $G M_0 = \pi^2 R_\mathrm{ta}^3/(8 t_\mathrm{ta}^2)$,
-the linear extrapolation uses the EdS growth factor, and $\delta_\mathrm{c}$ is normalized to
-$\delta_\mathrm{c}^\mathrm{EdS}=(3/5)(3\pi/2)^{2/3}\approx1.686$. This is a deliberate choice, not an
-approximation of convenience: the fitting constants ($A$, $\beta$, $\gamma$, $\nu$, $M_2/M_1$, and the
-$M_1$ normalization) were calibrated against numerical solutions that fold \emph{all} DDM physics
-through the EdS cycloid. Substituting the true $\Lambda$CDM turnaround/growth relations here would be
-inconsistent with that calibration. The $\Lambda$CDM baseline instead re-enters only where these
+*Note on the Einstein--de Sitter (EdS) internal relations.* Following
+:cite:t:`montandon_decaying_2026`, the DDM corrections are evaluated using EdS relations *internally*
+even when the host cosmology is :math:`\Lambda`CDM: the turnaround time is :math:`t_\mathrm{ta}=t_\mathrm{coll}/2`,
+the turnaround radius follows from Kepler's relation :math:`G M_0 = \pi^2 R_\mathrm{ta}^3/(8 t_\mathrm{ta}^2)`,
+the linear extrapolation uses the EdS growth factor, and :math:`\delta_\mathrm{c}` is normalized to
+:math:`\delta_\mathrm{c}^\mathrm{EdS}=(3/5)(3\pi/2)^{2/3}\approx1.686`. This is a deliberate choice, not an
+approximation of convenience: the fitting constants (:math:`A`, :math:`\beta`, :math:`\gamma`, :math:`\nu`, :math:`M_2/M_1`, and the
+:math:`M_1` normalization) were calibrated against numerical solutions that fold *all* DDM physics
+through the EdS cycloid. Substituting the true :math:`\Lambda`CDM turnaround/growth relations here would be
+inconsistent with that calibration. The :math:`\Lambda`CDM baseline instead re-enters only where these
 functions are consumed---the DDM critical overdensity is applied as a multiplicative correction,
-$\delta_\mathrm{c}^\mathrm{EdS}$-normalized, to a base $\Lambda$CDM critical overdensity, so that the
-$\Lambda$CDM limit ($v_k\rightarrow0$ or $\Gamma\rightarrow0$) is recovered exactly.
+:math:`\delta_\mathrm{c}^\mathrm{EdS}`-normalized, to a base :math:`\Lambda`CDM critical overdensity, so that the
+:math:`\Lambda`CDM limit (:math:`v_k\rightarrow0` or :math:`\Gamma\rightarrow0`) is recovered exactly.
+
+*Note on the calibration of* :math:`M_1`. The transition mass scale uses the calibrated fit of
+:cite:t:`montandon_decaying_2026`, their eq. 44, and *not* the analytic estimate of their eq. 45---the
+latter is an order-of-magnitude rationale for the :math:`v_k^3` scaling only, and over-estimates
+:math:`M_1` by a factor of :math:`\sim200`. See the comment on ``fitMassScale1Coefficient`` below.
 !!}
 
 module Decaying_Dark_Matter_Spherical_Collapse
@@ -62,12 +67,19 @@ module Decaying_Dark_Matter_Spherical_Collapse
   ! Transition function [their eq. 43]: exponent nu and the (universal) mass-scale ratio M2/M1.
   double precision, parameter :: fitTransitionNu         =0.1484d0
   double precision, parameter :: fitTransitionMassRatio  =23.96031d0 ! = M2/M1 = 10^1.3795 ~ 24 (literal, as real exponentiation is not a constant expression).
-  ! Transition mass scale M1 [their eqs. 44,45]. We adopt the dimensionally-explicit physical form of
-  ! their eq. 45, M1 = coefficient * v_k^3 t_ta / G * gammaTilde^(-1/2), with the coefficient 2*sqrt(2)/pi
-  ! derived from the condition that the kick velocity equals the orbital velocity at turnaround, times
-  ! the empirical gammaTilde^(-1/2) scaling. (Their eq. 44 gives an equivalent best-fit constant B, but
-  ! in unstated units; the physical form here is unit-transparent and validated against their Fig. 5.)
-  double precision, parameter :: fitMassScale1Coefficient=0.9003163161571062d0 ! = 2*sqrt(2)/pi (literal, as sqrt is not a constant expression).
+  ! Transition mass scale M1 [their eq. 44]: M1 = B v_k^3 gammaTilde^(-1/2) t_ta, with log10(B)=3.017 for
+  ! M1 in M_Solar, v_k in km/s, and t_ta in Gyr. This is their *calibrated* fit (accurate to 10% across
+  ! their grid of models and both redshifts), and is the expression used here.
+  !
+  ! Note that their eq. 45, M1 ~ 2 sqrt(2) v_k^3 t_ta / pi G, is only an order-of-magnitude analytic
+  ! rationale for the v_k^3 scaling (it identifies the gravitating mass at turnaround with M1 itself, via
+  ! their "M_grav ~ M1"), and is *not* the calibrated normalization: evaluated in these units its
+  ! coefficient is 2.14e5, larger than B by a factor of ~206. Using it in place of B shifts the
+  ! transition to far too high a mass and grossly over-suppresses the halo mass function. The value of B
+  ! adopted here was verified by digitizing all fifteen delta_c(M_0) curves of their Fig. 5 (three
+  ! lifetimes x five velocity kicks, at z=1.083) and fitting eq. 43 to each: B reproduces the resulting
+  ! transition masses to ~13%, whereas the eq. 45 coefficient is high by a factor of ~230.
+  double precision, parameter :: fitMassScale1Coefficient=1039.9127d0 ! = 10^3.017 (literal, as real exponentiation is not a constant expression).
 
   ! Numbers of abscissae for the fixed midpoint quadratures. The integrands are smooth and bounded on
   ! their (fixed) intervals, so a midpoint rule---which also avoids the interval endpoints where some
@@ -80,8 +92,8 @@ contains
 
   double precision function decayingDarkMatterEpsilon(velocityKick) result(epsilon)
     !!{RST
-    Return the dimensionless mass-loss parameter $\epsilon=(v_k/c)/(1+v_k/c)$
-    (\citealt{montandon_decaying_2026}, their eq. 11), where $v_k$ is the velocity kick imparted to the
+    Return the dimensionless mass-loss parameter :math:`\epsilon=(v_k/c)/(1+v_k/c)`
+    (:cite:t:`montandon_decaying_2026`, their eq. 11), where :math:`v_k` is the velocity kick imparted to the
     daughter particle. ``velocityKick`` is in km/s.
     !!}
     use :: Numerical_Constants_Physical , only : speedLight
@@ -103,8 +115,8 @@ contains
 
   double precision function decayingDarkMatterGammaTilde(timeCollapse,lifetime) result(gammaTilde)
     !!{RST
-    Return the dimensionless decay rate $\tilde{\Gamma}=\Gamma t_\mathrm{coll}/2$
-    (\citealt{montandon_decaying_2026}), where $\Gamma$ is the decay rate (the reciprocal of the
+    Return the dimensionless decay rate :math:`\tilde{\Gamma}=\Gamma t_\mathrm{coll}/2`
+    (:cite:t:`montandon_decaying_2026`), where :math:`\Gamma` is the decay rate (the reciprocal of the
     ``lifetime``). Both ``timeCollapse`` and ``lifetime`` are in Gyr.
     !!}
     implicit none
@@ -119,8 +131,8 @@ contains
   double precision function decayingDarkMatterCriticalOverdensityEdS() result(deltaCEdS)
     !!{RST
     Return the Einstein--de Sitter critical overdensity for collapse,
-    $\delta_\mathrm{c}^\mathrm{EdS}=(3/5)(3\pi/2)^{2/3}\approx1.686$
-    (\citealt{montandon_decaying_2026}, their eq. 32).
+    :math:`\delta_\mathrm{c}^\mathrm{EdS}=(3/5)(3\pi/2)^{2/3}\approx1.686`
+    (:cite:t:`montandon_decaying_2026`, their eq. 32).
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -135,15 +147,17 @@ contains
 
   double precision function decayingDarkMatterJIntegral(gammaTilde) result(jIntegral)
     !!{RST
-    Return the integral $J(\tilde{\Gamma})$ (\citealt{montandon_decaying_2026}, their eq. 38) that
+    Return the integral :math:`J(\tilde{\Gamma})` (:cite:t:`montandon_decaying_2026`, their eq. 38) that
     controls the large-mass limit of the critical overdensity,
-    \begin{equation}
-     J(\tilde{\Gamma}) = -\int_0^{2\pi} \mathrm{d}\theta \, \frac{\sin\theta \left(1-\mathrm{e}^{-\tilde{\Gamma}\tilde{t}(\theta)}\right)}{(1-\cos\theta)^2} \left[6\pi+I(\theta)\right] ,
-    \end{equation}
-    with $\tilde{t}(\theta)=(\theta-\sin\theta)/\pi$ the EdS cycloid time and
-    $I(\theta)=\sin\theta-3\theta+4\tan(\theta/2)$ (their eq. 36). The integrand is bounded on
-    $(0,2\pi)$---the apparent singularities at $\theta=0$, $\pi$, and $2\pi$ are removable---and $J<0$,
-    reflecting the delay of collapse relative to $\Lambda$CDM.
+
+    .. math::
+
+       J(\tilde{\Gamma}) = -\int_0^{2\pi} \mathrm{d}\theta \, \frac{\sin\theta \left(1-\mathrm{e}^{-\tilde{\Gamma}\tilde{t}(\theta)}\right)}{(1-\cos\theta)^2} \left[6\pi+I(\theta)\right] ,
+
+    with :math:`\tilde{t}(\theta)=(\theta-\sin\theta)/\pi` the EdS cycloid time and
+    :math:`I(\theta)=\sin\theta-3\theta+4\tan(\theta/2)` (their eq. 36). The integrand is bounded on
+    :math:`(0,2\pi)`---the apparent singularities at :math:`\theta=0`, :math:`\pi`, and :math:`2\pi` are removable---and :math:`J<0`,
+    reflecting the delay of collapse relative to :math:`\Lambda`CDM.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -181,10 +195,10 @@ contains
   double precision function decayingDarkMatterDeltaCLarge(gammaTilde,epsilon,jIntegral) result(deltaCLarge)
     !!{RST
     Return the large-mass limit of the critical overdensity for collapse,
-    $\delta_\mathrm{c}^\mathrm{large}=\delta_\mathrm{c}^\mathrm{EdS}\left(1-\epsilon J(\tilde{\Gamma})/3\pi\right)$
-    (\citealt{montandon_decaying_2026}, their eq. 40). ``jIntegral`` is $J(\tilde{\Gamma})$ as returned
-    by {\normalfont \ttfamily decayingDarkMatterJIntegral}. In this limit all daughter particles are
-    retained and $\delta_\mathrm{c}$ approaches (but slightly exceeds) the EdS value.
+    :math:`\delta_\mathrm{c}^\mathrm{large}=\delta_\mathrm{c}^\mathrm{EdS}\left(1-\epsilon J(\tilde{\Gamma})/3\pi\right)`
+    (:cite:t:`montandon_decaying_2026`, their eq. 40). ``jIntegral`` is :math:`J(\tilde{\Gamma})` as returned
+    by ``decayingDarkMatterJIntegral``. In this limit all daughter particles are
+    retained and :math:`\delta_\mathrm{c}` approaches (but slightly exceeds) the EdS value.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -204,10 +218,10 @@ contains
   double precision function decayingDarkMatterDeltaCSmall(gammaTilde) result(deltaCSmall)
     !!{RST
     Return the small-mass limit (plateau) of the critical overdensity for collapse,
-    $\delta_\mathrm{c}^\mathrm{small}(\tilde{\Gamma})=\delta_\mathrm{c}^\mathrm{EdS}+A\,\tilde{\Gamma}^\beta\left[\ln(1+\tilde{\Gamma})\right]^{1-\gamma}$
-    (\citealt{montandon_decaying_2026}, their eq. 42). In this limit all massive daughters escape, the
-    collapse is driven purely by the decaying parent, and $\delta_\mathrm{c}$ depends only on
-    $\tilde{\Gamma}$ (not on the velocity kick).
+    :math:`\delta_\mathrm{c}^\mathrm{small}(\tilde{\Gamma})=\delta_\mathrm{c}^\mathrm{EdS}+A\,\tilde{\Gamma}^\beta\left[\ln(1+\tilde{\Gamma})\right]^{1-\gamma}`
+    (:cite:t:`montandon_decaying_2026`, their eq. 42). In this limit all massive daughters escape, the
+    collapse is driven purely by the decaying parent, and :math:`\delta_\mathrm{c}` depends only on
+    :math:`\tilde{\Gamma}` (not on the velocity kick).
     !!}
     implicit none
     double precision, intent(in   ) :: gammaTilde
@@ -221,48 +235,47 @@ contains
 
   double precision function decayingDarkMatterMassScale1(velocityKick,gammaTilde,timeCollapse) result(massScale1)
     !!{RST
-    Return the transition mass scale $M_1$ (in $\mathrm{M}_\odot$) between the small- and large-mass
-    plateaux of the critical overdensity (\citealt{montandon_decaying_2026}, their eqs. 44,45),
-    \begin{equation}
-     M_1 = \frac{2\sqrt{2}}{\pi G}\, v_k^3\, t_\mathrm{ta}\, \tilde{\Gamma}^{-1/2} ,
-    \end{equation}
-    with $t_\mathrm{ta}=t_\mathrm{coll}/2$. Physically this is the mass scale at which the kick velocity
-    equals the halo orbital velocity at turnaround. ``velocityKick`` is in km/s and ``timeCollapse`` in
-    Gyr.
+    Return the transition mass scale :math:`M_1` (in :math:`\mathrm{M}_\odot`) between the small- and large-mass
+    plateaux of the critical overdensity (:cite:t:`montandon_decaying_2026`, their eq. 44),
+
+    .. math::
+
+       M_1 = B\, v_k^3\, \tilde{\Gamma}^{-1/2}\, t_\mathrm{ta} ,
+
+    with :math:`t_\mathrm{ta}=t_\mathrm{coll}/2` and :math:`\log_{10} B = 3.017` for :math:`M_1` in
+    :math:`\mathrm{M}_\odot`, :math:`v_k` in km/s, and :math:`t_\mathrm{ta}` in Gyr. Physically this is
+    (up to the calibrated normalization) the mass scale at which the kick velocity equals the halo
+    orbital velocity at turnaround, with the residual :math:`\tilde{\Gamma}^{-1/2}` factor accounting for
+    the mass lost by turnaround. As this is a fit in fixed units it requires no physical constants.
+    ``velocityKick`` is in km/s and ``timeCollapse`` in Gyr.
     !!}
-    use :: Numerical_Constants_Physical    , only : gravitationalConstant
-    use :: Numerical_Constants_Astronomical, only : massSolar            , gigaYear
-    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision, intent(in   ) :: velocityKick, gammaTilde, timeCollapse
-    double precision                :: velocityKickSI, timeTurnaroundSI
+    double precision                :: timeTurnaround
 
-    velocityKickSI  =+velocityKick      &
-         &           *kilo             ! km/s -> m/s.
-    timeTurnaroundSI=+0.5d0            &
-         &           *timeCollapse     &
-         &           *gigaYear         ! Gyr  -> s.
-    massScale1      =+fitMassScale1Coefficient    &
-         &           *velocityKickSI**3           &
-         &           *timeTurnaroundSI            &
-         &           /gravitationalConstant       &
-         &           /sqrt(gammaTilde)            &
-         &           /massSolar                 ! kg -> Msun.
+    timeTurnaround=+0.5d0              &
+         &         *timeCollapse      ! Gyr.
+    massScale1    =+fitMassScale1Coefficient &
+         &         *velocityKick**3          &
+         &         /sqrt(gammaTilde)         &
+         &         *timeTurnaround
     return
   end function decayingDarkMatterMassScale1
 
   double precision function decayingDarkMatterDeltaCFit(mass0,deltaCLarge,deltaCSmall,massScale1) result(deltaCFit)
     !!{RST
-    Return the mass-dependent critical overdensity for collapse, $\delta_\mathrm{c}^\mathrm{fit}(M_0)$,
-    interpolating between the small- and large-mass plateaux (\citealt{montandon_decaying_2026}, their
+    Return the mass-dependent critical overdensity for collapse, :math:`\delta_\mathrm{c}^\mathrm{fit}(M_0)`,
+    interpolating between the small- and large-mass plateaux (:cite:t:`montandon_decaying_2026`, their
     eq. 43),
-    \begin{equation}
-     \delta_\mathrm{c}^\mathrm{fit}(M_0) = \delta_\mathrm{c}^\mathrm{large} + \frac{\delta_\mathrm{c}^\mathrm{small}-\delta_\mathrm{c}^\mathrm{large}}{\left[\left(1+M_0/M_1\right)\left(1+\left(M_0/M_2\right)^4\right)\right]^\nu} ,
-    \end{equation}
-    with $M_2=(M_2/M_1)M_1$. As $M_0\rightarrow0$ the denominator tends to unity and
-    $\delta_\mathrm{c}^\mathrm{fit}\rightarrow\delta_\mathrm{c}^\mathrm{small}$; as $M_0\rightarrow\infty$
-    the denominator diverges and $\delta_\mathrm{c}^\mathrm{fit}\rightarrow\delta_\mathrm{c}^\mathrm{large}$.
-    ``mass0`` and ``massScale1`` are in $\mathrm{M}_\odot$.
+
+    .. math::
+
+       \delta_\mathrm{c}^\mathrm{fit}(M_0) = \delta_\mathrm{c}^\mathrm{large} + \frac{\delta_\mathrm{c}^\mathrm{small}-\delta_\mathrm{c}^\mathrm{large}}{\left[\left(1+M_0/M_1\right)\left(1+\left(M_0/M_2\right)^4\right)\right]^\nu} ,
+
+    with :math:`M_2=(M_2/M_1)M_1`. As :math:`M_0\rightarrow0` the denominator tends to unity and
+    :math:`\delta_\mathrm{c}^\mathrm{fit}\rightarrow\delta_\mathrm{c}^\mathrm{small}`; as :math:`M_0\rightarrow\infty`
+    the denominator diverges and :math:`\delta_\mathrm{c}^\mathrm{fit}\rightarrow\delta_\mathrm{c}^\mathrm{large}`.
+    ``mass0`` and ``massScale1`` are in :math:`\mathrm{M}_\odot`.
     !!}
     implicit none
     double precision, intent(in   ) :: mass0, deltaCLarge, deltaCSmall, massScale1
@@ -290,14 +303,16 @@ contains
   double precision function decayingDarkMatterFBound(beta,xi) result(fBound)
     !!{RST
     Return the volume-averaged fraction of daughter particles that remain gravitationally bound to the
-    halo, $f_\mathrm{bound}(\beta,\xi)$ (\citealt{montandon_decaying_2026}, their eq. 22), for the
-    dimensionless bulk-flow parameter $\beta$ and kick parameter $\xi$. This is evaluated as
-    \begin{equation}
-     f_\mathrm{bound} = \int_0^1 3u^2\, P_\mathrm{bound}(u)\, \mathrm{d}u ,
-    \end{equation}
-    where $P_\mathrm{bound}(u)=\max\left[0,\min\left(1,(1+C_\mathrm{bound}(u))/2\right)\right]$ (their
+    halo, :math:`f_\mathrm{bound}(\beta,\xi)` (:cite:t:`montandon_decaying_2026`, their eq. 22), for the
+    dimensionless bulk-flow parameter :math:`\beta` and kick parameter :math:`\xi`. This is evaluated as
+
+    .. math::
+
+       f_\mathrm{bound} = \int_0^1 3u^2\, P_\mathrm{bound}(u)\, \mathrm{d}u ,
+
+    where :math:`P_\mathrm{bound}(u)=\max\left[0,\min\left(1,(1+C_\mathrm{bound}(u))/2\right)\right]` (their
     eqs. 18--19, written here as a single clamp) and
-    $C_\mathrm{bound}(u)=\left(3-\xi^2-u^2(1+\beta^2)\right)/(2\beta\xi u)$ (their eq. 18). The clamped
+    :math:`C_\mathrm{bound}(u)=\left(3-\xi^2-u^2(1+\beta^2)\right)/(2\beta\xi u)` (their eq. 18). The clamped
     form reproduces all three population branches (fully bound, partially bound, unbound) without
     explicit case analysis.
     !!}
@@ -336,18 +351,20 @@ contains
 
   double precision function decayingDarkMatterFBoundBar(gammaTilde,velocityKick,timeCollapse,mass0) result(fBoundBar)
     !!{RST
-    Return the decay-time-averaged bound fraction of daughter mass, $\bar{f}_\mathrm{bound}$
-    (\citealt{montandon_decaying_2026}, their eq. 48),
-    \begin{equation}
-     \bar{f}_\mathrm{bound} = \frac{\tilde{\Gamma}/\pi}{1-\mathrm{e}^{-2\tilde{\Gamma}}} \int_0^{2\pi} \mathrm{d}\theta\, (1-\cos\theta)\, f_\mathrm{bound}^\mathrm{EdS}(\theta)\, \exp\left[-\tilde{\Gamma}(\theta-\sin\theta)/\pi\right] ,
-    \end{equation}
-    where $f_\mathrm{bound}^\mathrm{EdS}(\theta)=f_\mathrm{bound}(\beta_\mathrm{EdS}(\theta),\xi_\mathrm{EdS}(\theta))$
+    Return the decay-time-averaged bound fraction of daughter mass, :math:`\bar{f}_\mathrm{bound}`
+    (:cite:t:`montandon_decaying_2026`, their eq. 48),
+
+    .. math::
+
+       \bar{f}_\mathrm{bound} = \frac{\tilde{\Gamma}/\pi}{1-\mathrm{e}^{-2\tilde{\Gamma}}} \int_0^{2\pi} \mathrm{d}\theta\, (1-\cos\theta)\, f_\mathrm{bound}^\mathrm{EdS}(\theta)\, \exp\left[-\tilde{\Gamma}(\theta-\sin\theta)/\pi\right] ,
+
+    where :math:`f_\mathrm{bound}^\mathrm{EdS}(\theta)=f_\mathrm{bound}(\beta_\mathrm{EdS}(\theta),\xi_\mathrm{EdS}(\theta))`
     is evaluated along the EdS cycloid (their eq. 49) with
-    $\beta_\mathrm{EdS}(\theta)=\sqrt{2}\left|\cos(\theta/2)\right|$ and
-    $\xi_\mathrm{EdS}(\theta)=(2 v_k t_\mathrm{ta}/\pi R_\mathrm{ta})\sqrt{1-\cos\theta}$. The turnaround
-    radius $R_\mathrm{ta}$ follows from Kepler's relation for the initial Lagrangian mass ``mass0``
-    (in $\mathrm{M}_\odot$). This is the only mass-dependent ingredient of the mass mapping (through
-    $R_\mathrm{ta}\propto M_0^{1/3}$). ``velocityKick`` is in km/s and ``timeCollapse`` in Gyr.
+    :math:`\beta_\mathrm{EdS}(\theta)=\sqrt{2}\left|\cos(\theta/2)\right|` and
+    :math:`\xi_\mathrm{EdS}(\theta)=(2 v_k t_\mathrm{ta}/\pi R_\mathrm{ta})\sqrt{1-\cos\theta}`. The turnaround
+    radius :math:`R_\mathrm{ta}` follows from Kepler's relation for the initial Lagrangian mass ``mass0``
+    (in :math:`\mathrm{M}_\odot`). This is the only mass-dependent ingredient of the mass mapping (through
+    :math:`R_\mathrm{ta}\propto M_0^{1/3}`). ``velocityKick`` is in km/s and ``timeCollapse`` in Gyr.
     !!}
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Physical    , only : gravitationalConstant
@@ -414,14 +431,16 @@ contains
 
   double precision function decayingDarkMatterMassCollapsed(mass0,timeCollapse,lifetime,velocityKick) result(massCollapsed)
     !!{RST
-    Return the collapsed (observed) halo mass, $M_\mathrm{coll}$ (in $\mathrm{M}_\odot$), corresponding
-    to an initial Lagrangian mass ``mass0`` (\citealt{montandon_decaying_2026}, their eq. 46),
-    \begin{equation}
-     \frac{M_\mathrm{coll}}{M_0} = \mathrm{e}^{-\Gamma t_\mathrm{coll}} + \sqrt{1-2\epsilon}\left(1-\mathrm{e}^{-\Gamma t_\mathrm{coll}}\right)\bar{f}_\mathrm{bound} ,
-    \end{equation}
+    Return the collapsed (observed) halo mass, :math:`M_\mathrm{coll}` (in :math:`\mathrm{M}_\odot`), corresponding
+    to an initial Lagrangian mass ``mass0`` (:cite:t:`montandon_decaying_2026`, their eq. 46),
+
+    .. math::
+
+       \frac{M_\mathrm{coll}}{M_0} = \mathrm{e}^{-\Gamma t_\mathrm{coll}} + \sqrt{1-2\epsilon}\left(1-\mathrm{e}^{-\Gamma t_\mathrm{coll}}\right)\bar{f}_\mathrm{bound} ,
+
     i.e. the surviving parent mass plus the retained rest mass of gravitationally bound daughters. The
-    mapping is monotonic in $M_0$ (tending to $\mathrm{e}^{-\Gamma t_\mathrm{coll}} M_0$ at low mass,
-    where all daughters escape, and to $M_0$ at high mass, where all are retained). ``timeCollapse`` and
+    mapping is monotonic in :math:`M_0` (tending to :math:`\mathrm{e}^{-\Gamma t_\mathrm{coll}} M_0` at low mass,
+    where all daughters escape, and to :math:`M_0` at high mass, where all are retained). ``timeCollapse`` and
     ``lifetime`` are in Gyr and ``velocityKick`` in km/s.
     !!}
     implicit none

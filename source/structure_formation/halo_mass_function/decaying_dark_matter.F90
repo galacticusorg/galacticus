@@ -43,16 +43,16 @@ cosmologies, following the revised spherical collapse model of :cite:t:`montando
    a grid of Lagrangian masses (controlled by ``[massMinimum]``, ``[massMaximum]``, and ``[countTable]``)
    and inverted by interpolation. The decay lifetime and velocity kick are taken from a
    :cite:t:`montandon_decaying_2026` decaying dark matter particle
-   (:xref:`darkMatterParticleDecayingDarkMatter`).
+   (:galacticus-class:`darkMatterParticleDecayingDarkMatter`).
 
    .. warning::
 
       In the model of :cite:t:`montandon_decaying_2026` the DDM suppression is carried by a
       mass-dependent critical overdensity for collapse (see
-      :xref:`criticalOverdensityDecayingDarkMatter`), with the variance :math:`\sigma(M)` computed from
-      the \emph{unmodified} :math:`\Lambda`CDM linear power spectrum. The wrapped halo mass function must
+      :galacticus-class:`criticalOverdensityDecayingDarkMatter`), with the variance :math:`\sigma(M)` computed from
+      the *unmodified* :math:`\Lambda`CDM linear power spectrum. The wrapped halo mass function must
       therefore (i) be an :math:`f(\nu)`-type mass function that consumes a
-      :xref:`criticalOverdensityDecayingDarkMatter` critical overdensity (this class emits a warning if
+      :galacticus-class:`criticalOverdensityDecayingDarkMatter` critical overdensity (this class emits a warning if
       it does not; see ``isCriticalOverdensityDependent``), and (ii) use a standard :math:`\Lambda`CDM
       ``cosmologicalMassVariance``/``transferFunction`` (combining with a suppressed transfer function
       would double-count the suppression).
@@ -61,7 +61,7 @@ cosmologies, following the revised spherical collapse model of :cite:t:`montando
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionDecayingDarkMatter
      !!{RST
-     A halo mass function class for decaying dark matter cosmologies \citep{montandon_decaying_2026}.
+     A halo mass function class for decaying dark matter cosmologies :cite:t:`montandon_decaying_2026`.
      !!}
      private
      class           (haloMassFunctionClass  ), pointer                   :: massFunction_       => null()
@@ -108,13 +108,13 @@ contains
       <name>massMinimum</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
-      <description>The minimum Lagrangian mass (in $\mathrm{M}_\odot$) used in tabulating the mapping between Lagrangian and collapsed mass.</description>
+      <description>The minimum Lagrangian mass (in :math:`\mathrm{M}_\odot`) used in tabulating the mapping between Lagrangian and collapsed mass.</description>
     </inputParameter>
     <inputParameter>
       <name>massMaximum</name>
       <source>parameters</source>
       <defaultValue>1.0d18</defaultValue>
-      <description>The maximum Lagrangian mass (in $\mathrm{M}_\odot$) used in tabulating the mapping between Lagrangian and collapsed mass.</description>
+      <description>The maximum Lagrangian mass (in :math:`\mathrm{M}_\odot`) used in tabulating the mapping between Lagrangian and collapsed mass.</description>
     </inputParameter>
     <inputParameter>
       <name>countTable</name>
@@ -154,11 +154,13 @@ contains
     <constructorAssign variables="*massFunction_, *cosmologyParameters_, *darkMatterParticle_, massMinimum, massMaximum, countTable"/>
     !!]
 
-    ! Extract the decay lifetime and velocity kick from the (decaying dark matter) particle.
-    select type (darkMatterParticle_)
+    ! Extract the decay lifetime and velocity kick from the (decaying dark matter) particle. Note that we
+    ! must select on our own (assigned) pointer to the particle, as the accessor methods require an
+    ! `intent(inout)` object.
+    select type (particle_ => self%darkMatterParticle_)
     class is (darkMatterParticleDecayingDarkMatter)
-       self%lifetime    =darkMatterParticle_%lifetime    ()
-       self%velocityKick=darkMatterParticle_%velocityKick()
+       self%lifetime    =particle_%lifetime    ()
+       self%velocityKick=particle_%velocityKick()
     class default
        call Error_Report('a decaying dark matter particle ([darkMatterParticleDecayingDarkMatter]) is required'//{introspection:location})
     end select
@@ -201,7 +203,7 @@ contains
 
   subroutine decayingDarkMatterTabulate(self,time)
     !!{RST
-    (Re)build the tabulated mapping between Lagrangian mass $M_0$ and collapsed mass $M_\mathrm{coll}$
+    (Re)build the tabulated mapping between Lagrangian mass :math:`M_0` and collapsed mass :math:`M_\mathrm{coll}`
     at the given cosmic ``time``. The mapping is monotonic, so the tabulated collapsed masses are
     strictly increasing and can be used to build an interpolator for the inverse mapping.
     !!}
