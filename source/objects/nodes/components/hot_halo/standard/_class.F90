@@ -648,9 +648,18 @@ contains
           call radiation%timeSet(basic%time())
           ! Get the chemical densities.
           call chemicalState_%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,outflowedAbundances,radiation)
-          ! Convert from densities to mass rates.
-          call chemicalDensities  %numberToMass(chemicalMassesRates                                         )
-          call chemicalMassesRates%scale       (rate*hydrogenByMass/numberDensityHydrogen/atomicMassHydrogen)
+          ! Convert from densities to mass rates. The scaling factor is, algebraically,
+          !  rate*hydrogenByMass/numberDensityHydrogen/atomicMassHydrogen,
+          ! but substituting the definition of numberDensityHydrogen above shows that both
+          ! hydrogenByMass and atomicMassHydrogen cancel exactly, leaving the form used here. Written
+          ! in the original form the expression evaluates to 0/0 (raising a floating point exception,
+          ! and giving a NaN if exceptions are not trapped) whenever the outflowing gas contains no
+          ! hydrogen, since numberDensityHydrogen is then zero. The equivalent form below has no such
+          ! removable singularity: self%outflowedMass() is guaranteed non-zero by the enclosing
+          ! conditional, and massToDensityConversion is strictly positive for any non-zero outer
+          ! radius (it diverges, rather than vanishing, as that radius tends to zero).
+          call chemicalDensities  %numberToMass(chemicalMassesRates                              )
+          call chemicalMassesRates%scale       (rate/self%outflowedMass()/massToDensityConversion)
           ! Compute the rate at which chemicals are returned to the hot reservoir.
           if (.not.hotHaloOutflowStripping_%neverStripped(node)) &
                &  call self% strippedChemicalsRate(chemicalMassesRates*       fractionOutflowStripped ,interrupt,interruptProcedure)
