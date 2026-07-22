@@ -482,6 +482,14 @@ jobs:
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v7
+      - name: Check out repository datasets
+        # Required by the tool build (buildTools.xml) below, which writes into
+        # $GALACTICUS_DATA_PATH (set to $GITHUB_WORKSPACE/datasets by the
+        # buildMacOS action).
+        uses: actions/checkout@v7
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: Set up build environment
         uses: ./.github/actions/buildMacOS
@@ -522,7 +530,84 @@ jobs:
         with:
           name: galacticus-debug-MacOS
           path: 'debugSymbolsMacOS.zip'
-  ### Apple Silicon build  
+      - name: Build tools
+        id: buildTools
+        run: |
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          mangleVersion=`awk '{if ($1 == "mangle:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          # Export the dependency versions so the later "Package" step (a separate shell) can see them.
+          echo "classVersion=${classVersion}"       >> $GITHUB_ENV
+          echo "cambVersion=${cambVersion}"         >> $GITHUB_ENV
+          echo "forutilsVersion=${forutilsVersion}" >> $GITHUB_ENV
+          echo "fspsVersion=${fspsVersion}"         >> $GITHUB_ENV
+          echo "cloudyVersion=${cloudyVersion}"     >> $GITHUB_ENV
+          echo "mangleVersion=${mangleVersion}"     >> $GITHUB_ENV
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          mkdir -p $GALACTICUS_DATA_PATH/dynamic
+          set -o pipefail
+          # Use the statically-linked executable already built by this job to build the tools.
+          ./Galacticus_MacOS.exe parameters/buildTools.xml 2>&1 | tee build.log
+          cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
+          cd $GALACTICUS_DATA_PATH/dynamic/AxionCAMB/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb
+          cd $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion}/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o class ' $GALACTICUS_EXEC_PATH/build.log`
+          cd $GALACTICUS_DATA_PATH/dynamic/RecFast/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
+          cd $GALACTICUS_DATA_PATH/dynamic/c${cloudyVersion}/source/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
+          cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
+          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/src/
+          cp ../bin/harmonize .
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
+          echo "camb=${GALACTICUS_DATA_PATH}/dynamic/CAMB-${cambVersion}/fortran/camb" >> "$GITHUB_OUTPUT"
+          echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/AxionCAMB/camb" >> "$GITHUB_OUTPUT"
+          echo "class=${GALACTICUS_DATA_PATH}/dynamic/class_public-${classVersion}/class" >> "$GITHUB_OUTPUT"
+          echo "recfast=${GALACTICUS_DATA_PATH}/dynamic/RecFast/recfast.exe" >> "$GITHUB_OUTPUT"
+          echo "cloudy=${GALACTICUS_DATA_PATH}/dynamic/c${cloudyVersion}/source/cloudy.exe" >> "$GITHUB_OUTPUT"
+          echo "fsps=${GALACTICUS_DATA_PATH}/dynamic/fsps-${fspsVersion}/src/autosps.exe" >> "$GITHUB_OUTPUT"
+          echo "mangle=${GALACTICUS_DATA_PATH}/dynamic/mangle-${mangleVersion}/bin/harmonize" >> "$GITHUB_OUTPUT"
+      - name: Sign tool executables
+        uses: ./.github/actions/codeSignMacOS
+        with:
+          files: ${{ steps.buildTools.outputs.camb }} ${{ steps.buildTools.outputs.axioncamb }} ${{ steps.buildTools.outputs.class }} ${{ steps.buildTools.outputs.recfast }} ${{ steps.buildTools.outputs.cloudy }} ${{ steps.buildTools.outputs.fsps }} ${{ steps.buildTools.outputs.mangle }}
+          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
+          macos_certificate_password: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          macos_keychain_password: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+          macos_developer_id: ${{ secrets.MACOS_DEVELOPER_ID }}
+      - name: Package
+        run: |
+          # Package the zip with the signed executables
+          cd $GALACTICUS_DATA_PATH
+          zip -r toolsMacOS.zip \
+            dynamic/CAMB-${cambVersion}/fortran/camb \
+            dynamic/AxionCAMB/camb \
+            dynamic/class_public-${classVersion}/class \
+            dynamic/RecFast/recfast.exe \
+            dynamic/RecFast/currentVersion \
+            dynamic/c${cloudyVersion}/source/cloudy.exe \
+            dynamic/c${cloudyVersion}/data \
+            dynamic/fsps-${fspsVersion}/src/autosps.exe \
+            dynamic/fsps-${fspsVersion}/dust \
+            dynamic/fsps-${fspsVersion}/data \
+            dynamic/fsps-${fspsVersion}/nebular \
+            dynamic/fsps-${fspsVersion}/SPECTRA \
+            dynamic/fsps-${fspsVersion}/OUTPUTS \
+            dynamic/fsps-${fspsVersion}/ISOCHRONES \
+            dynamic/mangle-${mangleVersion}/bin/harmonize
+      - name: Upload tool executables
+        uses: actions/upload-artifact@v7
+        with:
+          name: galacticus-tools-MacOS
+          path: './datasets/toolsMacOS.zip'
+  ### Apple Silicon build
   Build-Executable-MacOS-M1:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: macos-15
@@ -532,6 +617,14 @@ jobs:
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
         uses: actions/checkout@v7
+      - name: Check out repository datasets
+        # Required by the tool build (buildTools.xml) below, which writes into
+        # $GALACTICUS_DATA_PATH (set to $GITHUB_WORKSPACE/datasets by the
+        # buildMacOS action).
+        uses: actions/checkout@v7
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: Set up build environment
         uses: ./.github/actions/buildMacOS
@@ -568,6 +661,83 @@ jobs:
         with:
           name: galacticus-debug-MacOS-M1
           path: 'debugSymbolsMacOS-M1.zip'
+      - name: Build tools
+        id: buildTools
+        run: |
+          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          mangleVersion=`awk '{if ($1 == "mangle:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          # Export the dependency versions so the later "Package" step (a separate shell) can see them.
+          echo "classVersion=${classVersion}"       >> $GITHUB_ENV
+          echo "cambVersion=${cambVersion}"         >> $GITHUB_ENV
+          echo "forutilsVersion=${forutilsVersion}" >> $GITHUB_ENV
+          echo "fspsVersion=${fspsVersion}"         >> $GITHUB_ENV
+          echo "cloudyVersion=${cloudyVersion}"     >> $GITHUB_ENV
+          echo "mangleVersion=${mangleVersion}"     >> $GITHUB_ENV
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          mkdir -p $GALACTICUS_DATA_PATH/dynamic
+          set -o pipefail
+          # Use the statically-linked executable already built by this job to build the tools.
+          ./Galacticus_MacOS-M1.exe parameters/buildTools.xml 2>&1 | tee build.log
+          cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
+          cd $GALACTICUS_DATA_PATH/dynamic/AxionCAMB/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb
+          cd $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion}/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o class ' $GALACTICUS_EXEC_PATH/build.log`
+          cd $GALACTICUS_DATA_PATH/dynamic/RecFast/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
+          cd $GALACTICUS_DATA_PATH/dynamic/c${cloudyVersion}/source/
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
+          cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
+          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/src
+          cp ../bin/harmonize .
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
+          echo "camb=${GALACTICUS_DATA_PATH}/dynamic/CAMB-${cambVersion}/fortran/camb" >> "$GITHUB_OUTPUT"
+          echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/AxionCAMB/camb" >> "$GITHUB_OUTPUT"
+          echo "class=${GALACTICUS_DATA_PATH}/dynamic/class_public-${classVersion}/class" >> "$GITHUB_OUTPUT"
+          echo "recfast=${GALACTICUS_DATA_PATH}/dynamic/RecFast/recfast.exe" >> "$GITHUB_OUTPUT"
+          echo "cloudy=${GALACTICUS_DATA_PATH}/dynamic/c${cloudyVersion}/source/cloudy.exe" >> "$GITHUB_OUTPUT"
+          echo "fsps=${GALACTICUS_DATA_PATH}/dynamic/fsps-${fspsVersion}/src/autosps.exe" >> "$GITHUB_OUTPUT"
+          echo "mangle=${GALACTICUS_DATA_PATH}/dynamic/mangle-${mangleVersion}/bin/harmonize" >> "$GITHUB_OUTPUT"
+      - name: Sign tool executables
+        uses: ./.github/actions/codeSignMacOS
+        with:
+          files: ${{ steps.buildTools.outputs.camb }} ${{ steps.buildTools.outputs.axioncamb }} ${{ steps.buildTools.outputs.class }} ${{ steps.buildTools.outputs.recfast }} ${{ steps.buildTools.outputs.cloudy }} ${{ steps.buildTools.outputs.fsps }} ${{ steps.buildTools.outputs.mangle }}
+          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
+          macos_certificate_password: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          macos_keychain_password: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+          macos_developer_id: ${{ secrets.MACOS_DEVELOPER_ID }}
+      - name: Package
+        run: |
+          # Package the zip with the signed executables
+          cd $GALACTICUS_DATA_PATH
+          zip -r toolsMacOSM1.zip \
+            dynamic/CAMB-${cambVersion}/fortran/camb \
+            dynamic/AxionCAMB/camb \
+            dynamic/class_public-${classVersion}/class \
+            dynamic/RecFast/recfast.exe \
+            dynamic/RecFast/currentVersion \
+            dynamic/c${cloudyVersion}/source/cloudy.exe \
+            dynamic/c${cloudyVersion}/data \
+            dynamic/fsps-${fspsVersion}/src/autosps.exe \
+            dynamic/fsps-${fspsVersion}/dust \
+            dynamic/fsps-${fspsVersion}/data \
+            dynamic/fsps-${fspsVersion}/nebular \
+            dynamic/fsps-${fspsVersion}/SPECTRA \
+            dynamic/fsps-${fspsVersion}/OUTPUTS \
+            dynamic/fsps-${fspsVersion}/ISOCHRONES \
+            dynamic/mangle-${mangleVersion}/bin/harmonize
+      - name: Upload tool executables
+        uses: actions/upload-artifact@v7
+        with:
+          name: galacticus-tools-MacOS-M1
+          path: './datasets/toolsMacOSM1.zip'
   ## Library
   Build-Library-MacOS:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
@@ -627,194 +797,14 @@ jobs:
           python3 testSuite/test-Python-interface.py 2>&1 | tee pythonTest.log
           ! grep -q -e FAIL pythonTest.log
       - run: echo "This job's status is ${{ job.status }}."
-  ### Tools
-  Build-Tools-MacOS:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
-    runs-on: macos-15-intel
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v7
-      - name: Check out repository datasets
-        uses: actions/checkout@v7      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Set up build environment
-        uses: ./.github/actions/buildMacOS
-      - name: Build Galacticus
-        run: |
-          make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe
-      - name: Build tools
-        id: buildTools
-        run: |
-          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          mangleVersion=`awk '{if ($1 == "mangle:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          mkdir -p $GALACTICUS_DATA_PATH/dynamic
-          set -o pipefail
-          ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
-          cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
-          cd $GALACTICUS_DATA_PATH/dynamic/AxionCAMB/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb          
-          cd $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion}/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o class ' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/RecFast/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
-          cd $GALACTICUS_DATA_PATH/dynamic/c${cloudyVersion}/source/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/src/
-          cp ../bin/harmonize .
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
-          echo "camb=${GALACTICUS_DATA_PATH}/dynamic/CAMB-${cambVersion}/fortran/camb" >> "$GITHUB_OUTPUT"
-          echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/AxionCAMB/camb" >> "$GITHUB_OUTPUT"
-          echo "class=${GALACTICUS_DATA_PATH}/dynamic/class_public-${classVersion}/class" >> "$GITHUB_OUTPUT"
-          echo "recfast=${GALACTICUS_DATA_PATH}/dynamic/RecFast/recfast.exe" >> "$GITHUB_OUTPUT"
-          echo "cloudy=${GALACTICUS_DATA_PATH}/dynamic/c${cloudyVersion}/source/cloudy.exe" >> "$GITHUB_OUTPUT"
-          echo "fsps=${GALACTICUS_DATA_PATH}/dynamic/fsps-${fspsVersion}/src/autosps.exe" >> "$GITHUB_OUTPUT"
-          echo "mangle=${GALACTICUS_DATA_PATH}/dynamic/mangle-${mangleVersion}/bin/harmonize" >> "$GITHUB_OUTPUT"
-      - name: Sign tool executables
-        uses: ./.github/actions/codeSignMacOS
-        with:
-          files: ${{ steps.buildTools.outputs.camb }} ${{ steps.buildTools.outputs.axioncamb }} ${{ steps.buildTools.outputs.class }} ${{ steps.buildTools.outputs.recfast }} ${{ steps.buildTools.outputs.cloudy }} ${{ steps.buildTools.outputs.fsps }} ${{ steps.buildTools.outputs.mangle }}
-          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
-          macos_certificate_password: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
-          macos_keychain_password: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
-          macos_developer_id: ${{ secrets.MACOS_DEVELOPER_ID }}
-      - name: Package
-        run: |          
-          # Package the zip with the signed executables
-          cd $GALACTICUS_DATA_PATH
-          zip -r toolsMacOS.zip \
-            dynamic/CAMB-${cambVersion}/fortran/camb \
-            dynamic/AxionCAMB/camb \
-            dynamic/class_public-${classVersion}/class \
-            dynamic/RecFast/recfast.exe \
-            dynamic/RecFast/currentVersion \
-            dynamic/c${cloudyVersion}/source/cloudy.exe \
-            dynamic/c${cloudyVersion}/data \
-            dynamic/fsps-${fspsVersion}/src/autosps.exe \
-            dynamic/fsps-${fspsVersion}/dust \
-            dynamic/fsps-${fspsVersion}/data \
-            dynamic/fsps-${fspsVersion}/nebular \
-            dynamic/fsps-${fspsVersion}/SPECTRA \
-            dynamic/fsps-${fspsVersion}/OUTPUTS \
-            dynamic/fsps-${fspsVersion}/ISOCHRONES \
-            dynamic/mangle-${mangleVersion}/bin/harmonize
-      - name: Upload tool executables
-        uses: actions/upload-artifact@v7
-        with:
-          name: galacticus-tools-MacOS
-          path: './datasets/toolsMacOS.zip'
-      - run: echo "This job's status is ${{ job.status }}."
-  Build-Tools-MacOS-M1:
-    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
-    runs-on: macos-15
-    steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server."
-      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v7
-      - name: Check out repository datasets
-        uses: actions/checkout@v7      
-        with:
-          repository: galacticusorg/datasets
-          path: datasets
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - name: Set up build environment
-        uses: ./.github/actions/buildMacOS
-      - name: Build Galacticus
-        run: |
-          make -j`sysctl -n hw.activecpu` USEGIT2=no Galacticus.exe 2>&1 | tee build.log
-          ./scripts/build/staticRelinker.py `grep '\-o Galacticus.exe' build.log`
-      - name: Build tools
-        id: buildTools
-        run: |
-          classVersion=`awk '{if ($1 == "class:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cambVersion=`awk '{if ($1 == "camb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          forutilsVersion=`awk '{if ($1 == "forutils:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          mangleVersion=`awk '{if ($1 == "mangle:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
-          cd $GALACTICUS_EXEC_PATH
-          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          mkdir -p $GALACTICUS_DATA_PATH/dynamic
-          set -o pipefail
-          ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
-          cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
-          cd $GALACTICUS_DATA_PATH/dynamic/AxionCAMB/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb          
-          cd $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion}/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o class ' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/RecFast/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
-          cd $GALACTICUS_DATA_PATH/dynamic/c${cloudyVersion}/source/
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion}/src
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
-          cd $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion}/src
-          cp ../bin/harmonize .
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
-          echo "camb=${GALACTICUS_DATA_PATH}/dynamic/CAMB-${cambVersion}/fortran/camb" >> "$GITHUB_OUTPUT"
-          echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/AxionCAMB/camb" >> "$GITHUB_OUTPUT"
-          echo "class=${GALACTICUS_DATA_PATH}/dynamic/class_public-${classVersion}/class" >> "$GITHUB_OUTPUT"
-          echo "recfast=${GALACTICUS_DATA_PATH}/dynamic/RecFast/recfast.exe" >> "$GITHUB_OUTPUT"
-          echo "cloudy=${GALACTICUS_DATA_PATH}/dynamic/c${cloudyVersion}/source/cloudy.exe" >> "$GITHUB_OUTPUT"
-          echo "fsps=${GALACTICUS_DATA_PATH}/dynamic/fsps-${fspsVersion}/src/autosps.exe" >> "$GITHUB_OUTPUT"
-          echo "mangle=${GALACTICUS_DATA_PATH}/dynamic/mangle-${mangleVersion}/bin/harmonize" >> "$GITHUB_OUTPUT"
-      - name: Sign tool executables
-        uses: ./.github/actions/codeSignMacOS
-        with:
-          files: ${{ steps.buildTools.outputs.camb }} ${{ steps.buildTools.outputs.axioncamb }} ${{ steps.buildTools.outputs.class }} ${{ steps.buildTools.outputs.recfast }} ${{ steps.buildTools.outputs.cloudy }} ${{ steps.buildTools.outputs.fsps }} ${{ steps.buildTools.outputs.mangle }}
-          macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
-          macos_certificate_password: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
-          macos_keychain_password: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
-          macos_developer_id: ${{ secrets.MACOS_DEVELOPER_ID }}
-      - name: Repackage
-        run: |          
-          # Re-package the zip with the signed executables
-          cd $GALACTICUS_DATA_PATH
-          zip -r toolsMacOSM1.zip \
-            dynamic/CAMB-${cambVersion}/fortran/camb \
-            dynamic/AxionCAMB/camb \
-            dynamic/class_public-${classVersion}/class \
-            dynamic/RecFast/recfast.exe \
-            dynamic/RecFast/currentVersion \
-            dynamic/c${cloudyVersion}/source/cloudy.exe \
-            dynamic/c${cloudyVersion}/data \
-            dynamic/fsps-${fspsVersion}/src/autosps.exe \
-            dynamic/fsps-${fspsVersion}/dust \
-            dynamic/fsps-${fspsVersion}/data \
-            dynamic/fsps-${fspsVersion}/nebular \
-            dynamic/fsps-${fspsVersion}/SPECTRA \
-            dynamic/fsps-${fspsVersion}/OUTPUTS \
-            dynamic/fsps-${fspsVersion}/ISOCHRONES \
-            dynamic/mangle-${mangleVersion}/bin/harmonize
-      - name: Upload tool executables
-        uses: actions/upload-artifact@v7
-        with:
-          name: galacticus-tools-MacOS-M1
-          path: './datasets/toolsMacOSM1.zip'
-      - run: echo "This job's status is ${{ job.status }}."
   Submit-Notarization-MacOS:
     runs-on: macos-15-intel
     if: github.ref == 'refs/heads/master'
     permissions:
       contents: read
-    needs: [ Build-Executable-MacOS, Build-Executable-MacOS-M1, Build-Tools-MacOS, Build-Tools-MacOS-M1 ]
+    # The tool artifacts (galacticus-tools-MacOS{,-M1}) are now produced by the
+    # executable build jobs, so those two jobs cover both executables and tools.
+    needs: [ Build-Executable-MacOS, Build-Executable-MacOS-M1 ]
     steps:
       - name: Check out repository code
         uses: actions/checkout@v7
@@ -2340,8 +2330,6 @@ jobs:
              Build-Executable-MacOS,
              Build-Executable-MacOS-M1,
              Build-Library-MacOS,
-             Build-Tools-MacOS,
-             Build-Tools-MacOS-M1,
              Submit-Notarization-MacOS,
              Profile-Dark-Matter-Only-Subhalos,
              Profile-Milky-Way-Model,
