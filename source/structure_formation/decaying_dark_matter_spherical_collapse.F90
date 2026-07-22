@@ -53,40 +53,40 @@ latter is an order-of-magnitude rationale for the :math:`v_k^3` scaling only, an
 module Decaying_Dark_Matter_Spherical_Collapse
   implicit none
   private
-  public :: decayingDarkMatterEpsilon              , decayingDarkMatterGammaTilde     , &
-       &    decayingDarkMatterCriticalOverdensityEdS, decayingDarkMatterJIntegral      , &
-       &    decayingDarkMatterDeltaCLarge          , decayingDarkMatterDeltaCSmall    , &
-       &    decayingDarkMatterMassScale1           , decayingDarkMatterDeltaCFit      , &
+  public :: decayingDarkMatterEpsilon               , decayingDarkMatterGammaTilde , &
+       &    decayingDarkMatterCriticalOverdensityEdS, decayingDarkMatterJIntegral  , &
+       &    decayingDarkMatterDeltaCLarge           , decayingDarkMatterDeltaCSmall, &
+       &    decayingDarkMatterMassScale1            , decayingDarkMatterDeltaCFit  , &
        &    decayingDarkMatterMassCollapsed
 
   ! Fitting constants from Montandon et al. (2026).
-  ! Small-mass plateau [their eq. 42]: delta_c^small = delta_c^EdS + A gammaTilde^beta [ln(1+gammaTilde)]^(1-gamma).
-  double precision, parameter :: fitSmallA               =2.3824d0
-  double precision, parameter :: fitSmallBeta            =0.5818d0
-  double precision, parameter :: fitSmallGamma           =0.5642d0
-  ! Transition function [their eq. 43]: exponent nu and the (universal) mass-scale ratio M2/M1.
-  double precision, parameter :: fitTransitionNu         =0.1484d0
-  double precision, parameter :: fitTransitionMassRatio  =23.96031d0 ! = M2/M1 = 10^1.3795 ~ 24 (literal, as real exponentiation is not a constant expression).
-  ! Transition mass scale M1 [their eq. 44]: M1 = B v_k^3 gammaTilde^(-1/2) t_ta, with log10(B)=3.017 for
-  ! M1 in M_Solar, v_k in km/s, and t_ta in Gyr. This is their *calibrated* fit (accurate to 10% across
+  ! Small-mass plateau [their eq. 42]: δ_c^small = δ_c^EdS + A Γ̃^β [ln(1+Γ̃)]^(1-γ).
+  double precision, parameter :: fitSmallA             = 2.38240d0
+  double precision, parameter :: fitSmallBeta          = 0.58180d0
+  double precision, parameter :: fitSmallGamma         = 0.56420d0
+  ! Transition function [their eq. 43]: exponent ν and the (universal) mass-scale ratio M₂/M₁.
+  double precision, parameter :: fitTransitionNu       = 0.14840d0
+  double precision, parameter :: fitTransitionMassRatio=10.0d0**1.3795d0 ! = M₂/M₁ = 10^1.3795
+  ! Transition mass scale M₁ [their eq. 44]: M₁ = B vₖ³ Γ̃^(-1/2) t_ta, with log₁₀(B)=3.017 for
+  ! M_2 in M☉, vₖ in km/s, and t_ta in Gyr. This is their *calibrated* fit (accurate to 10% across
   ! their grid of models and both redshifts), and is the expression used here.
   !
-  ! Note that their eq. 45, M1 ~ 2 sqrt(2) v_k^3 t_ta / pi G, is only an order-of-magnitude analytic
-  ! rationale for the v_k^3 scaling (it identifies the gravitating mass at turnaround with M1 itself, via
-  ! their "M_grav ~ M1"), and is *not* the calibrated normalization: evaluated in these units its
+  ! Note that their eq. 45, M₁ ~ 2 √2 vₖ³ t_ta / π G, is only an order-of-magnitude analytic
+  ! rationale for the vₖ³ scaling (it identifies the gravitating mass at turnaround with M₁ itself, via
+  ! their "M_grav ~ M₁"), and is *not* the calibrated normalization: evaluated in these units its
   ! coefficient is 2.14e5, larger than B by a factor of ~206. Using it in place of B shifts the
   ! transition to far too high a mass and grossly over-suppresses the halo mass function. The value of B
-  ! adopted here was verified by digitizing all fifteen delta_c(M_0) curves of their Fig. 5 (three
+  ! adopted here was verified by digitizing all fifteen δ_c(M_0) curves of their Fig. 5 (three
   ! lifetimes x five velocity kicks, at z=1.083) and fitting eq. 43 to each: B reproduces the resulting
   ! transition masses to ~13%, whereas the eq. 45 coefficient is high by a factor of ~230.
-  double precision, parameter :: fitMassScale1Coefficient=1039.9127d0 ! = 10^3.017 (literal, as real exponentiation is not a constant expression).
+  double precision, parameter :: fitMassScale1Coefficient=10.0d0**3.017d0
 
   ! Numbers of abscissae for the fixed midpoint quadratures. The integrands are smooth and bounded on
   ! their (fixed) intervals, so a midpoint rule---which also avoids the interval endpoints where some
   ! factors are individually singular but the integrand has a finite limit---is accurate and robust.
-  integer         , parameter :: quadraturePointsJ       =2000 ! theta-integral for J(gammaTilde)     [once per epoch].
-  integer         , parameter :: quadraturePointsTheta   = 400 ! theta-integral for fBoundBar         [once per mass ].
-  integer         , parameter :: quadraturePointsU       = 500 ! u-integral     for fBound(beta,xi).
+  integer         , parameter :: quadraturePointsJ    =2000 ! θ-integral for J(Γ̃)            [once per epoch].
+  integer         , parameter :: quadraturePointsTheta= 400 ! θ-integral for fBoundBar       [once per mass ].
+  integer         , parameter :: quadraturePointsU    = 500 ! u-integral     for fBound(β,ξ).
 
 contains
 
@@ -96,16 +96,16 @@ contains
     (:cite:t:`montandon_decaying_2026`, their eq. 11), where :math:`v_k` is the velocity kick imparted to the
     daughter particle. ``velocityKick`` is in km/s.
     !!}
-    use :: Numerical_Constants_Physical , only : speedLight
-    use :: Numerical_Constants_Prefixes , only : kilo
+    use :: Numerical_Constants_Physical, only : speedLight
+    use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
     double precision, intent(in   ) :: velocityKick
     double precision                :: velocityKickFractional
 
-    velocityKickFractional=+velocityKick     &
-         &                 *kilo             &
+    velocityKickFractional=+velocityKick             &
+         &                 *kilo                     &
          &                 /speedLight
-    epsilon               =+velocityKickFractional  &
+    epsilon               =+velocityKickFractional   &
          &                 /(                        &
          &                   +1.0d0                  &
          &                   +velocityKickFractional &
@@ -137,10 +137,10 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
 
-    deltaCEdS=+0.6d0                &
-         &    *(                    &
-         &      +1.5d0             &
-         &      *Pi                &
+    deltaCEdS=+0.6d0            &
+         &    *(                &
+         &      +1.5d0          &
+         &      *Pi             &
          &     )**(2.0d0/3.0d0)
     return
   end function decayingDarkMatterCriticalOverdensityEdS
@@ -162,32 +162,32 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: gammaTilde
-    double precision                :: theta      , cycloidTime, sinTheta, oneMinusCosTheta, &
-         &                             iFunction  , integrand  , summation
+    double precision                :: theta     , cycloidTime, sinTheta, oneMinusCosTheta, &
+         &                             iFunction , integrand  , summation
     integer                         :: i
 
     summation=0.0d0
     do i=1,quadraturePointsJ
-       ! Midpoint abscissa in (0,2*pi), avoiding the endpoints and (for even count) theta=pi.
-       theta           =+(dble(i)-0.5d0) &
-            &            /dble(quadraturePointsJ) &
-            &            *2.0d0                   &
-            &            *Pi
+       ! Midpoint abscissa in (0,2π), avoiding the endpoints and (for even count) θ=π.
+       theta           =+(dble(i)-0.5d0)         &
+            &           /dble(quadraturePointsJ) &
+            &           *2.0d0                   &
+            &           *Pi
        sinTheta        =+sin(theta)
        oneMinusCosTheta=+1.0d0-cos(theta)
        cycloidTime     =+(theta-sinTheta)/Pi
-       iFunction       =+sinTheta           &
-            &            -3.0d0*theta        &
-            &            +4.0d0*tan(0.5d0*theta)
-       integrand       =+sinTheta                                  &
-            &            *(1.0d0-exp(-gammaTilde*cycloidTime))     &
-            &            /oneMinusCosTheta**2                      &
-            &            *(6.0d0*Pi+iFunction)
+       iFunction       =+sinTheta               &
+            &           -3.0d0*theta            &
+            &           +4.0d0*tan(0.5d0*theta)
+       integrand       =+sinTheta                             &
+            &           *(1.0d0-exp(-gammaTilde*cycloidTime)) &
+            &           /oneMinusCosTheta**2                  &
+            &           *(6.0d0*Pi+iFunction)
        summation       =+summation+integrand
     end do
-    ! Multiply by the midpoint interval width (2*pi/N) and apply the overall minus sign.
-    jIntegral=-summation             &
-         &    *2.0d0*Pi              &
+    ! Multiply by the midpoint interval width (2π/N) and apply the overall minus sign.
+    jIntegral=-summation               &
+         &    *2.0d0*Pi                &
          &    /dble(quadraturePointsJ)
     return
   end function decayingDarkMatterJIntegral
@@ -226,9 +226,9 @@ contains
     implicit none
     double precision, intent(in   ) :: gammaTilde
 
-    deltaCSmall=+decayingDarkMatterCriticalOverdensityEdS()          &
-         &      +fitSmallA                                           &
-         &      *gammaTilde**fitSmallBeta                            &
+    deltaCSmall=+decayingDarkMatterCriticalOverdensityEdS()   &
+         &      +fitSmallA                                    &
+         &      *gammaTilde**fitSmallBeta                     &
          &      *log(1.0d0+gammaTilde)**(1.0d0-fitSmallGamma)
     return
   end function decayingDarkMatterDeltaCSmall
@@ -253,8 +253,8 @@ contains
     double precision, intent(in   ) :: velocityKick, gammaTilde, timeCollapse
     double precision                :: timeTurnaround
 
-    timeTurnaround=+0.5d0              &
-         &         *timeCollapse      ! Gyr.
+    timeTurnaround=+0.5d0                    &
+         &         *timeCollapse               ! Gyr.
     massScale1    =+fitMassScale1Coefficient &
          &         *velocityKick**3          &
          &         /sqrt(gammaTilde)         &
@@ -278,25 +278,26 @@ contains
     ``mass0`` and ``massScale1`` are in :math:`\mathrm{M}_\odot`.
     !!}
     implicit none
-    double precision, intent(in   ) :: mass0, deltaCLarge, deltaCSmall, massScale1
-    double precision                :: massScale2, denominator
+    double precision, intent(in   ) :: mass0      , deltaCLarge, &
+         &                             deltaCSmall, massScale1
+    double precision                :: massScale2 , denominator
 
-    massScale2  =+fitTransitionMassRatio &
-         &       *massScale1
-    denominator =+(                                     &
-         &         +1.0d0                               &
-         &         +mass0/massScale1                    &
-         &        )                                     &
-         &       *(                                     &
-         &         +1.0d0                               &
-         &         +(mass0/massScale2)**4               &
-         &        )
-    deltaCFit   =+deltaCLarge                           &
-         &       +(                                     &
-         &         +deltaCSmall                         &
-         &         -deltaCLarge                         &
-         &        )                                     &
-         &       /denominator**fitTransitionNu
+    massScale2 =+fitTransitionMassRatio &
+         &      *massScale1
+    denominator=+(                            &
+         &        +1.0d0                      &
+         &        +mass0/massScale1           &
+         &       )                            &
+         &      *(                            &
+         &        +1.0d0                      &
+         &        +(mass0/massScale2)**4      &
+         &       )
+    deltaCFit  =+deltaCLarge                  &
+         &      +(                            &
+         &        +deltaCSmall                &
+         &        -deltaCLarge                &
+         &       )                            &
+         &      /denominator**fitTransitionNu
     return
   end function decayingDarkMatterDeltaCFit
 
@@ -317,8 +318,9 @@ contains
     explicit case analysis.
     !!}
     implicit none
-    double precision, intent(in   ) :: beta      , xi
-    double precision                :: u         , cBound, pBound, summation
+    double precision, intent(in   ) :: beta  , xi
+    double precision                :: u     , cBound   , &
+         &                             pBound, summation
     integer                         :: i
 
     summation=0.0d0
@@ -338,13 +340,13 @@ contains
             &       *xi                    &
             &       *u                     &
             &      )
-       ! P_bound as a clamp of (1+C_bound)/2 to [0,1]; IEEE +/-Inf (from beta->0 at turnaround) clamps
+       ! P_bound as a clamp of (1+C_bound)/2 to [0,1]; IEEE +/-Inf (from β->0 at turnaround) clamps
        ! correctly to 1 or 0.
        pBound   =+max(0.0d0,min(1.0d0,0.5d0*(1.0d0+cBound)))
-       summation=+summation           &
+       summation=+summation          &
             &     +3.0d0*u**2*pBound
     end do
-    fBound=+summation                &
+    fBound=+summation               &
          & /dble(quadraturePointsU)
     return
   end function decayingDarkMatterFBound
@@ -371,32 +373,32 @@ contains
     use :: Numerical_Constants_Astronomical, only : massSolar            , gigaYear
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
-    double precision, intent(in   ) :: gammaTilde     , velocityKick    , timeCollapse, mass0
-    double precision                :: velocityKickSI , timeTurnaroundSI, mass0SI     , radiusTurnaround, &
-         &                             theta          , oneMinusCosTheta, betaEdS     , xiEdS           , &
-         &                             weight         , summation       , normalization
+    double precision, intent(in   ) :: gammaTilde    , velocityKick    , timeCollapse , mass0
+    double precision                :: velocityKickSI, timeTurnaroundSI, mass0SI      , radiusTurnaround, &
+         &                             theta         , oneMinusCosTheta, betaEdS      , xiEdS           , &
+         &                             weight        , summation       , normalization
     integer                         :: i
 
-    velocityKickSI  =+velocityKick        &
-         &           *kilo               ! km/s -> m/s.
-    timeTurnaroundSI=+0.5d0              &
-         &           *timeCollapse       &
-         &           *gigaYear           ! Gyr  -> s.
-    mass0SI         =+mass0              &
-         &           *massSolar          ! Msun -> kg.
-    ! Turnaround radius from Kepler's relation, G M_0 = pi^2 R_ta^3/(8 t_ta^2) [their eq. A2].
-    radiusTurnaround=+(                                    &
-         &             +8.0d0                              &
-         &             *gravitationalConstant              &
-         &             *mass0SI                            &
-         &             *timeTurnaroundSI**2                &
-         &             /Pi**2                              &
+    velocityKickSI  =+velocityKick & ! km/s → m/s.
+         &           *kilo
+    timeTurnaroundSI=+0.5d0        & ! Gyr  → s.
+         &           *timeCollapse &
+         &           *gigaYear
+    mass0SI         =+mass0        & ! M☉   → kg.
+         &           *massSolar
+    ! Turnaround radius from Kepler's relation, G M₀ = π² R_ta³/(8 t_ta²) [their eq. A2].
+    radiusTurnaround=+(                       &
+         &             +8.0d0                 &
+         &             *gravitationalConstant &
+         &             *mass0SI               &
+         &             *timeTurnaroundSI**2   &
+         &             /Pi**2                 &
          &            )**(1.0d0/3.0d0)
     summation=0.0d0
     do i=1,quadraturePointsTheta
        theta           =+(dble(i)-0.5d0)              &
             &            /dble(quadraturePointsTheta) &
-            &            *2.0d0                        &
+            &            *2.0d0                       &
             &            *Pi
        oneMinusCosTheta=+1.0d0-cos(theta)
        betaEdS         =+sqrt(2.0d0)                  &
@@ -409,13 +411,13 @@ contains
             &            *sqrt(oneMinusCosTheta)
        ! Decay-time weight along the cycloid: (1-cos theta) exp[-gammaTilde (theta-sin theta)/pi].
        weight          =+oneMinusCosTheta             &
-            &            *exp(                         &
-            &                 -gammaTilde              &
-            &                 *(theta-sin(theta))      &
-            &                 /Pi                      &
+            &            *exp(                        &
+            &                 -gammaTilde             &
+            &                 *(theta-sin(theta))     &
+            &                 /Pi                     &
             &                )
        summation       =+summation                    &
-            &            +weight                       &
+            &            +weight                      &
             &            *decayingDarkMatterFBound(betaEdS,xiEdS)
     end do
     ! Midpoint interval width (2*pi/N) times the normalized prefactor.
@@ -444,20 +446,22 @@ contains
     ``lifetime`` are in Gyr and ``velocityKick`` in km/s.
     !!}
     implicit none
-    double precision, intent(in   ) :: mass0        , timeCollapse, lifetime, velocityKick
-    double precision                :: epsilon      , gammaTilde  , survivingParentFraction, fBoundBar
+    double precision, intent(in   ) :: mass0                  , timeCollapse, &
+         &                             lifetime               , velocityKick
+    double precision                :: epsilon                , gammaTilde  , &
+         &                             survivingParentFraction, fBoundBar
 
-    epsilon                =decayingDarkMatterEpsilon   (velocityKick             )
-    gammaTilde             =decayingDarkMatterGammaTilde(timeCollapse,lifetime    )
+    epsilon                = decayingDarkMatterEpsilon   (velocityKick         )
+    gammaTilde             = decayingDarkMatterGammaTilde(timeCollapse,lifetime)
     ! Surviving (undecayed) parent fraction, e^{-Gamma t_coll} = e^{-2 gammaTilde}.
     survivingParentFraction=+exp(-2.0d0*gammaTilde)
-    fBoundBar              =decayingDarkMatterFBoundBar(gammaTilde,velocityKick,timeCollapse,mass0)
-    massCollapsed          =+mass0                                      &
-         &                  *(                                          &
-         &                    +survivingParentFraction                 &
-         &                    +sqrt(1.0d0-2.0d0*epsilon)               &
-         &                    *(1.0d0-survivingParentFraction)         &
-         &                    *fBoundBar                               &
+    fBoundBar              = decayingDarkMatterFBoundBar(gammaTilde,velocityKick,timeCollapse,mass0)
+    massCollapsed          =+mass0                             &
+         &                  *(                                 &
+         &                    +survivingParentFraction         &
+         &                    +sqrt(1.0d0-2.0d0*epsilon)       &
+         &                    *(1.0d0-survivingParentFraction) &
+         &                    *fBoundBar                       &
          &                   )
     return
   end function decayingDarkMatterMassCollapsed
