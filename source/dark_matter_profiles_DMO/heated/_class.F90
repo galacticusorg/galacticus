@@ -46,7 +46,10 @@
      type            (enumerationNonAnalyticSolversType)              :: nonAnalyticSolver
      logical                                                          :: velocityDispersionApproximate                   , tolerateVelocityMaximumFailure            , &
           &                                                              tolerateEnclosedMassIntegrationFailure          , tolerateVelocityDispersionFailure         , &
-          &                                                              toleratePotentialIntegrationFailure             , chandrasekharIntegralSuppressExtendedMass
+          &                                                              toleratePotentialIntegrationFailure
+     ! Defaults to .true. (i.e. suppression applied) so that callers which do not specify it -- including the internal
+     ! constructor's optional argument being absent -- get the current behavior. Matches massDistributionSpherical.
+     logical                                                          :: chandrasekharIntegralSuppressExtendedMass=.true.
      type            (objectPool                       ), allocatable :: pool
    contains
      final     ::        heatedDestructor
@@ -203,7 +206,8 @@ contains
     type            (enumerationNonAnalyticSolversType), intent(in   )         :: nonAnalyticSolver
     logical                                            , intent(in   )         :: velocityDispersionApproximate            , tolerateVelocityMaximumFailure                   , &
          &                                                                        toleratePotentialIntegrationFailure      , tolerateEnclosedMassIntegrationFailure           , &
-         &                                                                        tolerateVelocityDispersionFailure        , chandrasekharIntegralSuppressExtendedMass
+         &                                                                        tolerateVelocityDispersionFailure
+    logical                                            , intent(in   ), optional :: chandrasekharIntegralSuppressExtendedMass
     double precision                                   , intent(in   )         :: toleranceRelativeVelocityDispersion      , toleranceRelativeVelocityDispersionMaximum       , &
          &                                                                        fractionRadiusFinalSmall                 , toleranceRelativePotential
     double precision                                   , parameter             :: toleranceAbsolute                  =0.0d0, toleranceRelative                         =1.0d-6
