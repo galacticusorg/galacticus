@@ -51,6 +51,7 @@ latter is an order-of-magnitude rationale for the :math:`v_k^3` scaling only, an
 !!}
 
 module Decaying_Dark_Matter_Spherical_Collapse
+  use :: Numerical_Integration, only : integrator
   implicit none
   private
   public :: decayingDarkMatterEpsilon               , decayingDarkMatterGammaTilde , &
@@ -81,12 +82,19 @@ module Decaying_Dark_Matter_Spherical_Collapse
   ! transition masses to ~13%, whereas the eq. 45 coefficient is high by a factor of ~230.
   double precision, parameter :: fitMassScale1Coefficient=10.0d0**3.017d0
 
-  ! Numbers of abscissae for the fixed midpoint quadratures. The integrands are smooth and bounded on
-  ! their (fixed) intervals, so a midpoint rule---which also avoids the interval endpoints where some
-  ! factors are individually singular but the integrand has a finite limit---is accurate and robust.
-  integer         , parameter :: quadraturePointsJ    =2000 ! θ-integral for J(Γ̃)            [once per epoch].
-  integer         , parameter :: quadraturePointsTheta= 400 ! θ-integral for fBoundBar       [once per mass ].
-  integer         , parameter :: quadraturePointsU    = 500 ! u-integral     for fBound(β,ξ).
+  ! Tolerances for the adaptive quadratures. The integrands are smooth and bounded on their intervals, so
+  ! modest relative tolerances suffice for the accuracy required of the derived quantities.
+  double precision, parameter :: toleranceRelative       =1.0d-6, toleranceAbsolute=1.0d-10
+
+  ! Parameters of the integrands, passed to the (argument-only) integrand functions via module-scope
+  ! variables. These are threadprivate as the integrations may be in flight concurrently on multiple
+  ! threads; the fBoundBar θ-integrand additionally nests the fBound u-integral, but that uses a disjoint
+  ! set of variables so there is no interference.
+  double precision :: jIntegrandGammaTilde
+  double precision :: fBoundBeta               , fBoundXi
+  double precision :: fBoundBarGammaTilde       , fBoundBarVelocityKickSI, fBoundBarTimeTurnaroundSI, &
+       &              fBoundBarRadiusTurnaround
+  !$omp threadprivate(jIntegrandGammaTilde,fBoundBeta,fBoundXi,fBoundBarGammaTilde,fBoundBarVelocityKickSI,fBoundBarTimeTurnaroundSI,fBoundBarRadiusTurnaround)
 
 contains
 
@@ -162,35 +170,44 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: gammaTilde
-    double precision                :: theta     , cycloidTime, sinTheta, oneMinusCosTheta, &
-         &                             iFunction , integrand  , summation
-    integer                         :: i
+    type            (integrator   ) :: integrator_
 
-    summation=0.0d0
-    do i=1,quadraturePointsJ
-       ! Midpoint abscissa in (0,2π), avoiding the endpoints and (for even count) θ=π.
-       theta           =+(dble(i)-0.5d0)         &
-            &           /dble(quadraturePointsJ) &
-            &           *2.0d0                   &
-            &           *Pi
-       sinTheta        =+sin(theta)
-       oneMinusCosTheta=+1.0d0-cos(theta)
-       cycloidTime     =+(theta-sinTheta)/Pi
-       iFunction       =+sinTheta               &
-            &           -3.0d0*theta            &
-            &           +4.0d0*tan(0.5d0*theta)
-       integrand       =+sinTheta                             &
-            &           *(1.0d0-exp(-gammaTilde*cycloidTime)) &
-            &           /oneMinusCosTheta**2                  &
-            &           *(6.0d0*Pi+iFunction)
-       summation       =+summation+integrand
-    end do
-    ! Multiply by the midpoint interval width (2π/N) and apply the overall minus sign.
-    jIntegral=-summation               &
-         &    *2.0d0*Pi                &
-         &    /dble(quadraturePointsJ)
+    ! Pass the decay rate to the integrand, and integrate. The integrand has removable singularities at
+    ! θ=0, π, and 2π; the integral is split at θ=π so that all three fall on interval endpoints (which the
+    ! Gauss-Kronrod rules never sample---unlike the interval midpoint θ=π on the full range, where the
+    ! integrand would evaluate to a 0×∞ indeterminate form).
+    jIntegrandGammaTilde=gammaTilde
+    integrator_=integrator(decayingDarkMatterJIntegrand,toleranceRelative=toleranceRelative,toleranceAbsolute=toleranceAbsolute,hasSingularities=.true.)
+    jIntegral  =-(                                          &
+         &        +integrator_%integrate(0.0d0,       Pi )  &
+         &        +integrator_%integrate(      Pi,2.0d0*Pi) &
+         &       )
     return
   end function decayingDarkMatterJIntegral
+
+  double precision function decayingDarkMatterJIntegrand(theta) result(integrand)
+    !!{RST
+    Integrand of :math:`J(\tilde{\Gamma})` (:cite:t:`montandon_decaying_2026`, their eq. 38); see
+    ``decayingDarkMatterJIntegral``. The decay rate :math:`\tilde{\Gamma}` is passed via the module-scope
+    ``jIntegrandGammaTilde``.
+    !!}
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    double precision, intent(in   ) :: theta
+    double precision                :: sinTheta, oneMinusCosTheta, cycloidTime, iFunction
+
+    sinTheta        =+sin(theta)
+    oneMinusCosTheta=+1.0d0-cos(theta)
+    cycloidTime     =+(theta-sinTheta)/Pi
+    iFunction       =+sinTheta               &
+         &           -3.0d0*theta            &
+         &           +4.0d0*tan(0.5d0*theta)
+    integrand       =+sinTheta                                       &
+         &           *(1.0d0-exp(-jIntegrandGammaTilde*cycloidTime)) &
+         &           /oneMinusCosTheta**2                            &
+         &           *(6.0d0*Pi+iFunction)
+    return
+  end function decayingDarkMatterJIntegrand
 
   double precision function decayingDarkMatterDeltaCLarge(gammaTilde,epsilon,jIntegral) result(deltaCLarge)
     !!{RST
@@ -319,37 +336,45 @@ contains
     !!}
     implicit none
     double precision, intent(in   ) :: beta  , xi
-    double precision                :: u     , cBound   , &
-         &                             pBound, summation
-    integer                         :: i
+    type            (integrator   ) :: integrator_
 
-    summation=0.0d0
-    do i=1,quadraturePointsU
-       ! Midpoint abscissa in (0,1), avoiding u=0 where C_bound is (removably) singular.
-       u        =+(dble(i)-0.5d0)          &
-            &     /dble(quadraturePointsU)
-       cBound   =+(                        &
-            &      +3.0d0                  &
-            &      -xi **2                 &
-            &      -u  **2                 &
-            &      *(1.0d0+beta**2)        &
-            &     )                        &
-            &     /(                       &
-            &       +2.0d0                 &
-            &       *beta                  &
-            &       *xi                    &
-            &       *u                     &
-            &      )
-       ! P_bound as a clamp of (1+C_bound)/2 to [0,1]; IEEE +/-Inf (from β->0 at turnaround) clamps
-       ! correctly to 1 or 0.
-       pBound   =+max(0.0d0,min(1.0d0,0.5d0*(1.0d0+cBound)))
-       summation=+summation          &
-            &     +3.0d0*u**2*pBound
-    end do
-    fBound=+summation               &
-         & /dble(quadraturePointsU)
+    ! Pass the bulk-flow and kick parameters to the integrand, and integrate over u∈(0,1). The integrand
+    ! is bounded (and →0 at u=0), so plain adaptive Gauss-Kronrod quadrature suffices.
+    fBoundBeta =beta
+    fBoundXi   =xi
+    integrator_=integrator(decayingDarkMatterFBoundIntegrand,toleranceRelative=toleranceRelative,toleranceAbsolute=toleranceAbsolute)
+    fBound     =integrator_%integrate(0.0d0,1.0d0)
     return
   end function decayingDarkMatterFBound
+
+  double precision function decayingDarkMatterFBoundIntegrand(u) result(integrand)
+    !!{RST
+    Integrand :math:`3u^2 P_\mathrm{bound}(u)` of :math:`f_\mathrm{bound}` (:cite:t:`montandon_decaying_2026`,
+    their eq. 22); see ``decayingDarkMatterFBound``. The parameters :math:`\beta` and :math:`\xi` are
+    passed via the module-scope ``fBoundBeta`` and ``fBoundXi``.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: u
+    double precision                :: cBound, pBound
+
+    cBound   =+(                     &
+         &      +3.0d0               &
+         &      -fBoundXi  **2       &
+         &      -u         **2       &
+         &      *(1.0d0+fBoundBeta**2) &
+         &     )                     &
+         &     /(                    &
+         &       +2.0d0              &
+         &       *fBoundBeta         &
+         &       *fBoundXi           &
+         &       *u                  &
+         &      )
+    ! P_bound as a clamp of (1+C_bound)/2 to [0,1]; IEEE +/-Inf (from β->0 at turnaround) clamps
+    ! correctly to 1 or 0.
+    pBound   =+max(0.0d0,min(1.0d0,0.5d0*(1.0d0+cBound)))
+    integrand=+3.0d0*u**2*pBound
+    return
+  end function decayingDarkMatterFBoundIntegrand
 
   double precision function decayingDarkMatterFBoundBar(gammaTilde,velocityKick,timeCollapse,mass0) result(fBoundBar)
     !!{RST
@@ -374,62 +399,73 @@ contains
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision, intent(in   ) :: gammaTilde    , velocityKick    , timeCollapse , mass0
-    double precision                :: velocityKickSI, timeTurnaroundSI, mass0SI      , radiusTurnaround, &
-         &                             theta         , oneMinusCosTheta, betaEdS      , xiEdS           , &
-         &                             weight        , summation       , normalization
-    integer                         :: i
+    double precision                :: mass0SI       , normalization
+    type            (integrator   ) :: integrator_
 
-    velocityKickSI  =+velocityKick & ! km/s → m/s.
-         &           *kilo
-    timeTurnaroundSI=+0.5d0        & ! Gyr  → s.
-         &           *timeCollapse &
-         &           *gigaYear
-    mass0SI         =+mass0        & ! M☉   → kg.
-         &           *massSolar
+    ! Convert the (epoch- and mass-dependent) parameters to SI and store them for the integrand.
+    fBoundBarGammaTilde      =+gammaTilde
+    fBoundBarVelocityKickSI  =+velocityKick & ! km/s → m/s.
+         &                    *kilo
+    fBoundBarTimeTurnaroundSI=+0.5d0        & ! Gyr  → s.
+         &                    *timeCollapse &
+         &                    *gigaYear
+    mass0SI                  =+mass0        & ! M☉   → kg.
+         &                    *massSolar
     ! Turnaround radius from Kepler's relation, G M₀ = π² R_ta³/(8 t_ta²) [their eq. A2].
-    radiusTurnaround=+(                       &
-         &             +8.0d0                 &
-         &             *gravitationalConstant &
-         &             *mass0SI               &
-         &             *timeTurnaroundSI**2   &
-         &             /Pi**2                 &
-         &            )**(1.0d0/3.0d0)
-    summation=0.0d0
-    do i=1,quadraturePointsTheta
-       theta           =+(dble(i)-0.5d0)              &
-            &            /dble(quadraturePointsTheta) &
-            &            *2.0d0                       &
-            &            *Pi
-       oneMinusCosTheta=+1.0d0-cos(theta)
-       betaEdS         =+sqrt(2.0d0)                  &
-            &            *abs(cos(0.5d0*theta))
-       xiEdS           =+2.0d0                        &
-            &            *velocityKickSI              &
-            &            *timeTurnaroundSI            &
-            &            /Pi                          &
-            &            /radiusTurnaround            &
-            &            *sqrt(oneMinusCosTheta)
-       ! Decay-time weight along the cycloid: (1-cos theta) exp[-gammaTilde (theta-sin theta)/pi].
-       weight          =+oneMinusCosTheta             &
-            &            *exp(                        &
-            &                 -gammaTilde             &
-            &                 *(theta-sin(theta))     &
-            &                 /Pi                     &
-            &                )
-       summation       =+summation                    &
-            &            +weight                      &
-            &            *decayingDarkMatterFBound(betaEdS,xiEdS)
-    end do
-    ! Midpoint interval width (2*pi/N) times the normalized prefactor.
-    normalization=+gammaTilde                          &
-         &        /Pi                                  &
+    fBoundBarRadiusTurnaround=+(                             &
+         &                      +8.0d0                       &
+         &                      *gravitationalConstant       &
+         &                      *mass0SI                     &
+         &                      *fBoundBarTimeTurnaroundSI**2 &
+         &                      /Pi**2                       &
+         &                     )**(1.0d0/3.0d0)
+    ! Integrate over θ∈(0,2π), splitting at θ=π so that the endpoints θ=0, π, 2π---where β_EdS or ξ_EdS
+    ! vanishes and the nested f_bound integrand is (removably) singular---are never sampled.
+    integrator_=integrator(decayingDarkMatterFBoundBarIntegrand,toleranceRelative=toleranceRelative,toleranceAbsolute=toleranceAbsolute,hasSingularities=.true.)
+    normalization=+gammaTilde                              &
+         &        /Pi                                      &
          &        /(1.0d0-exp(-2.0d0*gammaTilde))
-    fBoundBar    =+normalization                       &
-         &        *summation                           &
-         &        *2.0d0*Pi                            &
-         &        /dble(quadraturePointsTheta)
+    fBoundBar    =+normalization                           &
+         &        *(                                       &
+         &          +integrator_%integrate(0.0d0,       Pi )  &
+         &          +integrator_%integrate(      Pi,2.0d0*Pi) &
+         &         )
     return
   end function decayingDarkMatterFBoundBar
+
+  double precision function decayingDarkMatterFBoundBarIntegrand(theta) result(integrand)
+    !!{RST
+    Integrand :math:`(1-\cos\theta) f_\mathrm{bound}^\mathrm{EdS}(\theta) \exp[-\tilde{\Gamma}(\theta-\sin\theta)/\pi]`
+    of :math:`\bar{f}_\mathrm{bound}` (:cite:t:`montandon_decaying_2026`, their eq. 48); see
+    ``decayingDarkMatterFBoundBar``. The epoch- and mass-dependent parameters are passed via the
+    module-scope ``fBoundBar*`` variables. This nests the ``fBound`` integral, which uses a disjoint set
+    of module-scope variables.
+    !!}
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    double precision, intent(in   ) :: theta
+    double precision                :: oneMinusCosTheta, betaEdS, xiEdS, weight
+
+    oneMinusCosTheta=+1.0d0-cos(theta)
+    betaEdS         =+sqrt(2.0d0)              &
+         &           *abs(cos(0.5d0*theta))
+    xiEdS           =+2.0d0                    &
+         &           *fBoundBarVelocityKickSI  &
+         &           *fBoundBarTimeTurnaroundSI &
+         &           /Pi                       &
+         &           /fBoundBarRadiusTurnaround &
+         &           *sqrt(oneMinusCosTheta)
+    ! Decay-time weight along the cycloid: (1-cos θ) exp[-Γ̃ (θ-sin θ)/π].
+    weight          =+oneMinusCosTheta         &
+         &           *exp(                     &
+         &                -fBoundBarGammaTilde  &
+         &                *(theta-sin(theta))   &
+         &                /Pi                   &
+         &               )
+    integrand       =+weight                   &
+         &           *decayingDarkMatterFBound(betaEdS,xiEdS)
+    return
+  end function decayingDarkMatterFBoundBarIntegrand
 
   double precision function decayingDarkMatterMassCollapsed(mass0,timeCollapse,lifetime,velocityKick) result(massCollapsed)
     !!{RST
