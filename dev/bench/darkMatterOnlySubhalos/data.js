@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784610104015,
+  "lastUpdate": 1784693684366,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "a2e21c23b817dcb49dc5efdc0a544d427c3e7bba",
-          "message": "fix: Avoid attempting to prune non-existant parent nodes",
-          "timestamp": "2025-05-13T08:42:46-07:00",
-          "tree_id": "c751d7548d5f81908cd99619772f1daf7a9d6d0c",
-          "url": "https://github.com/galacticusorg/galacticus/commit/a2e21c23b817dcb49dc5efdc0a544d427c3e7bba"
-        },
-        "date": 1747176281778,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 59.616,
-            "unit": "seconds",
-            "range": 0.192910341868946
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8784,6 +8754,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 15258.521848710105,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "7ccee793c100d43f06a33d7ab4cdf7a59b8536c8",
+          "message": "ci: update gh-pages analysis thresholds\n\nAdd halo mass function metrics (COZMIC, MDPL, Symphony) and refresh\ncurrent/threshold values from the latest analysis run.",
+          "timestamp": "2026-07-21T15:57:10-07:00",
+          "tree_id": "7dc49e42433465665ece78a3f1bc36f3bb74c749",
+          "url": "https://github.com/galacticusorg/galacticus/commit/7ccee793c100d43f06a33d7ab4cdf7a59b8536c8"
+        },
+        "date": 1784693678969,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 31.752999999999997,
+            "range": "0.07238853500382487",
+            "unit": "seconds"
           }
         ]
       }
