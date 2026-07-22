@@ -204,7 +204,9 @@ contains
     type            (lockDescriptor                  )                                  :: fileLock
     character       (len=255                         )                                  :: cambTransferLine
     type            (varying_string                  )                                  :: cambPath                                , cambVersion             , &
-         &                                                                                 parameterFile                           , outputRoot
+         &                                                                                 parameterFile                           , outputRoot              , &
+         &                                                                                 versionCamb                             , versionForUtils         , &
+         &                                                                                 labelVersionCamb                        , labelVersionForUtils
     double precision                                                                    :: wavenumberCAMB
     integer                                                                             :: status                                  , cambParameterFile       , &
          &                                                                                 i                                       , cambTransferFile        , &
@@ -239,12 +241,18 @@ contains
     ! Add wavenumber resolution to descriptor.
     write (parameterLabel,'(i4)'  ) countPerDecade_
     call descriptor%addParameter("countPerDecade",parameterLabel)
-    ! Add the unique label string to the descriptor.
+    ! Add the unique label string to the descriptor. The dependency version labels are evaluated into
+    ! local variables first - gfortran leaks the temporary returned by a `varying_string`-valued
+    ! function when it is consumed directly by another function.
+    versionCamb         =dependencyVersion     ("camb"    )
+    versionForUtils     =dependencyVersion     ("forutils")
+    labelVersionCamb    =dependencyVersionLabel("camb"    )
+    labelVersionForUtils=dependencyVersionLabel("forutils")
     uniqueLabel=descriptor%serializeToString()       // &
          &      "_sourceDigest:"                     // &
          &      String_C_To_Fortran(cambSourceDigest)// &
-         &      dependencyVersionLabel("camb"    )   // &
-         &      dependencyVersionLabel("forutils")
+         &      labelVersionCamb                     // &
+         &      labelVersionForUtils
     call descriptor%destroy()
     ! Build the file name.
     fileName_=inputPath(pathTypeDataDynamic)               // &
@@ -514,8 +522,8 @@ contains
                cambOutput=hdf5File(fileName_,readOnly=.false.,objectsOverwritable=.true.)
                call cambOutput%writeAttribute('Transfer functions created by CAMB.','description')
                call cambOutput%writeAttribute(cambFormatVersionCurrent,'fileFormat')
-               call cambOutput%writeAttribute(dependencyVersion("camb"    ),'versionCAMB'    )
-               call cambOutput%writeAttribute(dependencyVersion("forutils"),'versionForUtils')
+               call cambOutput%writeAttribute(versionCamb                 ,'versionCAMB'    )
+               call cambOutput%writeAttribute(versionForUtils             ,'versionForUtils')
                call cambOutput%writeDataset  (wavenumbers             ,'wavenumber'                                  ,chunkSize=chunkSize,appendTo=.not.  cambOutput%hasDataset('wavenumber'))
                speciesGroup=cambOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
                do i=1,countRedshiftsUnique

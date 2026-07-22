@@ -81,8 +81,13 @@ contains
     implicit none
     type     (varying_string)                :: dependencyVersionLabel
     character(len=*         ), intent(in   ) :: dependency
+    type     (varying_string)                :: version
 
-    dependencyVersionLabel="_dependency:"//trim(dependency)//"="//dependencyVersion(trim(dependency))
+    ! Evaluate the version into a local variable before concatenating. gfortran fails to free the
+    ! temporary returned by a `varying_string`-valued function when that result is consumed directly
+    ! by another function, leaking it - so never use `dependencyVersion()` inline.
+    version               =dependencyVersion(trim(dependency))
+    dependencyVersionLabel="_dependency:"//trim(dependency)//"="//version
     return
   end function dependencyVersionLabel
 

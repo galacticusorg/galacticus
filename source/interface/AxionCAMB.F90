@@ -180,7 +180,8 @@ contains
     type            (lockDescriptor          )                                  :: fileLock
     character       (len=255                 )                                  :: axionCambTransferLine
     type            (varying_string          )                                  :: axionCambVersion                        , parameterFile                 , &
-         &                                                                         axionCambPath                           , outputRoot
+         &                                                                         axionCambPath                           , outputRoot                    , &
+         &                                                                         labelVersionAxionCamb
     double precision                                                            :: wavenumberAxionCAMB                     , coldDarkMatterDensityFraction , &
          &                                                                         fuzzyDarkMatterDensityFraction
     double precision                                                            :: transferFunctionUnused
@@ -227,10 +228,14 @@ contains
        call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
     end select
     ! Add the unique label string to the descriptor.
+    ! Evaluate into locals first - gfortran leaks the temporary returned by a `varying_string`-valued
+    ! function when it is consumed directly by another function.
+    axionCambVersion     =dependencyVersion     ("axioncamb")
+    labelVersionAxionCamb=dependencyVersionLabel("axioncamb")
     uniqueLabel=descriptor%serializeToString()            // &
          &      "_sourceDigest:"                          // &
          &      String_C_To_Fortran(axionCambSourceDigest)// &
-         &      dependencyVersionLabel("axioncamb")
+         &      labelVersionAxionCamb
     call descriptor%destroy()
     ! Build the file name.
     fileName_=char(inputPath(pathTypeDataDynamic))                            // &
@@ -535,7 +540,7 @@ contains
          axionCambOutput=hdf5File(fileName_,readOnly=.false.,objectsOverwritable=.true.)
          call axionCambOutput%writeAttribute('Transfer functions created by AxionCAMB.','description'     )
          call axionCambOutput%writeAttribute(axionCambFormatVersionCurrent             ,'fileFormat'      )
-         call axionCambOutput%writeAttribute(dependencyVersion("axioncamb")            ,'versionAxionCAMB')
+         call axionCambOutput%writeAttribute(axionCambVersion                         ,'versionAxionCAMB')
          call axionCambOutput%writeDataset(wavenumbers    ,'wavenumber'                                 ,chunkSize=chunkSize,appendTo=.not.axionCambOutput%hasDataset('wavenumber'))
          speciesGroup=axionCambOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
          do i=1,countRedshiftsUnique
