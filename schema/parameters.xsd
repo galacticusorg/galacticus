@@ -2407,6 +2407,7 @@
           <xs:enumeration value="nodeMajorMergerTime"/>
           <xs:enumeration value="nuclearStarClusterGrowth"/>
           <xs:enumeration value="null"/>
+          <xs:enumeration value="outputTrajectory"/>
           <xs:enumeration value="positionDiscrete"/>
           <xs:enumeration value="positionInterpolated"/>
           <xs:enumeration value="positionOrphans"/>
@@ -2614,6 +2615,7 @@
           <xs:enumeration value="timeFirstInfall"/>
           <xs:enumeration value="timescaleBarInstability"/>
           <xs:enumeration value="trackOutflowedMass"/>
+          <xs:enumeration value="trajectoryEvent"/>
           <xs:enumeration value="treeWeight"/>
           <xs:enumeration value="tuple"/>
           <xs:enumeration value="uniqueIDBranchTip"/>

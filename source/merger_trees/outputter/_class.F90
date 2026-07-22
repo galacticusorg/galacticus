@@ -37,10 +37,11 @@ module Merger_Tree_Outputters
    </description>
    <decodeFunction>yes</decodeFunction>
    <visibility>public</visibility>
-   <entry label="tree"     />
-   <entry label="node"     />
-   <entry label="snapshot" />
-   <entry label="lightcone"/>
+   <entry label="tree"      />
+   <entry label="node"      />
+   <entry label="snapshot"  />
+   <entry label="lightcone" />
+   <entry label="trajectory"/>
   </enumeration>
   !!]
 
