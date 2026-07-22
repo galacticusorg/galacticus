@@ -51,7 +51,6 @@ latter is an order-of-magnitude rationale for the :math:`v_k^3` scaling only, an
 !!}
 
 module Decaying_Dark_Matter_Spherical_Collapse
-  use :: Numerical_Integration, only : integrator
   implicit none
   private
   public :: decayingDarkMatterEpsilon               , decayingDarkMatterGammaTilde , &
@@ -92,7 +91,7 @@ module Decaying_Dark_Matter_Spherical_Collapse
   ! set of variables so there is no interference.
   double precision :: jIntegrandGammaTilde
   double precision :: fBoundBeta               , fBoundXi
-  double precision :: fBoundBarGammaTilde       , fBoundBarVelocityKickSI, fBoundBarTimeTurnaroundSI, &
+  double precision :: fBoundBarGammaTilde      , fBoundBarVelocityKickSI, fBoundBarTimeTurnaroundSI, &
        &              fBoundBarRadiusTurnaround
   !$omp threadprivate(jIntegrandGammaTilde,fBoundBeta,fBoundXi,fBoundBarGammaTilde,fBoundBarVelocityKickSI,fBoundBarTimeTurnaroundSI,fBoundBarRadiusTurnaround)
 
@@ -167,21 +166,22 @@ contains
     :math:`(0,2\pi)`---the apparent singularities at :math:`\theta=0`, :math:`\pi`, and :math:`2\pi` are removable---and :math:`J<0`,
     reflecting the delay of collapse relative to :math:`\Lambda`CDM.
     !!}
+    use :: Numerical_Integration   , only : integrator
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    double precision, intent(in   ) :: gammaTilde
-    type            (integrator   ) :: integrator_
+    double precision            , intent(in   ) :: gammaTilde
+    type            (integrator)                :: integrator_
 
     ! Pass the decay rate to the integrand, and integrate. The integrand has removable singularities at
     ! θ=0, π, and 2π; the integral is split at θ=π so that all three fall on interval endpoints (which the
     ! Gauss-Kronrod rules never sample---unlike the interval midpoint θ=π on the full range, where the
     ! integrand would evaluate to a 0×∞ indeterminate form).
     jIntegrandGammaTilde=gammaTilde
-    integrator_=integrator(decayingDarkMatterJIntegrand,toleranceRelative=toleranceRelative,toleranceAbsolute=toleranceAbsolute,hasSingularities=.true.)
-    jIntegral  =-(                                          &
-         &        +integrator_%integrate(0.0d0,       Pi )  &
-         &        +integrator_%integrate(      Pi,2.0d0*Pi) &
-         &       )
+    integrator_         =integrator(decayingDarkMatterJIntegrand,toleranceRelative=toleranceRelative,toleranceAbsolute=toleranceAbsolute,hasSingularities=.true.)
+    jIntegral           =-(                                       &
+         &                 +integrator_%integrate(0.0d0,      Pi) &
+         &                 +integrator_%integrate(   Pi,2.0d0*Pi) &
+         &                )
     return
   end function decayingDarkMatterJIntegral
 
@@ -194,9 +194,10 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: theta
-    double precision                :: sinTheta, oneMinusCosTheta, cycloidTime, iFunction
+    double precision                :: sinTheta   , oneMinusCosTheta, &
+         &                             cycloidTime, iFunction
 
-    sinTheta        =+sin(theta)
+    sinTheta        =+      sin(theta)
     oneMinusCosTheta=+1.0d0-cos(theta)
     cycloidTime     =+(theta-sinTheta)/Pi
     iFunction       =+sinTheta               &
@@ -219,7 +220,8 @@ contains
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    double precision, intent(in   ) :: gammaTilde, epsilon, jIntegral
+    double precision, intent(in   ) :: gammaTilde, epsilon, &
+         &                             jIntegral
     !$GLC attributes unused :: gammaTilde
 
     deltaCLarge=+decayingDarkMatterCriticalOverdensityEdS() &
@@ -267,7 +269,8 @@ contains
     ``velocityKick`` is in km/s and ``timeCollapse`` in Gyr.
     !!}
     implicit none
-    double precision, intent(in   ) :: velocityKick, gammaTilde, timeCollapse
+    double precision, intent(in   ) :: velocityKick  , gammaTilde, &
+         &                             timeCollapse
     double precision                :: timeTurnaround
 
     timeTurnaround=+0.5d0                    &
@@ -299,7 +302,7 @@ contains
          &                             deltaCSmall, massScale1
     double precision                :: massScale2 , denominator
 
-    massScale2 =+fitTransitionMassRatio &
+    massScale2 =+fitTransitionMassRatio       &
          &      *massScale1
     denominator=+(                            &
          &        +1.0d0                      &
@@ -334,9 +337,10 @@ contains
     form reproduces all three population branches (fully bound, partially bound, unbound) without
     explicit case analysis.
     !!}
+    use :: Numerical_Integration, only : integrator
     implicit none
-    double precision, intent(in   ) :: beta  , xi
-    type            (integrator   ) :: integrator_
+    double precision            , intent(in   ) :: beta       , xi
+    type            (integrator)                :: integrator_
 
     ! Pass the bulk-flow and kick parameters to the integrand, and integrate over u∈(0,1). The integrand
     ! is bounded (and →0 at u=0), so plain adaptive Gauss-Kronrod quadrature suffices.
@@ -357,19 +361,19 @@ contains
     double precision, intent(in   ) :: u
     double precision                :: cBound, pBound
 
-    cBound   =+(                     &
-         &      +3.0d0               &
-         &      -fBoundXi  **2       &
-         &      -u         **2       &
+    cBound   =+(                       &
+         &      +3.0d0                 &
+         &      -fBoundXi**2           &
+         &      -u       **2           &
          &      *(1.0d0+fBoundBeta**2) &
-         &     )                     &
-         &     /(                    &
-         &       +2.0d0              &
-         &       *fBoundBeta         &
-         &       *fBoundXi           &
-         &       *u                  &
+         &     )                       &
+         &     /(                      &
+         &       +2.0d0                &
+         &       *fBoundBeta           &
+         &       *fBoundXi             &
+         &       *u                    &
          &      )
-    ! P_bound as a clamp of (1+C_bound)/2 to [0,1]; IEEE +/-Inf (from β->0 at turnaround) clamps
+    ! P_bound as a clamp of (1+C_bound)/2 to [0,1]; IEEE +/-Inf (from β→0 at turnaround) clamps
     ! correctly to 1 or 0.
     pBound   =+max(0.0d0,min(1.0d0,0.5d0*(1.0d0+cBound)))
     integrand=+3.0d0*u**2*pBound
@@ -397,9 +401,11 @@ contains
     use :: Numerical_Constants_Physical    , only : gravitationalConstant
     use :: Numerical_Constants_Astronomical, only : massSolar            , gigaYear
     use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Numerical_Integration           , only : integrator
     implicit none
-    double precision, intent(in   ) :: gammaTilde    , velocityKick    , timeCollapse , mass0
-    double precision                :: mass0SI       , normalization
+    double precision, intent(in   ) :: gammaTilde  , velocityKick , &
+         &                             timeCollapse, mass0
+    double precision                :: mass0SI     , normalization
     type            (integrator   ) :: integrator_
 
     ! Convert the (epoch- and mass-dependent) parameters to SI and store them for the integrand.
@@ -412,12 +418,12 @@ contains
     mass0SI                  =+mass0        & ! M☉   → kg.
          &                    *massSolar
     ! Turnaround radius from Kepler's relation, G M₀ = π² R_ta³/(8 t_ta²) [their eq. A2].
-    fBoundBarRadiusTurnaround=+(                             &
-         &                      +8.0d0                       &
-         &                      *gravitationalConstant       &
-         &                      *mass0SI                     &
+    fBoundBarRadiusTurnaround=+(                              &
+         &                      +8.0d0                        &
+         &                      *gravitationalConstant        &
+         &                      *mass0SI                      &
          &                      *fBoundBarTimeTurnaroundSI**2 &
-         &                      /Pi**2                       &
+         &                      /Pi**2                        &
          &                     )**(1.0d0/3.0d0)
     ! Integrate over θ∈(0,2π), splitting at θ=π so that the endpoints θ=0, π, 2π---where β_EdS or ξ_EdS
     ! vanishes and the nested f_bound integrand is (removably) singular---are never sampled.
@@ -427,8 +433,8 @@ contains
          &        /(1.0d0-exp(-2.0d0*gammaTilde))
     fBoundBar    =+normalization                           &
          &        *(                                       &
-         &          +integrator_%integrate(0.0d0,       Pi )  &
-         &          +integrator_%integrate(      Pi,2.0d0*Pi) &
+         &          +integrator_%integrate(0.0d0,      Pi) &
+         &          +integrator_%integrate(   Pi,2.0d0*Pi) &
          &         )
     return
   end function decayingDarkMatterFBoundBar
@@ -444,25 +450,26 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: theta
-    double precision                :: oneMinusCosTheta, betaEdS, xiEdS, weight
+    double precision                :: oneMinusCosTheta, betaEdS, &
+         &                             xiEdS           , weight
 
     oneMinusCosTheta=+1.0d0-cos(theta)
-    betaEdS         =+sqrt(2.0d0)              &
+    betaEdS         =+sqrt(2.0d0)               &
          &           *abs(cos(0.5d0*theta))
-    xiEdS           =+2.0d0                    &
-         &           *fBoundBarVelocityKickSI  &
+    xiEdS           =+2.0d0                     &
+         &           *fBoundBarVelocityKickSI   &
          &           *fBoundBarTimeTurnaroundSI &
-         &           /Pi                       &
+         &           /Pi                        &
          &           /fBoundBarRadiusTurnaround &
          &           *sqrt(oneMinusCosTheta)
-    ! Decay-time weight along the cycloid: (1-cos θ) exp[-Γ̃ (θ-sin θ)/π].
-    weight          =+oneMinusCosTheta         &
-         &           *exp(                     &
+    ! Decay-time weight along the cycloid: (1-cosθ) exp[-Γ̃ (θ-sinθ)/π].
+    weight          =+oneMinusCosTheta          &
+         &           *exp(                      &
          &                -fBoundBarGammaTilde  &
          &                *(theta-sin(theta))   &
          &                /Pi                   &
          &               )
-    integrand       =+weight                   &
+    integrand       =+weight                                  &
          &           *decayingDarkMatterFBound(betaEdS,xiEdS)
     return
   end function decayingDarkMatterFBoundBarIntegrand
@@ -489,7 +496,7 @@ contains
 
     epsilon                = decayingDarkMatterEpsilon   (velocityKick         )
     gammaTilde             = decayingDarkMatterGammaTilde(timeCollapse,lifetime)
-    ! Surviving (undecayed) parent fraction, e^{-Gamma t_coll} = e^{-2 gammaTilde}.
+    ! Surviving (undecayed) parent fraction, e^{-Γ t_coll} = e^{-2 Γ̃}.
     survivingParentFraction=+exp(-2.0d0*gammaTilde)
     fBoundBar              = decayingDarkMatterFBoundBar(gammaTilde,velocityKick,timeCollapse,mass0)
     massCollapsed          =+mass0                             &
