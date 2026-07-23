@@ -442,16 +442,17 @@ jobs:
           fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           mangleVersion=`awk '{if ($1 == "mangle:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          axioncambVersion=`awk '{if ($1 == "axioncamb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           # Check that executables were statically linked
           ! ldd dynamic/CAMB-${cambVersion}/fortran/camb
-          ! ldd dynamic/AxionCAMB/camb
+          ! ldd dynamic/axionCAMB-${axioncambVersion}/camb
           ! ldd dynamic/class_public-${classVersion}/class
           ! ldd dynamic/RecFast/recfast.exe
           ! ldd dynamic/fsps-${fspsVersion}/src/autosps.exe
           ! ldd dynamic/mangle-${mangleVersion}/bin/ransack
           tar cfj tools.tar.bz2 \
             dynamic/CAMB-${cambVersion}/fortran/camb \
-            dynamic/AxionCAMB/camb \
+            dynamic/axionCAMB-${axioncambVersion}/camb \
             dynamic/class_public-${classVersion}/class \
             dynamic/RecFast/recfast.exe \
             dynamic/RecFast/currentVersion \
@@ -657,6 +658,7 @@ jobs:
           fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           mangleVersion=`awk '{if ($1 == "mangle:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          axioncambVersion=`awk '{if ($1 == "axioncamb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           mkdir -p $GALACTICUS_DATA_PATH/dynamic
@@ -664,7 +666,7 @@ jobs:
           ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
           cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
-          cd $GALACTICUS_DATA_PATH/dynamic/AxionCAMB/
+          cd $GALACTICUS_DATA_PATH/dynamic/axionCAMB-${axioncambVersion}/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb          
           cd $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion}/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o class ' $GALACTICUS_EXEC_PATH/build.log`
@@ -678,7 +680,7 @@ jobs:
           cp ../bin/harmonize .
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
           echo "camb=${GALACTICUS_DATA_PATH}/dynamic/CAMB-${cambVersion}/fortran/camb" >> "$GITHUB_OUTPUT"
-          echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/AxionCAMB/camb" >> "$GITHUB_OUTPUT"
+          echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/axionCAMB-${axioncambVersion}/camb" >> "$GITHUB_OUTPUT"
           echo "class=${GALACTICUS_DATA_PATH}/dynamic/class_public-${classVersion}/class" >> "$GITHUB_OUTPUT"
           echo "recfast=${GALACTICUS_DATA_PATH}/dynamic/RecFast/recfast.exe" >> "$GITHUB_OUTPUT"
           echo "cloudy=${GALACTICUS_DATA_PATH}/dynamic/c${cloudyVersion}/source/cloudy.exe" >> "$GITHUB_OUTPUT"
@@ -698,7 +700,7 @@ jobs:
           cd $GALACTICUS_DATA_PATH
           zip -r toolsMacOS.zip \
             dynamic/CAMB-${cambVersion}/fortran/camb \
-            dynamic/AxionCAMB/camb \
+            dynamic/axionCAMB-${axioncambVersion}/camb \
             dynamic/class_public-${classVersion}/class \
             dynamic/RecFast/recfast.exe \
             dynamic/RecFast/currentVersion \
@@ -748,6 +750,7 @@ jobs:
           fspsVersion=`awk '{if ($1 == "fsps:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cloudyVersion=`awk '{if ($1 == "cloudy:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           mangleVersion=`awk '{if ($1 == "mangle:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
+          axioncambVersion=`awk '{if ($1 == "axioncamb:") print $2}' ${GALACTICUS_EXEC_PATH}/aux/dependencies.yml`
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           mkdir -p $GALACTICUS_DATA_PATH/dynamic
@@ -755,7 +758,7 @@ jobs:
           ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
           cd $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion}/fortran/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -cpp -Ofast -fopenmp -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib -JRelease -IRelease/ -I"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" Release/inidriver.o Release/libcamb.a  -L"/Users/runner/work/galacticus/galacticus/datasets/dynamic/CAMB-${cambVersion}/fortran/../forutils/Release/" -lforutils -o camb
-          cd $GALACTICUS_DATA_PATH/dynamic/AxionCAMB/
+          cd $GALACTICUS_DATA_PATH/dynamic/axionCAMB-${axioncambVersion}/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py ${FCCOMPILER} -O3 -fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib constants.o utils.o  subroutines.o inifile.o power_tilt.o recfast_axion.o reionization.o modules.o bessels.o equations_ppf.o halofit_ppf.o lensing.o SeparableBispectrum.o cmbmain.o camb.o axion_background.o inidriver_axion.F90 -o camb          
           cd $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion}/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o class ' $GALACTICUS_EXEC_PATH/build.log`
@@ -769,7 +772,7 @@ jobs:
           cp ../bin/harmonize .
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.py `grep -E '\-o harmonize' $GALACTICUS_EXEC_PATH/build.log`
           echo "camb=${GALACTICUS_DATA_PATH}/dynamic/CAMB-${cambVersion}/fortran/camb" >> "$GITHUB_OUTPUT"
-          echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/AxionCAMB/camb" >> "$GITHUB_OUTPUT"
+          echo "axioncamb=${GALACTICUS_DATA_PATH}/dynamic/axionCAMB-${axioncambVersion}/camb" >> "$GITHUB_OUTPUT"
           echo "class=${GALACTICUS_DATA_PATH}/dynamic/class_public-${classVersion}/class" >> "$GITHUB_OUTPUT"
           echo "recfast=${GALACTICUS_DATA_PATH}/dynamic/RecFast/recfast.exe" >> "$GITHUB_OUTPUT"
           echo "cloudy=${GALACTICUS_DATA_PATH}/dynamic/c${cloudyVersion}/source/cloudy.exe" >> "$GITHUB_OUTPUT"
@@ -789,7 +792,7 @@ jobs:
           cd $GALACTICUS_DATA_PATH
           zip -r toolsMacOSM1.zip \
             dynamic/CAMB-${cambVersion}/fortran/camb \
-            dynamic/AxionCAMB/camb \
+            dynamic/axionCAMB-${axioncambVersion}/camb \
             dynamic/class_public-${classVersion}/class \
             dynamic/RecFast/recfast.exe \
             dynamic/RecFast/currentVersion \
