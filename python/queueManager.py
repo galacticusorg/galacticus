@@ -56,7 +56,15 @@ class SLURMManager(QueueManager):
     """A queue manager that interfaces with SLURM."""
     def __init__(self,config,args):
         super().__init__("SLURM")
-        self.options = {}
+        # Defaults for options which are always used, so that a `galacticusConfig.xml`
+        # host block which omits them (or a caller which passes `None`) does not cause
+        # a `KeyError` part way through submission. `partition` has no default - it is
+        # genuinely optional, and omitting it selects the cluster default partition.
+        self.options = {
+            'jobMaximum'  : 10,
+            'waitOnSubmit': 10,
+            'waitOnActive': 60
+        }
         for option in 'partition',:
             optionElement = config.find(option)
             if optionElement is not None:
