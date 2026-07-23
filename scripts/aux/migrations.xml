@@ -288,6 +288,9 @@
   <migration commit="f5362cac8f91d04771a5d9c4a705a0f9f6c6e8e7">
     <translation function="vitvitska_subresolution_method"/>
   </migration>
+  <migration commit="fff198c4bbadc530c67668591ae98e4aa0f445a9">
+    <translation function="vitvitska_subresolution_method_enum"/>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
