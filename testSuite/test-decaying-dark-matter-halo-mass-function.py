@@ -16,15 +16,13 @@ Two things are checked:
   multiplicatively and normalized to delta_c^EdS.
 
 * The suppression relative to that limit, for the four DDM models simulated in the paper, at z=0 and
-  z=1.083. Reference values were obtained by digitizing the semi-analytic ("dashed") curves of their
-  Fig. 9. Tolerances are loose (a factor of 2.5) because the reference is digitized from a figure --
-  and, for the strongly suppressed models, the plotted simulation points and their error bars overlap
-  the curves, so the digitization there is uncertain -- and because the paper's variance sigma(M) comes
-  from a different transfer function than the one used here. The test is therefore a check on the
-  amplitude and, more sharply, on the *ordering* of the suppression across models, which is what pins
-  the transition mass scale M_1 (their eq. 44). For reference, using the analytic estimate of their
-  eq. 45 in place of the calibrated eq. 44 overestimates M_1 by a factor of ~200, which inverts the
-  ordering and misses these amplitudes by up to a factor of several hundred.
+  z=1.083. Reference values were extracted from the semi-analytic-fit ("dashed") curves of their Fig. 9
+  (see the `reference` table below for the extraction method). Each suppression ratio is checked to
+  within `toleranceFactor`; the residual is set by the variance pipeline rather than the reference (see
+  the comment there). The test also checks, more stringently, the *ordering* of the suppression across
+  models, which is what pins the transition mass scale M_1 (their eq. 44): using the analytic estimate
+  of their eq. 45 in place of the calibrated eq. 44 overestimates M_1 by a factor of ~200, which inverts
+  the ordering and misses these amplitudes by up to a factor of several hundred.
 """
 import os
 import subprocess
@@ -43,21 +41,33 @@ models = {
     "20Gyr_2250kms": (2.0e1,    2.250e3),
 }
 
-# Suppression of dn/dlnM relative to the cold dark matter limit, digitized from the semi-analytic
-# curves of Montandon et al. (2026), their Fig. 9, at the given collapsed masses [M_Solar/h].
-# Structured as: redshift -> mass -> {model: ratio}.
+# Suppression of dn/dlnM relative to the cold dark matter limit, extracted from the semi-analytic-fit
+# ("dashed") curves of Montandon et al. (2026), their Fig. 9, at the given collapsed masses [M_Solar/h].
+# The reference curves were taken from a vector (SVG) copy of the figure with the N-body points removed,
+# rendered at high resolution and read off by nearest-colour classification (calibrated from the axis
+# ticks). The reference masses are chosen at 2 and 5e14 M_Solar/h -- well inside the plotted range, where
+# all five curves are cleanly separated (at the left frame edge, 1e14 M_Solar/h, the curves cross and the
+# extraction is unreliable). Structured as: redshift -> mass -> {model: ratio}.
 reference = {
     0.000: {
-        1.0e14: {"10Gyr_1250kms": 0.032, "5Gyr_625kms": 0.305, "20Gyr_625kms": 0.615},
-        3.0e14: {"10Gyr_1250kms": 0.030, "5Gyr_625kms": 0.520, "20Gyr_625kms": 0.740, "20Gyr_2250kms": 0.060},
+        2.0e14: {"10Gyr_1250kms": 0.0358, "5Gyr_625kms": 0.4450, "20Gyr_625kms": 0.7245, "20Gyr_2250kms": 0.0998},
+        5.0e14: {"10Gyr_1250kms": 0.0727, "5Gyr_625kms": 0.5556, "20Gyr_625kms": 0.7877, "20Gyr_2250kms": 0.0437},
     },
     1.083: {
-        1.0e14: {"10Gyr_1250kms": 0.071, "5Gyr_625kms": 0.403, "20Gyr_2250kms": 0.201},
+        2.0e14: {"10Gyr_1250kms": 0.0954, "5Gyr_625kms": 0.5210, "20Gyr_625kms": 0.7769, "20Gyr_2250kms": 0.1419},
+        5.0e14: {"10Gyr_1250kms": 0.1862, "5Gyr_625kms": 0.5952, "20Gyr_625kms": 0.8167, "20Gyr_2250kms": 0.0699},
     },
 }
 
 hubbleConstantReduced = 0.6776
-toleranceFactor       = 2.5
+# The suppression ratios are compared to within this factor. The residual (worst case ~1.6, for the
+# strongly-suppressed 10Gyr_1250kms model) is dominated not by the reference extraction but by the linear
+# power spectrum / variance pipeline: the paper's sigma(M) uses a different transfer function than the
+# LCDM one used here, and this does not fully cancel in the DDM/LCDM ratio because the mass remapping
+# evaluates sigma at different masses in the numerator (DDM, at M_0) and denominator (LCDM, at M_coll) --
+# an effect largest for the most strongly remapped (largest-kick) models. The test therefore checks the
+# amplitude to within this factor and, more stringently, the *ordering* of the suppression across models.
+toleranceFactor       = 1.8
 
 failures = 0
 
@@ -195,8 +205,11 @@ for redshift, massReference in reference.items():
 
 # Check that the ordering of the suppression across models matches that of their Fig. 9, at z=0. This
 # ordering is a sensitive probe of the transition mass scale M_1.
+# Ordering is checked at 2e14 M_Solar/h, where the models are unambiguously ranked. (At higher masses
+# the two large-kick models -- 20Gyr_2250kms and 10Gyr_1250kms -- swap, as the largest-kick model falls
+# off most steeply; see their Fig. 9.)
 ordering = ["20Gyr_625kms", "5Gyr_625kms", "20Gyr_2250kms", "10Gyr_1250kms"]
-mass     = 3.0e14 / hubbleConstantReduced
+mass     = 2.0e14 / hubbleConstantReduced
 if all(label in results for label in ordering):
     ratios = [interpolate(results[label][0.000], mass) / interpolate(results["CDM"][0.000], mass) for label in ordering]
     if all(ratios[i] > ratios[i + 1] for i in range(len(ratios) - 1)):
