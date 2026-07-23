@@ -16,7 +16,9 @@ from Galacticus.Build.SourceTree.Process import register_process
 def _read_dependencies():
     """Read `$GALACTICUS_EXEC_PATH/aux/dependencies.yml` into {name: version}.
 
-    Any line that does not match `<name>: <version>` is a fatal error.
+    Any line that does not match `<name>: <version>` is a fatal error. A
+    version may be a dotted release number, or — for dependencies whose
+    upstream publishes no releases — a git commit SHA.
     """
     exec_path = os.environ.get('GALACTICUS_EXEC_PATH')
     if not exec_path:
@@ -26,7 +28,7 @@ def _read_dependencies():
     deps = {}
     with open(path, 'r') as fh:
         for line in fh:
-            m = re.match(r'^(.+):\s+([0-9\.]+)', line)
+            m = re.match(r'^([^:]+):\s+([0-9A-Za-z._-]+)\s*$', line)
             if not m:
                 raise RuntimeError(
                     f"process_dependencies: cannot parse dependency file line:\n{line}")

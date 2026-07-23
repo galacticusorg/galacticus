@@ -38,8 +38,9 @@ contains
     !!{RST
     An interface to the :term:`Cloudy` code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
     !!}
+    use :: Dependencies                    , only : dependencyVersion
     use :: Display                         , only : displayCounter                     , displayCounterClear           , displayIndent       , displayMessage, &
-          &                                         displayUnindent                    , verbosityLevelWorking
+          &                                         displayUnindent                    , verbosityLevelWorking         , verbosityLevelWarn
     use :: File_Utilities                  , only : File_Exists                        , File_Lock                     , File_Remove         , File_Unlock   , &
          &                                          Directory_Make                     , File_Path
     use :: Error                           , only : Error_Report
@@ -84,6 +85,7 @@ contains
          &                                                               energyCount                            , iEnergy                              , &
          &                                                               i
     type            (varying_string)                                  :: cloudyPath                             , cloudyVersion                        , &
+         &                                                               versionCloudy                          , &
          &                                                               fileNameTempCooling                    , fileNameTempOverview                 , &
          &                                                               fileNameTempContinuum                  , fileNameCoolingFunctionLock          , &
          &                                                               fileNameChemicalStateLock              , escapedSource
@@ -98,6 +100,9 @@ contains
     
     ! Ensure the requested file format version is compatible.
     if (versionFileFormat /= versionFileFormatCurrent) call Error_Report(var_str("this interface supports file format version ")//versionFileFormatCurrent//" but version "//versionFileFormat//" was requested"//{introspection:location})
+    ! Evaluate the Cloudy version into a local - gfortran leaks the temporary returned by a
+    ! `varying_string`-valued function when it is consumed directly by another function.
+    versionCloudy=dependencyVersion("cloudy")
     ! Determine if we need to compute cooling functions.
     call Directory_Make(File_Path(fileNameCoolingFunction))
     call Directory_Make(File_Path(fileNameChemicalState  ))
@@ -118,6 +123,7 @@ contains
              call outputFile%readAttribute('fileFormat',fileFormatFile)
              if (fileFormatFile /= versionFileFormatCurrent) computeCoolingFunctions=.true.
           end if
+          if (i == 1) call cloudyVersionValidate(outputFile,fileNameCoolingFunction,'cooling functions')
           !$ call hdf5Access%unset()
        else
           computeCoolingFunctions=.true.
@@ -130,6 +136,7 @@ contains
              call outputFile%readAttribute('fileFormat',fileFormatFile)
              if (fileFormatFile /= versionFileFormatCurrent) computeChemicalStates=.true.
           end if
+          if (i == 1) call cloudyVersionValidate(outputFile,fileNameChemicalState,'ionization states')
           !$ call hdf5Access%unset()
        else
           computeChemicalStates=.true.
@@ -287,6 +294,7 @@ contains
              ! Add attributes.
              call    outputFile%writeAttribute("CIE cooling functions computed by Cloudy "//cloudyVersion,'description'                                             )
              call    outputFile%writeAttribute(versionFileFormatCurrent                                  ,'fileFormat'                                              )
+             call    outputFile%writeAttribute(versionCloudy                                             ,'versionCloudy'                                           )
              !$ call hdf5Access%unset         (                                                                                                                     )
           end if
           ! Output chemical states to an HDF5 file.
@@ -307,6 +315,7 @@ contains
              ! Add attributes.
              call    outputFile%writeAttribute("CIE ionization states computed by Cloudy "//cloudyVersion,'description'                            )
              call    outputFile%writeAttribute(versionFileFormatCurrent                                  ,'fileFormat'                             )
+             call    outputFile%writeAttribute(versionCloudy                                             ,'versionCloudy'                          )
              !$ call hdf5Access%unset         (                                                                                                    )
           end if
           ! Write message.
@@ -317,5 +326,43 @@ contains
     end do
     return
   end subroutine Interface_Cloudy_CIE_Tabulate
+
+  subroutine cloudyVersionValidate(tableFile,fileName,tableType)
+    !!{RST
+    Warn if a tabulation was computed by a different version of Cloudy than the one currently specified in
+    ``aux/dependencies.yml``.
+
+    Unlike the other external-tool caches, these tabulations are shipped pre-computed in the static datasets, and are only
+    regenerated when a run requires a metallicity beyond the tabulated range. Including the Cloudy version in the file name would
+    therefore make the shipped tables permanently unfindable, and force every user to build Cloudy. We record the version and
+    warn on a mismatch instead, leaving regeneration to the user.
+    !!}
+    use :: Dependencies      , only : dependencyVersion
+    use :: Display           , only : displayMessage   , verbosityLevelWarn
+    use :: IO_HDF5           , only : hdf5File
+    use :: ISO_Varying_String, only : varying_string   , operator(//)      , operator(/=)
+    implicit none
+    type     (hdf5File      ), intent(inout) :: tableFile
+    type     (varying_string), intent(in   ) :: fileName
+    character(len=*         ), intent(in   ) :: tableType
+    type     (varying_string)                :: versionCloudyFile, versionCloudy
+
+    if (.not.tableFile%hasAttribute('versionCloudy')) return
+    call tableFile%readAttribute('versionCloudy',versionCloudyFile)
+    ! Evaluate into a local - gfortran leaks the temporary returned by a `varying_string`-valued
+    ! function when it is consumed directly by another function.
+    versionCloudy=dependencyVersion("cloudy")
+    if (versionCloudyFile /= versionCloudy)                                                          &
+         & call displayMessage(                                                                      &
+         &                     "WARNING: CIE "//tableType//" in '"//fileName//"' were computed by"// &
+         &                     " Cloudy "//versionCloudyFile//", but Cloudy "//                      &
+         &                     versionCloudy//" is now specified in"//                               &
+         &                     " 'aux/dependencies.yml'. These tables are not regenerated"//         &
+         &                     " automatically on a Cloudy version change - remove the file to"//    &
+         &                     " force regeneration."                                              , &
+         &                     verbosityLevelWarn                                                    &
+         &                    )
+    return
+  end subroutine cloudyVersionValidate
 
 end module Interfaces_Cloudy_CIE
