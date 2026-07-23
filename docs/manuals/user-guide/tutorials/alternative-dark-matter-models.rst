@@ -39,7 +39,7 @@ Each modifier replaces the dark matter particle and then makes the further chang
 Warm dark matter (``warmDarkMatter.xml``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Uses a thermal-relic warm dark matter particle (fiducially a :math:`6.1\,\mathrm{keV}` particle). Warm dark matter suppresses the linear power spectrum below its free-streaming scale, so the modifier wraps the transfer function in the `Bode et al. (2001) <http://adsabs.harvard.edu/abs/2001ApJ...556...93B>`_ warm dark matter transfer function (with the cut-off scale of `Vogel & Abazajian (2023) <https://ui.adsabs.harvard.edu/abs/2023PhRvD.108d3520V>`_), and switches the dark matter-only profile to a "cusp-NFW" profile with the prompt-cusp node operator.
+Uses a thermal-relic warm dark matter particle (fiducially a :math:`6.1\,\mathrm{keV}` particle). Warm dark matter suppresses the linear power spectrum below its free-streaming scale, so the modifier wraps the transfer function in the :cite:t:`bode_halo_2001` warm dark matter transfer function (with the cut-off scale of :cite:t:`vogel_entering_2023`), and switches the dark matter-only profile to a "cusp-NFW" profile with the prompt-cusp node operator.
 
 Fuzzy dark matter (``fuzzyDarkMatter.xml``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -49,7 +49,7 @@ Uses an ultra-light (fuzzy) dark matter particle (fiducially :math:`m = 10^{-21}
 Decaying dark matter (``decayingDarkMatter.xml``)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Uses a dark matter particle that decays, on some lifetime, into a lighter daughter that receives a velocity kick (fiducially a lifetime of :math:`10\,\mathrm{Gyr}` and a mass splitting of :math:`1.3\times10^{-4}`, from which the velocity kick is derived). This model follows `Montandon et al. (2026) <https://ui.adsabs.harvard.edu/abs/2026arXiv260719244M>`_ and enters in two places:
+Uses a dark matter particle that decays, on some lifetime, into a lighter daughter that receives a velocity kick (fiducially a lifetime of :math:`10\,\mathrm{Gyr}` and a mass splitting of :math:`1.3\times10^{-4}`, from which the velocity kick is derived). This model follows :cite:t:`montandon_decaying_2026` and enters in two places:
 
 * **The halo mass function.** The decay-induced mass loss softens the collapse of halos, which is captured by a mass-dependent critical overdensity for collapse and a remapping from the initial (Lagrangian) mass to the observed collapsed mass. The modifier wraps the critical overdensity feeding the mass function in the decaying dark matter critical overdensity, and wraps the mass function itself in the decaying dark matter mass function.
 
@@ -59,7 +59,7 @@ Two points distinguish decaying dark matter from the warm and fuzzy cases:
 
 * **The transfer function is left unmodified.** In this model *all* of the decaying dark matter physics is carried by the critical overdensity and the mass remapping; the variance :math:`\sigma(M)` is computed from the unmodified CDM linear power spectrum. (Combining this modifier with a suppressed transfer function would double-count the small-scale suppression.)
 
-* **Halo mass definition.** Montandon et al. (2026) measure their halo mass function using the :math:`M_\mathrm{200m}` definition (the mass within a sphere enclosing 200 times the mean matter density), whereas Galacticus returns the spherical-collapse (:math:`M_\mathrm{virial}`) mass. Converting between the two requires a halo density-profile model that is not currently applied, so no attempt is made to match the :math:`M_\mathrm{200m}` definition; expect a corresponding systematic offset when comparing directly to their results.
+* **Halo mass definition.** :cite:t:`montandon_decaying_2026` measure their halo mass function using the :math:`M_\mathrm{200m}` definition (the mass within a sphere enclosing 200 times the mean matter density), whereas Galacticus returns the spherical-collapse (:math:`M_\mathrm{virial}`) mass. Converting between the two requires a halo density-profile model that is not currently applied, so no attempt is made to match the :math:`M_\mathrm{200m}` definition; expect a corresponding systematic offset when comparing directly to their results.
 
 .. _alternative-dm-overriding:
 
