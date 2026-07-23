@@ -58,6 +58,17 @@ models, following the revised spherical collapse model of :cite:t:`montandon_dec
       it does not; see ``isCriticalOverdensityDependent``), and (ii) use a standard :math:`\Lambda`CDM
       ``cosmologicalMassVariance``/``transferFunction`` (combining with a suppressed transfer function
       would double-count the suppression).
+
+   .. note::
+
+      **Halo mass definition.** The collapsed mass :math:`M_\mathrm{coll}` returned here is the mass
+      associated with the spherical-collapse (:math:`M_\mathrm{virial}`) definition inherited from the
+      wrapped mass function, whereas :cite:t:`montandon_decaying_2026` calibrate and measure their halo
+      mass function using the :math:`M_\mathrm{200m}` definition (the mass within a sphere enclosing a
+      mean density of 200 times the cosmic mean matter density). Converting between these definitions
+      requires a model for the halo density profile, which is not currently applied here, so no attempt
+      is made to match the :math:`M_\mathrm{200m}` definition. This introduces a systematic offset in the
+      mass (and hence in the abundance at fixed mass) when comparing directly to their results.
    </description>
   </haloMassFunction>
   !!]

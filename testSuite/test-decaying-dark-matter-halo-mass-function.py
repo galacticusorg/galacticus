@@ -18,9 +18,10 @@ Two things are checked:
 * The suppression relative to that limit, for the four DDM models simulated in the paper, at z=0 and
   z=1.083. Reference values were extracted from the semi-analytic-fit ("dashed") curves of their Fig. 9
   (see the `reference` table below for the extraction method). Each suppression ratio is checked to
-  within `toleranceFactor`; the residual is set by the variance pipeline rather than the reference (see
-  the comment there). The test also checks, more stringently, the *ordering* of the suppression across
-  models, which is what pins the transition mass scale M_1 (their eq. 44): using the analytic estimate
+  within `toleranceFactor`; the residual is set by the halo mass definition rather than the reference or
+  the transfer function (see the comment there). The test also checks, more stringently, the *ordering*
+  of the suppression across models, which is what pins the transition mass scale M_1 (their eq. 44):
+  using the analytic estimate
   of their eq. 45 in place of the calibrated eq. 44 overestimates M_1 by a factor of ~200, which inverts
   the ordering and misses these amplitudes by up to a factor of several hundred.
 """
@@ -61,12 +62,17 @@ reference = {
 
 hubbleConstantReduced = 0.6776
 # The suppression ratios are compared to within this factor. The residual (worst case ~1.6, for the
-# strongly-suppressed 10Gyr_1250kms model) is dominated not by the reference extraction but by the linear
-# power spectrum / variance pipeline: the paper's sigma(M) uses a different transfer function than the
-# LCDM one used here, and this does not fully cancel in the DDM/LCDM ratio because the mass remapping
-# evaluates sigma at different masses in the numerator (DDM, at M_0) and denominator (LCDM, at M_coll) --
-# an effect largest for the most strongly remapped (largest-kick) models. The test therefore checks the
-# amplitude to within this factor and, more stringently, the *ordering* of the suppression across models.
+# strongly-suppressed 10Gyr_1250kms model) is NOT dominated by the reference extraction, nor by the
+# linear power spectrum: it is essentially unchanged if the transfer function is switched from
+# Eisenstein-Hu to CAMB (the two agree to <2% in every ratio here), because the transfer-function shape
+# cancels in the DDM/LCDM ratio on these smooth cluster scales. The dominant contribution is instead the
+# halo mass definition: Montandon et al. (2026) measure their halo mass function using M_200m, whereas
+# the masses here are the spherical-collapse (M_virial) masses of the wrapped mass function; the
+# conversion between the two (which requires a halo density profile model, not applied here -- see the
+# haloMassFunctionDecayingDarkMatter documentation) is mass-dependent and does not cancel in the ratio,
+# with the largest effect for the steepest, most strongly suppressed models. The test therefore checks
+# the amplitude to within this factor and, more stringently, the *ordering* of the suppression across
+# models.
 toleranceFactor       = 1.8
 
 failures = 0
