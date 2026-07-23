@@ -132,12 +132,20 @@ ENERGY_ESTIMATE_PARTICLE_COUNT_MAX   = 1000   # integer parameter
 REDSHIFT = 0.0
 
 
-def _run_grid():
+def _run_grid(ladder_only=False):
     """The full set of (M_res, f) run points, axis 1 first.
 
     Axis 1 is the M_res ladder, run at each f in `LADDER_FACTORS`; axis 2 is the f ladder at
     `MASS_RESOLUTION_FACTOR_AXIS`, plus the degeneracy points. Duplicates are
-    dropped so the shared anchor point is run only once."""
+    dropped so the shared anchor point is run only once.
+
+    `ladder_only` restricts the grid to the plain M_res ladder at the default seeding
+    threshold (the f = 100 axis-1 points). This is the right subset when the swept
+    quantity affects only spin (e.g. the Vitvitska sub-resolution method), since the
+    factorMassResolution axis touches only the Johnson2021 concentration seeding and
+    would just reproduce the same spins redundantly."""
+    if ladder_only:
+        return [(m, FACTOR_MASS_RESOLUTION_DEFAULT) for m in MASS_RESOLUTION_LADDER]
     points = [(m, f) for f in LADDER_FACTORS for m in MASS_RESOLUTION_LADDER]
     points += [(MASS_RESOLUTION_FACTOR_AXIS, f) for f in FACTOR_MASS_RESOLUTION_LADDER]
     points += DEGENERACY_POINTS
@@ -171,6 +179,12 @@ def _parse_args():
                         help='Skip generation and submission; only (re)build plots from existing outputs')
     parser.add_argument('--treesPerDecade',  default=TREES_PER_DECADE, type=int,
                         help=f'Trees per decade of tree mass (default: {TREES_PER_DECADE})')
+    parser.add_argument('--subresolutionMethod', default=None,
+                        help='Override the Vitvitska sub-resolution angular-momentum method '
+                             '(resolutionScaled | massScaled | original); default: inherit the base config.')
+    parser.add_argument('--ladderOnly',      action='store_true',
+                        help='Run only the M_res ladder at the default seeding threshold '
+                             '(skip the factorMassResolution axis); use when sweeping a spin-only quantity.')
     parser.add_argument('--ppn',             default=16, type=int,
                         help='Processors (OpenMP threads) per model run (default: 16)')
     parser.add_argument('--nodes',           default=1, type=int,
@@ -329,6 +343,13 @@ def _generate_parameter_file(base_tree, mass_resolution, factor, options):
     _set_scalar(orbit_op, 'initializeOnly',      'true')
     operators.insert(0, orbit_op)
 
+    # --- Sub-resolution angular-momentum method (Vitvitska stochastic term). If set,
+    #     override the base config's choice; used to compare the resolution-convergent
+    #     `resolutionScaled` method (nextStages §4.1) against the legacy `massScaled`. ---
+    if options.get('subresolutionMethod'):
+        vitvitska = params.find("nodeOperator[@value='multi']/nodeOperator[@value='haloAngularMomentumVitvitska2002']")
+        _set_scalar(vitvitska, 'subresolutionAngularMomentumMethod', options['subresolutionMethod'])
+
     # --- Output file. ---
     _set_scalar(params, 'outputFileName', prefix + '.hdf5')
 
@@ -360,7 +381,7 @@ def _generate(options):
     parser    = etree.XMLParser(remove_blank_text=True)
     base_tree = etree.parse(base_path, parser)
     generated = []
-    for mass_resolution, factor in _run_grid():
+    for mass_resolution, factor in _run_grid(options.get('ladderOnly', False)):
         path = _generate_parameter_file(base_tree, mass_resolution, factor, options)
         generated.append((mass_resolution, factor, path))
         print(f'  generated {os.path.basename(path)}  '
@@ -480,7 +501,7 @@ def _read_failure_rate(log_path):
 def _collect(options):
     """Read median c per mass bin, spin median/width, and failure rate per rung."""
     results = []
-    for mass_resolution, factor in _run_grid():
+    for mass_resolution, factor in _run_grid(options.get('ladderOnly', False)):
         prefix      = _rung_prefix(options['outputDirectory'], mass_resolution, factor)
         output_file = _model_output(prefix)
         record      = {'massResolution': mass_resolution,
