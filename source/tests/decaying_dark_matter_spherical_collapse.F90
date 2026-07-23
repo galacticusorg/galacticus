@@ -50,9 +50,12 @@ program Test_Decaying_Dark_Matter_Spherical_Collapse
   call Assert("Einstein-de Sitter critical overdensity",deltaCEdS,1.68647020d0,relTol=1.0d-5)
 
   ! The J integral [their eq. 38] is negative (collapse is delayed) and grows in magnitude with the
-  ! dimensionless decay rate. These are constant-independent (analytic + quadrature).
+  ! dimensionless decay rate. These are constant-independent (analytic + quadrature); the target values
+  ! are from an independent high-resolution evaluation of the integral.
   call Assert("J(Γ̃     ) is negative",decayingDarkMatterJIntegral(0.69d0),+0.00000d0,compareLessThan)
-  call Assert("J(Γ̃=0.69)"            ,decayingDarkMatterJIntegral(0.69d0),-7.60137d0,relTol=1.0d-3  )
+  call Assert("J(Γ̃=0.20)"            ,decayingDarkMatterJIntegral(0.20d0), -2.40866d0,relTol=1.0d-3 )
+  call Assert("J(Γ̃=0.69)"            ,decayingDarkMatterJIntegral(0.69d0), -7.60137d0,relTol=1.0d-3 )
+  call Assert("J(Γ̃=1.38)"            ,decayingDarkMatterJIntegral(1.38d0),-13.78005d0,relTol=1.0d-3 )
 
   ! Small-mass plateau [their eq. 42]: depends only on the lifetime (via Γ̃), and is larger for
   ! shorter lifetimes. Constant-independent.
@@ -72,6 +75,12 @@ program Test_Decaying_Dark_Matter_Spherical_Collapse
   call Assert("transition mass scale M₁, lifetime= 5 Gyr, vₖ= 100 km/s",massScale1At(5.558d0, 5.0d0, 100.0d0),3.741d9 ,relTol=1.5d-1)
   call Assert("transition mass scale M₁, lifetime= 5 Gyr, vₖ= 707 km/s",massScale1At(5.558d0, 5.0d0, 707.0d0),1.291d12,relTol=1.5d-1)
   call Assert("transition mass scale M₁, lifetime=20 Gyr, vₖ=1880 km/s",massScale1At(5.558d0,20.0d0,1880.0d0),4.072d13,relTol=3.0d-1)
+
+  ! Large-mass plateau [their eq. 40]: δ_c^large - δ_c^EdS = -δ_c^EdS ε J(Γ̃)/(3π), a small positive
+  ! excess set by the velocity kick (through ε) and lifetime (through Γ̃). Exercises J and ε together.
+  ! Constant-independent (ε is a pure velocity ratio and J is a quadrature).
+  call Assert("large-mass plateau, lifetime= 5 Gyr, vₖ=2250 km/s",deltaCLargeExcess( 5.0d0,2250.0d0),1.836846d-2,relTol=2.0d-3)
+  call Assert("large-mass plateau, lifetime=20 Gyr, vₖ=5000 km/s",deltaCLargeExcess(20.0d0,5000.0d0),1.185461d-2,relTol=2.0d-3)
 
   ! Full fitting function [their eq. 43] recovers the two plateaux and is monotonically decreasing in
   ! mass (delta_c larger at small mass).
@@ -117,6 +126,24 @@ contains
          &            -decayingDarkMatterCriticalOverdensityEdS(                                                   )
     return
   end function deltaCSmallExcess
+
+  double precision function deltaCLargeExcess(lifetime,velocityKick)
+    !!{RST
+    Return the large-mass plateau excess :math:`\delta_\mathrm{c}^\mathrm{large}-\delta_\mathrm{c}^\mathrm{EdS}` for the given lifetime (Gyr) and velocity kick (km/s).
+    !!}
+    implicit none
+    double precision, intent(in   ) :: lifetime  , velocityKick
+    double precision                :: gammaTilde
+
+    gammaTilde       =+decayingDarkMatterGammaTilde            (timeCollapse,lifetime)
+    deltaCLargeExcess=+decayingDarkMatterDeltaCLarge           (                                             &
+         &                                                      gammaTilde                                 , &
+         &                                                      decayingDarkMatterEpsilon  (velocityKick  ), &
+         &                                                      decayingDarkMatterJIntegral(gammaTilde    )  &
+         &                                                     )                                             &
+         &            -decayingDarkMatterCriticalOverdensityEdS(                                           )
+    return
+  end function deltaCLargeExcess
 
   double precision function massScale1Ratio(velocityKick1,velocityKick2)
     !!{RST
