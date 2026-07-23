@@ -814,22 +814,24 @@ contains
        end if
        ! Accumulate the count of nodes to which the energy model was applied (reported by `Johnson2021_Statistics`).
        !$omp atomic update
-       johnson2021EnergyModelApplied=johnson2021EnergyModelApplied+1_c_size_t
+       johnson2021EnergyModelApplied   =   johnson2021EnergyModelApplied &
+            &                             +1_c_size_t
        ! Check for positive energy.
        if (energyTotal >= 0.0d0) then
           ! Energy is positive - the model has failed - simply assume no change in the scale radius. Count the failure: the rate
           ! at which it occurs depends on both resolution and power spectrum, so it is a bias which would otherwise be silent in
           ! exactly the regime in which this model is calibrated.
           !$omp atomic update
-          johnson2021EnergyModelFailed=johnson2021EnergyModelFailed+1_c_size_t
-          radiusScale         =  radiusScaleChild
+          johnson2021EnergyModelFailed =   johnson2021EnergyModelFailed &
+               &                          +1_c_size_t
+          radiusScale                  =   radiusScaleChild
        else
           ! Convert energy back to scale radius.
-          self_               => self
-          node_               => node
-          darkMatterProfile_  => darkMatterProfile
-          radiusScaleOriginal =  darkMatterProfile%scale(                          )
-          radiusScale         =  finder           %find (rootGuess=radiusScaleChild)
+          self_                        =>  self
+          node_                        =>  node
+          darkMatterProfile_           =>  darkMatterProfile
+          radiusScaleOriginal          =   darkMatterProfile%scale(                          )
+          radiusScale                  =   finder           %find (rootGuess=radiusScaleChild)
           ! Restore the scale radius mutated by the root finder.
           call darkMatterProfile%scaleSet(radiusScaleOriginal)
        end if

@@ -60,9 +60,9 @@ contains
     !!{RST
     Report the rate at which the :cite:t:`johnson_random_2021` scale radius energy model failed with a positive total energy.
     !!}
-    use :: Display           , only : displayMessage, displayMagenta, displayReset, verbosityLevelSilent, &
+    use :: Display           , only : displayMessage        , displayMagenta, displayReset, verbosityLevelSilent, &
          &                            verbosityLevelStandard
-    use :: ISO_Varying_String, only : varying_string, assignment(=), operator(//)
+    use :: ISO_Varying_String, only : varying_string        , assignment(=), operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     type(varying_string) :: message
