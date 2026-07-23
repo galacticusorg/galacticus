@@ -1328,6 +1328,34 @@ def vitvitska_subresolution_method(input_doc, parameters, is_grid):
         node.append(method_node)
 
 
+def vitvitska_subresolution_method_enum(input_doc, parameters, is_grid):
+    """Convert the boolean `useOriginalSubresolutionMethod` to the `subresolutionAngularMomentumMethod`
+    enumeration, preserving the original behaviour. The default variance method changed to the new,
+    physically-convergent `resolutionScaled` method, so a file predating this change must be pinned to
+    its former behaviour: the old boolean's `true`/`false` map to `original`/`massScaled` respectively.
+    (The earlier `vitvitska_subresolution_method` migration ensures the boolean is present, so any file
+    reaching here that used the model has it set explicitly.)"""
+    nodes = parameters.xpath(".//nodeOperator[@value='haloAngularMomentumVitvitska2002']")
+    if len(nodes) <= 0:
+        return
+    print("   translate special './/nodeOperator[@value='haloAngularMomentumVitvitska2002']' (enumeration)")
+    for node in nodes:
+        # If the new enumeration parameter is already present, the file means what it says - leave it.
+        if len(node.findall("subresolutionAngularMomentumMethod[@value]")) > 0:
+            continue
+        boolean_nodes = node.findall("useOriginalSubresolutionMethod[@value]")
+        if len(boolean_nodes) <= 0:
+            continue
+        used_original = boolean_nodes[0].get("value").strip().lower() in ("true", ".true.", "yes")
+        for boolean_node in boolean_nodes:
+            node.remove(boolean_node)
+        method_node = etree.Element("subresolutionAngularMomentumMethod")
+        method_node.set("value", "original" if used_original else "massScaled")
+        if is_grid:
+            method_node.set("iterable", "no")
+        node.append(method_node)
+
+
 # ---------------------------------------------------------------------------
 # Dispatch table for special migration functions
 # ---------------------------------------------------------------------------
@@ -1350,6 +1378,7 @@ SPECIAL_FUNCTIONS = {
     "disk_very_simple_analytic_solver": disk_very_simple_analytic_solver,
     "satellite_orbit_initializor": satellite_orbit_initializor,
     "vitvitska_subresolution_method": vitvitska_subresolution_method,
+    "vitvitska_subresolution_method_enum": vitvitska_subresolution_method_enum,
 }
 
 

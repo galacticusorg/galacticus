@@ -243,7 +243,7 @@
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo angular momentum -->
     <nodeOperator value="haloAngularMomentumVitvitska2002"  >
-      <useOriginalSubresolutionMethod value="true"/>
+      <subresolutionAngularMomentumMethod value="original"/>
       <exponentMass value="1.10475"/> <!-- Best fit value from Benson, Behrens, & Lu (2020) offset for fix to Keplerian orbit propagation -->
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"/>
