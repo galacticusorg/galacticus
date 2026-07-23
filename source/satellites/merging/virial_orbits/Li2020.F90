@@ -594,7 +594,11 @@ contains
          &                         *self%sigma1    &
          &                        )
     integratorVelocityTotal              =integrator                       (integrandVelocityTotal,toleranceRelative=1.0d-3)
-    li2020VelocityTangentialMagnitudeMean=integratorVelocityTotal%integrate(0.0d0,velocityTotalMaximum)
+    ! The integral is evaluated in units of the host virial velocity, so multiply by `velocityHost` to
+    ! return a physical (dimensional) mean tangential velocity - matching the convention of the other
+    ! orbit classes (e.g. `fixed`) and of `li2020VelocityTotalRootMeanSquared`.
+    li2020VelocityTangentialMagnitudeMean=+integratorVelocityTotal%integrate(0.0d0,velocityTotalMaximum) &
+         &                                *velocityHost
     return
 
   contains
