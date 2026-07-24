@@ -47,6 +47,9 @@ program Test_Mass_Distributions
   class           (massDistributionClass                  )                                    , allocatable :: massDistribution_                                                                                                       , massDistributionRotated   , &
        &                                                                                                        massDistributionDisk                                                                                                    , massDistributionSpheroid  , &
        &                                                                                                        massDistributionDMO
+  ! Dedicated objects for the spherical scaler memoization tests, so that those tests do not disturb (or
+  ! depend on the allocation state of) the shared objects above.
+  class           (massDistributionClass                  )                                    , allocatable :: massDistributionScalerTest                                                                                              , massDistributionScalerInner
   class           (massDistributionClass                  )                                    , pointer     :: massDistributionDisk_                                                                                                   , massDistributionSpheroid_ , &
        &                                                                                                        massDistributionAll_                                                                                                    , massDistributionDiskAgain_
   class           (kinematicsDistributionClass            )                                    , pointer     :: kinematicsDistribution_
@@ -97,6 +100,7 @@ program Test_Mass_Distributions
   double precision                                         , parameter                                       :: epsilonFiniteDifference              =0.01d0
   character       (len=4                                  )                                                  :: label
   double precision                                         , dimension(3,3)                                  :: tidalTensorComponents                                                                                                   , tidalTensorSphericalComponents
+  double precision                                         , dimension(3,3)                                  :: tidalTensorScalerReference                                                                                              , tidalTensorScalerDisplaced
   double precision                                         , dimension(3  )                                  :: acceleration                                                                                                            , accelerationReference
   double precision                                         , dimension(4  )                                  :: massPatejLoeb                                                                                                           , densityPatejLoeb                                 , &
        &                                                                                                        densitySlopePatejLoeb                                                                                                   , densityMomentPatejLoeb                           , &
@@ -646,6 +650,49 @@ program Test_Mass_Distributions
   call Assert("Density at (x,y,z)=(1,0,0) kpc",massDistribution_%density(positionCartesian),1.47756308872d18                      ,relTol=1.0d-6)
   nullify   (massDistributions)
   deallocate(massDistribution_)
+  call Unit_Tests_End_Group()
+
+  ! Spherical scaler tidal tensor memoization.
+  ! `sphericalScalerTidalTensor` memoizes its result, keyed on the Cartesian components of the coordinates at
+  ! which it was last evaluated. These tests pin the invariants of that cache: a repeated evaluation at one
+  ! position must reproduce the cached tensor exactly; evaluating at a second position and then returning to
+  ! the first must not serve a stale result; and, because the key is Cartesian, a spherical coordinate object
+  ! must give the same tensor as the Cartesian object describing the same point.
+  call Unit_Tests_Begin_Group("Spherical scaler tidal tensor (memoization)")
+  allocate(massDistributionHernquist       :: massDistributionScalerInner)
+  select type (massDistributionScalerInner)
+  type is (massDistributionHernquist      )
+     massDistributionScalerInner=massDistributionHernquist      (mass=9.0d09,scaleLength=0.7d-3,componentType=componentTypeSpheroid)
+  end select
+  allocate(massDistributionSphericalScaler :: massDistributionScalerTest )
+  select type (massDistributionScalerTest)
+  type is (massDistributionSphericalScaler)
+     select type (massDistributionScalerInner)
+     class is (massDistributionSpherical  )
+        massDistributionScalerTest=massDistributionSphericalScaler(factorScalingLength=2.0d0,factorScalingMass=3.0d0,massDistribution_=massDistributionScalerInner)
+     end select
+  end select
+  ! Evaluate at a first position, then again at the same position: the memoized result must be returned
+  ! unchanged.
+  position                      =[1.0d-3,Pi/3.0d0,Pi/5.0d0]
+  tidalTensorComponents         =massDistributionScalerTest%tidalTensor(position         )
+  tidalTensorScalerReference    =tidalTensorComponents
+  tidalTensorComponents         =massDistributionScalerTest%tidalTensor(position         )
+  call Assert("repeat evaluation returns cached tensor"      ,tidalTensorComponents,tidalTensorScalerReference,absTol=0.0d0                )
+  ! Evaluate at a second, distinct position. This must miss the cache and give a different tensor.
+  positionReference             =[4.0d-3,Pi/3.0d0,Pi/5.0d0]
+  tidalTensorScalerDisplaced    =massDistributionScalerTest%tidalTensor(positionReference)
+  call Assert("distinct position gives distinct tensor"      ,maxval(abs(tidalTensorScalerDisplaced-tidalTensorScalerReference)) > 0.0d0,.true.)
+  ! Return to the first position: the tensor must match the original value, not the displaced one.
+  tidalTensorComponents         =massDistributionScalerTest%tidalTensor(position         )
+  call Assert("returning to first position is not stale"     ,tidalTensorComponents,tidalTensorScalerReference,absTol=0.0d0                )
+  ! The same point expressed in Cartesian coordinates must give the same tensor.
+  positionCartesian             =position
+  tidalTensorComponents         =massDistributionScalerTest%tidalTensor(positionCartesian)
+  call Assert("Cartesian input matches spherical input"      ,tidalTensorComponents,tidalTensorScalerReference,absTol=0.0d0                )
+  ! Note that the scaler holds a counted reference to `massDistributionScalerInner` and destroys it in its own
+  ! destructor, so only the scaler itself is deallocated here.
+  deallocate(massDistributionScalerTest )
   call Unit_Tests_End_Group()
 
   ! Composite subset: all-match fast path & list-node free-list re-use.

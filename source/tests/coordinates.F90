@@ -52,19 +52,19 @@ program Test_Coordinates
      ! Cartesian to spherical.
      coordinatesCartesian=cartesian  (:,i)
      coordinatesSpherical=coordinatesCartesian
-     call Assert('cartesian to spherical'  ,coordinatesSpherical  %position,spherical  (:,i),absTol=1.0d-6)
+     call Assert('cartesian to spherical'  ,[coordinatesSpherical  %r(),coordinatesSpherical  %theta(),coordinatesSpherical  %phi()],spherical  (:,i),absTol=1.0d-6)
      ! Cartesian to cylindrical.
      coordinatesCartesian  =cartesian  (:,i)
      coordinatesCylindrical=coordinatesCartesian
-     call Assert('cartesian to cylindrical',coordinatesCylindrical%position,cylindrical(:,i),absTol=1.0d-6)
+     call Assert('cartesian to cylindrical',[coordinatesCylindrical%r(),coordinatesCylindrical%phi()  ,coordinatesCylindrical%z()  ],cylindrical(:,i),absTol=1.0d-6)
      ! Spherical to cylindrical.
      coordinatesSpherical  =spherical  (:,i)
      coordinatesCylindrical=coordinatesSpherical
-     call Assert('spherical to cylindrical',coordinatesCylindrical%position,cylindrical(:,i),absTol=1.0d-6)
+     call Assert('spherical to cylindrical',[coordinatesCylindrical%r(),coordinatesCylindrical%phi()  ,coordinatesCylindrical%z()  ],cylindrical(:,i),absTol=1.0d-6)
      ! Cylindrical to spherical.
      coordinatesCylindrical=cylindrical(:,i)
      coordinatesSpherical  =coordinatesCylindrical
-     call Assert('cylindrical to spherical',coordinatesSpherical  %position,spherical  (:,i),absTol=1.0d-6)
+     call Assert('cylindrical to spherical',[coordinatesSpherical  %r(),coordinatesSpherical  %theta(),coordinatesSpherical  %phi()],spherical  (:,i),absTol=1.0d-6)
      call Unit_Tests_End_Group()
   end do
 

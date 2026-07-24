@@ -85,7 +85,7 @@ module Virial_Orbits
    </method>
    <method name="velocityTangentialVectorMean" >
     <description>
-    Returns the mean vector of the vector tangential velocity averaged over all orbits.
+    Returns the mean vector of the vector tangential velocity averaged over all orbits. Components are Cartesian, in the order :math:`(v_\mathrm{x},v_\mathrm{y},v_\mathrm{z})`.
     </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
@@ -101,7 +101,7 @@ module Virial_Orbits
    </method>
    <method name="angularMomentumVectorMean" >
     <description>
-    Returns the mean vector of the angular momentum averaged over all orbits.
+    Returns the mean vector of the angular momentum averaged over all orbits. Components are Cartesian, in the order :math:`(J_\mathrm{x},J_\mathrm{y},J_\mathrm{z})`.
     </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>

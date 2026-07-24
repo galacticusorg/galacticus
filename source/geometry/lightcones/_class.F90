@@ -78,7 +78,7 @@ module Geometry_Lightcones
    </method>
    <method name="position" >
     <description>
-    Returns the position vector of a ``node`` (in units of Mpc) in the lightcone coordinate system.
+    Returns the position vector of a ``node`` (in units of Mpc) in the lightcone coordinate system. Components are Cartesian, in the order :math:`(x,y,z)`.
     </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
@@ -87,7 +87,7 @@ module Geometry_Lightcones
    </method>
    <method name="velocity" >
     <description>
-    Returns the velocity vector of a ``node`` (in units of km/s) in the lightcone coordinate system.
+    Returns the velocity vector of a ``node`` (in units of km/s) in the lightcone coordinate system. Components are Cartesian, in the order :math:`(v_\mathrm{x},v_\mathrm{y},v_\mathrm{z})`.
     </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
@@ -107,7 +107,7 @@ module Geometry_Lightcones
    </method>
    <method name="positionLightconeCrossing" >
     <description>
-    Returns the position of the node at the time of lightcone crossing---which must have been previously identified via the ``timeLightconeCrossing`` method.
+    Returns the position of the node at the time of lightcone crossing---which must have been previously identified via the ``timeLightconeCrossing`` method. Components are Cartesian, in the order :math:`(x,y,z)`.
     </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
@@ -115,7 +115,7 @@ module Geometry_Lightcones
    </method>
    <method name="velocityLightconeCrossing" >
     <description>
-    Returns the velocity of the node at the time of lightcone crossing---which must have been previously identified via the ``timeLightconeCrossing`` method.
+    Returns the velocity of the node at the time of lightcone crossing---which must have been previously identified via the ``timeLightconeCrossing`` method. Components are Cartesian, in the order :math:`(v_\mathrm{x},v_\mathrm{y},v_\mathrm{z})`.
     </description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>

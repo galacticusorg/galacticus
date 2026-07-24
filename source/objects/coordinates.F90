@@ -24,6 +24,22 @@ Contains a module which implements the coordinates class.
 module Coordinates
   !!{RST
   Implements the coordinates class.
+
+  .. _coordinates-array-convention:
+
+  **Convention for bare 3-element arrays.** Not every position or velocity in Galacticus is carried as a
+  ``coordinate`` object: bulk and serialized data --- node-component ``position``/``velocity`` properties,
+  lightcone positions and velocities, virial-orbit vector means, N-body particle blocks, and merger-tree
+  reader records --- are stored and passed as plain ``double precision, dimension(3)`` arrays, for which
+  an object per particle would be a regression. **Wherever such a bare 3-element array represents a
+  position, velocity, or angular momentum, its components are Cartesian, in the order** :math:`(x,y,z)`.
+  The coordinate system is a convention of the representation, not a property carried by the type.
+
+  Code which needs a system-aware position should assign the array into a ``coordinateCartesian`` object,
+  after which assignment to a ``coordinateSpherical`` or ``coordinateCylindrical`` object converts
+  automatically. Note that the reverse assignment (array ``=`` coordinate) yields the *raw* component triple
+  of whatever system the object is in --- ``(r,theta,phi)`` for a spherical object, not ``(x,y,z)`` --- so
+  prefer ``%toCartesian()`` when a Cartesian array is what is wanted.
   !!}
   implicit none
   private
@@ -40,7 +56,12 @@ module Coordinates
      !!{RST
      The base coordinate object class.
      !!}
-     double precision :: position(3)
+     ! The raw component triple. This is `private` because its meaning is specific to the coordinate system of
+     ! the extending type ((x,y,z), (r,theta,phi), or (r,phi,z)), so direct access outside this module couples
+     ! callers to that per-system interpretation (see issue \#75). Use the named accessors of the concrete
+     ! types (`%x()`, `%r()`, `%theta()`, ...) or `%toCartesian()` instead. The three concrete coordinate
+     ! types are all defined in this module, so they retain access.
+     double precision, private :: position(3)
    contains
      !![
      <methods docformat="rst">
