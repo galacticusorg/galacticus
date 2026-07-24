@@ -41,7 +41,7 @@ module Atomic_Data
   end type atomicData
 
   ! Flag indicating if module has been initialized.
-  logical                                                                   :: atomicDataInitialized =.false.
+  logical                                                                   :: atomicDataInitialized      =.false.
 
   ! Per-thread flag recording that this thread has already passed through the initialization critical section (see
   ! `Atomic_Data_Initialize`), and so is guaranteed to see the fully-initialized module data.

@@ -75,16 +75,16 @@ module Chemical_Structures
   end type chemicalStructure
 
   ! Atoms (we include an electron here for convenience).
-  type(atomicStructure),   parameter                 :: atoms(2)=[                                                             &
-       &                                                          atomicStructure("electron","e",electronMass/atomicMassUnit), &
-       &                                                          atomicStructure("hydrogen","H",atomicMassHydrogen         )  &
-       &                                                         ]
+  type   (atomicStructure  ),   parameter               :: atoms(2)=[                                                             &
+       &                                                             atomicStructure("electron","e",electronMass/atomicMassUnit), &
+       &                                                             atomicStructure("hydrogen","H",atomicMassHydrogen         )  &
+       &                                                            ]
 
   ! Chemicals.
   type   (chemicalStructure), allocatable, dimension(:) :: chemicals
 
   ! Flag indicating if the database has been initialized.
-  logical                                               :: chemicalDatabaseInitialized=.false.
+  logical                                               :: chemicalDatabaseInitialized      =.false.
 
   ! Per-thread flag recording that this thread has already passed through the initialization critical section (see
   ! `Chemical_Structure_Initialize`), and so is guaranteed to see the fully-initialized database.

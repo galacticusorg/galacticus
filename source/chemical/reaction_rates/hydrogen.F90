@@ -486,7 +486,7 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                  =.false., reactionInitialized        =.false.
-    logical                                              , save          :: reactionInitializedThread        =.false.
+    logical                                              , save          :: reactionInitializedThread       =.false.
     !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , &
          &                                                                  chemicalHydrogenChemicalIndex           , electronChemicalIndex
@@ -586,7 +586,7 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                     =.false., reactionInitialized        =.false.
-    logical                                              , save          :: reactionInitializedThread        =.false.
+    logical                                              , save          :: reactionInitializedThread          =.false.
     !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenCationChemicalIndex          , atomicHydrogenChemicalIndex        , &
          &                                                                  chemicalHydrogenCationChemicalIndex
@@ -651,7 +651,7 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                                              :: reactionActive                     =.false., reactionInitialized          =.false.
-    logical                                              , save          :: reactionInitializedThread        =.false.
+    logical                                              , save          :: reactionInitializedThread          =.false.
     !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenCationChemicalIndex          , atomicHydrogenChemicalIndex          , &
          &                                                                  chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex
@@ -715,7 +715,7 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                     =.false., reactionInitialized          =.false.
-    logical                                              , save          :: reactionInitializedThread        =.false.
+    logical                                              , save          :: reactionInitializedThread          =.false.
     !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenCationChemicalIndex          , atomicHydrogenChemicalIndex          , &
          &                                                                  chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex
@@ -796,7 +796,7 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive             =.false., reactionInitialized          =.false.
-    logical                                              , save          :: reactionInitializedThread        =.false.
+    logical                                              , save          :: reactionInitializedThread  =.false.
     !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenChemicalIndex        , chemicalHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
@@ -855,7 +855,7 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive             =.false., reactionInitialized          =.false.
-    logical                                              , save          :: reactionInitializedThread        =.false.
+    logical                                              , save          :: reactionInitializedThread  =.false.
     !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenChemicalIndex        , chemicalHydrogenChemicalIndex
     double precision                                                     :: log10Temperature                   , rate                                 , &
@@ -917,7 +917,7 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                  =.false., reactionInitialized        =.false.
-    logical                                              , save          :: reactionInitializedThread        =.false.
+    logical                                              , save          :: reactionInitializedThread       =.false.
     !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
@@ -1006,7 +1006,7 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                    =.false., reactionInitialized        =.false.
-    logical                                              , save          :: reactionInitializedThread        =.false.
+    logical                                              , save          :: reactionInitializedThread         =.false.
     !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex          , atomicHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
@@ -1083,7 +1083,7 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                  =.false., reactionInitialized              =.false.
-    logical                                              , save          :: reactionInitializedThread        =.false.
+    logical                                              , save          :: reactionInitializedThread       =.false.
     !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenCationChemicalIndex        , &
          &                                                                  atomicHydrogenChemicalIndex
@@ -1154,7 +1154,7 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                     =.false., reactionInitialized              =.false.
-    logical                                              , save          :: reactionInitializedThread        =.false.
+    logical                                              , save          :: reactionInitializedThread          =.false.
     !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex           , atomicHydrogenCationChemicalIndex        , &
          &                                                                  chemicalHydrogenCationChemicalIndex        , electronChemicalIndex
@@ -1232,7 +1232,7 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive             =.false., reactionInitialized                =.false.
-    logical                                              , save          :: reactionInitializedThread        =.false.
+    logical                                              , save          :: reactionInitializedThread  =.false.
     !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenChemicalIndex        , chemicalHydrogenCationChemicalIndex        , &
          &                                                                  electronChemicalIndex
@@ -1293,7 +1293,7 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                     =.false., reactionInitialized          =.false.
-    logical                                              , save          :: reactionInitializedThread        =.false.
+    logical                                              , save          :: reactionInitializedThread          =.false.
     !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex           , atomicHydrogenChemicalIndex          , &
          &                                                                  chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex
@@ -1366,7 +1366,7 @@ contains
     ! Wavelength range for the cross-section.
     double precision                                     , parameter     :: crossSectionWavelengthHigh      =plancksConstant*speedLight*metersToAngstroms/electronVolt/crossSectionEnergyLow
     logical                                              , save          :: reactionActive                  =.false.                                                                        , reactionInitialized        =.false.
-    logical                                              , save          :: reactionInitializedThread        =.false.
+    logical                                              , save          :: reactionInitializedThread       =.false.
     !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex                                                                                , atomicHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
@@ -1479,7 +1479,7 @@ contains
     double precision                                     , parameter     :: crossSectionWavelengthLow          =plancksConstant*speedLight*metersToAngstroms/electronVolt/crossSectionEnergyHigh
     double precision                                     , parameter     :: crossSectionWavelengthHigh         =plancksConstant*speedLight*metersToAngstroms/electronVolt/crossSectionEnergyLow
     logical                                              , save          :: reactionActive                     =.false.                                                                         , reactionInitialized        =.false.
-    logical                                              , save          :: reactionInitializedThread        =.false.
+    logical                                              , save          :: reactionInitializedThread          =.false.
     !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenCationChemicalIndex                                                                                   , atomicHydrogenChemicalIndex        , &
          &                                                                  chemicalHydrogenCationChemicalIndex
@@ -1595,7 +1595,7 @@ contains
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     type            (treeNode                           ), intent(inout) :: node
     logical                                              , save          :: reactionActive             =.false.                                                                    , reactionInitialized                     =.false.
-    logical                                              , save          :: reactionInitializedThread        =.false.
+    logical                                              , save          :: reactionInitializedThread  =.false.
     !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenChemicalIndex                                                                            , chemicalHydrogenChemicalIndex
     ! Median energy of the Lyman band in chemical hydrogen (in eV).
@@ -1690,7 +1690,7 @@ contains
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     type            (treeNode                           ), intent(inout) :: node
     logical                                              , save          :: reactionActive                     =.false.                                                                         , reactionInitialized          =.false.
-    logical                                              , save          :: reactionInitializedThread        =.false.
+    logical                                              , save          :: reactionInitializedThread          =.false.
     !$omp threadprivate(reactionInitializedThread)
     ! Energy of the edge in the cross-section.
     double precision                                     , parameter     :: crossSectionEdgeEnergy             =15.42d0
@@ -1916,7 +1916,7 @@ contains
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     type            (treeNode                           ), intent(inout) :: node
     logical                                              , save          :: reactionActive             =.false.                                                                         , reactionInitialized          =.false.
-    logical                                              , save          :: reactionInitializedThread        =.false.
+    logical                                              , save          :: reactionInitializedThread  =.false.
     !$omp threadprivate(reactionInitializedThread)
     ! Energy range for the cross-section.
     double precision                                     , parameter     :: crossSectionEnergyLow      =14.159d0
@@ -2046,7 +2046,7 @@ contains
     type            (chemicalAbundances                 )           , intent(inout) :: chemicalRates
     type            (treeNode                           )           , intent(inout) :: node
     logical                                              , save                     :: reactionActive                   =.false.                                                                        , reactionInitialized        =.false.
-    logical                                              , save          :: reactionInitializedThread        =.false.
+    logical                                              , save                     :: reactionInitializedThread        =.false.
     !$omp threadprivate(reactionInitializedThread)
     ! Energy range for the cross-section (in eV).
     double precision                                     , parameter                :: crossSectionEnergyLow            =13.60d0
