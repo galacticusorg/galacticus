@@ -228,7 +228,7 @@ contains
          &                                                                             coordinatesScaled, &
          &                                                                             logarithmic        &
          &                                                                            )
-    if (.not.logarithmic)                                                             &
+    if (.not.logarithmic_)                                                            &
          & sphericalScalerDensityGradientRadial=+sphericalScalerDensityGradientRadial &
          &                                      *self%factorScalingMass               &
          &                                      /self%factorScalingLength**4
