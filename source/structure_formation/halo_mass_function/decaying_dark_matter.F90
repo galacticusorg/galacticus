@@ -122,19 +122,19 @@ contains
          &                                                                 pointsPerDecade
 
     !![
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMinimum</name>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>
       <description>The initial minimum Lagrangian mass (in :math:`\mathrm{M}_\odot`) used in tabulating the mapping between Lagrangian and collapsed mass. The tabulated range is expanded automatically if a smaller mass is required.</description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>massMaximum</name>
       <source>parameters</source>
       <defaultValue>1.0d18</defaultValue>
       <description>The initial maximum Lagrangian mass (in :math:`\mathrm{M}_\odot`) used in tabulating the mapping between Lagrangian and collapsed mass. The tabulated range is expanded automatically if a larger mass is required.</description>
     </inputParameter>
-    <inputParameter>
+    <inputParameter docformat="rst">
       <name>pointsPerDecade</name>
       <source>parameters</source>
       <defaultValue>100.0d0</defaultValue>
