@@ -218,8 +218,8 @@ def scan_source(source_dir: str):
       ``functionClass``.
     * ``implementations``: ``{family: [{name, description, file}, …]}`` keyed by
       the root element name.
-    * ``params_by_file``: ``{file_base: [{name, default, description}, …]}``.
-    * ``methods_by_file``: ``{file_base: [{name, description}, …]}`` — the
+    * ``params_by_file``: ``{file_path: [{name, default, description}, …]}``.
+    * ``methods_by_file``: ``{file_path: [{name, description}, …]}`` — the
       type-bound methods declared in that file's ``<methods>`` block(s).
     * ``modules``: ``[{name, file, description, classRef}, …]`` — one per
       documented module (``classRef`` links class modules to their page).
@@ -239,8 +239,13 @@ def scan_source(source_dir: str):
             if not fn.endswith('.F90') or fn.startswith('.#'):
                 continue
             base = os.path.splitext(fn)[0]
-            with open(os.path.join(root, fn), encoding='utf-8',
-                      errors='replace') as fh:
+            # Use the full path (not ``base``) as the per-file key: every
+            # pluggable physics class lives in a file literally named
+            # ``_class.F90`` (in a per-class directory), so ``base`` collides
+            # across all 267 of them.  Keying on the path keeps each file's
+            # class/parameter/method docs distinct.
+            path = os.path.join(root, fn)
+            with open(path, encoding='utf-8', errors='replace') as fh:
                 text = fh.read()
             mmod = re.search(r'(?im)^[ \t]*module[ \t]+([a-z0-9_]+)[ \t]*$', text)
             module_name = mmod.group(1) if mmod else base
@@ -250,11 +255,11 @@ def scan_source(source_dir: str):
                 md = re.match(r'\s*!!\{RST\b(.*?)!!\}',
                               text[mmod.end():mmod.end() + 800], re.DOTALL)
                 if md and md.group(1).strip():
-                    modules.append({'name': module_name, 'file': base,
+                    modules.append({'name': module_name, 'file': path,
                                     'description': md.group(1).strip()})
             tmeths = _extract_type_methods(text)
             if tmeths:
-                methods_by_file[base] = tmeths
+                methods_by_file[path] = tmeths
             for bm in _BLOCK_RE.finditer(text):
                 block = bm.group(1)
                 if 'docformat="rst"' not in block:
@@ -272,7 +277,7 @@ def scan_source(source_dir: str):
                     if not name:
                         continue
                     pdesc = _DESC_RE.search(pbody)
-                    params_by_file.setdefault(base, []).append({
+                    params_by_file.setdefault(path, []).append({
                         'name':        name,
                         'default':     _child(pbody, 'defaultValue'),
                         'description': pdesc.group(1) if pdesc else None,
@@ -292,7 +297,7 @@ def scan_source(source_dir: str):
                                          'url':  _attr(s, 'url')}
                                         for s in re.findall(
                                             r'<seeAlso\b([^>]*?)/?>', wbody)],
-                        'file':        base,
+                        'file':        path,
                     })
 
                 # Container / root directive (one per block): functionClass,
@@ -317,7 +322,7 @@ def scan_source(source_dir: str):
                         'default':         _child(block, 'default'),
                         'methods':         _extract_methods(block),
                     }
-                    class_by_file[base] = name
+                    class_by_file[path] = name
                 elif rtype == 'enumeration':
                     name = _child(block, 'name')
                     if not name:
@@ -335,7 +340,7 @@ def scan_source(source_dir: str):
                     by_root.setdefault(rtype, []).append({
                         'name':        name,
                         'description': desc_raw,
-                        'file':        base,
+                        'file':        path,
                     })
 
     implementations = {fam: by_root[fam] for fam in by_root if fam in families}
