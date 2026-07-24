@@ -291,6 +291,9 @@
   <migration commit="fff198c4bbadc530c67668591ae98e4aa0f445a9">
     <translation function="vitvitska_subresolution_method_enum"/>
   </migration>
+  <migration commit="fcefb0ab4f1ff0c4e788e46b066ffe7b3e1ab599">
+    <translation function="johnson2021_mass_function_slope"/>
+  </migration>
 
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
