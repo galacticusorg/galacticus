@@ -46,9 +46,10 @@
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_    => null()
      class           (haloEnvironmentClass   ), pointer :: haloEnvironment_       => null()
    contains
-     final     ::                 pseudoHalosDestructor
-     procedure :: differential => pseudoHalosDifferential
-     procedure :: integrated   => pseudoHalosIntegrated
+     final     ::                                   pseudoHalosDestructor
+     procedure :: differential                   => pseudoHalosDifferential
+     procedure :: isCriticalOverdensityDependent => pseudoHalosIsCriticalOverdensityDependent
+     procedure :: integrated                     => pseudoHalosIntegrated
   end type haloMassFunctionPseudoHalos
 
   interface haloMassFunctionPseudoHalos
@@ -232,6 +233,18 @@ contains
          &       +        self%massFunction_      %differential        (time,mass,node)
     return
   end function pseudoHalosDifferential
+
+  logical function pseudoHalosIsCriticalOverdensityDependent(self)
+    !!{RST
+    Return whether the differential halo mass function depends on the critical overdensity for
+    collapse, by forwarding the query to the wrapped halo mass function.
+    !!}
+    implicit none
+    class(haloMassFunctionPseudoHalos), intent(inout) :: self
+
+    pseudoHalosIsCriticalOverdensityDependent=self%massFunction_%isCriticalOverdensityDependent()
+    return
+  end function pseudoHalosIsCriticalOverdensityDependent
   
   double precision function pseudoHalosIntegrated(self,time,massLow,massHigh,node,status) result(massFunction)
     !!{RST

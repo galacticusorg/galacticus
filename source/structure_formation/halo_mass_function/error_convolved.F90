@@ -40,8 +40,9 @@ Implements a dark matter halo mass function class which modifies another mass fu
      class           (haloMassFunctionClass  ), pointer :: massFunctionIntrinsic      => null()
      class           (nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_        => null()
    contains
-     final     ::                 errorConvolvedDestructor
-     procedure :: differential => errorConvolvedDifferential
+     final     ::                                   errorConvolvedDestructor
+     procedure :: differential                   => errorConvolvedDifferential
+     procedure :: isCriticalOverdensityDependent => errorConvolvedIsCriticalOverdensityDependent
   end type haloMassFunctionErrorConvolved
 
   interface haloMassFunctionErrorConvolved
@@ -273,3 +274,15 @@ contains
     end function errorConvolvedNormalization
 
   end function errorConvolvedDifferential
+
+  logical function errorConvolvedIsCriticalOverdensityDependent(self)
+    !!{RST
+    Return whether the differential halo mass function depends on the critical overdensity for
+    collapse, by forwarding the query to the wrapped halo mass function.
+    !!}
+    implicit none
+    class(haloMassFunctionErrorConvolved), intent(inout) :: self
+
+    errorConvolvedIsCriticalOverdensityDependent=self%massFunctionIntrinsic%isCriticalOverdensityDependent()
+    return
+  end function errorConvolvedIsCriticalOverdensityDependent

@@ -25,6 +25,7 @@ Dark matter halos
    dark-matter-halo-mass-function
    dark-matter-only-merger-trees
    warm-dark-matter-halo-mass-function
+   alternative-dark-matter-models
    excursion-set-problem
    dark-matter-subhalo-evolution
 
