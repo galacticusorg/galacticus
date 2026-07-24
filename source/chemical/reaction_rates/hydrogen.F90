@@ -275,7 +275,7 @@ contains
 
   subroutine hydrogenNetworkRateH_Electron_to_Hplus_2Electron(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^+ + 2\hbox{e}^-`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^+ + 2\hbox{e}^-`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -331,7 +331,7 @@ contains
 
   subroutine hydrogenNetworkRateHplus_Electron_to_H_Photon(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^+ + \hbox{e}^- \rightarrow \hbox{H} + \gamma`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^+ + \hbox{e}^- \rightarrow \hbox{H} + \gamma`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -540,7 +540,7 @@ contains
 
   double precision function hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient(temperature)
     !!{RST
-    Computes the rate coefficient (in units of c\ :math:`^3` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H} + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{e}^-`.
+    Computes the rate coefficient (in units of cm\ :math:`^3` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H} + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{e}^-`.
     !!}
     use :: Numerical_Constants_Physical, only : boltzmannsConstant
     use :: Numerical_Constants_Units   , only : electronVolt
@@ -640,7 +640,7 @@ contains
 
   subroutine hydrogenNetworkRateH2plus_H_to_H2_Hplus(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -702,7 +702,7 @@ contains
 
   subroutine hydrogenNetworkRateH2_Hplus_to_H2plus_H(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2 + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \hbox{H}`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2 + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \hbox{H}`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Numerical_Constants_Physical , only : boltzmannsConstant
@@ -785,7 +785,7 @@ contains
 
   subroutine hydrogenNetworkRateH2_Electron_to_2H_Electron(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2 + \hbox{e}^- \rightarrow 2\hbox{H} + \hbox{e}^-`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2 + \hbox{e}^- \rightarrow 2\hbox{H} + \hbox{e}^-`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -842,7 +842,7 @@ contains
 
   subroutine hydrogenNetworkRateH2_H_to_3H(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2 + \hbox{H} \rightarrow 3\hbox{H}`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2 + \hbox{H} \rightarrow 3\hbox{H}`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Numerical_Constants_Physical , only : boltzmannsConstant
@@ -993,7 +993,7 @@ contains
 
   subroutine hydrogenNetworkRateHminus_H_to_2H_Electron(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^- + \hbox{H} \rightarrow 2 \hbox{H} + \hbox{e}^-`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^- + \hbox{H} \rightarrow 2 \hbox{H} + \hbox{e}^-`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Numerical_Constants_Physical , only : boltzmannsConstant
@@ -1072,7 +1072,7 @@ contains
 
   subroutine hydrogenNetworkRateHminus_Hplus_to_2H(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^- + \hbox{H}^+ \rightarrow 2 \hbox{H}`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^- + \hbox{H}^+ \rightarrow 2 \hbox{H}`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -1130,7 +1130,7 @@ contains
 
   double precision function hydrogenNetworkHminus_Hplus_to_2H_RateCoefficient(temperature)
     !!{RST
-    Compute the rate coefficient (in units of c\ :math:`^3` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^- + \hbox{H}^+ \rightarrow 2 \hbox{H}`.
+    Compute the rate coefficient (in units of cm\ :math:`^3` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^- + \hbox{H}^+ \rightarrow 2 \hbox{H}`.
     !!}
     implicit none
     double precision, intent(in   ) :: temperature
@@ -1221,7 +1221,7 @@ contains
 
   subroutine hydrogenNetworkRateH2plus_Electron_to_2H(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \hbox{e}^- \rightarrow 2\hbox{H}`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \hbox{e}^- \rightarrow 2\hbox{H}`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -1282,7 +1282,7 @@ contains
 
   subroutine hydrogenNetworkRateH2plus_Hminus_to_H2_H(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{H}`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{H}`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -1376,7 +1376,7 @@ contains
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitializedThread) then
-       !$omp critical(hydrogenNetworkRateHminus_Gamma_to_H_Electron)
+       !$omp critical(hydrogenNetworkRateHminus_Gamma_to_H_Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenAnionChemicalIndex=Chemicals_Index("AtomicHydrogenAnion",status)
@@ -1387,7 +1387,7 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateHminus_Gamma_to_H_Electron)
+       !$omp end critical(hydrogenNetworkRateHminus_Gamma_to_H_Electron_Init)
        reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
@@ -1459,7 +1459,7 @@ contains
 
   subroutine hydrogenNetworkRateH2plus_Gamma_to_H_Hplus(self,temperature,radiation,chemicalDensity,chemicalRates,node)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \gamma \rightarrow \hbox{H} + \hbox{H}^+`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \gamma \rightarrow \hbox{H} + \hbox{H}^+`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Numerical_Constants_Physical , only : plancksConstant    , speedLight
@@ -1490,7 +1490,7 @@ contains
     if (self%fast) return
     ! Check if this reaction needs initializing.
     if (.not.reactionInitializedThread) then
-       !$omp critical(hydrogenNetworkRateH2plus_Gamma_to_H_Hplus)
+       !$omp critical(hydrogenNetworkRateH2plus_Gamma_to_H_Hplus_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           chemicalHydrogenCationChemicalIndex=Chemicals_Index("MolecularHydrogenCation")
@@ -1501,7 +1501,7 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateH2plus_Gamma_to_H_Hplus)
+       !$omp end critical(hydrogenNetworkRateH2plus_Gamma_to_H_Hplus_Init)
        reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
@@ -1612,7 +1612,7 @@ contains
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitializedThread) then
-       !$omp critical(hydrogenNetworkRateH2_Gamma_to_H2star_to_2H)
+       !$omp critical(hydrogenNetworkRateH2_Gamma_to_H2star_to_2H_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           chemicalHydrogenChemicalIndex=Chemicals_Index("MolecularHydrogen")
@@ -1622,7 +1622,7 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateH2_Gamma_to_H2star_to_2H)
+       !$omp end critical(hydrogenNetworkRateH2_Gamma_to_H2star_to_2H_Init)
        reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
@@ -1705,7 +1705,7 @@ contains
     if (self%fast) return
     ! Check if this reaction needs initializing.
     if (.not.reactionInitializedThread) then
-       !$omp critical(hydrogenNetworkRateH2_Gamma_to_H2plus_Electron)
+       !$omp critical(hydrogenNetworkRateH2_Gamma_to_H2plus_Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           chemicalHydrogenChemicalIndex      =Chemicals_Index("MolecularHydrogen"      )
@@ -1718,7 +1718,7 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateH2_Gamma_to_H2plus_Electron)
+       !$omp end critical(hydrogenNetworkRateH2_Gamma_to_H2plus_Electron_Init)
        reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
@@ -1820,7 +1820,7 @@ contains
     if (self%fast) return
     ! Check if this reaction needs initializing.
     if (.not.reactionInitializedThread) then
-       !$omp critical(hydrogenNetworkRateH2plus_Gamma_to_2Hplus_Electron)
+       !$omp critical(hydrogenNetworkRateH2plus_Gamma_to_2Hplus_Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"   )
@@ -1833,7 +1833,7 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateH2plus_Gamma_to_2Hplus_Electron)
+       !$omp end critical(hydrogenNetworkRateH2plus_Gamma_to_2Hplus_Electron_Init)
        reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
@@ -1930,7 +1930,7 @@ contains
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitializedThread) then
-       !$omp critical(hydrogenNetworkRateH2_Gamma_to_2H)
+       !$omp critical(hydrogenNetworkRateH2_Gamma_to_2H_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex  =Chemicals_Index("AtomicHydrogen"   )
@@ -1941,7 +1941,7 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateH2_Gamma_to_2H)
+       !$omp end critical(hydrogenNetworkRateH2_Gamma_to_2H_Init)
        reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
@@ -2059,7 +2059,7 @@ contains
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitializedThread) then
-       !$omp critical(hydrogenNetworkRateH_Gamma_to_Hplus_Electron)
+       !$omp critical(hydrogenNetworkRateH_Gamma_to_Hplus_Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
@@ -2072,7 +2072,7 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateH_Gamma_to_Hplus_Electron)
+       !$omp end critical(hydrogenNetworkRateH_Gamma_to_Hplus_Electron_Init)
        reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
