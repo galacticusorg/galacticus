@@ -287,50 +287,101 @@ contains
     return
   end subroutine XML_Get_Child_Elements
   
-  recursive subroutine XML_Get_Elements_By_Tag_Name(xmlElement,tagName,elements)
+  subroutine XML_Tag_Name_Parse(tagName,tagName_,attributeName,attributeValue,elementIndex)
     !!{RST
-    Return a list of pointers to all nodes matching a given ``tagName``.
+    Parse an XPath-like ``tagName`` that may contain an attribute predicate (``[@attribute='value']``) and/or a positional
+    predicate (``[N]``). Returns the bare tag name in ``tagName_``, the attribute name and value (empty strings if no attribute
+    predicate is present), and the 1-based positional index in ``elementIndex`` (zero if no positional predicate is present). A
+    positional predicate, if present, must be the final component of the tag name.
+    !!}
+    implicit none
+    character(len=*           ), intent(in   ) :: tagName
+    character(len=*           ), intent(  out) :: tagName_    , attributeName, &
+         &                                        attributeValue
+    integer                    , intent(  out) :: elementIndex
+    character(len=len(tagName))                :: tagBase
+    integer                                    :: openBracket , closeBracket
+
+    ! Extract any trailing positional predicate `[N]`. Such a predicate is always the final component of the tag name, so we
+    ! find the last `[` and treat it as a positional predicate only if its contents consist solely of digits.
+    elementIndex=0
+    tagBase     =tagName
+    openBracket =index(tagName,"[",back=.true.)
+    if (openBracket > 0) then
+       closeBracket=index(tagName(openBracket:),"]")
+       if (closeBracket > 0) then
+          closeBracket=closeBracket+openBracket-1
+          if (closeBracket > openBracket+1 .and. verify(tagName(openBracket+1:closeBracket-1),"0123456789") == 0) then
+             read (tagName(openBracket+1:closeBracket-1),*) elementIndex
+             tagBase=tagName(1:openBracket-1)
+          end if
+       end if
+    end if
+    ! Extract any attribute predicate `[@attribute='value']` from the remaining tag name.
+    if (index(tagBase,"[@") > 0) then
+       tagName_      =tagBase(                    1:index(tagBase,"[@")-1)
+       attributeName =tagBase(index(tagBase,"[@")+2:index(tagBase,"=" )-1)
+       attributeValue=tagBase(index(tagBase,"=" )+2:index(tagBase,"]" )-2)
+    else
+       tagName_      =tagBase
+       attributeName =""
+       attributeValue=""
+    end if
+    return
+  end subroutine XML_Tag_Name_Parse
+
+  recursive subroutine XML_Get_Elements_By_Tag_Name(xmlElement,tagName,elements,directChildrenOnly)
+    !!{RST
+    Return a list of pointers to all nodes matching a given ``tagName``. By default the search descends recursively through all
+    descendants of ``xmlElement``. If ``directChildrenOnly`` is set then only the direct children of ``xmlElement`` are
+    considered---this mode is required to use a positional (``[N]``) predicate in the ``tagName``, since such a predicate selects
+    the ``N``-th matching direct child.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: FoX_DOM      , only : Element_Node, getFirstChild, getNextSibling, getNodeName , &
           &                                 getNodeType , hasChildNodes, node          , getAttribute
+    use            :: Error        , only : Error_Report
     implicit none
     type     (xmlNodeList     ), intent(inout), allocatable, dimension(:) :: elements
     integer  (c_size_t        )                                           :: countElements , offset
     type     (node            ), intent(in   ), pointer                   :: xmlElement
     character(len=*           ), intent(in   )                            :: tagName
+    logical                    , intent(in   ), optional                  :: directChildrenOnly
     type     (node            )               , pointer                   :: childNode
     type     (xmlNodeList     )               , allocatable, dimension(:) :: childElements
     logical                                                               :: matchAll      , matches
+    integer                                                               :: elementIndex  , matchCount
     character(len=len(tagName))                                           :: tagName_      , attributeName, &
          &                                                                   attributeValue
+    !![
+    <optionalArgument name="directChildrenOnly" defaultsTo=".false."/>
+    !!]
 
-    countElements=XML_Count_Elements_By_Tag_Name(xmlElement,tagName)    
+    call XML_Tag_Name_Parse(tagName,tagName_,attributeName,attributeValue,elementIndex)
+    if (elementIndex > 0 .and. .not.directChildrenOnly_) call Error_Report('positional XPath predicate (e.g. `[15]`) is only supported when `directChildrenOnly` is set'//{introspection:location})
+    countElements=XML_Count_Elements_By_Tag_Name(xmlElement,tagName,directChildrenOnly=directChildrenOnly_)
     offset       =0_c_size_t
+    matchCount   =0
     if (allocated(elements)) deallocate(elements)
     allocate(elements(0:countElements-1))
+    matchAll=trim(tagName_) == "*"
     if (hasChildNodes(xmlElement)) then
-      if (index(tagName,"[@") > 0) then
-         tagName_      =tagName(                    1:index(tagName,"[@")-1)
-         attributeName =tagName(index(tagName,"[@")+2:index(tagName,"=" )-1)
-         attributeValue=tagName(index(tagName,"=" )+2:index(tagName,"]" )-2)
-      else
-          tagName_      =tagName
-          attributeName =""
-          attributeValue=""
-       end if
-       matchAll  =  trim(tagName_) == "*"
        childNode => getFirstChild(xmlElement)
        do while (associated(childNode))
-          call XML_Get_Elements_By_Tag_Name(childNode,tagName,childElements)
-          elements(offset:offset+size(childElements)-1)=childElements
-          offset=offset+size(childElements)
-          deallocate(childElements)
+          if (.not.directChildrenOnly_) then
+             call XML_Get_Elements_By_Tag_Name(childNode,tagName,childElements)
+             elements(offset:offset+size(childElements)-1)=childElements
+             offset=offset+size(childElements)
+             deallocate(childElements)
+          end if
           if (getNodeType(childNode) == Element_Node .and. (matchAll .or. getNodeName(childNode) == trim(tagName_))) then
              matches=attributeName == "" .or. getAttribute(childNode,trim(attributeName)) == trim(attributeValue)
              if (matches) then
-                elements(offset)%element => childNode
-                offset=offset+1_c_size_t
+                matchCount=matchCount+1
+                if (elementIndex == 0 .or. matchCount == elementIndex) then
+                   elements(offset)%element => childNode
+                   offset=offset+1_c_size_t
+                end if
              end if
           end if
           childNode => getNextSibling(childNode)
@@ -339,39 +390,43 @@ contains
     return
   end subroutine XML_Get_Elements_By_Tag_Name
   
-  recursive function XML_Count_Elements_By_Tag_Name(xmlElement,tagName) result(countElements)
+  recursive function XML_Count_Elements_By_Tag_Name(xmlElement,tagName,directChildrenOnly) result(countElements)
     !!{RST
-    Return a count of all nodes matching a given ``tagName``.
+    Return a count of all nodes matching a given ``tagName``. See {\normalfont \ttfamily XML\_Get\_Elements\_By\_Tag\_Name} for a
+    description of the ``directChildrenOnly`` argument.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     use            :: FoX_DOM      , only : Element_Node, getFirstChild, getNextSibling, getNodeName, &
           &                                 getNodeType , hasChildNodes, node          , getAttribute
+    use            :: Error        , only : Error_Report
     implicit none
     integer  (c_size_t        )                         :: countElements
     type     (node            ), intent(in   ), pointer :: xmlElement
     character(len=*           ), intent(in   )          :: tagName
+    logical                    , intent(in   ), optional :: directChildrenOnly
     type     (node            )               , pointer :: childNode
     logical                                             :: matchAll
+    integer                                             :: elementIndex  , matchCount
     character(len=len(tagName))                         :: tagName_      , attributeName, &
          &                                                 attributeValue
+    !![
+    <optionalArgument name="directChildrenOnly" defaultsTo=".false."/>
+    !!]
 
+    call XML_Tag_Name_Parse(tagName,tagName_,attributeName,attributeValue,elementIndex)
+    if (elementIndex > 0 .and. .not.directChildrenOnly_) call Error_Report('positional XPath predicate (e.g. `[15]`) is only supported when `directChildrenOnly` is set'//{introspection:location})
     countElements=0_c_size_t
+    matchCount   =0
+    matchAll     =trim(tagName_) == "*"
     if (hasChildNodes(xmlElement)) then
-       if (index(tagName,"[@") > 0) then
-          tagName_      =tagName(                    1:index(tagName,"[@")-1)
-          attributeName =tagName(index(tagName,"[@")+2:index(tagName,"=" )-1)
-          attributeValue=tagName(index(tagName,"=" )+2:index(tagName,"]" )-2)
-       else
-          tagName_      =tagName
-          attributeName =""
-          attributeValue=""
-       end if
-       matchAll  =  trim(tagName_) == "*"
        childNode => getFirstChild(xmlElement)
        do while (associated(childNode))
-          countElements=countElements+XML_Count_Elements_By_Tag_Name(childNode,tagName)
+          if (.not.directChildrenOnly_) countElements=countElements+XML_Count_Elements_By_Tag_Name(childNode,tagName)
           if (getNodeType(childNode) == Element_Node .and. (matchAll .or. getNodeName(childNode) == trim(tagName_))) then
-             if (attributeName == "" .or. getAttribute(childNode,trim(attributeName)) == trim(attributeValue)) countElements=countElements+1_c_size_t
+             if (attributeName == "" .or. getAttribute(childNode,trim(attributeName)) == trim(attributeValue)) then
+                matchCount=matchCount+1
+                if (elementIndex == 0 .or. matchCount == elementIndex) countElements=countElements+1_c_size_t
+             end if
           end if
           childNode => getNextSibling(childNode)
        end do
@@ -414,7 +469,7 @@ contains
           currentTagName=path(             1:pathPosition-1)
           path          =path(pathPosition+1:len(path)     )
        endif
-       call XML_Get_Elements_By_Tag_Name(element,currentTagName,elementList)
+       call XML_Get_Elements_By_Tag_Name(element,currentTagName,elementList,directChildrenOnly=directChildrenOnly_)
        if (size(elementList) < 1) then
           call Error_Report('no elements match tag name "'//trim(currentTagName)//'"'//{introspection:location})
        else
@@ -437,24 +492,31 @@ contains
     return
   end function XML_Get_First_Element_By_Tag_Name
 
-  logical function XML_Path_Exists(xmlElement,path)
+  logical function XML_Path_Exists(xmlElement,path,pathFailed)
     !!{RST
-    Return true if the supplied ``path`` exists in the supplied ``xmlElement``.
+    Return true if the supplied ``path`` exists in the supplied ``xmlElement``. If the path does not exist and the optional
+    ``pathFailed`` argument is present, it is set to the portion of ``path`` up to and including the first segment that could not
+    be matched. This is useful for constructing informative error messages that indicate where in the path resolution failed.
     !!}
-    use :: FoX_dom, only : ELEMENT_NODE , getElementsByTagName, getLength, getNodeType, &
-          &                getParentNode, node
+    use :: FoX_dom           , only : ELEMENT_NODE , getElementsByTagName, getLength, getNodeType, &
+          &                           getParentNode, node
+    use :: ISO_Varying_String, only : assignment(=), operator(//)
     implicit none
-    type     (node         ), intent(in   ), pointer      :: xmlElement
-    character(len=*        ), intent(in   )               :: path
-    type     (node         )               , pointer      :: element     , child         , &
-         &                                                   parent
-    character(len=len(path))                              :: currentPath , currentTagName
-    integer                                               :: pathPosition, i
-    type     (xmlNodeList  ), allocatable  , dimension(:) :: elementList
+    type     (node          ), intent(in   ), pointer      :: xmlElement
+    character(len=*         ), intent(in   )               :: path
+    type     (varying_string), intent(  out), optional     :: pathFailed
+    type     (node          )               , pointer      :: element     , child         , &
+         &                                                    parent
+    character(len=len(path) )                              :: currentPath , currentTagName
+    type     (varying_string)                              :: pathSoFar
+    logical                                                :: firstSegment
+    integer                                                :: pathPosition, i
+    type     (xmlNodeList   ), allocatable  , dimension(:) :: elementList
 
     XML_Path_Exists =  .true.
     element         => xmlElement
     currentPath     =  path
+    firstSegment    =  .true.
     do while (currentPath /= "")
        pathPosition=index(currentPath,"/")
        if (pathPosition == 0) then
@@ -464,9 +526,16 @@ contains
           currentTagName=currentPath(             1:pathPosition-1)
           currentPath   =currentPath(pathPosition+1:len(path)     )
        endif
-       call XML_Get_Elements_By_Tag_Name(element,currentTagName,elementList)
+       if (firstSegment) then
+          pathSoFar   =                 trim(currentTagName)
+          firstSegment=.false.
+       else
+          pathSoFar   =pathSoFar//"/"//trim(currentTagName)
+       end if
+       call XML_Get_Elements_By_Tag_Name(element,currentTagName,elementList,directChildrenOnly=.true.)
        if (size(elementList) < 1) then
           XML_Path_Exists=.false.
+          if (present(pathFailed)) pathFailed=pathSoFar
           return
        else
           XML_Path_Exists=.false.
@@ -479,7 +548,10 @@ contains
                 exit
              end if
           end do
-          if (.not.XML_Path_Exists) return
+          if (.not.XML_Path_Exists) then
+             if (present(pathFailed)) pathFailed=pathSoFar
+             return
+          end if
        end if
     end do
     return
