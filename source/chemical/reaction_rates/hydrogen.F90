@@ -906,7 +906,7 @@ contains
 
   subroutine hydrogenNetworkRateHminus_Electron_to_H_2Electron(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^- + \hbox{e}^- \rightarrow \hbox{H} + 2 \hbox{e}^-`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^- + \hbox{e}^- \rightarrow \hbox{H} + 2 \hbox{e}^-`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -928,7 +928,7 @@ contains
     if (self%fast) return
     ! Check if this reaction needs initializing.
     if (.not.reactionInitializedThread) then
-       !$omp critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
+       !$omp critical(hydrogenNetworkRateHminus_Electron_to_H_2Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex     =Chemicals_Index("AtomicHydrogen"     )
@@ -939,7 +939,7 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
+       !$omp end critical(hydrogenNetworkRateHminus_Electron_to_H_2Electron_Init)
        reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
@@ -964,7 +964,7 @@ contains
 
   double precision function hydrogenNetworkHminus_Electron_to_H_2Electron_RateCoefficient(temperature)
     !!{RST
-    Computes the rate coefficient (in units of cm\ :math:`^3` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+`.
+    Computes the rate coefficient (in units of cm\ :math:`^3` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^- + \hbox{e}^- \rightarrow \hbox{H} + 2 \hbox{e}^-`.
     !!}
     use :: Numerical_Constants_Physical, only : boltzmannsConstant
     use :: Numerical_Constants_Units   , only : electronVolt
@@ -1018,7 +1018,7 @@ contains
     if (self%fast) return
     ! Check if this reaction needs initializing.
     if (.not.reactionInitializedThread) then
-       !$omp critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
+       !$omp critical(hydrogenNetworkRateHminus_H_to_2H_Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex     =Chemicals_Index("AtomicHydrogen"     )
@@ -1029,7 +1029,7 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
+       !$omp end critical(hydrogenNetworkRateHminus_H_to_2H_Electron_Init)
        reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
@@ -1072,7 +1072,7 @@ contains
 
   subroutine hydrogenNetworkRateHminus_Hplus_to_2H(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+`.
+    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^- + \hbox{H}^+ \rightarrow 2 \hbox{H}`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -1130,7 +1130,7 @@ contains
 
   double precision function hydrogenNetworkHminus_Hplus_to_2H_RateCoefficient(temperature)
     !!{RST
-    Compute the rate coefficient (in units of c\ :math:`^3` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+`.
+    Compute the rate coefficient (in units of c\ :math:`^3` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^- + \hbox{H}^+ \rightarrow 2 \hbox{H}`.
     !!}
     implicit none
     double precision, intent(in   ) :: temperature
@@ -2059,7 +2059,7 @@ contains
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitializedThread) then
-       !$omp critical(hydrogenNetworkRateH_Gamma_to_H_Electron)
+       !$omp critical(hydrogenNetworkRateH_Gamma_to_Hplus_Electron)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
@@ -2072,7 +2072,7 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateH_Gamma_to_H_Electron)
+       !$omp end critical(hydrogenNetworkRateH_Gamma_to_Hplus_Electron)
        reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
