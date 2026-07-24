@@ -1254,6 +1254,51 @@ The first feature is the "unique ID"---an integer number assigned to each node i
 
 The second feature accounts for the fact that the properties of a node will change, so even if a function is called on a node with the same unique ID it may occasionally need to recompute its result. Galacticus provides a calculation reset task (see Section :galacticus-ref:`autoHook`). All such tasks are performed just prior to the computation of derivatives for a node being evolved. A function can register a calculation reset task and use it to flag that it must update its calculations even if called again with the same node.
 
+.. _manual-sec-onceOnlyInitialization:
+
+Once-Only Initialization Under OpenMP
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A common pattern in Galacticus is a module holding static, read-only data (atomic data, chemical structures, filter transmissions, tabulated databases) which must be read from file exactly once, no matter how many OpenMP threads are running. The obvious implementation guards the initialization with a named critical section:
+
+.. code-block:: fortran
+
+     !$omp critical(myDataInitialize)
+     if (.not.myDataInitialized) then
+        ! ...read the data...
+        myDataInitialized=.true.
+     end if
+     !$omp end critical(myDataInitialize)
+
+This is correct, but it takes the lock on **every** call, including the overwhelmingly common case where the data are already loaded and nothing needs to be done. Named critical sections are *global* locks, so when such an initializer is called from a hot path---particularly one reached during ODE evolution---and the model is run with a large number of threads, the resulting contention can dominate the run time. The problem was found in ``Atomic_Data_Initialize`` (``source/atomic/data.F90``), which is called from every public entry point of the ``Atomic_Data`` module, several of which are reached for every element, for every derivative evaluation.
+
+The fix is a double-checked lock, but the *naive* form of it---simply testing the shared ``myDataInitialized`` flag before taking the lock---is a data race under the OpenMP memory model. An unsynchronized read of the flag establishes no happens-before relationship with the initializing thread's writes, so a thread which observes the flag as ``.true.`` has no guarantee that it will also observe the data those writes produced; the compiler and hardware are both free to reorder around the unsynchronized read.
+
+Galacticus therefore uses a ``threadprivate`` flag recording that *this thread* has already passed through the critical section:
+
+.. code-block:: fortran
+
+     logical :: myDataInitialized      =.false.
+     logical :: myDataInitializedThread=.false.
+     !$omp threadprivate(myDataInitializedThread)
+     ...
+     if (myDataInitializedThread) return
+     !$omp critical(myDataInitialize)
+     if (.not.myDataInitialized) then
+        ! ...read the data...
+        myDataInitialized=.true.
+     end if
+     !$omp end critical(myDataInitialize)
+     myDataInitializedThread=.true.
+
+The ordering is supplied by the flush implied on exit from the critical section, which the code already relies upon: any thread which has left that section is guaranteed to see the fully-initialized data, so it need never enter it again. Each thread therefore acquires the lock exactly once for the lifetime of the run, and the hot path reduces to a load of a thread-local logical---no fence, no shared cache line, and no possibility of false sharing.
+
+This form also fails safe. OpenMP guarantees the persistence of ``threadprivate`` values between parallel regions only under certain conditions (unchanged team size, dynamic thread adjustment disabled). If those conditions are not met the per-thread flag can only revert to ``.false.``, never spuriously to ``.true.``, so the worst outcome is one redundant---and harmless---lock acquisition, not an unsynchronized read of uninitialized data.
+
+An alternative is to keep the shared flag and read it via ``!$omp atomic read seq_cst``, pairing it with an ``!$omp atomic write seq_cst`` when the flag is set; the listless flush implied by the ``seq_cst`` clause supplies the necessary release/acquire pair. This is also correct, and is preferable when a per-thread flag is inconvenient, but it pays a full memory fence on every call, so the ``threadprivate`` form is preferred on genuinely hot paths. (See Section :galacticus-ref:`eventHooksLocking` for a related case, where an atomic read replaces a read/write lock on a hot dispatch path.)
+
+Two points to note when writing such an initializer. First, the double check is *not* optional: the test inside the critical section must be retained, since several threads may pass the outer test before any of them acquires the lock. Omitting it allows two threads to run the initialization concurrently, which typically manifests as an attempt to allocate an already-allocated array. Second, the guard should be placed so that the fast path returns before any other work is done; in particular, an initializer called from several public entry points of the same module may be reached more than once per logical operation, so the fast path must be genuinely cheap.
+
 Global Functions
 ----------------
 
