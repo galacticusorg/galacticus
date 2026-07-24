@@ -172,6 +172,8 @@ The validator can additionally perform deeper, catalog-aware checks—verifying 
 
 A directory may be given in place of a file, in which case all ``*.xml`` files under it are validated and a summary is printed. This same tool is run in continuous integration to validate the bundled parameter files.
 
+.. _editor-parameter-validation:
+
 Editor validation and autocompletion
 """""""""""""""""""""""""""""""""""""
 
@@ -670,8 +672,6 @@ The ``runFile`` is an XML file with the following structure:
    <parameterGrid>
     <modelRootDirectory>models.new</modelRootDirectory>
     <baseParameters>newBestParametersQuick.xml</baseParameters>
-    <compressModels>no</compressModels>
-    <splitModels>4</splitModels>
 
     <launchMethod>pbs</launchMethod>
 
@@ -769,12 +769,6 @@ By default, each model is output into a sequentially numbered directory within t
 
 ``emailReport``
    If set to "yes" a report will be e-mailed to the address specified in ``galacticusConfig.xml`` when a model fails. Otherwise, the report will be written to standard output instead.
-
-``compressModels``
-   If "no" then models are not compressed after being run. Otherwise, the contents of the model output directory will be compressed using ``bzip2``.
-
-``splitModels``
-   If set to an integer larger than :math:`1`, each Galacticus model will be split into that number of jobs, and those jobs will be launched (using the selected method) independently. Once finished, the outputs from these split models will be merged back into a single model. This allows, for example, effectively distributing a single Galacticus model over multiple nodes of a PBS cluster.
 
 The method by which to launch jobs must be specified in the ``launchMethod`` element. Currently available options are:
 

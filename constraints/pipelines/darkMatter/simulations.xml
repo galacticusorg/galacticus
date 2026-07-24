@@ -46,8 +46,8 @@
 	  <transferFunction   value="CDM"  />
 	</simulation>
 	<haloMassFunction>
-	  <expansionFactors value="1.00000 0.67120 0.50320 0.33030 0.24230 0.12460"/>
-	  <snapshots        value="125     107     94      75      61      31     "/>
+	  <expansionFactors value="1.00000 0.67120 0.50320 0.33030 0.24230"/>
+	  <snapshots        value="125     107     94      75      61     "/>
 	</haloMassFunction>
 	<progenitorMassFunction>
 	  <treeMasses     value="sampled"/>

@@ -185,8 +185,8 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`posteriorSampleLikelihoodSpinDistribution` posterior sampling likelihood class.
     !!}
-    use :: HDF5_Access      , only : hdf5Access
-    use :: IO_HDF5          , only : hdf5Object
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5    , only : hdf5File
     implicit none
     type            (posteriorSampleLikelihoodSpinDistribution)                        :: self
     character       (len=*                                    ), intent(in   )         :: fileName
@@ -200,7 +200,7 @@ contains
     class           (nbodyHaloMassErrorClass                  ), intent(in   ), target :: nbodyHaloMassError_
     class           (darkMatterHaloScaleClass                 ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileScaleRadiusClass        ), intent(in   ), target :: darkMatterProfileScaleRadius_
-    type            (hdf5Object                               )                        :: spinDistributionFile
+    type            (hdf5File                                 )                        :: spinDistributionFile
     double precision                                                                   :: spinIntervalLogarithmic
     integer                                                                            :: i
     !![
@@ -215,7 +215,7 @@ contains
          &                                                         )
     ! Read the target spin distribution from file.
     !$ call hdf5Access%set()
-    spinDistributionFile=hdf5Object(trim(fileName),readOnly=.true.)
+    spinDistributionFile=hdf5File(trim(fileName),readOnly=.true.)
     call spinDistributionFile%readDataset("spinParameter"    ,self%spin             )
     call spinDistributionFile%readDataset("distribution"     ,self%distribution     )
     call spinDistributionFile%readDataset("distributionError",self%distributionError)

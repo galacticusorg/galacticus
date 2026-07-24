@@ -182,7 +182,7 @@ contains
     use :: Galacticus_Nodes        , only : treeNode   , nodeComponentBasic
     use :: Input_Paths             , only : inputPath  , pathTypeDataDynamic
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5Object
+    use :: IO_HDF5                 , only : hdf5File
     use :: Linear_Algebra          , only : matrix     , vector             , assignment(=), operator(*)
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator , GSL_Integ_Gauss15
@@ -217,7 +217,7 @@ contains
     type            (integrator                      )                              :: integratorVertical           , integratorRadial
     type            (matrix                          )                              :: covarianceMatrix
     type            (vector                          )                              :: deviateVector
-    type            (hdf5Object                      )                              :: file
+    type            (hdf5File                        )                              :: file
     type            (lockDescriptor                  )                              :: fileLock
     type            (varying_string                  )                              :: fileName
     character       (len=18                          )                              :: label
@@ -276,7 +276,7 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       file=hdf5Object(char(fileName))
+       file=hdf5File(fileName)
        call file%readDataset('covariance',covariance)
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
@@ -307,7 +307,7 @@ contains
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       file=hdf5Object(char(fileName))
+       file=hdf5File(fileName)
        call file%writeDataset(covariance,'covariance')
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)

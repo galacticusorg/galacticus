@@ -1073,3 +1073,24 @@ Then, when you compile Galacticus it will automatically discover your new class,
      <exponentVelocityVirial value="0.0"/>
      <timescale              value="1.0"/>
    </starFormationTimescale>
+
+Recursive classes
+~~~~~~~~~~~~~~~~~~
+
+Occasionally a class composites a member of its *own* class---either directly, or via another, mutually-compositing class. If no such member is provided explicitly in the parameter file, the build searches up the parameter tree, re-discovers the object it is *currently* constructing, and tries to build it again---an unbounded recursion. Galacticus detects this and aborts with an informative error (see `issue #397 <https://github.com/galacticusorg/galacticus/issues/397>`_), listing the build stack and telling you to provide the required object explicitly.
+
+For a small number of classes, however, such a construction cycle is *legitimate and bounded*: the physics guarantees that re-entry terminates. (Examples include :galacticus-class:`virialDensityContrastPercolation`, whose percolation objects composite a :galacticus-class:`darkMatterHaloScaleVirialDensityContrastDefinition` that resolves back to the percolation object.) To allow such a class to participate in a bounded cycle, add ``recursive="yes"`` to its ``functionClass`` directive:
+
+.. code-block:: fortran
+
+   !![
+   <starFormationTimescale name="starFormationTimescaleMyRecursive" recursive="yes">
+    <description>A star formation timescale class that composites a bounded member of its own class.</description>
+   </starFormationTimescale>
+   !!]
+
+That single attribute is all that is required. When the build re-enters the node currently under construction, the factory returns a generated *shim*---a lightweight ``<name>Recursive`` object that holds only a weak pointer back to the real object under construction and forwards every method call to it. All of the supporting machinery is generated automatically: the shim type and its method forwarders, its ``deepCopy``/``stateStore``/``descriptor`` behaviour, and the weak (uncounted) back-reference that keeps reference counting sound so no memory leak results. You do **not** need to write any ``recursiveSelf`` pointers, per-method guards, or custom ``deepCopy`` code---this boilerplate was removed under `issue #695 <https://github.com/galacticusorg/galacticus/issues/695>`_.
+
+.. warning::
+
+   Only mark a class ``recursive="yes"`` if re-entry into it is genuinely bounded. The opt-in is deliberately *not* automatic: for a class whose cycle does *not* terminate (e.g. a filter that wraps itself), automatic shimming would convert the clean construction-time error above into an infinite recursion at *run* time, with no diagnostic. Leaving such a class un-opted-in preserves the informative construction-time abort.

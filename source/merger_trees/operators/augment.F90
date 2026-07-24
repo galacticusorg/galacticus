@@ -1385,13 +1385,13 @@ contains
     !!{RST
     Output augmentation histogram.
     !!}
-    use :: Output_HDF5      , only : outputFile
-    use :: HDF5_Access      , only : hdf5Access
-    use :: IO_HDF5          , only : hdf5Object
+    use :: Output_HDF5, only : outputFile
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5    , only : hdf5File  , hdf5Group
     implicit none
     class           (mergerTreeOperatorAugment), intent(inout)               :: self
     integer         (c_size_t                 ), allocatable  , dimension(:) :: retryHistogram        , trialCount
-    type            (hdf5Object               )                              :: augmentStatisticsGroup
+    type            (hdf5Group                )                              :: augmentStatisticsGroup
 
     ! Output the data.
     !$ call hdf5Access%set()

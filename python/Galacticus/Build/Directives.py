@@ -2,9 +2,7 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Directives.pm — specifically Extract_Directive
-(incremental single-directive iterator) and Extract_Directives (return-all
-wrapper).  This is distinct from SourceTree.Parse.Directives.parse_directives,
+This is distinct from SourceTree.Parse.Directives.parse_directives,
 which walks an already-parsed AST; the functions here open a file on disk and
 extract its directives without building a SourceTree.
 """
@@ -31,7 +29,7 @@ _CLOSE_TAG_RE     = re.compile(r'</([a-zA-Z0-9]+)>')
 
 def _matches_conditions(directive: dict, conditions: dict | None) -> bool:
     """Return True when every key/value in `conditions` is present and equal in
-    `directive`.  Mirrors the inner filter loop at Directives.pm:55-65.
+    `directive`.
     """
     if not conditions:
         return True
@@ -43,7 +41,9 @@ def _matches_conditions(directive: dict, conditions: dict | None) -> bool:
 
 def extract_directives(file_name: str, directive_name,
                        conditions: dict | None = None,
-                       set_root_element_type: bool = False) -> list[dict]:
+                       set_root_element_type: bool = False,
+                       force_array=None,
+                       include_raw_xml: bool = False) -> list[dict]:
     """Return every directive in `file_name` whose root element matches
     `directive_name` — a single name, a set/tuple/list of names, or `'*'`
     to match any root element.
@@ -53,8 +53,7 @@ def extract_directives(file_name: str, directive_name,
     cost N reads); use `set_root_element_type=True` to recover which name
     each returned directive matched.
 
-    Mirrors Perl Extract_Directives (Directives.pm:80-98) plus the underlying
-    state machine from Extract_Directive (Directives.pm:11-78):
+    The extraction state machine works as follows:
 
     - Lines matching `^\\s*!![ ` start an XML section.
     - Lines matching `^\\s*!!]` end the current XML section.
@@ -69,7 +68,7 @@ def extract_directives(file_name: str, directive_name,
     ----------
     file_name : str
         Path to a Fortran source file.  If it does not exist, an empty list
-        is returned (matches Perl's `return unless -e $fileName`).
+        is returned.
     directive_name : str
         Either a specific root element name, or `'*'` to match any.
     conditions : dict, optional
@@ -77,12 +76,22 @@ def extract_directives(file_name: str, directive_name,
     set_root_element_type : bool, optional
         When True, each returned dict gains a `rootElementType` key carrying
         the actual root element name (useful when `directive_name == '*'`).
+    force_array : set or list of str, optional
+        Tag names that `xml_to_dict` should always lift into a list even when
+        a single instance is present (mirrors Perl `XMLin(ForceArray => …)`).
+        The `component` build, for example, expects `{data, property, binding}`
+        as lists regardless of multiplicity.
+    include_raw_xml : bool, optional
+        When True, each returned dict gains a `rawXML` key carrying the raw
+        (accumulated) XML text of the directive block — needed by callers that
+        must re-validate the block against an XSD (e.g. the component builder,
+        whose validator consumes the original document string).
 
     Returns
     -------
     list[dict]
         Each directive's XML, converted via `xml_to_dict`, without the root
-        element wrapper (matching Perl's `$directive->{$rootName}` unwrap).
+        element wrapper.
     """
     if not os.path.exists(file_name):
         return []
@@ -109,7 +118,8 @@ def extract_directives(file_name: str, directive_name,
                 if xml_text.strip() and depth == 0:
                     directive = _parse_xml_block(
                         xml_text, file_name, directive_name,
-                        conditions, set_root_element_type)
+                        conditions, set_root_element_type,
+                        force_array, include_raw_xml)
                     if directive is not None:
                         results.append(directive)
                     xml_text = ''
@@ -131,13 +141,14 @@ def extract_directive(file_name: str, directive_name: str, **kwargs: Any) -> dic
 
 def _parse_xml_block(xml_text: str, file_name: str, directive_name,
                      conditions: dict | None,
-                     set_root_element_type: bool) -> dict | None:
+                     set_root_element_type: bool,
+                     force_array=None,
+                     include_raw_xml: bool = False) -> dict | None:
     """Parse one accumulated XML block and return a dict if the root matches
     `directive_name`, else None.
 
-    Matches the Perl error-handling idiom: any XML parse failure is fatal
-    (raised as RuntimeError) since the caller has no way to recover; Perl
-    `die`s in the same spot.
+    Any XML parse failure is fatal (raised as RuntimeError) since the
+    caller has no way to recover.
     """
     try:
         elem = ET.fromstring(xml_text)
@@ -153,7 +164,7 @@ def _parse_xml_block(xml_text: str, file_name: str, directive_name,
     elif elem.tag not in directive_name:
         return None
 
-    directive = xml_to_dict(elem)
+    directive = xml_to_dict(elem, force_array=force_array)
     if not isinstance(directive, dict):
         # A directive whose root is text-only (`<foo>hello</foo>`) — wrap it
         # so callers can still attach rootElementType / conditions uniformly.
@@ -161,6 +172,9 @@ def _parse_xml_block(xml_text: str, file_name: str, directive_name,
 
     if set_root_element_type:
         directive['rootElementType'] = elem.tag
+
+    if include_raw_xml:
+        directive['rawXML'] = xml_text
 
     if not _matches_conditions(directive, conditions):
         return None

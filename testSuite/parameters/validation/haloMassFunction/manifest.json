@@ -1,0 +1,1725 @@
+{
+  "groups": {
+    "COZMIC": {
+      "cases": [
+        {
+          "parameterFile": "haloMassFunctionBase_COZMIC_MilkyWay_resolutionX8_FDM:25.9e-22eV_Halo004_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/COZMIC/MilkyWay/resolutionX8/FDM:25.9e-22eV/Halo004/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 1000000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_COZMIC_MilkyWay_resolutionX8_IDM:1e-4GeV:envelope_Halo004_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/COZMIC/MilkyWay/resolutionX8/IDM:1e-4GeV:envelope/Halo004/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 794328000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_COZMIC_MilkyWay_resolutionX8_WDM:3keV_Halo004_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/COZMIC/MilkyWay/resolutionX8/WDM:3keV/Halo004/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 1584890000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_COZMIC_MilkyWay_resolutionX8_WDM:3keV:bumpCutoff_Halo004_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/COZMIC/MilkyWay/resolutionX8/WDM:3keV:bumpCutoff/Halo004/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 2511890000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_COZMIC_MilkyWay_resolutionX8_WDM:3keV:f0.6_Halo004_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/COZMIC/MilkyWay/resolutionX8/WDM:3keV:f0.6/Halo004/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 794328000.0
+        }
+      ]
+    },
+    "MDPL": {
+      "cases": [
+        {
+          "parameterFile": "haloMassFunctionBase_MDPL_BigMDPL_resolutionX1_CDM_only_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/MDPL/BigMDPL/resolutionX1/CDM/only/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 10442700000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_MDPL_HugeMDPL_resolutionX1_CDM_only_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/MDPL/HugeMDPL/resolutionX1/CDM/only/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 34971200000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_MDPL_HugeMDPL_resolutionX1_CDM_only_z0.987.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/MDPL/HugeMDPL/resolutionX1/CDM/only/haloMassFunction_z0.987.hdf5",
+          "redshift": 0.987,
+          "massRangeMinimum": 34971200000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_MDPL_HugeMDPL_resolutionX1_CDM_only_z3.037.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/MDPL/HugeMDPL/resolutionX1/CDM/only/haloMassFunction_z3.037.hdf5",
+          "redshift": 3.037,
+          "massRangeMinimum": 34971200000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_MDPL_MDPL2_resolutionX1_CDM_only_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/MDPL/MDPL2/resolutionX1/CDM/only/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 668437000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_MDPL_MDPL2_resolutionX1_CDM_only_z0.987.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/MDPL/MDPL2/resolutionX1/CDM/only/haloMassFunction_z0.987.hdf5",
+          "redshift": 0.987,
+          "massRangeMinimum": 668437000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_MDPL_MDPL2_resolutionX1_CDM_only_z3.127.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/MDPL/MDPL2/resolutionX1/CDM/only/haloMassFunction_z3.127.hdf5",
+          "redshift": 3.127,
+          "massRangeMinimum": 668437000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_MDPL_SMDPL_resolutionX1_CDM_only_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/MDPL/SMDPL/resolutionX1/CDM/only/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 42629500000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_MDPL_VSMDPL_resolutionX1_CDM_only_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/MDPL/VSMDPL/resolutionX1/CDM/only/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 2744580000.0
+        }
+      ]
+    },
+    "SymphonyLMC": {
+      "cases": [
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo032_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo032/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 9591430000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo059_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo059/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 10047100000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo083_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo083/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 10791400000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo088_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo088/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 11325700000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo097_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo097/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 9962860000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo104_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo104/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 9108570000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo110_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo110/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 10770000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo202_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo202/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 11127100000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo208_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo208/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 9121430000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo218_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo218/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 10252900000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo296_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo296/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 12454300000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo301_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo301/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 11998600000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo303_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo303/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 11518600000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo340_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo340/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 9397140000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo374_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo374/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 10495700000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo380_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo380/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 11045700000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo391_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo391/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 10755700000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo405_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo405/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 10781400000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo440_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo440/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 10518600000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo463_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo463/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 10888600000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo4662_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo4662/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 10551400000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo511_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo511/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 11011400000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo524_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo524/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 8934290000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo539_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo539/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 11210000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo567_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo567/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 10162900000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo575_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo575/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 11901400000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo602_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo602/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 10970000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo697_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo697/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 7881430000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo711_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo711/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 9774290000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo721_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo721/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 9648570000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo767_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo767/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 10902900000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo802_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo802/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 9637140000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo824_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo824/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 10297100000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo850_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo850/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 11987100000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo853_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo853/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 10445700000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo914_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo914/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 11407100000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo932_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo932/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 10764300000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_LMC_resolutionX1_CDM_Halo933_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/LMC/resolutionX1/CDM/Halo933/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 15106100.0,
+          "massRangeMaximum": 5510000000.0
+        }
+      ]
+    },
+    "SymphonyGroup": {
+      "cases": [
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo015_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo015/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1460000000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo024_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo024/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1468570000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo029_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo029/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1950000000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo046_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo046/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 2531430000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo055_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo055/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1130000000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo090_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo090/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1811430000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo175_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo175/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1242000000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo183_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo183/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1290570000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo186_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo186/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1715710000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo257_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo257/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1370710000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo286_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo286/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1261140000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo302_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo302/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1155140000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo313_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo313/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1531430000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo331_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo331/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1273710000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo336_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo336/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 2215710000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo342_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo342/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1343140000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo346_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo346/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1316430000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo347_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo347/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1272140000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo352_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo352/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1281140000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo383_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo383/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1135430000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo384_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo384/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 926286000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo399_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo399/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1611430000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo428_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo428/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1324710000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo444_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo444/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1371860000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo470_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo470/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1321000000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo496_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo496/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1424710000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo501_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo501/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1364710000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo504_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo504/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1442860000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo551_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo551/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 2271430000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo570_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo570/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1278430000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo579_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo579/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1272430000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo581_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo581/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1330860000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo593_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo593/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1474290000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo606_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo606/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1268140000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo656_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo656/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1121570000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo752_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo752/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1150140000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo755_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo755/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1288570000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo759_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo759/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1575710000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo774_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo774/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1278860000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo781_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo781/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1050860000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo785_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo785/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1275430000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo790_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo790/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1069000000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo806_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo806/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1741430000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo834_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo834/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1702860000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo861_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo861/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1852860000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo909_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo909/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1325570000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo927_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo927/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1106570000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo962_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo962/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 3080000000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_Group_resolutionX1_CDM_Halo985_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/Group/resolutionX1/CDM/Halo985/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 966792000.0,
+          "massRangeMaximum": 1038140000000.0
+        }
+      ]
+    },
+    "SymphonyMilkyWayZ0": {
+      "cases": [
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo004_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo004/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 103214000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo023_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo023/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 113729000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo088_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo088/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 123500000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo113_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo113/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 107143000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo119_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo119/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 123129000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo188_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo188/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 149857000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo247_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo247/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 126286000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo268_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo268/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 117371000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo270_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo270/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 124329000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo288_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo288/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 117329000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo327_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo327/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 117614000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo349_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo349/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 164714000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo364_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo364/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 123671000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo374_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo374/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 114986000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo414_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo414/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 120614000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo415_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo415/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 125614000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo416_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo416/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 140486000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo440_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo440/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 183714000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo460_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo460/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 118371000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo469_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo469/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 119057000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo490_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo490/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 129743000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo530_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo530/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 117871000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo558_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo558/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 112614000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo567_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo567/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 123886000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo570_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo570/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 119614000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo606_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo606/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 133971000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo628_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo628/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 120157000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo641_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo641/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 127071000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo675_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo675/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 126743000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo718_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo718/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 116714000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo738_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo738/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 151714000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo749_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo749/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 127400000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo797_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo797/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 128229000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo800_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo800/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 131900000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo825_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo825/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 131114000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo829_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo829/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 121800000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo852_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo852/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 121157000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo878_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo878/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 121571000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo881_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo881/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 133571000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo925_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo925/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 127057000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo926_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo926/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 117257000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo937_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo937/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 121800000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo939_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo939/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 123843000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo967_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo967/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 121457000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo9749_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo9749/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 137743000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo9829_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo9829/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 115871000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo990_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo990/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 127957000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX64_CDM_Halo004_z0.000.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX64/CDM/Halo004/haloMassFunction_z0.000.hdf5",
+          "redshift": 0.0,
+          "massRangeMinimum": 1888340.0,
+          "massRangeMaximum": 102500000000.0
+        }
+      ]
+    },
+    "SymphonyMilkyWayZ1": {
+      "cases": [
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo004_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo004/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 51414300000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo023_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo023/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 75300000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo088_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo088/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 38357100000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo113_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo113/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 53100000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo119_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo119/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 46242900000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo188_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo188/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 35471400000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo247_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo247/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 76885700000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo268_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo268/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 74085700000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo270_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo270/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 59414300000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo288_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo288/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 67342900000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo327_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo327/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 62857100000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo349_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo349/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 62500000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo364_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo364/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 85600000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo374_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo374/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 93385700000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo414_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo414/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 35000000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo415_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo415/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 74585700000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo416_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo416/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 48057100000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo440_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo440/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 97414300000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo460_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo460/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 78300000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo469_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo469/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 60871400000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo490_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo490/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 70671400000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo530_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo530/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 48228600000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo558_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo558/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 28085700000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo567_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo567/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 85600000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo570_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo570/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 53057100000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo606_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo606/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 12600000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo628_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo628/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 23342900000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo641_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo641/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 78728600000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo675_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo675/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 114157000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo718_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo718/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 94228600000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo738_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo738/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 114171000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo749_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo749/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 50428600000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo797_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo797/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 39485700000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo800_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo800/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 52300000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo825_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo825/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 86271400000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo829_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo829/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 92242900000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo852_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo852/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 55871400000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo878_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo878/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 60200000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo881_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo881/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 58657100000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo925_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo925/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 69242900000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo926_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo926/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 76371400000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo937_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo937/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 79000000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo939_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo939/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 78042900000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo967_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo967/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 76785700000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo9749_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo9749/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 89585700000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo9829_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo9829/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 21571400000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo990_z0.990.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo990/haloMassFunction_z0.990.hdf5",
+          "redshift": 0.99,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 82742900000.0
+        }
+      ]
+    },
+    "SymphonyMilkyWayZ4": {
+      "cases": [
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo004_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo004/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 7274290000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo023_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo023/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 8550000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo088_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo088/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 2252860000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo113_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo113/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 4527140000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo119_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo119/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 1614290000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo188_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo188/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 9752860000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo247_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo247/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 17200000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo268_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo268/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 11757100000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo270_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo270/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 3657140000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo288_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo288/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 7644290000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo327_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo327/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 610571000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo349_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo349/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 11692900000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo364_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo364/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 14257100000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo374_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo374/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 8797140000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo414_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo414/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 5158570000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo415_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo415/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 10410000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo416_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo416/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 2625710000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo440_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo440/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 8474290000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo460_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo460/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 7762860000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo469_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo469/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 7410000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo490_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo490/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 3241430000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo530_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo530/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 4510000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo558_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo558/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 538000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo567_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo567/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 19642900000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo570_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo570/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 709286000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo606_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo606/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 2335710000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo628_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo628/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 911571000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo641_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo641/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 9352860000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo675_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo675/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 18071400000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo718_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo718/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 20400000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo738_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo738/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 24714300000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo749_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo749/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 3540000000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo797_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo797/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 2228570000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo800_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo800/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 1712860000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo825_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo825/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 10515700000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo829_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo829/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 18257100000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo852_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo852/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 14342900000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo878_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo878/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 3521430000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo881_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo881/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 2097140000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo925_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo925/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 7228570000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo926_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo926/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 11192900000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo937_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo937/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 5464290000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo939_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo939/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 17971400000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo967_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo967/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 15228600000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo9749_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo9749/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 3905710000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo9829_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo9829/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 1557140000.0
+        },
+        {
+          "parameterFile": "haloMassFunctionBase_Symphony_MilkyWay_resolutionX1_CDM_Halo990_z3.984.xml",
+          "targetData": "%DATASTATICPATH%/darkMatter/Symphony/MilkyWay/resolutionX1/CDM/Halo990/haloMassFunction_z3.984.hdf5",
+          "redshift": 3.984,
+          "massRangeMinimum": 120849000.0,
+          "massRangeMaximum": 16771400000.0
+        }
+      ]
+    }
+  },
+  "varianceFractionalModelDiscrepancy": 0.0152882886259737
+}

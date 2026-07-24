@@ -493,7 +493,7 @@ contains
     Write additional data on excursion set first crossing probabilities to file for the case of the Brownian bridge. Specifically, linear growth factors are written to the file as a convenience useful for interpreting the results.
     !!}
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object
+    use :: IO_HDF5    , only : hdf5File  , hdf5Group
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpointBrownianBridge), intent(inout)               :: self
     double precision                                                       , allocatable  , dimension(:) :: linearGrowthFactor
@@ -506,8 +506,9 @@ contains
     ! Open the data file.
     !$ call hdf5Access%set()
     hdf5WriteScope: block
-      type(hdf5Object) :: dataFile, dataGroup
-      dataFile=hdf5Object(self%fileName,overWrite=.false.)
+      type(hdf5File ) :: dataFile
+      type(hdf5Group) :: dataGroup
+      dataFile=hdf5File(self%fileName,overWrite=.false.)
       ! Check if the rate table is populated.
       if (self%tableInitializedRate) then
          allocate(linearGrowthFactor(size(self%timeRate)))

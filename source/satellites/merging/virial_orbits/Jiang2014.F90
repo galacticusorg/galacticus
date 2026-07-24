@@ -242,7 +242,7 @@ contains
           &                                 File_Unlock                 , lockDescriptor
     use :: Input_Paths             , only : inputPath                   , pathTypeDataDynamic
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5Object
+    use :: IO_HDF5                 , only : hdf5File
     use :: String_Handling         , only : operator(//)
     implicit none
     type            (virialOrbitJiang2014        )                                :: self
@@ -266,7 +266,7 @@ contains
     logical                                                                       :: limitFound                         , success
     type            (integrator                  )                                :: integratorTangential               , integratorTotal
     type            (varying_string              )                                :: fileName
-    type            (hdf5Object                  )                                :: file
+    type            (hdf5File                    )                                :: file
     type            (lockDescriptor              )                                :: fileLock
      !![
     <constructorAssign variables="*darkMatterHaloScale_, *cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_, bRatioLow, bRatioIntermediate, bRatioHigh, gammaRatioLow, gammaRatioIntermediate, gammaRatioHigh, sigmaRatioLow, sigmaRatioIntermediate, sigmaRatioHigh, muRatioLow, muRatioIntermediate , muRatioHigh, *darkMatterProfileDMO_"/>
@@ -299,7 +299,7 @@ contains
        call File_Lock(fileName,fileLock,lockIsShared=attempt == 0)
        if (File_Exists(fileName)) then
           !$ call hdf5Access%set()
-          file=hdf5Object            (char(fileName)                ,readOnly=.true.                   )
+          file=hdf5File(fileName,readOnly=.true.)
           call file%readAttribute    ('limitLower'                  ,     limitLower                   ) 
           call file%readAttribute    ('limitUpper'                  ,     limitUpper                   ) 
           call file%readDatasetStatic('velocityTangentialMean'      ,self%velocityTangentialMean_      )
@@ -376,11 +376,11 @@ contains
              end do
           end do
           !$ call hdf5Access%set()
-          file=hdf5Object         (char(fileName                     )                               ,overWrite=.true.,readOnly=.false.)
-          call file%writeAttribute(     limitLower                    ,'limitLower'                                                    ) 
-          call file%writeAttribute(     limitUpper                    ,'limitUpper'                                                    ) 
-          call file%writeDataset  (self%velocityTangentialMean_       ,'velocityTangentialMean'                                        )
-          call file%writeDataset  (self%velocityTotalRootMeanSquared_ ,'velocityTotalRootMeanSquared'                                  )
+          file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
+          call file%writeAttribute(     limitLower                    ,'limitLower'                  ) 
+          call file%writeAttribute(     limitUpper                    ,'limitUpper'                  ) 
+          call file%writeDataset  (self%velocityTangentialMean_       ,'velocityTangentialMean'      )
+          call file%writeDataset  (self%velocityTotalRootMeanSquared_ ,'velocityTotalRootMeanSquared')
           do i=1,3
              do j=1,3
                 call file%writeDataset(self%voightDistributions(i,j)%ys(),char(var_str('distribution_')//i//'_'//j))

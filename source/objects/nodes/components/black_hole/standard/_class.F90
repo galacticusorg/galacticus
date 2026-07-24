@@ -391,12 +391,12 @@ contains
     use :: Output_HDF5     , only : outputFile
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     use :: HDF5_Access     , only : hdf5Access
-    use :: IO_HDF5         , only : hdf5Object
+    use :: IO_HDF5         , only : hdf5Group
     implicit none
     type            (treeNode          ), intent(inout) :: node
     double precision                    , intent(in   ) :: massBlackHole1    , massBlackHole2
     class           (nodeComponentBasic), pointer       :: basic
-    type            (hdf5Object        )                :: mergersGroup
+    type            (hdf5Group         )                :: mergersGroup
     ! Exit if merger data is not to be output.
     if (.not.outputMergers) return
     ! Ignore mergers with zero mass black holes.

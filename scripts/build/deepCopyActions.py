@@ -10,8 +10,7 @@ inheritance chain rooted at the directive's `class`.
 Writes `$BUILDPATH/deepCopyActions.xml` and caches per-file results in
 `$BUILDPATH/deepCopyActions.blob`.
 
-Mirrors scripts/build/deepCopyActions.pl.
-Andrew Benson (ported to Python 2026).
+Andrew Benson (2026).
 """
 
 import os
@@ -30,6 +29,7 @@ from XML.Utils                    import dict_to_xml_string, xml_to_dict
 from Galacticus.Build.ScanCache import (
     file_identifier as _file_identifier,
     load_cache      as _load_cache,
+    prune           as _prune_cache,
 )
 
 
@@ -104,6 +104,12 @@ def main(argv):
         actions_per_file.pop(file_identifier, None)
         if entries:
             actions_per_file[file_identifier] = {'deepCopyActions': entries}
+
+    # Drop cache entries for files no longer listed in the catalog (deleted,
+    # or the directive was removed), or their actions would keep feeding the
+    # aggregate below forever.
+    _prune_cache(actions_per_file,
+                 {_file_identifier(f) for f in files})
 
     # Aggregate + sort by `type`.
     all_entries = []

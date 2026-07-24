@@ -1,8 +1,6 @@
 """Descriptor-parameter utilities for the functionClass pipeline.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/FunctionClass/Descriptor.pm
 """
 
 import re
@@ -24,7 +22,7 @@ def potential_descriptor_parameters(declarations, non_abstract_class,
     """Classify every declaration of the class as a potential descriptor
     parameter, mutating `potential_names` in place.
 
-    Categories (matching Perl `$potentialNames->{…}`):
+    Categories (keys of `potential_names`):
       - `objects`           — pointer members whose type is a functionClass
                               (instance or class name) listed in
                               `stateStorables.xml`.
@@ -37,8 +35,6 @@ def potential_descriptor_parameters(declarations, non_abstract_class,
 
     `non_abstract_class['hasCustomDescriptor']` is set True when a
     `procedure :: descriptor => ...` bind is present.
-
-    Mirrors potentialDescriptorParameters() at Descriptor.pm:18-85.
     """
     fc_names = _function_class_names(state_storables)
     fc_instances = _function_class_instances(state_storables)

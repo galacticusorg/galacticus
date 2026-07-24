@@ -2,7 +2,6 @@
 
 Andrew Benson (ported to Python 2026)
 
-Mirrors perl/Galacticus/Build/Components/TreeNodes/Serialization.pm.
 Four hooks on the `functions` phase: `serializeASCII`, `serializeXML`,
 `serializeRaw`, and `deserializeRaw`.
 """
@@ -25,7 +24,7 @@ _RAW_SENTINEL = 987654321
 
 
 def Tree_Node_Serialize_ASCII(build):
-    """Generate `treeNodeSerializeASCII`.  Mirrors `Tree_Node_Serialize_ASCII`."""
+    """Generate `treeNodeSerializeASCII`."""
     function = {
         'type':        'void',
         'name':        'treeNodeSerializeASCII',
@@ -123,7 +122,7 @@ def Tree_Node_Serialize_ASCII(build):
 
 
 def Tree_Node_Serialize_XML(build):
-    """Generate `treeNodeSerializeXML`.  Mirrors `Tree_Node_Serialize_XML`."""
+    """Generate `treeNodeSerializeXML`."""
     function = {
         'type':        'void',
         'name':        'treeNodeSerializeXML',
@@ -191,7 +190,7 @@ def Tree_Node_Serialize_XML(build):
 
 
 def Tree_Node_Serialize_Raw(build):
-    """Generate `treeNodeSerializeRaw`.  Mirrors `Tree_Node_Serialize_Raw`."""
+    """Generate `treeNodeSerializeRaw`."""
     function = {
         'type':        'void',
         'name':        'treeNodeSerializeRaw',
@@ -247,7 +246,7 @@ def Tree_Node_Serialize_Raw(build):
 
 
 def Tree_Node_Deserialize_Raw(build):
-    """Generate `treeNodeDeserializeRaw`.  Mirrors `Tree_Node_Deserialize_Raw`."""
+    """Generate `treeNodeDeserializeRaw`."""
     function = {
         'type':        'void',
         'name':        'treeNodeDeserializeRaw',
@@ -369,7 +368,8 @@ def _ucfirst(text):
 
 
 # ---------------------------------------------------------------------------
-# Hook registration.  Order matches Perl Serialization.pm:21-26.
+# Hook registration.  Registration order determines the order of generated
+# code — do not reorder.
 # ---------------------------------------------------------------------------
 
 register('treeNodeSerialization', 'functions', Tree_Node_Serialize_ASCII)

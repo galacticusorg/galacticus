@@ -1590,10 +1590,10 @@ contains
     !!}
     use :: File_Utilities    , only : File_Exists
     use :: Error             , only : Error_Report
-    use :: HDF5              , only : HSIZE_T        , hsize_t
+    use :: HDF5              , only : HSIZE_T      , hsize_t
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
-    use :: ISO_Varying_String, only : assignment(=)  , char
+    use :: IO_HDF5           , only : hdf5File     , hdf5Group, hdf5Dataset
+    use :: ISO_Varying_String, only : assignment(=), char
     use :: String_Handling   , only : operator(//)
     implicit none
     integer  (kind=hsize_t )                            , intent(in   ) :: hdfChunkSize
@@ -1602,12 +1602,13 @@ contains
     character(len=*         )                           , intent(in   ) :: outputFileName
     logical                               , optional    , intent(in   ) :: append
     integer  (kind=HSIZE_T  )             , dimension(2)                :: hyperslabCount        , hyperslabStart
-    type     (hdf5Object    ), pointer                                  :: attributeGroup
-    type     (hdf5Object    ), target                                   :: cosmologyGroup        , genericGroup       , groupFinderGroup, &
-         &                                                                 forestHalos           , outputFile         , particlesGroup  , &
-         &                                                                 provenanceGroup       , simulationGroup    , treeBuilderGroup, &
-         &                                                                 treeDataset           , treeGroup          , forestIndexGroup, &
-         &                                                                 forestsGroup          , unitsGroup
+    type     (hdf5Group     ), pointer                                  :: attributeGroup
+    type     (hdf5Group     ), target                                   :: cosmologyGroup        , genericGroup       , groupFinderGroup, &
+         &                                                                 forestHalos           , particlesGroup     , provenanceGroup , &
+         &                                                                 simulationGroup       , treeBuilderGroup   , treeGroup       , &
+         &                                                                 forestIndexGroup      , forestsGroup       , unitsGroup
+    type     (hdf5File      ), target                                   :: outputFile
+    type     (hdf5Dataset   ), target                                   :: treeDataset
     integer                  , allocatable, dimension(:)                :: firstNode             , numberOfNodes
     integer                                                             :: iAttribute            , iProperty          , iTree           , &
          &                                                                 integerAttribute      , completeCount
@@ -1623,7 +1624,7 @@ contains
 
     ! Open the output file.
     !$ call hdf5Access%set()
-    outputFile=hdf5Object(outputFileName,overWrite=.not.appendActual,objectsOverwritable=.true.,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
+    outputFile=hdf5File(outputFileName,overWrite=.not.appendActual,objectsOverwritable=.true.,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
 
     ! Write a format version attribute.
     if (.not.fileExists) call outputFile%writeAttribute(2,"formatVersion")
@@ -1844,30 +1845,31 @@ contains
     use :: Error             , only : Error_Report
     use :: HDF5              , only : hsize_t
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5File     , hdf5Group  , hdf5Dataset
     use :: ISO_Varying_String, only : assignment(=), char
     implicit none
-    integer         (kind=hsize_t  )                           , intent(in   ) ::        hdfChunkSize
-    integer                                                    , intent(in   ) ::        hdfCompressionLevel
-    class           (mergerTreeData)                           , intent(inout) ::        mergerTrees
-    character       (len=*         )                           , intent(in   ) ::        outputFileName
-    logical                                                    , intent(in   ) , optional::                      append
-    type            (hdf5Object    ), pointer                                  ::        attributeGroup
-    type            (hdf5Object    ), target                                   ::        cosmologyGroup                , darkParticlesGroup  , &
-         &                                                                               haloTrees                     , mergerTreesGroup    , &
-         &                                                                               outputFile                    , particlesGroup      , &
-         &                                                                               simulationGroup               , snapshotGroup       , &
-         &                                                                               dataset
-    integer                         , allocatable, dimension(:)                ::        nodeSnapshotIndices           , snapshotIndices
-    integer         (c_size_t      ), allocatable, dimension(:)                ::        descendantSnapshot
-    double precision                , allocatable, dimension(:)                ::        particleMass
-    integer                                                                    ::        iAttribute                    , nodesOnSnapshotCount, &
-         &                                                                               particlesOnSnapshotCount
-    integer         (c_size_t      )                                           ::        iDescendant                   , iNode               , &
-         &                                                                               iSnapshot                     , snapshotMaximum     , &
-         &                                                                               snapshotMinimum
-    character       (len=14        )                                           ::        snapshotGroupName
-    logical                                                                    ::        appendActual                  , fileExists
+    integer         (kind=hsize_t  )                           , intent(in   ) :: hdfChunkSize
+    integer                                                    , intent(in   ) :: hdfCompressionLevel
+    class           (mergerTreeData)                           , intent(inout) :: mergerTrees
+    character       (len=*         )                           , intent(in   ) :: outputFileName
+    logical                         , optional                 , intent(in   ) :: append
+    type            (hdf5Group     ), pointer                                  :: attributeGroup
+    type            (hdf5Group     ), target                                   :: cosmologyGroup          , darkParticlesGroup  , &
+         &                                                                        haloTrees               , mergerTreesGroup    , &
+         &                                                                        particlesGroup          , simulationGroup     , &
+         &                                                                        snapshotGroup
+    type            (hdf5File      ), target                                   :: outputFile
+    type            (hdf5Dataset   ), target                                   :: dataset
+    integer                         , allocatable, dimension(:)                :: nodeSnapshotIndices     , snapshotIndices
+    integer         (c_size_t      ), allocatable, dimension(:)                :: descendantSnapshot
+    double precision                , allocatable, dimension(:)                :: particleMass
+    integer                                                                    :: iAttribute              , nodesOnSnapshotCount, &
+         &                                                                        particlesOnSnapshotCount
+    integer         (c_size_t      )                                           :: iDescendant             , iNode               , &
+         &                                                                        iSnapshot               , snapshotMaximum     , &
+         &                                                                        snapshotMinimum
+    character       (len=14        )                                           :: snapshotGroupName
+    logical                                                                    :: appendActual            , fileExists
 
     ! Determine if we are to append to an existing file.
     appendActual=.false.
@@ -1884,7 +1886,7 @@ contains
 
     ! Open the output file.
     !$ call hdf5Access%set()
-    outputFile=hdf5Object(outputFileName,overWrite=.not.appendActual,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
+    outputFile=hdf5File(outputFileName,overWrite=.not.appendActual,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
 
     ! Write the IRATE version.
     if (.not.fileExists) call outputFile%writeAttribute(0,"IRATEVersion")
@@ -2100,12 +2102,12 @@ contains
     !!{RST
     Store attributes describing the unit system.
     !!}
-    use :: IO_HDF5, only : hdf5Object
+    use :: IO_HDF5, only : hdf5Group
     implicit none
     type     (enumerationUnitsType), intent(in   ) :: unitType
     character(len=*               ), intent(in   ) :: unitLabel
     class    (mergerTreeData      ), intent(in   ) :: mergerTrees
-    type     (hdf5Object          ), intent(inout) :: unitsGroup
+    type     (hdf5Group           ), intent(inout) :: unitsGroup
 
     call unitsGroup%writeAttribute(mergerTrees%units(unitType%ID)%unitsInSI          ,unitLabel//"UnitsInSI"          )
     call unitsGroup%writeAttribute(mergerTrees%units(unitType%ID)%hubbleExponent     ,unitLabel//"HubbleExponent"     )
@@ -2117,13 +2119,13 @@ contains
     !!{RST
     Store unit attributes in IRATE format files.
     !!}
-    use :: IO_HDF5                     , only : hdf5Object
+    use :: IO_HDF5                     , only : hdf5Dataset
     use :: ISO_Varying_String          , only : assignment(=), operator(//)
     use :: Numerical_Constants_Prefixes, only : hecto        , kilo
     implicit none
     type            (enumerationUnitsType), dimension(:), intent(in   ) :: unitType
     class           (mergerTreeData      )              , intent(in   ) :: mergerTrees
-    type            (hdf5Object          )              , intent(inout) :: dataset
+    type            (hdf5Dataset         )              , intent(inout) :: dataset
     integer                                                             :: iUnit
     double precision                                                    :: cgsUnits   , hubbleExponent, scaleFactorExponent
     type            (varying_string      )                              :: unitName

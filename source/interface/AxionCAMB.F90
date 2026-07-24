@@ -72,7 +72,7 @@ contains
     use :: ISO_Varying_String, only : assignment(=)    , char                 , operator(//), replace       , &
           &                           varying_string
     use :: String_Handling   , only : stringSubstitute
-    use :: System_Command    , only : System_Command_Do
+    use :: System_Command    , only : System_Command_Do, shellEscape
     use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran, compilerValidate
     implicit none
     type   (varying_string), intent(  out)           :: axionCambPath, axionCambVersion
@@ -80,7 +80,8 @@ contains
     integer                                          :: status
     type   (varying_string)                          :: command
     type   (lockDescriptor)                          :: fileLock
-    type   (varying_string)                          :: lockPath     , exePath
+    type   (varying_string)                          :: lockPath     , exePath, &
+         &                                              escapedAxionCambPath
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
@@ -97,11 +98,13 @@ contains
        if (.not.File_Exists(axionCambPath)) then
           ! Download AxionCAMB if necessary.
           call displayMessage("downloading AxionCAMB code....",verbosityLevelWorking)
-          call System_Command_Do("git clone https://github.com/dgrin1/axionCAMB.git "//axionCambPath,status)
+          escapedAxionCambPath=shellEscape(axionCambPath)
+          call System_Command_Do("git clone https://github.com/dgrin1/axionCAMB.git "//escapedAxionCambPath,status)
           if (status /= 0 .or. .not.File_Exists(axionCambPath)) call Error_Report("unable to download AxionCAMB"//{introspection:location})
        end if
        call displayMessage("compiling AxionCAMB code",verbosityLevelWorking)
-       command='cd '//axionCambPath//'; sed -E -i~ s/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)\/\(P%H0\/100\)\*\*2"/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)"/ inidriver_axion.F90; sed -E -i~ s/"^F90C[[:space:]]*=[[:space:]]*[[:alpha:]]+"/"F90C = '//stringSubstitute(compiler(languageFortran),"/","\/")//'\nFFLAGS = -O3 '// &
+       escapedAxionCambPath=shellEscape(axionCambPath)
+       command='cd '//escapedAxionCambPath//'; sed -E -i~ s/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)\/\(P%H0\/100\)\*\*2"/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)"/ inidriver_axion.F90; sed -E -i~ s/"^F90C[[:space:]]*=[[:space:]]*[[:alpha:]]+"/"F90C = '//stringSubstitute(compiler(languageFortran),"/","\/")//'\nFFLAGS = -O3 '// &
             &  stringSubstitute(compilerOptions(languageFortran),"/","\/")
        if (static_) command=command//" -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
        command=command//'"/ Makefile; find . -name "*.f90" | xargs sed -E -i~ s/"error stop"/"error stop "/; make -j1 camb'
@@ -126,7 +129,7 @@ contains
     use               :: HDF5                            , only : hsize_t
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: HDF5_Access                     , only : hdf5Access
-    use               :: IO_HDF5                         , only : hdf5Object
+    use               :: IO_HDF5                         , only : hdf5File                    , hdf5Group
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
     use               :: ISO_Varying_String              , only : assignment(=)               , char                             , extract     , len           , &
           &                                                       operator(==)                , varying_string                   , operator(//)
@@ -137,7 +140,7 @@ contains
     !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
     use               :: Sorting                         , only : sortIndex
     use               :: String_Handling                 , only : operator(//)                , String_C_To_Fortran
-    use               :: System_Command                  , only : System_Command_Do
+    use               :: System_Command                  , only : System_Command_Do           , shellEscape
     use               :: Table_Labels                    , only : extrapolationTypeExtrapolate, extrapolationTypeFix
     use               :: Tables                          , only : table                       , table1DGeneric
     implicit none
@@ -171,7 +174,8 @@ contains
     character       (len=32                  )                                  :: parameterLabel                          , datasetName                   , &
          &                                                                         redshiftLabel                           , indexLabel
     type            (varying_string          )                                  :: uniqueLabel                             , workPath                      , &
-         &                                                                         transferFileName                        , fileName_
+         &                                                                         transferFileName                        , fileName_                     , &
+         &                                                                         escapedExecutable                       , escapedParameterFile
     type            (inputParameters         )                                  :: descriptor
     logical                                                                     :: allEpochsFound
     !![
@@ -226,8 +230,9 @@ contains
        allEpochsFound=.true.
        !$ call hdf5Access%set()
        hdf5ReadScope: block
-         type(hdf5Object) :: axionCambOutput, speciesGroup
-         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         type(hdf5File ) :: axionCambOutput
+         type(hdf5Group) :: speciesGroup
+         axionCambOutput=hdf5File(fileName_,readOnly=.true.)
          call axionCambOutput%readDataset('wavenumber',wavenumbers)
          allocate(transferFunctions(size(wavenumbers),4,size(redshifts)))
          speciesGroup=axionCambOutput%openGroup('darkMatter')
@@ -286,8 +291,9 @@ contains
        if (File_Exists(fileName_)) then
           !$ call hdf5Access%set()
           hdf5DatasetsScope: block
-            type(hdf5Object) :: axionCambOutput, speciesGroup
-            axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+            type(hdf5File ) :: axionCambOutput
+            type(hdf5Group) :: speciesGroup
+            axionCambOutput=hdf5File(fileName_,readOnly=.true.)
             speciesGroup=axionCambOutput%openGroup('darkMatter')
             call speciesGroup%datasets(datasetNames)
           end block hdf5DatasetsScope
@@ -449,7 +455,9 @@ contains
        write (axionCambParameterFile,'(a,1x,"=",1x,i1   )') 'l_sample_boost               ',1
        close(axionCambParameterFile)
        ! Run AxionCAMB.
-       call System_Command_Do(axionCambPath//"camb "//parameterFile)
+       escapedExecutable   =shellEscape(axionCambPath//"camb")
+       escapedParameterFile=shellEscape(parameterFile        )
+       call System_Command_Do(escapedExecutable//" "//escapedParameterFile)
        ! Read the AxionCAMB transfer function file.
        if (allocated(wavenumbers      )) deallocate(wavenumbers      )
        if (allocated(transferFunctions)) deallocate(transferFunctions)
@@ -503,10 +511,10 @@ contains
        ! Construct the output HDF5 file.
        !$ call hdf5Access%set()
        hdf5WriteScope: block
-         type(hdf5Object) :: axionCambOutput             , parametersGroup   , &
-              &              extrapolationWavenumberGroup, extrapolationGroup, &
-              &              speciesGroup
-         axionCambOutput=hdf5Object(fileName_,readOnly=.false.,objectsOverwritable=.true.)
+         type(hdf5File ) :: axionCambOutput
+         type(hdf5Group) :: parametersGroup             , extrapolationWavenumberGroup, &
+              &             extrapolationGroup          , speciesGroup
+         axionCambOutput=hdf5File(fileName_,readOnly=.false.,objectsOverwritable=.true.)
          call axionCambOutput%writeAttribute('Transfer functions created by AxionCAMB.','description')
          call axionCambOutput%writeAttribute(axionCambFormatVersionCurrent,'fileFormat')
          call axionCambOutput%writeDataset(wavenumbers    ,'wavenumber'                                 ,chunkSize=chunkSize,appendTo=.not.axionCambOutput%hasDataset('wavenumber'))
@@ -554,8 +562,9 @@ contains
     if (present(transferFunctionDarkMatter)) then
        !$ call hdf5Access%set()
        hdf5TransferFunctionDarkMatterScope: block
-         type(hdf5Object) :: axionCambOutput, speciesGroup
-         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         type(hdf5File ) :: axionCambOutput
+         type(hdf5Group) :: speciesGroup
+         axionCambOutput=hdf5File(fileName_,readOnly=.true.)
          call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call transferFunctionDarkMatter     %create(                                                 &
@@ -582,8 +591,9 @@ contains
     if (present(transferFunctionColdDarkMatter)) then
        !$ call hdf5Access%set()
        hdf5TransferFunctionCDMScope: block
-         type(hdf5Object) :: axionCambOutput, speciesGroup
-         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         type(hdf5File ) :: axionCambOutput
+         type(hdf5Group) :: speciesGroup
+         axionCambOutput=hdf5File(fileName_,readOnly=.true.)
          call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call transferFunctionColdDarkMatter %create(                                                 &
@@ -610,8 +620,9 @@ contains
     if (present(transferFunctionFuzzyDarkMatter)) then
        !$ call hdf5Access%set()
        hdf5TransferFunctionAxionsScope: block
-         type(hdf5Object) :: axionCambOutput, speciesGroup
-         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         type(hdf5File ) :: axionCambOutput
+         type(hdf5Group) :: speciesGroup
+         axionCambOutput=hdf5File(fileName_,readOnly=.true.)
          call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call transferFunctionFuzzyDarkMatter%create(                                                 &
@@ -638,8 +649,9 @@ contains
     if (present(transferFunctionBaryons)) then
        !$ call hdf5Access%set()
        hdf5TransferFunctionBaryonsScope: block
-         type(hdf5Object) :: axionCambOutput, speciesGroup
-         axionCambOutput=hdf5Object(fileName_,readOnly=.true.)
+         type(hdf5File ) :: axionCambOutput
+         type(hdf5Group) :: speciesGroup
+         axionCambOutput=hdf5File(fileName_,readOnly=.true.)
          call axionCambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
          wavenumbersLogarithmic=log(wavenumbersLogarithmic)
          call transferFunctionBaryons        %create(                                                 &

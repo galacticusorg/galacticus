@@ -31,15 +31,21 @@
 
    .. math::
 
-      W(kR) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } \frac{kR}{c_\mathrm{W}} &lt; x_\mathrm{min} \\ \frac{1}{1+ \left(\frac{kR}{c_\mathrm{W}} - x_\mathrm{min}\right)^\beta} &amp; \hbox{otherwise,} \end{array} \right.
+      W(kR) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } \frac{kR}{c_\mathrm{W}} &lt; x_\mathrm{min} \\ \left[ 1+ \left(\frac{kR}{c_\mathrm{W}} - x_\mathrm{min}\right)^\beta \right]^{-1} &amp; \hbox{otherwise,} \end{array} \right.
 
-   but the parameters :math:`c_\mathrm{W}` and :math:`\beta` are now scale dependent following
+   with :math:`x_\mathrm{min}=` ``[wavenumberScaledMinimum]``, but the parameters :math:`c_\mathrm{W}` and :math:`\beta` are now scale dependent following
 
    .. math::
 
       x = x_0 x_1^{n-n_0}
 
-   where :math:`x` refers to either :math:`c_\mathrm{W}` or :math:`\beta`, :math:`n = \mathrm{d}\log P / \mathrm{d} \log k` is the logarithmic derivative of the linear theory power spectrum, and :math:`n_0 = -2.6` is a convenient zero-point.
+   where :math:`x` refers to either :math:`c_\mathrm{W}` or :math:`\beta` (controlled by parameters ``[cW0]``, ``[cW1]``, ``[beta0]``, and ``[beta1]``,, :math:`n = \mathrm{d}\log \tilde{P} / \mathrm{d} \log k` is the logarithmic derivative of the smoothed linear theory power spectrum, :math:`\tilde{P}`, and :math:`n_0 = -2.6` is a convenient zero-point. The smoothed power spectrum is defined as
+
+   .. math::
+
+      \tilde{P}(k) = \int_0^\infty \frac{1}{\sqrt{2 \pi} \sigma} \exp\left[-\frac{1}{2} \left(\frac{\log k - \log k^\prime}{\sigma}\right)^2\right] P(k^\prime) \mathrm{d}k^\prime,
+
+   with the :math:`\log k` terms using natural logarithms, and :math:`\sigma=` ``[powerSpectrumSmoothingWidth]``.
    </description>
   </powerSpectrumWindowFunction>
   !!]

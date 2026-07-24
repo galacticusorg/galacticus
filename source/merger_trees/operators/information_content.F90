@@ -174,11 +174,12 @@ contains
     use :: Output_HDF5, only : outputFile
     use :: HDF5       , only : hsize_t
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5Object
+    use :: IO_HDF5    , only : hdf5File  , hdf5Group , hdf5Dataset
     implicit none
     class  (mergerTreeOperatorInformationContent), intent(inout) :: self
     integer(hsize_t                             ), parameter     :: chunkSize              =1024_hsize_t
-    type   (hdf5Object                          )                :: informationContentGroup             , dataset
+    type   (hdf5Group                           )                :: informationContentGroup
+    type   (hdf5Dataset                         )                :: dataset
     logical                                                      :: preexisting
 
     ! Check if we have data to output.

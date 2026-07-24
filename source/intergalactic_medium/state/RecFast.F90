@@ -85,11 +85,11 @@ contains
           &                                         File_Unlock                 , File_Name_Temporary, File_Remove
     use :: Input_Paths                     , only : inputPath                   , pathTypeDataDynamic
     use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5Object
+    use :: IO_HDF5                         , only : hdf5File                    , hdf5Group          , hdf5Dataset
     use :: Interfaces_RecFast              , only : Interface_RecFast_Initialize
     use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use :: Units_MetaData                  , only : unitType
-    use :: System_Command                  , only : System_Command_Do
+    use :: System_Command                  , only : System_Command_Do           , shellEscape
     implicit none
     type            (intergalacticMediumStateRecFast)                              :: self
     class           (cosmologyFunctionsClass        ), intent(in   ), target       :: cosmologyFunctions_
@@ -99,7 +99,8 @@ contains
          &                                                                            matterTemperature
     character       (len=32                         )                              :: parameterLabel
     type            (varying_string                 )                              :: parameterFile       , recFastFile      , &
-         &                                                                            recfastPath         , recfastVersion
+         &                                                                            recfastPath         , recfastVersion   , &
+         &                                                                            escapedExecutable   , escapedParameterFile
     double precision                                                               :: omegaDarkMatter
     integer                                                                        :: fileFormatVersion   , i                , &
          &                                                                            countRedshift       , parametersUnit   , &
@@ -138,8 +139,8 @@ contains
        ! Check file version number.
        !$ call hdf5Access%set()
        hdf5ReadScope: block
-         type(hdf5Object) :: outputFile 
-         outputFile=hdf5Object(char(self%fileName),overwrite=.false.,readOnly=.true.)
+         type(hdf5File  ) :: outputFile
+         outputFile=hdf5File(self%fileName,overwrite=.false.,readOnly=.true.)
          call outputFile%readAttribute('fileFormat',fileFormatVersion)
        end block hdf5ReadScope
        !$ call hdf5Access%unset()
@@ -163,7 +164,9 @@ contains
        close(parametersUnit)
        ! Run RecFast.
        call File_Lock(char(recfastPath//"recfast.exe"),fileLock,lockIsShared=.false.)
-       call System_Command_Do(recfastPath//"recfast.exe < "//parameterFile)
+       escapedExecutable   =shellEscape(recfastPath//"recfast.exe")
+       escapedParameterFile=shellEscape(parameterFile             )
+       call System_Command_Do(escapedExecutable//" < "//escapedParameterFile)
        call File_Unlock(fileLock)
        ! Parse the output file.
        countRedshift=Count_Lines_in_File(recFastFile)-1
@@ -183,9 +186,10 @@ contains
        ! Create the output file.
        !$ call hdf5Access%set()
        hdf5WriteScope: block
-         type(hdf5Object) :: outputFile, dataset          , &
-              &             provenance , recFastProvenance
-         outputFile=hdf5Object(self%fileName,overwrite=.true.)
+         type(hdf5File   ) :: outputFile
+         type(hdf5Dataset) :: dataset
+         type(hdf5Group  ) :: provenance, recFastProvenance
+         outputFile=hdf5File(self%fileName,overwrite=.true.)
          call outputFile%writeDataset  (redshift           ,'redshift'         ,'Redshift'                                            )
          call outputFile%writeDataset  (electronFraction   ,'electronFraction' ,'Electron fraction'                                   )
          call outputFile%writeDataset  (hIonizedFraction   ,'hIonizedFraction' ,'Fraction of ionized hydrogen'                        )

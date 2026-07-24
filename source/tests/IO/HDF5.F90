@@ -24,9 +24,11 @@ program Tests_IO_HDF5
   use :: Display           , only : displayVerbositySet, verbosityLevelStandard
   use :: Error             , only : Error_Report
   use :: HDF5              , only : HSIZE_T
-  use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5Object            , hdf5VarDouble       , hdf5VarInteger8  , &
-       &                            hdf5VarDouble2D    , hdf5DataTypeDouble
-  use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string      , var_str          , char
+  use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5File              , hdf5VarDouble       , hdf5VarInteger8  , &
+       &                            hdf5VarDouble2D    , hdf5DataTypeDouble    , hdf5File            , hdf5Group        , &
+       &                            hdf5Dataset
+  use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string      , var_str          , &
+       &                            char
   use :: Kind_Numbers      , only : kind_int8
   use :: System_Command    , only : System_Command_Do
   use :: Units_MetaData    , only : unitType
@@ -103,8 +105,9 @@ program Tests_IO_HDF5
   do iPass=1,2
      ! Open an HDF5 file.
      block
-       type(hdf5Object) :: fileObject, groupObject
-       fileObject=hdf5Object("testSuite/outputs/test.IO.HDF5.hdf5",overWrite=.true.,objectsOverwritable=.true.,useLatestFormat=.true.)
+       type(hdf5File ) :: fileObject
+       type(hdf5Group) :: groupObject
+       fileObject=hdf5File("testSuite/outputs/test.IO.HDF5.hdf5",overWrite=.true.,objectsOverwritable=.true.,useLatestFormat=.true.)
        ! Open an HDF5 group.
        select case (iPass)
        case(1)
@@ -311,7 +314,7 @@ program Tests_IO_HDF5
        call Assert("re-read part of a 1-D array integer dataset to allocatable array",integerValueArray(3:6),integerValueArrayReread)
        deallocate(integerValueArrayReread)
        block
-         type(hdf5Object) :: datasetObject
+         type(hdf5Dataset) :: datasetObject
          ! Open the dataset.
          datasetObject=groupObject%openDataset("integerDataset1dArray")
          ! Create a reference to the dataset object.
@@ -390,7 +393,7 @@ program Tests_IO_HDF5
        call Assert("re-read part of a 1-D array long integer dataset to allocatable array",integer8ValueArray(3:6),integer8ValueArrayReread)
 
        block
-         type(hdf5Object) :: datasetObject
+         type(hdf5Dataset) :: datasetObject
          ! Open the dataset.
          datasetObject=groupObject%openDataset("integer8Dataset1dArray")
          ! Create a reference to the dataset object.
@@ -464,7 +467,7 @@ program Tests_IO_HDF5
        call Assert("re-read part of a 1-D array double dataset to allocatable array",doubleValueArray(3:6),doubleValueArrayReread)
        deallocate(doubleValueArrayReread)
        block
-         type(hdf5Object) :: datasetObject
+         type(hdf5Dataset) :: datasetObject
          ! Open the dataset.
          datasetObject=groupObject%openDataset("doubleDataset1dArray")
          ! Create a reference to the dataset object.
@@ -540,7 +543,7 @@ program Tests_IO_HDF5
        call Assert("re-read part of a 2-D array double dataset to allocatable array",doubleValueArray2d(3:6,6:8),doubleValueArray2dReread(1:4,1:3))
        deallocate(doubleValueArray2dReread)
        block
-         type(hdf5Object) :: datasetObject
+         type(hdf5Dataset) :: datasetObject
          ! Open the dataset.
          datasetObject=groupObject%openDataset("doubleDataset2dArray")
          ! Create a reference to the dataset object.
@@ -604,7 +607,7 @@ program Tests_IO_HDF5
        call Assert("re-read part of a 3-D array double dataset to allocatable array",doubleValueArray3d(3:6,6:8,2:6),doubleValueArray3dReread(1:4,1:3,1:5))
        deallocate(doubleValueArray3dReread)
        block
-         type(hdf5Object) :: datasetObject
+         type(hdf5Dataset) :: datasetObject
          ! Open the dataset.
          datasetObject=groupObject%openDataset("doubleDataset3dArray")
          ! Create a reference to the dataset object.
@@ -667,13 +670,13 @@ program Tests_IO_HDF5
        call Assert("re-read part of a 4-D array double dataset to allocatable array",doubleValueArray4d(3:6,6:8,2:6,7:8),doubleValueArray4dReread(1:4,1:3,1:5,1:2))
        deallocate(doubleValueArray4dReread)
        block
-         type(hdf5Object) :: datasetObject
+         type(hdf5Dataset) :: datasetObject
          ! Check the dimensions of the dataset.
          datasetObject=groupObject%openDataset("doubleDataset4dArray")
          call Assert("get dimensions of a dataset",[10,10,10,10],[int(datasetObject%size(1)),int(datasetObject%size(2)),int(datasetObject%size(3)),int(datasetObject%size(4))])
        end block
        block
-         type(hdf5Object) :: datasetObject
+         type(hdf5Dataset) :: datasetObject
          ! Open the dataset.
          datasetObject=groupObject%openDataset("doubleDataset4dArray")
          ! Create a reference to the dataset object.
@@ -736,7 +739,7 @@ program Tests_IO_HDF5
        call Assert("re-read part of a 5-D array double dataset to allocatable array",doubleValueArray5d(3:6,6:8,2:6,7:8,2:7),doubleValueArray5dReread(1:4,1:3,1:5,1:2,1:6))
        deallocate(doubleValueArray5dReread)
        block
-         type(hdf5Object) :: datasetObject
+         type(hdf5Dataset) :: datasetObject
          ! Open the dataset.
          datasetObject=groupObject%openDataset("doubleDataset5dArray")
          ! Create a reference to the dataset object.
@@ -1005,7 +1008,7 @@ program Tests_IO_HDF5
        ! the chunksize to less than the maximum allowed.
        if (iPass == 2) then
           block
-            type(hdf5Object) :: datasetObject
+            type(hdf5Dataset) :: datasetObject
             datasetObject=fileObject%openDataset('bigDataset','A dataset larger than 4GB.',hdf5DataTypeDouble,[600_hsize_t,100_hsize_t,100_hsize_t,100_hsize_t],chunkSize=1024_hsize_t)
           end block
        end if
@@ -1013,7 +1016,7 @@ program Tests_IO_HDF5
        ! Write an attribute of length >64KB by forcing dense storage of
        ! attributes in s group.
        block
-         type(hdf5Object) :: groupObject2
+         type(hdf5Group) :: groupObject2
          groupObject2=fileObject%openGroup("myGroup64k",comment="This is my group for 64k attributes.",objectsOverwritable=.true.,chunkSize=1024_hsize_t&
               &,compressionLevel=9,attributesCompactMaxiumum=0)
          varStringValue=repeat("rain day happy calm dog joy joy over bright falls rain lazy shin ",1025)
@@ -1022,7 +1025,7 @@ program Tests_IO_HDF5
 
        ! Open an entire path of groups.
        block
-         type(hdf5Object), allocatable, dimension(:) :: groupObjects
+         type(hdf5Group), allocatable, dimension(:) :: groupObjects
          call fileObject%openGroupPath('open/groups/in/a/path',groupObjects)
          call Assert("open an entire path of groups",char(groupObjects(5)%pathTo(includeFileName=.false.)),'open/groups/in/a/path')
        end block
@@ -1030,9 +1033,10 @@ program Tests_IO_HDF5
        ! Read a 32-bit unsigned integer 1-D array into a 64-bit signed integer 1-D array.
        if (iPass==2) then
           block
-            type(hdf5Object) :: fileObject2, groupObject2
+            type(hdf5File ) :: fileObject2
+            type(hdf5Group) :: groupObject2
             ! Open the HDF5 file which stores the smallest and the largest 32-bit unsigned integers.
-            fileObject2 =hdf5Object("testSuite/data/IntegerRangeU32.hdf5")
+            fileObject2 =hdf5File("testSuite/data/IntegerRangeU32.hdf5")
             ! Open the root group.
             groupObject2=fileObject2%openGroup("/",comment="Root group.")
             ! Read the dataset.
@@ -1049,10 +1053,10 @@ program Tests_IO_HDF5
 
   ! Test of h5py compatibility.
   block
-     type(hdf5Object) :: fileObject
+     type(hdf5File  ) :: fileObject
      call Unit_Tests_Begin_Group("h5py compatibility")
      call System_Command_Do("./testSuite/scripts/generate_h5py.py")
-     fileObject=hdf5Object("testSuite/outputs/h5py.hdf5",overWrite=.false.,objectsOverwritable=.false.)
+     fileObject=hdf5File("testSuite/outputs/h5py.hdf5",overWrite=.false.,objectsOverwritable=.false.)
      call fileObject%readAttribute("stringAttribute"            ,          varStringValueReread       )
      call fileObject%readAttribute("stringAttribute"            ,          characterValueReread       )
      call Assert("read h5py string attribute (character)",characterValueReread,"this is a variable length string")

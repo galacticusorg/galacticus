@@ -20,5 +20,6 @@ __pycache__
 .pytest_cache
 .DS_Store
 .vscode/*
+!.vscode/extensions.json
 !.vscode/settings.json
 .ipynb_checkpoints

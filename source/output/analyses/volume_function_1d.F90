@@ -849,14 +849,15 @@ contains
     !!}
     use :: Output_HDF5   , only : outputFile
     use :: HDF5_Access   , only : hdf5Access
-    use :: IO_HDF5       , only : hdf5Object
+    use :: IO_HDF5       , only : hdf5File  , hdf5Group, hdf5Dataset
     use :: Units_MetaData, only : unitType
     implicit none
     class(outputAnalysisVolumeFunction1D), intent(inout)           :: self
     type (varying_string                ), intent(in   ), optional :: groupName
-    type (hdf5Object                    )               , target   :: analysesGroup, subGroup
-    type (hdf5Object                    )               , pointer  :: inGroup
-    type (hdf5Object                    )                          :: analysisGroup, dataset
+    type (hdf5Group                     )               , target   :: analysesGroup, subGroup
+    type (hdf5Group                     )               , pointer  :: inGroup
+    type (hdf5Group                     )                          :: analysisGroup
+    type (hdf5Dataset                   )                          :: dataset
 
     ! Finalize analysis.
     call self%finalizeAnalysis()
@@ -912,10 +913,10 @@ contains
     !!{RST
     Write the log-likelihood of this analysis to the output group. This default implementation writes the log-likelihood returned by the :galacticus-class:`outputAnalysisVolumeFunction1D`  logLikelihood method whenever a target dataset is available. Child classes that compute their own log-likelihood (and which may not, e.g., initialize the covariance matrix used by the default  logLikelihood method) should override this method so that the parent-class  logLikelihood is never evaluated.
     !!}
-    use :: IO_HDF5, only : hdf5Object
+    use :: IO_HDF5, only : hdf5File, hdf5Group
     implicit none
     class(outputAnalysisVolumeFunction1D), intent(inout) :: self
-    type (hdf5Object                    ), intent(inout) :: analysisGroup
+    type (hdf5Group                     ), intent(inout) :: analysisGroup
 
     if (self%targetData_%hasTarget()) &
          & call analysisGroup%writeAttribute(self%logLikelihood(),'logLikelihood')
@@ -926,10 +927,10 @@ contains
     !!{RST
     Write class-specific metadata to the analysis output group. This default implementation does nothing; child classes may override it to add further attributes or datasets to the analysis group.
     !!}
-    use :: IO_HDF5, only : hdf5Object
+    use :: IO_HDF5, only : hdf5File, hdf5Group
     implicit none
     class(outputAnalysisVolumeFunction1D), intent(inout) :: self
-    type (hdf5Object                    ), intent(inout) :: analysisGroup
+    type (hdf5Group                     ), intent(inout) :: analysisGroup
     !$GLC attributes unused :: self, analysisGroup
 
     return

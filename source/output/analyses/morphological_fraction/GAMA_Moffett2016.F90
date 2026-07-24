@@ -150,7 +150,7 @@ contains
     use :: Input_Paths                           , only : inputPath                                          , pathTypeDataStatic
     use :: Geometry_Surveys                      , only : surveyGeometryBaldry2012GAMA
     use :: HDF5_Access                           , only : hdf5Access
-    use :: IO_HDF5                               , only : hdf5Object
+    use :: IO_HDF5                               , only : hdf5File
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar                   , nodePropertyExtractorMassStellarMorphology
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
@@ -162,6 +162,7 @@ contains
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
     use :: Output_Times                          , only : outputTimesClass
     use :: Statistics_Distributions              , only : distributionFunction1DBeta
+    use :: ISO_Varying_String                    , only : operator(//)
     implicit none
     type            (outputAnalysisMorphologicalFractionGAMAMoffett2016   )                                :: self
     double precision                                                       , intent(in   )                 :: ratioEarlyType                                                         , ratioEarlyTypeError                     , &
@@ -195,7 +196,7 @@ contains
     integer         (c_size_t                                             ), parameter                     :: bufferCount                                     =10
     type            (distributionFunction1DBeta                           )                                :: betaDistributionLower                                                  , betaDistributionUpper
     integer         (c_size_t                                             )                                :: iBin                                                                   , binCount
-    type            (hdf5Object                                           )                                :: dataFile
+    type            (hdf5File                                             )                                :: dataFile
     double precision                                                                                       :: probit                                                                 , sqrtArg
     type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
@@ -204,7 +205,7 @@ contains
     
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
-    dataFile=hdf5Object(char(inputPath(pathTypeDataStatic))//"observations/morphology/earlyTypeFractionGAMA.hdf5",readOnly=.true.)
+    dataFile=hdf5File(inputPath(pathTypeDataStatic)//"observations/morphology/earlyTypeFractionGAMA.hdf5",readOnly=.true.)
     call dataFile%readDataset("mass"      ,masses               )
     call dataFile%readDataset("countEarly",self%countEarlyTarget)
     !$ call hdf5Access%unset()
@@ -497,13 +498,13 @@ contains
     !!}
     use :: Output_HDF5   , only : outputFile
     use :: HDF5_Access   , only : hdf5Access
-    use :: IO_HDF5       , only : hdf5Object
+    use :: IO_HDF5       , only : hdf5File  , hdf5Group, hdf5Dataset
     use :: Units_MetaData, only : unitType
     implicit none
     class(outputAnalysisMorphologicalFractionGAMAMoffett2016), intent(inout)           :: self
     type (varying_string                                    ), intent(in   ), optional :: groupName
-    type (hdf5Object                                        )                          :: analysesGroup, analysisGroup, &
-         &                                                                                dataset
+    type (hdf5Group                                         )                          :: analysesGroup, analysisGroup
+    type (hdf5Dataset                                       )                          :: dataset
 
     ! Finalize the analysis.
     call self%finalizeAnalysis()

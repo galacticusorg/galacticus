@@ -4,8 +4,6 @@ attributes, and emits a setter that defaults the `_`-variable and copies in
 the caller-supplied value when `present()`.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/SourceTree/Process/OptionalArgument.pm
 """
 
 import re
@@ -22,7 +20,7 @@ def _is_argument_attribute(attr):
 
 
 def process_optional_arguments(tree, options):
-    """Mirrors Process_OptionalArguments() from OptionalArgument.pm."""
+    """Process `optionalArgument` directives in the tree."""
     for node in walk_tree(tree):
         if node.get('type') != 'optionalArgument':
             continue

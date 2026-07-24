@@ -17,7 +17,7 @@ Prerequisites
 
 Building the Python library requires the same toolchain used to build the main Galacticus executable (a Fortran 95 compiler, a C compiler, and the :term:`GNU` Make build system) plus the following additional requirements:
 
-* Python 3 (:math:`\geq` 3.9), together with the Python packages used by the build-time preprocessing and code-generation scripts (such as ``scripts/build/preprocess.py`` and ``scripts/build/buildCode.py``).  These are declared in the top-level ``pyproject.toml`` and installed in one step from the repository root with:
+* Python 3 (:math:`\geq` 3.9), together with the Python packages used by the build-time preprocessing and code-generation scripts (such as ``scripts/build/preprocess.py`` and ``scripts/build/codeDirectivesParse.py``).  These are declared in the top-level ``pyproject.toml`` and installed in one step from the repository root with:
 
   .. code-block:: none
 

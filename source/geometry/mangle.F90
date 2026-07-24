@@ -331,7 +331,7 @@ contains
     use :: ISO_Varying_String, only : operator(//)     , varying_string       , char           , assignment(=)
     use :: String_Handling   , only : stringSubstitute
     use :: System_Download   , only : download
-    use :: System_Command    , only : System_Command_Do
+    use :: System_Command    , only : System_Command_Do, shellEscape
     use :: System_Compilers  , only : compiler         , compilerOptions      , languageFortran, languageC, &
          &                            compilerValidate
     implicit none
@@ -339,7 +339,9 @@ contains
     logical                , intent(in   ), optional :: static
     integer                                          :: status
     type   (lockDescriptor)                          :: fileLock
-    type   (varying_string)                          :: command   , staticOptions
+    type   (varying_string)                          :: command         , staticOptions, &
+         &                                              escapedToolsPath, escapedTarFile, &
+         &                                              escapedSrcDir
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
@@ -362,12 +364,16 @@ contains
              if (status /= 0 .or. .not.File_Exists(manglePath//".tar.gz")) call Error_Report("unable to download mangle"//{introspection:location})
           end if
           call displayMessage("unpacking mangle code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//inputPath(pathTypeTools)//" -f "//manglePath//".tar.gz",status)
+          escapedToolsPath=inputPath(pathTypeTools)
+          escapedToolsPath=shellEscape(escapedToolsPath)
+          escapedTarFile  =shellEscape(manglePath//".tar.gz"   )
+          call System_Command_Do("tar -x -v -z -C "//escapedToolsPath//" -f "//escapedTarFile,status)
           if (status /= 0 .or. .not.File_Exists(manglePath//"src/Makefile.in")) call Error_Report('failed to unpack mangle code'//{introspection:location})
        end if
        staticOptions=""
        if (static_) staticOptions=" -Wl,--whole-archive -lpthread -ldl -Wl,--no-whole-archive"
-       command=         'cd '//manglePath//'src; ./configure; '
+       escapedSrcDir=shellEscape(manglePath//"src")
+       command=         'cd '//escapedSrcDir//'; ./configure; '
        command=command//'sed -E -i~ s/"^F77[[:space:]]*=[[:space:]]*[a-zA-Z0-9]+"/"F77 = '//                 compiler       (languageFortran)                         //'"/ Makefile; '
        command=command//'sed -E -i~ s/"^CC[[:space:]]*=[[:space:]]*[a-zA-Z0-9]+"/"CC = '  //                 compiler       (languageC      )                         //'"/ Makefile; '
        command=command//'sed -E -i~ s/"^FFLAGS[[:space:]]*:=(.*)"/"FFLAGS:=\1 '           //stringSubstitute(compilerOptions(languageFortran),"/","\/")//staticOptions//'"/ Makefile; '
@@ -389,12 +395,12 @@ contains
         &                                   lockDescriptor
     use :: Error                   , only : Error_Report
     use :: HDF5_Access             , only : hdf5Access
-    use :: IO_HDF5                 , only : hdf5Object
+    use :: IO_HDF5                 , only : hdf5File
     use :: ISO_Varying_String      , only : char              , extract            , len               , operator(//), &
           &                                 operator(==)      , varying_string
     use :: Numerical_Constants_Math, only : Pi
     use :: String_Handling         , only : String_Count_Words, String_Join        , String_Split_Words, char
-    use :: System_Command          , only : System_Command_Do
+    use :: System_Command          , only : System_Command_Do , shellEscape
     implicit none
     type            (varying_string), intent(in   ), dimension(             : ) :: fileNames
     character       (len=*         ), intent(in   ), optional                   :: solidAngleFileName
@@ -402,18 +408,20 @@ contains
     type            (varying_string), allocatable  , dimension(             : ) :: subFiles
     integer                                                                     :: i                       , j            , &
          &                                                                         status                  , wlmFile
-    type            (varying_string)                                            :: fileName                , fileNameTmp  , &
-         &                                                                         manglePath              , mangleVersion
+    type            (varying_string)                                            :: fileName                , fileNameTmp       , &
+         &                                                                         manglePath              , mangleVersion     , &
+         &                                                                         escapedHarmonize        , escapedFileName   , &
+         &                                                                         escapedFileNameTmp
     double precision                                                            :: multiplier              , subSolidAngle, &
          &                                                                         w00
-    type            (hdf5Object    )                                            :: solidAngleFile
+    type            (hdf5File      )                                            :: solidAngleFile
     type            (lockDescriptor)                                            :: fileLock
 
     ! Check for pre-existing calculation.
     if (present(solidAngleFileName).and.File_Exists(solidAngleFileName)) then
        call File_Lock(solidAngleFileName,fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set  ()
-       solidAngleFile=hdf5Object(solidAngleFileName,overWrite=.false.,readOnly=.true.)
+       solidAngleFile=hdf5File(solidAngleFileName,overWrite=.false.,readOnly=.true.)
        call solidAngleFile%readDatasetStatic('solidAngle',geometryMangleSolidAngle)
        !$ call hdf5Access%unset()
        call File_Unlock(fileLock)
@@ -437,7 +445,10 @@ contains
              multiplier=-1.0d0
           end if
           fileNameTmp=File_Name_Temporary('geometryMangleSolidAngle')
-          call System_Command_Do(manglePath//"bin/harmonize "//fileName//" "//fileNameTmp,status)
+          escapedHarmonize  =shellEscape(manglePath//"bin/harmonize")
+          escapedFileName   =shellEscape(fileName                   )
+          escapedFileNameTmp=shellEscape(fileNameTmp                )
+          call System_Command_Do(escapedHarmonize//" "//escapedFileName//" "//escapedFileNameTmp,status)
           if (status /= 0) call Error_Report('failed to run mangle harmonize'//{introspection:location})
           open(newUnit=wlmFile,file=char(fileNameTmp),status="old",form="formatted")
           read (wlmFile,*)
@@ -452,7 +463,7 @@ contains
     if (present(solidAngleFileName)) then
        call File_Lock(solidAngleFileName,fileLock,lockIsShared=.false.)
        !$ call hdf5Access%set  ()
-       solidAngleFile=hdf5Object(solidAngleFileName,overWrite=.true.)
+       solidAngleFile=hdf5File(solidAngleFileName,overWrite=.true.)
        call solidAngleFile%writeAttribute(String_Join(fileNames               ,":"),          'files'     )
        call solidAngleFile%writeDataset  (            geometryMangleSolidAngle     ,          'solidAngle')
        call solidAngleFile%flush         (                                                                )
@@ -470,11 +481,11 @@ contains
          &                            lockDescriptor
     use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
-    use :: IO_HDF5           , only : hdf5Object
+    use :: IO_HDF5           , only : hdf5File
     use :: ISO_Varying_String, only : char              , extract            , len               , operator(//), &
           &                           operator(==)      , var_str            , varying_string
     use :: String_Handling   , only : String_Count_Words, String_Join        , String_Split_Words, operator(//)
-    use :: System_Command    , only : System_Command_Do
+    use :: System_Command    , only : System_Command_Do , shellEscape
     implicit none
     type            (varying_string), intent(in   ), dimension(             :                                                               ) :: fileNames
     integer                         , intent(in   )                                                                                           :: degreeMaximum
@@ -483,22 +494,24 @@ contains
     double precision                               , dimension(                                      2                                      ) :: coefficient
     double precision                               , dimension(size(fileNames)                      ,2,(degreeMaximum+1)*(degreeMaximum+2)/2) :: coefficients
     type            (varying_string), allocatable  , dimension(             :                                                               ) :: subFiles
-    type            (varying_string)                                                                                                          :: fileName                  , fileNameTmp  , &
-         &                                                                                                                                       manglePath                , mangleVersion
+    type            (varying_string)                                                                                                          :: fileName                  , fileNameTmp      , &
+         &                                                                                                                                       manglePath                , mangleVersion    , &
+         &                                                                                                                                       escapedHarmonize          , escapedFileName  , &
+         &                                                                                                                                       escapedFileNameTmp
     integer                                                                                                                                   :: degree                    , order        , &
          &                                                                                                                                       status                    , wlmFile      , &
          &                                                                                                                                       i                         , j            , &
          &                                                                                                                                       k                         , l            , &
          &                                                                                                                                       p                         , q
     double precision                                                                                                                          :: multiplier                , weight
-    type            (hdf5Object    )                                                                                                          :: angularPowerFile
+    type            (hdf5File      )                                                                                                          :: angularPowerFile
     type            (lockDescriptor)                                                                                                          :: fileLock
 
     ! Read the angular power from file if possible.
     if (present(angularPowerFileName).and.File_Exists(angularPowerFileName)) then
        call File_Lock(angularPowerFileName,fileLock,lockIsShared=.true.)
        !$ call hdf5Access%set  ()
-       angularPowerFile=hdf5Object(angularPowerFileName,readOnly=.true.)
+       angularPowerFile=hdf5File(angularPowerFileName,readOnly=.true.)
        l=0
        do p=1,size(fileNames)
           do q=p,size(fileNames)
@@ -529,7 +542,10 @@ contains
              multiplier=-1.0d0
           end if
           fileNameTmp=File_Name_Temporary('geometryMangleAngularPower')
-          call System_Command_Do(manglePath//"bin/harmonize -l "//degreeMaximum//" "//fileName//" "//fileNameTmp,status)
+          escapedHarmonize  =shellEscape(manglePath//"bin/harmonize")
+          escapedFileName   =shellEscape(fileName                   )
+          escapedFileNameTmp=shellEscape(fileNameTmp                )
+          call System_Command_Do(escapedHarmonize//" -l "//degreeMaximum//" "//escapedFileName//" "//escapedFileNameTmp,status)
           if (status /= 0) call Error_Report('failed to run mangle harmonize'//{introspection:location})
           open(newUnit=wlmFile,file=char(fileNameTmp),status="old",form="formatted")
           read (wlmFile,*)
@@ -572,7 +588,7 @@ contains
     if (present(angularPowerFileName)) then
        call File_Lock(angularPowerFileName,fileLock,lockIsShared=.false.)
        !$ call hdf5Access%set  ()
-       angularPowerFile=hdf5Object(angularPowerFileName,overWrite=.true.)
+       angularPowerFile=hdf5File(angularPowerFileName,overWrite=.true.)
        call angularPowerFile%writeAttribute(String_Join(fileNames,":"),'files')
        l=0
        do p=1,size(fileNames)

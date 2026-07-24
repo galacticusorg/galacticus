@@ -8,6 +8,7 @@ on:
     # validators in prChecks.yml and the ReadTheDocs build, so they skip this.
     paths: &codePaths
       - 'Makefile'
+      - 'aux/dependencies.yml'
       - 'source/**'
       - 'python/**'
       - 'scripts/build/**'
@@ -70,9 +71,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE
           export GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE
-          python3 scripts/build/parameterSchema.py `pwd` schema/parameters.xsd
-          git diff --exit-code -- schema/parameters.xsd \
-            || { echo "schema/parameters.xsd is out of date; run 'make parameters-schema' and commit."; exit 1; }
+          python3 scripts/build/parameterSchema.py `pwd` schema/parameters.xsd --check
       - run: echo "This job's status is ${{ job.status }}."
   # Build and deploy
   ## Linux
@@ -102,7 +101,10 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           export BUILDPATH=./work/build
           set -o pipefail
-          make GALACTICUS_BUILD_OPTION=compileprof -j4 Galacticus.exe 2>&1 | tee build.log
+          # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
+          # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
+          # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          make GALACTICUS_BUILD_OPTION=compileprof -j2 Galacticus.exe 2>&1 | tee build.log
           set +o pipefail
           python3 ./scripts/build/buildProfiler.py build.log buildProfile.html --durationMinimum 20
           grep -vqzi error:          build.log || (echo "FAIL: errors found in build.log"          && false)
@@ -154,7 +156,10 @@ jobs:
           # Disable link-time optimization: `make all` builds a very large number of executables, and running
           # LTO on each one makes this job prohibitively slow. LTO is retained in jobs that build only a single
           # executable (e.g. Galacticus.exe). See the LTO option in the Makefile.
-          make -j4 LTO=disabled all 2>&1 | tee build.log
+          # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
+          # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
+          # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          make -j2 LTO=disabled all 2>&1 | tee build.log
           set +o pipefail
           ! grep -n Error: build.log
           ! grep -n Warning: build.log
@@ -194,7 +199,10 @@ jobs:
           export GALACTICUS_FCFLAGS="$GALACTICUS_FCFLAGS -pg"
           export GALACTICUS_CFLAGS="$GALACTICUS_CFLAGS -pg"
           export GALACTICUS_CPPFLAGS="$GALACTICUS_CPPFLAGS -pg"
-          make -j4 Galacticus.exe
+          # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
+          # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
+          # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          make -j2 Galacticus.exe
       - name: Upload executables
         uses: actions/upload-artifact@v7
         with:
@@ -223,7 +231,10 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          make -j4 Galacticus.exe
+          # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
+          # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
+          # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          make -j2 Galacticus.exe
       - name: Upload executables
         uses: actions/upload-artifact@v7
         with:
@@ -251,7 +262,10 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          make -j4 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
+          # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
+          # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
+          # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          make -j2 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@v7
         with:
@@ -285,12 +299,20 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          make -j4 Galacticus.exe tests.debugging.exe
+          # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
+          # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
+          # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          make -j2 Galacticus.exe tests.debugging.exe
       - name: Upload test code executables
         uses: actions/upload-artifact@v7
         with:
           name: test-execs-debugging
           path: 'tests.*.exe'
+      - name: Upload Galacticus executable
+        uses: actions/upload-artifact@v7
+        with:
+          name: galacticus-exec-debugging
+          path: 'Galacticus.exe'
       - run: echo "This job's status is ${{ job.status }}."
   ### Library
   Build-Library-Linux:
@@ -376,6 +398,7 @@ jobs:
           build-args: |
             REPO=${{ github.event.pull_request.head.repo.full_name || github.repository }}
             BRANCH=${{ github.head_ref || github.ref_name }}
+            COMMIT=${{ github.event.pull_request.head.sha || github.sha }}
   # The LaTeX/PDF documentation build has been retired; documentation is now
   # served from reStructuredText on ReadTheDocs (see docs/).
   ### Tools
@@ -1018,6 +1041,24 @@ jobs:
       uploadFile: ./testSuite/outputs/*.json
       uploadName: validate-darkMatterOnlySubhalosCOZMIC${{ matrix.simulation }}MilkyWay${{ matrix.resolution }}
     secrets: inherit
+  Validate-Halo-Mass-Function:
+    needs: Build-Executable-DMO-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        group: [ "MDPL", "SymphonyLMC", "SymphonyGroup", "SymphonyMilkyWayZ0", "SymphonyMilkyWayZ1", "SymphonyMilkyWayZ4", "COZMIC" ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy python3-git
+      file: validate-haloMassFunction.py
+      options: "${{ matrix.group }}"
+      artifact: galacticus-exec-dmo
+      runPath: ./testSuite
+      cacheData: 1
+      uploadFile: ./testSuite/outputs/*.json
+      uploadName: validate-haloMassFunction${{ matrix.group }}
+    secrets: inherit
   Validate-Milky-Way-Model:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
@@ -1108,7 +1149,8 @@ jobs:
                       tests.meshes.exe,
                       tests.convex_hulls.exe,
                       tests.comparisons.exe,
-                      tests.geometry.coordinate_systems.exe,
+                      tests.coordinates.exe,
+                      tests.coordinates_constructors.exe,
                       tests.dictionaries.exe,
                       tests.hashes.perfect.exe,
                       tests.regular_expressions.exe,
@@ -1210,6 +1252,7 @@ jobs:
                       tests.stellar_populations.luminosities.exe,
                       tests.excursion_sets.exe,
                       tests.merger_tree_branching.exe,
+                      tests.merger_tree_census.exe,
                       tests.event_hooks.exe,
                       tests.tree_branch_destroy.exe,
                       tests.binary_search_trees.exe,
@@ -1374,8 +1417,6 @@ jobs:
                 test-tidallyTruncatedNFWFit.py,
                 test-constraint-deterministic-spins.py,
                 test-constraint-mass-function.py,
-                test-extract-directives.py,
-                test-fortran-utils.py,
                 test-halo-mass-functions.py,
                 test-inactive_luminosities.py,
                 test-interoutput-star-formation-rate.py,
@@ -1428,12 +1469,36 @@ jobs:
                 test-AGNSED.py,
                 test-SIDM-parametric.py,
                 test-objectBuilder-recursion.py,
+                test-objectBuilder-recursion-success.py,
                 test-library-interfaces.py,
                 test-merger-tree-read-ties.py ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
       artifact: galacticus-exec
+      runPath: ./testSuite
+    secrets: inherit
+  ## Inactive-property models run against the debugging (-DDEBUGGING) executable. Only in debugging builds are the
+  ## run-time checks that no inactive property value is read during active-property evolution (issue #128) compiled
+  ## into the generated property getters. The positive test asserts the check fires on a deliberate erroneous read;
+  ## the remaining models exercise inactive properties (and inactive float rank-0 meta-properties) legitimately and
+  ## must complete without the check firing.
+  Miscellaneous-Debugging:
+    needs: Build-Executables-Debugging-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      matrix:
+        file: [ test-inactive-property-read.py,
+                test-inactive_luminosities.py,
+                test-outputSelector.py,
+                test-output-tree-contiguousity.py,
+                test-CGM-mass-cooled.py,
+                test-galacticStructureStateDeallocateBug.py ]
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: ${{ matrix.file }}
+      artifact: galacticus-exec-debugging
       runPath: ./testSuite
     secrets: inherit
   Miscellaneous-Unexpected:
@@ -1801,7 +1866,7 @@ jobs:
   # Validate, deploy and update
   Validate:
     runs-on: ubuntu-latest
-    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Dark-Matter-Only-Subhalos-Symphony, Validate-Dark-Matter-Only-Subhalos-Symphony-X64, Validate-Dark-Matter-Only-Subhalos-COZMICWDM, Validate-Milky-Way-Model, Validate-PonosV, Validate-Baryonic-Suppression, Validate-Idealized-Subhalo-Simulations, Validate-Decaying-Dark-Matter-Only-Subhalos ]
+    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Dark-Matter-Only-Subhalos-Symphony, Validate-Dark-Matter-Only-Subhalos-Symphony-X64, Validate-Dark-Matter-Only-Subhalos-COZMICWDM, Validate-Halo-Mass-Function, Validate-Milky-Way-Model, Validate-PonosV, Validate-Baryonic-Suppression, Validate-Idealized-Subhalo-Simulations, Validate-Decaying-Dark-Matter-Only-Subhalos ]
     steps:
       - name: Check out repository code
         uses: actions/checkout@v7
@@ -2083,6 +2148,73 @@ jobs:
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime80.0_velocityKick40.0'
           threshold: '250%'
           token: ${{ secrets.GITHUB_TOKEN }}
+      # Halo mass function validations. These models are deterministic (unlike
+      # the tree-based validations above) so a tight alert threshold is used.
+      - name: 'Halo mass function validation (MDPL)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (MDPL)'
+          type: 'validate'
+          suffix: 'haloMassFunctionMDPL'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (Symphony LMC)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (Symphony LMC)'
+          type: 'validate'
+          suffix: 'haloMassFunctionSymphonyLMC'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (Symphony Group)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (Symphony Group)'
+          type: 'validate'
+          suffix: 'haloMassFunctionSymphonyGroup'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (Symphony Milky Way z=0)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (Symphony Milky Way z=0)'
+          type: 'validate'
+          suffix: 'haloMassFunctionSymphonyMilkyWayZ0'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (Symphony Milky Way z=1)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (Symphony Milky Way z=1)'
+          type: 'validate'
+          suffix: 'haloMassFunctionSymphonyMilkyWayZ1'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (Symphony Milky Way z=4)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (Symphony Milky Way z=4)'
+          type: 'validate'
+          suffix: 'haloMassFunctionSymphonyMilkyWayZ4'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (Symphony Milky Way environments)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (Symphony Milky Way environments)'
+          type: 'validate'
+          artifact: 'validate-haloMassFunctionSymphonyMilkyWayZ0'
+          suffix: 'haloMassFunctionSymphonyMilkyWayEnvironments'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Halo mass function validation (COZMIC)'
+        uses: ./.github/actions/benchmark
+        with:
+          name: 'Halo mass function validation (COZMIC)'
+          type: 'validate'
+          suffix: 'haloMassFunctionCOZMIC'
+          threshold: '110%'
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifacts (validate-PonosV)
         uses: actions/download-artifact@v8
         with:
@@ -2116,6 +2248,10 @@ jobs:
           mkdir -p dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8
           mkdir -p dev/valid/milkyWayModel
           mkdir -p dev/valid/strongLensing
+          for group in MDPL SymphonyLMC SymphonyGroup SymphonyMilkyWayZ0 SymphonyMilkyWayZ1 SymphonyMilkyWayZ4 SymphonyMilkyWayEnvironments COZMIC; do
+            mkdir -p "dev/valid/haloMassFunction$group"
+            mv "results_haloMassFunction$group.json" "dev/valid/haloMassFunction$group/results.json"
+          done
           mv results_darkMatterOnlySubhalos.json                          dev/valid/darkMatterOnlySubhalos/results.json
           mv results_darkMatterOnlySubhalosSymphonyCDMMilkyWayX1.json     dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1/results.json
           mv results_darkMatterOnlySubhalosSymphonyCDMMilkyWayX8.json     dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8/results.json
@@ -2147,7 +2283,7 @@ jobs:
           done
           git config --local user.email "github@users.noreply.github.com"
           git config --local user.name "github-action-validate"
-          git add dev/valid/darkMatterOnlySubhalos/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX64/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8/results.json dev/valid/milkyWayModel/results.json dev/valid/strongLensing/results_PonosV.json dev/valid/baryonicSuppression/results_baryonicSuppression.json dev/valid/idealizedSubhaloSimulation_*/results.json dev/valid/darkMatterOnlySubhalos_decayingDarkMatter_*/results.json
+          git add dev/valid/haloMassFunction*/results.json dev/valid/darkMatterOnlySubhalos/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX64/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8/results.json dev/valid/milkyWayModel/results.json dev/valid/strongLensing/results_PonosV.json dev/valid/baryonicSuppression/results_baryonicSuppression.json dev/valid/idealizedSubhaloSimulation_*/results.json dev/valid/darkMatterOnlySubhalos_decayingDarkMatter_*/results.json
           git commit -m "Update validation results"
           git push --set-upstream origin gh-pages
           git checkout -

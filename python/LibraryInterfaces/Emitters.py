@@ -78,7 +78,7 @@ def fortran_arg_list(argument_list):
 def fortran_declarations(argument_list):
     """Generate Fortran declarations.
 
-    Mirrors Perl fortranDeclarations(): emits one declaration per argument
+    Emits one declaration per argument
     plus any extra declarations stored in ``fort_declarations``.  Also
     emits an interface block for every distinct functionClass GetPtr function
     that is referenced by an is_function_class argument.
@@ -130,7 +130,7 @@ def fortran_reassignments(argument_list):
 def fortran_module_uses(argument_list):
     """Generate Fortran module use statements.
 
-    Mirrors Perl fortranModuleUses(): accumulates ``{module: {symbol: 1}}``
+    Accumulates ``{module: {symbol: 1}}``
     dicts from every arg's ``fort_modules`` field, then emits one ``use``
     line per module with a sorted ``only`` list.
     """
@@ -149,7 +149,7 @@ def fortran_module_uses(argument_list):
 def fortran_call_code(argument_list, pre_arguments, post_arguments, continuation):
     """Generate Fortran call code, with optional-argument branching.
 
-    Mirrors Perl fortranCallCode().  When N optional args are present, emits
+    When N optional args are present, emits
     2^N if/else-if branches using the ``present()`` intrinsic, plus an
     unconditional else fallback to suppress compiler warnings about unset
     function results.
@@ -200,7 +200,7 @@ def fortran_call_code(argument_list, pre_arguments, post_arguments, continuation
 def iso_c_binding_import(argument_list, *extra_symbols):
     """Generate ISO_C_Binding import statement.
 
-    Mirrors Perl isoCBindingImport(): collects the kind symbol from each
+    Collects the kind symbol from each
     argument's Fortran type (e.g. ``'c_double'`` from ``'real(c_double)'``)
     plus any extra symbols stored in ``fort_iso_c_symbols`` (e.g.
     ``'c_f_pointer'`` added for pointer-dereference reassignments).
@@ -222,7 +222,7 @@ def iso_c_binding_import(argument_list, *extra_symbols):
 def python_arg_list(argument_list):
     """Generate Python argument list.
 
-    Mirrors Perl pythonArgList(): if the first argument is not named ``'self'``
+    If the first argument is not named ``'self'``
     (i.e. for constructors) prepend ``'self'`` explicitly.  For methods the
     first argument already is ``'self'`` (py_is_present=True) so the loop
     adds it and no explicit prepend is needed.
@@ -250,7 +250,7 @@ def python_reassignments(argument_list):
 def python_call_code(argument_list, call):
     """Generate Python call code, with optional-argument branching.
 
-    Mirrors Perl pythonCallCode().  When N optional args are present, emits
+    When N optional args are present, emits
     2^N if/elif branches.  Once the first optional arg is encountered, ALL
     subsequent args need explicit ctype wrapping (ctypes cannot infer types
     when some args may be None).  Absent optional args are passed as None.

@@ -300,7 +300,7 @@ contains
     Constructor for the :galacticus-class:`outputAnalysisConcentrationDistribution` output analysis class which reads all required properties from file.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
-    use :: IO_HDF5                          , only : hdf5Object
+    use :: IO_HDF5                          , only : hdf5File                  , hdf5Group
     use :: HDF5_Access                      , only : hdf5Access
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
     use :: Virial_Density_Contrast          , only : virialDensityContrastClass
@@ -319,15 +319,15 @@ contains
     integer         (c_size_t                               ), allocatable  , dimension(:  ) :: functionCountTarget
     double precision                                         , allocatable  , dimension(:,:) :: functionCovarianceTarget
     type            (varying_string                         )                                :: targetLabel
-    type            (hdf5Object                             )                                :: dataFile                        , simulationGroup      , &
-         &                                                                                      attributesGroup
+    type            (hdf5File                               )                                :: dataFile
+    type            (hdf5Group                              )                                :: simulationGroup                 , attributesGroup
     integer                                                                                  :: i
     double precision                                                                         :: time                            , redshift             , &
          &                                                                                      timeRecent                      , massMinimum          , &
          &                                                                                      massMaximum                     , massParticle
 
     !$ call hdf5Access%set  ()
-    dataFile=hdf5Object(fileName,readOnly=.true.)
+    dataFile=hdf5File(fileName,readOnly=.true.)
     simulationGroup=dataFile       %openGroup('simulation0001')
     attributesGroup=simulationGroup%openGroup('simulation'    )
     call simulationGroup   %readDataset  ('concentration'                              ,concentration           )

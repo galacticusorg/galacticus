@@ -264,23 +264,27 @@ contains
     use :: Error          , only : Error_Report
     use :: Input_Paths    , only : inputPath        , pathTypeDataDynamic, pathTypeDataStatic
     use :: HDF5_Access    , only : hdf5Access
-    use :: IO_HDF5        , only : hdf5Object
+    use :: IO_HDF5        , only : hdf5File
     use :: String_Handling, only : operator(//)
-    use :: System_Command , only : System_Command_Do
+    use :: System_Command , only : System_Command_Do, shellEscape
+    use :: ISO_Varying_String, only : varying_string, assignment(=)
     implicit none
     class(surveyGeometryCaputi2011UKIDSSUDS), intent(inout) :: self
-    type (hdf5Object                       )                :: surveyGeometryRandomsFile
+    type (hdf5File                         )                :: surveyGeometryRandomsFile
+    type (varying_string                   )                :: escapedScript
 
     ! Generate the randoms file if necessary.
     if (.not.File_Exists(inputPath(pathTypeDataDynamic)//&
          & "surveys/UKIDSS_UDS/data/surveyGeometryRandoms.hdf5")) then
-       call System_Command_Do(inputPath(pathTypeDataStatic)//"surveyGeometry/UKIDSS_UDS/surveyGeometryRandoms.py")
+       escapedScript=inputPath  (pathTypeDataStatic)//"surveyGeometry/UKIDSS_UDS/surveyGeometryRandoms.py"
+       escapedScript=shellEscape(escapedScript     )
+       call System_Command_Do(escapedScript)
        if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"surveys/UKIDSS_UDS/surveyGeometryRandoms.hdf5")) call Error_Report('unable to create survey geometry randoms file'//{introspection:location})
     end if
     ! Read the distribution of random points from file.
     !$ call hdf5Access%set()
-    surveyGeometryRandomsFile=hdf5Object(char(inputPath(pathTypeDataDynamic)//&
-         &'surveys/UKIDSS_UDS/surveyGeometryRandoms.hdf5')&
+    surveyGeometryRandomsFile=hdf5File(inputPath(pathTypeDataDynamic)//&
+         &'surveys/UKIDSS_UDS/surveyGeometryRandoms.hdf5'&
          &,readOnly=.true.)
     call surveyGeometryRandomsFile%readDataset('theta',self%randomTheta)
     call surveyGeometryRandomsFile%readDataset('phi'  ,self%randomPhi  )

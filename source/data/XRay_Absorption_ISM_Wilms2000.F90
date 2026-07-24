@@ -31,31 +31,32 @@ program XRay_Absorption_ISM_Wilms2000
   !!}
   use :: Atomic_Cross_Sections_Compton, only : Atomic_Cross_Section_Compton
   use :: Dates_and_Times              , only : Formatted_Date_and_Time
-  use :: IO_HDF5                      , only : hdf5Object
+  use :: IO_HDF5                      , only : hdf5File                    , hdf5Dataset
   use :: Numerical_Constants_Prefixes , only : kilo
   use :: Numerical_Constants_Units    , only : electronVolt
   use :: Numerical_Ranges             , only : Make_Range
   use :: Units_MetaData               , only : unitType
   implicit none
-  integer                                                                , parameter :: energyCount       =1000
-  integer                                                                , parameter :: metallicityCount  =100
-  double precision                                                       , parameter :: energyMaximum     =20.0d0       , energyMinimum     =0.01d0     !   keV
-  double precision                                                       , parameter :: metallicityMaximum=0.1d0        , metallicityMinimum=1.0d-4
+  integer                                                                 , parameter :: energyCount       =1000
+  integer                                                                 , parameter :: metallicityCount  =100
+  double precision                                                        , parameter :: energyMaximum     =20.0d0       , energyMinimum     =0.01d0     !   keV
+  double precision                                                        , parameter :: metallicityMaximum=0.1d0        , metallicityMinimum=1.0d-4
   ! The metallicity of the ISM computed consistently from Wilms et al. abundances and element weights.
-  double precision                                                       , parameter :: metallicityIsm    =0.012000314d0
+  double precision                                                        , parameter :: metallicityIsm    =0.012000314d0
   ! Electrons per hydrogen atom contributed by helium and metals for ISM metallicity.
-  double precision                                                       , parameter :: electronsHelium   =0.195447444d0
-  double precision                                                       , parameter :: electronsMetals   =0.008383587d0
-  double precision            , dimension(0:energyCount                 )            :: energy
-  double precision            , dimension(              metallicityCount)            :: metallicity
-  real                        , dimension(  energyCount                 )            :: photar                          , photer                   , &
-       &                                                                                sigavg                          , siggas                   , &
-       &                                                                                siggrains                       , sigmol
-  double precision            , dimension(  energyCount,metallicityCount)            :: crossSection
-  double precision            , dimension(                            42)            :: parameters
-  type            (hdf5Object)                                                       :: myDataset                       , outputFile
-  integer                                                                            :: iMetallicity
-  double precision                                                                   :: electronNumber
+  double precision                                                        , parameter :: electronsHelium   =0.195447444d0
+  double precision                                                        , parameter :: electronsMetals   =0.008383587d0
+  double precision             , dimension(0:energyCount                 )            :: energy
+  double precision             , dimension(              metallicityCount)            :: metallicity
+  real                         , dimension(  energyCount                 )            :: photar                          , photer                   , &
+       &                                                                                 sigavg                          , siggas                   , &
+       &                                                                                 siggrains                       , sigmol
+  double precision             , dimension(  energyCount,metallicityCount)            :: crossSection
+  double precision             , dimension(                            42)            :: parameters
+  type            (hdf5Dataset)                                                       :: myDataset
+  type            (hdf5File   )                                                       :: outputFile
+  integer                                                                             :: iMetallicity
+  double precision                                                                    :: electronNumber
 
   ! Create array of energies.
   energy(0            )=energyMinimum
@@ -91,7 +92,7 @@ program XRay_Absorption_ISM_Wilms2000
   end do
 
   ! Open the output file.
-  outputFile=hdf5Object('data/atomic/Interstellar_Absorption_Wilms_2000.hdf5',overWrite=.true.,chunkSize=1024_hsize_t,compressionLevel=9)
+  outputFile=hdf5File('data/atomic/Interstellar_Absorption_Wilms_2000.hdf5',overWrite=.true.,chunkSize=1024_hsize_t,compressionLevel=9)
   ! Write energy table.
   call outputFile%writeDataset(energy(1:energyCount),datasetName="energy",comment="Photon energy in keV",datasetReturned=myDataset)
   call myDataset %writeAttribute(unitType(kilo*electronVolt,"keV","keV"),"units")

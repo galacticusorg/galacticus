@@ -494,7 +494,7 @@ contains
           &                                                nodeComponentDisk                , nodeComponentSpheroid   , treeNode       , universe          , &
           &                                                universeEvent
     use            :: HDF5_Access                 , only : hdf5Access
-    use            :: IO_HDF5                     , only : hdf5Object
+    use            :: IO_HDF5                     , only : hdf5Group                        , hdf5Dataset
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
     use            :: ISO_Varying_String          , only : varying_string
     use            :: Merger_Tree_Walkers         , only : mergerTreeWalkerAllNodes
@@ -536,7 +536,8 @@ contains
          &                                                                   treeTimeLatest                       , wavelength
     type            (varying_string                      )                :: message
     character       (len=6                               )                :: label
-    type            (hdf5Object                          )                :: outputGroup                          , outputDataset
+    type            (hdf5Group                           )                :: outputGroup
+    type            (hdf5Dataset                         )                :: outputDataset
     integer         (c_size_t                            )                :: iTime                                , iWavelength                             , &
          &                                                                   iNow
     logical                                                               :: firstTime                            , lockHeld

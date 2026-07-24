@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+
+  <!-- Output control -->
+  <outputFileName value="testSuite/outputs/validation/haloMassFunction/haloMassFunction_Symphony_LMC_resolutionX1_CDM_Halo853_z0.000.hdf5"/>
+  <outputTimes value="list">
+    <redshifts value="0.000"/>
+  </outputTimes>  
+
+  <!-- Include cosmology and mass function parameters -->
+  <xi:include href="haloMassFunctionParameters.xml"                                                                       xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../../../constraints/pipelines/darkMatter/simulation_Symphony_LMC.xml"            xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../../../constraints/pipelines/darkMatter/cosmology_Symphony.xml"                                           xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../../../constraints/pipelines/darkMatter/powerSpectrumEffective_Symphony.xml"                              xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="haloMassFunction_Symphony.xml"                                 xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="../../../../constraints/pipelines/darkMatter/transferFunction_Symphony_CDM.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+  <!-- Particle mass at the current resolution -->
+  <massParticleAtResolution value="=[simulation/massParticle/resolutionX1]" ignoreWarnings="true"/>
+
+  <!-- Detection efficiency -->
+  <detectionMassMinimumParticleCount value="=[haloMassFunctionParameters/massMinimumParticleCountSymphony]"  ignoreWarnings="true"/>
+  <detectionEfficiencyAtMassMinimum  value="=[haloMassFunctionParameters/efficiencyAtMassMinimumSymphony]"   ignoreWarnings="true"/>
+  <detectionExponentMass             value="=[haloMassFunctionParameters/exponentMassDetectionSymphony]"     ignoreWarnings="true"/>
+  <detectionExponentRedshift         value="=[haloMassFunctionParameters/exponentRedshiftDetectionSymphony]" ignoreWarnings="true"/>
+
+  <!-- Isolation bias -->
+  <isolationBias         value="=[haloMassFunctionParameters/isolationBiasSymphonyLMC]"         ignoreWarnings="true"/>
+  <isolationBiasExponent value="=[haloMassFunctionParameters/isolationBiasExponentSymphonyLMC]" ignoreWarnings="true"/>
+
+
+  <!-- Halo environments -->
+  <haloEnvironment value="fixed">
+    <massEnvironment value="626804457460.895"/>
+    <overdensity     value="0.41603843593110834"/>
+  </haloEnvironment>
+
+</parameters>

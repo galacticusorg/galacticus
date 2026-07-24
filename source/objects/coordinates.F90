@@ -156,6 +156,30 @@ module Coordinates
      procedure :: scale             => Coordinates_Cylindrical_Scale
   end type coordinateCylindrical
 
+  ! Explicit constructors for the coordinate types, allowing e.g. `coordinateCartesian(x,y,z)` and
+  ! `coordinateSpherical(r,theta,phi)`. These are preferred over array assignment (`coord = [a,b,c]`) in new
+  ! code because they make the coordinate system explicit at the construction site (avoiding the footgun where
+  ! a bare array is silently interpreted in whatever system the target happens to be -- see issue \#75).
+  !
+  ! The argument-less `coordinateCartesian()` form is also provided: it is emitted by auto-generated
+  ! `functionClass` code for methods that return a `coordinateCartesian` (e.g. the massDistribution
+  ! acceleration/positionSample/chandrasekharIntegral). Using an explicit constructor rather than a
+  ! default-initializer on the `position` component avoids zero-initializing ordinary coordinate objects on
+  ! every construction (which, because coordinate assignment is a defined assignment with an intent(out)
+  ! argument, the compiler does not elide -- it adds measurable cost in coordinate-heavy hot paths).
+  interface coordinateCartesian
+     module procedure coordinatesCartesianConstructorNull
+     module procedure coordinatesCartesianConstructor
+  end interface coordinateCartesian
+
+  interface coordinateSpherical
+     module procedure coordinatesSphericalConstructor
+  end interface coordinateSpherical
+
+  interface coordinateCylindrical
+     module procedure coordinatesCylindricalConstructor
+  end interface coordinateCylindrical
+
   abstract interface
      double precision function rSphericalSquaredTemplate(self)
        import coordinate
@@ -196,6 +220,54 @@ module Coordinates
   end interface operator(*)
 
 contains
+
+  function coordinatesCartesianConstructorNull() result(self)
+    !!{RST
+    Null constructor for a Cartesian ``coordinate`` object, returning the origin. See the interface block for
+    why this exists.
+    !!}
+    implicit none
+    type(coordinateCartesian) :: self
+
+    self%position=0.0d0
+    return
+  end function coordinatesCartesianConstructorNull
+
+  function coordinatesCartesianConstructor(x,y,z) result(self)
+    !!{RST
+    Constructor for a Cartesian ``coordinate`` object from its :math:`(x,y,z)` components.
+    !!}
+    implicit none
+    type            (coordinateCartesian)                :: self
+    double precision                     , intent(in   ) :: x   , y, z
+
+    self%position=[x,y,z]
+    return
+  end function coordinatesCartesianConstructor
+
+  function coordinatesSphericalConstructor(r,theta,phi) result(self)
+    !!{RST
+    Constructor for a spherical ``coordinate`` object from its :math:`(r,\theta,\phi)` components.
+    !!}
+    implicit none
+    type            (coordinateSpherical)                :: self
+    double precision                     , intent(in   ) :: r   , theta, phi
+
+    self%position=[r,theta,phi]
+    return
+  end function coordinatesSphericalConstructor
+
+  function coordinatesCylindricalConstructor(r,phi,z) result(self)
+    !!{RST
+    Constructor for a cylindrical ``coordinate`` object from its :math:`(r,\phi,z)` components.
+    !!}
+    implicit none
+    type            (coordinateCylindrical)                :: self
+    double precision                       , intent(in   ) :: r   , phi, z
+
+    self%position=[r,phi,z]
+    return
+  end function coordinatesCylindricalConstructor
 
   subroutine Coordinates_Null_From(self,x)
     !!{RST
@@ -394,13 +466,14 @@ contains
     return
   end function Coordinates_Cartesian_Scalar_Divide
   
-  !![
-  <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336" docformat="rst">
-    <description>
-    This function is needed to allow scaling of coordinate objects. It should not be needed as we overload the * and / operators for coordinate objects. But, until finalization is completed, function results are not finalized causing the overloaded * and / operators to leak memory. This is a workaround to avoid that.
-    </description>
-  </workaround>
-  !!]
+  ! The scale() method scales a coordinate in-place, populating an allocatable, polymorphic result. Unlike
+  ! the overloaded operator(*)/operator(/)---which return function results and so require an
+  ! already-allocated (typically concrete-typed) assignment target---scale() can target an unallocated
+  ! `class(coordinate), allocatable` argument directly (assigning an operator result to such a target would
+  ! instead invoke the defined assignment on the unallocated, abstract-typed LHS and fail). It is therefore
+  ! the scaling idiom used by the polymorphic scaler decorators. (Historically this was documented as a
+  ! gfortran PR 37336 finalization workaround; that leak is fixed in gfortran >= 13, but scale() is retained
+  ! because it remains the only way to scale into an unallocated polymorphic target.)
   subroutine Coordinates_Cartesian_Scale(self,scalar,selfScaled)
     !!{RST
     Scale a Cartesian ``coordinate`` object by a scalar.
@@ -595,13 +668,7 @@ contains
     return
   end function Coordinates_Spherical_Scalar_Divide
 
-  !![
-  <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336" docformat="rst">
-    <description>
-    This function is needed to allow scaling of coordinate objects. It should not be needed as we overload the * and / operators for coordinate objects. But, until finalization is completed, function results are not finalized causing the overloaded * and / operators to leak memory. This is a workaround to avoid that.
-    </description>
-  </workaround>
-  !!]
+  ! See the note on Coordinates_Cartesian_Scale for why scale() is retained alongside the * and / operators.
   subroutine Coordinates_Spherical_Scale(self,scalar,selfScaled)
     !!{RST
     Scale a spherical ``coordinate`` object by a scalar.
@@ -770,13 +837,7 @@ contains
     return
   end function Coordinates_Cylindrical_Scalar_Divide
 
-  !![
-  <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336" docformat="rst">
-    <description>
-    This function is needed to allow scaling of coordinate objects. It should not be needed as we overload the * and / operators for coordinate objects. But, until finalization is completed, function results are not finalized causing the overloaded * and / operators to leak memory. This is a workaround to avoid that.
-    </description>
-  </workaround>
-  !!]
+  ! See the note on Coordinates_Cartesian_Scale for why scale() is retained alongside the * and / operators.
   subroutine Coordinates_Cylindrical_Scale(self,scalar,selfScaled)
     !!{RST
     Scale a cylindrical ``coordinate`` object by a scalar.

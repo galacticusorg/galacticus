@@ -31,7 +31,7 @@ module Input_Parameters
   use, intrinsic :: ISO_C_Binding     , only : c_char         , c_int
   use            :: FoX_dom           , only : node
   use            :: Function_Classes  , only : functionClass
-  use            :: IO_HDF5           , only : hdf5Object
+  use            :: IO_HDF5           , only : hdf5File, hdf5Group
   use            :: ISO_Varying_String, only : varying_string
   use            :: Kind_Numbers      , only : kind_int8
   use            :: String_Handling   , only : char
@@ -39,8 +39,8 @@ module Input_Parameters
   use            :: Locks             , only : ompLock
   use            :: Resource_Manager  , only : resourceManager
   private
-  public :: inputParameters                 , inputParameter, inputParameterList, Input_Parameters_Build_Stack_Push, &
-       &    Input_Parameters_Build_Stack_Pop  
+  public :: inputParameters                 , inputParameter                         , inputParameterList                           , Input_Parameters_Build_Stack_Push, &
+       &    Input_Parameters_Build_Stack_Pop, Input_Parameters_Build_Stack_Object_Set, Input_Parameters_Build_Stack_Recursive_Object
   !![
   <generic identifier="Type">
    <instance label="Logical"        intrinsic="logical"                                          outputConverter="regEx¦(.*)¦char($1)¦"/>
@@ -133,17 +133,18 @@ module Input_Parameters
   
   type :: inputParameters
      private
-     type   (documentWrapper  ), pointer, public :: document               => null()
-     type   (node             ), pointer         :: rootNode               => null()
-     type   (hdf5Object       ), pointer         :: outputParameters       => null() , outputParametersContainer        => null()
-     type   (resourceManager  )                  :: outputParametersManager          , outputParametersContainerManager          , &
+     type   (documentWrapper  ), pointer, public :: document                  => null()
+     type   (node             ), pointer         :: rootNode                  => null()
+     type   (hdf5Group        ), pointer         :: outputParameters          => null()
+     type   (hdf5File         ), pointer         :: outputParametersContainer => null()
+     type   (resourceManager  )                  :: outputParametersManager             , outputParametersContainerManager          , &
           &                                         documentManager
-     type   (inputParameter   ), pointer, public :: parameters             => null()
-     type   (inputParameters)  , pointer, public :: parent                 => null() , original                         => null()
-     logical                                     :: outputParametersCopied =  .false., outputParametersTemporary        = .false., &
-          &                                         isNull                 =  .false., strict                           = .false.
+     type   (inputParameter   ), pointer, public :: parameters                => null()
+     type   (inputParameters)  , pointer, public :: parent                    => null() , original                         => null()
+     logical                                     :: outputParametersCopied    =  .false., outputParametersTemporary        = .false., &
+          &                                         isNull                    =  .false., strict                           = .false.
      type   (integerDictionary), allocatable     :: warnedDefaults
-     type   (ompLock          ), pointer         :: lock                   => null()
+     type   (ompLock          ), pointer         :: lock                      => null()
      type   (resourceManager  )                  :: lockManager
    contains
      !![
@@ -276,6 +277,13 @@ module Input_Parameters
      type   (inputParameter), pointer :: node           => null()
      type   (varying_string)          :: className
      logical                          :: recursionAware =  .false.
+     ! Weak pointer to the object currently being constructed for this node. Set (via
+     ! Input_Parameters_Build_Stack_Object_Set) by the factory of a recursive="yes" class after allocating the
+     ! object but before dispatching its constructor, so that a re-entrant build which re-discovers this node can
+     ! retrieve the in-progress object and return a shim wired to it (see Input_Parameters_Build_Stack_Recursive_Object
+     ! and issue #695). Left null for non-recursive classes. Never reference-counted: this is a weak back-edge that
+     ! breaks the ownership cycle a bounded construction recursion would otherwise create.
+     class  (*             ), pointer :: object         => null()
   end type buildStackEntry
 
   type   (buildStackEntry), allocatable, dimension(:) :: buildStack
@@ -337,12 +345,15 @@ contains
              end if
           end do
           if (.not.recursionAwareBetween) then
-             message=                                                                                                             &
-                  &           'recursive build of ['//className//'] detected while building objects from the parameter file.'  // &
-                  & char(10)//'This usually means that an object of this class composites a member of its own class (directly,'// &
-                  & char(10)//'or via another, mutually-compositing class), but no such object was provided explicitly. The'   // &
-                  & char(10)//'build then searches up the parameter tree, re-discovers the object currently being built, and'  // &
-                  & char(10)//'attempts to build it again. Provide the required ['//className//'] explicitly to resolve this.' // &
+             message=                                                                                                              &
+                  &           'recursive build of ['//className//'] detected while building objects from the parameter file.'   // &
+                  & char(10)//'This usually means that an object of this class composites a member of its own class (directly,' // &
+                  & char(10)//'or via another, mutually-compositing class), but no such object was provided explicitly. The'    // &
+                  & char(10)//'build then searches up the parameter tree, re-discovers the object currently being built, and'   // &
+                  & char(10)//'attempts to build it again. Provide the required ['//className//'] explicitly to resolve this.'  // &
+                  & char(10)//'Alternatively, if re-entry into a class in this cycle is semantically bounded (the physics'      // &
+                  & char(10)//'guarantees the recursion terminates), mark that class'//"'"//'s directive recursive="yes" so the'// &
+                  & char(10)//'build returns a lightweight forwarding shim on re-entry instead of recursing (see issue #695).'  // &
                   & char(10)//'Build stack (outermost first):'
              do k=1,buildStackDepth
                 message=message//char(10)//'   -> ['//char(buildStack(k)%className)//']'
@@ -365,8 +376,47 @@ contains
     buildStack(buildStackDepth)%node           => node
     buildStack(buildStackDepth)%className      =  className
     buildStack(buildStackDepth)%recursionAware =  recursionAware
+    buildStack(buildStackDepth)%object         => null()
     return
   end subroutine Input_Parameters_Build_Stack_Push
+
+  subroutine Input_Parameters_Build_Stack_Object_Set(object)
+    !!{RST
+    Record, on the current (topmost) object-build stack entry, the object currently being constructed for that node. A ``recursive="yes"`` class calls this after allocating its object but before dispatching its constructor, so that a re-entrant build which re-discovers the same node can retrieve the in-progress object and return a shim wired to it (see ``Input_Parameters_Build_Stack_Recursive_Object`` and issue \#695). The pointer is weak---never reference-counted---so it does not create an ownership cycle.
+    !!}
+    implicit none
+    class(*), intent(in), target :: object
+
+    if (buildStackDepth > 0) buildStack(buildStackDepth)%object => object
+    return
+  end subroutine Input_Parameters_Build_Stack_Object_Set
+
+  function Input_Parameters_Build_Stack_Recursive_Object(node,className) result(object)
+    !!{RST
+    Search the object-build stack for an entry that is currently constructing the given ``node`` for the given ``className``, and return a (weak) pointer to the in-progress object recorded on that entry, or a null pointer if there is none. Used by a ``recursive="yes"`` factory to detect a bounded construction cycle---a re-entrant build that re-discovers the node currently under construction---and short-circuit it by returning a shim wired to the in-progress object, in place of the (now removed) per-family thread-private ``RecursiveBuildObject`` module variable. See issue \#695. The stack is searched from the top (innermost build) down so that the most recent in-progress construction of the node is returned.
+    !!}
+    use :: ISO_Varying_String, only : varying_string, operator(==)
+    implicit none
+    class    (*             ), pointer               :: object
+    type     (inputParameter), intent(in   ), target :: node
+    character(len=*         ), intent(in   )         :: className
+    integer                                          :: i
+
+    object => null()
+    do i=buildStackDepth,1,-1
+       if     (                                      &
+            &   associated(buildStack(i)%node,node)  &
+            &  .and.                                 &
+            &   buildStack(i)%className == className &
+            &  .and.                                 &
+            &   associated(buildStack(i)%object)     &
+            & ) then
+          object => buildStack(i)%object
+          return
+       end if
+    end do
+    return
+  end function Input_Parameters_Build_Stack_Recursive_Object
 
   subroutine Input_Parameters_Build_Stack_Pop()
     !!{RST
@@ -375,7 +425,8 @@ contains
     implicit none
 
     if (buildStackDepth > 0) then
-       buildStack(buildStackDepth)%node => null()
+       buildStack(buildStackDepth)%node   => null()
+       buildStack(buildStackDepth)%object => null()
        buildStackDepth=buildStackDepth-1
     end if
     return
@@ -442,7 +493,7 @@ contains
     type     (inputParameters)                                           :: self
     type     (varying_string    )              , intent(in   )           :: xmlString
     type     (varying_string    ), dimension(:), intent(in   ), optional :: allowedParameterNames, changeFiles
-    type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
+    class    (hdf5Group         ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                    , intent(in   ), optional :: noOutput             , threadSafe
     type     (node              ), pointer                               :: doc                  , parameterNode
     character(len=1             )                                        :: xmlStringStart
@@ -499,7 +550,7 @@ contains
     type     (inputParameters)                                        :: self
     character(len=*          )              , intent(in   )           :: fileName
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames, changeFiles
-    type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
+    class    (hdf5Group      ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput             , threadSafe
     type     (xmlNodeList    ), dimension(:), allocatable             :: childNodes           , newNodes
     type     (node           ), pointer                               :: doc                  , parameterNode    , &
@@ -772,7 +823,7 @@ contains
     type     (node           ), pointer     , intent(in   )           :: parametersNode
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
     character(len=*          )              , intent(in   ), optional :: fileName
-    type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
+    class    (hdf5Group      ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput                   , noBuild            , &
          &                                                               threadSafe
     type     (resourceManager)              , intent(in   ), optional :: documentManager
@@ -879,18 +930,16 @@ contains
        allocate(self%outputParameters         )
        allocate(self%outputParametersContainer)
        !$ call hdf5Access%  set()
-       self%outputParametersContainer=hdf5Object(                                      &
-            &                                    char(                                 &
-            &                                         File_Name_Temporary(             &
-            &                                                             'glcTmpPar', &
+       self%outputParametersContainer=hdf5File(                                 &
+            &                                  File_Name_Temporary(             &
+            &                                                      'glcTmpPar', &
 #ifdef __APPLE__
-            &                                                             '/tmp'       &
+            &                                                      '/tmp'       &
 #else
-            &                                                             '/dev/shm'   &
+            &                                                      '/dev/shm'   &
 #endif
-            &                                                            )             &
-            &                                         )                              , &
-            &                                    isTemporary=.true.                    &
+            &                                                     )           , &
+            &                                    isTemporary=.true.             &
             &                                   )
        self%outputParameters         =self%outputParametersContainer%openGroup('Parameters',attributesCompactMaxiumum=0)
        self%outputParametersCopied   =.false.
@@ -1798,7 +1847,7 @@ contains
     Return the HDF5 group to which this parameters content will be written.
     !!}
     implicit none
-    type(hdf5Object      )                :: parametersGroup
+    type(hdf5Group       )                :: parametersGroup
     class(inputParameters), intent(inout) :: self
 
     if (self%outputParameters%isOpen()) call self%outputParameters%deepCopy(parametersGroup)
@@ -1813,7 +1862,7 @@ contains
     use :: ISO_Varying_String, only : char
     implicit none
     class(inputParameters), intent(inout) :: self
-    type (hdf5Object     ), intent(inout) :: outputGroup
+    class(hdf5Group      ), intent(inout) :: outputGroup
     class(*              ), pointer       :: dummyPointer_
 
     !$ call hdf5Access%set()

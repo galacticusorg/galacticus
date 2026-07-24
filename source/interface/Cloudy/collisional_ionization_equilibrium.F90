@@ -45,7 +45,7 @@ contains
     use :: Error                           , only : Error_Report
     use :: Hashes_Cryptographic            , only : Hash_MD5
     use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5Object
+    use :: IO_HDF5                         , only : hdf5File                           , hdf5Dataset
     use :: ISO_Varying_String              , only : assignment(=)                      , char                          , operator(//)        , var_str       , &
           &                                         varying_string
     use :: Input_Paths                     , only : inputPath                          , pathTypeDataDynamic
@@ -56,7 +56,7 @@ contains
     use :: Units_MetaData                  , only : unitType
     use :: Numerical_Ranges                , only : Make_Range                         , rangeTypeLinear               , rangeTypeLogarithmic
     use :: String_Handling                 , only : operator(//)
-    use :: System_Command                  , only : System_Command_Do
+    use :: System_Command                  , only : System_Command_Do                  , shellEscape
     implicit none
     double precision                , intent(in   )                   :: metallicityMaximumLogarithmic
     type            (varying_string), intent(in   )                   :: fileNameCoolingFunction                , fileNameChemicalState
@@ -75,7 +75,8 @@ contains
          &                                                               densityHydrogenI                       , densityHydrogenII
     double precision                , allocatable  , dimension(:,:,:) :: powerEmittedFractionalCumulative
     logical                                                           :: computeCoolingFunctions                , computeChemicalStates
-    type            (hdf5Object    )                                  :: outputFile                             , dataset
+    type            (hdf5File      )                                  :: outputFile
+    type            (hdf5Dataset   )                                  :: dataset
     integer                                                           :: fileFormatFile                         , metallicityCount                     , &
          &                                                               temperatureCount                       , cloudyScript                         , &
          &                                                               iMetallicity                           , inputFile                            , &
@@ -85,7 +86,7 @@ contains
     type            (varying_string)                                  :: cloudyPath                             , cloudyVersion                        , &
          &                                                               fileNameTempCooling                    , fileNameTempOverview                 , &
          &                                                               fileNameTempContinuum                  , fileNameCoolingFunctionLock          , &
-         &                                                               fileNameChemicalStateLock
+         &                                                               fileNameChemicalStateLock              , escapedSource
     character       (len=   8      )                                  :: label
     character       (len=1024      )                                  :: line
     double precision                                                  :: dummy                                  , abundanceHelium                      , &
@@ -112,7 +113,7 @@ contains
        computeChemicalStates  =.false.
        if (File_Exists(fileNameCoolingFunction)) then
           !$ call hdf5Access%set()
-          outputFile=hdf5Object(char(fileNameCoolingFunction),readOnly=.true.)
+          outputFile=hdf5File(fileNameCoolingFunction,readOnly=.true.)
           if (outputFile%hasAttribute('fileFormat')) then
              call outputFile%readAttribute('fileFormat',fileFormatFile)
              if (fileFormatFile /= versionFileFormatCurrent) computeCoolingFunctions=.true.
@@ -124,7 +125,7 @@ contains
        ! Determine if we need to compute chemical states.
        if (File_Exists(fileNameChemicalState)) then
           !$ call hdf5Access%set()
-          outputFile=hdf5Object(char(fileNameChemicalState),readOnly=.true.)
+          outputFile=hdf5File(fileNameChemicalState,readOnly=.true.)
           if (outputFile%hasAttribute('fileFormat')) then
              call outputFile%readAttribute('fileFormat',fileFormatFile)
              if (fileFormatFile /= versionFileFormatCurrent) computeChemicalStates=.true.
@@ -200,7 +201,8 @@ contains
              if (includeContinuum_) &
                   & write (cloudyScript,'(a)') 'save emitted continuum units _keV "'//char(fileNameTempContinuum)//'"'
              close(cloudyScript)
-             call System_Command_Do("cd "//cloudyPath//"/source; ./cloudy.exe -r input",status);
+             escapedSource=shellEscape(cloudyPath//"/source")
+             call System_Command_Do("cd "//escapedSource//"; ./cloudy.exe -r input",status);
              if (status /= 0) call Error_Report('Cloudy failed'//{introspection:location})
              ! Extract the cooling rate.
              open(newUnit=inputFile,file=char(cloudyPath//"/source/"//fileNameTempCooling),status='old')
@@ -265,7 +267,7 @@ contains
           ! Output cooling functions to an HDF5 file.
           if (computeCoolingFunctions) then
              !$ call hdf5Access%set()
-             outputFile=hdf5Object(char(fileNameCoolingFunction))
+             outputFile=hdf5File(fileNameCoolingFunction)
              ! Store data.
              call    outputFile%writeDataset  (metallicitiesLogarithmic                                  ,'metallicity'                     ,datasetReturned=dataset)
              call    dataset   %writeAttribute('fix'                                                     ,'extrapolateLow'                                          )
@@ -290,7 +292,7 @@ contains
           ! Output chemical states to an HDF5 file.
           if (computeChemicalStates) then
              !$ call hdf5Access%set()
-             outputFile=hdf5Object(char(fileNameChemicalState))
+             outputFile=hdf5File(fileNameChemicalState)
              ! Store data.
              call    outputFile%writeDataset  (metallicitiesLogarithmic                                  ,'metallicity'    ,datasetReturned=dataset)
              call    dataset   %writeAttribute('fix'                                                     ,'extrapolateLow'                         )

@@ -165,7 +165,7 @@ contains
     use :: Display                         , only : displayIndent , displayUnindent
     use :: Output_HDF5                     , only : outputFile
     use :: HDF5_Access                     , only : hdf5Access
-    use :: IO_HDF5                         , only : hdf5Object
+    use :: IO_HDF5                         , only : hdf5File           , hdf5Group           , hdf5Dataset
     use :: Numerical_Constants_Astronomical, only : gigaYear
     use :: Units_MetaData                  , only : unitType
     use :: ISO_Varying_String              , only : assignment(=)
@@ -173,8 +173,8 @@ contains
     type            (mergerTreeEvolveProfilerSimple), intent(inout)               :: self
     type            (varying_string                ), allocatable  , dimension(:) :: propertyNames
     integer                                         , allocatable  , dimension(:) :: propertyHitCount
-    type            (hdf5Object                    )                              :: metaDataDataset  , metaDataGroup, &
-         &                                                                           profilerDataGroup
+    type            (hdf5Dataset                   )                              :: metaDataDataset
+    type            (hdf5Group                     )                              :: metaDataGroup    , profilerDataGroup
     integer                                                                       :: i
     type            (varying_string                )                              :: message
     character       (len=12                        )                              :: label

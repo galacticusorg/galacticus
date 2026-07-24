@@ -139,7 +139,7 @@ contains
     use            :: Error                           , only : Error_Report
     use            :: Input_Paths                     , only : inputPath              , pathTypeDataDynamic , pathTypeDataStatic
     use            :: HDF5_Access                     , only : hdf5Access
-    use            :: IO_HDF5                         , only : hdf5Object
+    use            :: IO_HDF5                         , only : hdf5File               , hdf5Dataset
     use, intrinsic :: ISO_Fortran_Env
     use            :: Numerical_Constants_Astronomical, only : luminositySolar
     use            :: Numerical_Constants_Physical    , only : speedLight
@@ -147,7 +147,7 @@ contains
     use            :: Units_MetaData                  , only : unitType
     use            :: Numerical_Ranges                , only : Make_Range             , rangeTypeLogarithmic
     use            :: String_Handling                 , only : operator(//)
-    use            :: System_Command                  , only : System_Command_Do
+    use            :: System_Command                  , only : System_Command_Do      , shellEscape
     use            :: System_Compilers                , only : languageC              , compilerValidate
     use            :: System_Download                 , only : download
     implicit none
@@ -158,14 +158,16 @@ contains
     double precision                                 , parameter                   :: luminosityBolometricMaximum=1.0d28
     integer                                          , parameter                   :: luminosityBolometricCount  =200
     logical                                                                        :: makeFile
-    type            (hdf5Object                     )                              :: file                              , dataset
+    type            (hdf5File                       )                              :: file
+    type            (hdf5Dataset                    )                              :: dataset
     integer                                                                        :: fileFormatCurrentFile             , sedUnit             , &
          &                                                                            i                                 , j                   , &
          &                                                                            status                            , wavelengthCount
     character       (len= 16                        )                              :: label
     character       (len=256                        )                              :: line
     double precision                                                               :: frequencyLogarithmic              , spectrumLogarithmic
-    type            (varying_string                 )                              :: fileNameLock
+    type            (varying_string                 )                              :: fileNameLock                     , escapedBuildDir    , &
+         &                                                                            escapedExecutable                , escapedSEDFile
 
     ! Determine if we need to make the file.
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
@@ -175,7 +177,7 @@ contains
     makeFile=.false.
     if (File_Exists(self%fileName)) then
        !$ call hdf5Access%set()
-       file=hdf5Object(char(self%fileName),readOnly=.true.)
+       file=hdf5File(self%fileName,readOnly=.true.)
        if (file%hasAttribute('fileFormat')) then
           call file%readAttribute('fileFormat',fileFormatCurrentFile,allowPseudoScalar=.true.)
           makeFile=fileFormatCurrentFile /= fileFormatCurrent
@@ -201,7 +203,9 @@ contains
        ! Compile the AGN SED code.
        if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) then
           call compilerValidate(languageC,'AGN spectrum')
-          call System_Command_Do("cd "//char(inputPath(pathTypeDataStatic))//"aux/AGN_Spectrum; gcc agn_spectrum.c -o agn_spectrum.x -lm");
+          escapedBuildDir=inputPath(pathTypeDataStatic)//"aux/AGN_Spectrum"
+          escapedBuildDir=shellEscape(escapedBuildDir)
+          call System_Command_Do("cd "//char(escapedBuildDir)//"; gcc agn_spectrum.c -o agn_spectrum.x -lm");
           if (.not.File_Exists(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) call Error_Report('failed to compile agn_spectrum.c'//{introspection:location})
        end if
        ! Generate a tabulation of AGN spectra over a sufficiently large range of AGN luminosity.
@@ -211,7 +215,11 @@ contains
        do i=1,luminosityBolometricCount
           call displayCounter(int(100.0*dble(i-1)/dble(luminosityBolometricCount)),isNew=i==1,verbosity=verbosityLevelWorking)
           write (label,'(e12.6)') log10(luminosityBolometric(i))
-          call System_Command_Do(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x "//label//" > "//inputPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt")
+          escapedExecutable=inputPath  (pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x"
+          escapedExecutable=shellEscape(escapedExecutable  )
+          escapedSEDFile   =inputPath  (pathTypeDataDynamic)//"AGN_Spectrum/SED.txt"        
+          escapedSEDFile   =shellEscape(escapedSEDFile     )
+          call System_Command_Do(escapedExecutable//" "//label//" > "//escapedSEDFile)
           wavelengthCount=Count_Lines_in_File(inputPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt",";")-4
           if (allocated(wavelength)) then
              if (wavelengthCount /= size(wavelength)) call Error_Report('inconsistent number of wavelengths'//{introspection:location})
@@ -236,7 +244,7 @@ contains
        call displayCounterClear(verbosity=verbosityLevelWorking)
        ! Store the data to file.
        !$ call hdf5Access%set()
-       file=hdf5Object(char(self%fileName),overWrite=.true.)
+       file=hdf5File(self%fileName,overWrite=.true.)
        call file   %writeDataset  (wavelength               ,"wavelength"          ,datasetReturned=dataset)
        call dataset%writeAttribute(unitType(1.0d0/metersToAngstroms  ,"Angstroms (Å)"          ,"angstrom" ),"units")
        call file   %writeDataset  (luminosityBolometric     ,"bolometricLuminosity",datasetReturned=dataset)

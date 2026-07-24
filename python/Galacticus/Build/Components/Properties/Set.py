@@ -2,8 +2,6 @@
 class-level `<prop>IsSettable` boolean stub.
 
 Andrew Benson (ported to Python 2026)
-
-Mirrors perl/Galacticus/Build/Components/Properties/Set.pm.
 """
 from __future__ import annotations
 
@@ -24,8 +22,6 @@ def _is_deferred(prop: dict, verb: str) -> bool:
 def Build_Class_Setters(build: dict) -> None:
     """Insert one `<prop>IsSettable` Boolean_False stub per property
     into the matching `nodeComponent<Class>` type.
-
-    Mirrors `Build_Class_Setters`.
     """
     for component in (build.get('components') or {}).values():
         cap_class = _ucfirst(component['class'])
@@ -55,8 +51,6 @@ def Bind_Set_Functions(build: dict, class_dict: dict, member: dict, prop: dict) 
     """Bind a compile-time custom set function to the component
     implementation when the user supplied one and the property's `set`
     is not deferred.
-
-    Mirrors `Bind_Set_Functions`.
     """
     attrs = prop.get('attributes') or {}
     set_function = prop.get('setFunction') or {}
@@ -81,7 +75,7 @@ def Bind_Set_Functions(build: dict, class_dict: dict, member: dict, prop: dict) 
 
 def Build_Set_Functions(build: dict, class_dict: dict, member: dict, prop: dict) -> None:
     """Build the auto-generated set function for a non-deferred,
-    non-virtual settable property.  Mirrors `Build_Set_Functions`.
+    non-virtual settable property.
     """
     attrs = prop.get('attributes') or {}
     set_function = prop.get('setFunction') or {}

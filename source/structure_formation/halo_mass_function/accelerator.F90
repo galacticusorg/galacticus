@@ -200,6 +200,7 @@ contains
        self%massMinimum=+huge(0.0d0)
        self%massMaximum=-huge(0.0d0)
        self%time       =+time
+       if (allocated(self%mass)) deallocate(self%mass,self%massFunction)
     end if
     if     (                              &
          &   massLow  >= self%massMinimum &

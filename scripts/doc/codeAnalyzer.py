@@ -5,7 +5,7 @@ Outputs lists of modules used/used-by with hyperlinks, descriptions, and code
 line counts.  Collects much more information on subroutine calls, function
 calls, module procedures, etc. — could be made to output that data if required.
 
-Andrew Benson (01-May-2010 original Perl); Python port 2026.
+Andrew Benson (01-May-2010)
 
 Usage: Code_Analyzer.py <sourceDir> <outputFile>
 """
@@ -453,7 +453,7 @@ def process_file(file_path):
 
                 # ---- Function call extraction ----------------------------
                 # Not mutually exclusive with the checks above: does NOT set
-                # line_processed (matching the Perl behaviour).
+                # line_processed.
                 if not line_processed and not frame['in_xml'] and not frame['in_latex']:
                     func_seek = processed.lower()
                     # Strip string literals to avoid false matches inside them.
@@ -656,7 +656,7 @@ def main():
         print('Error: BUILDPATH environment variable is not set.', file=sys.stderr)
         sys.exit(1)
 
-    # Replicates Perl: $currentDirectory/$sourceDir/../$BUILDPATH
+    # Include files live at $currentDirectory/$sourceDir/../$BUILDPATH.
     global include_file_dir
     include_file_dir = os.path.normpath(
         os.path.join(os.getcwd(), source_dir, '..', build_path)

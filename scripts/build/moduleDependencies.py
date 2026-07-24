@@ -20,8 +20,7 @@ Results are cached in `Makefile_Module_Dependencies.blob` (pickle) so
 subsequent runs only rescan the files whose mtimes have advanced past the
 cache's own mtime.
 
-Mirrors scripts/build/moduleDependencies.pl.
-Andrew Benson (ported to Python 2026).
+Andrew Benson (2026).
 """
 
 import os
@@ -39,6 +38,7 @@ from XML.Utils                    import xml_to_dict
 from Galacticus.Build.ScanCache import (
     file_identifier as _file_identifier,
     load_cache      as _load_cache,
+    prune           as _prune_cache,
 )
 
 
@@ -112,7 +112,7 @@ def _list_source_files(directory):
 def _find_function_class_submodules(directive_name, function_class_file,
                                     source_root):
     """Return the list of submodule records produced by one `functionClass`
-    directive.  Mirrors moduleDependencies.pl:97-133.
+    directive.
     """
     # Regex is dynamic: the class name is substituted in.
     type_re = re.compile(
@@ -176,10 +176,7 @@ def _scan_file(file_path, entry, source_root):
 
     `include`d files are not followed: a Fortran `include` cannot introduce
     a `module`/`submodule` statement in this codebase (module declarations
-    are never placed in include files), and the include-following the Perl
-    original attempted was inert anyway — its `include\\s+'(\\w+)'` regex
-    could not match any real include in the tree (all include file names
-    contain a `.`, which `\\w` excludes).
+    are never placed in include files).
     """
     in_xml   = False
     in_latex = False
@@ -335,8 +332,7 @@ def _build_submodule_map(modules_per_file):
 # ---------------------------------------------------------------------------
 
 def _write_makefile(path, modules_per_file, submodules_by_module, work_dir):
-    """Write `Makefile_Module_Dependencies`.  Mirrors the output loop at
-    moduleDependencies.pl:207-300.
+    """Write `Makefile_Module_Dependencies`.
     """
     with open(path, 'w') as mk:
         for file_identifier in sorted(modules_per_file):
@@ -539,21 +535,22 @@ def main(argv):
     modules_per_file, cache_mtime = _load_cache(blob_path)
     have_per_file = cache_mtime is not None
 
-    # Build the unstripped identifier list used for add/remove detection
-    # (matches the Perl's first `@fileIdentifiers` loop).
-    unstripped_identifiers = []
+    # Build the identifier list used for add/remove detection and the
+    # stale-entry prune below. Canonicalized via `file_identifier()` so it
+    # uses the same key form as the cache entries.
+    current_identifiers = []
     for desc in descriptors:
         for name in _list_source_files(desc['path']):
-            unstripped_identifiers.append(
-                (desc['path'] + '/' + name).replace('/', '_'),
+            current_identifiers.append(
+                _file_identifier(desc['path'] + '/' + name),
             )
-    unstripped_set = set(unstripped_identifiers)
+    current_identifier_set = set(current_identifiers)
 
     force_rescan = False
     if have_per_file:
-        if any(fid not in modules_per_file for fid in unstripped_identifiers):
+        if any(fid not in modules_per_file for fid in current_identifiers):
             force_rescan = True
-        if any(fid not in unstripped_set for fid in modules_per_file):
+        if any(fid not in current_identifier_set for fid in modules_per_file):
             force_rescan = True
 
     # Decide which files need a (re)scan, preserving the deterministic
@@ -584,6 +581,13 @@ def main(argv):
             scan_list, source_root, locations):
         modules_per_file.pop(file_identifier, None)
         modules_per_file[file_identifier] = entry
+
+    # Drop cache entries for source files that no longer exist, or their
+    # module/submodule rules would be re-emitted into
+    # Makefile_Module_Dependencies forever (phantom dependencies on deleted
+    # files, which survive deleting the generated fragment — it is rebuilt
+    # from this same cache).
+    _prune_cache(modules_per_file, current_identifier_set)
 
     # Build the submodule-by-module map.
     submodules_by_module = _build_submodule_map(modules_per_file)

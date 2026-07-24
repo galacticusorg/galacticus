@@ -182,7 +182,7 @@ contains
     use            :: Error                         , only : Error_Report
     use            :: Input_Paths                   , only : inputPath             , pathTypeDataStatic
     use            :: HDF5_Access                   , only : hdf5Access
-    use            :: IO_HDF5                       , only : hdf5Object
+    use            :: IO_HDF5                       , only : hdf5File              , hdf5Group         , hdf5Dataset
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Instruments_Filters           , only : Filter_Extent         , Filter_Get_Index
     use            :: Output_Times                  , only : outputTimesClass
@@ -200,8 +200,9 @@ contains
     class           (blackHoleAccretionRateClass            ), intent(in   ), target                         :: blackHoleAccretionRate_
     class           (outputTimesClass                       ), intent(in   ), target                         :: outputTimes_
     class           (atomicRecombinationRateRadiativeClass  ), intent(in   ), target                         :: atomicRecombinationRateRadiative_
-    type            (hdf5Object                             )                                                :: emissionLinesFile                , lines              , &
-         &                                                                                                      lineDataset                      , dataset
+    type            (hdf5File                               )                                                :: emissionLinesFile
+    type            (hdf5Group                              )                                                :: lines
+    type            (hdf5Dataset                            )                                                :: lineDataset, dataset
     integer                                                                                                  :: i
     integer         (c_size_t)                                              , dimension(5        )           :: shapeLines                       , permutation
     double precision                                         , allocatable  , dimension(:,:,:,:,:)           :: luminosity
@@ -211,7 +212,7 @@ contains
     
     ! Read the table of emission line luminosities.
     !$ call hdf5Access%set()
-    emissionLinesFile=hdf5Object(self%cloudyTableFileName,readOnly=.true.)
+    emissionLinesFile=hdf5File(self%cloudyTableFileName,readOnly=.true.)
     lines=emissionLinesFile%openGroup('lines')
     do i=1,size(lineNames)
        if (.not.lines%hasDataset(char(self%lineNames(i)))) call Error_Report('line "'//char(self%lineNames(i))//'" not found'//{introspection:location})

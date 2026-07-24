@@ -283,11 +283,11 @@ contains
     use            :: Error                           , only : Error_Report
     use            :: Output_HDF5                     , only : outputFile
     use            :: HDF5_Access                     , only : hdf5Access
-    use            :: IO_HDF5                         , only : hdf5Object
+    use            :: IO_HDF5                         , only : hdf5File    , hdf5Group     , hdf5Dataset
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: ISO_Varying_String              , only : var_str              , varying_string
+    use            :: ISO_Varying_String              , only : var_str     , varying_string
     use            :: Kind_Numbers                    , only : kind_int8
-    use            :: Numerical_Constants_Astronomical, only : gigaYear             , massSolar
+    use            :: Numerical_Constants_Astronomical, only : gigaYear    , massSolar
     use            :: Units_MetaData                  , only : unitType
     use            :: String_Handling                 , only : operator(//)
     use            :: Locks                           , only : ompLock
@@ -299,7 +299,8 @@ contains
     logical                , intent(in   ) :: nodePassesFilter
     type   (ompLock       ), intent(inout) :: treeLock
     type   (varying_string)                :: datasetName
-    type   (hdf5Object    )                :: outputGroup     , dataset
+    type   (hdf5Group     )                :: outputGroup
+    type   (hdf5Dataset   )                :: dataset
     !$GLC attributes unused :: treeLock
 
     select type (self)
