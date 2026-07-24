@@ -51,7 +51,7 @@
 
     .. math::
 
-       E_\mathrm{int} = E_{\mathrm{int}, 0} + \sum_{i=1}^N \left( E_{\mathrm{int}, i} +  E_{\mathrm{orb}, i,0} \right) (1 + \mu)^{-\alpha} (1+b \nu^\beta) w_i 10^{\sigma \mathcal{N}(0,1)},
+       E_\mathrm{int} = E_{\mathrm{int}, 0} + \sum_{i=1}^N \left( E_{\mathrm{int}, i} +  E_{\mathrm{orb}, i,0} \right) (1 + \mu)^{-\alpha} (1+b) \nu^\beta w_i 10^{\sigma \mathcal{N}(0,1)},
 
     where :math:`E_{\mathrm{int}, 0}` is the internal energy of the primary progenitor halo, :math:`E_{\mathrm{int}, i}` is the internal energy of the :math:`i^\mathrm{th}` non-primary progenitor halo, :math:`E_{\mathrm{orb}, i,0}` is the orbital energy of the :math:`i^\mathrm{th}` non-primary progenitor halo about the primary progenitor halo, :math:`\mu = M_i/M_0` is the mass ratio of the :math:`i^\mathrm{th}` non-primary progenitor and the primary progenitor ratio, :math:`\nu` is the peak height parameter for the primary progenitor halo, :math:`w_i` is the subsampling weight of the :math:`i^\mathrm{th}` non-primary progenitor, :math:`\mathcal{N}(0,1)` is a standard normal deviate, :math:`\alpha=`\ ``[massExponent]``, :math:`\beta=`\ ``[peakHeightExponent]``, :math:`b=`\ ``[energyBoost]``, and :math:`\sigma=`\ ``[scatterExcess]``.
 
@@ -61,7 +61,7 @@
 
        M_{\mathrm unres} = M - \sum_{i=0}^N M_i.
 
-    This mass will be accreted in halos spanning a range of masses below the unresolved mass scale, :math:`M_\mathrm{unres}`. We assume the mass function of these unresolved halos follows a power-law, :math:`n(M) \propto M^\delta`, with :math:`\delta = -1.8`. We further assume that the mean orbit energy of an unresolved halo is simply proportional to :math:`M` (i.e. the distribution of orbital parameters is independent of mass), and that the internal energy of an unresolved halo scales as :math:`E_\mathrm{int} \propto M^{5/3+\epsilon}` where the :math:`5/3` exponent is the expected scaling for halos assuming a self-similar structure, and :math:`\epsilon = -0.02` accounts for the non-self-similarity (e.g. that concentration is a function of mass) and was estimated for typical CDM halos.
+    This mass will be accreted in halos spanning a range of masses below the unresolved mass scale, :math:`M_\mathrm{unres}`. We assume the mass function of these unresolved halos follows a power-law, :math:`n(M) \propto M^\delta`, with :math:`\delta = -1.9`. We further assume that the mean orbit energy of an unresolved halo is simply proportional to :math:`M` (i.e. the distribution of orbital parameters is independent of mass), and that the internal energy of an unresolved halo scales as :math:`E_\mathrm{int} \propto M^{5/3+\epsilon}` where the :math:`5/3` exponent is the expected scaling for halos assuming a self-similar structure, and :math:`\epsilon = -0.02` accounts for the non-self-similarity (e.g. that concentration is a function of mass) and was estimated for typical CDM halos.
 
     The mean energy (orbital or internal) per unit mass of unresolved halos is then found by averaging these scalings over the mass function. Dividing these by the energy of an unresolved halo of mass :math:`M_\mathrm{unres}` then gives a correction factor that can be applied to the energy computed for halos of :math:`M_\mathrm{res}` to account for the spectrum of unresolved halo masses. That is, for an energy that scales as :math:`x^p` where :math:`x = M/M_0`, the correction factor is:
 
@@ -91,7 +91,7 @@
 
     .. math::
 
-       E_\mathrm{unres} = u (E_\mathrm{orb} c_\mathrm{orb} f_\mathrm{orb} + E_\mathrm{int} c_\mathrm{int} f_\mathrm{int}) (1+b \nu^\beta),
+       E_\mathrm{unres} = u (E_\mathrm{orb} c_\mathrm{orb} f_\mathrm{orb} + E_\mathrm{int} c_\mathrm{int} f_\mathrm{int}) (1+b) \nu^\beta,
 
     where :math:`u =`\ ``[unresolvedEnergy]``.
 
@@ -121,7 +121,12 @@
 
     where :math:`\sigma_\mathrm{e}=`\ ``[scatterExcess]`` accounts for scatter missed by this model.
 
-    The scale radius which corresponds to this energy is then solved for.
+    The scale radius which corresponds to this energy is then solved for. If the total energy is found to be positive the
+    model has failed (no bound profile corresponds to a positive energy), and the scale radius of the primary progenitor is
+    used unchanged. The number of nodes for which this occurs, as a fraction of those to which the energy model was applied,
+    is reported at the end of the run by :galacticus-class:`Johnson2021_Statistics`. The rate of such failures is a function
+    of both mass resolution and power spectrum, so it should be monitored when calibrating this model: it is a bias in
+    precisely the regime of interest.
 
     For halos with mass less than :math:`f_\mathrm{res} M_\mathrm{res}`, where :math:`f_\mathrm{res}=`\ ``[factorMassResolution]`` and :math:`M_\mathrm{res}` is the mass resolution of the merger tree, and for any halo which has no progenitors (a leaf node), the scale radius is instead computed using an alternative method\ [#]_. In these cases, the entire extent of the branch for which this criterion applies is first determined. Each halo in this sub-branch is first assigned a scale radius from a fall-back :galacticus-class:`darkMatterHaloScaleClass` object which should be configured to return a *scatter-free* scale radius for halos of given mass and redshift\ [#]_ Then, a correlated set of random, log-normal deviates are applied to the scale radii of these nodes. That is, the scale radius of the :math:`i^\mathrm{th}` node in such a sub-branch will be :math:`r_\mathrm{s} = \bar{r}_{\mathrm{s}, i} 10^{x_i}` where :math:`x_i` is a normally-distributed random variate with mean zero and dispersion :math:`\sigma^\prime=`\ ``[scatter]``. The deviates :math:`x_i` are assumed to be correlated with correlation matrix:
 
@@ -151,13 +156,13 @@
      class           (virialOrbitClass                 ), pointer :: virialOrbit_                  => null()
      class           (mergerTreeMassResolutionClass    ), pointer :: mergerTreeMassResolution_     => null()
      type            (branch                           ), pointer :: branches                      => null()
-     double precision                                             :: massExponent                           , energyBoost              , &
-          &                                                          unresolvedEnergy                       , factorMassResolution     , &
-          &                                                          scatter                                , scatterExcess            , &
-          &                                                          peakHeightExponent                     , correlationRateDecay     , &
-          &                                                          correlationExponent
+     double precision                                             :: massExponent                           , energyBoost                 , &
+          &                                                          unresolvedEnergy                       , factorMassResolution        , &
+          &                                                          scatter                                , scatterExcess               , &
+          &                                                          peakHeightExponent                     , correlationRateDecay        , &
+          &                                                          correlationExponent                    , massFunctionSlopeLogarithmic
      integer                                                      :: countSampleEnergyUnresolved
-     logical                                                      :: mainBranchOnly                         , applySubsamplingWeights  , &
+     logical                                                      :: mainBranchOnly                         , applySubsamplingWeights     , &
           &                                                          acceptUnboundOrbits                    , includeUnresolvedVariance
    contains
      final     ::           darkMatterProfileScaleJohnson2021Destructor
@@ -197,13 +202,13 @@ contains
     class           (darkMatterProfileDMOClass              ), pointer       :: darkMatterProfileDMO_
     class           (virialOrbitClass                       ), pointer       :: virialOrbit_
     class           (mergerTreeMassResolutionClass          ), pointer       :: mergerTreeMassResolution_
-    double precision                                                         :: massExponent                 , energyBoost           , &
-         &                                                                      unresolvedEnergy             , factorMassResolution  , &
-         &                                                                      scatter                      , scatterExcess         , &
-         &                                                                      peakHeightExponent           , correlationRateDecay  , &
-         &                                                                      correlationExponent
+    double precision                                                         :: massExponent                 , energyBoost                 , &
+         &                                                                      unresolvedEnergy             , factorMassResolution        , &
+         &                                                                      scatter                      , scatterExcess               , &
+         &                                                                      peakHeightExponent           , correlationRateDecay        , &
+         &                                                                      correlationExponent          , massFunctionSlopeLogarithmic
     integer                                                                  :: countSampleEnergyUnresolved
-    logical                                                                  :: mainBranchOnly               , applySubsamplingWeights, &
+    logical                                                                  :: mainBranchOnly               , applySubsamplingWeights     , &
          &                                                                      acceptUnboundOrbits          , includeUnresolvedVariance
     
     !![
@@ -289,6 +294,14 @@ contains
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
+      <name>massFunctionSlopeLogarithmic</name>
+      <defaultValue>-1.9d0</defaultValue>
+      <source>parameters</source>
+      <description>
+      The logarithmic slope, :math:`\delta`, of the sub-resolution halo mass function, :math:`n(M) \propto M^\delta`, used when averaging the energy of unresolved accretion over the mass function.
+      </description>
+    </inputParameter>
+    <inputParameter docformat="rst">
       <name>countSampleEnergyUnresolved</name>
       <defaultValue>100</defaultValue>
       <source>parameters</source>
@@ -337,7 +350,7 @@ contains
     <objectBuilder class="mergerTreeMassResolution"     name="mergerTreeMassResolution_"     source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
     !!]
-    self=darkMatterProfileScaleRadiusJohnson2021(massExponent,peakHeightExponent,energyBoost,unresolvedEnergy,factorMassResolution,scatter,scatterExcess,correlationRateDecay,correlationExponent,countSampleEnergyUnresolved,mainBranchOnly,applySubsamplingWeights,acceptUnboundOrbits,includeUnresolvedVariance,cosmologyFunctions_,darkMatterProfileScaleRadius_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_,criticalOverdensity_,cosmologicalMassVariance_)
+    self=darkMatterProfileScaleRadiusJohnson2021(massExponent,peakHeightExponent,energyBoost,unresolvedEnergy,factorMassResolution,scatter,scatterExcess,correlationRateDecay,correlationExponent,massFunctionSlopeLogarithmic,countSampleEnergyUnresolved,mainBranchOnly,applySubsamplingWeights,acceptUnboundOrbits,includeUnresolvedVariance,cosmologyFunctions_,darkMatterProfileScaleRadius_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_,criticalOverdensity_,cosmologicalMassVariance_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"          />
@@ -352,7 +365,7 @@ contains
     return
   end function darkMatterProfileScaleJohnson2021ConstructorParameters
 
-  function darkMatterProfileScaleJohnson2021ConstructorInternal(massExponent,peakHeightExponent,energyBoost,unresolvedEnergy,factorMassResolution,scatter,scatterExcess,correlationRateDecay,correlationExponent,countSampleEnergyUnresolved,mainBranchOnly,applySubsamplingWeights,acceptUnboundOrbits,includeUnresolvedVariance,cosmologyFunctions_,darkMatterProfileScaleRadius_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
+  function darkMatterProfileScaleJohnson2021ConstructorInternal(massExponent,peakHeightExponent,energyBoost,unresolvedEnergy,factorMassResolution,scatter,scatterExcess,correlationRateDecay,correlationExponent,massFunctionSlopeLogarithmic,countSampleEnergyUnresolved,mainBranchOnly,applySubsamplingWeights,acceptUnboundOrbits,includeUnresolvedVariance,cosmologyFunctions_,darkMatterProfileScaleRadius_,darkMatterHaloScale_,darkMatterProfileDMO_,virialOrbit_,mergerTreeMassResolution_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`darkMatterProfileScaleRadiusJohnson2021` dark matter halo profile scale radius class.
     !!}
@@ -366,16 +379,16 @@ contains
     class           (virialOrbitClass                       ), intent(in   ), target :: virialOrbit_
     class           (mergerTreeMassResolutionClass          ), intent(in   ), target :: mergerTreeMassResolution_
     class           (darkMatterProfileDMOClass              ), intent(in   ), target :: darkMatterProfileDMO_
-    double precision                                         , intent(in   )         :: massExponent                 , energyBoost             , &
-         &                                                                              unresolvedEnergy             , factorMassResolution    , &
-         &                                                                              scatter                      , scatterExcess           , &
-         &                                                                              peakHeightExponent           , correlationRateDecay    , &
-         &                                                                              correlationExponent
+    double precision                                         , intent(in   )         :: massExponent                 , energyBoost                 , &
+         &                                                                              unresolvedEnergy             , factorMassResolution        , &
+         &                                                                              scatter                      , scatterExcess               , &
+         &                                                                              peakHeightExponent           , correlationRateDecay        , &
+         &                                                                              correlationExponent          , massFunctionSlopeLogarithmic
     integer                                                  , intent(in   )         :: countSampleEnergyUnresolved
-    logical                                                  , intent(in   )         :: mainBranchOnly               , applySubsamplingWeights  , &
+    logical                                                  , intent(in   )         :: mainBranchOnly               , applySubsamplingWeights     , &
          &                                                                              acceptUnboundOrbits          , includeUnresolvedVariance
     !![
-    <constructorAssign variables="massExponent, peakHeightExponent, energyBoost, unresolvedEnergy, factorMassResolution, scatter, scatterExcess, correlationRateDecay, correlationExponent, countSampleEnergyUnresolved, mainBranchOnly, applySubsamplingWeights, acceptUnboundOrbits, includeUnresolvedVariance, *cosmologyFunctions_, *darkMatterProfileScaleRadius_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *virialOrbit_, *mergerTreeMassResolution_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
+    <constructorAssign variables="massExponent, peakHeightExponent, energyBoost, unresolvedEnergy, factorMassResolution, scatter, scatterExcess, correlationRateDecay, correlationExponent, massFunctionSlopeLogarithmic, countSampleEnergyUnresolved, mainBranchOnly, applySubsamplingWeights, acceptUnboundOrbits, includeUnresolvedVariance, *cosmologyFunctions_, *darkMatterProfileScaleRadius_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *virialOrbit_, *mergerTreeMassResolution_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
     !!]
 
     return
@@ -406,6 +419,7 @@ contains
     Initialize dark matter profile scale radii.
     !!}
     use :: Calculations_Resets             , only : Calculations_Reset
+    use :: Johnson2021_Statistics          , only : johnson2021EnergyModelApplied , johnson2021EnergyModelFailed
     use :: Galacticus_Nodes                , only : nodeComponentBasic            , nodeComponentDarkMatterProfile, nodeComponentSatellite
     use :: Root_Finder                     , only : rootFinder                    , rangeExpandMultiplicative     , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
     use :: Kepler_Orbits                   , only : keplerOrbit
@@ -413,6 +427,7 @@ contains
     use :: Hypergeometric_Functions        , only : Hypergeometric_2F1
     use :: Mass_Distributions              , only : massDistributionClass
     use :: Linear_Algebra                  , only : matrix                        , assignment(=)
+    use :: Error                           , only : Error_Report
     implicit none
     class           (darkMatterProfileScaleRadiusJohnson2021), intent(inout) , target      :: self
     type            (treeNode                               ), intent(inout) , target      :: node
@@ -429,7 +444,6 @@ contains
     double precision                                         , dimension(:  ), allocatable :: massLogarithmic                                 , deviates
     double precision                                         , dimension(:,:), allocatable :: covarianceNodes                                 , cholesky
     logical                                                  , dimension(:  ), allocatable :: independent
-    double precision                                                         , parameter   :: massFunctionSlopeLogarithmic            =-1.80d0
     double precision                                                         , parameter   :: energyInternalFormFactorSlopeLogarithmic=-0.02d0
     double precision                                                         , parameter   :: scatterFractionalMaximum                =+5.00d0
     logical                                                                                :: haveBranch
@@ -681,6 +695,12 @@ contains
 	  <objectDestructor name="massDistribution_"/>
           !!]
        end do
+       ! This model is intended for use only with extended Press-Schechter merger trees, in which the mass along a
+       ! branch never decreases, so the unresolved (smooth) mass accreted between a node and its primary progenitor
+       ! should never be negative. A significantly-negative value indicates the model is being applied to an
+       ! unsupported tree (e.g. an N-body-derived tree with mass loss); treat it as a fatal error rather than
+       ! silently dropping the contribution. A small negative value is tolerated as floating-point round-off.
+       if (massUnresolved < -1.0d-6*basic%mass()) call Error_Report('negative unresolved mass: the Johnson2021 scale radius model requires extended Press-Schechter trees (non-decreasing branch mass)'//{introspection:location})
        ! Account for unresolved accretion. We assume that unresolved halos are accreted with the mean orbital energy of
        ! the virial orbital parameter distribution, plus an internal energy corresponding to that of a halo with mass
        ! equal to the total unresolved mass scaled by some correction factor (to account for the fact that the unresolved
@@ -707,22 +727,22 @@ contains
           ! that is applied to the orbital energy. Averaging this over a power-law mass function gives the result below.
           massRatio                       =+basicUnresolved%mass() &
                &                           /basicChild     %mass()
-          energyOrbitalSubresolutionFactor=+(1.0d0+massRatio)**self%massExponent                                       &
-               &                           *Hypergeometric_2F1(                                                        &
-               &                                               [2.0d0+massFunctionSlopeLogarithmic,self%massExponent], &
-               &                                               [3.0d0+massFunctionSlopeLogarithmic                  ], &
-               &                                               -massRatio                                              &
+          energyOrbitalSubresolutionFactor=+(1.0d0+massRatio)**self%massExponent                                            &
+               &                           *Hypergeometric_2F1(                                                             &
+               &                                               [2.0d0+self%massFunctionSlopeLogarithmic,self%massExponent], &
+               &                                               [3.0d0+self%massFunctionSlopeLogarithmic                  ], &
+               &                                               -massRatio                                                   &
                &                                              )
           ! Compute a correction factor to the internal energy which takes into account the mass dependence of the 1/(1+m/M)ᵅ
           ! term that is applied to the orbital energy. Averaging this over a power-law mass function gives the result
           ! below.
-          energyInternalSubresolutionFactor=+(1.0d0+massRatio)**self%massExponent                                                                                            &
-               &                            *(2.0d0+massFunctionSlopeLogarithmic                                                     )                                       &
-               &                            /(1.0d0+massFunctionSlopeLogarithmic+5.0d0/3.0d0+energyInternalFormFactorSlopeLogarithmic)                                       &
-               &                            *Hypergeometric_2F1(                                                                                                             &
-               &                                                [1.0d0+massFunctionSlopeLogarithmic+5.0d0/3.0d0+energyInternalFormFactorSlopeLogarithmic,self%massExponent], &
-               &                                                [2.0d0+massFunctionSlopeLogarithmic+5.0d0/3.0d0+energyInternalFormFactorSlopeLogarithmic                  ], &
-               &                                                -massRatio                                                                                                   &
+          energyInternalSubresolutionFactor=+(1.0d0+massRatio)**self%massExponent                                                                                                 &
+               &                            *(2.0d0+self%massFunctionSlopeLogarithmic                                                     )                                       &
+               &                            /(1.0d0+self%massFunctionSlopeLogarithmic+5.0d0/3.0d0+energyInternalFormFactorSlopeLogarithmic)                                       &
+               &                            *Hypergeometric_2F1(                                                                                                                  &
+               &                                                [1.0d0+self%massFunctionSlopeLogarithmic+5.0d0/3.0d0+energyInternalFormFactorSlopeLogarithmic,self%massExponent], &
+               &                                                [2.0d0+self%massFunctionSlopeLogarithmic+5.0d0/3.0d0+energyInternalFormFactorSlopeLogarithmic                  ], &
+               &                                                -massRatio                                                                                                        &
                &                                               )
           ! Compute factors that account for the finite interval of time over which unresolved growth occurs.
           factorGrowthInternal=+0.5d0                                                                                                                                &
@@ -799,26 +819,36 @@ contains
                &      *exp(                                                                        &
                &           +node%hostTree%randomNumberGenerator_%standardNormalSample()            &
                &           *sqrt(                                                                  &
-               &                 +(min(energyScatter/abs(energyMean),scatterFractionalMaximum**2)) &
-               &                 *(2.0d0+massFunctionSlopeLogarithmic)                             &
-               &                 /(3.0d0+massFunctionSlopeLogarithmic)                             &
+               &                 +(min(energyScatter/abs(energyMean),scatterFractionalMaximum))**2 &
+               &                 *(2.0d0+self%massFunctionSlopeLogarithmic)                        &
+               &                 /(3.0d0+self%massFunctionSlopeLogarithmic)                        &
                &                 +(self%scatterExcess*log(10.0d0))**2                              &
                &                )                                                                  &
                &          )
        end if
+       ! Accumulate the count of nodes to which the energy model was applied (reported by `Johnson2021_Statistics`).
+       !$omp atomic update
+       johnson2021EnergyModelApplied   =   johnson2021EnergyModelApplied &
+            &                             +1_c_size_t
        ! Check for positive energy.
        if (energyTotal >= 0.0d0) then
-          ! Energy is positive - the model has failed - simply assume no change in the scale radius.
-          radiusScale         =  radiusScaleChild
+          ! Energy is positive - the model has failed - simply assume no change in the scale radius. Count the failure: the rate
+          ! at which it occurs depends on both resolution and power spectrum, so it is a bias which would otherwise be silent in
+          ! exactly the regime in which this model is calibrated.
+          !$omp atomic update
+          johnson2021EnergyModelFailed =   johnson2021EnergyModelFailed &
+               &                          +1_c_size_t
+          radiusScale                  =   radiusScaleChild
        else
           ! Convert energy back to scale radius.
-          self_               => self
-          node_               => node
-          darkMatterProfile_  => darkMatterProfile
-          radiusScaleOriginal =  darkMatterProfile%scale(                          )
-          radiusScale         =  finder           %find (rootGuess=radiusScaleChild)
+          self_                        =>  self
+          node_                        =>  node
+          darkMatterProfile_           =>  darkMatterProfile
+          radiusScaleOriginal          =   darkMatterProfile%scale(                          )
+          radiusScale                  =   finder           %find (rootGuess=radiusScaleChild)
+          ! Restore the scale radius mutated by the root finder.
+          call darkMatterProfile%scaleSet(radiusScaleOriginal)
        end if
-       call darkMatterProfile%scaleSet(radiusScaleOriginal)
        call Calculations_Reset(node)
     end if
     return
