@@ -25,25 +25,25 @@ program Tests_IO_XML
   !!{RST
   Tests the XML I/O module.
   !!}
-  use            :: Unit_Tests    , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
-  use            :: IO_XML        , only : XML_Count_Elements_By_Tag_Name                        , XML_Array_Read      , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, &
-          &                                XML_Parse                                             , XML_Path_Exists     , xmlNodeList          , XML_Get_ELements_By_Tag_Name
-  use            :: Display       , only : displayVerbositySet           , verbosityLevelStandard
-  use            :: FoX_DOM       , only : destroy                       , node                  , serialize           , extractDataContent
-  use            :: Error         , only : Error_Report
-  use, intrinsic :: ISO_C_Binding , only : c_size_t
-  use            :: System_Command, only : System_Command_Do
-  use            :: ISO_Varying_String, only : varying_string             , char
+  use            :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use            :: IO_XML            , only : XML_Count_Elements_By_Tag_Name                        , XML_Array_Read      , XML_Array_Read_Static, XML_Get_First_Element_By_Tag_Name, &
+          &                                    XML_Parse                                             , XML_Path_Exists     , xmlNodeList          , XML_Get_ELements_By_Tag_Name
+  use            :: Display           , only : displayVerbositySet           , verbosityLevelStandard
+  use            :: FoX_DOM           , only : destroy                       , node                  , serialize           , extractDataContent
+  use            :: Error             , only : Error_Report
+  use, intrinsic :: ISO_C_Binding     , only : c_size_t
+  use            :: System_Command    , only : System_Command_Do
+  use            :: ISO_Varying_String, only : varying_string                , char
   implicit none
-  type            (node          )                        , pointer :: doc        , xmlElement
-  type            (xmlNodeList   ), allocatable, dimension(:)        :: xmlElements
-  double precision                , allocatable, dimension(:)        :: array1     , array2
-  integer                         , allocatable, dimension(:)        :: iarray1
-  character       (len=1         ), allocatable, dimension(:)        :: carray1
-  integer                                      , dimension(1)        :: iValue
-  integer                                                           :: ioErr      , status
-  type            (varying_string)                                  :: pathFailed
-  logical                                                           :: pathExists
+  type            (node          ), pointer                   :: doc        , xmlElement
+  type            (xmlNodeList   ), allocatable, dimension(:) :: xmlElements
+  double precision                , allocatable, dimension(:) :: array1     , array2
+  integer                         , allocatable, dimension(:) :: iarray1
+  character       (len=1         ), allocatable, dimension(:) :: carray1
+  integer                                      , dimension(1) :: iValue
+  integer                                                     :: ioErr      , status
+  type            (varying_string)                            :: pathFailed
+  logical                                                     :: pathExists
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)

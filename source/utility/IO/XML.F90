@@ -296,11 +296,11 @@ contains
     !!}
     implicit none
     character(len=*           ), intent(in   ) :: tagName
-    character(len=*           ), intent(  out) :: tagName_    , attributeName, &
+    character(len=*           ), intent(  out) :: tagName_      , attributeName, &
          &                                        attributeValue
     integer                    , intent(  out) :: elementIndex
     character(len=len(tagName))                :: tagBase
-    integer                                    :: openBracket , closeBracket
+    integer                                    :: openBracket   , closeBracket
 
     ! Extract any trailing positional predicate `[N]`. Such a predicate is always the final component of the tag name, so we
     ! find the last `[` and treat it as a positional predicate only if its contents consist solely of digits.
@@ -343,22 +343,22 @@ contains
     use            :: Error        , only : Error_Report
     implicit none
     type     (xmlNodeList     ), intent(inout), allocatable, dimension(:) :: elements
-    integer  (c_size_t        )                                           :: countElements , offset
+    integer  (c_size_t        )                                           :: countElements     , offset
     type     (node            ), intent(in   ), pointer                   :: xmlElement
     character(len=*           ), intent(in   )                            :: tagName
     logical                    , intent(in   ), optional                  :: directChildrenOnly
     type     (node            )               , pointer                   :: childNode
     type     (xmlNodeList     )               , allocatable, dimension(:) :: childElements
-    logical                                                               :: matchAll      , matches
-    integer                                                               :: elementIndex  , matchCount
-    character(len=len(tagName))                                           :: tagName_      , attributeName, &
+    logical                                                               :: matchAll          , matches
+    integer                                                               :: elementIndex      , matchCount
+    character(len=len(tagName))                                           :: tagName_          , attributeName, &
          &                                                                   attributeValue
     !![
     <optionalArgument name="directChildrenOnly" defaultsTo=".false."/>
     !!]
 
     call XML_Tag_Name_Parse(tagName,tagName_,attributeName,attributeValue,elementIndex)
-    if (elementIndex > 0 .and. .not.directChildrenOnly_) call Error_Report('positional XPath predicate (e.g. `[15]`) is only supported when `directChildrenOnly` is set'//{introspection:location})
+    if (elementIndex > 0 .and. .not.directChildrenOnly_) call Error_Report('positional XPath predicate (e.g. `[15]`) is supported only when `directChildrenOnly` is set'//{introspection:location})
     countElements=XML_Count_Elements_By_Tag_Name(xmlElement,tagName,directChildrenOnly=directChildrenOnly_)
     offset       =0_c_size_t
     matchCount   =0
@@ -400,15 +400,15 @@ contains
           &                                 getNodeType , hasChildNodes, node          , getAttribute
     use            :: Error        , only : Error_Report
     implicit none
-    integer  (c_size_t        )                         :: countElements
-    type     (node            ), intent(in   ), pointer :: xmlElement
-    character(len=*           ), intent(in   )          :: tagName
+    integer  (c_size_t        )                          :: countElements
+    type     (node            ), intent(in   ), pointer  :: xmlElement
+    character(len=*           ), intent(in   )           :: tagName
     logical                    , intent(in   ), optional :: directChildrenOnly
-    type     (node            )               , pointer :: childNode
-    logical                                             :: matchAll
-    integer                                             :: elementIndex  , matchCount
-    character(len=len(tagName))                         :: tagName_      , attributeName, &
-         &                                                 attributeValue
+    type     (node            )               , pointer  :: childNode
+    logical                                              :: matchAll
+    integer                                              :: elementIndex      , matchCount
+    character(len=len(tagName))                          :: tagName_          , attributeName, &
+         &                                                  attributeValue
     !![
     <optionalArgument name="directChildrenOnly" defaultsTo=".false."/>
     !!]
@@ -447,8 +447,8 @@ contains
     logical                    , intent(in   ), optional     :: directChildrenOnly
     type     (xmlNodeList     ), allocatable  , dimension(:) :: elementList
     type     (node            )               , pointer      :: parent
-    character(len=len(tagName))                              :: currentTagName                   , path
-    integer                                                  :: pathPosition                     , i
+    character(len=len(tagName))                              :: currentTagName    , path
+    integer                                                  :: pathPosition      , i
     logical                                                  :: found
     !![
     <optionalArgument name="directChildrenOnly" defaultsTo=".false."/>
