@@ -2616,6 +2616,7 @@
           <xs:enumeration value="trackOutflowedMass"/>
           <xs:enumeration value="treeWeight"/>
           <xs:enumeration value="tuple"/>
+          <xs:enumeration value="uniqueID"/>
           <xs:enumeration value="uniqueIDBranchTip"/>
           <xs:enumeration value="velocityDispersion"/>
           <xs:enumeration value="velocityMaximum"/>
