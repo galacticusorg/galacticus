@@ -77,15 +77,15 @@
      A node operator class that initializes halo angular momenta using the model of :cite:t:`vitvitska_origin_2002`.
      !!}
      private
-     class           (haloSpinDistributionClass        ), pointer :: haloSpinDistribution_          => null()
-     class           (virialOrbitClass                 ), pointer :: virialOrbit_                   => null()
-     class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_           => null()
-     class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_  => null()
-     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_          => null()
-     class           (mergerTreeMassResolutionClass    ), pointer :: mergerTreeMassResolution_      => null()
-     double precision                                             :: exponentMass                            , angularMomentumVarianceSpecific   , &
-          &                                                          angularMomentumVarianceCorrectionFactor
-     type            (enumerationSubresolutionAngularMomentumType) :: subresolutionAngularMomentumMethod
+     class           (haloSpinDistributionClass                  ), pointer :: haloSpinDistribution_                   => null()
+     class           (virialOrbitClass                           ), pointer :: virialOrbit_                            => null()
+     class           (darkMatterHaloScaleClass                   ), pointer :: darkMatterHaloScale_                    => null()
+     class           (darkMatterProfileScaleRadiusClass          ), pointer :: darkMatterProfileScaleRadius_           => null()
+     class           (darkMatterProfileDMOClass                  ), pointer :: darkMatterProfileDMO_                   => null()
+     class           (mergerTreeMassResolutionClass              ), pointer :: mergerTreeMassResolution_               => null()
+     double precision                                                       :: exponentMass                                     , angularMomentumVarianceSpecific, &
+          &                                                                    angularMomentumVarianceCorrectionFactor
+     type            (enumerationSubresolutionAngularMomentumType)          :: subresolutionAngularMomentumMethod
    contains
      final     ::                       haloAngularMomentumVitvitska2002Destructor
      procedure :: nodeTreeInitialize => haloAngularMomentumVitvitska2002NodeTreeInitialize
@@ -106,7 +106,7 @@ contains
     Constructor for the :galacticus-class:`nodeOperatorHaloAngularMomentumVitvitska2002` node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters  , only : inputParameters
-    use :: ISO_Varying_String, only : varying_string, var_str, char
+    use :: ISO_Varying_String, only : varying_string , var_str, char
     implicit none
     type            (nodeOperatorHaloAngularMomentumVitvitska2002)                :: self
     type            (inputParameters                             ), intent(inout) :: parameters
@@ -116,7 +116,7 @@ contains
     class           (darkMatterProfileScaleRadiusClass           ), pointer       :: darkMatterProfileScaleRadius_
     class           (darkMatterProfileDMOClass                   ), pointer       :: darkMatterProfileDMO_
     class           (mergerTreeMassResolutionClass               ), pointer       :: mergerTreeMassResolution_
-    double precision                                                              :: exponentMass                     , angularMomentumVarianceSpecific, &
+    double precision                                                              :: exponentMass                           , angularMomentumVarianceSpecific, &
          &                                                                           angularMomentumVarianceCorrectionFactor
     type            (varying_string                              )                :: subresolutionAngularMomentumMethod
 
@@ -187,7 +187,7 @@ contains
     class           (darkMatterProfileScaleRadiusClass           ), intent(in   ), target :: darkMatterProfileScaleRadius_
     class           (darkMatterProfileDMOClass                   ), intent(in   ), target :: darkMatterProfileDMO_
     class           (mergerTreeMassResolutionClass               ), intent(in   ), target :: mergerTreeMassResolution_
-    double precision                                              , intent(in   )         :: exponentMass                     , angularMomentumVarianceSpecific, &
+    double precision                                              , intent(in   )         :: exponentMass                           , angularMomentumVarianceSpecific, &
          &                                                                                   angularMomentumVarianceCorrectionFactor
     type            (enumerationSubresolutionAngularMomentumType ), intent(in   )         :: subresolutionAngularMomentumMethod
     !![
@@ -245,23 +245,23 @@ contains
     implicit none
     class           (nodeOperatorHaloAngularMomentumVitvitska2002), intent(inout), target    :: self
     type            (treeNode                                    ), intent(inout), target    :: node
-    type            (treeNode                                    )               , pointer   :: nodeChild                         , nodeSibling                       , &
+    type            (treeNode                                    )               , pointer   :: nodeChild                          , nodeSibling                       , &
          &                                                                                      nodeUnresolved
-    class           (nodeComponentBasic                          )               , pointer   :: basicChild                        , basicSibling                      , &
-         &                                                                                      basic                             , basicUnresolved
-    class           (nodeComponentSpin                           )               , pointer   :: spin                              , spinSibling                       , &
+    class           (nodeComponentBasic                          )               , pointer   :: basicChild                         , basicSibling                      , &
+         &                                                                                      basic                              , basicUnresolved
+    class           (nodeComponentSpin                           )               , pointer   :: spin                               , spinSibling                       , &
          &                                                                                      spinChild
     class           (nodeComponentSatellite                      )               , pointer   :: satelliteSibling
     class           (nodeComponentDarkMatterProfile              )               , pointer   :: darkMatterProfileUnresolved
-    double precision                                              , dimension(3)             :: angularMomentumUnresolved         , angularMomentumTotal
-    double precision                                                             , parameter :: massFunctionSlopeLogarithmic=1.9d0
-    double precision                                                                         :: angularMomentumValue              , massRatio                         , &
-         &                                                                                      theta                             , phi                               , &
-         &                                                                                      massUnresolved                    , radiusScaleUnresolved             , &
-         &                                                                                      massResolution                    , angularMomentumSubresolutionFactor, &
-         &                                                                                      a                                 , b                                 , &
-         &                                                                                      angularMomentumScale              , angularMomentumScaleChild         , &
-         &                                                                                      angularMomentumRootVariance       , factorMassUnresolved
+    double precision                                              , dimension(3)             :: angularMomentumUnresolved          , angularMomentumTotal
+    double precision                                                             , parameter :: massFunctionSlopeLogarithmic=-1.9d0
+    double precision                                                                         :: angularMomentumValue               , massRatio                         , &
+         &                                                                                      theta                              , phi                               , &
+         &                                                                                      massUnresolved                     , radiusScaleUnresolved             , &
+         &                                                                                      massResolution                     , angularMomentumSubresolutionFactor, &
+         &                                                                                      a                                  , b                                 , &
+         &                                                                                      angularMomentumScale               , angularMomentumScaleChild         , &
+         &                                                                                      angularMomentumRootVariance        , factorMassUnresolved
     integer                                                                                  :: i
     
     basic => node%basic(                 )
@@ -329,17 +329,17 @@ contains
        massRatio=+basicUnresolved%mass()       &
             &    /basicChild     %mass()
        a        =+2.0d0                        &
-            &    -massFunctionSlopeLogarithmic
+            &    +massFunctionSlopeLogarithmic
        if (self%exponentMass == 0.0d0) then
           angularMomentumSubresolutionFactor=+1.0d0
        else
-          b                                 =+massFunctionSlopeLogarithmic                                         &
+          b                                 =-massFunctionSlopeLogarithmic                                         &
                &                             +self%exponentMass                                                    &
                &                             -2.0d0
           angularMomentumSubresolutionFactor=+Beta_Function_Incomplete_Normalized(a,b,massRatio/(1.0d0+massRatio)) &
                &                             *Beta_Function                      (a,b                            ) &
-               &                             *           (2.0d0-massFunctionSlopeLogarithmic)                      &
-               &                             /massRatio**(2.0d0-massFunctionSlopeLogarithmic)
+               &                             *           (2.0d0+massFunctionSlopeLogarithmic)                      &
+               &                             /massRatio**(2.0d0+massFunctionSlopeLogarithmic)
        end if
        ! Accumulate the mean angular momentum of the unresolved mass.
        angularMomentumUnresolved=+                  massUnresolved                                               &
@@ -361,8 +361,8 @@ contains
                &                            *                  massResolution                                                &
                &                            *max              (massUnresolved,0.0d0)                                         &
                &                            /                  3.0d0                                                         &
-               &                            *                 (2.0d0-massFunctionSlopeLogarithmic)                           &
-               &                            /                 (3.0d0-massFunctionSlopeLogarithmic)                           &
+               &                            *                 (2.0d0+massFunctionSlopeLogarithmic)                           &
+               &                            /                 (3.0d0+massFunctionSlopeLogarithmic)                           &
                &                           )
        else
           ! Legacy methods: variance = σ² {J_v²(t₂) - J_v²(t₁)} f_u, with no dependence on the mass

@@ -1328,6 +1328,26 @@ def vitvitska_subresolution_method(input_doc, parameters, is_grid):
         node.append(method_node)
 
 
+def johnson2021_mass_function_slope(input_doc, parameters, is_grid):
+    """Preserve the Johnson2021 unresolved-accretion mass-function slope across its default change.
+    `massFunctionSlopeLogarithmic` was a compiled constant (-1.8) and is now an input parameter whose
+    default changed to -1.9 (unifying it with Vitvitska2002 and matching Benson 2019). A file predating
+    this change implicitly used -1.8, so pin that value to preserve its behaviour."""
+    nodes = parameters.xpath(".//darkMatterProfileScaleRadius[@value='johnson2021']")
+    if len(nodes) <= 0:
+        return
+    print("   translate special './/darkMatterProfileScaleRadius[@value='johnson2021']' (mass-function slope)")
+    for node in nodes:
+        # If the parameter is already stated explicitly, the file means what it says - leave it.
+        if len(node.findall("massFunctionSlopeLogarithmic[@value]")) > 0:
+            continue
+        slope_node = etree.Element("massFunctionSlopeLogarithmic")
+        slope_node.set("value", "-1.8")
+        if is_grid:
+            slope_node.set("iterable", "no")
+        node.append(slope_node)
+
+
 def vitvitska_subresolution_method_enum(input_doc, parameters, is_grid):
     """Convert the boolean `useOriginalSubresolutionMethod` to the `subresolutionAngularMomentumMethod`
     enumeration, preserving the original behaviour. The default variance method changed to the new,
@@ -1379,6 +1399,7 @@ SPECIAL_FUNCTIONS = {
     "satellite_orbit_initializor": satellite_orbit_initializor,
     "vitvitska_subresolution_method": vitvitska_subresolution_method,
     "vitvitska_subresolution_method_enum": vitvitska_subresolution_method_enum,
+    "johnson2021_mass_function_slope": johnson2021_mass_function_slope,
 }
 
 
