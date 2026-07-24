@@ -250,7 +250,7 @@ contains
          &                                                                               coordinatesScaled, &
          &                                                                               logarithmic        &
          &                                                                              )
-    if (.not.logarithmic)                                                                 &
+    if (.not.logarithmic_)                                                                &
          & cylindricalScalerDensityGradientRadial=+cylindricalScalerDensityGradientRadial &
          &                                        *self%factorScalingMass                 &
          &                                        /self%factorScalingLength**4

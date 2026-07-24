@@ -191,5 +191,9 @@ contains
     
     densityGradientRadial=+self%correlationFunction_%derivative          (coordinates%rSpherical()) &
          &                *self%cosmologyFunctions_ %matterDensityEpochal(self       %time        )
+    ! Convert to a logarithmic gradient if requested.
+    if (logarithmic_) densityGradientRadial=+            densityGradientRadial              &
+         &                                  *coordinates%rSpherical           (           ) &
+         &                                  /self       %density              (coordinates)
     return
   end function correlationFunctionDensityGradientRadial

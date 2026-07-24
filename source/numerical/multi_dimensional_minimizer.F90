@@ -583,7 +583,7 @@ contains
        status_=gsl_multimin_fminimizer_iterate  (self%minimizer_%gsl)
     end if
     if (present(status)) status=status_
-    if (status /= GSL_Success .and. .not.present(status)) call Error_Report('failed to iterate minimizer'//{introspection:location})
+    if (status_ /= GSL_Success .and. .not.present(status)) call Error_Report('failed to iterate minimizer'//{introspection:location})
     self_ => null()
     return
   end subroutine multiDMinimizerIterate

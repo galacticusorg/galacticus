@@ -2263,7 +2263,7 @@ contains
              else
                 copyInstance_=1
              end if
-             groupName=groupName//"["//copyInstance//"]"
+             groupName=groupName//"["//copyInstance_//"]"
           end if
           allocate(inputParametersSubParameters%outputParameters)
           inputParametersSubParameters%outputParameters=self%outputParameters%openGroup(char(groupName))
