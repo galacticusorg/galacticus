@@ -811,8 +811,8 @@ contains
           atomicHydrogenChemicalIndex  =Chemicals_Index("AtomicHydrogen"   )
           chemicalHydrogenChemicalIndex=Chemicals_Index("MolecularHydrogen")
           electronChemicalIndex        =Chemicals_Index("Electron"         )
-          ! This reaction is active if both species were found.
-          reactionActive=atomicHydrogenChemicalIndex > 0 .and. chemicalHydrogenChemicalIndex > 0
+          ! This reaction is active if all species were found.
+          reactionActive=atomicHydrogenChemicalIndex > 0 .and. chemicalHydrogenChemicalIndex > 0 .and. electronChemicalIndex > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
@@ -934,8 +934,8 @@ contains
           atomicHydrogenChemicalIndex     =Chemicals_Index("AtomicHydrogen"     )
           atomicHydrogenAnionChemicalIndex=Chemicals_Index("AtomicHydrogenAnion")
           electronChemicalIndex           =Chemicals_Index("Electron"           )
-          ! This reaction is active if both species were found.
-          reactionActive=atomicHydrogenChemicalIndex > 0 .and. atomicHydrogenAnionChemicalIndex > 0
+          ! This reaction is active if all species were found.
+          reactionActive=atomicHydrogenChemicalIndex > 0 .and. atomicHydrogenAnionChemicalIndex > 0 .and. electronChemicalIndex > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
@@ -1024,8 +1024,8 @@ contains
           atomicHydrogenChemicalIndex     =Chemicals_Index("AtomicHydrogen"     )
           atomicHydrogenAnionChemicalIndex=Chemicals_Index("AtomicHydrogenAnion")
           electronChemicalIndex           =Chemicals_Index("Electron"           )
-          ! This reaction is active if both species were found.
-          reactionActive=atomicHydrogenChemicalIndex > 0 .and. atomicHydrogenAnionChemicalIndex > 0
+          ! This reaction is active if all species were found.
+          reactionActive=atomicHydrogenChemicalIndex > 0 .and. atomicHydrogenAnionChemicalIndex > 0 .and. electronChemicalIndex > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
@@ -1173,12 +1173,14 @@ contains
           atomicHydrogenAnionChemicalIndex   =Chemicals_Index("AtomicHydrogenAnion"    )
           chemicalHydrogenCationChemicalIndex=Chemicals_Index("MolecularHydrogenCation")
           electronChemicalIndex              =Chemicals_Index("Electron"               )
-          ! This reaction is active if both species were found.
+          ! This reaction is active if all species were found.
           reactionActive= atomicHydrogenCationChemicalIndex   > 0 &
                &         .and.                                    &
                &          atomicHydrogenAnionChemicalIndex    > 0 &
                &         .and.                                    &
-               &          chemicalHydrogenCationChemicalIndex > 0
+               &          chemicalHydrogenCationChemicalIndex > 0 &
+               &         .and.                                    &
+               &          electronChemicalIndex               > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
@@ -1247,8 +1249,8 @@ contains
           atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"         )
           chemicalHydrogenCationChemicalIndex=Chemicals_Index("MolecularHydrogenCation")
           electronChemicalIndex              =Chemicals_Index("Electron"               )
-          ! This reaction is active if both species were found.
-          reactionActive=atomicHydrogenChemicalIndex > 0 .and. chemicalHydrogenCationChemicalIndex > 0
+          ! This reaction is active if all species were found.
+          reactionActive=atomicHydrogenChemicalIndex > 0 .and. chemicalHydrogenCationChemicalIndex > 0 .and. electronChemicalIndex > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
