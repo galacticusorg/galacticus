@@ -31,7 +31,7 @@ program Test_Math_Special_Functions
   use :: Binomial_Coefficients   , only : Binomial_Coefficient
   use :: Dilogarithms            , only : Dilogarithm
   use :: Display                 , only : displayVerbositySet              , verbosityLevelStandard
-  use :: Error_Functions         , only : Error_Function                   , Error_Function_Difference
+  use :: Error_Functions         , only : Error_Function                   , Error_Function_Difference                      , Error_Function_Difference_Fast         , Error_Function_Tabulate
   use :: Exponential_Integrals   , only : Cosine_Integral                  , Sine_Integral
   use :: Factorials              , only : Factorial                        , Logarithmic_Double_Factorial
   use :: Beta_Functions          , only : Beta_Function                    , Beta_Function_Incomplete_Normalized
@@ -799,6 +799,25 @@ program Test_Math_Special_Functions
        &      [Error_Function_Difference(11.9d0,12.1d0),Error_Function_Difference(-12.1d0,-11.9d0)], &
        &      [1.480425801261648772d-63                ,1.480425801261648772d-63                  ], &
        &      relTol=1.0d-6                                                                          &
+       &      )
+
+  ! Test that the fast (tabulated) error-function difference agrees with the exact version. Within the
+  ! tabulated range it uses the tabulation (accurate to ~5×10⁻⁷); outside it (the final pair, with |x|>6)
+  ! it must fall back to and exactly reproduce the exact evaluation.
+  call Error_Function_Tabulate()
+  call Assert(                                                                                                 &
+       &      "fast (tabulated) difference in error functions"                                               , &
+       &      [                                                                                                &
+       &       Error_Function_Difference_Fast(-2.0d0 , 1.5d0 ), Error_Function_Difference_Fast( 0.3d0, 0.7d0), &
+       &       Error_Function_Difference_Fast(-0.1d0 , 0.05d0), Error_Function_Difference_Fast( 2.0d0, 3.5d0), &
+       &       Error_Function_Difference_Fast(11.9d0 ,12.1d0 )                                                 &
+       &      ]                                                                                              , &
+       &      [                                                                                                &
+       &       Error_Function_Difference     (-2.0d0 , 1.5d0 ), Error_Function_Difference     ( 0.3d0, 0.7d0), &
+       &       Error_Function_Difference     (-0.1d0 , 0.05d0), Error_Function_Difference     ( 2.0d0, 3.5d0), &
+       &       Error_Function_Difference     (11.9d0 ,12.1d0 )                                                 &
+       &      ]                                                                                              , &
+       &      absTol=1.0d-6                                                                                    &
        &      )
   
   ! Test binomial coefficients.
