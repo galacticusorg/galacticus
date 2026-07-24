@@ -433,16 +433,17 @@ contains
     Computes the gravitational tidal tensor at ``coordinates`` in a scaled spherical mass distribution.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
-    use :: Coordinates                     , only : coordinateCartesian           , assignment(=)
     implicit none
-    type (tensorRank2Dimension3Symmetric )                :: tidalTensor
-    class(massDistributionSphericalScaler), intent(inout) :: self
-    class(coordinate                     ), intent(in   ) :: coordinates
-    class(coordinate                     ), allocatable   :: coordinatesScaled
-    type (coordinateCartesian            )                :: position
+    type            (tensorRank2Dimension3Symmetric )                :: tidalTensor
+    class           (massDistributionSphericalScaler), intent(inout) :: self
+    class           (coordinate                     ), intent(in   ) :: coordinates
+    class           (coordinate                     ), allocatable   :: coordinatesScaled
+    ! The memoized tidal tensor is keyed on the Cartesian components of the coordinates, so that the cache
+    ! behaves correctly irrespective of the coordinate system in which `coordinates` is expressed.
+    double precision                                 , dimension(3)  :: position
 
-    position=coordinates
-    if (any(position%position /= self%positionTidalTensorPrevious)) then
+    position=coordinates%toCartesian()
+    if (any(position /= self%positionTidalTensorPrevious)) then
        call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
        self%tidalTensorPrevious=+self%massDistribution_%tidalTensor           (                  &
             &                                                                  coordinatesScaled &
@@ -452,7 +453,7 @@ contains
        if (self%massDistribution_%isDimensionless())                   &
             & self%tidalTensorPrevious=+self%tidalTensorPrevious       &
             &                          *gravitationalConstant_internal
-       self%positionTidalTensorPrevious=position%position
+       self%positionTidalTensorPrevious=position
     end if
     tidalTensor=self%tidalTensorPrevious
     return
