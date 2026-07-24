@@ -43,6 +43,11 @@ module Atomic_Data
   ! Flag indicating if module has been initialized.
   logical                                                                   :: atomicDataInitialized =.false.
 
+  ! Per-thread flag recording that this thread has already passed through the initialization critical section (see
+  ! `Atomic_Data_Initialize`), and so is guaranteed to see the fully-initialized module data.
+  logical                                                                   :: atomicDataInitializedThread=.false.
+  !$omp threadprivate(atomicDataInitializedThread)
+
   ! Array used to store atomic data.
   type            (atomicData), allocatable, dimension(:                  ) :: atoms
 
@@ -211,7 +216,13 @@ contains
     character       (len=100       )                            :: abundanceType
     type            (varying_string)                            :: fileName            , abundancePatternFile
 
-    ! Check if module is initialized.
+    ! Check if module is initialized. Any thread which has previously passed through the critical section below is guaranteed,
+    ! by the flush implied on exit from that section, to see the fully-initialized module data, and so can skip the lock
+    ! entirely. This matters because this subroutine is called on the hot path of ODE evolution (via, e.g.,
+    ! `abundancesMetallicitySet`), and a named critical section is a global lock, so with large numbers of OpenMP threads the
+    ! contention for it is severe. See the "Once-Only Initialization Under OpenMP" section of the developer guide for the full
+    ! rationale, including why the naive form of this double-checked lock would be a data race.
+    if (atomicDataInitializedThread) return
     !$omp critical(atomicDataInitialize)
     if (.not.atomicDataInitialized) then
 
@@ -312,6 +323,11 @@ contains
        atomicDataInitialized=.true.
     end if
     !$omp end critical(atomicDataInitialize)
+    ! This thread has now synchronized with the initialization, so record that it need never take the lock again. Note that if
+    ! this per-thread flag is not preserved across parallel regions (e.g. if dynamic thread adjustment changes the team size) it
+    ! can only revert to "false", which costs one redundant---but harmless---lock acquisition, never an unsynchronized read of
+    ! uninitialized data.
+    atomicDataInitializedThread=.true.
     return
   end subroutine Atomic_Data_Initialize
 
