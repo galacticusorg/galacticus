@@ -52,10 +52,6 @@ make -jN Galacticus.exe   # N = number of parallel cores
 
 Gotchas:
 
-- **Fresh/cleaned tree — run `make` twice.** On the first invocation after a
-  clean checkout, `make` may exit successfully having only generated dependency
-  fragments, *without* producing the binary. Simply run the same command again
-  to actually build.
 - **Builds are slow and memory-hungry.** Concurrent `-O3` compiles of the large
   generated `*_class` units are the peak. On a ~16 GB machine, `-j4` can OOM
   (exit 137); CI caps at **`-j2`**. On memory-constrained machines use a lower
@@ -124,6 +120,18 @@ change that.
   `ODE integration failed`, `unrecognized parameter`). A test "passes" when none
   of those appear — so when triaging a test, read its log, don't just trust the
   exit code.
+
+## Editing Fortran source
+
+- **Never run a whole-file Fortran formatter** (`findent`, `fprettify`, or an
+  editor "format document" action) on Galacticus `*.F90` sources. The build's
+  code generation reads directive blocks embedded in comments — `!![ … !!]` (XML
+  directives) and `!!{ … !!}` (reStructuredText docs) — and relies on `!$`
+  OpenMP sentinels; whole-file formatters corrupt those blocks and relocate the
+  sentinels, silently breaking the generated code. Edit by hand and match the
+  surrounding style. (See
+  [`docs/manuals/developer-guide/editor-setup.rst`](docs/manuals/developer-guide/editor-setup.rst)
+  and [`coding.rst`](docs/manuals/developer-guide/coding.rst).)
 
 ## Commits & attribution
 
