@@ -427,7 +427,6 @@ contains
     use :: Hypergeometric_Functions        , only : Hypergeometric_2F1
     use :: Mass_Distributions              , only : massDistributionClass
     use :: Linear_Algebra                  , only : matrix                        , assignment(=)
-    use :: Error                           , only : Error_Report
     implicit none
     class           (darkMatterProfileScaleRadiusJohnson2021), intent(inout) , target      :: self
     type            (treeNode                               ), intent(inout) , target      :: node
@@ -695,13 +694,11 @@ contains
 	  <objectDestructor name="massDistribution_"/>
           !!]
        end do
-       ! This model is intended for use only with extended Press-Schechter merger trees, in which the mass along a
-       ! branch never decreases, so the unresolved (smooth) mass accreted between a node and its primary progenitor
-       ! should never be negative. A significantly-negative value indicates the model is being applied to an
-       ! unsupported tree (e.g. an N-body-derived tree with mass loss); treat it as a fatal error rather than
-       ! silently dropping the contribution. A small negative value is tolerated as floating-point round-off.
-       if (massUnresolved < -1.0d-6*basic%mass()) call Error_Report('negative unresolved mass: the Johnson2021 scale radius model requires extended Press-Schechter trees (non-decreasing branch mass)'//{introspection:location})
-       ! Account for unresolved accretion. We assume that unresolved halos are accreted with the mean orbital energy of
+       ! Account for unresolved accretion. In extended Press-Schechter trees the mass along a branch never decreases, so
+       ! the unresolved (smooth) mass accreted between a node and its primary progenitor is normally non-negative.
+       ! However, when branch subsampling is used the subsampling weights entering the unresolved-mass sum can, through
+       ! random fluctuations, yield a small negative value. Such cases are simply dropped by the positivity check below.
+       ! We assume that unresolved halos are accreted with the mean orbital energy of
        ! the virial orbital parameter distribution, plus an internal energy corresponding to that of a halo with mass
        ! equal to the total unresolved mass scaled by some correction factor (to account for the fact that the unresolved
        ! accretion will not in fact be in a single halo).
