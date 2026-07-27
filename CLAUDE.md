@@ -108,13 +108,17 @@ change that.
   export GALACTICUS_EXEC_PATH=`pwd`
   python -m pytest -v
   ```
-- **Model regression suite** (requires a built `Galacticus.exe` and
-  `GALACTICUS_DATA_PATH`):
+- **Model regression tests** (require a built `Galacticus.exe` and
+  `GALACTICUS_DATA_PATH`). The suite is a collection of independent
+  `testSuite/test-*.py` (and `validate-*.py`) scripts. **Run only the handful
+  that exercise what you changed** — pick the scripts whose names match the
+  physics/subsystem you touched and run them directly:
   ```bash
-  python3 testSuite/test-all.py           # runs every testSuite/test-*.py
-  python3 testSuite/test-Python-interface.py   # or run one directly
+  python3 testSuite/test-Python-interface.py   # example — choose ones relevant to your change
   ```
-  Logs are written to `testSuite/outputs/`.
+  Logs are written to `testSuite/outputs/`. Avoid `python3 testSuite/test-all.py`
+  locally: it runs *every* script and takes a very long time (CI only manages it
+  by sharding across many parallel jobs).
 - **How pass/fail is judged:** tests and CI run a model, then grep the run log
   for failure markers (`FAIL`, `FAILED`, `fatal`, `aborted`,
   `ODE integration failed`, `unrecognized parameter`). A test "passes" when none
