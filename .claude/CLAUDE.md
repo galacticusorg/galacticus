@@ -5,16 +5,16 @@ other AI assistants) working in this repository. This is a short operational
 quick-reference; it does **not** restate the full documentation. For anything
 beyond the essentials below, defer to:
 
-- [`README.md`](README.md) — quickstart, prerequisites, troubleshooting.
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) — contribution workflow, commit format,
+- [`README.md`](../README.md) — quickstart, prerequisites, troubleshooting.
+- [`CONTRIBUTING.md`](../CONTRIBUTING.md) — contribution workflow, commit format,
   attribution, and the AI-assisted-contribution policy (**all AI-generated work
   must be verified by a human before submission**).
 - The [developer guide](https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/index.html)
   (`docs/manuals/developer-guide/`) — the authoritative reference for coding
-  style ([`coding.rst`](docs/manuals/developer-guide/coding.rst)), the
+  style ([`coding.rst`](../docs/manuals/developer-guide/coding.rst)), the
   preprocessor-directive / `functionClass` code-generation system, and the
   workflow for
-  [adding a new class](docs/manuals/developer-guide/creating-a-new-class.rst).
+  [adding a new class](../docs/manuals/developer-guide/creating-a-new-class.rst).
 
 Galacticus is a semi-analytic model of galaxy formation, written primarily in
 Fortran with a Python-based build/code-generation system.
@@ -134,8 +134,8 @@ change that.
   OpenMP sentinels; whole-file formatters corrupt those blocks and relocate the
   sentinels, silently breaking the generated code. Edit by hand and match the
   surrounding style. (See
-  [`docs/manuals/developer-guide/editor-setup.rst`](docs/manuals/developer-guide/editor-setup.rst)
-  and [`coding.rst`](docs/manuals/developer-guide/coding.rst).)
+  [`docs/manuals/developer-guide/editor-setup.rst`](../docs/manuals/developer-guide/editor-setup.rst)
+  and [`coding.rst`](../docs/manuals/developer-guide/coding.rst).)
 
 ## Commits & attribution
 
@@ -149,4 +149,4 @@ change that.
 - **Attribution:** add inline `!+` markers to record contributors (auto-extracted
   by `scripts/doc/extractContributors.py`), and note AI assistance where used —
   see the *Contributor Attribution* and *AI-Assisted Contributions* sections of
-  [`CONTRIBUTING.md`](CONTRIBUTING.md).
+  [`CONTRIBUTING.md`](../CONTRIBUTING.md).
