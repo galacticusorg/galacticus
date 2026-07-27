@@ -45,9 +45,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Check out repository datasets
-        uses: actions/checkout@v7      
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -60,7 +60,7 @@ jobs:
           echo "PARAM_PATH=/home/galacticus/super/secret/stuff" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: ${{ inputs.artifact }}
       - name: Install tools
@@ -94,7 +94,7 @@ jobs:
           else
            ! grep -q FAIL test.log
           fi
-      - uses: qoomon/actions--context@v5
+      - uses: qoomon/actions--context@e12e182be797e3476990faf801dd1b87f107f91c # v5
       - name: "Check for unrecognized parameters"
         if: ${{ format('{0}',inputs.expectUnrecognized) == '0' }}
         run: |

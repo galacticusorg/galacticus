@@ -3,6 +3,9 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 15,17,19,21,23 * * 1-5'
+# Default to read-only; the job below requests the write access it needs to upload notarized assets.
+permissions:
+  contents: read
 jobs:
   Poll-Notarization:
     runs-on: macos-15-intel
@@ -13,7 +16,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: master
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."

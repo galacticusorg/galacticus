@@ -27,6 +27,13 @@ concurrency:
 defaults:
   run:
     shell: bash
+# Default to a read-only token for every job. The four jobs which genuinely need to write (posting pull request comments,
+# updating `gh-pages`, uploading release assets, and pushing the Docker image) request that access individually, below. Note that
+# a job-level `permissions` block replaces this default entirely for that job rather than adding to it, so each such block must
+# also restate the read access the job needs. `actions: read` is required here because jobs download build artifacts.
+permissions:
+  contents: read
+  actions:  read
 jobs:
   # Preprocessor regression tests
   ## Fast pure-Python checks that the preprocessor stack still emits the
@@ -38,9 +45,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.x'
       - name: Install pytest
@@ -85,7 +92,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -111,12 +118,12 @@ jobs:
           grep -vqzi warning:        build.log || (echo "FAIL: warnings found in build.log"        && false)
           grep -vqzi 'is up to date' build.log || (echo "FAIL: 'is up to date' found in build.log" && false)
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-exec
           path: 'Galacticus.exe'
       - name: Upload build profile
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: build-profile
           path: 'buildProfile.html'
@@ -141,7 +148,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -165,12 +172,12 @@ jobs:
           ! grep -n Warning: build.log
           ! grep -v 'is up to date' build.log | grep -n -C 5 make:
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-exec-non-static
           path: 'Galacticus.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: test-execs
           path: 'tests.*.exe'
@@ -185,7 +192,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -204,7 +211,7 @@ jobs:
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
           make -j2 Galacticus.exe
       - name: Upload executables
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-exec-instrumented
           path: 'Galacticus.exe'
@@ -219,7 +226,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -236,7 +243,7 @@ jobs:
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
           make -j2 Galacticus.exe
       - name: Upload executables
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-exec-dmo
           path: 'Galacticus.exe'
@@ -251,7 +258,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -267,12 +274,12 @@ jobs:
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
           make -j2 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-exec-MPI
           path: 'Galacticus.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: test-execs-MPI
           path: 'tests.*.exe'
@@ -287,7 +294,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -304,12 +311,12 @@ jobs:
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
           make -j2 Galacticus.exe tests.debugging.exe
       - name: Upload test code executables
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: test-execs-debugging
           path: 'tests.*.exe'
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-exec-debugging
           path: 'Galacticus.exe'
@@ -324,7 +331,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -356,7 +363,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
           tar cvfj libgalacticus.tar.bz2 galacticus
       - name: Upload library
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-library
           path: 'libgalacticus.tar.bz2'
@@ -379,18 +386,18 @@ jobs:
              echo "doPush=true"  >> "$GITHUB_OUTPUT"
           fi
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
+        uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7 # v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v6
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
         with:
           images: galacticusorg/galacticus
       - name: Build and push Docker image 
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
           push: ${{ steps.detectBranch.outputs.doPush }}
           tags: ghcr.io/galacticusorg/galacticus:latest
@@ -411,9 +418,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Check out repository datasets
-        uses: actions/checkout@v7      
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -425,7 +432,7 @@ jobs:
           echo "GALACTICUS_FCFLAGS+=\ -static" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-exec
       - name: Build tools
@@ -466,7 +473,7 @@ jobs:
             dynamic/fsps-${fspsVersion}/ISOCHRONES \
             dynamic/mangle-${mangleVersion}/bin/harmonize
       - name: Upload tools
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-tools
           path: ./datasets/tools.tar.bz2
@@ -481,7 +488,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: Set up build environment
         uses: ./.github/actions/buildMacOS
@@ -506,19 +513,19 @@ jobs:
         run: |
           zip Galacticus_MacOS.zip Galacticus_MacOS.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-exec-MacOS
           path: |
             Galacticus_MacOS.exe
             Galacticus_MacOS.zip
       - name: Upload test code executables
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: test-execs-MacOS
           path: 'tests.*.exe'
       - name: Upload Galacticus debug symbols
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-debug-MacOS
           path: 'debugSymbolsMacOS.zip'
@@ -531,7 +538,7 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: Set up build environment
         uses: ./.github/actions/buildMacOS
@@ -557,14 +564,14 @@ jobs:
         run: |
           zip Galacticus_MacOS-M1.zip Galacticus_MacOS-M1.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-exec-MacOS-M1
           path: |
             Galacticus_MacOS-M1.exe
             Galacticus_MacOS-M1.zip
       - name: Upload Galacticus debug symbols
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-debug-MacOS-M1
           path: 'debugSymbolsMacOS-M1.zip'
@@ -577,14 +584,14 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Check out repository datasets
         # The interface test now boots the node-component class system
         # (nodesInitialize) and builds merger trees, which read static
         # datasets (e.g. abundances/Atomic_Data.xml) through
         # GALACTICUS_DATA_PATH — set to $GITHUB_WORKSPACE/datasets by the
         # buildMacOS action. Mirrors the Linux Python-Interface job.
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -618,7 +625,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
           zip -r libgalacticusMacOS.zip galacticus
       - name: Upload library
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-library-MacOS
           path: 'libgalacticusMacOS.zip'
@@ -636,9 +643,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Check out repository datasets
-        uses: actions/checkout@v7      
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -713,7 +720,7 @@ jobs:
             dynamic/fsps-${fspsVersion}/ISOCHRONES \
             dynamic/mangle-${mangleVersion}/bin/harmonize
       - name: Upload tool executables
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-tools-MacOS
           path: './datasets/toolsMacOS.zip'
@@ -726,9 +733,9 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Check out repository datasets
-        uses: actions/checkout@v7      
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7      
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -804,7 +811,7 @@ jobs:
             dynamic/fsps-${fspsVersion}/ISOCHRONES \
             dynamic/mangle-${mangleVersion}/bin/harmonize
       - name: Upload tool executables
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: galacticus-tools-MacOS-M1
           path: './datasets/toolsMacOSM1.zip'
@@ -817,21 +824,21 @@ jobs:
     needs: [ Build-Executable-MacOS, Build-Executable-MacOS-M1, Build-Tools-MacOS, Build-Tools-MacOS-M1 ]
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Download artifacts (executable-macos)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-exec-MacOS
       - name: Download artifacts (executable-macos-m1)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-exec-MacOS-M1
       - name: Download artifacts (tools-macos)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-tools-MacOS
       - name: Download artifacts (tools-macos-m1)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-tools-MacOS-M1
       - name: Submit macOS artifacts for notarization
@@ -841,7 +848,7 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.MACOS_APP_SPECIFIC_PASSWORD }}
         run: python3 ./scripts/aux/notarizationSubmit.py
       - name: Upload notarization request metadata
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: notarization-requests
           path: 'notarization-requests-${{ github.sha }}.json'
@@ -925,12 +932,16 @@ jobs:
   Watch-Updates:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
+    permissions:
+      contents:      read
+      actions:       read
+      pull-requests: write # required to post the list of updated files as a comment on the pull request
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
@@ -941,19 +952,25 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v47
+        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62 # v47
         with:
           files: |
             **/*.F90
             **/*.Inc
+      # NOTE: the names of the files changed by the pull request are passed in through the environment, and never interpolated
+      # into the script text with `${{ }}`: they are chosen by whoever opened the pull request, and git permits characters in
+      # them which are special to the shell. `set -f` prevents a name containing a glob character being expanded.
       - name: Look for updates
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
+          set -f
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          PYTHONPATH=$GALACTICUS_EXEC_PATH/python python3 scripts/aux/updateMonitor.py ${{ steps.changed-files.outputs.all_changed_files }}
+          PYTHONPATH=$GALACTICUS_EXEC_PATH/python python3 scripts/aux/updateMonitor.py ${CHANGED_FILES}
       - name: Check file existence
         id: check_files
-        uses: andstor/file-existence-action@v3
+        uses: andstor/file-existence-action@558493d6c74bf472d87c84eab196434afc2fa029 # v3
         with:
           files: warnings.md
       - name: Output to a job summary
@@ -969,7 +986,7 @@ jobs:
       - name: Comment on the PR if any warnings were found
         if: steps.check_files.outputs.files_exists == 'true' && github.event.pull_request.head.repo.full_name == github.repository
         continue-on-error: true
-        uses: thollander/actions-comment-pull-request@v3
+        uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3
         with:
           file-path: warnings-collapsible.md
   # Validation
@@ -1184,6 +1201,7 @@ jobs:
                       tests.sort.exe,
                       tests.sort.topological.exe,
                       tests.string_utilities.exe,
+                      tests.system.download.exe,
                       tests.vectors.exe,
                       tests.multi_counters.exe,
                       tests.tensors.exe,
@@ -1768,7 +1786,7 @@ jobs:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -1808,12 +1826,12 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: Check out repository datasets
         # The stellar-populations tutorial reads static datasets (the
         # stellar-properties compilation) through GALACTICUS_DATA_PATH.
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -1828,7 +1846,7 @@ jobs:
           apt -y update && apt -y upgrade
           apt -y install python3 python3-numpy
       - name: Download library
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-library
       - name: Test interface
@@ -1866,10 +1884,14 @@ jobs:
   # Validate, deploy and update
   Validate:
     runs-on: ubuntu-latest
+    permissions:
+      contents:      write # required to publish benchmark results to the `gh-pages` branch
+      actions:       read
+      pull-requests: write # required to comment when a benchmark alert is raised
     needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Dark-Matter-Only-Subhalos-Symphony, Validate-Dark-Matter-Only-Subhalos-Symphony-X64, Validate-Dark-Matter-Only-Subhalos-COZMICWDM, Validate-Halo-Mass-Function, Validate-Milky-Way-Model, Validate-PonosV, Validate-Baryonic-Suppression, Validate-Idealized-Subhalo-Simulations, Validate-Decaying-Dark-Matter-Only-Subhalos ]
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: 'Dark matter-only subhalos benchmarks'
         uses: ./.github/actions/benchmark
         with:
@@ -2216,15 +2238,15 @@ jobs:
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifacts (validate-PonosV)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: validate-PonosV
       - name: Download artifacts (validate-baryonicSuppression)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: validate-baryonicSuppression
       - name: Download artifacts (build-profile)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: build-profile
       - name: Push validation results
@@ -2331,6 +2353,9 @@ jobs:
   Deploy:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
+    permissions:
+      contents: write # required to upload build artifacts as `bleeding-edge` release assets
+      actions:  read
     needs: [ Build-Executable-Linux,
              Build-Executables-Instrumented-Linux,
              Build-Executables-MPI-Linux,
@@ -2379,17 +2404,17 @@ jobs:
              Validate ]
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Download artifacts (executable-linux)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-exec
       - name: Download artifacts (library-linux)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-library
       - name: Download artifacts (tools-linux)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-tools
       - name: Upload assets to release
@@ -2397,37 +2422,40 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.bz2 --clobber
+          # Record the checksums of the assets the launcher downloads and executes, before the local copies are removed. These are
+          # collected across the upload steps of this job and published as a single `SHA256SUMS` asset at the end of it.
+          sha256sum Galacticus.exe tools.tar.bz2 >> "${GITHUB_WORKSPACE}/SHA256SUMS"
           rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.bz2
       - name: Download artifacts (executable-macos)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-exec-MacOS
       - name: Download artifacts (debug-macos)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-debug-MacOS
       - name: Download artifacts (executable-macos-m1)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-exec-MacOS-M1
       - name: Download artifacts (debug-macos-m1)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-debug-MacOS-M1
       - name: Download artifacts (library-macos)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-library-MacOS
       - name: Download artifacts (tools-macos)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-tools-MacOS
       - name: Download artifacts (tools-macos-m1)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-tools-MacOS-M1
       - name: Download artifacts (notarization metadata)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: notarization-requests
       - name: Upload assets to release
@@ -2435,29 +2463,30 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload bleeding-edge ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json --clobber
+          sha256sum Galacticus_MacOS.exe Galacticus_MacOS-M1.exe toolsMacOS.zip toolsMacOSM1.zip >> "${GITHUB_WORKSPACE}/SHA256SUMS"
           rm -f ./Galacticus_MacOS.exe ./Galacticus_MacOS.zip ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOS.zip ./toolsMacOSM1.zip ./debugSymbolsMacOS.zip ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json
       - name: Download artifacts (perf-darkMatterOnlySubHalos)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: perf-darkMatterOnlySubHalos
       - name: Download artifacts (perf-milkyWay)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: perf-milkyWay
       - name: Download artifacts (perf-milkyWay_SIDM)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: perf-milkyWay_SIDM
       - name: Download artifacts (perf-darkMatterOnlySubHalos-gprof)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: perf-darkMatterOnlySubHalos-gprof
       - name: Download artifacts (perf-milkyWay-gprof)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: perf-milkyWay-gprof
       - name: Download artifacts (perf-milkyWay_SIDM-gprof)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: perf-milkyWay_SIDM-gprof
       - name: Upload assets to release
@@ -2466,14 +2495,32 @@ jobs:
         run: |
           gh release upload bleeding-edge ./darkMatterOnlySubHalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubHalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2 --clobber
           rm ./darkMatterOnlySubHalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubHalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2
+      # Publish the checksums collected by the upload steps above. The launcher fetches this asset and checks the executable and
+      # tools archives it downloads against it, so that a corrupted or substituted asset is caught rather than being run. It is
+      # written last so that it always describes the assets just uploaded.
+      - name: Publish asset checksums
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ ! -s "${GITHUB_WORKSPACE}/SHA256SUMS" ]; then
+            echo "::error::no asset checksums were recorded by the upload steps."
+            exit 1
+          fi
+          sort -k2 -o "${GITHUB_WORKSPACE}/SHA256SUMS" "${GITHUB_WORKSPACE}/SHA256SUMS"
+          cat "${GITHUB_WORKSPACE}/SHA256SUMS"
+          gh release upload bleeding-edge "${GITHUB_WORKSPACE}/SHA256SUMS" --clobber
   Update-Release-Tag:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
+    # The `bleeding-edge` tag is moved using a GitHub App token generated in this job, not `GITHUB_TOKEN`, so no write access is
+    # needed here.
+    permissions:
+      contents: read
     needs: Deploy
-    env: 
+    env:
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - uses: actions/create-github-app-token@v3
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
@@ -2482,7 +2529,7 @@ jobs:
           permission-contents: write
           permission-workflows: write
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Update tag

@@ -30,16 +30,16 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Check out repository datasets
-        uses: actions/checkout@v7      
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7      
         with:
           repository: galacticusorg/datasets
           path: datasets
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: Cache dynamically-generated datasets
         if: ${{ format('{0}',inputs.cacheData) == '1' }}
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ${{ github.workspace }}/datasets/dynamic
           key: ${{ hashFiles(format('{0}',inputs.file)) }}-${{ github.run_id }}
@@ -50,7 +50,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: ${{ format('{0}',inputs.profiler) == 'perf' && 'galacticus-exec' || 'galacticus-exec-instrumented' }}
       - name: Detect linux-tools
@@ -150,7 +150,7 @@ jobs:
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} \) -prune -o -type f -anewer mark.time -print
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/AxionCAMB -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - name: Upload profile
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: perf-${{ inputs.name }}${{ format('{0}',inputs.profiler) == 'gprof' && '-gprof' || '' }}
           path: ./testSuite/outputs/${{ inputs.name }}.${{ format('{0}',inputs.profiler) == 'perf' && 'perf.bz2' || 'gprof.bz2' }}

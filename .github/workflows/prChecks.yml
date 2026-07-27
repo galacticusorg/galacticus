@@ -11,13 +11,15 @@ concurrency:
 defaults:
   run:
     shell: bash
+permissions:
+  contents: read
 jobs:
   # Validate YAML
   Validate-YAML:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -30,15 +32,21 @@ jobs:
           sudo apt install -y yamllint
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v47
+        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62 # v47
         with:
           files: |
             **/*.yml
+      # NOTE: the names of the files changed by the pull request are passed in through the environment, and never interpolated
+      # into the script text with `${{ }}`: they are chosen by whoever opened the pull request, and git permits characters in
+      # them which are special to the shell. `set -f` prevents a name containing a glob character being expanded.
       - name: Validate any YAML files
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
+          set -f
           status=0
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            if yamllint $file; then
+          for file in ${CHANGED_FILES}; do
+            if yamllint "$file"; then
               echo "YAML $file is valid"
             else
               echo "YAML $file is invalid"
@@ -51,18 +59,21 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v47
+        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62 # v47
         with:
           files: |
             **/*.md
             **/*.rst
       - name: Check for links to retired PDF manuals
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
+          set -f
           status=0
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+          for file in ${CHANGED_FILES}; do
             if grep -nE 'releases/download/[^)]*Galacticus_[A-Za-z]+\.pdf' "$file"; then
               echo "::error file=$file::Link to a retired Galacticus_*.pdf manual found in $file - link to the ReadTheDocs documentation (https://galacticus.readthedocs.io) instead."
               status=1
@@ -74,7 +85,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -87,16 +98,19 @@ jobs:
           sudo apt install -y libxml2-utils
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v47
+        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62 # v47
         with:
           files: |
             **/*.xml
       - name: Validate any XML files
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
+          set -f
           status=0
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+          for file in ${CHANGED_FILES}; do
             echo "Validating XML file: $file"
-            if xmllint --noout $file; then
+            if xmllint --noout "$file"; then
               echo "XML $file is valid"
             else
               echo "XML $file is invalid"
@@ -110,7 +124,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -119,15 +133,18 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Get changed scripts
         id: changed-scripts
-        uses: tj-actions/changed-files@v47
+        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62 # v47
         with:
           files: |
             **/*.py
       - name: Validate any Python scripts
+        env:
+          CHANGED_FILES: ${{ steps.changed-scripts.outputs.all_changed_files }}
         run: |
+          set -f
           status=0
-          for file in ${{ steps.changed-scripts.outputs.all_changed_files }}; do
-            if python3 -m py_compile $file; then
+          for file in ${CHANGED_FILES}; do
+            if python3 -m py_compile "$file"; then
               echo "Python script $file compiles correctly"
             else
               echo "Python script $file fails to compile"
@@ -141,7 +158,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -157,7 +174,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -166,15 +183,18 @@ jobs:
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v47
+        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62 # v47
         with:
           files: |
             **/*.F90
       - name: Perform static analysis on Fortran files
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
+          set -f
           status=0
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            if PYTHONPATH=$GITHUB_WORKSPACE/python python3 scripts/aux/staticAnalyzer.py $file; then
+          for file in ${CHANGED_FILES}; do
+            if PYTHONPATH=$GITHUB_WORKSPACE/python python3 scripts/aux/staticAnalyzer.py "$file"; then
               echo "Fortran file $file passes analysis"
             else
               echo "Fortran file $file fails analysis"
@@ -190,7 +210,7 @@ jobs:
     container: ghcr.io/galacticusorg/buildenv:latest
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -204,16 +224,19 @@ jobs:
           apt install -y python3-lxml
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v47
+        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62 # v47
         with:
           files: |
             **/*.F90
             **/*.Inc
       - name: Validate embedded XML directives
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
+          set -f
           status=0
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            if PYTHONPATH=$GITHUB_WORKSPACE/python python3 scripts/aux/embeddedAnalyzer.py $file warnings.md; then
+          for file in ${CHANGED_FILES}; do
+            if PYTHONPATH=$GITHUB_WORKSPACE/python python3 scripts/aux/embeddedAnalyzer.py "$file" warnings.md; then
               echo "Embedded XML in file $file passes validation"
             else
               echo "Embedded XML in file $file fails validation"
@@ -227,9 +250,12 @@ jobs:
   Spell-Check-RST:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
+    permissions:
+      contents:      read
+      pull-requests: write # required to post the spell-check results as a comment on the pull request
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -237,7 +263,7 @@ jobs:
         run: |
           git config --global --add safe.directory $GITHUB_WORKSPACE
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: '3.x'
       - name: Install tools
@@ -259,7 +285,7 @@ jobs:
           fi
       - name: Check file existence
         id: check_files
-        uses: andstor/file-existence-action@v3
+        uses: andstor/file-existence-action@558493d6c74bf472d87c84eab196434afc2fa029 # v3
         with:
           files: warnings.md
       - name: Output to a job summary
@@ -269,6 +295,6 @@ jobs:
       - name: Comment on the PR if any possible misspellings were found
         if: steps.check_files.outputs.files_exists == 'true' && github.event.pull_request.head.repo.full_name == github.repository
         continue-on-error: true
-        uses: thollander/actions-comment-pull-request@v3
+        uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3
         with:
           file-path: warnings.md
