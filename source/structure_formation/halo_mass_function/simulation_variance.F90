@@ -43,8 +43,9 @@ Implements a dark matter halo mass function class which modifies another mass fu
      class           (darkMatterHaloBiasClass), pointer :: darkMatterHaloBias_  => null()
      class           (powerSpectrumClass     ), pointer :: powerSpectrum_       => null()
    contains
-     final     ::                 simulationVarianceDestructor
-     procedure :: differential => simulationVarianceDifferential
+     final     ::                                   simulationVarianceDestructor
+     procedure :: differential                   => simulationVarianceDifferential
+     procedure :: isCriticalOverdensityDependent => simulationVarianceIsCriticalOverdensityDependent
   end type haloMassFunctionSimulationVariance
 
   interface haloMassFunctionSimulationVariance
@@ -260,6 +261,18 @@ contains
          &           )
     return
   end function simulationVarianceDifferential
+
+  logical function simulationVarianceIsCriticalOverdensityDependent(self)
+    !!{RST
+    Return whether the differential halo mass function depends on the critical overdensity for
+    collapse, by forwarding the query to the wrapped halo mass function.
+    !!}
+    implicit none
+    class(haloMassFunctionSimulationVariance), intent(inout) :: self
+
+    simulationVarianceIsCriticalOverdensityDependent=self%massFunction_%isCriticalOverdensityDependent()
+    return
+  end function simulationVarianceIsCriticalOverdensityDependent
 
   double precision function integrandVarianceSimulationX(wavenumber)
     !!{RST

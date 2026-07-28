@@ -291,7 +291,7 @@
      if (coordinates%rSpherical() <= 0.0d0) then
         ! Zero radius.
         densityGradient=+0.0d0
-     else if (logarithmic) then
+     else if (logarithmic_) then
         densityGradient=-16.0d0                                       &
              &          *       coefficientCore*radiusCoreFree**2     &
              &          /(1.0d0+coefficientCore*radiusCoreFree**2)

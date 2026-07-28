@@ -25,6 +25,8 @@ If you see a message similar to:
 
 this indicates that the named parameter, ``neutrinoMassSum`` in this case, was not recognized as a valid parameter name. Galacticus tells you where in your parameter file this parameter can be found (inside the ``parameters/transferFunction/`` section in this case), and also suggests what it thinks you might have intended - in this case the parameter name you probably wanted was ``neutrinoMassSummed``. If you correct the name of the variable, the warning message will no longer appear.
 
+.. _manual-sec-migratingParameterFiles:
+
 Migrating parameter files to new versions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

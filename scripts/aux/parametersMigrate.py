@@ -1337,6 +1337,72 @@ def johnson2021_correlated_branches(input_doc, parameters, is_grid):
                 print("append",param_name, param_value)
 
 
+def vitvitska_subresolution_method(input_doc, parameters, is_grid):
+    """Special handling to preserve the sub-resolution angular momentum method across the default flip."""
+    nodes = parameters.xpath(".//nodeOperator[@value='haloAngularMomentumVitvitska2002']")
+    if len(nodes) <= 0:
+        return
+    print("   translate special './/nodeOperator[@value='haloAngularMomentumVitvitska2002']'")
+    for node in nodes:
+        # A model that stated its choice explicitly already means what it says - leave it alone.
+        if len(node.findall("useOriginalSubresolutionMethod[@value]")) > 0:
+            continue
+        # The default flipped from `true` to `false`, so an absent parameter used to mean `true`.
+        method_node = etree.Element("useOriginalSubresolutionMethod")
+        method_node.set("value", "true")
+        if is_grid:
+            method_node.set("iterable", "no")
+        node.append(method_node)
+
+
+def johnson2021_mass_function_slope(input_doc, parameters, is_grid):
+    """Preserve the Johnson2021 unresolved-accretion mass-function slope across its default change.
+    `massFunctionSlopeLogarithmic` was a compiled constant (-1.8) and is now an input parameter whose
+    default changed to -1.9 (unifying it with Vitvitska2002 and matching Benson 2019). A file predating
+    this change implicitly used -1.8, so pin that value to preserve its behaviour."""
+    nodes = parameters.xpath(".//darkMatterProfileScaleRadius[@value='johnson2021']")
+    if len(nodes) <= 0:
+        return
+    print("   translate special './/darkMatterProfileScaleRadius[@value='johnson2021']' (mass-function slope)")
+    for node in nodes:
+        # If the parameter is already stated explicitly, the file means what it says - leave it.
+        if len(node.findall("massFunctionSlopeLogarithmic[@value]")) > 0:
+            continue
+        slope_node = etree.Element("massFunctionSlopeLogarithmic")
+        slope_node.set("value", "-1.8")
+        if is_grid:
+            slope_node.set("iterable", "no")
+        node.append(slope_node)
+
+
+def vitvitska_subresolution_method_enum(input_doc, parameters, is_grid):
+    """Convert the boolean `useOriginalSubresolutionMethod` to the `subresolutionAngularMomentumMethod`
+    enumeration, preserving the original behaviour. The default variance method changed to the new,
+    physically-convergent `resolutionScaled` method, so a file predating this change must be pinned to
+    its former behaviour: the old boolean's `true`/`false` map to `original`/`massScaled` respectively.
+    (The earlier `vitvitska_subresolution_method` migration ensures the boolean is present, so any file
+    reaching here that used the model has it set explicitly.)"""
+    nodes = parameters.xpath(".//nodeOperator[@value='haloAngularMomentumVitvitska2002']")
+    if len(nodes) <= 0:
+        return
+    print("   translate special './/nodeOperator[@value='haloAngularMomentumVitvitska2002']' (enumeration)")
+    for node in nodes:
+        # If the new enumeration parameter is already present, the file means what it says - leave it.
+        if len(node.findall("subresolutionAngularMomentumMethod[@value]")) > 0:
+            continue
+        boolean_nodes = node.findall("useOriginalSubresolutionMethod[@value]")
+        if len(boolean_nodes) <= 0:
+            continue
+        used_original = boolean_nodes[0].get("value").strip().lower() in ("true", ".true.", "yes")
+        for boolean_node in boolean_nodes:
+            node.remove(boolean_node)
+        method_node = etree.Element("subresolutionAngularMomentumMethod")
+        method_node.set("value", "original" if used_original else "massScaled")
+        if is_grid:
+            method_node.set("iterable", "no")
+        node.append(method_node)
+
+
 # ---------------------------------------------------------------------------
 # Dispatch table for special migration functions
 # ---------------------------------------------------------------------------
@@ -1358,6 +1424,9 @@ SPECIAL_FUNCTIONS = {
     "satellite_bound_mass_initializor": satellite_bound_mass_initializor,
     "disk_very_simple_analytic_solver": disk_very_simple_analytic_solver,
     "satellite_orbit_initializor": satellite_orbit_initializor,
+    "vitvitska_subresolution_method": vitvitska_subresolution_method,
+    "vitvitska_subresolution_method_enum": vitvitska_subresolution_method_enum,
+    "johnson2021_mass_function_slope": johnson2021_mass_function_slope,
     "johnson2021_correlated_branches": johnson2021_correlated_branches,
 }
 

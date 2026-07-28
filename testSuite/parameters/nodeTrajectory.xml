@@ -1,0 +1,148 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Test of recording of node evolutionary trajectories. Identical to nodeTrajectoryBase.xml apart from the addition of the
+     outputTrajectory node operator, so that the two may be compared to verify that trajectory recording does not perturb the
+     model. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="7b83820825e0dd5e1c0c53b5d3ec06deb0b18e40" time="2026-07-21T00:00:00"/>
+
+  <!-- Component selection -->
+  <componentBasic value="standard"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="scaleFree"/>
+  <componentDisk value="standard">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
+  </componentDisk>
+  <componentHotHalo value="standard"/>
+  <componentSatellite value="standard"/>
+  <componentSpheroid value="null">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+  </componentSpheroid>
+  <componentSpin value="null"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.2"/>
+    <OmegaMatter value="0.2725"/>
+    <OmegaDarkEnergy value="0.7275"/>
+    <OmegaBaryon value="0.0455"/>
+    <temperatureCMB value="2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <transferFunction value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed value="0.000"/>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.961"/>
+    <wavenumberReference value="1.000"/>
+    <running value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.807"/>
+  </cosmologicalMassVariance>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+  <haloMassFunction value="tinker2008"/>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructor value="fullySpecified">
+    <fileName value="testSuite/parameters/nodeTrajectoryTree.xml"/>
+  </mergerTreeConstructor>
+
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMO value="isothermal"/>
+
+  <!-- Halo accretion options -->
+  <accretionHalo value="zero"/>
+
+  <!-- Hot halo model options -->
+  <hotHaloMassDistribution value="betaProfile"/>
+
+  <!-- Galactic structure options -->
+  <galacticStructureSolver value="fixed"/>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Dark matter profile -->
+    <nodeOperator value="darkMatterProfileInitialize"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"/>
+    <!-- Gas cooling -->
+    <nodeOperator value="massCooled"/>
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
+    <!-- Record the complete evolutionary trajectory of node 1 in tree 1. Note that this node is promoted (twice) during
+         evolution, so this also tests that the trajectory is followed across promotions. -->
+    <nodeOperator value="outputTrajectory">
+      <treeIndex value="1"/>
+      <nodeIndex value="1"/>
+      <groupPerNode value="true"/>
+      <mergerTreeOutputter value="standard">
+        <outputsGroupName value="nodeTrajectories"/>
+        <outputReferences value="false"/>
+        <nodePropertyExtractor value="multi">
+          <nodePropertyExtractor value="time"/>
+          <nodePropertyExtractor value="indicesTree"/>
+          <nodePropertyExtractor value="nodeIndices"/>
+          <nodePropertyExtractor value="trajectoryEvent"/>
+        </nodePropertyExtractor>
+      </mergerTreeOutputter>
+    </nodeOperator>
+  </nodeOperator>
+
+  <!-- Numerical tolerances -->
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="0.01"/>
+    <odeToleranceRelative value="0.01"/>
+  </mergerTreeNodeEvolver>
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolver>
+
+  <!-- Output options -->
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+  <outputTimes value="list">
+    <times value="13.8"/>
+  </outputTimes>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="massCooled"/>
+  </nodePropertyExtractor>
+
+  <!-- Output file -->
+  <outputFileName value="testSuite/outputs/nodeTrajectory.hdf5"/>
+
+</parameters>
