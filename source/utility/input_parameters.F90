@@ -567,7 +567,7 @@ contains
     logical                                                           :: parseSuccess         , isException      , &
          &                                                               append
     type     (varying_string )                                        :: changePath           , targetPath       , &
-         &                                                               valueUpdated
+         &                                                               valueUpdated         , pathFailed
     character(len=32         )                                        :: changeType
 
     ! Check that the file exists.
@@ -646,7 +646,7 @@ contains
              changeType=getAttribute(childNode,"type")
              ! Find the node in the parameters document to be changed.
              changePath=getAttribute(childNode,"path")
-             if (XML_Path_Exists(parameterNode,char(changePath))) then
+             if (XML_Path_Exists(parameterNode,char(changePath),pathFailed=pathFailed)) then
                 if (changePath == "") then
                    changeNode =>                                   parameterNode
                 else
@@ -659,7 +659,7 @@ contains
                 changeNode => XML_Get_First_Element_By_Tag_Name(parameterNode,char(changePath),directChildrenOnly=.true.)
                 changeType =  "append"
              else
-                call Error_Report("path '"//trim(changePath)//"' does not exist"//{introspection:location})
+                call Error_Report("path '"//trim(changePath)//"' does not exist (resolution failed at '"//trim(pathFailed)//"')"//{introspection:location})
              end if
              ! Process each type of change.
              select case (trim(changeType))
@@ -714,7 +714,7 @@ contains
                 ! Replace a parameter with another parameter.
                 if (.not.hasAttribute(childNode,"target")) call Error_Report('`change` element with `type="replaceWith"` must have the `target` attribute'//{introspection:location})
                 targetPath=getAttribute(childNode,"target")
-                if (.not.XML_Path_Exists(parameterNode,char(targetPath))) call Error_Report("target path '"//trim(targetPath)//"' does not exist"//{introspection:location})
+                if (.not.XML_Path_Exists(parameterNode,char(targetPath),pathFailed=pathFailed)) call Error_Report("target path '"//trim(targetPath)//"' does not exist (resolution failed at '"//trim(pathFailed)//"')"//{introspection:location})
                 targetNode       => XML_Get_First_Element_By_Tag_Name(parameterNode,char(targetPath),directChildrenOnly=.true.)
                 clonedNode       => cloneNode    (targetNode                            ,deep=.true.)
                 changeNodeParent => getParentNode(                            changeNode            )
