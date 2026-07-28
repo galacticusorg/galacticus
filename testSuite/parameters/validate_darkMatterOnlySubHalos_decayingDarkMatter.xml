@@ -57,7 +57,6 @@
   
   <!-- Dark matter halo structure options -->
   <darkMatterProfile value="darkMatterOnly">
-    <chandrasekharIntegralComputeVelocityDispersion value="false"/>
   </darkMatterProfile>
   <darkMatterProfileDMO value="decaying">
     <!-- Set tolerances and set to ignore failures here. -->

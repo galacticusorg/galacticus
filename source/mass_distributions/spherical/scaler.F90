@@ -130,17 +130,16 @@ contains
     return
   end function sphericalScalerConstructorParameters
   
-  function sphericalScalerConstructorInternal(factorScalingLength,factorScalingMass,massDistribution_,chandrasekharIntegralComputeVelocityDispersion) result(self)
+  function sphericalScalerConstructorInternal(factorScalingLength,factorScalingMass,massDistribution_) result(self)
     !!{RST
     Constructor for the :galacticus-class:`massDistributionSphericalScaler` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalScaler)                          :: self
     class           (massDistributionSpherical      ), intent(in   ), target   :: massDistribution_
-    double precision                                 , intent(in   )           :: factorScalingLength                           , factorScalingMass
-    logical                                          , intent(in   ), optional :: chandrasekharIntegralComputeVelocityDispersion
+    double precision                                 , intent(in   )           :: factorScalingLength, factorScalingMass
     !![
-    <constructorAssign variables="factorScalingLength, factorScalingMass, *massDistribution_, chandrasekharIntegralComputeVelocityDispersion"/>
+    <constructorAssign variables="factorScalingLength, factorScalingMass, *massDistribution_"/>
     !!]
  
     self%componentType              =self%massDistribution_%componentType

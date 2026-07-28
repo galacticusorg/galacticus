@@ -34,19 +34,19 @@
      !!}
      private
      ! Memoized solutions for the enclosed mass.
-     double precision              , allocatable, dimension(:) :: massProfileMass__                                          , massProfileRadius__
-     double precision                                          :: massProfileRadiusMinimum__                    =+huge(0.0d0), massProfileRadiusMaximum__     =-huge(0.0d0)
+     double precision              , allocatable, dimension(:) :: massProfileMass__                                     , massProfileRadius__
+     double precision                                          :: massProfileRadiusMinimum__               =+huge(0.0d0), massProfileRadiusMaximum__     =-huge(0.0d0)
      type            (interpolator), allocatable               :: massProfile__
-     logical                                                   :: tolerateEnclosedMassIntegrationFailure        =.false.
+     logical                                                   :: tolerateEnclosedMassIntegrationFailure   =.false.
      ! Memoized solutions for the potential.
-     double precision              , allocatable, dimension(:) :: potentialProfilePotential__                                , potentialProfileRadius__
-     double precision                                          :: potentialProfileRadiusMinimum__               =+huge(0.0d0), potentialProfileRadiusMaximum__=-huge(0.0d0), &
-          &                                                       potentialProfileRadiusMinimumActual__         =+huge(0.0d0), potentialRadiusZeroPoint__     =-huge(0.0d0)
+     double precision              , allocatable, dimension(:) :: potentialProfilePotential__                           , potentialProfileRadius__
+     double precision                                          :: potentialProfileRadiusMinimum__          =+huge(0.0d0), potentialProfileRadiusMaximum__=-huge(0.0d0), &
+          &                                                       potentialProfileRadiusMinimumActual__    =+huge(0.0d0), potentialRadiusZeroPoint__     =-huge(0.0d0)
      type            (interpolator), allocatable               :: potentialProfile__
-     logical                                                   :: toleratePotentialIntegrationFailure           =.false.
-     double precision                                          :: toleranceRelativePotential                    =1.0d-6
+     logical                                                   :: toleratePotentialIntegrationFailure      =.false.
+     double precision                                          :: toleranceRelativePotential               =1.0d-6
      ! Options controlling implementation.
-     logical                                                   :: chandrasekharIntegralComputeVelocityDispersion=.true.
+     logical                                                   :: chandrasekharIntegralSuppressExtendedMass=.true.
    contains
      !![
      <methods docformat="rst">
@@ -1041,8 +1041,13 @@ contains
          &              )
     ! Compute suppression factor due to satellite being an extended mass distribution. This is largely untested - it is meant to
     ! simply avoid extremely large accelerations for subhalo close to the center of its host when that subhalo is much more
-    ! extended than the host.
-    factorSuppressionExtendedMass=min(1.0d0,massDistributionPerturber%massEnclosedBySphere(radius)/massPerturber)
+    ! extended than the host. It can be disabled (restoring the prior behavior) via the `chandrasekharIntegralSuppressExtendedMass`
+    ! option.
+    if (self%chandrasekharIntegralSuppressExtendedMass) then
+       factorSuppressionExtendedMass=min(1.0d0,massDistributionPerturber%massEnclosedBySphere(radius)/massPerturber)
+    else
+       factorSuppressionExtendedMass=1.0d0
+    end if
     ! Evaluate the integral.
     integralVector=+integralVector                &
          &         *factorSuppressionExtendedMass

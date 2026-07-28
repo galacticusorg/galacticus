@@ -209,7 +209,6 @@ program Test_Dark_Matter_Profiles_Generic
   <referenceConstruct object="darkMatterProfileIsothermal__"  >
    <constructor>
     darkMatterProfileDarkMatterOnly                              (                                                                                       &amp;
-     &amp;                                                        chandrasekharIntegralComputeVelocityDispersion=.true.                                , &amp;
      &amp;                                                        cosmologyParameters_                          =cosmologyParameters_                  , &amp;
      &amp;                                                        darkMatterProfileDMO_                         =darkMatterProfileIsothermal_            &amp;
      &amp;                                                       )
@@ -218,7 +217,6 @@ program Test_Dark_Matter_Profiles_Generic
   <referenceConstruct object="darkMatterProfileNFW__"  >
    <constructor>
     darkMatterProfileDarkMatterOnly                              (                                                                                       &amp;
-     &amp;                                                        chandrasekharIntegralComputeVelocityDispersion=.true.                                , &amp;
      &amp;                                                        cosmologyParameters_                          =cosmologyParameters_                  , &amp;
      &amp;                                                        darkMatterProfileDMO_                         =darkMatterProfileNFW_                   &amp;
      &amp;                                                       )
@@ -227,7 +225,6 @@ program Test_Dark_Matter_Profiles_Generic
   <referenceConstruct object="darkMatterProfileEinasto__"  >
    <constructor>
     darkMatterProfileDarkMatterOnly                              (                                                                                       &amp;
-     &amp;                                                        chandrasekharIntegralComputeVelocityDispersion=.true.                                , &amp;
      &amp;                                                        cosmologyParameters_                          =cosmologyParameters_                  , &amp;
      &amp;                                                        darkMatterProfileDMO_                         =darkMatterProfileEinasto_               &amp;
      &amp;                                                       )
@@ -236,7 +233,6 @@ program Test_Dark_Matter_Profiles_Generic
   <referenceConstruct object="darkMatterProfileBurkert__"  >
    <constructor>
     darkMatterProfileDarkMatterOnly                              (                                                                                       &amp;
-     &amp;                                                        chandrasekharIntegralComputeVelocityDispersion=.true.                                , &amp;
      &amp;                                                        cosmologyParameters_                          =cosmologyParameters_                  , &amp;
      &amp;                                                        darkMatterProfileDMO_                         =darkMatterProfileBurkert_               &amp;
      &amp;                                                       )
@@ -245,7 +241,6 @@ program Test_Dark_Matter_Profiles_Generic
   <referenceConstruct object="darkMatterProfileZhao1996__"  >
    <constructor>
     darkMatterProfileDarkMatterOnly                              (                                                                                       &amp;
-     &amp;                                                        chandrasekharIntegralComputeVelocityDispersion=.true.                                , &amp;
      &amp;                                                        cosmologyParameters_                          =cosmologyParameters_                  , &amp;
      &amp;                                                        darkMatterProfileDMO_                         =darkMatterProfileZhao1996_              &amp;
      &amp;                                                       )
@@ -254,7 +249,6 @@ program Test_Dark_Matter_Profiles_Generic
   <referenceConstruct object="darkMatterProfileTruncated__"  >
    <constructor>
     darkMatterProfileDarkMatterOnly                              (                                                                                       &amp;
-     &amp;                                                        chandrasekharIntegralComputeVelocityDispersion=.true.                                , &amp;
      &amp;                                                        cosmologyParameters_                          =cosmologyParameters_                  , &amp;
      &amp;                                                        darkMatterProfileDMO_                         =darkMatterProfileTruncated_             &amp;
      &amp;                                                       )
@@ -263,7 +257,6 @@ program Test_Dark_Matter_Profiles_Generic
   <referenceConstruct object="darkMatterProfileTruncatedExponential__"  >
    <constructor>
     darkMatterProfileDarkMatterOnly                              (                                                                                       &amp;
-     &amp;                                                        chandrasekharIntegralComputeVelocityDispersion=.true.                                , &amp;
      &amp;                                                        cosmologyParameters_                          =cosmologyParameters_                  , &amp;
      &amp;                                                        darkMatterProfileDMO_                         =darkMatterProfileTruncatedExponential_  &amp;
      &amp;                                                       )
