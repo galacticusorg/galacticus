@@ -238,8 +238,6 @@ contains
                &  .and.                                                                                                      &
                &   hotHalo%mass         () >  0.0d0                                                                          &
                &  .and.                                                                                                      &
-               &   radiusOuter             <=                                   self%darkMatterHaloScale_%radiusVirial(node) &
-               &  .and.                                                                                                      &
                &   radiusOuter             > radiusOuterOverRadiusVirialMinimum*self%darkMatterHaloScale_%radiusVirial(node) &
                & ) then
              coordinates          =  [radiusOuter,0.0d0,0.0d0]

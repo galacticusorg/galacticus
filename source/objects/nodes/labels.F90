@@ -27,14 +27,44 @@ module Nodes_Labels
   !!}
   use :: ISO_Varying_String, only : varying_string
   use :: Kind_Numbers      , only : kind_int8
+  use :: Locks             , only : ompReadWriteLock
   private
   public :: nodeLabelRegister    , nodeLabelSet  , nodeLabelNames, nodeLabelList     , &
        &    nodeLabelDescriptions, nodeLabelUnset, nodeLabelCount, nodeLabelIsPresent
 
-  integer                                            :: nodeLabelsID=-1
-  type   (varying_string), allocatable, dimension(:) :: labels_        , descriptions_
+  integer                                            :: nodeLabelsID   =-1
+  type   (varying_string), allocatable, dimension(:) :: labels_           , descriptions_
+
+  ! Count of the number of registered labels. This is maintained separately from the size of the `labels_` array so that it can be
+  ! read (atomically) without the need to obtain a lock on the label lists. Since labels can only ever be registered (never
+  ! unregistered) this count increases monotonically, so a validity check of a label ID against this count can never give a false
+  ! failure - if the count is stale it can only be smaller than the true count, and any label ID in use must have been returned by
+  ! a prior call to `nodeLabelRegister()` which will have incremented the count before returning.
+  integer                                            :: countLabels    = 0
+
+  ! Read/write lock used to control access to the label lists. Functions which merely read from the lists take a read lock (which
+  ! allows multiple threads to read simultaneously), while `nodeLabelRegister()` (which mutates the lists) takes a write lock.
+  type   (ompReadWriteLock)                          :: lock
+  logical                                            :: lockInitialized=.false.
 
 contains
+
+  subroutine lockInitialize()
+    !!{RST
+    Initialize the read/write lock used to control access to the label lists.
+    !!}
+    implicit none
+
+    if (.not.lockInitialized) then
+       !$omp critical(nodeLabelsLockInitialize)
+       if (.not.lockInitialized) then
+          lock           =ompReadWriteLock()
+          lockInitialized=.true.
+       end if
+       !$omp end critical(nodeLabelsLockInitialize)
+    end if
+    return
+  end subroutine lockInitialize
 
   integer function nodeLabelRegister(label,description) result(labelID)
     !!{RST
@@ -48,9 +78,12 @@ contains
     character(len=*         ), intent(in   ), optional     :: description
     type     (varying_string), allocatable  , dimension(:) :: labelsTmp  , descriptionsTmp
     integer                                                :: i
+    logical                                                :: isLocked
 
+    call lockInitialize()
     labelID=-1
-    !$omp critical(lockNodeLabels)
+    isLocked=lock%owned()
+    call lock%setWrite(haveReadLock=isLocked)
     if (allocated(labels_)) then
        do i=1,size(labels_)
           if (labels_(i) == label) then
@@ -80,6 +113,10 @@ contains
        else
           descriptions_(labelID)=''
        end if
+       ! Update the count of labels. This is done only once the label lists are fully updated, so that any thread reading the count
+       ! is guaranteed to be able to see a consistent state of the lists.
+       !$omp atomic write
+       countLabels=size(labels_)
     end if
     if (size(labels_) > bit_size(0_kind_int8)) call Error_Report('insufficient storage space for labels'//{introspection:location})
     if (nodeLabelsID < 0) then
@@ -88,7 +125,7 @@ contains
        !!]
        call nodePromotionEventGlobal%attach(nodeLabelsID,mergeLabels,openMPThreadBindingNone,label='mergeLabels')
     end if
-    !$omp end critical(lockNodeLabels)
+    call lock%unsetWrite(haveReadLock=isLocked)
     return
   end function nodeLabelRegister
 
@@ -119,31 +156,39 @@ contains
     Return a count of the number of node labels.
     !!}
     implicit none
-    
-    !$omp critical(lockNodeLabels)
-    if (allocated(labels_)) then
-       nodeLabelCount=size(labels_)
-    else
-       nodeLabelCount=0
-    end if
-    !$omp end critical(lockNodeLabels)
+
+    !$omp atomic read
+    nodeLabelCount=countLabels
     return
   end function nodeLabelCount
-  
+
+  subroutine labelIDValidate(labelID)
+    !!{RST
+    Validate that the given label ID is in range. No lock is needed here as the count of labels is read atomically, and can only
+    ever increase.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    integer, intent(in   ) :: labelID
+    integer                :: countLabels_
+
+    !$omp atomic read
+    countLabels_=countLabels
+    if (labelID < 1 .or. labelID > countLabels_) call Error_Report('label ID is out of range'//{introspection:location})
+    return
+  end subroutine labelIDValidate
+
   subroutine nodeLabelUnset(labelID,node)
     !!{RST
     Unset a label on a node.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : treeNode    , nodeComponentBasic
+    use :: Galacticus_Nodes, only : treeNode, nodeComponentBasic
     implicit none
     integer                    , intent(in   ) :: labelID
     type   (treeNode          ), intent(inout) :: node
     class  (nodeComponentBasic), pointer       :: basic
 
-    !$omp critical(lockNodeLabels)
-    if (.not.allocated(labels_) .or. labelID > size(labels_)) call Error_Report('label ID is out of range'//{introspection:location})
-    !$omp end critical(lockNodeLabels)
+    call labelIDValidate(labelID)
     basic => node%basic(autoCreate=.true.)
     call basic%longIntegerRank0MetaPropertySet(                                                                     &
          &                                                                                 nodeLabelsID           , &
@@ -158,16 +203,13 @@ contains
     !!{RST
     Set a label on a node.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : treeNode    , nodeComponentBasic
+    use :: Galacticus_Nodes, only : treeNode, nodeComponentBasic
     implicit none
     integer                    , intent(in   ) :: labelID
     type   (treeNode          ), intent(inout) :: node
     class  (nodeComponentBasic), pointer       :: basic
 
-    !$omp critical(lockNodeLabels)
-    if (.not.allocated(labels_) .or. labelID > size(labels_)) call Error_Report('label ID is out of range'//{introspection:location})
-    !$omp end critical(lockNodeLabels)
+    call labelIDValidate(labelID)
     basic => node%basic(autoCreate=.true.)
     call basic%longIntegerRank0MetaPropertySet(                                                                     &
          &                                                                                 nodeLabelsID           , &
@@ -182,8 +224,7 @@ contains
     !!{RST
     Return true if the specified label is present in the node.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : treeNode    , nodeComponentBasic
+    use :: Galacticus_Nodes, only : treeNode, nodeComponentBasic
     implicit none
     integer                    , intent(in   ) :: labelID
     type   (treeNode          ), intent(inout) :: node
@@ -191,9 +232,7 @@ contains
     integer                    , parameter     :: bitTrue=ibset(0,0)
     integer(kind_int8         )                :: label_ 
 
-    !$omp critical(lockNodeLabels)
-    if (.not.allocated(labels_) .or. labelID > size(labels_)) call Error_Report('label ID is out of range'//{introspection:location})
-    !$omp end critical(lockNodeLabels)
+    call labelIDValidate(labelID)
     basic              => node %basic                          (autoCreate=.true.      )
     label_             =  basic%longIntegerRank0MetaPropertyGet(           nodeLabelsID)
     nodeLabelIsPresent =  ibits(label_,labelID-1,1) == bitTrue
@@ -205,9 +244,12 @@ contains
     Return a list of label names.
     !!}
     implicit none
-    type(varying_string), intent(inout), allocatable, dimension(:) :: labels
+    type   (varying_string), intent(inout), allocatable, dimension(:) :: labels
+    logical                                                           :: isLocked
 
-    !$omp critical(lockNodeLabels)
+    call lockInitialize()
+    isLocked=lock%owned()
+    if (.not.isLocked) call lock%setRead()
     if (allocated(labels_)) then
        if (allocated(labels)) then
           if (size(labels) /= size(labels_)) then
@@ -221,7 +263,7 @@ contains
     else
        if (allocated(labels)) deallocate(labels)
     end if
-    !$omp end critical(lockNodeLabels)
+    if (.not.isLocked) call lock%unsetRead()
     return
   end subroutine nodeLabelNames
 
@@ -230,9 +272,12 @@ contains
     Return a list of label descriptions.
     !!}
     implicit none
-    type(varying_string), intent(inout), allocatable, dimension(:) :: descriptions
+    type   (varying_string), intent(inout), allocatable, dimension(:) :: descriptions
+    logical                                                           :: isLocked
 
-    !$omp critical(lockNodeLabels)
+    call lockInitialize()
+    isLocked=lock%owned()
+    if (.not.isLocked) call lock%setRead()
     if (allocated(descriptions_)) then
        if (allocated(descriptions)) then
           if (size(descriptions) /= size(descriptions_)) then
@@ -246,7 +291,7 @@ contains
     else
        if (allocated(descriptions)) deallocate(descriptions)
     end if
-    !$omp end critical(lockNodeLabels)
+    if (.not.isLocked) call lock%unsetRead()
     return
   end subroutine nodeLabelDescriptions
 
@@ -261,8 +306,11 @@ contains
     class  (nodeComponentBasic), pointer                                  :: basic
     integer(kind_int8         )                                           :: label_            , i
     integer                    , parameter                                :: bitTrue=ibset(0,0)
+    logical                                                               :: isLocked
 
-    !$omp critical(lockNodeLabels)
+    call lockInitialize()
+    isLocked=lock%owned()
+    if (.not.isLocked) call lock%setRead()
     if (allocated(labels_)) then
        if (allocated(labels)) then
           if (size(labels) /= size(labels_)) then
@@ -281,7 +329,7 @@ contains
     else
        if (allocated(labels)) deallocate(labels)
     end if
-    !$omp end critical(lockNodeLabels)
+    if (.not.isLocked) call lock%unsetRead()
     return
   end subroutine nodeLabelList
 

@@ -285,6 +285,15 @@
   <migration commit="3148b72923e0261deb472182fee74ccd1a9a7a13">
     <translation function="satellite_orbit_initializor"/>
   </migration>
+  <migration commit="f5362cac8f91d04771a5d9c4a705a0f9f6c6e8e7">
+    <translation function="vitvitska_subresolution_method"/>
+  </migration>
+  <migration commit="fff198c4bbadc530c67668591ae98e4aa0f445a9">
+    <translation function="vitvitska_subresolution_method_enum"/>
+  </migration>
+  <migration commit="fcefb0ab4f1ff0c4e788e46b066ffe7b3e1ab599">
+    <translation function="johnson2021_mass_function_slope"/>
+  </migration>
   <migration commit="befbbb8d669ec76a2ddf0299ed7da8f31077700e">
     <translation function="johnson2021_correlated_branches"/>
   </migration>

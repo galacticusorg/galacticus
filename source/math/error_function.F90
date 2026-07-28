@@ -31,8 +31,21 @@ module Error_Functions
   use, intrinsic :: ISO_C_Binding, only : c_double
   implicit none
   private
-  public :: Error_Function           , Error_Function_Complementary, erfApproximate, Faddeeva, &
-       &    Error_Function_Difference
+  public :: Error_Function           , Error_Function_Complementary  , erfApproximate         , Faddeeva, &
+       &    Error_Function_Difference, Error_Function_Difference_Fast, Error_Function_Tabulate
+
+  ! Tabulation of the error function for fast (approximate) evaluation. erfTable(i)=erf(i·step) on a uniform
+  ! grid spanning x∈[0,erfTableMaximum], with one ghost point beyond each end so the cubic interpolation
+  ! stencil is always valid; erf(-x)=-erf(x) is used for negative arguments and erf saturates to ±1 beyond
+  ! the table. The table is evaluated with a C¹-continuous Catmull-Rom cubic, giving ~10⁻¹² accuracy —
+  ! comfortably below the absolute tolerances of the numerical integrands that use it, so those integrands
+  ! remain smooth enough (and accurate enough) for the adaptive integrator to converge. Built once by
+  ! Error_Function_Tabulate(); written once (serially, before any parallel use) and thereafter only read.
+  integer         , parameter                         :: erfTableIntervals=3000
+  double precision, parameter                         :: erfTableMaximum  =6.0d0
+  double precision, parameter                         :: erfTableStep     =erfTableMaximum/dble(erfTableIntervals)
+  double precision, dimension(-1:erfTableIntervals+1) :: erfTable
+  logical                                             :: erfTabulated     =.false.
 
   interface Error_Function
      module procedure Error_Function_Real
@@ -289,5 +302,84 @@ contains
     ! Nothing has worked - return 0.
     return
   end function Error_Function_Difference
-  
+
+  subroutine Error_Function_Tabulate()
+    !!{RST
+    Build the tabulation of the error function used by {\normalfont \ttfamily Error\_Function\_Difference\_Fast}
+    (and {\normalfont \ttfamily erfFast}). This must be called once before any fast evaluation. It is intended
+    to be called from a serial initialization context (e.g.~an object constructor), so no locking is performed;
+    the resulting table is written once and thereafter only read, so it is safe to use from parallel regions
+    entered after this routine has completed.
+    !!}
+    implicit none
+    integer :: i
+
+    if (erfTabulated) return
+    do i=-1,erfTableIntervals+1
+       erfTable(i)=erf(dble(i)*erfTableStep)
+    end do
+    erfTabulated=.true.
+    return
+  end subroutine Error_Function_Tabulate
+
+  elemental double precision function erfFast(x) result(erfValue)
+    !!{RST
+    A fast, tabulated (approximate) evaluation of the error function, :math:`\mathrm{erf}(x)`, accurate to
+    :math:`\sim 10^{-12}` for :math:`|x|<` {\normalfont \ttfamily erfTableMaximum} and saturating to
+    :math:`\pm 1` beyond. Uses C¹-continuous Catmull-Rom cubic interpolation of the tabulation so that
+    integrands built from it remain smooth. {\normalfont \ttfamily Error\_Function\_Tabulate()} must have
+    been called first.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: x
+    double precision                :: xAbs, t , &
+         &                             p0  , p1, &
+         &                             p2  , p3
+    integer                         :: i
+
+    xAbs=abs(x)
+    if (xAbs >= erfTableMaximum) then
+       erfValue=1.0d0
+    else
+       t =xAbs/erfTableStep
+       i =int(t)                                  ! interval index, in [0,erfTableIntervals-1]
+       t =t-dble(i)                               ! offset within the interval, in [0,1)
+       p0=erfTable(i-1)
+       p1=erfTable(i  )
+       p2=erfTable(i+1)
+       p3=erfTable(i+2)
+       ! Catmull-Rom cubic through (p0,p1,p2,p3), evaluated at t between p1 and p2.
+       erfValue=p1+0.5d0*t*(                                    &
+            &               (p2-p0)                             &
+            &               +t*(                                &
+            &                   (2.0d0*p0-5.0d0*p1+4.0d0*p2-p3) &
+            &                   +t*(3.0d0*(p1-p2)+p3-p0)        &
+            &                  )                                &
+            &              )
+    end if
+    if (x < 0.0d0) erfValue=-erfValue
+    return
+  end function erfFast
+
+  double precision function Error_Function_Difference_Fast(x1,x2) result(difference)
+    !!{RST
+    A fast (approximate) evaluation of :math:`\mathrm{erf}(x_2)-\mathrm{erf}(x_1)` intended for use inside
+    numerical integrands where full precision is unnecessary. When both arguments lie within the tabulated
+    range the tabulated error function is used; if either argument lies outside that range---the deep tails,
+    where the direct difference suffers catastrophic cancellation and the exact treatment is required---the
+    exact {\normalfont \ttfamily Error\_Function\_Difference} is used instead. {\normalfont \ttfamily
+    Error\_Function\_Tabulate()} must have been called first. As for {\normalfont \ttfamily
+    Error\_Function\_Difference}, :math:`x_2 \ge x_1` is required.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: x1, x2
+
+    if (max(abs(x1),abs(x2)) < erfTableMaximum) then
+       difference=erfFast(x2)-erfFast(x1)
+    else
+       difference=Error_Function_Difference(x1,x2)
+    end if
+    return
+  end function Error_Function_Difference_Fast
+
 end module Error_Functions
