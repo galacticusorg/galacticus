@@ -21,10 +21,10 @@
   An implementation of :cite:t:`gnedin_response_2004` non-dark-matter-only dark matter halo profiles.
   !!}
 
-  use :: Cosmology_Parameters      , only : cosmologyParameters              , cosmologyParametersClass
-  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale              , darkMatterHaloScaleClass
-  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMO             , darkMatterProfileDMOClass
-  use :: Mass_Distributions        , only : enumerationNonAnalyticSolversType
+  use :: Cosmology_Parameters    , only : cosmologyParameters              , cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScale              , darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO             , darkMatterProfileDMOClass
+  use :: Mass_Distributions      , only : enumerationNonAnalyticSolversType
 
   !![
   <darkMatterProfile name="darkMatterProfileAdiabaticGnedin2004" docformat="rst">
@@ -38,14 +38,15 @@
      A dark matter halo profile class implementing adiabaticGnedin2004 dark matter halos.
      !!}
      private
-     class           (cosmologyParametersClass         ), pointer  :: cosmologyParameters_   => null()
-     class           (darkMatterProfileDMOClass        ), pointer  :: darkMatterProfileDMO_  => null()
-     class           (darkMatterHaloScaleClass         ), pointer  :: darkMatterHaloScale_   => null()
+     class           (cosmologyParametersClass         ), pointer  :: cosmologyParameters_                      => null()
+     class           (darkMatterProfileDMOClass        ), pointer  :: darkMatterProfileDMO_                     => null()
+     class           (darkMatterHaloScaleClass         ), pointer  :: darkMatterHaloScale_                      => null()
      type            (enumerationNonAnalyticSolversType)           :: nonAnalyticSolver
-     double precision                                              :: A                               , omega               , &
-          &                                                           radiusFractionalPivot           , toleranceRelative   , &
+     double precision                                              :: A                                                  , omega            , &
+          &                                                           radiusFractionalPivot                              , toleranceRelative, &
           &                                                           darkMatterFraction
-   contains    
+     logical                                                       :: chandrasekharIntegralSuppressExtendedMass =  .true.
+   contains
      final     ::        adiabaticGnedin2004Destructor
      procedure :: get => adiabaticGnedin2004Get
   end type darkMatterProfileAdiabaticGnedin2004
@@ -73,9 +74,10 @@ contains
     class           (darkMatterHaloScaleClass            ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass           ), pointer       :: darkMatterProfileDMO_
     type            (varying_string                      )                :: nonAnalyticSolver
-    double precision                                                      :: A                    , omega            , &
-          &                                                                  radiusFractionalPivot, toleranceRelative
-    
+    double precision                                                      :: A                                        , omega            , &
+          &                                                                  radiusFractionalPivot                    , toleranceRelative
+    logical                                                               :: chandrasekharIntegralSuppressExtendedMass
+
     !![
     <inputParameter docformat="rst">
       <name>A</name>
@@ -126,11 +128,19 @@ contains
       Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring adiabatic contraction by baryons is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
       </description>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>chandrasekharIntegralSuppressExtendedMass</name>
+      <defaultValue>.true.</defaultValue>
+      <source>parameters</source>
+      <description>
+      If true, the Chandrasekhar integral (used to compute dynamical friction) is suppressed by a factor accounting for the finite extent of the perturbing subhalo. If false, no such suppression is applied (restoring the behavior prior to the introduction of this factor).
+      </description>
+    </inputParameter>
     <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
-    self=darkMatterProfileAdiabaticGnedin2004(A,omega,radiusFractionalPivot,toleranceRelative,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_)
+    self=darkMatterProfileAdiabaticGnedin2004(A,omega,radiusFractionalPivot,toleranceRelative,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,chandrasekharIntegralSuppressExtendedMass)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_" />
@@ -140,22 +150,23 @@ contains
     return
   end function adiabaticGnedin2004ConstructorParameters
 
-  function adiabaticGnedin2004ConstructorInternal(A,omega,radiusFractionalPivot,toleranceRelative,nonAnalyticSolver,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
+  function adiabaticGnedin2004ConstructorInternal(A,omega,radiusFractionalPivot,toleranceRelative,nonAnalyticSolver,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_,chandrasekharIntegralSuppressExtendedMass) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`darkMatterProfileAdiabaticGnedin2004` non-dark-matter-only dark matter halo profile class.
     !!}
     use :: Mass_Distributions, only : enumerationNonAnalyticSolversIsValid
     use :: Error             , only : Error_Report
     implicit none
-    type            (darkMatterProfileAdiabaticGnedin2004)                        :: self
-    double precision                                      , intent(in   )         :: A                    , omega            , &
-         &                                                                           radiusFractionalPivot, toleranceRelative
-    class           (cosmologyParametersClass            ), intent(in   ), target :: cosmologyParameters_
-    class           (darkMatterProfileDMOClass           ), intent(in   ), target :: darkMatterProfileDMO_
-    class           (darkMatterHaloScaleClass            ), intent(in   ), target :: darkMatterHaloScale_
-    type            (enumerationNonAnalyticSolversType   ), intent(in   )         :: nonAnalyticSolver
+    type            (darkMatterProfileAdiabaticGnedin2004)                          :: self
+    double precision                                      , intent(in   )           :: A                                        , omega            , &
+         &                                                                             radiusFractionalPivot                    , toleranceRelative
+    class           (cosmologyParametersClass            ), intent(in   ), target   :: cosmologyParameters_
+    class           (darkMatterProfileDMOClass           ), intent(in   ), target   :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass            ), intent(in   ), target   :: darkMatterHaloScale_
+    type            (enumerationNonAnalyticSolversType   ), intent(in   )           :: nonAnalyticSolver
+    logical                                               , intent(in   ), optional :: chandrasekharIntegralSuppressExtendedMass
     !![
-    <constructorAssign variables="A, omega, radiusFractionalPivot, toleranceRelative, nonAnalyticSolver, *cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="A, omega, radiusFractionalPivot, toleranceRelative, nonAnalyticSolver, chandrasekharIntegralSuppressExtendedMass, *cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
     !!]
     
     ! Validate.
@@ -227,23 +238,24 @@ contains
           !![
 	  <referenceConstruct object="massDistribution_">
 	    <constructor>
-              massDistributionSphericalAdiabaticGnedin2004(                                                                                             &amp;
-	      &amp;                                        A                            =self                     %A                                  , &amp;
-	      &amp;                                        omega                        =self                     %omega                              , &amp;
-	      &amp;                                        radiusVirial                 =self%darkMatterHaloScale_%radiusVirial                 (node), &amp;
-	      &amp;                                        radiusFractionalPivot        =self                     %radiusFractionalPivot              , &amp;
-	      &amp;                                        darkMatterFraction           =self                     %darkMatterFraction                 , &amp;
-	      &amp;                                        darkMatterDistributedFraction=                          darkMatterDistributedFraction      , &amp;
-	      &amp;                                        massFractionInitial          =                          initialMassFraction                , &amp;
-	      &amp;                                        nonAnalyticSolver            =self                     %nonAnalyticSolver                  , &amp;
-	      &amp;                                        toleranceRelative            =self                     %toleranceRelative                  , &amp;
-	      &amp;                                        massDistribution_            =                          massDistributionDecorated          , &amp;
-	      &amp;                                        massDistributionBaryonic     =                          massDistributionBaryonic           , &amp;
-	      &amp;                                        initializationFunction       =                          initializationFunction             , &amp;
-	      &amp;                                        initializationSelf           =                          initializationSelf                 , &amp;
-	      &amp;                                        initializationArgument       =                          initializationArgument             , &amp;
-              &amp;                                        componentType                =                          componentTypeDarkHalo              , &amp;
-              &amp;                                        massType                     =                          massTypeDark                         &amp;
+              massDistributionSphericalAdiabaticGnedin2004(                                                                                                                     &amp;
+	      &amp;                                        A                                        =self                     %A                                              , &amp;
+	      &amp;                                        omega                                    =self                     %omega                                          , &amp;
+	      &amp;                                        radiusVirial                             =self%darkMatterHaloScale_%radiusVirial                             (node), &amp;
+	      &amp;                                        radiusFractionalPivot                    =self                     %radiusFractionalPivot                          , &amp;
+	      &amp;                                        darkMatterFraction                       =self                     %darkMatterFraction                             , &amp;
+	      &amp;                                        darkMatterDistributedFraction            =                          darkMatterDistributedFraction                  , &amp;
+	      &amp;                                        massFractionInitial                      =                          initialMassFraction                            , &amp;
+	      &amp;                                        nonAnalyticSolver                        =self                     %nonAnalyticSolver                              , &amp;
+	      &amp;                                        toleranceRelative                        =self                     %toleranceRelative                              , &amp;
+	      &amp;                                        massDistribution_                        =                          massDistributionDecorated                      , &amp;
+	      &amp;                                        massDistributionBaryonic                 =                          massDistributionBaryonic                       , &amp;
+	      &amp;                                        initializationFunction                   =                          initializationFunction                         , &amp;
+	      &amp;                                        initializationSelf                       =                          initializationSelf                             , &amp;
+	      &amp;                                        initializationArgument                   =                          initializationArgument                         , &amp;
+              &amp;                                        componentType                            =                          componentTypeDarkHalo                          , &amp;
+              &amp;                                        massType                                 =                          massTypeDark                                   , &amp;
+              &amp;                                        chandrasekharIntegralSuppressExtendedMass=self                     %chandrasekharIntegralSuppressExtendedMass        &amp;
               &amp;                                       )
 	    </constructor>
           </referenceConstruct>

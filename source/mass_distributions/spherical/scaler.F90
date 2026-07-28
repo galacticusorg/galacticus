@@ -98,7 +98,8 @@ contains
     type            (massDistributionSphericalScaler)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
     class           (massDistributionClass          ), pointer       :: massDistribution_
-    double precision                                                 :: factorScalingLength, factorScalingMass
+    double precision                                                 :: factorScalingLength                     , factorScalingMass
+    logical                                                          :: chandrasekharIntegralSuppressExtendedMass
 
     !![
     <inputParameter docformat="rst">
@@ -115,11 +116,19 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>chandrasekharIntegralSuppressExtendedMass</name>
+      <defaultValue>.true.</defaultValue>
+      <source>parameters</source>
+      <description>
+      If true, the Chandrasekhar integral (used to compute dynamical friction) is suppressed by a factor accounting for the finite extent of the perturbing subhalo. If false, no such suppression is applied.
+      </description>
+    </inputParameter>
     <objectBuilder class="massDistribution" name="massDistribution_" source="parameters"/>
     !!]
     select type (massDistribution_)
     class is (massDistributionSpherical)
-       self=massDistributionSphericalScaler(factorScalingLength,factorScalingMass,massDistribution_)
+       self=massDistributionSphericalScaler(factorScalingLength,factorScalingMass,massDistribution_,chandrasekharIntegralSuppressExtendedMass)
     class default
        call Error_Report('a spherically-symmetric mass distribution is required'//{introspection:location})
     end select
@@ -130,16 +139,17 @@ contains
     return
   end function sphericalScalerConstructorParameters
   
-  function sphericalScalerConstructorInternal(factorScalingLength,factorScalingMass,massDistribution_) result(self)
+  function sphericalScalerConstructorInternal(factorScalingLength,factorScalingMass,massDistribution_,chandrasekharIntegralSuppressExtendedMass) result(self)
     !!{RST
     Constructor for the :galacticus-class:`massDistributionSphericalScaler` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalScaler)                          :: self
     class           (massDistributionSpherical      ), intent(in   ), target   :: massDistribution_
-    double precision                                 , intent(in   )           :: factorScalingLength, factorScalingMass
+    double precision                                 , intent(in   )           :: factorScalingLength                      , factorScalingMass
+    logical                                          , intent(in   ), optional :: chandrasekharIntegralSuppressExtendedMass
     !![
-    <constructorAssign variables="factorScalingLength, factorScalingMass, *massDistribution_"/>
+    <constructorAssign variables="factorScalingLength, factorScalingMass, chandrasekharIntegralSuppressExtendedMass, *massDistribution_"/>
     !!]
  
     self%componentType              =self%massDistribution_%componentType
