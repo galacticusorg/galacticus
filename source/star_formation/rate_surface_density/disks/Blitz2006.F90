@@ -24,7 +24,24 @@
   use :: Kind_Numbers       , only : kind_int8
   use :: Root_Finder        , only : rootFinder
   use :: Math_Exponentiation, only : fastExponentiator
-  
+
+  ! Floor on the disk gas mass, below which the disk is treated as gas-free.
+  !
+  ! The stellar pressure-boost coefficient scales as factorBoostStellarCoefficient proportional to
+  ! 1/massGas, and is subsequently raised to the fourth power when locating the molecular/atomic
+  ! transition radius. A vanishingly small but strictly positive gas mass therefore drives the
+  ! coefficient (or its fourth power) past HUGE(0.0d0), raising an overflow floating point exception.
+  ! Writing the finite remainder of the coefficient as C = σ_gas*2*π*R²*√(M_star/[2*π²*G*
+  ! h_star*R³]) (C <~ 1e10 for any physical disk), the coefficient itself overflows for
+  ! massGas <~ C/HUGE ~ 1e-298, and its fourth power for the far less extreme
+  ! massGas <~ C/HUGE**(1/4) ~ 1e-68. A gas mass of ~1e-30 Msun is numerical residue rather than gas -
+  ! its star formation rate is already zero - so flooring here removes the exception with tens of orders
+  ! of margin above the binding (fourth-power) bound while remaining ~30 orders below any physical disk
+  ! gas mass. Note: this floor must be applied identically in blitz2006ComputeFactors, blitz2006Rate,
+  ! and blitz2006Intervals, since the coefficients are only *set* (in computeFactors) under
+  ! massGas > massGasFloor and must only be *used* (in Rate/Intervals) under the complementary condition.
+  double precision, parameter :: massGasFloor=1.0d-30
+
   !![
   <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksBlitz2006" docformat="rst">
    <description>
@@ -369,8 +386,8 @@ contains
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Compute factors.
     call self%computeFactors(node)
-    ! Return zero rate for non-positive radius or mass.
-    if (self%massGas <= 0.0d0 .or. self%massStellar < 0.0d0 .or. self%radiusDisk <= 0.0d0) then
+    ! Return zero rate for non-positive radius or negligible mass.
+    if (self%massGas <= massGasFloor .or. self%massStellar < 0.0d0 .or. self%radiusDisk <= 0.0d0) then
        blitz2006Rate=0.0d0
        return
     end if
@@ -446,7 +463,7 @@ contains
        ! Get the disk properties.
        disk         => node%disk   ()
        self%massGas =  disk%massGas()
-       if (self%massGas > 0.0d0) then
+       if (self%massGas > massGasFloor) then
           self%massStellar=disk%massStellar()
           self%radiusDisk =disk%radius     ()
           ! Find the hydrogen fraction in the disk gas of the fuel supply.
@@ -565,8 +582,8 @@ contains
        self%radiusCritical=-huge(0.0d0)
        ! Compute factors.
        call self%computeFactors(node)
-       ! Set zero intervals for non-positive radius or mass.
-       if (self%massGas <= 0.0d0 .or. self%massStellar < 0.0d0 .or. self%radiusDisk <= 0.0d0) then
+       ! Set zero intervals for non-positive radius or negligible mass.
+       if (self%massGas <= massGasFloor .or. self%massStellar < 0.0d0 .or. self%radiusDisk <= 0.0d0) then
           allocate(blitz2006Intervals(2,0))
           self%radiusCritical=-huge(0.0d0)          
        else
