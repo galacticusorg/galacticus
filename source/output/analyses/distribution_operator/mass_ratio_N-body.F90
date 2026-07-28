@@ -129,6 +129,7 @@ contains
     Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorMassRatioNBody` output analysis distribution operator class.
     !!}
     use :: Error                   , only : Error_Report
+    use :: Error_Functions         , only : Error_Function_Tabulate
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
     implicit none
     type            (outputAnalysisDistributionOperatorMassRatioNBody)                          :: self
@@ -144,6 +145,9 @@ contains
 
     if (.not.enumerationMassRatioDistributionIsValid(massRatioDistribution_)) call Error_Report('invalid massRatioDistribution'//{introspection:location})
     self%massRatioDistribution=massRatioDistribution_
+    ! Build the tabulation of the error function used by the (fast) integrands. This is done here, in a
+    ! serial construction context, so the table is fully populated before any parallel evaluation.
+    call Error_Function_Tabulate()
     return
   end function massRatioNBodyConstructorInternal
 
@@ -166,7 +170,7 @@ contains
     !!}
     use :: Arrays_Search          , only : searchArray
     use :: Error                  , only : Error_Report
-    use :: Error_Functions        , only : Error_Function_Difference
+    use :: Error_Functions        , only : Error_Function_Difference       , Error_Function_Difference_Fast
     use :: Galacticus_Nodes       , only : nodeComponentBasic
     use :: Numerical_Comparison   , only : Values_Agree
     use :: Numerical_Integration  , only : integrator
@@ -183,12 +187,12 @@ contains
     double precision                                                  , parameter                                            :: integrationExtent          =1.0d+2
     type            (treeNode                                        ), pointer                                              :: nodeParent
     class           (nodeComponentBasic                              ), pointer                                              :: basic
-    double precision                                                                                                         :: massUncertaintyRatio              , massUncertaintyParent      , &
-         &                                                                                                                      massUncertaintyCorrelation        , massParent                 , &
-         &                                                                                                                      massRatio                         , &
-         &                                                                                                                      massRatioMinimum                  , massRatioMaximum           , &
-         &                                                                                                                      massParentLimitLower              , massParentLimitUpper       , &
-         &                                                                                                                      massRatioLimitLower               , massRatioLimitUpper
+    double precision                                                                                                         :: massUncertaintyRatio              , massUncertaintyParent         , &
+         &                                                                                                                      massUncertaintyCorrelation        , massParent                    , &
+         &                                                                                                                      massRatio                         , rootOneMinusCorrelationSquared, &
+         &                                                                                                                      massRatioMinimum                  , massRatioMaximum              , &
+         &                                                                                                                      massParentLimitLower              , massParentLimitUpper          , &
+         &                                                                                                                      massRatioLimitLower               , massRatioLimitUpper 
     integer         (c_size_t                                        )                                                       :: binIndex
     type            (integrator                                      )                                                       :: integrator_
     !$GLC attributes unused :: outputIndex
@@ -232,17 +236,24 @@ contains
             & ) massRatioNBodyOperateScalar(binIndex)=1.0d0
     else
        ! Integrate over the bivariate normal distribution to find the contribution to each bin in mass ratio.
-       massParentLimitLower=max(                         &
-            &                   +self%massParentMinimum, &
-            &                   +massParent              &
-            &                   -integrationExtent       &
-            &                   *massUncertaintyParent/sqrt(1.0d0-massUncertaintyCorrelation**2)   &
+       ! Pre-compute √(1-correlation²), which is invariant across the integration (it depends only on the
+       ! mass correlation, not on the integration variable). The integrand is evaluated many times per adaptive
+       ! integral and previously recomputed this square root on every call. Only this sqrt is hoisted (not the
+       ! surrounding divisions) so the arithmetic stays bit-for-bit identical to the original.
+       rootOneMinusCorrelationSquared=sqrt(1.0d0-massUncertaintyCorrelation**2)
+       massParentLimitLower=max(                                 &
+            &                   +self%massParentMinimum        , &
+            &                   +massParent                      &
+            &                   -integrationExtent               &
+            &                   *massUncertaintyParent           &
+            &                   /rootOneMinusCorrelationSquared  &
             &                  )
-       massParentLimitUpper=min(                         &
-            &                   +self%massParentMaximum, &
-            &                   +massParent              &
-            &                   +integrationExtent       &
-            &                   *massUncertaintyParent/sqrt(1.0d0-massUncertaintyCorrelation**2)   &
+       massParentLimitUpper=min(                                 &
+            &                   +self%massParentMaximum        , &
+            &                   +massParent                      &
+            &                   +integrationExtent               &
+            &                   *massUncertaintyParent           &
+            &                   /rootOneMinusCorrelationSquared  &
             &                  )
        if (massParentLimitUpper > massParentLimitLower) then
           if (self%massRatioDistribution%ID == massRatioDistributionHinkley%ID) then
@@ -353,11 +364,14 @@ contains
       xParent                          =+(massParentPrimed-massParent)/massUncertaintyParent
       xRatioMinimum                    =-(massRatioMinimum-massRatio )/massUncertaintyRatio
       xRatioMaximum                    =-(massRatioMaximum-massRatio )/massUncertaintyRatio
-      ! Evaluate the error function term.
-      errorFunctionTerm                =+Error_Function_Difference(                                                                                                           &
-           &                                                       (-xRatioMinimum+xParent*massUncertaintyCorrelation)/sqrt(2.0d0)/sqrt(1.0d0-massUncertaintyCorrelation**2), &
-           &                                                       (-xRatioMaximum+xParent*massUncertaintyCorrelation)/sqrt(2.0d0)/sqrt(1.0d0-massUncertaintyCorrelation**2)  &
-           &                                                      )     
+      ! Evaluate the error function term. √(1-correlation²) is pre-computed in the host scope
+      ! (rootOneMinusCorrelationSquared) since it does not depend on the integration variable. The fast
+      ! (tabulated) error-function difference is used here as this integrand is evaluated many times per
+      ! adaptive integration and the required precision is set by the integrator's tolerance.
+      errorFunctionTerm                =+Error_Function_Difference_Fast(                                                                                           &
+           &                                                       (-xRatioMinimum+xParent*massUncertaintyCorrelation)/sqrt(2.0d0)/rootOneMinusCorrelationSquared, &
+           &                                                       (-xRatioMaximum+xParent*massUncertaintyCorrelation)/sqrt(2.0d0)/rootOneMinusCorrelationSquared  &
+           &                                                      )
       massRatioBivariateNormalIntegrand=+exp(-0.5d0*xParent**2) &
            &                            *errorFunctionTerm      &
            &                            /     2.0d0             &
@@ -398,8 +412,10 @@ contains
       ! Progenitor-mass limits corresponding to this mass-ratio bin scale with the (observed) parent mass.
       progenitorLimitLower      =+massRatioMinimum*massParentPrimed
       progenitorLimitUpper      =+massRatioMaximum*massParentPrimed
-      ! Probability that the progenitor mass lies within the bin, given the parent mass.
-      errorFunctionTerm         =+Error_Function_Difference(                                                                                         &
+      ! Probability that the progenitor mass lies within the bin, given the parent mass. The fast
+      ! (tabulated) error-function difference is used here as this integrand is evaluated many times per
+      ! adaptive integration and the required precision is set by the integrator's tolerance.
+      errorFunctionTerm         =+Error_Function_Difference_Fast(                                                                                    &
            &                                                (progenitorLimitLower-meanProgenitorGivenParent)/sigmaProgenitorGivenParent/sqrt(2.0d0), &
            &                                                (progenitorLimitUpper-meanProgenitorGivenParent)/sigmaProgenitorGivenParent/sqrt(2.0d0)  &
            &                                               )
