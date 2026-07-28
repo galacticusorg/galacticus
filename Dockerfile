@@ -25,11 +25,19 @@ ENV GALACTICUS_DATA_PATH=/opt/datasets
 RUN     pwd && ls
 
 # Clone datasets.
+## REPO, BRANCH and COMMIT are passed through the environment rather than substituted directly into the `RUN` command below. On a
+## pull request build the CI workflow sets them from the head repository name, branch name, and commit of the pull request, all of
+## which are chosen by whoever opened it. A `RUN` instruction is executed by a shell, and Docker expands `${...}` into the command
+## text before that shell parses it, so substituting them directly would let a branch name containing shell metacharacters run
+## arbitrary commands during the image build. Expanding them from the environment instead passes their values through as data.
+ENV     CLONE_REPO=${REPO} \
+        CLONE_BRANCH=${BRANCH} \
+        CLONE_COMMIT=${COMMIT}
 RUN     cd /opt &&\
-	git clone --depth 1 -b ${BRANCH} https://github.com/${REPO}.git galacticus &&\
-	if [ -n "${COMMIT}" ]; then\
+	git clone --depth 1 -b "${CLONE_BRANCH}" "https://github.com/${CLONE_REPO}.git" galacticus &&\
+	if [ -n "${CLONE_COMMIT}" ]; then\
 	    cd /opt/galacticus &&\
-	    git fetch --depth 1 origin ${COMMIT} &&\
+	    git fetch --depth 1 origin "${CLONE_COMMIT}" &&\
 	    git checkout --detach FETCH_HEAD ;\
 	fi &&\
 	cd /opt &&\

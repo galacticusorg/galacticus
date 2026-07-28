@@ -13,6 +13,10 @@ on:
 defaults:
   run:
     shell: bash
+# All repository writes in this workflow are made with a GitHub App token generated below, not with `GITHUB_TOKEN`, so the
+# workflow token itself needs only read access.
+permissions:
+  contents: read
 jobs:
   # Detect whether the Cloudy version in aux/dependencies.yml actually changed
   detect-cloudy-update:
@@ -22,7 +26,7 @@ jobs:
       old_version: ${{ steps.check.outputs.old_version }}
       new_version: ${{ steps.check.outputs.new_version }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
       - name: Check if Cloudy version changed
@@ -55,12 +59,12 @@ jobs:
       OLD_CLOUDY_VERSION: ${{ needs.detect-cloudy-update.outputs.old_version }}
     steps:
       - name: Check out galacticus repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
       - name: Check out datasets repository
         if: ${{ env.appid != '' }}
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: galacticusorg/datasets
           path: datasets
@@ -142,7 +146,7 @@ jobs:
       - name: Generate app token
         if: ${{ env.appid != '' }}
         id: generate-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
           client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}

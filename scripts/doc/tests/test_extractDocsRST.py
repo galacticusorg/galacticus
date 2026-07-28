@@ -54,7 +54,10 @@ def _scan(tmp_path):
 
 def test_all_input_parameters_in_a_block_are_extracted(tmp_path):
     _families, _impl, params_by_file, *_rest = _scan(tmp_path)
-    params = params_by_file.get("testFixture", [])
+    # `scan_source` keys this by the file's full path rather than its basename: every
+    # pluggable physics class lives in a file named `_class.F90`, so basenames collide
+    # across all of them.
+    params = params_by_file.get(str(tmp_path / "testFixture.F90"), [])
     assert [p["name"] for p in params] == ["epsilon", "gamma"], (
         "every <inputParameter> in a block must be emitted, not just the first"
     )

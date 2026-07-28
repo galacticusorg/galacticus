@@ -15,6 +15,7 @@ Four components make up a runnable install:
   that prefix so the contents land directly under ``GALACTICUS_TOOLS_PATH``.
 """
 
+import hashlib
 import os
 import shutil
 import subprocess
@@ -29,6 +30,9 @@ import requests
 
 REPO = "galacticusorg/galacticus"
 DATASETS_REPO = "galacticusorg/datasets"
+
+# Release asset listing the SHA-256 of each of the other assets, used to verify what we download.
+CHECKSUM_ASSET = "SHA256SUMS"
 
 # Tool executables in the pre-built tools archive whose execute bit must be
 # restored after unpacking a zip (macOS tools ship as .zip; tar archives already
@@ -93,6 +97,61 @@ def _read_remote_text(url):
     return None
 
 
+def load_checksums(tag, *, log=print):
+    """Return {asset name: SHA-256} from the ``SHA256SUMS`` asset of release `tag`, or None if it has none.
+
+    The release workflow writes this file alongside the binary and tools archives (see the `Deploy` job in
+    ``.github/workflows/cicd.yml``). It is fetched over HTTPS from the same release as the assets it covers, so it does not
+    protect against a compromise of the account or workflow which publishes them -- what it does establish is that the artefacts
+    actually received are the ones that release published, so a corrupted, truncated, or substituted asset is caught rather than
+    being executed. Releases published before this file existed simply have no checksums; that is reported and provisioning
+    continues, since refusing would break every existing install.
+    """
+    body = _read_remote_text(asset_url(tag, CHECKSUM_ASSET))
+    if not body:
+        return None
+    checksums = {}
+    for line in body.splitlines():
+        fields = line.split()
+        if len(fields) == 2:
+            digest, name = fields
+            checksums[name.lstrip("*")] = digest.lower()
+    return checksums or None
+
+
+def _sha256(path):
+    """Return the SHA-256 of the file at `path`, as lowercase hexadecimal."""
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for block in iter(lambda: handle.read(_CHUNK), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _verify(path, name, checksums, *, log=print):
+    """Check the file at `path` against its expected SHA-256, if one is published.
+
+    A mismatch is always fatal, and the offending file is removed: these artefacts are executed, so a file which is not what the
+    release published must not be left on disk where a later run could find it and skip the download.
+    """
+    if checksums is None:
+        return
+    expected = checksums.get(name)
+    if expected is None:
+        log(f"  warning: release publishes no checksum for {name}; skipping verification.")
+        return
+    actual = _sha256(path)
+    if actual != expected:
+        Path(path).unlink(missing_ok=True)
+        raise RuntimeError(
+            f"checksum mismatch for {name}:\n"
+            f"  expected SHA-256: {expected}\n"
+            f"  actual   SHA-256: {actual}\n"
+            "The downloaded file is not the one published by this release and has been removed."
+        )
+    log(f"  verified {name} (SHA-256).")
+
+
 def provision(install, *, force=False, log=print):
     """Download and unpack any missing components of a managed `install`.
 
@@ -109,11 +168,17 @@ def provision(install, *, force=False, log=print):
                  install.dynamic_path):
         path.mkdir(parents=True, exist_ok=True)
 
-    if _provision_exec(install, force=force, log=log):
+    # Fetch the published checksums once, and verify each downloaded artefact against them below.
+    checksums = load_checksums(install.tag, log=log)
+    if checksums is None:
+        log(f"  note: release {install.tag} publishes no {CHECKSUM_ASSET}; "
+            "downloaded artefacts can not be verified against it.")
+
+    if _provision_exec(install, force=force, log=log, checksums=checksums):
         done.append("exec")
     if _provision_datasets(install, force=force, log=log):
         done.append("datasets")
-    if _provision_tools(install, force=force, log=log):
+    if _provision_tools(install, force=force, log=log, checksums=checksums):
         done.append("tools")
     if _provision_catalog(install, force=force, log=log):
         done.append("parameter catalog")
@@ -151,7 +216,7 @@ def _sentinel(directory, name):
     return Path(directory) / f".galacticus-{name}"
 
 
-def _provision_exec(install, *, force, log):
+def _provision_exec(install, *, force, log, checksums=None):
     sentinel = _sentinel(install.exec_path, "exec")
     if sentinel.exists() and not force:
         return False
@@ -163,6 +228,8 @@ def _provision_exec(install, *, force, log):
     log(f"Fetching executable {install.assets.binary} ...")
     binary = install.exec_path / "Galacticus.exe"
     _download(asset_url(install.tag, install.assets.binary), binary, log=log)
+    # Verify before making the file executable, so that a file which fails the check is never left runnable.
+    _verify(binary, install.assets.binary, checksums, log=log)
     binary.chmod(0o755)
     sentinel.write_text(install.tag)
     return True
@@ -182,7 +249,7 @@ def _provision_datasets(install, *, force, log):
     return True
 
 
-def _provision_tools(install, *, force, log):
+def _provision_tools(install, *, force, log, checksums=None):
     sentinel = _sentinel(install.tools_path, "tools")
     if sentinel.exists() and not force:
         return False
@@ -190,6 +257,8 @@ def _provision_tools(install, *, force, log):
     with tempfile.TemporaryDirectory() as work:
         archive = Path(work) / install.assets.tools
         _download(asset_url(install.tag, install.assets.tools), archive, log=log)
+        # Verify before unpacking: this archive contains executables which are later run.
+        _verify(archive, install.assets.tools, checksums, log=log)
         staging = Path(work) / "unpacked"
         _extract(archive, staging, install.assets.tools_format)
         # Tools archives are rooted at "dynamic/"; lift that subtree up so the
@@ -313,7 +382,14 @@ def _human(num_bytes):
 
 
 def _extract(archive, dest, fmt):
-    """Unpack `archive` (`fmt` in {'zip','tar.bz2','tar.gz'}) into `dest`."""
+    """Unpack `archive` (`fmt` in {'zip','tar.bz2','tar.gz'}) into `dest`.
+
+    Tar archives are unpacked with the ``data`` filter, which refuses members whose paths would escape `dest` (via an absolute
+    path, a ``..`` component, or a symlink pointing outside the destination). Without it, unpacking a tar archive lets the archive
+    choose where its contents land -- see https://docs.python.org/3/library/tarfile.html#tarfile-extraction-filter . Python 3.14
+    makes this the default; setting it explicitly means the behaviour does not depend on the interpreter version. ``zipfile``
+    already sanitizes member paths itself, so needs no equivalent.
+    """
     dest.mkdir(parents=True, exist_ok=True)
     if fmt == "zip":
         with zipfile.ZipFile(archive) as zf:
@@ -321,7 +397,7 @@ def _extract(archive, dest, fmt):
     else:
         mode = "r:bz2" if fmt == "tar.bz2" else "r:gz"
         with tarfile.open(archive, mode) as tf:
-            tf.extractall(dest)
+            tf.extractall(dest, filter="data")
 
 
 def _extract_strip_top(archive, dest):

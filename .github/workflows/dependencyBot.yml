@@ -4,6 +4,10 @@ on:
     - cron:  '06 08 * * *'
   workflow_dispatch:
 
+# All repository writes in this workflow are made with a GitHub App token generated below, not with `GITHUB_TOKEN`, so the
+# workflow token itself needs only read access.
+permissions:
+  contents: read
 jobs:
   # PRs must be closed and re-opened to trigger checks - see here: https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs
   CAMB:
@@ -11,14 +15,14 @@ jobs:
     env: 
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/create-github-app-token@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
           client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
-      - uses: reviewdog/action-depup@v1
+      - uses: reviewdog/action-depup@99f7aecf3e4d06d5a3faf190dae5dc79ac530b5a # v1
         if: ${{ env.appid != '' }}
         id: depup
         with:
@@ -35,7 +39,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -51,14 +55,14 @@ jobs:
     env: 
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/create-github-app-token@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
           client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
-      - uses: reviewdog/action-depup@v1
+      - uses: reviewdog/action-depup@99f7aecf3e4d06d5a3faf190dae5dc79ac530b5a # v1
         if: ${{ env.appid != '' }}
         id: depup
         with:
@@ -75,7 +79,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -91,14 +95,14 @@ jobs:
     env: 
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/create-github-app-token@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
           client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
-      - uses: reviewdog/action-depup@v1
+      - uses: reviewdog/action-depup@99f7aecf3e4d06d5a3faf190dae5dc79ac530b5a # v1
         if: ${{ env.appid != '' }}
         id: depup
         with:
@@ -116,7 +120,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -132,14 +136,14 @@ jobs:
     env: 
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/create-github-app-token@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
           client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
-      - uses: reviewdog/action-depup@v1
+      - uses: reviewdog/action-depup@99f7aecf3e4d06d5a3faf190dae5dc79ac530b5a # v1
         if: ${{ env.appid != '' }}
         id: depup
         with:
@@ -156,7 +160,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -172,8 +176,8 @@ jobs:
     env: 
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/create-github-app-token@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
@@ -202,7 +206,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"
@@ -218,14 +222,14 @@ jobs:
     env: 
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/create-github-app-token@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
           client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
-      - uses: reviewdog/action-depup@v1
+      - uses: reviewdog/action-depup@99f7aecf3e4d06d5a3faf190dae5dc79ac530b5a # v1
         if: ${{ env.appid != '' }}
         id: depup
         with:
@@ -242,7 +246,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -258,8 +262,8 @@ jobs:
     env: 
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/create-github-app-token@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
@@ -286,7 +290,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"
@@ -302,8 +306,8 @@ jobs:
     env: 
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/create-github-app-token@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
@@ -330,7 +334,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"

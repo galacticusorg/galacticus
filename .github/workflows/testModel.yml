@@ -70,23 +70,23 @@ jobs:
       - run: echo "This job is now running on a ${{ runner.os }} server."
       - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: ${{ inputs.fetchDepth }}
       - name: Check out repository datasets
-        uses: actions/checkout@v7      
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7      
         with:
           repository: galacticusorg/datasets
           path: datasets
       - name: Check out repository cusp-halo-relation
-        uses: actions/checkout@v7      
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7      
         with:
           repository: galacticusorg/cusp-halo-relation
           path: cusp-halo-relation
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: Cache dynamically-generated datasets
         if: ${{ format('{0}',inputs.cacheData) == '1' }}
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ${{ github.workspace }}/datasets/dynamic
           key: ${{ hashFiles(format('{0}',inputs.file)) }}-${{ github.run_id }}
@@ -103,7 +103,7 @@ jobs:
         run: |
           echo "OMP_NUM_THREADS=${{ inputs.ompNumThreads }}" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: ${{ inputs.artifact }}
       - name: Install packages
@@ -183,7 +183,7 @@ jobs:
            false
           fi
           ! grep -q -e FAIL -e "ODE integration failed" test.log
-      - uses: qoomon/actions--context@v5
+      - uses: qoomon/actions--context@e12e182be797e3476990faf801dd1b87f107f91c # v5
       - name: "Check for unrecognized parameters"
         if: ${{ format('{0}',inputs.expectUnrecognized) == '0' }}
         run: |
@@ -213,7 +213,7 @@ jobs:
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/axionCAMB-${axioncambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - name: Upload result
         if: inputs.uploadName != '' && inputs.uploadFile != ''
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: ${{ inputs.uploadName }}
           path: ${{ inputs.uploadFile }}

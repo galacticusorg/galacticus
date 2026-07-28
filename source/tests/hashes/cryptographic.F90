@@ -26,11 +26,14 @@ program Test_Hashes_Cryptographic
   Contains a program to test features of cryptographic hashes.
   !!}
   use :: Display             , only : displayVerbositySet, verbosityLevelStandard
-  use :: Hashes_Cryptographic, only : Hash_MD5
+  use :: File_Utilities      , only : File_Remove
+  use :: Hashes_Cryptographic, only : Hash_MD5           , Hash_SHA256_File
   use :: ISO_Varying_String  , only : assignment(=)      , char                  , varying_string
   use :: Unit_Tests          , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  type(varying_string) :: myHash, myText
+  type   (varying_string) :: myHash  , myText, &
+       &                     fileName
+  integer                 :: fileUnit, status
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -40,6 +43,23 @@ program Test_Hashes_Cryptographic
   myText="dolphin monkey badger marmoset"
   myHash=Hash_MD5(myText)
   call Assert("MD5 hash [c.f. `md5sum`]",char(myHash),"a2c605b304c5be9b05e0107e8f419200")
+  ! Hash the contents of a file. The content used here is the second test case given for SHA-256 by FIPS 180-4, so the expected
+  ! hash is that published in the standard (and is also what `sha256sum` reports).
+  fileName='sha256TestVector.tmp'
+  open(newUnit=fileUnit,file=char(fileName),status='replace',form='unformatted',access='stream')
+  write (fileUnit) 'abc'
+  close(fileUnit)
+  myHash=Hash_SHA256_File(fileName)
+  call Assert(                                                                    &
+       &      "SHA-256 file hash [c.f. FIPS 180-4, `sha256sum`]"                , &
+       &      char(myHash)                                                      , &
+       &      "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"  &
+       &     )
+  call File_Remove(fileName)
+  ! An unreadable file must be reported as such, rather than yielding a hash which might be mistaken for a match.
+  fileName='thisFileDoesNotExist.tmp'
+  myHash=Hash_SHA256_File(fileName,status=status)
+  call Assert("SHA-256 of a missing file reports failure",status /= 0,.true.)
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
