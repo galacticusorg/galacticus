@@ -43,7 +43,7 @@
       <!-- Best fit value from Benson, Behrens, & Lu (2020) offset for fix to Keplerian orbit propagation -->
       <exponentMass                    value="1.10475"/>
       <angularMomentumVarianceSpecific value="0.00100"/>
-      <useOriginalSubresolutionMethod  value="false"  />
+      <subresolutionAngularMomentumMethod  value="massScaled"  />
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Subhalo hierarchy -->
