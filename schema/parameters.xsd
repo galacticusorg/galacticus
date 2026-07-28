@@ -1222,6 +1222,7 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="accelerator"/>
           <xs:enumeration value="bhattacharya2011"/>
+          <xs:enumeration value="decayingDarkMatter"/>
           <xs:enumeration value="despali2015"/>
           <xs:enumeration value="detectionEfficiency"/>
           <xs:enumeration value="environmentAveraged"/>
