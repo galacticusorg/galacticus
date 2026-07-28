@@ -37,15 +37,19 @@ Implements a merger tree branching probability class using the algorithm of :cit
      A merger tree branching probability class using the algorithm of :cite:t:`parkinson_generating_2008` plus an additional term.
      !!}
      private
-     double precision                             :: gamma3                 , gamma4, &
+     double precision                             :: gamma3                      , gamma4       , &
           &                                          gamma5
-     class           (linearGrowthClass), pointer :: linearGrowth_ => null()
+     ! Precomputed exponents for the fused merging-rate × modifier form (see pchPlusProgenitorMassFunctionFactor):
+     !  exponentChildSigma = 2 + γ₁ - 2γ₃ ; exponentDelta = γ₃ - 3/2.
+     double precision                             :: exponentChildSigma          , exponentDelta
+     class           (linearGrowthClass), pointer :: linearGrowth_      => null()
    contains
-     final     ::                         pchPlusDestructor
-     procedure :: V                    => pchPlusV
-     procedure :: modifier             => pchPlusModifier
-     procedure :: hypergeometricA      => pchPlusHypergeometricA
-     procedure :: computeCommonFactors => pchPlusComputeCommonFactors
+     final     ::                                 pchPlusDestructor
+     procedure :: V                            => pchPlusV
+     procedure :: modifier                     => pchPlusModifier
+     procedure :: progenitorMassFunctionFactor => pchPlusProgenitorMassFunctionFactor
+     procedure :: hypergeometricA              => pchPlusHypergeometricA
+     procedure :: computeCommonFactors         => pchPlusComputeCommonFactors
   end type mergerTreeBranchingProbabilityPCHPlus
 
   interface mergerTreeBranchingProbabilityPCHPlus
@@ -203,6 +207,10 @@ contains
     if (cdmAssumptions .and. gamma3 > 1.5d0) call Error_Report('γ₃>³/₂ violates CDM assumptions'//{introspection:location})
     ! Initialize.
     self%mergerTreeBranchingProbabilityParkinsonColeHelly=mergerTreeBranchingProbabilityParkinsonColeHelly(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,tolerateRoundOffErrors,cosmologicalMassVariance_,criticalOverdensity_)
+    ! Precompute the exponents used by the fused merging-rate × modifier form (see pchPlusProgenitorMassFunctionFactor):
+    !  childSigma^{2+γ₁-2γ₃} · (childSigma²-σ_p²)^{γ₃-3/2}.
+    self%exponentChildSigma=+2.0d0+gamma1-2.0d0*gamma3
+    self%exponentDelta     =-1.5d0       +      gamma3
     return
   end function pchPlusConstructorInternal
 
@@ -226,14 +234,13 @@ contains
     implicit none
     class           (mergerTreeBranchingProbabilityPCHPlus), intent(inout) :: self
     double precision                                       , intent(in   ) :: massFraction     , haloMass
-    double precision                                                       :: childSigmaSquared
+    double precision                                                       :: childSigmaSquared, varianceDifference
 
-    childSigmaSquared=+self%cosmologicalMassVariance_%rootVariance(massFraction*haloMass,self%timeParent)**2
-    pchPlusV         =+       childSigmaSquared  &
-         &            /(                         &
-         &              +     childSigmaSquared  &
-         &              -self%sigmaParentSquared &
-         &             )**1.5d0                  &
+    childSigmaSquared =+self%cosmologicalMassVariance_%rootVariance(massFraction*haloMass,self%timeParent)**2
+    ! (childSigma²-σ_p²)^{3/2} written as d·√d to use a square root instead of a general power.
+    varianceDifference=+childSigmaSquared-self%sigmaParentSquared
+    pchPlusV          =+       childSigmaSquared         &
+         &            /(varianceDifference*sqrt(varianceDifference)) &
          &            *(                         &
          &              +1.0d0                   &
          &              -self%sigmaParentSquared &
@@ -253,6 +260,30 @@ contains
     pchPlusModifier=childSigma**self%gamma1*(1.0d0-self%sigmaParentSquared/childSigma**2)**self%gamma3
     return
   end function pchPlusModifier
+
+  double precision function pchPlusProgenitorMassFunctionFactor(self,childSigma,childAlpha)
+    !!{RST
+    Fused evaluation of the merging rate × modifier product appearing in the progenitor mass function. Algebraically
+    combining the base merging rate :math:`\sigma_\mathrm{c}^2/(\sigma_\mathrm{c}^2-\sigma_\mathrm{p}^2)^{3/2}|\alpha|`
+    with the PCH+ modifier :math:`\sigma_\mathrm{c}^{\gamma_1}(1-\sigma_\mathrm{p}^2/\sigma_\mathrm{c}^2)^{\gamma_3}`
+    collapses three general powers to two:
+    :math:`|\alpha|\,\sigma_\mathrm{c}^{2+\gamma_1-2\gamma_3}(\sigma_\mathrm{c}^2-\sigma_\mathrm{p}^2)^{\gamma_3-3/2}`.
+    !!}
+    implicit none
+    class           (mergerTreeBranchingProbabilityPCHPlus), intent(inout) :: self
+    double precision                                       , intent(in   ) :: childSigma       , childAlpha
+    double precision                                                       :: childSigmaSquared
+
+    childSigmaSquared=childSigma**2
+    if (childSigmaSquared > self%sigmaParentSquared .and. childAlpha < 0.0d0) then
+       pchPlusProgenitorMassFunctionFactor=+abs(childAlpha)                                        &
+            &                              *      childSigma **self%exponentChildSigma             &
+            &                              *(childSigmaSquared-self%sigmaParentSquared)**self%exponentDelta
+    else
+       pchPlusProgenitorMassFunctionFactor=+0.0d0
+    end if
+    return
+  end function pchPlusProgenitorMassFunctionFactor
 
   function pchPlusHypergeometricA(self,gamma) result(a)
     !!{RST
