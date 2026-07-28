@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Host + subhalo pair used to test that CGM ram pressure stripping is applied
+     to a satellite whose CGM outer radius exceeds its virial radius. The
+     satellite's hot halo outer radius is deliberately set well above its virial
+     radius; ram pressure stripping must still act. See
+     testSuite/test-CGM-ram-pressure-outer-radius.py. -->
+<tree>
+  <!-- Host halo at the initial time. -->
+  <node>
+    <index>1</index>
+    <parent>2</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <firstSatellite>3</firstSatellite>
+    <basic>
+      <time>1.0</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.0263</scale>
+    </darkMatterProfile>
+    <hotHalo>
+      <!-- Host CGM: supplies the ram pressure force on the satellite. Outer
+           radius equals the host virial radius, so the host itself is in the
+           ordinary regime. -->
+      <isInitialized>true</isInitialized>
+      <mass>1.0e11</mass>
+      <outerRadius>0.26312</outerRadius>
+      <angularMomentum>1.0e11</angularMomentum>
+    </hotHalo>
+  </node>
+  <!-- Host halo at the final time (no growth: static universe, zero accretion). -->
+  <node>
+    <index>2</index>
+    <parent>-1</parent>
+    <firstChild>1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>10.0</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.0263</scale>
+    </darkMatterProfile>
+    <hotHalo>
+      <isInitialized>true</isInitialized>
+      <mass>1.0e11</mass>
+      <outerRadius>0.26312</outerRadius>
+      <angularMomentum>1.0e11</angularMomentum>
+    </hotHalo>
+  </node>
+  <!-- Satellite, on a circular-ish orbit well inside the host virial radius. -->
+  <node>
+    <index>3</index>
+    <parent>1</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>1.0</time>
+      <mass>1.0e10</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.0057</scale>
+    </darkMatterProfile>
+    <hotHalo>
+      <!-- outerRadius is set above the satellite virial radius (0.05671 Mpc for
+           1e10 Msun at the global density contrast). Note that the component's
+           deferred outerRadius getter clamps its return value to
+           [0.1*rVir, rVir], so this stored value is reported as exactly rVir;
+           the excess over the virial radius that this test needs comes from the
+           deliberately mismatched darkMatterHaloScale given to the ram pressure
+           stripping node operator in cgmRamPressureOuterRadius.xml, not from
+           this number.
+
+           isInitialized MUST be true: otherwise the component initializor
+           overwrites outerRadius with the virial radius.
+
+           angularMomentum MUST be non-zero: the stripping branch requires
+           hotHalo%angularMomentum() > 0, and with zero the test would pass
+           vacuously on both fixed and unfixed code. -->
+      <isInitialized>true</isInitialized>
+      <mass>1.0e9</mass>
+      <outerRadius>0.08507</outerRadius>
+      <angularMomentum>1.0e9</angularMomentum>
+    </hotHalo>
+    <satellite>
+      <boundMass>1.0e10</boundMass>
+      <tidalHeatingNormalized>0.0</tidalHeatingNormalized>
+      <position>0.15</position>
+      <position>0.0</position>
+      <position>0.0</position>
+      <velocity>0.0</velocity>
+      <velocity>120.0</velocity>
+      <velocity>0.0</velocity>
+      <tidalTensorPathIntegrated>
+        <x00>0.0</x00>
+        <x01>0.0</x01>
+        <x02>0.0</x02>
+        <x11>0.0</x11>
+        <x12>0.0</x12>
+        <x22>0.0</x22>
+      </tidalTensorPathIntegrated>
+      <mergeTime>-1.0</mergeTime>
+      <destructionTime>-1.0</destructionTime>
+      <virialOrbit>
+        <radius>0.15</radius>
+        <velocityRadial>0.0</velocityRadial>
+        <velocityTangential>120.0</velocityTangential>
+        <massHost>1.0e12</massHost>
+        <massSatellite>1.0e10</massSatellite>
+      </virialOrbit>
+    </satellite>
+  </node>
+</tree>

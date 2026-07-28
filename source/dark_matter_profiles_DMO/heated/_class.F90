@@ -39,14 +39,17 @@
      A dark matter halo profile class implementing heated dark matter halos.
      !!}
      private
-     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_                  => null()
-     class           (darkMatterProfileHeatingClass    ), pointer :: darkMatterProfileHeating_              => null()
-     double precision                                             :: toleranceRelativeVelocityDispersion             , toleranceRelativeVelocityDispersionMaximum, &
-          &                                                          fractionRadiusFinalSmall                        , toleranceRelativePotential
-     type            (enumerationNonAnalyticSolversType)          :: nonAnalyticSolver
-     logical                                                      :: velocityDispersionApproximate                   , tolerateVelocityMaximumFailure            , &
-          &                                                          tolerateEnclosedMassIntegrationFailure          , tolerateVelocityDispersionFailure         , &
-          &                                                          toleratePotentialIntegrationFailure
+     class           (darkMatterProfileDMOClass        ), pointer     :: darkMatterProfileDMO_                  => null()
+     class           (darkMatterProfileHeatingClass    ), pointer     :: darkMatterProfileHeating_              => null()
+     double precision                                                 :: toleranceRelativeVelocityDispersion             , toleranceRelativeVelocityDispersionMaximum, &
+          &                                                              fractionRadiusFinalSmall                        , toleranceRelativePotential
+     type            (enumerationNonAnalyticSolversType)              :: nonAnalyticSolver
+     logical                                                          :: velocityDispersionApproximate                   , tolerateVelocityMaximumFailure            , &
+          &                                                              tolerateEnclosedMassIntegrationFailure          , tolerateVelocityDispersionFailure         , &
+          &                                                              toleratePotentialIntegrationFailure
+     ! Defaults to .true. (i.e. suppression applied) so that callers which do not specify it -- including the internal
+     ! constructor's optional argument being absent -- get the current behavior. Matches massDistributionSpherical.
+     logical                                                          :: chandrasekharIntegralSuppressExtendedMass=.true.
      type            (objectPool                       ), allocatable :: pool
    contains
      final     ::        heatedDestructor
@@ -77,7 +80,7 @@ contains
     type            (varying_string                )                :: nonAnalyticSolver
     logical                                                         :: velocityDispersionApproximate         , tolerateVelocityMaximumFailure            , &
          &                                                             tolerateEnclosedMassIntegrationFailure, tolerateVelocityDispersionFailure         , &
-         &                                                             toleratePotentialIntegrationFailure
+         &                                                             toleratePotentialIntegrationFailure   , chandrasekharIntegralSuppressExtendedMass
     double precision                                                :: toleranceRelativeVelocityDispersion   , toleranceRelativeVelocityDispersionMaximum, &
          &                                                             fractionRadiusFinalSmall              , toleranceRelativePotential
 
@@ -88,6 +91,14 @@ contains
       <source>parameters</source>
       <description>
       Selects how solutions are computed when no analytic solution is available. If set to "``fallThrough``" then the solution ignoring heating is used, while if set to "``numerical``" then numerical solvers are used to find solutions.
+      </description>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>chandrasekharIntegralSuppressExtendedMass</name>
+      <defaultValue>.true.</defaultValue>
+      <source>parameters</source>
+      <description>
+      If true, the Chandrasekhar integral (used to compute dynamical friction) is suppressed by a factor accounting for the finite extent of the perturbing subhalo. If false, no such suppression is applied (restoring the behavior prior to the introduction of this factor).
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
@@ -173,7 +184,7 @@ contains
     <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
     <objectBuilder class="darkMatterProfileHeating" name="darkMatterProfileHeating_" source="parameters"/>
     !!]
-    self=darkMatterProfileDMOHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),velocityDispersionApproximate,tolerateEnclosedMassIntegrationFailure,tolerateVelocityDispersionFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMO_,darkMatterProfileHeating_)
+    self=darkMatterProfileDMOHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),velocityDispersionApproximate,tolerateEnclosedMassIntegrationFailure,tolerateVelocityDispersionFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMO_,darkMatterProfileHeating_,chandrasekharIntegralSuppressExtendedMass)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"    />
@@ -182,7 +193,7 @@ contains
     return
   end function heatedConstructorParameters
 
-  function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,tolerateEnclosedMassIntegrationFailure,tolerateVelocityDispersionFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMO_,darkMatterProfileHeating_) result(self)
+  function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,tolerateEnclosedMassIntegrationFailure,tolerateVelocityDispersionFailure,tolerateVelocityMaximumFailure,toleratePotentialIntegrationFailure,fractionRadiusFinalSmall,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,toleranceRelativePotential,darkMatterProfileDMO_,darkMatterProfileHeating_,chandrasekharIntegralSuppressExtendedMass) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`darkMatterProfileDMOHeated` dark matter halo profile class.
     !!}
@@ -196,11 +207,12 @@ contains
     logical                                            , intent(in   )         :: velocityDispersionApproximate            , tolerateVelocityMaximumFailure                   , &
          &                                                                        toleratePotentialIntegrationFailure      , tolerateEnclosedMassIntegrationFailure           , &
          &                                                                        tolerateVelocityDispersionFailure
+    logical                                            , intent(in   ), optional :: chandrasekharIntegralSuppressExtendedMass
     double precision                                   , intent(in   )         :: toleranceRelativeVelocityDispersion      , toleranceRelativeVelocityDispersionMaximum       , &
          &                                                                        fractionRadiusFinalSmall                 , toleranceRelativePotential
     double precision                                   , parameter             :: toleranceAbsolute                  =0.0d0, toleranceRelative                         =1.0d-6
     !![
-    <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, tolerateVelocityMaximumFailure, toleratePotentialIntegrationFailure, tolerateEnclosedMassIntegrationFailure, tolerateVelocityDispersionFailure, fractionRadiusFinalSmall, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, toleranceRelativePotential, *darkMatterProfileDMO_, *darkMatterProfileHeating_"/>
+    <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, tolerateVelocityMaximumFailure, toleratePotentialIntegrationFailure, tolerateEnclosedMassIntegrationFailure, tolerateVelocityDispersionFailure, chandrasekharIntegralSuppressExtendedMass, fractionRadiusFinalSmall, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, toleranceRelativePotential, *darkMatterProfileDMO_, *darkMatterProfileHeating_"/>
     !!]
 
     ! Validate.
@@ -280,17 +292,18 @@ contains
              !![
 	     <referenceConstruct object="massDistribution__">
 	       <constructor>
-                 massDistributionSphericalHeated(                                                                                    &amp;
-                  &amp;                          nonAnalyticSolver                     =self%nonAnalyticSolver                     , &amp;
-	          &amp;                          tolerateVelocityMaximumFailure        =self%tolerateVelocityMaximumFailure        , &amp;
-	          &amp;                          tolerateEnclosedMassIntegrationFailure=self%tolerateEnclosedMassIntegrationFailure, &amp;
-	          &amp;                          toleratePotentialIntegrationFailure   =self%toleratePotentialIntegrationFailure   , &amp;
-	          &amp;                          fractionRadiusFinalSmall              =self%fractionRadiusFinalSmall              , &amp;
-	          &amp;                          toleranceRelativePotential            =self%toleranceRelativePotential            , &amp;
-                  &amp;                          massDistribution_                     =     massDistributionDecorated             , &amp;
-                  &amp;                          massDistributionHeating_              =     massDistributionHeating_              , &amp;
-                  &amp;                          componentType                         =     componentTypeDarkHalo                 , &amp;
-                  &amp;                          massType                              =     massTypeDark                            &amp;
+                 massDistributionSphericalHeated(                                                                                          &amp;
+                  &amp;                          nonAnalyticSolver                        =self%nonAnalyticSolver                        , &amp;
+	          &amp;                          tolerateVelocityMaximumFailure           =self%tolerateVelocityMaximumFailure           , &amp;
+	          &amp;                          tolerateEnclosedMassIntegrationFailure   =self%tolerateEnclosedMassIntegrationFailure   , &amp;
+	          &amp;                          toleratePotentialIntegrationFailure      =self%toleratePotentialIntegrationFailure      , &amp;
+	          &amp;                          fractionRadiusFinalSmall                 =self%fractionRadiusFinalSmall                 , &amp;
+	          &amp;                          toleranceRelativePotential               =self%toleranceRelativePotential               , &amp;
+                  &amp;                          massDistribution_                        =     massDistributionDecorated                , &amp;
+                  &amp;                          massDistributionHeating_                 =     massDistributionHeating_                 , &amp;
+                  &amp;                          componentType                            =     componentTypeDarkHalo                    , &amp;
+                  &amp;                          massType                                 =     massTypeDark                             , &amp;
+                  &amp;                          chandrasekharIntegralSuppressExtendedMass=self%chandrasekharIntegralSuppressExtendedMass &amp;
                   &amp;                         )
 	       </constructor>
 	     </referenceConstruct>

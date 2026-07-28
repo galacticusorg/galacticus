@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A set of changes to modify CDM reference parameter files to use a decaying dark matter (DDM) model. -->
+<!-- The decaying dark matter physics enters in two places:                                              -->
+<!--   * the halo mass function, via the mass-dependent critical overdensity for collapse and the        -->
+<!--     Lagrangian-to-collapsed mass remapping of Montandon et al. (2026; arXiv:2607.19244); and        -->
+<!--   * the internal structure of dark matter halos, via the decaying dark matter mass-loss profile and -->
+<!--     associated halo heating (from earlier work; cf. testSuite/parameters/decayingDM-profile-*.xml). -->
+<!-- Note that, unlike warm or fuzzy dark matter, the linear power spectrum (transfer function) is NOT   -->
+<!-- modified: in this model all decaying dark matter physics is carried by the critical overdensity and -->
+<!-- the mass remapping, with the variance computed from the unmodified LCDM power spectrum.             -->
+<changes>
+
+  <!-- Change the dark matter particle to a decaying dark matter particle. The lifetime (Gyr) and mass -->
+  <!-- splitting are fiducial values (cf. testSuite/parameters/decayingDM-profile-gamma0.0.xml); the    -->
+  <!-- velocity kick imparted to the daughter is derived from the mass splitting. Users should override -->
+  <!-- these with their own preferred values.                                                           -->
+  <change type="replace" path="darkMatterParticle">
+    <darkMatterParticle value="decayingDarkMatter">
+      <darkMatterParticle value="CDM"    />
+      <massSplitting      value="0.00013"/>
+      <lifetime           value="10.0"   />
+    </darkMatterParticle>
+  </change>
+
+  <!-- Halo mass function. Wrap the critical overdensity used by the (f(nu)-type) mass function in the -->
+  <!-- mass-dependent decaying dark matter critical overdensity, then wrap the mass function itself in -->
+  <!-- the decaying dark matter mass function, which remaps it from the Lagrangian mass M_0 to the     -->
+  <!-- collapsed mass M_coll. (The other critical overdensities, used for tree building and halo        -->
+  <!-- environments, are left as the LCDM spherical-collapse values, matching the halo-structure        -->
+  <!-- model in which the decaying dark matter physics enters instead through the profile evolution     -->
+  <!-- below.) -->
+  <change type="encapsulate" path="haloMassFunction/criticalOverdensity">
+    <criticalOverdensity value="decayingDarkMatter"/>
+  </change>
+  <change type="encapsulate" path="haloMassFunction">
+    <haloMassFunction value="decayingDarkMatter"/>
+  </change>
+
+  <!-- Dark matter halo structure. As for warm/fuzzy dark matter, calculations of orbits, scale radii, -->
+  <!-- and halo spins should proceed using the original CDM dark matter-only profile (they are          -->
+  <!-- calibrated to it). Provide the original CDM profile to the relevant classes before modifying the -->
+  <!-- global profile below. -->
+  <change type="append" path="virialOrbit">
+    <darkMatterProfileDMO/>
+  </change>
+  <change type="append" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius">
+    <darkMatterProfileDMO/>
+  </change>
+  <change type="append" path="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']">
+    <darkMatterProfileDMO/>
+  </change>
+  <change type="replaceWith" path="virialOrbit/darkMatterProfileDMO"                                          target="darkMatterProfileDMO"/>
+  <change type="replaceWith" path="darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileDMO" target="darkMatterProfileDMO"/>
+  <change type="replaceWith" path="nodeOperator/nodeOperator[@value='haloAngularMomentumVitvitska2002']/darkMatterProfileDMO" target="darkMatterProfileDMO"/>
+
+  <!-- Replace the global dark matter-only profile with the decaying dark matter mass-loss profile,     -->
+  <!-- wrapping the (heated) NFW profile. The tolerances follow the tested decaying dark matter profile -->
+  <!-- configuration (testSuite/parameters/decayingDM-profile-gamma0.0.xml).                            -->
+  <change type="replace" path="darkMatterProfileDMO">
+    <darkMatterProfileDMO value="decaying">
+      <darkMatterProfileDMO value="heated">
+        <toleratePotentialIntegrationFailure        value="true"     />
+        <darkMatterProfileDMO                       value="NFW"      />
+        <nonAnalyticSolver                          value="numerical"/>
+        <toleranceRelativeVelocityDispersion        value="1.0e-6"   />
+        <toleranceRelativeVelocityDispersionMaximum value="0.1"      />
+        <toleranceRelativePotential                 value="1.0e-3"   />
+        <fractionRadiusFinalSmall                   value="0.0"      />
+      </darkMatterProfileDMO>
+    </darkMatterProfileDMO>
+  </change>
+
+  <!-- Add decaying dark matter halo heating. The existing (tidal) heating is retained by summing it -->
+  <!-- with the decaying dark matter heating, and the sum is passed through the "monotonicWeak"       -->
+  <!-- regularization, as in the tested decaying dark matter profile configuration.                   -->
+  <change type="encapsulate" path="darkMatterProfileHeating">
+    <darkMatterProfileHeating value="summation"/>
+  </change>
+  <change type="append" path="darkMatterProfileHeating">
+    <darkMatterProfileHeating value="decayingDarkMatter">
+      <gamma value="0.0"/>
+    </darkMatterProfileHeating>
+  </change>
+  <change type="encapsulate" path="darkMatterProfileHeating">
+    <darkMatterProfileHeating value="monotonicWeak"/>
+  </change>
+
+</changes>

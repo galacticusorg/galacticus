@@ -43,8 +43,9 @@ Implements a dark matter halo mass function class which modifies another mass fu
      double precision                                 :: alpha                          , beta
      class           (haloMassFunctionClass), pointer :: referenceMassFunction => null()
     contains
-     final     ::                 simpleSystematicDestructor
-     procedure :: differential => simpleSystematicDifferential
+     final     ::                                   simpleSystematicDestructor
+     procedure :: differential                   => simpleSystematicDifferential
+     procedure :: isCriticalOverdensityDependent => simpleSystematicIsCriticalOverdensityDependent
   end type haloMassFunctionSimpleSystematic
 
   interface haloMassFunctionSimpleSystematic
@@ -152,3 +153,15 @@ contains
          &                        )
     return
   end function simpleSystematicDifferential
+
+  logical function simpleSystematicIsCriticalOverdensityDependent(self)
+    !!{RST
+    Return whether the differential halo mass function depends on the critical overdensity for
+    collapse, by forwarding the query to the wrapped halo mass function.
+    !!}
+    implicit none
+    class(haloMassFunctionSimpleSystematic), intent(inout) :: self
+
+    simpleSystematicIsCriticalOverdensityDependent=self%referenceMassFunction%isCriticalOverdensityDependent()
+    return
+  end function simpleSystematicIsCriticalOverdensityDependent

@@ -275,7 +275,7 @@ contains
 
   subroutine hydrogenNetworkRateH_Electron_to_Hplus_2Electron(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^+ + 2\hbox{e}^-`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^+ + 2\hbox{e}^-`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -286,13 +286,15 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                   =.false., reactionInitialized        =.false.
+    logical                                              , save          :: reactionInitializedThread        =.false.
+    !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenCationChemicalIndex        , atomicHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                     , rateCoefficient
     !$GLC attributes unused :: self, radiation
 
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
+    if (.not.reactionInitializedThread) then
        !$omp critical(hydrogenNetworkRateH_Electron_to_Hplus_2Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
@@ -305,6 +307,7 @@ contains
           reactionInitialized=.true.
        end if
        !$omp end critical(hydrogenNetworkRateH_Electron_to_Hplus_2Electron_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -328,7 +331,7 @@ contains
 
   subroutine hydrogenNetworkRateHplus_Electron_to_H_Photon(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^+ + \hbox{e}^- \rightarrow \hbox{H} + \gamma`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^+ + \hbox{e}^- \rightarrow \hbox{H} + \gamma`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -339,13 +342,15 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                   =.false., reactionInitialized        =.false.
+    logical                                              , save          :: reactionInitializedThread        =.false.
+    !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenCationChemicalIndex        , atomicHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                     , rateCoefficient
     !$GLC attributes unused :: self, radiation
 
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
+    if (.not.reactionInitializedThread) then
        !$omp critical(hydrogenNetworkRateHplus_Electron_to_H_Photon_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
@@ -358,6 +363,7 @@ contains
           reactionInitialized=.true.
        end if
        !$omp end critical(hydrogenNetworkRateHplus_Electron_to_H_Photon_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -392,6 +398,8 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                  =.false., reactionInitialized        =.false.
+    logical                                              , save          :: reactionInitializedThread        =.false.
+    !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                    , rateCoefficient
@@ -400,7 +408,7 @@ contains
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
+    if (.not.reactionInitializedThread) then
        !$omp critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
@@ -413,6 +421,7 @@ contains
           reactionInitialized=.true.
        end if
        !$omp end critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -477,6 +486,8 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                  =.false., reactionInitialized        =.false.
+    logical                                              , save          :: reactionInitializedThread       =.false.
+    !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , &
          &                                                                  chemicalHydrogenChemicalIndex           , electronChemicalIndex
     integer                                                              :: status
@@ -484,7 +495,7 @@ contains
     !$GLC attributes unused :: radiation
 
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
+    if (.not.reactionInitializedThread) then
        !$omp critical(hydrogenNetworkRateH_Hminus_to_H2_Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
@@ -501,6 +512,7 @@ contains
           reactionInitialized=.true.
        end if
        !$omp end critical(hydrogenNetworkRateH_Hminus_to_H2_Electron_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -528,7 +540,7 @@ contains
 
   double precision function hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient(temperature)
     !!{RST
-    Computes the rate coefficient (in units of c\ :math:`^3` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H} + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{e}^-`.
+    Computes the rate coefficient (in units of cm\ :math:`^3` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H} + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{e}^-`.
     !!}
     use :: Numerical_Constants_Physical, only : boltzmannsConstant
     use :: Numerical_Constants_Units   , only : electronVolt
@@ -574,6 +586,8 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                     =.false., reactionInitialized        =.false.
+    logical                                              , save          :: reactionInitializedThread          =.false.
+    !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenCationChemicalIndex          , atomicHydrogenChemicalIndex        , &
          &                                                                  chemicalHydrogenCationChemicalIndex
     double precision                                                     :: rate                                       , rateCoefficient                    , &
@@ -583,7 +597,7 @@ contains
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
+    if (.not.reactionInitializedThread) then
        !$omp critical(hydrogenNetworkRateH_Hplus_to_H2plus_Photon_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
@@ -596,6 +610,7 @@ contains
           reactionInitialized=.true.
        end if
        !$omp end critical(hydrogenNetworkRateH_Hplus_to_H2plus_Photon_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -625,7 +640,7 @@ contains
 
   subroutine hydrogenNetworkRateH2plus_H_to_H2_Hplus(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -636,6 +651,8 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                                              :: reactionActive                     =.false., reactionInitialized          =.false.
+    logical                                              , save          :: reactionInitializedThread          =.false.
+    !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenCationChemicalIndex          , atomicHydrogenChemicalIndex          , &
          &                                                                  chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex
     double precision                                     , parameter     :: rateCoefficient                    =6.4d-10
@@ -645,7 +662,7 @@ contains
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
+    if (.not.reactionInitializedThread) then
        !$omp critical(hydrogenNetworkRateH2plus_H_to_H2_Hplus_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
@@ -660,6 +677,7 @@ contains
           reactionInitialized=.true.
        end if
        !$omp end critical(hydrogenNetworkRateH2plus_H_to_H2_Hplus_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -684,7 +702,7 @@ contains
 
   subroutine hydrogenNetworkRateH2_Hplus_to_H2plus_H(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2 + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \hbox{H}`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2 + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \hbox{H}`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Numerical_Constants_Physical , only : boltzmannsConstant
@@ -697,6 +715,8 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                     =.false., reactionInitialized          =.false.
+    logical                                              , save          :: reactionInitializedThread          =.false.
+    !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenCationChemicalIndex          , atomicHydrogenChemicalIndex          , &
          &                                                                  chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex
     double precision                                                     :: logNaturalTemperatureElectronVolts         , rate                                 , &
@@ -706,7 +726,7 @@ contains
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
+    if (.not.reactionInitializedThread) then
        !$omp critical(hydrogenNetworkRateH2_Hplus_to_H2plus_H_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
@@ -721,6 +741,7 @@ contains
           reactionInitialized=.true.
        end if
        !$omp end critical(hydrogenNetworkRateH2_Hplus_to_H2plus_H_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -764,7 +785,7 @@ contains
 
   subroutine hydrogenNetworkRateH2_Electron_to_2H_Electron(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2 + \hbox{e}^- \rightarrow 2\hbox{H} + \hbox{e}^-`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2 + \hbox{e}^- \rightarrow 2\hbox{H} + \hbox{e}^-`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -775,25 +796,28 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive             =.false., reactionInitialized          =.false.
+    logical                                              , save          :: reactionInitializedThread  =.false.
+    !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenChemicalIndex        , chemicalHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                               , rateCoefficient
     !$GLC attributes unused :: self, radiation
 
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
+    if (.not.reactionInitializedThread) then
        !$omp critical(hydrogenNetworkRateH2_Electron_to_2H_Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex  =Chemicals_Index("AtomicHydrogen"   )
           chemicalHydrogenChemicalIndex=Chemicals_Index("MolecularHydrogen")
           electronChemicalIndex        =Chemicals_Index("Electron"         )
-          ! This reaction is active if both species were found.
-          reactionActive=atomicHydrogenChemicalIndex > 0 .and. chemicalHydrogenChemicalIndex > 0
+          ! This reaction is active if all species were found.
+          reactionActive=atomicHydrogenChemicalIndex > 0 .and. chemicalHydrogenChemicalIndex > 0 .and. electronChemicalIndex > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
        !$omp end critical(hydrogenNetworkRateH2_Electron_to_2H_Electron_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -818,7 +842,7 @@ contains
 
   subroutine hydrogenNetworkRateH2_H_to_3H(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2 + \hbox{H} \rightarrow 3\hbox{H}`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2 + \hbox{H} \rightarrow 3\hbox{H}`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Numerical_Constants_Physical , only : boltzmannsConstant
@@ -831,6 +855,8 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive             =.false., reactionInitialized          =.false.
+    logical                                              , save          :: reactionInitializedThread  =.false.
+    !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenChemicalIndex        , chemicalHydrogenChemicalIndex
     double precision                                                     :: log10Temperature                   , rate                                 , &
          &                                                                  rateCoefficient                    , temperatureElectronVolts
@@ -839,7 +865,7 @@ contains
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
+    if (.not.reactionInitializedThread) then
        !$omp critical(hydrogenNetworkRateH2_H_to_3H_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
@@ -851,6 +877,7 @@ contains
           reactionInitialized=.true.
        end if
        !$omp end critical(hydrogenNetworkRateH2_H_to_3H_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -879,7 +906,7 @@ contains
 
   subroutine hydrogenNetworkRateHminus_Electron_to_H_2Electron(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^- + \hbox{e}^- \rightarrow \hbox{H} + 2 \hbox{e}^-`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^- + \hbox{e}^- \rightarrow \hbox{H} + 2 \hbox{e}^-`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -890,6 +917,8 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                  =.false., reactionInitialized        =.false.
+    logical                                              , save          :: reactionInitializedThread       =.false.
+    !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                    , rateCoefficient
@@ -898,19 +927,20 @@ contains
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
-       !$omp critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
+    if (.not.reactionInitializedThread) then
+       !$omp critical(hydrogenNetworkRateHminus_Electron_to_H_2Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex     =Chemicals_Index("AtomicHydrogen"     )
           atomicHydrogenAnionChemicalIndex=Chemicals_Index("AtomicHydrogenAnion")
           electronChemicalIndex           =Chemicals_Index("Electron"           )
-          ! This reaction is active if both species were found.
-          reactionActive=atomicHydrogenChemicalIndex > 0 .and. atomicHydrogenAnionChemicalIndex > 0
+          ! This reaction is active if all species were found.
+          reactionActive=atomicHydrogenChemicalIndex > 0 .and. atomicHydrogenAnionChemicalIndex > 0 .and. electronChemicalIndex > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
+       !$omp end critical(hydrogenNetworkRateHminus_Electron_to_H_2Electron_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -934,7 +964,7 @@ contains
 
   double precision function hydrogenNetworkHminus_Electron_to_H_2Electron_RateCoefficient(temperature)
     !!{RST
-    Computes the rate coefficient (in units of cm\ :math:`^3` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+`.
+    Computes the rate coefficient (in units of cm\ :math:`^3` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^- + \hbox{e}^- \rightarrow \hbox{H} + 2 \hbox{e}^-`.
     !!}
     use :: Numerical_Constants_Physical, only : boltzmannsConstant
     use :: Numerical_Constants_Units   , only : electronVolt
@@ -963,7 +993,7 @@ contains
 
   subroutine hydrogenNetworkRateHminus_H_to_2H_Electron(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^- + \hbox{H} \rightarrow 2 \hbox{H} + \hbox{e}^-`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^- + \hbox{H} \rightarrow 2 \hbox{H} + \hbox{e}^-`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Numerical_Constants_Physical , only : boltzmannsConstant
@@ -976,6 +1006,8 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                    =.false., reactionInitialized        =.false.
+    logical                                              , save          :: reactionInitializedThread         =.false.
+    !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex          , atomicHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: logNaturalTemperatureElectronVolts        , rate                               , &
@@ -985,19 +1017,20 @@ contains
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
-       !$omp critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
+    if (.not.reactionInitializedThread) then
+       !$omp critical(hydrogenNetworkRateHminus_H_to_2H_Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex     =Chemicals_Index("AtomicHydrogen"     )
           atomicHydrogenAnionChemicalIndex=Chemicals_Index("AtomicHydrogenAnion")
           electronChemicalIndex           =Chemicals_Index("Electron"           )
-          ! This reaction is active if both species were found.
-          reactionActive=atomicHydrogenChemicalIndex > 0 .and. atomicHydrogenAnionChemicalIndex > 0
+          ! This reaction is active if all species were found.
+          reactionActive=atomicHydrogenChemicalIndex > 0 .and. atomicHydrogenAnionChemicalIndex > 0 .and. electronChemicalIndex > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
+       !$omp end critical(hydrogenNetworkRateHminus_H_to_2H_Electron_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -1039,7 +1072,7 @@ contains
 
   subroutine hydrogenNetworkRateHminus_Hplus_to_2H(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^- + \hbox{H}^+ \rightarrow 2 \hbox{H}`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -1050,6 +1083,8 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                  =.false., reactionInitialized              =.false.
+    logical                                              , save          :: reactionInitializedThread       =.false.
+    !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenCationChemicalIndex        , &
          &                                                                  atomicHydrogenChemicalIndex
     double precision                                                     :: rate                                    , rateCoefficient
@@ -1058,7 +1093,7 @@ contains
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
+    if (.not.reactionInitializedThread) then
        !$omp critical(hydrogenNetworkRateHminus_Hplus_to_2H_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
@@ -1071,6 +1106,7 @@ contains
           reactionInitialized=.true.
        end if
        !$omp end critical(hydrogenNetworkRateHminus_Hplus_to_2H_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -1094,7 +1130,7 @@ contains
 
   double precision function hydrogenNetworkHminus_Hplus_to_2H_RateCoefficient(temperature)
     !!{RST
-    Compute the rate coefficient (in units of c\ :math:`^3` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+`.
+    Compute the rate coefficient (in units of cm\ :math:`^3` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}^- + \hbox{H}^+ \rightarrow 2 \hbox{H}`.
     !!}
     implicit none
     double precision, intent(in   ) :: temperature
@@ -1118,6 +1154,8 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                     =.false., reactionInitialized              =.false.
+    logical                                              , save          :: reactionInitializedThread          =.false.
+    !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex           , atomicHydrogenCationChemicalIndex        , &
          &                                                                  chemicalHydrogenCationChemicalIndex        , electronChemicalIndex
     double precision                                                     :: rate                                       , rateCoefficient                          , &
@@ -1127,7 +1165,7 @@ contains
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
+    if (.not.reactionInitializedThread) then
        !$omp critical(hydrogenNetworkRateHminus_Hplus_to_H2plus_Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
@@ -1135,16 +1173,19 @@ contains
           atomicHydrogenAnionChemicalIndex   =Chemicals_Index("AtomicHydrogenAnion"    )
           chemicalHydrogenCationChemicalIndex=Chemicals_Index("MolecularHydrogenCation")
           electronChemicalIndex              =Chemicals_Index("Electron"               )
-          ! This reaction is active if both species were found.
+          ! This reaction is active if all species were found.
           reactionActive= atomicHydrogenCationChemicalIndex   > 0 &
                &         .and.                                    &
                &          atomicHydrogenAnionChemicalIndex    > 0 &
                &         .and.                                    &
-               &          chemicalHydrogenCationChemicalIndex > 0
+               &          chemicalHydrogenCationChemicalIndex > 0 &
+               &         .and.                                    &
+               &          electronChemicalIndex               > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
        !$omp end critical(hydrogenNetworkRateHminus_Hplus_to_H2plus_Electron_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -1180,7 +1221,7 @@ contains
 
   subroutine hydrogenNetworkRateH2plus_Electron_to_2H(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \hbox{e}^- \rightarrow 2\hbox{H}`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \hbox{e}^- \rightarrow 2\hbox{H}`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -1191,6 +1232,8 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive             =.false., reactionInitialized                =.false.
+    logical                                              , save          :: reactionInitializedThread  =.false.
+    !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenChemicalIndex        , chemicalHydrogenCationChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                               , rateCoefficient
@@ -1199,19 +1242,20 @@ contains
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
+    if (.not.reactionInitializedThread) then
        !$omp critical(hydrogenNetworkRateH2plus_Electron_to_2H_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"         )
           chemicalHydrogenCationChemicalIndex=Chemicals_Index("MolecularHydrogenCation")
           electronChemicalIndex              =Chemicals_Index("Electron"               )
-          ! This reaction is active if both species were found.
-          reactionActive=atomicHydrogenChemicalIndex > 0 .and. chemicalHydrogenCationChemicalIndex > 0
+          ! This reaction is active if all species were found.
+          reactionActive=atomicHydrogenChemicalIndex > 0 .and. chemicalHydrogenCationChemicalIndex > 0 .and. electronChemicalIndex > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
        !$omp end critical(hydrogenNetworkRateH2plus_Electron_to_2H_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -1238,7 +1282,7 @@ contains
 
   subroutine hydrogenNetworkRateH2plus_Hminus_to_H2_H(self,temperature,radiation,chemicalDensity,factorClumping,chemicalRates)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{H}`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{H}`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -1249,6 +1293,8 @@ contains
     type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     logical                                              , save          :: reactionActive                     =.false., reactionInitialized          =.false.
+    logical                                              , save          :: reactionInitializedThread          =.false.
+    !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex           , atomicHydrogenChemicalIndex          , &
          &                                                                  chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex
     double precision                                                     :: rate                                       , rateCoefficient
@@ -1257,7 +1303,7 @@ contains
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
+    if (.not.reactionInitializedThread) then
        !$omp critical(hydrogenNetworkRateH2plus_Hminus_to_H2_H_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
@@ -1272,6 +1318,7 @@ contains
           reactionInitialized=.true.
        end if
        !$omp end critical(hydrogenNetworkRateH2plus_Hminus_to_H2_H_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -1319,6 +1366,8 @@ contains
     ! Wavelength range for the cross-section.
     double precision                                     , parameter     :: crossSectionWavelengthHigh      =plancksConstant*speedLight*metersToAngstroms/electronVolt/crossSectionEnergyLow
     logical                                              , save          :: reactionActive                  =.false.                                                                        , reactionInitialized        =.false.
+    logical                                              , save          :: reactionInitializedThread       =.false.
+    !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenAnionChemicalIndex                                                                                , atomicHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                                                                                            , rateCoefficient
@@ -1326,8 +1375,8 @@ contains
     !$GLC attributes unused :: self, temperature
 
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
-       !$omp critical(hydrogenNetworkRateHminus_Gamma_to_H_Electron)
+    if (.not.reactionInitializedThread) then
+       !$omp critical(hydrogenNetworkRateHminus_Gamma_to_H_Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenAnionChemicalIndex=Chemicals_Index("AtomicHydrogenAnion",status)
@@ -1338,7 +1387,8 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateHminus_Gamma_to_H_Electron)
+       !$omp end critical(hydrogenNetworkRateHminus_Gamma_to_H_Electron_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -1409,7 +1459,7 @@ contains
 
   subroutine hydrogenNetworkRateH2plus_Gamma_to_H_Hplus(self,temperature,radiation,chemicalDensity,chemicalRates,node)
     !!{RST
-    Computes the rate (in units of c\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \gamma \rightarrow \hbox{H} + \hbox{H}^+`.
+    Computes the rate (in units of cm\ :math:`^{-3}` s\ :math:`^{-1}`) for the reaction :math:`\hbox{H}_2^+ + \gamma \rightarrow \hbox{H} + \hbox{H}^+`.
     !!}
     use :: Chemical_Abundances_Structure, only : Chemicals_Index
     use :: Numerical_Constants_Physical , only : plancksConstant    , speedLight
@@ -1429,6 +1479,8 @@ contains
     double precision                                     , parameter     :: crossSectionWavelengthLow          =plancksConstant*speedLight*metersToAngstroms/electronVolt/crossSectionEnergyHigh
     double precision                                     , parameter     :: crossSectionWavelengthHigh         =plancksConstant*speedLight*metersToAngstroms/electronVolt/crossSectionEnergyLow
     logical                                              , save          :: reactionActive                     =.false.                                                                         , reactionInitialized        =.false.
+    logical                                              , save          :: reactionInitializedThread          =.false.
+    !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenCationChemicalIndex                                                                                   , atomicHydrogenChemicalIndex        , &
          &                                                                  chemicalHydrogenCationChemicalIndex
     double precision                                                     :: rate                                                                                                                , rateCoefficient
@@ -1437,8 +1489,8 @@ contains
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
-       !$omp critical(hydrogenNetworkRateH2plus_Gamma_to_H_Hplus)
+    if (.not.reactionInitializedThread) then
+       !$omp critical(hydrogenNetworkRateH2plus_Gamma_to_H_Hplus_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           chemicalHydrogenCationChemicalIndex=Chemicals_Index("MolecularHydrogenCation")
@@ -1449,7 +1501,8 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateH2plus_Gamma_to_H_Hplus)
+       !$omp end critical(hydrogenNetworkRateH2plus_Gamma_to_H_Hplus_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -1542,6 +1595,8 @@ contains
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     type            (treeNode                           ), intent(inout) :: node
     logical                                              , save          :: reactionActive             =.false.                                                                    , reactionInitialized                     =.false.
+    logical                                              , save          :: reactionInitializedThread  =.false.
+    !$omp threadprivate(reactionInitializedThread)
     integer                                              , save          :: atomicHydrogenChemicalIndex                                                                            , chemicalHydrogenChemicalIndex
     ! Median energy of the Lyman band in chemical hydrogen (in eV).
     double precision                                     , parameter     :: energyLymanBand            =12.87d0
@@ -1556,8 +1611,8 @@ contains
     !$GLC attributes unused :: self, temperature
 
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
-       !$omp critical(hydrogenNetworkRateH2_Gamma_to_H2star_to_2H)
+    if (.not.reactionInitializedThread) then
+       !$omp critical(hydrogenNetworkRateH2_Gamma_to_H2star_to_2H_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           chemicalHydrogenChemicalIndex=Chemicals_Index("MolecularHydrogen")
@@ -1567,7 +1622,8 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateH2_Gamma_to_H2star_to_2H)
+       !$omp end critical(hydrogenNetworkRateH2_Gamma_to_H2star_to_2H_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -1634,6 +1690,8 @@ contains
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     type            (treeNode                           ), intent(inout) :: node
     logical                                              , save          :: reactionActive                     =.false.                                                                         , reactionInitialized          =.false.
+    logical                                              , save          :: reactionInitializedThread          =.false.
+    !$omp threadprivate(reactionInitializedThread)
     ! Energy of the edge in the cross-section.
     double precision                                     , parameter     :: crossSectionEdgeEnergy             =15.42d0
     ! Wavelength of the edge in the cross-section.
@@ -1646,8 +1704,8 @@ contains
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
-       !$omp critical(hydrogenNetworkRateH2_Gamma_to_H2plus_Electron)
+    if (.not.reactionInitializedThread) then
+       !$omp critical(hydrogenNetworkRateH2_Gamma_to_H2plus_Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           chemicalHydrogenChemicalIndex      =Chemicals_Index("MolecularHydrogen"      )
@@ -1660,7 +1718,8 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateH2_Gamma_to_H2plus_Electron)
+       !$omp end critical(hydrogenNetworkRateH2_Gamma_to_H2plus_Electron_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -1744,6 +1803,8 @@ contains
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     type            (treeNode                           ), intent(inout) :: node
     logical                                              , save          :: reactionActive                   =.false.                                                                         , reactionInitialized                =.false.
+    logical                                              , save          :: reactionInitializedThread        =.false.
+    !$omp threadprivate(reactionInitializedThread)
     ! Energy range for the cross-section.
     double precision                                     , parameter     :: crossSectionEnergyLow            =30.0d0
     double precision                                     , parameter     :: crossSectionEnergyHigh           =90.0d0
@@ -1758,8 +1819,8 @@ contains
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (self%fast) return
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
-       !$omp critical(hydrogenNetworkRateH2plus_Gamma_to_2Hplus_Electron)
+    if (.not.reactionInitializedThread) then
+       !$omp critical(hydrogenNetworkRateH2plus_Gamma_to_2Hplus_Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"   )
@@ -1772,7 +1833,8 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateH2plus_Gamma_to_2Hplus_Electron)
+       !$omp end critical(hydrogenNetworkRateH2plus_Gamma_to_2Hplus_Electron_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -1854,6 +1916,8 @@ contains
     type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     type            (treeNode                           ), intent(inout) :: node
     logical                                              , save          :: reactionActive             =.false.                                                                         , reactionInitialized          =.false.
+    logical                                              , save          :: reactionInitializedThread  =.false.
+    !$omp threadprivate(reactionInitializedThread)
     ! Energy range for the cross-section.
     double precision                                     , parameter     :: crossSectionEnergyLow      =14.159d0
     double precision                                     , parameter     :: crossSectionEnergyHigh     =17.700d0
@@ -1865,8 +1929,8 @@ contains
     !$GLC attributes unused :: self, temperature
 
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
-       !$omp critical(hydrogenNetworkRateH2_Gamma_to_2H)
+    if (.not.reactionInitializedThread) then
+       !$omp critical(hydrogenNetworkRateH2_Gamma_to_2H_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex  =Chemicals_Index("AtomicHydrogen"   )
@@ -1877,7 +1941,8 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateH2_Gamma_to_2H)
+       !$omp end critical(hydrogenNetworkRateH2_Gamma_to_2H_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
@@ -1981,6 +2046,8 @@ contains
     type            (chemicalAbundances                 )           , intent(inout) :: chemicalRates
     type            (treeNode                           )           , intent(inout) :: node
     logical                                              , save                     :: reactionActive                   =.false.                                                                        , reactionInitialized        =.false.
+    logical                                              , save                     :: reactionInitializedThread        =.false.
+    !$omp threadprivate(reactionInitializedThread)
     ! Energy range for the cross-section (in eV).
     double precision                                     , parameter                :: crossSectionEnergyLow            =13.60d0
     ! Wavelength range for the cross-section (in Angstroms).
@@ -1991,8 +2058,8 @@ contains
     !$GLC attributes unused :: self, temperature
 
     ! Check if this reaction needs initializing.
-    if (.not.reactionInitialized) then
-       !$omp critical(hydrogenNetworkRateH_Gamma_to_H_Electron)
+    if (.not.reactionInitializedThread) then
+       !$omp critical(hydrogenNetworkRateH_Gamma_to_Hplus_Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
@@ -2005,7 +2072,8 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(hydrogenNetworkRateH_Gamma_to_H_Electron)
+       !$omp end critical(hydrogenNetworkRateH_Gamma_to_Hplus_Electron_Init)
+       reactionInitializedThread=.true.
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then

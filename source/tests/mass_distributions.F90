@@ -38,16 +38,17 @@ program Test_Mass_Distributions
        &                                    massDistributionList                 , massDistributionSymmetryCylindrical, enumerationMassDistributionSymmetryType, massDistributionSphericalScaler             , &
        &                                    massDistributionCylindricalScaler    , massDistributionCylindrical        , massDistributionPatejLoeb2015          , massDistributionNFW                         , &
        &                                    massDistributionIsothermal           , kinematicsDistributionClass        , kinematicsDistributionLocal            , kinematicsDistributionCollisionlessTabulated, &
-       &                                    massDistributionSIDMParametricProfile, massDistributionBlackHole
+       &                                    massDistributionSIDMParametricProfile, massDistributionBlackHole          , massDistributionSoliton                , massDistributionSolitonNFW
   use :: Numerical_Constants_Math  , only : Pi                                   , e
   use :: Tensors                   , only : assignment(=)
   use :: Unit_Tests                , only : Assert                               , Unit_Tests_Begin_Group             , Unit_Tests_End_Group                   , Unit_Tests_Finish                           , &
        &                                    compareEquals                        , compareNotEqual
   implicit none
-  class           (massDistributionClass                  )                                    , allocatable :: massDistribution_                                                                                                       , massDistributionRotated   , &
-       &                                                                                                        massDistributionDisk                                                                                                    , massDistributionSpheroid  , &
-       &                                                                                                        massDistributionDMO
-  class           (massDistributionClass                  )                                    , pointer     :: massDistributionDisk_                                                                                                   , massDistributionSpheroid_ , &
+  class           (massDistributionClass                  )                                    , allocatable :: massDistribution_                                                                                                       , massDistributionRotated         , &
+       &                                                                                                        massDistributionDisk                                                                                                    , massDistributionSpheroid        , &
+       &                                                                                                        massDistributionDMO                                                                                                     , massDistributionWrappedSpherical, &
+       &                                                                                                        massDistributionWrappedCylindrical
+  class           (massDistributionClass                  )                                    , pointer     :: massDistributionDisk_                                                                                                   , massDistributionSpheroid_       , &
        &                                                                                                        massDistributionAll_                                                                                                    , massDistributionDiskAgain_
   class           (kinematicsDistributionClass            )                                    , pointer     :: kinematicsDistribution_
   type            (massDistributionList                   )                                    , pointer     :: massDistributions
@@ -955,6 +956,93 @@ program Test_Mass_Distributions
      call Assert("re-use A->B: mass enclosed" ,massDistribution_%massEnclosedBySphere(radiusBlackHoleTest),enclosedReferenceB,relTol=1.0d-9)
      call Assert("re-use A->B: rotation curve",massDistribution_%rotationCurve       (radiusBlackHoleTest),rotationReferenceB,relTol=1.0d-9)
   end select
+  deallocate(massDistribution_)
+  call Unit_Tests_End_Group()
+
+  ! Optional `logarithmic` argument in radial density gradients.
+  ! The `<optionalArgument>` directive generates a guarded local copy (`logarithmic_`) of the optional
+  ! `logarithmic` dummy argument. Several classes read the dummy argument itself instead, which is
+  ! invalid when the argument is not supplied by the caller. Check that omitting the argument gives
+  ! the same answer as passing `.false.` explicitly (its documented default).
+  call Unit_Tests_Begin_Group("Optional `logarithmic` argument in radial density gradients")
+  position=[1.0d0,0.0d0,0.0d0]
+  allocate(massDistributionSoliton :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionSoliton)
+     massDistribution_=massDistributionSoliton(radiusCore=1.0d0,densitySolitonCentral=1.0d0,dimensionless=.true.)
+  end select
+  call Assert(                                                                        &
+       &      "soliton"                                                             , &
+       &      +massDistribution_%densityGradientRadial(position                    ), &
+       &      +massDistribution_%densityGradientRadial(position,logarithmic=.false.), &
+       &      relTol=1.0d-12                                                          &
+       &     )
+  deallocate(massDistribution_)
+  allocate(massDistributionSolitonNFW :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionSolitonNFW)
+     massDistribution_=massDistributionSolitonNFW(radiusScale=1.0d0,radiusCore=0.1d0,radiusSoliton=0.3d0,densitySolitonCentral=1.0d0,densityNormalizationNFW=1.0d0,dimensionless=.true.)
+  end select
+  ! Test both sides of the soliton-to-NFW transition.
+  position=[0.2d0,0.0d0,0.0d0]
+  call Assert(                                                                        &
+       &      "solitonNFW (soliton regime)"                                         , &
+       &      +massDistribution_%densityGradientRadial(position                    ), &
+       &      +massDistribution_%densityGradientRadial(position,logarithmic=.false.), &
+       &      relTol=1.0d-12                                                          &
+       &     )
+  position=[1.0d0,0.0d0,0.0d0]
+  call Assert(                                                                        &
+       &      "solitonNFW (NFW regime)"                                             , &
+       &      +massDistribution_%densityGradientRadial(position                    ), &
+       &      +massDistribution_%densityGradientRadial(position,logarithmic=.false.), &
+       &      relTol=1.0d-12                                                          &
+       &     )
+  deallocate(massDistribution_)
+  ! Scaled distributions forward the argument to the distribution that they wrap. Note that the
+  ! scaler takes a reference to the wrapped distribution and releases it when the scaler itself is
+  ! destroyed - so the wrapped distributions must not be deallocated here.
+  allocate(massDistributionHernquist       :: massDistributionWrappedSpherical)
+  select type (massDistributionWrappedSpherical)
+  type is (massDistributionHernquist      )
+     massDistributionWrappedSpherical=massDistributionHernquist      (dimensionless=.true.)
+  end select
+  allocate(massDistributionSphericalScaler :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionSphericalScaler)
+     select type (massDistributionWrappedSpherical)
+     class is (massDistributionSpherical  )
+        massDistribution_=massDistributionSphericalScaler(factorScalingLength=0.7d-3,factorScalingMass=9.0d09,massDistribution_=massDistributionWrappedSpherical)
+     end select
+  end select
+  position=[1.0d-3,0.0d0,0.0d0]
+  call Assert(                                                                        &
+       &      "sphericalScaler"                                                     , &
+       &      +massDistribution_%densityGradientRadial(position                    ), &
+       &      +massDistribution_%densityGradientRadial(position,logarithmic=.false.), &
+       &      relTol=1.0d-12                                                          &
+       &     )
+  deallocate(massDistribution_)
+  allocate(massDistributionExponentialDisk   :: massDistributionWrappedCylindrical)
+  select type (massDistributionWrappedCylindrical)
+  type is (massDistributionExponentialDisk  )
+     massDistributionWrappedCylindrical=massDistributionExponentialDisk  (scaleHeight=0.3d-3/2.9d-3,dimensionless=.true.)
+  end select
+  allocate(massDistributionCylindricalScaler :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionCylindricalScaler)
+     select type (massDistributionWrappedCylindrical)
+     class is (massDistributionCylindrical)
+        massDistribution_=massDistributionCylindricalScaler(factorScalingLength=2.9d-3,factorScalingMass=5.7d10,massDistribution_=massDistributionWrappedCylindrical)
+     end select
+  end select
+  positionCartesian=[1.0d-3,0.0d0,0.0d0]
+  call Assert(                                                                                 &
+       &      "cylindricalScaler"                                                            , &
+       &      +massDistribution_%densityGradientRadial(positionCartesian                    ), &
+       &      +massDistribution_%densityGradientRadial(positionCartesian,logarithmic=.false.), &
+       &      relTol=1.0d-12                                                                   &
+       &     )
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
 

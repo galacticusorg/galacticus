@@ -431,7 +431,7 @@
         densityGradient   =0.0d0
      else if (coordinates%rSpherical() < self%radiusSoliton) then
         ! Soliton regime.
-        if (logarithmic) then
+        if (logarithmic_) then
            densityGradient=-16.0d0                                       &
                 &          *       coefficientCore*radiusCoreFree**2     &
                 &          /(1.0d0+coefficientCore*radiusCoreFree**2)
@@ -444,7 +444,7 @@
         end if
      else
         ! NFW regime.
-        if (logarithmic) then
+        if (logarithmic_) then
            densityGradient=  -1.0d0                  &
                 &            -2.0d0*radiusScaleFree  &
                 &          /(+1.0d0+radiusScaleFree)
