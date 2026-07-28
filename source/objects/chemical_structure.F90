@@ -75,16 +75,21 @@ module Chemical_Structures
   end type chemicalStructure
 
   ! Atoms (we include an electron here for convenience).
-  type(atomicStructure),   parameter                 :: atoms(2)=[                                                             &
-       &                                                          atomicStructure("electron","e",electronMass/atomicMassUnit), &
-       &                                                          atomicStructure("hydrogen","H",atomicMassHydrogen         )  &
-       &                                                         ]
+  type   (atomicStructure  ),   parameter               :: atoms(2)=[                                                             &
+       &                                                             atomicStructure("electron","e",electronMass/atomicMassUnit), &
+       &                                                             atomicStructure("hydrogen","H",atomicMassHydrogen         )  &
+       &                                                            ]
 
   ! Chemicals.
   type   (chemicalStructure), allocatable, dimension(:) :: chemicals
 
   ! Flag indicating if the database has been initialized.
-  logical                                               :: chemicalDatabaseInitialized=.false.
+  logical                                               :: chemicalDatabaseInitialized      =.false.
+
+  ! Per-thread flag recording that this thread has already passed through the initialization critical section (see
+  ! `Chemical_Structure_Initialize`), and so is guaranteed to see the fully-initialized database.
+  logical                                               :: chemicalDatabaseInitializedThread=.false.
+  !$omp threadprivate(chemicalDatabaseInitializedThread)
 
 contains
 
@@ -104,7 +109,13 @@ contains
     character(len=128       )                            :: name
     type     (varying_string)                           :: fileName
 
-    ! Check if the chemical database is initialized.
+    ! Check if the chemical database is initialized. See the "Once-Only Initialization Under OpenMP" section of the developer
+    ! guide for the rationale behind this pattern. Note that the test of "chemicalDatabaseInitialized" *must* be made while
+    ! holding the lock: previously it was made only outside of any critical section, so two threads could both find the
+    ! database uninitialized and both proceed to initialize it, the second then aborting when it attempted to allocate the
+    ! already-allocated "chemicals" array.
+    if (chemicalDatabaseInitializedThread) return
+    !$omp critical (chemicalDatabaseInitialize)
     if (.not.chemicalDatabaseInitialized) then
        fileName=char(inputPath(pathTypeDataStatic))//'abundances/Chemical_Database.cml'
        !$omp critical (FoX_DOM_Access)
@@ -170,6 +181,9 @@ contains
        ! Flag that the database is now initialized.
        chemicalDatabaseInitialized=.true.
     end if
+    !$omp end critical (chemicalDatabaseInitialize)
+    ! This thread has now synchronized with the initialization, so need never take the lock again.
+    chemicalDatabaseInitializedThread=.true.
     return
   end subroutine Chemical_Structure_Initialize
 

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test of recording of node evolutionary trajectories -->
+<!-- A simple chain of three nodes, such that two promotions occur during evolution. -->
+<tree>
+  <node>
+    <index>1</index>
+    <parent>2</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>1.0</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <hotHalo>
+      <mass>1.0e12</mass>
+      <angularMomentum>2.0e12</angularMomentum>
+    </hotHalo>
+    <disk>
+      <massStellar>0.0</massStellar>
+      <massGas>0.0</massGas>
+     </disk>
+  </node>
+  <node>
+    <index>2</index>
+    <parent>3</parent>
+    <firstChild>1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>6.0</time>
+      <mass>1.0e12</mass>
+    </basic>
+  </node>
+  <node>
+    <index>3</index>
+    <parent>-1</parent>
+    <firstChild>2</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>13.8</time>
+      <mass>1.0e12</mass>
+    </basic>
+ </node>
+</tree>

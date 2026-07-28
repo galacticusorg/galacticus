@@ -329,6 +329,29 @@ contains
        if (retabulate)  deallocate(self%distributionTable)
     else
        retabulate=.true.
+       if (fixedPoint) then
+          self%spinMinimum=min(self%spinMinimum,0.5d0*spinFixed)
+          self%spinMaximum=max(self%spinMaximum,2.0d0*spinFixed)
+          if (present(spinFixedMeasuredMinimum)) then
+             if (spinFixedMeasuredMinimum < self%spinMinimum) then
+                retabulate      =.true.
+                self%spinMinimum=spinFixedMeasuredMinimum
+             end if
+             if (spinFixedMeasuredMaximum > self%spinMaximum) then
+                retabulate      =.true.
+                self%spinMaximum=spinFixedMeasuredMaximum
+             end if
+          end if
+       else
+          if (present(massRequired)) then
+             self%massMinimum=min(self%massMinimum,0.5d0*massRequired)
+             self%massMaximum=max(self%massMaximum,2.0d0*massRequired)
+          end if
+          if (present(spinRequired)) then
+             self%spinMinimum=min(self%spinMinimum,0.5d0*spinRequired)
+             self%spinMaximum=max(self%spinMaximum,2.0d0*spinRequired)
+          end if
+       end if
     end if
     if (.not.retabulate) return
     self%fixedPoint=fixedPoint

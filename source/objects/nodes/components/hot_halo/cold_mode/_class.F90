@@ -232,7 +232,7 @@ contains
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Scale_Set
 
   !![
-  <mergerTreeInitializeTask function="Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize" after="Node_Component_Hot_Halo_Standard_Tree_Initialize"/>
+  <mergerTreeInitializeTask function="Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize"/>
   !!]
   subroutine Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize(node)
     !!{RST

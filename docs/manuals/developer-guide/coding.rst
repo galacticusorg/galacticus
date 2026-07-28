@@ -735,6 +735,37 @@ The generated code gathers the names of all parameters that the object (includin
 ``extraAllowedNames``
    *(optional)* A space-separated list of additional parameter names which should be considered valid even though no ``inputParameter`` or ``objectBuilder`` directive reads them (e.g. parameters read indirectly by other means).
 
+.. _manual-sec-parameterMigrations:
+
+Parameter File Migrations
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a change to Galacticus alters the name, location, or meaning of an input parameter, a *migration* should be added so that existing parameter files continue to describe the same model. Migrations live in ``scripts/aux/migrations.xml`` and are applied by ``scripts/aux/parametersMigrate.py`` (see :galacticus-ref:`migratingParameterFiles` for how users run it).
+
+Each migration is keyed by the **full 40-character hash of the commit that introduced the change**:
+
+.. code-block:: xml
+
+   <migration commit="938122648f2740d19a67598157de78201a17e4b7">
+     <translation function="chandrasekhar_suppress_extended_mass"/>
+   </migration>
+
+A translation may either rewrite the parameter file declaratively, via an ``xpath`` attribute naming the elements to act on together with an action element (for example ``<remove/>``), or dispatch to a named Python function in ``parametersMigrate.py`` (registered in that script's ``SPECIAL_FUNCTIONS`` table) when the transformation is too involved to express as an XPath rewrite.
+
+.. warning::
+
+   **Commit hashes in** ``migrations.xml`` **must remain valid for the lifetime of the repository.**
+
+   To decide which migrations to apply, ``parametersMigrate.py`` walks the git ancestry between the parameter file's recorded ``lastModified`` revision and the current ``HEAD``, and matches each commit in that ancestry against the ``commit`` attributes in ``migrations.xml`` **by exact string equality**. A hash which is not present in the history therefore matches nothing: the migration is *silently skipped*. There is no error and no warning — parameter files simply fail to migrate, and models built from them quietly change behaviour.
+
+   The practical consequences are:
+
+   * Any operation which rewrites commit hashes (``git rebase``, ``git commit --amend``, or a squash merge) invalidates every ``migrations.xml`` entry that refers to a rewritten commit. If you rebase a branch that adds a migration, update the ``commit`` attribute to the new hash before pushing.
+   * A migration must never refer to the commit that contains it, since amending that commit to insert its own hash would change the hash again. Add the migration in a *later* commit than the change it migrates.
+   * For the same reason, pull requests which add migrations must be merged in a way that preserves commit hashes — see :galacticus-ref:`mergingPullRequests`.
+
+   After rebasing such a branch, confirm the hash is still reachable (``git cat-file -e <hash>`` succeeds *and* ``git branch --contains <hash>`` lists a branch), and re-run the migration on a representative parameter file to check that the expected ``Updating to revision <hash>`` line still appears.
+
 .. _manual-sec-functionClass:
 
 Function Classes
@@ -1253,6 +1284,51 @@ Frequently, a given property of a node may be required in many different aspects
 The first feature is the "unique ID"---an integer number assigned to each node in Galacticus and which uniquely identifies a node (i.e. no two nodes processed in a Galacticus run will have the same unique ID). This number, which can be retrieved using the ``uniqueID`` property of a tree node, can be recorded each time a function is called. If called again for a node with the same unique ID as the previous call, the function can simply return the same answer as on the previous call.
 
 The second feature accounts for the fact that the properties of a node will change, so even if a function is called on a node with the same unique ID it may occasionally need to recompute its result. Galacticus provides a calculation reset task (see Section :galacticus-ref:`autoHook`). All such tasks are performed just prior to the computation of derivatives for a node being evolved. A function can register a calculation reset task and use it to flag that it must update its calculations even if called again with the same node.
+
+.. _manual-sec-onceOnlyInitialization:
+
+Once-Only Initialization Under OpenMP
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A common pattern in Galacticus is a module holding static, read-only data (atomic data, chemical structures, filter transmissions, tabulated databases) which must be read from file exactly once, no matter how many OpenMP threads are running. The obvious implementation guards the initialization with a named critical section:
+
+.. code-block:: fortran
+
+     !$omp critical(myDataInitialize)
+     if (.not.myDataInitialized) then
+        ! ...read the data...
+        myDataInitialized=.true.
+     end if
+     !$omp end critical(myDataInitialize)
+
+This is correct, but it takes the lock on **every** call, including the overwhelmingly common case where the data are already loaded and nothing needs to be done. Named critical sections are *global* locks, so when such an initializer is called from a hot path---particularly one reached during ODE evolution---and the model is run with a large number of threads, the resulting contention can dominate the run time. The problem was found in ``Atomic_Data_Initialize`` (``source/atomic/data.F90``), which is called from every public entry point of the ``Atomic_Data`` module, several of which are reached for every element, for every derivative evaluation.
+
+The fix is a double-checked lock, but the *naive* form of it---simply testing the shared ``myDataInitialized`` flag before taking the lock---is a data race under the OpenMP memory model. An unsynchronized read of the flag establishes no happens-before relationship with the initializing thread's writes, so a thread which observes the flag as ``.true.`` has no guarantee that it will also observe the data those writes produced; the compiler and hardware are both free to reorder around the unsynchronized read.
+
+Galacticus therefore uses a ``threadprivate`` flag recording that *this thread* has already passed through the critical section:
+
+.. code-block:: fortran
+
+     logical :: myDataInitialized      =.false.
+     logical :: myDataInitializedThread=.false.
+     !$omp threadprivate(myDataInitializedThread)
+     ...
+     if (myDataInitializedThread) return
+     !$omp critical(myDataInitialize)
+     if (.not.myDataInitialized) then
+        ! ...read the data...
+        myDataInitialized=.true.
+     end if
+     !$omp end critical(myDataInitialize)
+     myDataInitializedThread=.true.
+
+The ordering is supplied by the flush implied on exit from the critical section, which the code already relies upon: any thread which has left that section is guaranteed to see the fully-initialized data, so it need never enter it again. Each thread therefore acquires the lock exactly once for the lifetime of the run, and the hot path reduces to a load of a thread-local logical---no fence, no shared cache line, and no possibility of false sharing.
+
+This form also fails safe. OpenMP guarantees the persistence of ``threadprivate`` values between parallel regions only under certain conditions (unchanged team size, dynamic thread adjustment disabled). If those conditions are not met the per-thread flag can only revert to ``.false.``, never spuriously to ``.true.``, so the worst outcome is one redundant---and harmless---lock acquisition, not an unsynchronized read of uninitialized data.
+
+An alternative is to keep the shared flag and read it via ``!$omp atomic read seq_cst``, pairing it with an ``!$omp atomic write seq_cst`` when the flag is set; the listless flush implied by the ``seq_cst`` clause supplies the necessary release/acquire pair. This is also correct, and is preferable when a per-thread flag is inconvenient, but it pays a full memory fence on every call, so the ``threadprivate`` form is preferred on genuinely hot paths. (See Section :galacticus-ref:`eventHooksLocking` for a related case, where an atomic read replaces a read/write lock on a hot dispatch path.)
+
+Two points to note when writing such an initializer. First, the double check is *not* optional: the test inside the critical section must be retained, since several threads may pass the outer test before any of them acquires the lock. Omitting it allows two threads to run the initialization concurrently, which typically manifests as an attempt to allocate an already-allocated array. Second, the guard should be placed so that the fast path returns before any other work is done; in particular, an initializer called from several public entry points of the same module may be reached more than once per logical operation, so the fast path must be genuinely cheap.
 
 Global Functions
 ----------------

@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Decaying dark matter halo mass function.
+
+     Wires up the full stack of the Montandon et al. (2026; arXiv:2607.19244) model: a mass-dependent
+     critical overdensity for collapse, delta_c(M_0), feeding a Sheth-Tormen f(nu) mass function which is
+     then remapped from Lagrangian mass M_0 to collapsed mass M_coll. The cosmology matches the N-body
+     suite of their Sec. 4, so the resulting mass functions may be compared to their Fig. 9.
+
+     The lifetime and velocityKick of the [darkMatterParticle] are overridden per model by
+     testSuite/test-decaying-dark-matter-halo-mass-function.py.
+
+     Note that the cosmologicalMassVariance/transferFunction are deliberately left as standard LCDM: in
+     this model *all* decaying dark matter physics enters through delta_c and the mass remapping. -->
+
+<parameters>
+  <formatVersion>2</formatVersion>
+
+  <!-- Specify tasks to perform -->
+  <task value="haloMassFunction">
+    <haloMassMinimum value="1.0e13"/>
+    <haloMassMaximum value="1.0e16"/>
+    <pointsPerDecade value="10"/>
+    <includeMassAccretionRate value="false"/>
+    <errorsAreFatal value="false"/>
+  </task>
+
+  <!-- Component selection -->
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+
+  <!-- Decaying dark matter particle: lifetime in Gyr, velocity kick in km/s. -->
+  <darkMatterParticle value="decayingDarkMatter">
+    <lifetime     value="10.0"  />
+    <velocityKick value="1250.0"/>
+    <darkMatterParticle value="CDM"/>
+  </darkMatterParticle>
+
+  <!-- Cosmological parameters: match the N-body suite of Montandon et al. (2026), their Sec. 4. -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="67.76000"/>
+    <OmegaMatter     value=" 0.30700"/>
+    <OmegaDarkEnergy value=" 0.69300"/>
+    <OmegaBaryon     value=" 0.04860"/>
+    <temperatureCMB  value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options. The variance is computed from the *unmodified* LCDM power spectrum: in
+       this model all decaying dark matter physics enters through delta_c(M_0) and the mass remapping. -->
+  <transferFunction value="eisensteinHu1999">
+    <darkMatterParticle value="CDM"/>
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed      value="0.000"/>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index               value="0.9665"/>
+    <wavenumberReference value="1.0000"/>
+    <running             value="0.0000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.8825"/>
+  </cosmologicalMassVariance>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+  <!-- Mass-dependent critical overdensity for collapse, delta_c(M_0), of Montandon et al. (2026). -->
+  <criticalOverdensity value="decayingDarkMatter">
+    <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
+      <darkMatterParticle value="CDM"/>
+    </criticalOverdensity>
+  </criticalOverdensity>
+
+  <!-- Halo mass function: Sheth-Tormen f(nu) in terms of the Lagrangian mass M_0, remapped to the
+       collapsed mass M_coll. -->
+  <haloMassFunction value="decayingDarkMatter">
+    <haloMassFunction value="shethTormen">
+      <a             value="0.707"/>
+      <p             value="0.300"/>
+      <normalization value="0.322"/>
+    </haloMassFunction>
+  </haloMassFunction>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMO value="NFW"/>
+  <darkMatterProfileConcentration value="gao2008"/>
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  1.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
+
+  <!-- Output options -->
+  <outputFileName value="testSuite/outputs/decayingDarkMatterHaloMassFunction.hdf5"/>
+  <outputTimes value="list">
+    <redshifts value="0.0 1.083"/>
+  </outputTimes>
+
+</parameters>
