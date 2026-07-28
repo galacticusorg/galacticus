@@ -2,9 +2,10 @@
 <!-- Test of recording of node evolutionary trajectories. Identical to nodeTrajectoryBase.xml apart from the addition of the
      outputTrajectory node operator, so that the two may be compared to verify that trajectory recording does not perturb the
      model. -->
+
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="7b83820825e0dd5e1c0c53b5d3ec06deb0b18e40" time="2026-07-21T00:00:00"/>
+  <lastModified revision="a3e1665914d944c9fa844f662a028072e84740a5" time="2026-07-28T17:29:21"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
