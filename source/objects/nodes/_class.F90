@@ -44,9 +44,9 @@ module Galacticus_Nodes
   use            :: Stellar_Luminosities_Structure     , only : stellarLuminosities
   use            :: Tensors                            , only : tensorNullR2D3Sym            , tensorRank2Dimension3Symmetric
   private
-  public :: nodeClassHierarchyInitialize    , nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask   , &
-       &    nodeEventBuildFromRaw           , propertyEvaluate          , propertyActive                , propertyInactive, &
-       &    massDistributionCalculationReset, massDistributionsLast     , massDistributionsDestroy
+  public :: nodeClassHierarchyInitialize    , nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask            , &
+       &    nodeEventBuildFromRaw           , propertyEvaluate          , propertyActive                , propertyInactive         , &
+       &    massDistributionCalculationReset, massDistributionsLast     , massDistributionsDestroy      , Node_Unique_ID_Initialize
 
   type, public :: nodeHierarchyWrapper
      !!{RST
@@ -225,12 +225,12 @@ module Galacticus_Nodes
   integer                         , parameter, public               :: reductionSummation  =1
   integer                         , parameter, public               :: reductionProduct    =2
 
-  ! Unique ID counter.
+  ! Unique ID counter. IDs advance from "uniqueIdCount" in steps of "uniqueIdIncrement". These are set
+  ! once at node-component initialization (see Node_Unique_ID_Initialize): under MPI to the process rank
+  ! and process count respectively, so that IDs are globally distinct across ranks; otherwise the 0/1
+  ! defaults are used, so the per-node assignment is a lock-free atomic increment in both configurations.
   integer         (kind=kind_int8)                                  :: uniqueIdCount       =0
-#ifdef USEMPI
   integer         (kind=kind_int8)                                  :: uniqueIdIncrement   =1_kind_int8
-  logical                                                           :: uniqueIdInitialized =.false.
-#endif
 
   ! Event ID counter.
   integer         (kind=kind_int8)                                  :: eventID             =0
@@ -368,7 +368,7 @@ module Galacticus_Nodes
     !!}
     implicit none
     class  (treeNode      ), intent(in   ) :: self
-    integer(kind=kind_int8)                        :: uniqueID
+    integer(kind=kind_int8)                :: uniqueID
 
     uniqueID=self%uniqueIdValue
     return
@@ -379,9 +379,6 @@ module Galacticus_Nodes
     Sets the index of a ``treeNode``.
     !!}
     use :: Error, only : Error_Report
-#ifdef USEMPI
-    use :: MPI_Utilities, only : mpiSelf
-#endif
     implicit none
     class  (treeNode      ), intent(inout)           :: self
     integer(kind=kind_int8), intent(in   ), optional :: uniqueID
@@ -389,23 +386,48 @@ module Galacticus_Nodes
     if (present(uniqueID)) then
        self%uniqueIdValue=uniqueID
     else
-       !$omp critical(UniqueID_Assign)
-#ifdef USEMPI
-       if (.not.uniqueIdInitialized) then
-          uniqueIdCount      =int(mpiSelf%rank (),kind=kind_int8)
-          uniqueIdIncrement  =int(mpiSelf%count(),kind=kind_int8)
-          uniqueIdInitialized=.true.
-       end if
-       uniqueIDCount=uniqueIDCount+uniqueIdIncrement
-#else
-       uniqueIDCount=uniqueIDCount+1
-#endif
-       if (uniqueIDCount <= 0) call Error_Report('ran out of unique ID numbers'//{introspection:location})
+       ! Lock-free fetch-and-increment (replaces an "!$omp critical"): atomically advance the global
+       ! counter and capture this node's value in a single atomic operation, removing the per-node-creation
+       ! lock contention that otherwise serializes tree building across threads. The counter's start and
+       ! stride are initialized once, before any node is created, in Node_Unique_ID_Initialize (to the
+       ! process rank and process count under MPI, or the 0/1 defaults otherwise), so no per-call
+       ! initialization is needed here for either configuration. The overflow check tests the captured
+       ! (thread-local) value.
+       !$omp atomic capture
+       uniqueIDCount     =uniqueIDCount+uniqueIdIncrement
        self%uniqueIdValue=uniqueIDCount
-       !$omp end critical(UniqueID_Assign)
+       !$omp end atomic
+       if (self%uniqueIdValue <= 0) call Error_Report('ran out of unique ID numbers'//{introspection:location})
     end if
     return
   end subroutine Tree_Node_Unique_ID_Set
+
+  !![
+  <nodeComponentInitializationTask function="Node_Unique_ID_Initialize"/>
+  !!]
+  subroutine Node_Unique_ID_Initialize(parameters_)
+    !!{RST
+    Initialize the global unique-ID counter used by {\normalfont \ttfamily Tree\_Node\_Unique\_ID\_Set}.
+    This runs once, at node-component initialization---after MPI has been initialized and before any node
+    is created---so that per-node ID assignment can be a lock-free atomic increment (with no per-call
+    initialization) in both serial and MPI runs. Under MPI the counter starts at this process's rank and
+    strides by the number of processes, ensuring unique IDs are globally distinct across ranks; otherwise
+    the 0/1 defaults are left unchanged.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+#ifdef USEMPI
+    use :: MPI_Utilities   , only : mpiSelf
+#endif
+    implicit none
+    type(inputParameters), intent(inout) :: parameters_
+    !$GLC attributes unused :: parameters_
+
+#ifdef USEMPI
+    uniqueIdCount    =int(mpiSelf%rank (),kind=kind_int8)
+    uniqueIdIncrement=int(mpiSelf%count(),kind=kind_int8)
+#endif
+    return
+  end subroutine Node_Unique_ID_Initialize
 
   double precision function Tree_Node_Time_Step(self)
     !!{RST
