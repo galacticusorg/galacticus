@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784693793889,
+  "lastUpdate": 1785361731839,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "0933f2270bb35c9ed6e4ea3aaba2378824d3d069",
-          "message": "Merge pull request #843 from galacticusorg/featNonNegativeEvolution\n\nAdd functionality to mark component properties as non-negative",
-          "timestamp": "2025-05-15T04:13:34Z",
-          "tree_id": "965b20d4c9c08a30f9954dc20c86d4b46278768d",
-          "url": "https://github.com/galacticusorg/galacticus/commit/0933f2270bb35c9ed6e4ea3aaba2378824d3d069"
-        },
-        "date": 1747307172143,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 98.697,
-            "unit": "seconds",
-            "range": 0.181036184229228
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10704,6 +10674,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 7.595899328193852,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6cd4316ed766428efed5b6330b379ec7c155abeb",
+          "message": "Merge pull request #1306 from galacticusorg/satelliteFixesOnMaster\n\nfix: two dynamical friction bugs affecting subhalo counts, and the associated parameter migrations",
+          "timestamp": "2026-07-29T15:07:04Z",
+          "tree_id": "8d2a60073905259b45b1211dcc08447c8543e9f0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6cd4316ed766428efed5b6330b379ec7c155abeb"
+        },
+        "date": 1785361730777,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 43.851000000000006,
+            "range": "0.1043882177259483",
+            "unit": "seconds"
           }
         ]
       }
