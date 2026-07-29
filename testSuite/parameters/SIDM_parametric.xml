@@ -1,10 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!-- Base cold dark matter, dark-matter-only model for the parametric SIDM integration test.                            -->
 <!-- The parametric SIDM physics is applied on top via parameters/reference/darkMatterParametricSIDM.xml (see            -->
 <!-- testSuite/test-SIDM-parametric.py).                                                                                 -->
+
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified/>
+  <lastModified revision="a3e1665914d944c9fa844f662a028072e84740a5" time="2026-07-28T17:29:21"/>
 
   <!-- Reference cold dark matter, dark-matter-only model components. -->
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/darkMatterParticleCDM.xml"       xpointer="xpointer(parameters/*)" />

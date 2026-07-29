@@ -300,7 +300,8 @@ contains
          &                                        attributeValue
     integer                    , intent(  out) :: elementIndex
     character(len=len(tagName))                :: tagBase
-    integer                                    :: openBracket   , closeBracket
+    integer                                    :: openBracket   , closeBracket , &
+         &                                        i
 
     ! Extract any trailing positional predicate `[N]`. Such a predicate is always the final component of the tag name, so we
     ! find the last `[` and treat it as a positional predicate only if its contents consist solely of digits.
@@ -312,7 +313,14 @@ contains
        if (closeBracket > 0) then
           closeBracket=closeBracket+openBracket-1
           if (closeBracket > openBracket+1 .and. verify(tagName(openBracket+1:closeBracket-1),"0123456789") == 0) then
-             read (tagName(openBracket+1:closeBracket-1),*) elementIndex
+             ! Decode the index arithmetically rather than with an internal `read`. This subroutine can be reached with the
+             ! `gfortranInternalIO_` lock already held by a caller---in particular from within a `!$omp critical
+             ! (FoX_DOM_Access)` section, which the `threadSafeIO` source-tree processor rewrites to that same lock, and which
+             ! would also wrap any I/O statement here in that lock. As OpenMP critical sections are not reentrant, an internal
+             ! `read` here deadlocks. The substring is guaranteed to contain only digits by the `verify()` test above.
+             do i=openBracket+1,closeBracket-1
+                elementIndex=10*elementIndex+iachar(tagName(i:i))-iachar("0")
+             end do
              tagBase=tagName(1:openBracket-1)
           end if
        end if

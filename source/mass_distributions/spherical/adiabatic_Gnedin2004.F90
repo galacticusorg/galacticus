@@ -169,15 +169,16 @@ contains
     implicit none
     type            (massDistributionSphericalAdiabaticGnedin2004)                :: self
     type            (inputParameters                             ), intent(inout) :: parameters
-    class           (massDistributionClass                       ), pointer       :: massDistribution_            , massDistributionBaryonic
+    class           (massDistributionClass                       ), pointer       :: massDistribution_                        , massDistributionBaryonic
     procedure       (sphericalAdiabaticGnedin2004Initializor     ), pointer       :: initializationFunction
-    class           (*                                           ), pointer       :: initializationSelf           , initializationArgument
-    double precision                                                              :: A                            , omega                   , &
-         &                                                                           radiusFractionalPivot        , toleranceRelative       , &
-         &                                                                           radiusVirial                 , darkMatterFraction      , &
-         &                                                                           darkMatterDistributedFraction, massFractionInitial
-    type            (varying_string                              )                :: componentType                , massType                , &
+    class           (*                                           ), pointer       :: initializationSelf                       , initializationArgument
+    double precision                                                              :: A                                        , omega                   , &
+         &                                                                           radiusFractionalPivot                    , toleranceRelative       , &
+         &                                                                           radiusVirial                             , darkMatterFraction      , &
+         &                                                                           darkMatterDistributedFraction            , massFractionInitial
+    type            (varying_string                              )                :: componentType                            , massType                , &
          &                                                                           nonAnalyticSolver
+    logical                                                                       :: chandrasekharIntegralSuppressExtendedMass
 
     !![
     <inputParameter docformat="rst">
@@ -273,6 +274,14 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>chandrasekharIntegralSuppressExtendedMass</name>
+      <defaultValue>.true.</defaultValue>
+      <source>parameters</source>
+      <description>
+      If true, the Chandrasekhar integral (used to compute dynamical friction) is suppressed by a factor accounting for the finite extent of the perturbing subhalo. If false, no such suppression is applied.
+      </description>
+    </inputParameter>
     <objectBuilder class="massDistribution" name="massDistribution_"                                                 source="parameters"/>
     <objectBuilder class="massDistribution" name="massDistributionBaryonic" parameterName="massDistributionBaryonic" source="parameters"/>
     !!]
@@ -281,7 +290,7 @@ contains
        initializationFunction => null()
        initializationSelf     => null()
        initializationArgument => null()
-       self=massDistributionSphericalAdiabaticGnedin2004(A,omega,radiusVirial,radiusFractionalPivot,darkMatterFraction,darkMatterDistributedFraction,massFractionInitial,toleranceRelative,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),massDistribution_,massDistributionBaryonic,initializationFunction,initializationSelf,initializationArgument,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.))
+       self=massDistributionSphericalAdiabaticGnedin2004(A,omega,radiusVirial,radiusFractionalPivot,darkMatterFraction,darkMatterDistributedFraction,massFractionInitial,toleranceRelative,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),massDistribution_,massDistributionBaryonic,initializationFunction,initializationSelf,initializationArgument,enumerationComponentTypeEncode(componentType,includesPrefix=.false.),enumerationMassTypeEncode(massType,includesPrefix=.false.),chandrasekharIntegralSuppressExtendedMass)
     class default
        call Error_Report('a spherically-symmetric mass distribution is required'//{introspection:location})
     end select
@@ -293,25 +302,26 @@ contains
     return
   end function sphericalAdiabaticGnedin2004ConstructorParameters
   
-  function sphericalAdiabaticGnedin2004ConstructorInternal(A,omega,radiusVirial,radiusFractionalPivot,darkMatterFraction,darkMatterDistributedFraction,massFractionInitial,toleranceRelative,nonAnalyticSolver,massDistribution_,massDistributionBaryonic,initializationFunction,initializationSelf,initializationArgument,componentType,massType) result(self)
+  function sphericalAdiabaticGnedin2004ConstructorInternal(A,omega,radiusVirial,radiusFractionalPivot,darkMatterFraction,darkMatterDistributedFraction,massFractionInitial,toleranceRelative,nonAnalyticSolver,massDistribution_,massDistributionBaryonic,initializationFunction,initializationSelf,initializationArgument,componentType,massType,chandrasekharIntegralSuppressExtendedMass) result(self)
     !!{RST
     Constructor for the :galacticus-class:`massDistributionSphericalAdiabaticGnedin2004` mass distribution class.
     !!}
     implicit none
     type            (massDistributionSphericalAdiabaticGnedin2004)                          :: self
-    double precision                                              , intent(in   )           :: A                       , omega                        , &
-         &                                                                                     radiusVirial            , radiusFractionalPivot        , &
-         &                                                                                     darkMatterFraction      , darkMatterDistributedFraction, &
-         &                                                                                     massFractionInitial     , toleranceRelative
+    double precision                                              , intent(in   )           :: A                                        , omega                        , &
+         &                                                                                     radiusVirial                             , radiusFractionalPivot        , &
+         &                                                                                     darkMatterFraction                       , darkMatterDistributedFraction, &
+         &                                                                                     massFractionInitial                      , toleranceRelative
     class           (massDistributionSpherical                   ), intent(in   ), target   :: massDistribution_
     class           (massDistributionClass                       ), intent(in   ), target   :: massDistributionBaryonic
     type            (enumerationNonAnalyticSolversType           ), intent(in   )           :: nonAnalyticSolver
     procedure       (sphericalAdiabaticGnedin2004Initializor     ), intent(in   ), pointer  :: initializationFunction
-    class           (*                                           ), intent(in   ), pointer  :: initializationSelf      , initializationArgument
+    class           (*                                           ), intent(in   ), pointer  :: initializationSelf                       , initializationArgument
     type            (enumerationComponentTypeType                ), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType                     ), intent(in   ), optional :: massType
+    logical                                                       , intent(in   ), optional :: chandrasekharIntegralSuppressExtendedMass
     !![
-    <constructorAssign variables="A, omega, radiusVirial, radiusFractionalPivot, darkMatterFraction, darkMatterDistributedFraction, massFractionInitial, toleranceRelative, nonAnalyticSolver, *massDistribution_, *massDistributionBaryonic, */initializationFunction, */initializationSelf, */initializationArgument, componentType, massType"/>
+    <constructorAssign variables="A, omega, radiusVirial, radiusFractionalPivot, darkMatterFraction, darkMatterDistributedFraction, massFractionInitial, toleranceRelative, nonAnalyticSolver, chandrasekharIntegralSuppressExtendedMass, *massDistribution_, *massDistributionBaryonic, */initializationFunction, */initializationSelf, */initializationArgument, componentType, massType"/>
     !!]
 
     ! Validate.

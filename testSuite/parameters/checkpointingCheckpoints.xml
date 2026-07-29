@@ -5,7 +5,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
+  <lastModified revision="a3e1665914d944c9fa844f662a028072e84740a5" time="2026-07-28T17:29:21"/>
 
 
   <!-- Set verbosity to show when background work is being performed -->
@@ -187,6 +187,7 @@
       <unresolvedEnergy value="0.550000000000000"/>
       <!-- For leaf nodes in the tree we instead set scale radii using a concentration-mass-redshift model, with concentrations limited to a reasonable range. -->
       <darkMatterProfileScaleRadius value="concentration"/>
+      <massFunctionSlopeLogarithmic value="-1.8"/>
     </darkMatterProfileScaleRadius>
   </darkMatterProfileScaleRadius>
   <darkMatterProfileConcentration value="diemerJoyce2019">

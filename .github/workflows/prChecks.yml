@@ -36,9 +36,13 @@ jobs:
         with:
           files: |
             **/*.yml
+          safe_output: false
       # NOTE: the names of the files changed by the pull request are passed in through the environment, and never interpolated
       # into the script text with `${{ }}`: they are chosen by whoever opened the pull request, and git permits characters in
-      # them which are special to the shell. `set -f` prevents a name containing a glob character being expanded.
+      # them which are special to the shell. `set -f` prevents a name containing a glob character being expanded. Because the
+      # names are passed through the environment rather than interpolated, the escaping which `changed-files` applies by
+      # default is unnecessary here, and actively harmful - it inserts backslashes into names containing (for example) a
+      # colon, so that the file can no longer be opened. It is therefore disabled via `safe_output: false`.
       - name: Validate any YAML files
         env:
           CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
@@ -67,6 +71,7 @@ jobs:
           files: |
             **/*.md
             **/*.rst
+          safe_output: false
       - name: Check for links to retired PDF manuals
         env:
           CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
@@ -102,6 +107,7 @@ jobs:
         with:
           files: |
             **/*.xml
+          safe_output: false
       - name: Validate any XML files
         env:
           CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
@@ -137,6 +143,7 @@ jobs:
         with:
           files: |
             **/*.py
+          safe_output: false
       - name: Validate any Python scripts
         env:
           CHANGED_FILES: ${{ steps.changed-scripts.outputs.all_changed_files }}
@@ -187,6 +194,7 @@ jobs:
         with:
           files: |
             **/*.F90
+          safe_output: false
       - name: Perform static analysis on Fortran files
         env:
           CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
@@ -229,6 +237,7 @@ jobs:
           files: |
             **/*.F90
             **/*.Inc
+          safe_output: false
       - name: Validate embedded XML directives
         env:
           CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}

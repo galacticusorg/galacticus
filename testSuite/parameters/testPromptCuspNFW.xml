@@ -2,7 +2,7 @@
 <!-- Compute prompt cusp parameters - used in testing the calculation again Sten Delos' implementation. -->
 
 <parameters>
-  <lastModified revision="23263e8c1dfc569099e2c1fbdedbc04ed6446e59" time="2026-05-18T15:53:57"/>
+  <lastModified revision="a3e1665914d944c9fa844f662a028072e84740a5" time="2026-07-28T17:29:21"/>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
@@ -198,6 +198,7 @@
 	<nonAnalyticSolver value="numerical"/>
 	<toleranceRelativeVelocityDispersionMaximum value="0.1"/>
       </darkMatterProfileDMO>
+      <massFunctionSlopeLogarithmic value="-1.8"/>
     </darkMatterProfileScaleRadius>
   </darkMatterProfileScaleRadius>
   

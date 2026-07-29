@@ -1,5 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <parameters>
+  <lastModified revision="a3e1665914d944c9fa844f662a028072e84740a5" time="2026-07-28T17:29:21"/>
   <formatVersion>2</formatVersion>
 
   <!-- Output control -->
@@ -9,12 +10,12 @@
   </outputTimes>  
 
   <!-- Include cosmology and mass function parameters -->
-  <xi:include href="haloMassFunctionParameters.xml"                                                                       xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="../../../../constraints/pipelines/darkMatter/simulation_MDPL_MDPL2.xml"            xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="../../../../constraints/pipelines/darkMatter/cosmology_MDPL.xml"                                           xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="../../../../constraints/pipelines/darkMatter/powerSpectrumEffective_MDPL.xml"                              xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="haloMassFunction_MDPL.xml"                                 xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
-  <xi:include href="../../../../constraints/pipelines/darkMatter/transferFunction_MDPL_CDM.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="haloMassFunctionParameters.xml" xpointer="xpointer(parameters/*)"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../../constraints/pipelines/darkMatter/simulation_MDPL_MDPL2.xml" xpointer="xpointer(parameters/*)"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../../constraints/pipelines/darkMatter/cosmology_MDPL.xml" xpointer="xpointer(parameters/*)"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../../constraints/pipelines/darkMatter/powerSpectrumEffective_MDPL.xml" xpointer="xpointer(parameters/*)"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="haloMassFunction_MDPL.xml" xpointer="xpointer(parameters/*)"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../../../constraints/pipelines/darkMatter/transferFunction_MDPL_CDM.xml" xpointer="xpointer(parameters/*)"/>
 
   <!-- Particle mass at the current resolution -->
   <massParticleAtResolution value="=[simulation/massParticle/resolutionX1]" ignoreWarnings="true"/>
