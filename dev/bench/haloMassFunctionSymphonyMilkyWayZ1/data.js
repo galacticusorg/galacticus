@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784693911843,
+  "lastUpdate": 1785361937765,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (Symphony Milky Way z=1)": [
@@ -52,6 +52,35 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/7ccee793c100d43f06a33d7ab4cdf7a59b8536c8"
         },
         "date": 1784693910726,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX1 z=0.990 (47 realizations)",
+            "value": 3961.991134723228,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6cd4316ed766428efed5b6330b379ec7c155abeb",
+          "message": "Merge pull request #1306 from galacticusorg/satelliteFixesOnMaster\n\nfix: two dynamical friction bugs affecting subhalo counts, and the associated parameter migrations",
+          "timestamp": "2026-07-29T15:07:04Z",
+          "tree_id": "8d2a60073905259b45b1211dcc08447c8543e9f0",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6cd4316ed766428efed5b6330b379ec7c155abeb"
+        },
+        "date": 1785361936706,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
