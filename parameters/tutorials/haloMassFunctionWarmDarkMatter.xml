@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<!-- Parameters for tutorial on computing the halo mass function for warm dark matter - https://github.com/galacticusorg/galacticus/wiki/Tutorial%3A-Warm-dark-matter-halo-mass-function -->
+<!-- Parameters for tutorial on computing the halo mass function for warm dark matter - https://galacticus.readthedocs.io/en/latest/manuals/user-guide/tutorials/warm-dark-matter-halo-mass-function.html -->
 
 <parameters>
   <formatVersion>2</formatVersion>

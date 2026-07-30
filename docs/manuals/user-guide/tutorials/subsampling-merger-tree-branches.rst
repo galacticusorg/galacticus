@@ -1,7 +1,7 @@
 Subsampling of Merger Tree Branches
 ===================================
 
-In this tutorial we will build on the previous tutorial on `generating dark matter only merger trees <https://github.com/galacticusorg/galacticus/wiki/Tutorial:-Dark-matter-only-merger-trees>`_ to explore Galacticus' functionality to modify how trees are built. Specifically, we'll subsample merger tree branches - keeping only a fraction of the lower mass branches. This can be useful when exploring extremely high-resolution trees to keep both memory and CPU requirements manageable.
+In this tutorial we will build on the previous tutorial on :doc:`generating dark matter only merger trees <dark-matter-only-merger-trees>` to explore Galacticus' functionality to modify how trees are built. Specifically, we'll subsample merger tree branches - keeping only a fraction of the lower mass branches. This can be useful when exploring extremely high-resolution trees to keep both memory and CPU requirements manageable.
 
 How subsampling works
 ---------------------
@@ -17,7 +17,7 @@ This results in large numbers of low mass branches. We can choose to subsample t
 Running the calculation
 -----------------------
 
-To run the same dark matter only merger tree model as in the previous `tutorial <https://github.com/galacticusorg/galacticus/wiki/Tutorial:-Dark-matter-only-merger-trees>`_ do the following:
+To run the same dark matter only merger tree model as in the previous :doc:`tutorial <dark-matter-only-merger-trees>` do the following:
 
 .. code-block:: console
 
@@ -47,7 +47,7 @@ So, for example, branches of mass :math:`10^7\mathrm{M}_\odot` are kept with pro
 Understanding the output
 ------------------------
 
-The resulting output file has the same structure as in the previous `tutorial <https://github.com/galacticusorg/galacticus/wiki/Tutorial:-Dark-matter-only-merger-trees>`_. However, if we examine the masses of the halos produced we will now find some much lower mass halos:
+The resulting output file has the same structure as in the previous :doc:`tutorial <dark-matter-only-merger-trees>`. However, if we examine the masses of the halos produced we will now find some much lower mass halos:
 
 .. code-block:: console
 

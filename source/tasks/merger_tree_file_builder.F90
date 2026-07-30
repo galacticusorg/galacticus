@@ -44,7 +44,11 @@
   !![
   <task name="taskMergerTreeFileBuilder" docformat="rst">
    <description>
-   This task will build a merger tree file in the format described `here &lt;https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format&gt;`_ from merger tree descriptions in other formats, such as ASCII output from an SQL database. An example of how the builder can be used can be found in this `tutorial &lt;https://github.com/galacticusorg/galacticus/wiki/Tutorial:-Building-merger-trees-from-ASCII-files&gt;`_.
+   This task will build a merger tree file in the format described :doc:`here &lt;/manuals/user-guide/data/merger-tree-file-format&gt;` from merger tree descriptions in other formats, such as ASCII output from an SQL database.
+
+   .. note::
+
+      For new work, the ``astrosylva`` tool (`GitHub &lt;https://github.com/galacticusorg/astrosylva&gt;`_; `PyPI &lt;https://pypi.org/project/astrosylva/&gt;`_; `documentation &lt;https://astrosylva.readthedocs.io/en/latest/&gt;`_) should be used to build merger tree files---it supports a wider range of input formats and is actively developed. This task is maintained for reference, but is not intended for new work.
 
    The builder is flexible, and therefore requires many parameters to control how it processes input files, all of which are described below.
 
@@ -53,7 +57,7 @@
    The merger tree file builder can currently export in one of two formats:
 
    ``galacticus``
-      merger trees are exported in Galacticus's native format described in detail `here &lt;https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format&gt;`_;
+      merger trees are exported in Galacticus's native format described in detail :doc:`here &lt;/manuals/user-guide/data/merger-tree-file-format&gt;`;
 
    ``irate``
       merger trees are exported in the `IRATE &lt;https://irate-format.readthedocs.io/en/stable/formatspec.html&gt;`_ format.

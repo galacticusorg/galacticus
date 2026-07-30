@@ -535,6 +535,8 @@ An example of this group, showing standard attributes, is given below.
       }
    }
 
+.. _forest-halos-group:
+
 Forest Halos Group
 ------------------
 

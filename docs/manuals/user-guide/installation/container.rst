@@ -6,7 +6,7 @@ Container Registry (GHCR) and SingularityHub. These provide a complete,
 containerized environment with Galacticus pre-installed and ready to run. It's
 the easiest way to get started using Galacticus.
 
-(For Docker image build instructions see `here <https://github.com/galacticusorg/galacticus/wiki/Building-Docker-Images>`_.)
+(For Docker image build instructions see :doc:`../../developer-guide/building-docker-images`.)
 
 Docker
 ------

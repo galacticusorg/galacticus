@@ -12,6 +12,6 @@ Below is a flowchart indicating the physical components and processes that typic
    	Galaxy
    	IGM -->|<a href='https://galacticus.readthedocs.io/en/latest/physics/accretionHalo.html' style='text-decoration: none'>accretion</a>| CGM
    	Outflowed -->|<a href='https://galacticus.readthedocs.io/en/latest/physics/hotHaloOutflowReincorporation.html' style='text-decoration: none'>reincorportation</a>| CGM
-   	CGM -->|<a href='https://github.com/galacticusorg/galacticus/wiki/CGM-Cooling-Physics' style='text-decoration: none'>cooling</a>| Galaxy
+   	CGM -->|<a href='cgm-cooling.html' style='text-decoration: none'>cooling</a>| Galaxy
    	Galaxy -- outflow --> Outflowed
    	Galaxy -- outflow --> IGM
