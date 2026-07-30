@@ -393,7 +393,6 @@
       <subresolutionAngularMomentumMethod value="original"/>
       <exponentMass value="0.92527794238468"/>
       <angularMomentumVarianceSpecific value="0.001"/>
-      <useOriginalSubresolutionMethod value="true"/>
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Subhalo hierarchy -->
