@@ -6,6 +6,7 @@ import subprocess
 import sys
 import urllib.request
 import urllib.error
+import urllib.parse
 
 # Retrieve and archive copies of all run-time downloaded data files for Galacticus.
 # Andrew Benson (19-April-2024)
@@ -60,6 +61,22 @@ def resolve_versions(link):
     link = re.sub(r'//([a-zA-Z]+)Version//', replace_version, link)
     return link
 
+# Top-level domains and second-level names reserved by RFC 2606 and RFC 6761 for documentation and testing. These never
+# resolve to a real host, so a link using one is a test fixture - e.g. `source/tests/system/download.F90`, which exercises the
+# downloader's certificate handling and its defenses against shell metacharacters in URLs - and not a run-time dependency to
+# be archived.
+reservedTLDs   = ('test', 'example', 'invalid', 'localhost')
+reservedHosts  = ('localhost', 'example.com', 'example.net', 'example.org')
+
+def is_reserved(link):
+    """Return whether the given link points at a hostname reserved for documentation and testing."""
+    try:
+        host = urllib.parse.urlsplit(link).hostname or ""
+    except ValueError:
+        # A malformed URL is not something we can archive in any case.
+        return True
+    return host in reservedHosts or host.rsplit('.', 1)[-1] in reservedTLDs
+
 def link_finder(file_name, full_path):
     # Ignore files not matching expected extensions or Makefile.
     if not (re.search(r'\.(F90|Inc|py)$', file_name) or os.path.basename(file_name) == 'Makefile'):
@@ -67,6 +84,9 @@ def link_finder(file_name, full_path):
     # Fallback groups accumulated within this file, keyed on the name of the array variable holding the alternate URLs.
     groups = {}
     def add_link(link, variable=None):
+        # Ignore links to reserved hostnames, which are test fixtures rather than run-time dependencies.
+        if is_reserved(link):
+            return
         # An indexed assignment (e.g. `urls(1)=...`, `urls(2)=...`) builds an array of alternate URLs, so all elements of a
         # given array in a given file belong to a single fallback group. Anything else stands alone.
         if variable is not None and variable in groups:
