@@ -1702,6 +1702,15 @@ jobs:
       runPath: ./testSuite
       options: --processesPerNode 4 --allowRunAsRoot yes
     secrets: inherit
+  MPI-Posterior-Sample-Proposal-Log:
+    needs: Build-Executables-MPI-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-posteriorSampleProposalLog_MPI.py
+      artifact: galacticus-exec-MPI
+      runPath: ./testSuite
+      options: --processesPerNode 4 --allowRunAsRoot yes
+    secrets: inherit
   MPI-MCMC:
     needs: Build-Executables-MPI-Linux
     uses: ./.github/workflows/testModel.yml
