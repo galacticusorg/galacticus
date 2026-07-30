@@ -149,24 +149,39 @@ def check(processes, chains=CHAINS, samples=SAMPLES):
             continue
         sample_step = read_table(sample_files[0])[:, 0].astype(int)
 
-        if not np.all(np.isin(sample_step, chain_step)):
+        # The initial state is evaluated before stepping begins, and recorded at
+        # step 0; the chain log has no row for it.  Every other record must
+        # correspond to a logged step.
+        if np.count_nonzero(sample_step == 0) > 1:
+            failures.append(
+                f"rank {rank}: more than one step-0 record; only the initial "
+                f"state evaluation should carry that step"
+            )
+        stepped = sample_step[sample_step != 0]
+        if not np.all(np.isin(stepped, chain_step)):
             failures.append(
                 f"rank {rank}: sampled model vector steps are absent from the chain "
                 f"log - the step labelling of [pathSamples] output is offset"
             )
             continue
         # Every acceptance was necessarily evaluated, so must have been recorded.
-        missing = accepted_steps - set(sample_step.tolist())
+        # This is the decisive check on step labelling: under the previous
+        # convention an acceptance at step s had its record labelled s-1, leaving
+        # most accepted steps unaccounted for.
+        missing = accepted_steps - set(stepped.tolist())
         if missing:
             failures.append(
                 f"rank {rank}: {len(missing)} accepted steps have no sampled model "
                 f"vector (e.g. {sorted(missing)[:5]}) - step labelling is offset"
             )
-        # The proposal log and the sample file describe the same evaluations.
-        if set(sample_step.tolist()) != set(proposal_step.tolist()):
+        # Every evaluated step must have been proposed, but not conversely: a
+        # proposal falling outside the prior is logged yet never reaches the
+        # likelihood, so no model vector is written for it.
+        unproposed = set(stepped.tolist()) - set(proposal_step.tolist())
+        if unproposed:
             failures.append(
-                f"rank {rank}: sampled model vectors and proposals disagree on "
-                f"which steps were evaluated"
+                f"rank {rank}: {len(unproposed)} sampled model vectors have no "
+                f"corresponding proposal (e.g. {sorted(unproposed)[:5]})"
             )
 
     return failures, warnings

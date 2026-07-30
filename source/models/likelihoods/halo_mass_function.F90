@@ -116,6 +116,16 @@ contains
       <name>pathSamples</name>
       <description>
       The path into which the sampled mass functions should be written. If ``none``, then samples are not written.
+
+      One file is written per constraint per :term:`MPI` process, holding one record per likelihood evaluation - the
+      simulation step followed by the model mass function. Records are written for every evaluated proposal, not only for
+      accepted states, and the state proposed at a rejected step appears in no other output unless ``[logProposals]`` is
+      set on the simulation.
+
+      Files are named for the :term:`MPI` process which performed the evaluation, and carry no chain index. Under
+      ``[loadBalance]``\ ``=true`` a chain's proposal may be evaluated by any process, so records cannot then be
+      attributed to the chain that proposed them. Set ``[loadBalance]``\ ``=false`` if the samples are to be paired with
+      chain states.
       </description>
       <source>parameters</source>
       <defaultValue>var_str('none')</defaultValue>

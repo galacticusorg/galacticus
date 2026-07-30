@@ -35,6 +35,12 @@
     <!-- Two chains suffice here; the usual advice of at least as many chains as
          parameters is about sampling quality, which this test does not assess. -->
     <ignoreChainNumberAdvice value="true" />
+    <!-- Load balancing hands a chain's proposal to whichever process is free to
+         evaluate it. `[pathSamples]` output is named for the *evaluating* rank
+         and carries no chain index, so under load balancing its records cannot
+         be attributed to a chain at all. Disable it here, since attribution is
+         precisely what this test checks. -->
+    <loadBalance value="false" />
 
     <modelParameter value="active">
       <name value="haloMassFunctionParameters/a" />
