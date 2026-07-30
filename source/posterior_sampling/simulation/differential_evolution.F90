@@ -66,7 +66,8 @@
      double precision                                                                          :: logPosterior                                      , logPrior
      logical                                                                                   :: isConverged                                       , sampleOutliers          , &
           &                                                                                       isInteractive                                     , appendLogs              , &
-          &                                                                                       loadBalance                                       , ignoreChainNumberAdvice
+          &                                                                                       loadBalance                                       , ignoreChainNumberAdvice , &
+          &                                                                                       logProposals
      logical                                                       , allocatable, dimension(:) :: modelParametersActiveIsSlow
      type            (modelParameterList                          ), allocatable, dimension(:) :: modelParametersActive_                            , modelParametersInactive_
      class           (posteriorSampleLikelihoodClass              ), pointer                   :: posteriorSampleLikelihood_               => null()
@@ -145,6 +146,7 @@ contains
     type   (varying_string                                )                              :: logFileRoot                             , interactionRoot         , &
          &                                                                                  message
     logical                                                                              :: sampleOutliers                          , appendLogs              , &
+         &                                                                                  logProposals                                                      , &
          &                                                                                  loadBalance                             , ignoreChainNumberAdvice
 
     !![
@@ -236,6 +238,23 @@ contains
       <defaultValue>.false.</defaultValue>
     </inputParameter>
     <inputParameter docformat="rst">
+      <name>logProposals</name>
+      <description>
+      If true, write a log of every proposed state to
+      ``&lt;logFileRoot&gt;Proposals_&lt;rank&gt;.log``, whether or not that proposal was
+      accepted. The chain log records only the state retained at each step, so a
+      rejected proposal's parameters are otherwise never written anywhere. This
+      matters for any analysis which pairs recorded model outputs (for example
+      those written by ``posteriorSampleLikelihoodHaloMassFunction`` via
+      ``pathSamples``) with the parameters that produced them: without this log
+      only accepted steps can be used, discarding the majority of the evaluations
+      and, with them, the wider coverage of parameter space that rejected
+      proposals provide.
+      </description>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+    </inputParameter>
+    <inputParameter docformat="rst">
       <name>loadBalance</name>
       <description>
       If true, attempt to balance the workload across different compute nodes.
@@ -310,7 +329,7 @@ contains
        <objectDestructor name="modelParameter_"/>
        !!]
     end do
-    self=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,slowStepCount,recomputeCount,char(logFileRoot),sampleOutliers,logFlushCount,reportCount,char(interactionRoot),appendLogs,loadBalance,ignoreChainNumberAdvice)
+    self=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,slowStepCount,recomputeCount,char(logFileRoot),sampleOutliers,logFlushCount,reportCount,char(interactionRoot),appendLogs,loadBalance,ignoreChainNumberAdvice,logProposals)
     !![
     <inputParametersValidate source="parameters" multiParameters="modelParameter"/>
     <objectDestructor name="posteriorSampleLikelihood_"              />
@@ -337,7 +356,7 @@ contains
     return
   end function differentialEvolutionConstructorParameters
   
-  function differentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,slowStepCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice) result(self)
+  function differentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,slowStepCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,logProposals) result(self)
     !!{RST
     Internal constructor for the "differentialEvolution" simulation class.
     !!}
@@ -359,10 +378,11 @@ contains
          &                                                                                    slowStepCount
     character(len=*                                         ), intent(in   )               :: logFileRoot                             , interactionRoot
     logical                                                  , intent(in   )               :: sampleOutliers                          , appendLogs              , &
+         &                                                                                     logProposals                                                    , &
          &                                                                                    loadBalance                             , ignoreChainNumberAdvice
     integer                                                                                :: i
     !![
-    <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *posteriorSampleDffrntlEvltnProposalSize_, *posteriorSampleDffrntlEvltnRandomJump_, *randomNumberGenerator_, stepsMaximum, acceptanceAverageCount, stateSwapCount, slowStepCount, recomputeCount, logFlushCount, reportCount, sampleOutliers, logFileRoot, interactionRoot, appendLogs, loadBalance, ignoreChainNumberAdvice"/>
+    <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *posteriorSampleDffrntlEvltnProposalSize_, *posteriorSampleDffrntlEvltnRandomJump_, *randomNumberGenerator_, stepsMaximum, acceptanceAverageCount, stateSwapCount, slowStepCount, recomputeCount, logFlushCount, reportCount, sampleOutliers, logFileRoot, interactionRoot, appendLogs, loadBalance, ignoreChainNumberAdvice, logProposals"/>
     !!]
 
     allocate(self%modelParametersActive_     (size(modelParametersActive_  )))
@@ -455,11 +475,13 @@ contains
          &                                                                                                timeEvaluateInitial   , logLikelihoodVarianceProposed, &
          &                                                                                                logPosteriorInitial   , logLikelihoodInitial
     type            (varying_string                                )                                   :: logFileName           , message                      , &
-         &                                                                                                interactionFileName
+         &                                                                                                interactionFileName   , proposalFileName
     integer                                                                                            :: logFileUnit           , convergedAtStep              , &
          &                                                                                                convergenceFileUnit   , i                            , &
-         &                                                                                                ioStatus              , interactionFile
-    logical                                                                                               forceAcceptance
+         &                                                                                                ioStatus              , interactionFile              , &
+         &                                                                                                proposalFileUnit
+    double precision                                               , allocatable, dimension(:)         :: stateVectorProposedLog
+    logical                                                                                               forceAcceptance       , proposalAccepted
     character       (len=32                                        )                                   :: label
 
     ! Check that we have sufficient chains for differential evolution.
@@ -520,6 +542,30 @@ contains
        do i=1,size(self%modelParametersActive_)
           write (logFileUnit,'(a,i3,a,a,a)') '#  ',i+6,' = Parameter `',char(self%modelParametersActive_(i)%modelParameter_%name()),'`'
        end do
+    end if
+    ! Optionally open a log of proposed states. The chain log records only the state
+    ! retained at each step, so without this a rejected proposal's parameters are
+    ! never written anywhere and any model output recorded during its evaluation
+    ! cannot be attributed to a point in parameter space.
+    if (self%logProposals) then
+       allocate(stateVectorProposedLog(size(self%modelParametersActive_)))
+       proposalFileName=self%logFileRoot//'Proposals_'//mpiSelf%rankLabel()//'.log'
+       if (self%appendLogs) then
+          open(newunit=proposalFileUnit,file=char(proposalFileName),status='unknown',form='formatted',position='append')
+       else
+          open(newunit=proposalFileUnit,file=char(proposalFileName),status='unknown',form='formatted'                  )
+          write (proposalFileUnit,'(a)') '# Proposed state log'
+          write (proposalFileUnit,'(a)') '# One row per proposal evaluated, whether or not it was accepted.'
+          write (proposalFileUnit,'(a)') '# Columns:'
+          write (proposalFileUnit,'(a)') '#    1 = Simulation step'
+          write (proposalFileUnit,'(a)') '#    2 = Chain index'
+          write (proposalFileUnit,'(a)') '#    3 = Proposal accepted? [T/F]'
+          write (proposalFileUnit,'(a)') '#    4 = log posterior of proposal'
+          write (proposalFileUnit,'(a)') '#    5 = log likelihood of proposal'
+          do i=1,size(self%modelParametersActive_)
+             write (proposalFileUnit,'(a,i3,a,a,a)') '#  ',i+5,' = Parameter `',char(self%modelParametersActive_(i)%modelParameter_%name()),'`'
+          end do
+       end if
     end if
     self%isConverged=.false.
     do while (                                                                                                   &
@@ -596,7 +642,16 @@ contains
        call stateProposed%update(stateVectorProposed,.true.,.false.)
        select type (stateProposed)
        type is (posteriorSampleStateSimple)
-          call stateProposed%countSet(self%posteriorSampleState_%count())
+          ! Label the proposal with the step at which it will be recorded in the
+          ! chain log. `self%posteriorSampleState_` is not advanced until the
+          ! `update()` call following the accept/reject decision below, so its
+          ! count here is one behind. Any likelihood which tags its output with
+          ! `simulationState%count()` - the sampled model vectors written by
+          ! `posteriorSampleLikelihoodHaloMassFunction`, the per-step groups
+          ! written by `posteriorSampleLikelihoodGalaxyPopulation` - would
+          ! otherwise be offset by one step from the chain log, making the two
+          ! impossible to join without knowing the convention.
+          call stateProposed%countSet(self%posteriorSampleState_%count()+1)
        end select
        ! Evaluate likelihood.
        timeEvaluatePrevious=timeEvaluate
@@ -615,9 +670,11 @@ contains
           logLikelihood        =logLikelihoodProposed
           logLikelihoodVariance=logLikelihoodVarianceProposed
           stateVector          =stateVectorProposed
+          proposalAccepted     =.true.
        else
           ! Step not accepted - retain the old estimate of work time.
           timeEvaluate         =timeEvaluatePrevious
+          proposalAccepted     =.false.
        end if
        call self%update(stateVector)
        ! Unmap parameters and write to log file.
@@ -633,6 +690,20 @@ contains
                &                                              logLikelihood  , &
                &                                              stateVector
           if (mod(self%posteriorSampleState_%count(),self%logFlushCount) == 0) call flush(logFileUnit)
+          if (self%logProposals) then
+             ! Unmap a copy of the proposed state - `stateVectorProposed` itself must
+             ! be left mapped for use in subsequent steps.
+             do i=1,size(stateVectorProposed)
+                stateVectorProposedLog(i)=self%modelParametersActive_(i)%modelParameter_%unmap(stateVectorProposed(i))
+             end do
+             write (proposalFileUnit,*) self%posteriorSampleState_%count        (), &
+                  &                     mpiSelf                   %rank         (), &
+                  &                                                proposalAccepted, &
+                  &                                                logPosteriorProposed, &
+                  &                                                logLikelihoodProposed, &
+                  &                                                stateVectorProposedLog
+             if (mod(self%posteriorSampleState_%count(),self%logFlushCount) == 0) call flush(proposalFileUnit)
+          end if
        end if
        ! Repeat.
        call mpiBarrier()
@@ -655,6 +726,7 @@ contains
        end if
     end do
     close(logFileUnit)
+    if (self%logProposals) close(proposalFileUnit)
     return
   end subroutine differentialEvolutionSimulate
 
