@@ -10,9 +10,11 @@ likelihood evaluation can be joined back to the parameters that produced it:
    chain log records only the state retained at each step, so this is the only
    place a rejected proposal's parameters appear.
 2. Model vectors written via ``[pathSamples]`` are tagged with the simulation
-   step, which must match the step under which the chain log records that same
-   evaluation.  These previously differed by one, silently mispairing every
-   record.
+   step and the chain index.  The step must match the step under which the chain
+   log records that same evaluation; these previously differed by one, silently
+   mispairing every record.  The chain index must identify the chain whose
+   proposal was evaluated, which under load balancing - deliberately enabled here
+   - need not be the process that wrote the file.
 
 The checks are separated from the model run so they can be exercised against
 synthetic logs without an MPI build.
@@ -62,6 +64,28 @@ def check(processes, chains=CHAINS, samples=SAMPLES):
         )
     if failures:
         return failures, warnings
+
+    # Pool every sample file, grouping records by their chain index.
+    sample_files = sorted(glob.glob(f"{samples}/*_[0-9][0-9][0-9][0-9].txt"))
+    if not sample_files:
+        failures.append(f"no sampled model vectors found in {samples}")
+        return failures, warnings
+    samples_by_chain = {}
+    for path in sample_files:
+        table = read_table(path)
+        if table.size == 0:
+            continue
+        if table.shape[1] < 3:
+            failures.append(
+                f"{path}: rows have {table.shape[1]} columns; expected step, "
+                f"chain index, then the model values"
+            )
+            return failures, warnings
+        for step, chain_of_record in zip(
+            table[:, 0].astype(int), table[:, 1].astype(int)
+        ):
+            samples_by_chain.setdefault(chain_of_record, []).append(step)
+    samples_by_chain = {c: np.array(sorted(v)) for c, v in samples_by_chain.items()}
 
     for rank in range(processes):
         chain = read_table(f"{chains}_{rank:04d}.log", boolean_columns=[3])
@@ -142,12 +166,13 @@ def check(processes, chains=CHAINS, samples=SAMPLES):
                 f"suggesting the retained rather than proposed state is logged"
             )
 
-        # Sampled model vectors must carry the same step as the chain log.
-        sample_files = sorted(glob.glob(f"{samples}/*_{rank:04d}.txt"))
-        if not sample_files:
-            failures.append(f"rank {rank}: no sampled model vectors found in {samples}")
+        # Sampled model vectors must carry the same step as the chain log.  They
+        # are attributed by the chain-index column, not by which file they are
+        # in: under load balancing any process may evaluate any chain.
+        if rank not in samples_by_chain:
+            failures.append(f"rank {rank}: no sampled model vectors for this chain")
             continue
-        sample_step = read_table(sample_files[0])[:, 0].astype(int)
+        sample_step = samples_by_chain[rank]
 
         # The initial state is evaluated before stepping begins, and recorded at
         # step 0; the chain log has no row for it.  Every other record must

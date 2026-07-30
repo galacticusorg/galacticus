@@ -122,10 +122,9 @@ contains
       accepted states, and the state proposed at a rejected step appears in no other output unless ``[logProposals]`` is
       set on the simulation.
 
-      Files are named for the :term:`MPI` process which performed the evaluation, and carry no chain index. Under
-      ``[loadBalance]``\ ``=true`` a chain's proposal may be evaluated by any process, so records cannot then be
-      attributed to the chain that proposed them. Set ``[loadBalance]``\ ``=false`` if the samples are to be paired with
-      chain states.
+      Each record carries the chain index alongside the simulation step. Files are named for the :term:`MPI` process
+      which performed the evaluation, which under ``[loadBalance]``\ ``=true`` need not be the process owning the chain,
+      so records must be attributed using the chain index rather than the file name.
       </description>
       <source>parameters</source>
       <defaultValue>var_str('none')</defaultValue>
@@ -479,7 +478,11 @@ contains
           self%sampleFileNames(iRedshift)=extract(self%sampleFileNames(iRedshift),1,index(self%sampleFileNames(iRedshift),".hdf5")-1)//"_"//mpiSelf%rankLabel()//".txt"
           if (.not.self%appendSamples) then
              open(newUnit=unitSample,file=char(self%sampleFileNames(iRedshift)),form='formatted',status='unknown')
-             write (unitSample,'(a,a)') '# Sampled halo mass functions for chain ',char(mpiSelf%rankLabel())
+             write (unitSample,'(a,a)') '# Sampled halo mass functions written by process ',char(mpiSelf%rankLabel())
+             write (unitSample,'(a)'  ) '# One row per likelihood evaluation. Columns: simulation step, chain index, then'
+             write (unitSample,'(a)'  ) '# the model mass function at each mass below. The chain index need not equal the'
+             write (unitSample,'(a)'  ) '# process which wrote this file: under [loadBalance] any process may evaluate any'
+             write (unitSample,'(a)'  ) '# chain, so records must be attributed using the chain index, not the file name.'
              write (unitSample,*      ) '# Masses: ',self%mass
              close(unitSample)
           end if
@@ -661,7 +664,7 @@ contains
     if (self%pathSamples /= "none") then
        do iTime=1,size(self%times)
           open(newUnit=unitSample,file=char(self%sampleFileNames(iTime)),form='formatted',status='unknown',position='append')
-          write (unitSample,*) simulationState%count(),massFunction(:,iTime)
+          write (unitSample,*) simulationState%count(),simulationState%chainIndex(),massFunction(:,iTime)
           close(unitSample)
        end do
     end if
