@@ -45,11 +45,12 @@ module Johnson2021_Statistics
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   implicit none
   private
-  public :: johnson2021EnergyModelApplied, johnson2021EnergyModelFailed
+  public :: johnson2021EnergyModelApplied, johnson2021EnergyModelFailed, johnson2021EnergyModelInitialized
 
   ! Counts of the nodes to which the energy model was applied, and of those for which it failed. Deliberately not
   ! threadprivate: they accumulate across all threads, and are updated atomically by the caller.
-  integer(c_size_t) :: johnson2021EnergyModelApplied=0_c_size_t, johnson2021EnergyModelFailed=0_c_size_t
+  logical           :: johnson2021EnergyModelInitialized=.false.
+  integer(c_size_t) :: johnson2021EnergyModelApplied    =0_c_size_t, johnson2021EnergyModelFailed=0_c_size_t
 
 contains
 
@@ -67,6 +68,8 @@ contains
     implicit none
     type(varying_string) :: message
 
+    ! The energy model was never initialized - no need to report anything.
+    if (.not.johnson2021EnergyModelInitialized) return
     ! The energy model was never applied to any node. Report this rather than passing over it in silence: "applied but never
     ! failed" must not look identical to "never applied at all". Note that no rate can be formed here - computing one would
     ! divide by zero, which this build traps.
