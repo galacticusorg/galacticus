@@ -303,7 +303,7 @@ contains
     double precision                                                                           :: massIntervalLogarithmic
     type            (matrix                                   )                                :: eigenVectors
     type            (vector                                   )                                :: eigenValues
-    type            (varying_string                           )                                :: sampleFileName
+    type            (varying_string                           )                                :: sampleFileName                    , rankLabel
     !![
     <constructorAssign variables="fileNames, redshifts, pathSamples, appendSamples, binCountMinimum, massRangeMinimum, massRangeMaximum, likelihoodPoisson, varianceFractionalModelDiscrepancy, binAverage, includeCorrelations, allowEmptyMassFunction, report, changeParametersFileNames, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_, *randomNumberGenerator_"/>
     !!]
@@ -477,8 +477,9 @@ contains
           self%sampleFileNames(iRedshift)=self%pathSamples//"/"//File_Name(fileNames(iRedshift))
           self%sampleFileNames(iRedshift)=extract(self%sampleFileNames(iRedshift),1,index(self%sampleFileNames(iRedshift),".hdf5")-1)//"_"//mpiSelf%rankLabel()//".txt"
           if (.not.self%appendSamples) then
+             rankLabel=mpiSelf%rankLabel()
              open(newUnit=unitSample,file=char(self%sampleFileNames(iRedshift)),form='formatted',status='unknown')
-             write (unitSample,'(a,a)') '# Sampled halo mass functions written by process ',char(mpiSelf%rankLabel())
+             write (unitSample,'(a,a)') '# Sampled halo mass functions written by process ',char(rankLabel)
              write (unitSample,'(a)'  ) '# One row per likelihood evaluation. Columns: simulation step, chain index, then'
              write (unitSample,'(a)'  ) '# the model mass function at each mass below. The chain index need not equal the'
              write (unitSample,'(a)'  ) '# process which wrote this file: under [loadBalance] any process may evaluate any'
