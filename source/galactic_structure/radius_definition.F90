@@ -27,8 +27,7 @@ module Galactic_Structure_Radii_Definitions
   !!}
   use :: ISO_Varying_String        , only : varying_string
   use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
-  use :: Galactic_Structure_Options, only : enumerationComponentTypeType  , enumerationMassTypeType, enumerationWeightByType, &
-       &                                    massTypeStellar
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType  , enumerationMassTypeType, enumerationWeightByType
   use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfile, nodeComponentDisk      , nodeComponentHotHalo   , &
        &                                    nodeComponentNSC              , nodeComponentSatellite , nodeComponentSpheroid  , &
        &                                    treeNode
@@ -130,7 +129,6 @@ module Galactic_Structure_Radii_Definitions
      class           (nodeComponentNSC              ), pointer :: nuclearStarCluster => null()
      class           (nodeComponentSatellite        ), pointer :: satellite          => null()
      class           (nodeComponentDarkMatterProfile), pointer :: darkMatterProfile  => null()
-     type            (enumerationMassTypeType       )          :: massTypeFractionGalactic
      double precision                                          :: radiusVirial       =  0.0d0, fractionDarkMatter=1.0d0
    contains
      procedure :: evaluate => radiusResolverEvaluate
@@ -412,7 +410,7 @@ contains
     return
   end subroutine radiusDefinitionsDecode
 
-  function radiusResolverConstructor(definitions_,node,darkMatterHaloScale_,fractionDarkMatter,radiusVirialRequired,massTypeFractionGalactic) result(self)
+  function radiusResolverConstructor(definitions_,node,darkMatterHaloScale_,fractionDarkMatter,radiusVirialRequired) result(self)
     !!{RST
     Constructor for the :galacticus-type:`radiusResolver` type. Gathers, once, all of the node components and halo scales which
     are required in order to evaluate the given set of radius definitions in the given node.
@@ -420,9 +418,7 @@ contains
     The optional {\normalfont \ttfamily fractionDarkMatter} argument gives the fraction of the bound mass of a satellite which is
     dark matter---it is required only if radii are specified in units of the satellite bound mass fraction. The optional
     {\normalfont \ttfamily radiusVirialRequired} argument forces the virial radius to be computed even if no radius definition
-    requires it---it is used by consumers which need the virial radius for their own purposes. The optional {\normalfont
-    \ttfamily massTypeFractionGalactic} argument selects the mass type used when locating a radius enclosing a fraction of the
-    galactic mass or light.
+    requires it---it is used by consumers which need the virial radius for their own purposes.
     !!}
     implicit none
     type            (radiusResolver          )                          :: self
@@ -431,17 +427,14 @@ contains
     class           (darkMatterHaloScaleClass), intent(inout)            :: darkMatterHaloScale_
     double precision                          , intent(in   ), optional  :: fractionDarkMatter
     logical                                   , intent(in   ), optional  :: radiusVirialRequired
-    type            (enumerationMassTypeType ), intent(in   ), optional  :: massTypeFractionGalactic
     !![
     <optionalArgument name="fractionDarkMatter"   defaultsTo="1.0d0"          />
     <optionalArgument name="radiusVirialRequired" defaultsTo=".false."        />
-    <optionalArgument name="massTypeFractionGalactic" defaultsTo="massTypeStellar"/>
     !!]
 
-    self%definitions_            => definitions_
-    self%node_                   => node
-    self%fractionDarkMatter      =  fractionDarkMatter_
-    self%massTypeFractionGalactic=  massTypeFractionGalactic_
+    self%definitions_      => definitions_
+    self%node_             => node
+    self%fractionDarkMatter=  fractionDarkMatter_
     if (definitions_%radiusVirialRequired.or.radiusVirialRequired_)                                     &
          & self%radiusVirial       =  darkMatterHaloScale_%radiusVirial(node                    )
     if (definitions_%hotHaloRequired              ) self%hotHalo            => node%hotHalo          ()
@@ -467,7 +460,8 @@ contains
     will overflow (and so trap) under multiplication.
     !!}
     use :: Error                     , only : Error_Report
-    use :: Galactic_Structure_Options, only : componentTypeAll     , massTypeDark, massTypeStellar
+    use :: Galactic_Structure_Options, only : componentTypeAll     , massTypeDark, massTypeGalactic, &
+         &                                     massTypeStellar
     use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     class           (radiusResolver       ), intent(inout)           :: self
@@ -517,10 +511,9 @@ contains
        !![
        <objectDestructor name="massDistribution_"/>
        !!]
-    case   (radiusTypeGalacticMassFraction            %ID,  &
-         &  radiusTypeGalacticLightFraction           %ID)
+    case   (radiusTypeGalacticMassFraction            %ID)
        massDistribution_ =>  self             %node_    %massDistribution   (                                                &
-            &                                                                massType      =self%massTypeFractionGalactic,   &
+            &                                                                massType      =              massTypeGalactic,  &
             &                                                                componentType =              componentTypeAll,  &
             &                                                                weightBy      =specifier_%weightBy           ,  &
             &                                                                weightIndex   =specifier_%weightByIndex         &
@@ -531,7 +524,8 @@ contains
        !![
        <objectDestructor name="massDistribution_"/>
        !!]
-    case   (radiusTypeStellarMassFraction             %ID)
+    case   (radiusTypeGalacticLightFraction           %ID,  &
+         &  radiusTypeStellarMassFraction             %ID)
        massDistribution_ =>  self             %node_    %massDistribution   (                                                &
             &                                                                massType      =              massTypeStellar ,  &
             &                                                                componentType =              componentTypeAll,  &

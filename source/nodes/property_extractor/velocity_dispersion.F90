@@ -203,8 +203,8 @@ contains
     !!{RST
     Implement a ``velocityDispersion`` property extractor.
     !!}
-    use :: Galactic_Structure_Options          , only : componentTypeDisk              , componentTypeSpheroid       , componentTypeAll                          , massTypeGalactic                  , &
-          &                                             massTypeStellar                , massTypeAll
+    use :: Galactic_Structure_Options          , only : componentTypeDisk              , componentTypeSpheroid       , componentTypeAll                          , massTypeStellar                   , &
+          &                                             massTypeAll
     use :: Galactic_Structure_Radii_Definitions, only : directionLambdaR               , directionLineOfSight        , directionLineOfSightInteriorAverage       , directionRadial                   , &
           &                                             radiusResolver                 , radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius                      , radiusTypeSpheroidRadius          , &
           &                                             radiusTypeSpheroidHalfMassRadius, radiusTypeNuclearStarClusterHalfMassRadius                             , radiusTypeNuclearStarClusterRadius, &
@@ -237,7 +237,7 @@ contains
     integratorLambdaR1              =integrator(velocityDispersionLambdaRIntegrand1              ,toleranceRelative=1.0d-2)
     integratorLambdaR2              =integrator(velocityDispersionLambdaRIntegrand2              ,toleranceRelative=1.0d-2)
     allocate(velocityDispersionExtract(self%radiiCount,self%elementCount_))
-    resolver=radiusResolver(self%radii,node,self%darkMatterHaloScale_,massTypeFractionGalactic=massTypeGalactic)
+    resolver=radiusResolver(self%radii,node,self%darkMatterHaloScale_)
     do i=1,self%radiiCount
        call resolver%evaluate(i,radius,radiusScale)
        radiusOuter_=max(radius,radiusScale)*outerRadiusMultiplier
