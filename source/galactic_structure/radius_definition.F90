@@ -116,7 +116,7 @@ module Galactic_Structure_Radii_Definitions
           &                                                 radiusScaleRequired       =.false., solitonRequired     =.false.
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="decode" description="Decode a set of radii descriptors and store the corresponding specifiers, along with a record of which node components are required in order to evaluate them."/>
      </methods>
      !!]
@@ -142,7 +142,7 @@ module Galactic_Structure_Radii_Definitions
      double precision                                          :: radiusCore                  , radiusSoliton
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="evaluate" description="Evaluate the radius corresponding to a given radius definition in the node to which this resolver is attached, optionally also returning the scale radius on which that radius is based. Returns ``radiusUndefined`` if the radius is undefined in this node."/>
      </methods>
      !!]
