@@ -33,21 +33,21 @@ contains
 
   subroutine Sort_Topological(countObjects,countDependencies,dependencies,order,countOrdered,status)
     !!{RST
-    Topological sorting function. Based on the example from `Rosetta Code <https://www.rosettacode.org/wiki/Topological_sort\#Modern_Fortran>`_. Arguments are:
+    Topological sorting function. Based on the example from `Rosetta Code <https://www.rosettacode.org/wiki/Topological_sort#Modern_Fortran>`_. Arguments are:
 
-    ``countObjects``\ \argin
+    ``countObjects`` [in]
        the number of objects to be sorted;
 
-    ``countDependencies``\ \argin
+    ``countDependencies`` [in]
        the number of dependencies;
 
-    ``dependencies``\ \argin
+    ``dependencies`` [in]
        an array of dependencies, such that ``dependencies(:,1)`` depends on ``dependencies(:,2)``;
 
-    ``order``\ \argout
+    ``order`` [out]
        an array giving the order of the objects after sorting;
 
-    ``countOrdered``\ \argout
+    ``countOrdered`` [out]
        a count of the objects which were ordered by the sort, such that ``order(1:countOrdered)`` contains the ordered objects, while the remainder of ``order()`` contains objects that were unordered (i.e. had no dependencies).
 
     The unordered objects are those for which no solution is available---i.e. the graph is not acyclic. So, if ``order``\ :math:`<`\ ``countObjects`` then one or more circular dependencies existed in the graph.
