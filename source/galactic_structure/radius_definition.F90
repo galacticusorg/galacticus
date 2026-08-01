@@ -133,7 +133,7 @@ module Galactic_Structure_Radii_Definitions
      class           (nodeComponentNSC              ), pointer :: nuclearStarCluster => null()
      class           (nodeComponentSatellite        ), pointer :: satellite          => null()
      class           (nodeComponentDarkMatterProfile), pointer :: darkMatterProfile  => null()
-     double precision                                          :: radiusVirial       =  0.0d0, fractionDarkMatter=1.0d0
+     double precision                                          :: radiusVirial       =  0.0d0 , fractionDarkMatter=1.0d0
      double precision                                          :: radiusCore                  , radiusSoliton
    contains
      procedure :: evaluate => radiusResolverEvaluate
@@ -168,11 +168,11 @@ contains
     type     (varying_string   )               , dimension(5) :: radiusDefinition
     type     (varying_string   )               , dimension(3) :: fractionDefinition
     type     (varying_string   )               , dimension(2) :: weightingDefinition
-    type     (varying_string   )                              :: valueDefinition     , message
-    character(len=20           )                              :: fractionLabel       , radiusLabel
+    type     (varying_string   )                              :: valueDefinition    , message
+    character(len=20           )                              :: fractionLabel      , radiusLabel
     character(len=27           )                              :: extract_
-    integer                                                   :: i                   , radiiCount         , &
-         &                                                       countComponents     , status
+    integer                                                   :: i                  , radiiCount , &
+         &                                                       countComponents    , status
 
     radiiCount=size(descriptors)
     self%count=radiiCount
@@ -358,10 +358,10 @@ contains
           specifiers(i)%weightByIndex=weightIndexNull
        case ('solitonRadiusCore'               )
           specifiers(i)%type=radiusTypeSolitonRadiusCore
-          self%solitonRequired           =.true.
+          self%solitonRequired=.true.
        case ('solitonRadiusSoliton'            )
           specifiers(i)%type=radiusTypeSolitonRadiusSoliton
-          self%solitonRequired           =.true.
+          self%solitonRequired=.true.
        case default
           message="unrecognized radius type"//char(10)//enumerationRadiusTypeDescribe()
           call reportSpecifierError(specifiers(i)%name,message,highlight=1,bracketed=.false.)
@@ -451,30 +451,34 @@ contains
     !!}
     implicit none
     type            (radiusResolver          )                          :: self
-    type            (radiusDefinitions       ), intent(in   ), target    :: definitions_
-    type            (treeNode                ), intent(inout), target    :: node
-    class           (darkMatterHaloScaleClass), intent(inout)            :: darkMatterHaloScale_
-    double precision                          , intent(in   ), optional  :: fractionDarkMatter
-    logical                                   , intent(in   ), optional  :: radiusVirialRequired
+    type            (radiusDefinitions       ), intent(in   ), target   :: definitions_
+    type            (treeNode                ), intent(inout), target   :: node
+    class           (darkMatterHaloScaleClass), intent(inout)           :: darkMatterHaloScale_
+    double precision                          , intent(in   ), optional :: fractionDarkMatter
+    logical                                   , intent(in   ), optional :: radiusVirialRequired
     !![
-    <optionalArgument name="fractionDarkMatter"   defaultsTo="1.0d0"          />
-    <optionalArgument name="radiusVirialRequired" defaultsTo=".false."        />
+    <optionalArgument name="fractionDarkMatter"   defaultsTo="1.0d0"  />
+    <optionalArgument name="radiusVirialRequired" defaultsTo=".false."/>
     !!]
 
-    self%definitions_      => definitions_
-    self%node_             => node
-    self%fractionDarkMatter=  fractionDarkMatter_
-    if (definitions_%radiusVirialRequired.or.radiusVirialRequired_)                                     &
-         & self%radiusVirial       =  darkMatterHaloScale_%radiusVirial(node                    )
-    if (definitions_%hotHaloRequired              ) self%hotHalo            => node%hotHalo          ()
-    if (definitions_%diskRequired                 ) self%disk               => node%disk             ()
-    if (definitions_%spheroidRequired             ) self%spheroid           => node%spheroid         ()
-    if (definitions_%nuclearStarClusterRequired   ) self%nuclearStarCluster => node%NSC              ()
-    if (definitions_%satelliteRequired            ) self%satellite          => node%satellite        ()
-    if (definitions_%radiusScaleRequired          &
-         & .or.                                     &
-         &  definitions_%solitonRequired            &
-         & )                                        self%darkMatterProfile  => node%darkMatterProfile()
+    self%definitions_       => definitions_
+    self%node_              => node
+    self%fractionDarkMatter =  fractionDarkMatter_
+    if     (                                                                                                                  &
+         &   definitions_%radiusVirialRequired                                                                                &
+         &  .or.                                                                                                              &
+         &                radiusVirialRequired_                                                                               &
+         & )                                          self%radiusVirial       =  darkMatterHaloScale_%radiusVirial     (node)
+    if     ( definitions_%hotHaloRequired           ) self%hotHalo            => node                %hotHalo          (    )
+    if     ( definitions_%diskRequired              ) self%disk               => node                %disk             (    )
+    if     ( definitions_%spheroidRequired          ) self%spheroid           => node                %spheroid         (    ) 
+    if     ( definitions_%nuclearStarClusterRequired) self%nuclearStarCluster => node                %NSC              (    )
+    if     ( definitions_%satelliteRequired         ) self%satellite          => node                %satellite        (    )
+    if     (                                                                                                                  &
+         &   definitions_%radiusScaleRequired                                                                                 &
+         &  .or.                                                                                                              &
+         &   definitions_%solitonRequired                                                                                     &
+         & )                                          self%darkMatterProfile  => node                %darkMatterProfile(    )
     self%radiusCore   =radiusUndefined
     self%radiusSoliton=radiusUndefined
     if (definitions_%solitonRequired) then
@@ -512,7 +516,7 @@ contains
     !!}
     use :: Error                     , only : Error_Report
     use :: Galactic_Structure_Options, only : componentTypeAll     , massTypeDark, massTypeGalactic, &
-         &                                     massTypeStellar
+         &                                    massTypeStellar
     use :: Mass_Distributions        , only : massDistributionClass
     implicit none
     class           (radiusResolver       ), intent(inout)           :: self
@@ -547,45 +551,45 @@ contains
     case   (radiusTypeNuclearStarClusterHalfMassRadius%ID)
        radiusScale_=self%nuclearStarCluster%halfMassRadius()
     case   (radiusTypeSatelliteBoundMassFraction      %ID)
-       mass              =  +self             %satellite%boundMass          (                                                &
-            &                                                               )                                                &
+       mass              =  +self             %satellite%boundMass       (                                             &
+            &                                                            )                                             &
             &               *self             %fractionDarkMatter
-       massDistribution_ =>  self             %node_    %massDistribution   (                                                &
-            &                                                                massType      =              massTypeDark    ,  &
-            &                                                                componentType =              componentTypeAll,  &
-            &                                                                weightBy      =specifier_%weightBy           ,  &
-            &                                                                weightIndex   =specifier_%weightByIndex         &
-            &                                                               )
-       radiusScale_      =  +massDistribution_%radiusEnclosingMass(                                                          &
-            &                                                      mass          =              mass                        &
-            &                                                     )
+       massDistribution_ =>  self             %node_    %massDistribution(                                             &
+            &                                                             massType      =           massTypeDark    ,  &
+            &                                                             componentType =           componentTypeAll,  &
+            &                                                             weightBy      =specifier_%weightBy        ,  &
+            &                                                             weightIndex   =specifier_%weightByIndex      &
+            &                                                            )
+       radiusScale_      =  +massDistribution_%radiusEnclosingMass       (                                             &
+            &                                                             mass          =           mass               &
+            &                                                            )
        !![
        <objectDestructor name="massDistribution_"/>
        !!]
     case   (radiusTypeGalacticMassFraction            %ID)
-       massDistribution_ =>  self             %node_    %massDistribution   (                                                &
-            &                                                                massType      =              massTypeGalactic,  &
-            &                                                                componentType =              componentTypeAll,  &
-            &                                                                weightBy      =specifier_%weightBy           ,  &
-            &                                                                weightIndex   =specifier_%weightByIndex         &
-            &                                                               )
-       radiusScale_      =  +massDistribution_%radiusEnclosingMass(                                                          &
-            &                                                      massFractional=specifier_%fraction                       &
-            &                                                     )
+       massDistribution_ =>  self             %node_    %massDistribution(                                             &
+            &                                                             massType      =           massTypeGalactic,  &
+            &                                                             componentType =           componentTypeAll,  &
+            &                                                             weightBy      =specifier_%weightBy        ,  &
+            &                                                             weightIndex   =specifier_%weightByIndex      &
+            &                                                            )
+       radiusScale_      =  +massDistribution_%radiusEnclosingMass       (                                             &
+            &                                                             massFractional=specifier_%fraction           &
+            &                                                            )
        !![
        <objectDestructor name="massDistribution_"/>
        !!]
     case   (radiusTypeGalacticLightFraction           %ID,  &
          &  radiusTypeStellarMassFraction             %ID)
-       massDistribution_ =>  self             %node_    %massDistribution   (                                                &
-            &                                                                massType      =              massTypeStellar ,  &
-            &                                                                componentType =              componentTypeAll,  &
-            &                                                                weightBy      =specifier_%weightBy           ,  &
-            &                                                                weightIndex   =specifier_%weightByIndex         &
-            &                                                               )
-       radiusScale_      =  +massDistribution_%radiusEnclosingMass(                                                          &
-            &                                                      massFractional=specifier_%fraction                       &
-            &                                                     )
+       massDistribution_ =>  self             %node_    %massDistribution(                                               &
+            &                                                             massType      =              massTypeStellar , &
+            &                                                             componentType =              componentTypeAll, &
+            &                                                             weightBy      =specifier_%weightBy           , &
+            &                                                             weightIndex   =specifier_%weightByIndex        &
+            &                                                            )
+       radiusScale_      =  +massDistribution_%radiusEnclosingMass       (                                               &
+            &                                                             massFractional=specifier_%fraction             &
+            &                                                            )
        !![
        <objectDestructor name="massDistribution_"/>
        !!]

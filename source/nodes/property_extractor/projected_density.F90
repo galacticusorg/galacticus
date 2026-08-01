@@ -180,12 +180,12 @@ contains
     !!{RST
     Implement a ``projectedDensity`` property extractor.
     !!}
-    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver, radiusUndefined
+    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver       , radiusUndefined
     use :: Galacticus_Nodes                    , only : treeNode
-    use :: Numerical_Integration               , only : integrator                     , GSL_Integ_Gauss15
+    use :: Numerical_Integration               , only : integrator           , GSL_Integ_Gauss15
     use :: Numerical_Comparison                , only : Values_Agree
     use :: Mass_Distributions                  , only : massDistributionClass
-    use :: Coordinates                         , only : coordinateSpherical            , assignment(=)
+    use :: Coordinates                         , only : coordinateSpherical  , assignment(=)
     use :: Error                               , only : Error_Report
     implicit none
     double precision                                       , dimension(:,:), allocatable :: densityProjected

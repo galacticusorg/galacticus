@@ -172,9 +172,9 @@ contains
     !!{RST
     Implement a ``projectedMass`` property extractor.
     !!}
-    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver, radiusUndefined
+    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver       , radiusUndefined
     use :: Galacticus_Nodes                    , only : treeNode
-    use :: Numerical_Integration               , only : integrator                                , GSL_Integ_Gauss15
+    use :: Numerical_Integration               , only : integrator           , GSL_Integ_Gauss15
     use :: Numerical_Comparison                , only : Values_Agree
     use :: Mass_Distributions                  , only : massDistributionClass
     implicit none
@@ -194,9 +194,9 @@ contains
     !$GLC attributes unused :: time, instance
 
     allocate(massProjected(self%radiiCount,self%elementCount_))
-    resolver                                                   =  radiusResolver(self%radii,node,self%darkMatterHaloScale_,radiusVirialRequired=.true.)
-    radiusVirial                                               =  resolver%radiusVirial
-    integrator_=integrator(projectedMassIntegrand,toleranceRelative=1.0d-3,hasSingularities=.true.,integrationRule=GSL_Integ_Gauss15)
+    resolver    =radiusResolver(self%radii,node,self%darkMatterHaloScale_,radiusVirialRequired=.true.)
+    radiusVirial=resolver%radiusVirial
+    integrator_ =integrator(projectedMassIntegrand,toleranceRelative=1.0d-3,hasSingularities=.true.,integrationRule=GSL_Integ_Gauss15)
     do i=1,self%radiiCount
        call resolver%evaluate(i,radius_)
        if (radius_ < 0.0d0) then

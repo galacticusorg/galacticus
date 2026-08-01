@@ -36,8 +36,8 @@
      A property extractor class for the enclosed mass at a set of radii.
      !!}
      private
-     class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_          => null()
-     class  (cosmologyParametersClass), pointer                   :: cosmologyParameters_          => null()
+     class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_ => null()
+     class  (cosmologyParametersClass), pointer                   :: cosmologyParameters_ => null()
      integer                                                      :: radiiCount                             , elementCount_
      logical                                                      :: includeRadii
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
@@ -181,7 +181,7 @@ contains
     !!{RST
     Implement a ``massProfile`` property extractor.
     !!}
-    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver, radiusUndefined
+    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver       , radiusUndefined
     use :: Galacticus_Nodes                    , only : treeNode
     use :: Mass_Distributions                  , only : massDistributionClass
     implicit none
@@ -207,18 +207,18 @@ contains
                & massProfileExtract(i,2)=radiusUndefined
           cycle
        end if
-       massDistribution_              => node             %massDistribution    (                                       &
+       massDistribution_              => node             %massDistribution    (                                                  &
             &                                                                   componentType=self%radii%specifiers(i)%component, &
             &                                                                   massType     =self%radii%specifiers(i)%mass       &
             &                                                                  )
-       massProfileExtract       (i,1) =  massDistribution_%massEnclosedBySphere(                                       &
-            &                                                                   radius       =              radius     &
+       massProfileExtract       (i,1) =  massDistribution_%massEnclosedBySphere(                                                  &
+            &                                                                   radius       =                         radius     &
             &                                                                  )
-       if (self%includeRadii)                                                                                          &
-            & massProfileExtract(i,2) =                                                                     radius
-          !![
-	  <objectDestructor name="massDistribution_"/>
-	  !!]
+       if (self%includeRadii)                                                                                                     &
+            & massProfileExtract(i,2) =                                                                                radius
+       !![
+       <objectDestructor name="massDistribution_"/>
+       !!]
     end do
     return
   end function massProfileExtract

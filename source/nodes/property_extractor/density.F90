@@ -168,10 +168,10 @@ contains
     !!{RST
     Implement a ``densityProfile`` property extractor.
     !!}
-    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver, radiusUndefined
+    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver        , radiusUndefined
     use :: Galacticus_Nodes                    , only : treeNode
     use :: Mass_Distributions                  , only : massDistributionClass
-    use :: Coordinates                         , only : coordinateSpherical            , assignment(=)
+    use :: Coordinates                         , only : coordinateSpherical  , assignment(=)
     use :: Numerical_Constants_Math            , only : Pi
     implicit none
     double precision                                     , dimension(:,:), allocatable :: densityProfileExtract
@@ -198,14 +198,14 @@ contains
           cycle
        end if
        coordinates                       =  [radius,Pi/2.0d0,0.0d0]
-       massDistribution_                 => node             %massDistribution(                                                    &
-            &                                                                  componentType=self%radii%specifiers(i)%component  , &
-            &                                                                  massType     =self%radii%specifiers(i)%mass         &
+       massDistribution_                 => node             %massDistribution(                                                  &
+            &                                                                  componentType=self%radii%specifiers(i)%component, &
+            &                                                                  massType     =self%radii%specifiers(i)%mass       &
             &                                                                 )
-       densityProfileExtract       (i,1) =  massDistribution_%density         (                                                    &
-            &                                                                  coordinates=                coordinates             &
+       densityProfileExtract       (i,1) =  massDistribution_%density         (                                                  &
+            &                                                                  coordinates=                coordinates           &
             &                                                                 )
-       if (self%includeRadii)                                                                                                      &
+       if (self%includeRadii)                                                                                                    &
             & densityProfileExtract(i,2) =                                                                 radius
        !![
        <objectDestructor name="massDistribution_"/>

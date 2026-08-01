@@ -43,16 +43,16 @@
      A property extractor class for the CGM cooling function at a set of radii.
      !!}
      private
-     class  (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_           => null()
-     class  (darkMatterHaloScaleClass               ), pointer                   :: darkMatterHaloScale_          => null()
-     class  (coolingFunctionClass                   ), pointer                   :: coolingFunction_              => null()
-     type   (radiationFieldCosmicMicrowaveBackground), pointer                   :: radiation                     => null()
-     integer                                                                     :: radiiCount                             , elementCount_       , &
-          &                                                                         abundancesCount                        , chemicalsCount      , &
-          &                                                                         indexRadii                             , indexDensity
-     logical                                                                     :: includeRadii                           , includeDensity
+     class  (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_  => null()
+     class  (darkMatterHaloScaleClass               ), pointer                   :: darkMatterHaloScale_ => null()
+     class  (coolingFunctionClass                   ), pointer                   :: coolingFunction_     => null()
+     type   (radiationFieldCosmicMicrowaveBackground), pointer                   :: radiation            => null()
+     integer                                                                     :: radiiCount                    , elementCount_ , &
+          &                                                                         abundancesCount               , chemicalsCount, &
+          &                                                                         indexRadii                    , indexDensity
+     logical                                                                     :: includeRadii                  , includeDensity
      type   (varying_string                         ), allocatable, dimension(:) :: radiusSpecifiers
-     type   (radiusDefinitions       )                            :: radii
+     type   (radiusDefinitions                      )                            :: radii
      type   (varying_string                         )                            :: label
    contains
      final     ::                       cgmCoolingFunctionDestructor
@@ -142,9 +142,9 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorCGMCoolingFunction` property extractor class.
     !!}
-    use :: Abundances_Structure                , only : Abundances_Property_Count
-    use :: Chemical_Abundances_Structure       , only : Chemicals_Property_Count
-    use :: String_Handling                     , only : String_Upper_Case_First
+    use :: Abundances_Structure         , only : Abundances_Property_Count
+    use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
+    use :: String_Handling              , only : String_Upper_Case_First
     implicit none
     type   (nodePropertyExtractorCGMCoolingFunction)                              :: self
     type   (varying_string                         ), intent(in   ), dimension(:) :: radiusSpecifiers
@@ -267,10 +267,10 @@ contains
        call resolver%evaluate(i,radius)
        if (radius < 0.0d0) then
           ! The radius is undefined in this node - report the sentinel rather than evaluating the cooling function there.
-          cgmCoolingFunctionExtract    (i,                1)=radiusUndefined
-          if (self%includeRadii  )                                           &
+          cgmCoolingFunctionExtract       (i,                1)=radiusUndefined
+          if (self%includeRadii  )                                              &
                & cgmCoolingFunctionExtract(i,self%indexRadii  )=radiusUndefined
-          if (self%includeDensity)                                           &
+          if (self%includeDensity)                                              &
                & cgmCoolingFunctionExtract(i,self%indexDensity)=radiusUndefined
           cycle
        end if

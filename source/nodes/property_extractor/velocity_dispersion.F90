@@ -203,12 +203,12 @@ contains
     !!{RST
     Implement a ``velocityDispersion`` property extractor.
     !!}
-    use :: Galactic_Structure_Options          , only : componentTypeDisk              , componentTypeSpheroid       , componentTypeAll                          , massTypeStellar                   , &
+    use :: Galactic_Structure_Options          , only : componentTypeDisk  , componentTypeSpheroid, componentTypeAll                   , massTypeStellar, &
           &                                             massTypeAll
-    use :: Galactic_Structure_Radii_Definitions, only : directionLambdaR               , directionLineOfSight        , directionLineOfSightInteriorAverage       , directionRadial                   , &
-          &                                             radiusResolver, radiusUndefined
+    use :: Galactic_Structure_Radii_Definitions, only : directionLambdaR   , directionLineOfSight , directionLineOfSightInteriorAverage, directionRadial, &
+          &                                             radiusResolver     , radiusUndefined
     use :: Galacticus_Nodes                    , only : treeNode
-    use :: Coordinates                         , only : coordinateSpherical            , assignment(=)
+    use :: Coordinates                         , only : coordinateSpherical, assignment(=)
     use :: Numerical_Integration               , only : integrator
     implicit none
     double precision                                         , dimension(:,:), allocatable :: velocityDispersionExtract
@@ -255,10 +255,10 @@ contains
           ! Do not compute dispersions if the integration range is degenerate.
           velocityDispersionExtract(i,1)=0.0d0
        else
-          massDistribution_         => node             %      massDistribution(componentType=self%radii%specifiers(i)%component       ,massType=self%radii%specifiers(i)%mass                                                                                )
-          massDistributionWeighted_ => node             %      massDistribution(componentType=self%radii%specifiers(i)%component       ,massType=self%radii%specifiers(i)%mass        ,weightBy=self%radii%specifiers(i)%weightBy,weightIndex=self%radii%specifiers(i)%weightByIndex)
-          massDistributionTotal_    => node             %      massDistribution(componentType=              componentTypeAll,massType=              massTypeAll                                                                         )
-          kinematicsDistribution_   => massDistribution_%kinematicsDistribution(                                                                                                                                                        ) 
+          massDistribution_         => node             %      massDistribution(componentType=self%radii%specifiers(i)%component       ,massType=self%radii%specifiers(i)%mass                                                                                                    )
+          massDistributionWeighted_ => node             %      massDistribution(componentType=self%radii%specifiers(i)%component       ,massType=self%radii%specifiers(i)%mass      ,weightBy=self%radii%specifiers(i)%weightBy,weightIndex=self%radii%specifiers(i)%weightByIndex)
+          massDistributionTotal_    => node             %      massDistribution(componentType=                         componentTypeAll,massType=                        massTypeAll                                                                         )
+          kinematicsDistribution_   => massDistribution_%kinematicsDistribution(                                                                                                                                                                                                  ) 
           select case (self%radii%specifiers(i)%direction%ID)
           case (directionRadial                    %ID)
              ! Radial velocity dispersion.

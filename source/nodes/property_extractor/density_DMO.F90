@@ -41,7 +41,7 @@
      integer                                                       :: radiiCount                             , elementCount_
      logical                                                       :: includeRadii
      type   (varying_string           ), allocatable, dimension(:) :: radiusSpecifiers
-     type   (radiusDefinitions       )                            :: radii
+     type   (radiusDefinitions        )                            :: radii
    contains
      final     ::                       densityDMOProfileDestructor
      procedure :: columnDescriptions => densityDMOProfileColumnDescriptions
@@ -111,7 +111,7 @@ contains
     Internal constructor for the :galacticus-class:`nodePropertyExtractorDensityDMOProfile` property extractor class.
     !!}
     use :: Error                               , only : Error_Report
-    use :: Galactic_Structure_Options          , only : componentTypeDarkMatterOnly               , massTypeDark, massTypeAll    
+    use :: Galactic_Structure_Options          , only : componentTypeDarkMatterOnly, massTypeDark, massTypeAll    
     implicit none
     type   (nodePropertyExtractorDensityDMOProfile)                              :: self
     type   (varying_string                        ), intent(in   ), dimension(:) :: radiusSpecifiers
@@ -179,10 +179,10 @@ contains
     !!{RST
     Implement a ``densityDMOProfile`` property extractor.
     !!}
-    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver, radiusUndefined
+    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver       , radiusUndefined
     use :: Galacticus_Nodes                    , only : treeNode
     use :: Mass_Distributions                  , only : massDistributionClass
-    use :: Coordinates                         , only : coordinateSpherical, assignment(=)
+    use :: Coordinates                         , only : coordinateSpherical  , assignment(=)
     use :: Numerical_Constants_Math            , only : Pi
     implicit none
     double precision                                        , dimension(:,:), allocatable :: densityDMOProfileExtract

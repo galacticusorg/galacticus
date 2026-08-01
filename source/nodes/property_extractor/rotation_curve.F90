@@ -168,7 +168,7 @@ contains
     !!{RST
     Implement a ``rotationCurve`` property extractor.
     !!}
-    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver, radiusUndefined
+    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver       , radiusUndefined
     use :: Galacticus_Nodes                    , only : treeNode
     use :: Mass_Distributions                  , only : massDistributionClass
     implicit none
@@ -194,15 +194,15 @@ contains
                & rotationCurveExtract(i,2)=radiusUndefined
           cycle
        end if
-       massDistribution_                => node             %massDistribution(                                       &
+       massDistribution_                => node             %massDistribution(                                                  &
                &                                                              componentType=self%radii%specifiers(i)%component, &
                &                                                              massType     =self%radii%specifiers(i)%mass       &
                &                                                             )
-       rotationCurveExtract       (i,1) =  massDistribution_%rotationCurve   (                                       &
-            &                                                                                             radius     &
+       rotationCurveExtract       (i,1) =  massDistribution_%rotationCurve   (                                                  &
+            &                                                                                                        radius     &
             &                                                                )
-       if (self%includeRadii)                                                                                        &
-            & rotationCurveExtract(i,2) =                                                                 radius
+       if (self%includeRadii)                                                                                                   &
+            & rotationCurveExtract(i,2) =                                                                            radius
        !![
        <objectDestructor name="massDistribution_"/>
        !!]
@@ -222,7 +222,7 @@ contains
 
     allocate(names(self%elementCount_))
     names       (1)="rotationCurve"
-    if (self%includeRadii)                             &
+    if (self%includeRadii)                &
          & names(2)="rotationCurveRadius"
     return
   end subroutine rotationCurveNames
@@ -239,7 +239,7 @@ contains
     
     allocate(descriptions(self%elementCount_))
     descriptions       (1)="Rotation curve at a given radius [km s⁻¹]."
-    if (self%includeRadii)                                                                &
+    if (self%includeRadii)                                                   &
          & descriptions(2)="Radius at which rotation curve is output [Mpc]."
     return
   end subroutine rotationCurveDescriptions
