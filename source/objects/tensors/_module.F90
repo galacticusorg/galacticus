@@ -127,7 +127,7 @@ module Tensors
      procedure         :: vectorProject   => Tensor_R2_D3_Sym_Vector_Project
   end type tensorRank2Dimension3Symmetric
 
-  ! Constructors for \mono{tensorRank2Dimension3Symmetric} object.
+  ! Constructors for `tensorRank2Dimension3Symmetric` object.
   interface tensorRank2Dimension3Symmetric
      module procedure tensorRank2Dimension3SymmetricNull
      module procedure tensorRank2Dimension3SymmetricInternal

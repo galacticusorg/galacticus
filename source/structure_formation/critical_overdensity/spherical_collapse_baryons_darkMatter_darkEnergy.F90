@@ -134,7 +134,7 @@ contains
       <source>parameters</source>
       <defaultValue>300</defaultValue>
       <description>
-      The number of evenly-spaced tabulation points per octave of cosmic time used when building the look-up table of spherical collapse critical overdensity vs.\ time; higher values give greater interpolation accuracy at the cost of longer initialization time.
+      The number of evenly-spaced tabulation points per octave of cosmic time used when building the look-up table of spherical collapse critical overdensity vs. time; higher values give greater interpolation accuracy at the cost of longer initialization time.
       </description>
     </inputParameter>
     <inputParameter docformat="rst">

@@ -34,7 +34,7 @@ module Supernovae_Type_Ia
    <name>supernovaeTypeIa</name>
    <descriptiveName>Supernovae Type Ia</descriptiveName>
    <description>
-   Class providing models of Type Ia supernovae from a stellar population, specifically the cumulative number of Type Ia events and the associated metal yield (iron-peak elements) as a function of initial stellar population mass, age, and metallicity. Type Ia supernovae are thermonuclear explosions of white dwarfs in binary systems and are the dominant source of iron in the universe. Their delay-time distribution governs the iron enrichment history of galaxies and is expected to vary across different prescriptions (e.g.\ power-law vs.\ single-degenerate vs.\ double-degenerate channels).
+   Class providing models of Type Ia supernovae from a stellar population, specifically the cumulative number of Type Ia events and the associated metal yield (iron-peak elements) as a function of initial stellar population mass, age, and metallicity. Type Ia supernovae are thermonuclear explosions of white dwarfs in binary systems and are the dominant source of iron in the universe. Their delay-time distribution governs the iron enrichment history of galaxies and is expected to vary across different prescriptions (e.g. power-law vs. single-degenerate vs. double-degenerate channels).
    </description>
    <default>nagashima2005</default>
    <method name="massInitialRange" >

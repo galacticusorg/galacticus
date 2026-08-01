@@ -382,7 +382,7 @@ contains
 
   subroutine Input_Parameters_Build_Stack_Object_Set(object)
     !!{RST
-    Record, on the current (topmost) object-build stack entry, the object currently being constructed for that node. A ``recursive="yes"`` class calls this after allocating its object but before dispatching its constructor, so that a re-entrant build which re-discovers the same node can retrieve the in-progress object and return a shim wired to it (see ``Input_Parameters_Build_Stack_Recursive_Object`` and issue \#695). The pointer is weak---never reference-counted---so it does not create an ownership cycle.
+    Record, on the current (topmost) object-build stack entry, the object currently being constructed for that node. A ``recursive="yes"`` class calls this after allocating its object but before dispatching its constructor, so that a re-entrant build which re-discovers the same node can retrieve the in-progress object and return a shim wired to it (see ``Input_Parameters_Build_Stack_Recursive_Object`` and issue #695). The pointer is weak---never reference-counted---so it does not create an ownership cycle.
     !!}
     implicit none
     class(*), intent(in), target :: object
@@ -393,7 +393,7 @@ contains
 
   function Input_Parameters_Build_Stack_Recursive_Object(node,className) result(object)
     !!{RST
-    Search the object-build stack for an entry that is currently constructing the given ``node`` for the given ``className``, and return a (weak) pointer to the in-progress object recorded on that entry, or a null pointer if there is none. Used by a ``recursive="yes"`` factory to detect a bounded construction cycle---a re-entrant build that re-discovers the node currently under construction---and short-circuit it by returning a shim wired to the in-progress object, in place of the (now removed) per-family thread-private ``RecursiveBuildObject`` module variable. See issue \#695. The stack is searched from the top (innermost build) down so that the most recent in-progress construction of the node is returned.
+    Search the object-build stack for an entry that is currently constructing the given ``node`` for the given ``className``, and return a (weak) pointer to the in-progress object recorded on that entry, or a null pointer if there is none. Used by a ``recursive="yes"`` factory to detect a bounded construction cycle---a re-entrant build that re-discovers the node currently under construction---and short-circuit it by returning a shim wired to the in-progress object, in place of the (now removed) per-family thread-private ``RecursiveBuildObject`` module variable. See issue #695. The stack is searched from the top (innermost build) down so that the most recent in-progress construction of the node is returned.
     !!}
     use :: ISO_Varying_String, only : varying_string, operator(==)
     implicit none

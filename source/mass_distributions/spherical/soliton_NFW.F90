@@ -159,7 +159,7 @@
        <name>componentType</name>
        <defaultValue>var_str('unknown')</defaultValue>
        <description>
-       The galactic structure component type (e.g.\ dark matter halo, disk, spheroid) represented by this mass distribution, used for component-specific queries.
+       The galactic structure component type (e.g. dark matter halo, disk, spheroid) represented by this mass distribution, used for component-specific queries.
        </description>
        <source>parameters</source>
      </inputParameter>
@@ -167,7 +167,7 @@
        <name>massType</name>
        <defaultValue>var_str('unknown')</defaultValue>
        <description>
-       The mass type (e.g.\ dark matter, baryonic, total) represented by this mass distribution, used for mass-type-specific queries.
+       The mass type (e.g. dark matter, baryonic, total) represented by this mass distribution, used for mass-type-specific queries.
        </description>
        <source>parameters</source>
      </inputParameter>

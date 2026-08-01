@@ -148,7 +148,7 @@ contains
       <name>wavelengthMinimum</name>
       <defaultValue>100.0d0</defaultValue>
       <description>
-      The minimum wavelength (in units of \AA) to use in calculations of the cosmic background radiation.
+      The minimum wavelength (in units of Å) to use in calculations of the cosmic background radiation.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -156,7 +156,7 @@ contains
       <name>wavelengthMaximum</name>
       <defaultValue>100000.0d0</defaultValue>
       <description>
-      The maximum wavelength (in units of \AA) to use in calculations of the cosmic background radiation.
+      The maximum wavelength (in units of Å) to use in calculations of the cosmic background radiation.
       </description>
       <source>parameters</source>
     </inputParameter>

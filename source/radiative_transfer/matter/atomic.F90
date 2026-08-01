@@ -231,7 +231,7 @@ contains
       <name>convergencePercentile</name>
       <defaultValue>0.90d0</defaultValue>
       <description>
-      The percentile of the per-cell convergence measure distribution used to assess global convergence; e.g.\ 0.90 means convergence is declared when 90% of cells satisfy the convergence tolerance.
+      The percentile of the per-cell convergence measure distribution used to assess global convergence; e.g. 0.90 means convergence is declared when 90% of cells satisfy the convergence tolerance.
       </description>
       <source>parameters</source>
     </inputParameter>

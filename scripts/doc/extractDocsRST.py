@@ -669,9 +669,11 @@ def render_constants(constants: list[dict], glsmap: dict) -> str:
                 term += f' (:math:`{c["symbol"]}`)'
             units = c.get('units', '')
             if units and units != 'dimensionless':
-                # A few units carry LaTeX math (e.g. ``$\mathrm{rad}/^\circ$``);
-                # convert those so they render rather than appear verbatim.
-                if '$' in units:
+                # A few units carry LaTeX — either math (e.g.
+                # ``$\mathrm{rad}/^\circ$``) or a bare text-mode macro with no
+                # math at all (``\AA/m``); convert both so they render rather
+                # than appear verbatim.
+                if '$' in units or '\\' in units:
                     units = re.sub(r'\s+', ' ',
                                    latex_to_rst(units, glsmap)).strip()
                 term += f' [{units}]'

@@ -33,7 +33,7 @@ module Model_Parameters
    <name>modelParameter</name>
    <descriptiveName>Model Parameters</descriptiveName>
    <description>
-   Class providing model parameters for Bayesian inference---the individual free parameters of a Galacticus model that are explored during parameter estimation (e.g.\ via MCMC). Each parameter has a name, a prior distribution (with ``logPrior``, ``priorSample``, ``priorInvert``, ``priorMinimum``, and ``priorMaximum`` methods), and a bijective mapping to an unconstrained real line for efficient sampling (via ``map``/``unmap``). Implementations include active parameters that vary during inference, and fixed parameters held at constant values.
+   Class providing model parameters for Bayesian inference---the individual free parameters of a Galacticus model that are explored during parameter estimation (e.g. via MCMC). Each parameter has a name, a prior distribution (with ``logPrior``, ``priorSample``, ``priorInvert``, ``priorMinimum``, and ``priorMaximum`` methods), and a bijective mapping to an unconstrained real line for efficient sampling (via ``map``/``unmap``). Implementations include active parameters that vary during inference, and fixed parameters held at constant values.
    </description>
    <default>active</default>
    <method name="name">
@@ -89,7 +89,7 @@ module Model_Parameters
    </method>
    <method name="map">
      <description>
-     Apply the bijective mapping to transform the physical parameter value ``x`` onto the unconstrained real line used by the posterior sampler (e.g.\ logarithm for positive-definite parameters).
+     Apply the bijective mapping to transform the physical parameter value ``x`` onto the unconstrained real line used by the posterior sampler (e.g. logarithm for positive-definite parameters).
      </description>
      <type>double precision</type>
      <pass>yes</pass>

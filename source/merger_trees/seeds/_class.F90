@@ -33,7 +33,7 @@ module Merger_Tree_Seeds
    <name>mergerTreeSeeds</name>
    <descriptiveName>Merger Tree Random Number Seeds</descriptiveName>
    <description>
-   Class providing the random number seed to be used for stochastic processes during the evolution of a given merger tree. Each tree is assigned a unique seed so that its evolution is reproducible and independent of other trees. The seed assignment strategy (e.g.\ incremental, hash-based) determines how seeds vary across trees and can affect the statistical properties of the ensemble of simulated galaxies.
+   Class providing the random number seed to be used for stochastic processes during the evolution of a given merger tree. Each tree is assigned a unique seed so that its evolution is reproducible and independent of other trees. The seed assignment strategy (e.g. incremental, hash-based) determines how seeds vary across trees and can affect the statistical properties of the ensemble of simulated galaxies.
    </description>
    <default>incremental</default>
    <method name="set" >

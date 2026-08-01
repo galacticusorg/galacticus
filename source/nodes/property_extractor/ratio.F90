@@ -24,7 +24,7 @@ Implements a ratio output analysis property extractor class.
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRatio" docformat="rst">
    <description>
-   A property extractor that returns the ratio of two scalar node properties---the value extracted by ``nodePropertyExtractorNumerator`` divided by that extracted by ``nodePropertyExtractorDenominator``. The output dataset ``name`` and ``description`` are specified directly as parameters, allowing arbitrary dimensionless ratios (e.g.\ disk-to-total stellar mass, gas fraction, size ratio) to be computed on-the-fly at output time without defining a dedicated extractor class for each combination.
+   A property extractor that returns the ratio of two scalar node properties---the value extracted by ``nodePropertyExtractorNumerator`` divided by that extracted by ``nodePropertyExtractorDenominator``. The output dataset ``name`` and ``description`` are specified directly as parameters, allowing arbitrary dimensionless ratios (e.g. disk-to-total stellar mass, gas fraction, size ratio) to be computed on-the-fly at output time without defining a dedicated extractor class for each combination.
    </description>
   </nodePropertyExtractor>
   !!]

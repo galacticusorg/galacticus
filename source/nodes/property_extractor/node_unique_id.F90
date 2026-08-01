@@ -24,7 +24,7 @@ Implements a node unique ID property extractor.
   !![
   <nodePropertyExtractor name="nodePropertyExtractorUniqueID" docformat="rst">
    <description>
-   Extracts the internal unique global identifier (the {\normalfont \ttfamily uniqueID}) assigned to each node when it is created. This is the value drawn from the process-global unique-ID counter; under MPI it is guaranteed to be distinct across processes.
+   Extracts the internal unique global identifier (the ``uniqueID``) assigned to each node when it is created. This is the value drawn from the process-global unique-ID counter; under MPI it is guaranteed to be distinct across processes.
    </description>
   </nodePropertyExtractor>
   !!]

@@ -305,8 +305,8 @@ contains
 
   subroutine Error_Function_Tabulate()
     !!{RST
-    Build the tabulation of the error function used by {\normalfont \ttfamily Error\_Function\_Difference\_Fast}
-    (and {\normalfont \ttfamily erfFast}). This must be called once before any fast evaluation. It is intended
+    Build the tabulation of the error function used by ``Error_Function_Difference_Fast``
+    (and ``erfFast``). This must be called once before any fast evaluation. It is intended
     to be called from a serial initialization context (e.g.~an object constructor), so no locking is performed;
     the resulting table is written once and thereafter only read, so it is safe to use from parallel regions
     entered after this routine has completed.
@@ -325,9 +325,9 @@ contains
   elemental double precision function erfFast(x) result(erfValue)
     !!{RST
     A fast, tabulated (approximate) evaluation of the error function, :math:`\mathrm{erf}(x)`, accurate to
-    :math:`\sim 10^{-12}` for :math:`|x|<` {\normalfont \ttfamily erfTableMaximum} and saturating to
+    :math:`\sim 10^{-12}` for :math:`|x|<` ``erfTableMaximum`` and saturating to
     :math:`\pm 1` beyond. Uses C¹-continuous Catmull-Rom cubic interpolation of the tabulation so that
-    integrands built from it remain smooth. {\normalfont \ttfamily Error\_Function\_Tabulate()} must have
+    integrands built from it remain smooth. ``Error_Function_Tabulate()`` must have
     been called first.
     !!}
     implicit none
@@ -367,9 +367,7 @@ contains
     numerical integrands where full precision is unnecessary. When both arguments lie within the tabulated
     range the tabulated error function is used; if either argument lies outside that range---the deep tails,
     where the direct difference suffers catastrophic cancellation and the exact treatment is required---the
-    exact {\normalfont \ttfamily Error\_Function\_Difference} is used instead. {\normalfont \ttfamily
-    Error\_Function\_Tabulate()} must have been called first. As for {\normalfont \ttfamily
-    Error\_Function\_Difference}, :math:`x_2 \ge x_1` is required.
+    exact ``Error_Function_Difference`` is used instead. ``Error_Function_Tabulate()`` must have been called first. As for ``Error_Function_Difference``, :math:`x_2 \ge x_1` is required.
     !!}
     implicit none
     double precision, intent(in   ) :: x1, x2

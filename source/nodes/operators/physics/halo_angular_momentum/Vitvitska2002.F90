@@ -140,7 +140,7 @@ contains
     <inputParameter docformat="rst">
       <name>angularMomentumVarianceCorrectionFactor</name>
       <description>
-      An $\mathcal{O}(1)$ correction factor multiplying the physically-computed variance of the stochastic angular momentum term in the ``resolutionScaled`` sub-resolution method. Defaults to unity; it absorbs both the shape factor relating the mean-squared and squared-mean specific orbital angular momentum and any residual normalization uncertainty.
+      An :math:`\mathcal{O}(1)` correction factor multiplying the physically-computed variance of the stochastic angular momentum term in the ``resolutionScaled`` sub-resolution method. Defaults to unity; it absorbs both the shape factor relating the mean-squared and squared-mean specific orbital angular momentum and any residual normalization uncertainty.
       </description>
       <source>parameters</source>
       <defaultValue>1.0d0</defaultValue>

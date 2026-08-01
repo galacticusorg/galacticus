@@ -216,7 +216,7 @@ contains
       <source>parameters</source>
       <defaultValue>1.0d8</defaultValue>
       <description>
-      The fiducial black hole mass (in :math:`\mathrm{M}_\odot`) used when ``spectrumMassRate`` is called without a specific node (i.e.\ when only the accretion rate and radiative efficiency are available).
+      The fiducial black hole mass (in :math:`\mathrm{M}_\odot`) used when ``spectrumMassRate`` is called without a specific node (i.e. when only the accretion rate and radiative efficiency are available).
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
@@ -364,7 +364,7 @@ contains
 
   double precision function thinDiskSpectrumNode(self,node,wavelength) result(spectrum)
     !!{RST
-    Return the accretion disk SED (in :math:`L_\odot\,\mathrm{Hz}^{-1}`) at ``wavelength`` (in \AA) for the black hole in ``node``, or zero if outside the thin-disk regime.
+    Return the accretion disk SED (in :math:`L_\odot\,\mathrm{Hz}^{-1}`) at ``wavelength`` (in Å) for the black hole in ``node``, or zero if outside the thin-disk regime.
     !!}
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Accretion_Disks                 , only : accretionDiskTypeThin
@@ -426,7 +426,7 @@ contains
 
   double precision function thinDiskSpectrumMassRate(self,accretionRate,efficiencyRadiative,wavelength) result(spectrum)
     !!{RST
-    Return the accretion disk SED (in :math:`L_\odot\,\mathrm{Hz}^{-1}`) at ``wavelength`` (in \AA) for the given ``accretionRate`` (:math:`\mathrm{M}_\odot\,\mathrm{Gyr}^{-1}`) and ``efficiencyRadiative``, using the fiducial black hole mass and spin. Returns zero if outside the thin-disk regime.
+    Return the accretion disk SED (in :math:`L_\odot\,\mathrm{Hz}^{-1}`) at ``wavelength`` (in Å) for the given ``accretionRate`` (:math:`\mathrm{M}_\odot\,\mathrm{Gyr}^{-1}`) and ``efficiencyRadiative``, using the fiducial black hole mass and spin. Returns zero if outside the thin-disk regime.
     !!}
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Black_Hole_Fundamentals         , only : Black_Hole_ISCO_Radius

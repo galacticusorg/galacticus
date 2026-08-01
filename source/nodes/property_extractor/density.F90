@@ -26,7 +26,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDensityProfile" docformat="rst">
    <description>
-   A property extractor that returns the mass density profile (in :math:`\mathrm{M}_\odot \, \mathrm{Mpc}^{-3}`) of a galaxy or halo component at a user-specified set of radii. The ``radiusSpecifiers`` parameter provides a list of radius definitions (e.g.\ multiples of the virial radius, disk radius, or half-mass radius), supporting both galactic structural radii and fixed physical radii. If ``includeRadii`` is ``true``, the corresponding radii (in Mpc) are also written to the output file as a second column alongside the density values.
+   A property extractor that returns the mass density profile (in :math:`\mathrm{M}_\odot \, \mathrm{Mpc}^{-3}`) of a galaxy or halo component at a user-specified set of radii. The ``radiusSpecifiers`` parameter provides a list of radius definitions (e.g. multiples of the virial radius, disk radius, or half-mass radius), supporting both galactic structural radii and fixed physical radii. If ``includeRadii`` is ``true``, the corresponding radii (in Mpc) are also written to the output file as a second column alongside the density values.
    </description>
   </nodePropertyExtractor>
   !!]

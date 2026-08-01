@@ -103,8 +103,8 @@ module Virial_Orbits
     <description>
     Returns the mean of the squared magnitude of the (specific) angular momentum averaged over all orbits. The default
     implementation returns the square of the mean magnitude, :math:`\langle|j|\rangle^2`, which differs from the true second
-    moment :math:`\langle|j|^2\rangle` only by an $\mathcal{O}(1)$ shape factor $(1+\mathrm{CV}^2)$ set by the coefficient of
-    variation of the orbit distribution (e.g. $\approx 1.04$ for the :cite:t:`li_orbital_2020` distribution). Classes able to
+    moment :math:`\langle|j|^2\rangle` only by an :math:`\mathcal{O}(1)` shape factor :math:`(1+\mathrm{CV}^2)` set by the coefficient of
+    variation of the orbit distribution (e.g. :math:`\approx 1.04` for the :cite:t:`li_orbital_2020` distribution). Classes able to
     evaluate the true second moment in closed form should override this method.
     </description>
     <type>double precision</type>

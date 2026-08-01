@@ -76,7 +76,7 @@ module Cosmological_Density_Field
    </method>
    <method name="collapsingMass" >
     <description>
-    Return the mass :math:`M_*(t)` of halos just collapsing at the given cosmic time (or expansion factor), i.e.\ the mass at which :math:`\sigma(M_*,t) = \delta_\mathrm{c}(t)`.
+    Return the mass :math:`M_*(t)` of halos just collapsing at the given cosmic time (or expansion factor), i.e. the mass at which :math:`\sigma(M_*,t) = \delta_\mathrm{c}(t)`.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
@@ -342,7 +342,7 @@ module Cosmological_Density_Field
    <name>cosmologicalMassVariance</name>
    <descriptiveName>Mass Variance of Cosmological Density Field</descriptiveName>
    <description>
-   Class providing the rms mass variance :math:`\sigma(M,t)` of the cosmological density field---the standard deviation of the linear density contrast when smoothed on the scale enclosing mass :math:`M` at cosmic time :math:`t`. The variance is the fundamental ingredient of the Press-Schechter and excursion-set formalisms: the halo mass function, merger tree branching rates, and bias all depend on :math:`\sigma(M)` and its logarithmic gradient :math:`\mathrm{d}\ln\sigma/\mathrm{d}\ln M`. Implementations typically filter the linear matter power spectrum through a window function (e.g.\ top-hat in real space) and integrate over wavenumber, with normalization set by :math:`\sigma_8`.
+   Class providing the rms mass variance :math:`\sigma(M,t)` of the cosmological density field---the standard deviation of the linear density contrast when smoothed on the scale enclosing mass :math:`M` at cosmic time :math:`t`. The variance is the fundamental ingredient of the Press-Schechter and excursion-set formalisms: the halo mass function, merger tree branching rates, and bias all depend on :math:`\sigma(M)` and its logarithmic gradient :math:`\mathrm{d}\ln\sigma/\mathrm{d}\ln M`. Implementations typically filter the linear matter power spectrum through a window function (e.g. top-hat in real space) and integrate over wavenumber, with normalization set by :math:`\sigma_8`.
    </description>
    <default>filteredPower</default>
    <method name="descriptorNormalizationOnly" >
@@ -415,7 +415,7 @@ module Cosmological_Density_Field
    </method>
    <method name="growthIsMassDependent" >
     <description>
-    Return true if the growth of :math:`\sigma(M,t)` with cosmic time is mass-dependent (e.g.\ in warm or fuzzy dark matter models where the transfer function suppresses power on small scales), requiring the variance to be recomputed at each mass when the epoch changes.
+    Return true if the growth of :math:`\sigma(M,t)` with cosmic time is mass-dependent (e.g. in warm or fuzzy dark matter models where the transfer function suppresses power on small scales), requiring the variance to be recomputed at each mass when the epoch changes.
     </description>
     <type>logical</type>
     <pass>yes</pass>
