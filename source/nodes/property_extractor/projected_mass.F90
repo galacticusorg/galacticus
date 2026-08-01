@@ -172,7 +172,7 @@ contains
     !!{RST
     Implement a ``projectedMass`` property extractor.
     !!}
-    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver
+    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver, radiusUndefined
     use :: Galacticus_Nodes                    , only : treeNode
     use :: Numerical_Integration               , only : integrator                                , GSL_Integ_Gauss15
     use :: Numerical_Comparison                , only : Values_Agree
@@ -199,6 +199,14 @@ contains
     integrator_=integrator(projectedMassIntegrand,toleranceRelative=1.0d-3,hasSingularities=.true.,integrationRule=GSL_Integ_Gauss15)
     do i=1,self%radiiCount
        call resolver%evaluate(i,radius_)
+       if (radius_ < 0.0d0) then
+          ! The radius is undefined in this node - report the sentinel. Note that this test must precede any arithmetic on the
+          ! radius, since the sentinel would overflow (and so trap) under multiplication.
+          massProjected       (i,1)=radiusUndefined
+          if (self%includeRadii)                   &
+               & massProjected(i,2)=radiusUndefined
+          cycle
+       end if
        massProjectedPrevious=0.0d0
        radiusOuter          =max(radius_*2.0d0,radiusVirial)
        ! Evaluate the integral, then add on the mass of the sphere entirely enclosed inside the cylinder.

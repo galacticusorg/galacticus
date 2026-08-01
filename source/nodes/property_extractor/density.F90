@@ -168,7 +168,7 @@ contains
     !!{RST
     Implement a ``densityProfile`` property extractor.
     !!}
-    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver
+    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver, radiusUndefined
     use :: Galacticus_Nodes                    , only : treeNode
     use :: Mass_Distributions                  , only : massDistributionClass
     use :: Coordinates                         , only : coordinateSpherical            , assignment(=)
@@ -190,6 +190,13 @@ contains
     resolver=radiusResolver(self%radii,node,self%darkMatterHaloScale_)
     do i=1,self%radiiCount
        call resolver%evaluate(i,radius)
+       if (radius < 0.0d0) then
+          ! The radius is undefined in this node - report the sentinel rather than evaluating the density there.
+          densityProfileExtract       (i,1)=radiusUndefined
+          if (self%includeRadii)                            &
+               & densityProfileExtract(i,2)=radiusUndefined
+          cycle
+       end if
        coordinates                       =  [radius,Pi/2.0d0,0.0d0]
        massDistribution_                 => node             %massDistribution(                                                    &
             &                                                                  componentType=self%radii%specifiers(i)%component  , &

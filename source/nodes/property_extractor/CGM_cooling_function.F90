@@ -233,7 +233,7 @@ contains
     use :: Chemical_Abundances_Structure       , only : chemicalAbundances
     use :: Chemical_Reaction_Rates_Utilities   , only : Chemicals_Mass_To_Fraction_Conversion
     use :: Galactic_Structure_Options          , only : componentTypeHotHalo                 , massTypeGaseous
-    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver
+    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver, radiusUndefined
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                   , nodeComponentHotHalo        , treeNode
     use :: Mass_Distributions                  , only : massDistributionClass                , kinematicsDistributionClass
     use :: Coordinates                         , only : coordinateSpherical                  , assignment(=)
@@ -265,6 +265,15 @@ contains
     resolver=radiusResolver(self%radii,node,self%darkMatterHaloScale_)
     do i=1,self%radiiCount
        call resolver%evaluate(i,radius)
+       if (radius < 0.0d0) then
+          ! The radius is undefined in this node - report the sentinel rather than evaluating the cooling function there.
+          cgmCoolingFunctionExtract    (i,                1)=radiusUndefined
+          if (self%includeRadii  )                                           &
+               & cgmCoolingFunctionExtract(i,self%indexRadii  )=radiusUndefined
+          if (self%includeDensity)                                           &
+               & cgmCoolingFunctionExtract(i,self%indexDensity)=radiusUndefined
+          cycle
+       end if
        ! Extract properties needed for the cooling function.       
        basic   => node%basic  ()
        hotHalo => node%hotHalo()

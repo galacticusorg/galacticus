@@ -27,7 +27,8 @@ module Galactic_Structure_Radii_Definitions
   !!}
   use :: ISO_Varying_String        , only : varying_string
   use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
-  use :: Galactic_Structure_Options, only : enumerationComponentTypeType  , enumerationMassTypeType, enumerationWeightByType
+  use :: Galactic_Structure_Options, only : enumerationComponentTypeType  , enumerationMassTypeType, enumerationWeightByType, &
+       &                                    massTypeStellar
   use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfile, nodeComponentDisk      , nodeComponentHotHalo   , &
        &                                    nodeComponentNSC              , nodeComponentSatellite , nodeComponentSpheroid  , &
        &                                    treeNode
@@ -65,6 +66,8 @@ module Galactic_Structure_Radii_Definitions
    <entry label="galacticMassFraction"             description="Radii are specified in units of the radius enclosing a fraction of the galactic mass"       />
    <entry label="galacticLightFraction"            description="Radii are specified in units of the radius enclosing a fraction of the galactic light"      />
    <entry label="stellarMassFraction"              description="Radii are specified in units of the radius enclosing a fraction of the stellar mass"        />
+   <entry label="solitonRadiusCore"                description="Radii are specified in units of the \gls{fdm} soliton core radius"                          />
+   <entry label="solitonRadiusSoliton"             description="Radii are specified in units of the \gls{fdm} soliton transition radius"                    />
   </enumeration>
   !!]
 
@@ -106,10 +109,11 @@ module Galactic_Structure_Radii_Definitions
      !!}
      type   (radiusSpecifier), allocatable, dimension(:) :: specifiers
      integer                                             :: count                     =0
+     integer                                             :: radiusCoreID              =-1     , radiusSolitonID     =-1
      logical                                             :: hotHaloRequired           =.false., diskRequired        =.false., &
           &                                                 spheroidRequired          =.false., satelliteRequired   =.false., &
           &                                                 nuclearStarClusterRequired=.false., radiusVirialRequired=.false., &
-          &                                                 radiusScaleRequired       =.false.
+          &                                                 radiusScaleRequired       =.false., solitonRequired     =.false.
    contains
      procedure :: decode => radiusDefinitionsDecode
   end type radiusDefinitions
@@ -130,6 +134,7 @@ module Galactic_Structure_Radii_Definitions
      class           (nodeComponentSatellite        ), pointer :: satellite          => null()
      class           (nodeComponentDarkMatterProfile), pointer :: darkMatterProfile  => null()
      double precision                                          :: radiusVirial       =  0.0d0, fractionDarkMatter=1.0d0
+     double precision                                          :: radiusCore                  , radiusSoliton
    contains
      procedure :: evaluate => radiusResolverEvaluate
   end type radiusResolver
@@ -351,6 +356,12 @@ contains
           end if
           specifiers(i)%weightBy     =weightByMass
           specifiers(i)%weightByIndex=weightIndexNull
+       case ('solitonRadiusCore'               )
+          specifiers(i)%type=radiusTypeSolitonRadiusCore
+          self%solitonRequired           =.true.
+       case ('solitonRadiusSoliton'            )
+          specifiers(i)%type=radiusTypeSolitonRadiusSoliton
+          self%solitonRequired           =.true.
        case default
           message="unrecognized radius type"//char(10)//enumerationRadiusTypeDescribe()
           call reportSpecifierError(specifiers(i)%name,message,highlight=1,bracketed=.false.)
@@ -407,8 +418,26 @@ contains
           call reportSpecifierError(specifiers(i)%name,message,highlight=countComponents,bracketed=.true.)
        end if
     end do
+    if (self%solitonRequired) call radiusDefinitionsSolitonRegister(self)
     return
   end subroutine radiusDefinitionsDecode
+
+  subroutine radiusDefinitionsSolitonRegister(self)
+    !!{RST
+    Register the meta-properties in which the \gls{fdm} soliton radii are stored. These are registered only if some radius
+    definition actually refers to them, so that models with no such definitions do not carry the (unused) meta-properties. Note
+    that the meta-properties are registered here with {\normalfont \ttfamily isCreator="no"}---whether any class actually creates
+    them is not known until all classes have been constructed, and so must be tested when the radii are evaluated, not here.
+    !!}
+    implicit none
+    class(radiusDefinitions), intent(inout) :: self
+
+    !![
+    <addMetaProperty component="darkMatterProfile" name="solitonRadiusCore"    id="self%radiusCoreID"    isEvolvable="no" isCreator="no"/>
+    <addMetaProperty component="darkMatterProfile" name="solitonRadiusSoliton" id="self%radiusSolitonID" isEvolvable="no" isCreator="no"/>
+    !!]
+    return
+  end subroutine radiusDefinitionsSolitonRegister
 
   function radiusResolverConstructor(definitions_,node,darkMatterHaloScale_,fractionDarkMatter,radiusVirialRequired) result(self)
     !!{RST
@@ -442,7 +471,29 @@ contains
     if (definitions_%spheroidRequired             ) self%spheroid           => node%spheroid         ()
     if (definitions_%nuclearStarClusterRequired   ) self%nuclearStarCluster => node%NSC              ()
     if (definitions_%satelliteRequired            ) self%satellite          => node%satellite        ()
-    if (definitions_%radiusScaleRequired          ) self%darkMatterProfile  => node%darkMatterProfile()
+    if (definitions_%radiusScaleRequired          &
+         & .or.                                     &
+         &  definitions_%solitonRequired            &
+         & )                                        self%darkMatterProfile  => node%darkMatterProfile()
+    self%radiusCore   =radiusUndefined
+    self%radiusSoliton=radiusUndefined
+    if (definitions_%solitonRequired) then
+       select type (darkMatterProfile => self%darkMatterProfile)
+       type is (nodeComponentDarkMatterProfile)
+          ! The node has only the generic dark matter profile component, so it has no soliton properties. Both radii are left
+          ! undefined.
+       class default
+          ! The meta-properties always have valid IDs, but have storage only if some class creates them - which is not the case
+          ! in a model containing no fuzzy dark matter. A non-positive radius indicates a halo in which no soliton formed (the
+          ! soliton profiles store -1 in that case), which is likewise undefined here.
+          if (darkMatterProfile%floatRank0MetaPropertyIsCreated(definitions_%radiusCoreID   )) &
+               & self%radiusCore   =darkMatterProfile%floatRank0MetaPropertyGet(definitions_%radiusCoreID   )
+          if (darkMatterProfile%floatRank0MetaPropertyIsCreated(definitions_%radiusSolitonID)) &
+               & self%radiusSoliton=darkMatterProfile%floatRank0MetaPropertyGet(definitions_%radiusSolitonID)
+          if (self%radiusCore    <= 0.0d0) self%radiusCore   =radiusUndefined
+          if (self%radiusSoliton <= 0.0d0) self%radiusSoliton=radiusUndefined
+       end select
+    end if
     return
   end function radiusResolverConstructor
 
@@ -538,12 +589,22 @@ contains
        !![
        <objectDestructor name="massDistribution_"/>
        !!]
+    case   (radiusTypeSolitonRadiusCore               %ID)
+       radiusScale_=self%radiusCore
+    case   (radiusTypeSolitonRadiusSoliton            %ID)
+       radiusScale_=self%radiusSoliton
     case default
        radiusScale_=radiusUndefined
        call Error_Report('unrecognized radius type'//{introspection:location})
     end select
-    ! For radii specified absolutely there is no scale radius to multiply by - the radius is simply the value given.
-    if (specifier_%type%ID /= radiusTypeRadius%ID) radius=radius*radiusScale_
+    ! For radii specified absolutely there is no scale radius to multiply by - the radius is simply the value given. Where the
+    ! scale radius is undefined the radius is undefined too: the sentinel must be propagated rather than multiplied, since it is
+    ! a large negative number which would overflow (and so trap) under multiplication.
+    if      (radiusScale_ == radiusUndefined              ) then
+       radius=radiusUndefined
+    else if (specifier_%type%ID /= radiusTypeRadius%ID) then
+       radius=radius*radiusScale_
+    end if
     if (present(radiusScale)) radiusScale=radiusScale_
     return
   end subroutine radiusResolverEvaluate

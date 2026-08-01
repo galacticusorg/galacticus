@@ -181,7 +181,7 @@ contains
     !!{RST
     Implement a ``massProfile`` property extractor.
     !!}
-    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver
+    use :: Galactic_Structure_Radii_Definitions, only : radiusResolver, radiusUndefined
     use :: Galacticus_Nodes                    , only : treeNode
     use :: Mass_Distributions                  , only : massDistributionClass
     implicit none
@@ -200,6 +200,13 @@ contains
     resolver=radiusResolver(self%radii,node,self%darkMatterHaloScale_,fractionDarkMatter=self%fractionDarkMatter)
     do i=1,self%radiiCount
        call resolver%evaluate(i,radius)
+       if (radius < 0.0d0) then
+          ! The radius is undefined in this node - report the sentinel rather than evaluating the enclosed mass there.
+          massProfileExtract       (i,1)=radiusUndefined
+          if (self%includeRadii)                         &
+               & massProfileExtract(i,2)=radiusUndefined
+          cycle
+       end if
        massDistribution_              => node             %massDistribution    (                                       &
             &                                                                   componentType=self%radii%specifiers(i)%component, &
             &                                                                   massType     =self%radii%specifiers(i)%mass       &

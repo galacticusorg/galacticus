@@ -206,7 +206,7 @@ contains
     use :: Galactic_Structure_Options          , only : componentTypeDisk              , componentTypeSpheroid       , componentTypeAll                          , massTypeStellar                   , &
           &                                             massTypeAll
     use :: Galactic_Structure_Radii_Definitions, only : directionLambdaR               , directionLineOfSight        , directionLineOfSightInteriorAverage       , directionRadial                   , &
-          &                                             radiusResolver
+          &                                             radiusResolver, radiusUndefined
     use :: Galacticus_Nodes                    , only : treeNode
     use :: Coordinates                         , only : coordinateSpherical            , assignment(=)
     use :: Numerical_Integration               , only : integrator
@@ -238,6 +238,14 @@ contains
     resolver=radiusResolver(self%radii,node,self%darkMatterHaloScale_)
     do i=1,self%radiiCount
        call resolver%evaluate(i,radius,radiusScale)
+       if (radius < 0.0d0) then
+          ! The radius is undefined in this node - report the sentinel. Note that this test must precede any arithmetic on the
+          ! radius, since the sentinel would overflow (and so trap) under multiplication.
+          velocityDispersionExtract       (i,1)=radiusUndefined
+          if (self%includeRadii)                               &
+               & velocityDispersionExtract(i,2)=radiusUndefined
+          cycle
+       end if
        radiusOuter_=max(radius,radiusScale)*outerRadiusMultiplier
        ! The line-of-sight integrals below run out to `radiusOuter_`. If that is not positive the integration range is
        ! degenerate - which happens whenever the component in whose units the radius is expressed has zero extent, and so is
