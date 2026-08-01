@@ -57,7 +57,7 @@ def _emit_type_definition(name, entries, indexing, visibility, validator):
     lines += f"  type, extends(enumerationType) :: enumeration{name}Type\n"
     lines += "  contains\n"
     lines += "    !![\n"
-    lines += "    <methods>\n"
+    lines += "    <methods docformat=\"rst\">\n"
     lines += (
         "      <method method=\"operator(==)\" description=\"Test the "
         "equality of two members of the enumeration.\"/>\n"
@@ -96,8 +96,8 @@ def _emit_equality_function(name):
         f"  pure elemental logical function {fn}(enumerationA,enumerationB) "
         "result(isEqual)\n"
     )
-    out += "    !!{\n"
-    out += f"    Validate a \\mono{{{name}}} enumeration value.\n"
+    out += "    !!{RST\n"
+    out += f"    Validate a ``{name}`` enumeration value.\n"
     out += "    !!}\n"
     out += "    implicit none\n\n"
     out += (
@@ -117,8 +117,8 @@ def _emit_validator_function(name):
     out  = "\n"
     out += "  ! Auto-generated enumeration function\n"
     out += f"  logical function {fn}(enumerationValue)\n"
-    out += "    !!{\n"
-    out += f"    Validate a \\mono{{{name}}} enumeration value.\n"
+    out += "    !!{RST\n"
+    out += f"    Validate a ``{name}`` enumeration value.\n"
     out += "    !!}\n"
     out += "    implicit none\n\n"
     out += f"    type(enumeration{name}Type), intent(in   ) :: enumerationValue\n"
@@ -154,9 +154,9 @@ def _emit_encode_function(name, entries, indexing, on_error, node):
 
     # -- IDVarStr --
     out += f"  integer function {fn}IDVarStr(name,includesPrefix)\n"
-    out += "    !!{\n"
+    out += "    !!{RST\n"
     out += (
-        f"    Encode a \\mono{{{name}}} enumeration from a string, returning "
+        f"    Encode a ``{name}`` enumeration from a string, returning "
         "the appropriate identifier ID.\n"
     )
     out += "    !!}\n"
@@ -170,9 +170,9 @@ def _emit_encode_function(name, entries, indexing, on_error, node):
 
     # -- IDChar --
     out += f"  integer function {fn}IDChar(name,includesPrefix)\n"
-    out += "    !!{\n"
+    out += "    !!{RST\n"
     out += (
-        f"    Encode a \\mono{{{name}}} enumeration from a string, returning "
+        f"    Encode a ``{name}`` enumeration from a string, returning "
         "the appropriate identifier ID.\n"
     )
     out += "    !!}\n"
@@ -188,9 +188,9 @@ def _emit_encode_function(name, entries, indexing, on_error, node):
 
     # -- VarStr --
     out += f"  function {fn}VarStr(name,includesPrefix{status_arg})\n"
-    out += "    !!{\n"
+    out += "    !!{RST\n"
     out += (
-        f"    Encode a \\mono{{{name}}} enumeration from a string, returning "
+        f"    Encode a ``{name}`` enumeration from a string, returning "
         "the appropriate identifier.\n"
     )
     out += "    !!}\n"
@@ -207,9 +207,9 @@ def _emit_encode_function(name, entries, indexing, on_error, node):
 
     # -- Char (the workhorse) --
     out += f"  function {fn}Char(name,includesPrefix{status_arg})\n"
-    out += "    !!{\n"
+    out += "    !!{RST\n"
     out += (
-        f"    Encode a \\mono{{{name}}} enumeration from a string, returning "
+        f"    Encode a ``{name}`` enumeration from a string, returning "
         "the appropriate identifier.\n"
     )
     out += "    !!}\n"
@@ -281,8 +281,8 @@ def _emit_decode_function(name, entries, indexing, on_error, node):
 
     # -- Enumerator wrapper --
     out += f"  function {fn}Enumerator(enumerationValue,includePrefix)\n"
-    out += "    !!{\n"
-    out += f"    Decode a \\mono{{{name}}} enumeration to a string.\n"
+    out += "    !!{RST\n"
+    out += f"    Decode a ``{name}`` enumeration to a string.\n"
     out += "    !!}\n"
     out += "    use ISO_Varying_String\n"
     out += "    implicit none\n\n"
@@ -304,8 +304,8 @@ def _emit_decode_function(name, entries, indexing, on_error, node):
 
     # -- ID worker --
     out += f"  function {fn}ID(enumerationValue,includePrefix)\n"
-    out += "    !!{\n"
-    out += f"    Decode a \\mono{{{name}}} enumeration to a string.\n"
+    out += "    !!{RST\n"
+    out += f"    Decode a ``{name}`` enumeration to a string.\n"
     out += "    !!}\n"
     out += "    use ISO_Varying_String\n"
     if not on_error:
@@ -362,9 +362,9 @@ def _emit_description_function(name, entries, indexing):
     wrapper  = "\n"
     wrapper += "  ! Auto-generated enumeration function\n"
     wrapper += f"  function {fn}Enumerator(enumerationValue)\n"
-    wrapper += "    !!{\n"
+    wrapper += "    !!{RST\n"
     wrapper += (
-        f"    Return a description of a \\mono{{{name}}} enumeration member.\n"
+        f"    Return a description of a ``{name}`` enumeration member.\n"
     )
     wrapper += "    !!}\n"
     wrapper += "    use ISO_Varying_String\n"
@@ -382,8 +382,8 @@ def _emit_description_function(name, entries, indexing):
     wrapper += f"  end function {fn}Enumerator\n"
 
     body  = f"  function {fn}ID(enumerationValue) result(description)\n"
-    body += "    !!{\n"
-    body += f"    Return a description of a \\mono{{{name}}} enumeration value.\n"
+    body += "    !!{RST\n"
+    body += f"    Return a description of a ``{name}`` enumeration value.\n"
     body += "    !!}\n"
     body += "    use :: ISO_Varying_String, only : varying_string, assignment(=)\n"
     body += "    implicit none\n"
@@ -410,8 +410,8 @@ def _emit_describe_function(name, entries):
     out  = "\n"
     out += "  ! Auto-generated enumeration function\n"
     out += f"  function {fn}() result(description)\n"
-    out += "    !!{\n"
-    out += f"    Return a description of the \\mono{{{name}}} enumeration.\n"
+    out += "    !!{RST\n"
+    out += f"    Return a description of the ``{name}`` enumeration.\n"
     out += "    !!}\n"
     out += (
         "    use :: ISO_Varying_String, only : varying_string, var_str, "

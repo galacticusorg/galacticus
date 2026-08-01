@@ -288,7 +288,7 @@ def derived_types_serialize(build):
 
         comment = type_def.get('comment')
         if comment:
-            build['content'] += "  !!{\n"
+            build['content'] += "  !!{RST\n"
             build['content'] += f"  {comment}\n"
             build['content'] += "  !!}\n"
 
@@ -414,7 +414,7 @@ def functions_serialize(build):
             f"{function['name']}({','.join(arguments)}) {result}\n"
         )
         build['content'] += opener
-        build['content'] += "   !!{\n"
+        build['content'] += "   !!{RST\n"
         build['content'] += f"   {function.get('description', '')}\n"
         build['content'] += "   !!}\n"
 
@@ -507,7 +507,7 @@ def bound_function_table(object_name, bindings):
 
     out = ""
     if method_count >= 1:
-        out += "     !![\n     <methods>\n" + description \
+        out += "     !![\n     <methods docformat=\"rst\">\n" + description \
              + "     </methods>\n     !!]\n\n"
     out += '\n'.join(rows)
     if rows:

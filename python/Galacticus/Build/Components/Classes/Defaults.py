@@ -58,8 +58,8 @@ def Class_Property_Is_Gettable(build, class_dict):
             'type':        'logical',
             'name':        f"{class_name}{cap_prop}IsGettable",
             'description': (
-                f"Returns true if the \\mono{{{prop_name}}} property is "
-                f"gettable for the \\mono{{{class_name}}} component class."
+                f"Returns true if the ``{prop_name}`` property is "
+                f"gettable for the ``{class_name}`` component class."
             ),
         }
         content = f"{class_name}{cap_prop}IsGettable=.false.\n"
@@ -104,8 +104,8 @@ def Class_Property_Default(build, class_dict):
             'type':        return_type,
             'name':        f"{class_name}{cap_prop}",
             'description': (
-                f"Returns the default value for the \\mono{{{prop_name}}} "
-                f"property for the \\mono{{{class_name}}} component class."
+                f"Returns the default value for the ``{prop_name}`` "
+                f"property for the ``{class_name}`` component class."
             ),
             'variables':   [
                 {
@@ -226,8 +226,8 @@ def Class_Property_Rate_Default(build, class_dict):
             'type':        return_type,
             'name':        f"{class_name}{cap_prop}RateGet",
             'description': (
-                f"Returns a zero rate for the \\mono{{{prop_name}}} property "
-                f"for the \\mono{{{class_name}}} component class."
+                f"Returns a zero rate for the ``{prop_name}`` property "
+                f"for the ``{class_name}`` component class."
             ),
             'variables':   [
                 {

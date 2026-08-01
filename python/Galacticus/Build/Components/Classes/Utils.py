@@ -61,7 +61,7 @@ def Class_Move(build):
             'type':        'void',
             'name':        type_name + 'Move',
             'description': (
-                f"Move instances of the \\mono{{{name}}} component, "
+                f"Move instances of the ``{name}`` component, "
                 "from one node to another."
             ),
             'modules':     ['Error'],
@@ -170,10 +170,10 @@ def Class_Move(build):
             'type':       'procedure',
             'descriptor': function,
             'name':       name + 'Move',
-            'returnType': r"\void",
+            'returnType': r"``void``",
             'arguments':  (
-                r"\textcolor{red}{\textless type(treeNode)\textgreater} "
-                r"targetNode\arginout"
+                r"``type(treeNode)`` "
+                r"targetNode [inout]"
             ),
         })
 
@@ -192,7 +192,7 @@ def Class_Remove(build):
             'type':        'void',
             'name':        type_name + 'Remove',
             'description': (
-                f"Remove an instance of the \\mono{{{name}}} component "
+                f"Remove an instance of the ``{name}`` component "
                 "from a node."
             ),
             'modules':     ['Error'],

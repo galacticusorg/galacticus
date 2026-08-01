@@ -51,7 +51,7 @@ def Hierarchy_Initialization(build):
     function = {
         'type':        'void',
         'name':        'nodeClassHierarchyInitialize',
-        'description': r"Initialize the \glc\ node/component class hierarchy.",
+        'description': r"Initialize the Galacticus node/component class hierarchy.",
         'modules':     [
             'Input_Parameters',
             'ISO_Varying_String',
@@ -138,9 +138,9 @@ def Hierarchy_Initialization(build):
                     f"      <defaultValue>.false.</defaultValue>\n"
                     f"      <attachedTo>module</attachedTo>\n"
                     f"      <description>Specifies whether the "
-                    f"\\mono{{{prop['name']}}} method of the "
-                    f"\\mono{{{member['name']}}} implementation of the "
-                    f"\\mono{{{class_name}}} component class should be output."
+                    f"``{prop['name']}`` method of the "
+                    f"``{member['name']}`` implementation of the "
+                    f"``{class_name}`` component class should be output."
                     f"</description>\n"
                     f"      <type>string</type>\n"
                     f"      <cardinality>1</cardinality>\n"
@@ -196,7 +196,7 @@ def Hierarchy_Finalization(build):
     function = {
         'type':        'void',
         'name':        'nodeClassHierarchyFinalize',
-        'description': r"Finalize the \glc\ node/component class hierarchy.",
+        'description': r"Finalize the Galacticus node/component class hierarchy.",
         'content':     (
             "!$omp critical (Node_Class_Hierarchy_Initialize)\n"
             "hierarchyInitialized=hierarchyInitialized-1\n"

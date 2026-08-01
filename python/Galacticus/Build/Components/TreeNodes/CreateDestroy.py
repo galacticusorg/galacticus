@@ -53,7 +53,7 @@ def Tree_Node_Creation(build):
     function = {
         'type':        'void',
         'name':        'treeNodeInitialize',
-        'description': r"Initialize a \mono{treeNode} object.",
+        'description': r"Initialize a ``treeNode`` object.",
         'modules':     ['Error'],
         'variables':   [
             {
@@ -152,7 +152,7 @@ def Tree_Node_Builder(build):
         'type':        'void',
         'name':        'treeNodeComponentBuilder',
         'description': (
-            r"Build components in a \mono{treeNode} object given an XML "
+            r"Build components in a ``treeNode`` object given an XML "
             r"definition."
         ),
         'modules':     [
@@ -272,7 +272,7 @@ def Tree_Node_Finalization(build):
     function = {
         'type':        'void',
         'name':        'treeNodeDestroy',
-        'description': r"Destroy a \mono{treeNode} object.",
+        'description': r"Destroy a ``treeNode`` object.",
         'modules':     ['Error'],
         'variables':   [
             {
@@ -358,7 +358,7 @@ def Tree_Node_Class_Creation(build, class_dict):
         'type':        'void',
         'name':        f"nodeComponent{cap}Create",
         'description': (
-            f"Create the \\mono{{{name}}} component of \\mono{{self}}."
+            f"Create the ``{name}`` component of ``self``."
         ),
         'modules':     [
             'ISO_Varying_String',
@@ -402,7 +402,7 @@ def Tree_Node_Class_Destruction(build, class_dict):
         'type':        'void',
         'name':        f"nodeComponent{cap}Destroy",
         'description': (
-            f"Destroy the \\mono{{{name}}} component of \\mono{{self}}"
+            f"Destroy the ``{name}`` component of ``self``"
         ),
         'variables':   [
             {

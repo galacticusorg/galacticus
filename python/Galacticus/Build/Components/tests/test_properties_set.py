@@ -91,7 +91,7 @@ def test_build_class_setters_stub_uses_Boolean_False_function():
     Build_Class_Setters(build)
     stub = build['types']['nodeComponentDarkMatter']['boundFunctions'][0]
     assert stub['function']   == 'Boolean_False'
-    assert stub['returnType'] == r"\logicalzero"
+    assert stub['returnType'] == r"``logical``"
     assert stub['arguments']  == ""
     assert stub['type']       == 'procedure'
     assert stub['pass']       == 'nopass'

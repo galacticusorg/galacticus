@@ -50,8 +50,8 @@ def Attributes_Match(build, class_dict):
             'name':        f"{class_dict['name']}{cap_prop}AttributeMatch",
             'description': (
                 f"Return a text list of component implementations in the "
-                f"\\mono{{{class_dict['name']}}} class that have the desired "
-                f"attributes for the \\mono{{{prop_name}}} property"
+                f"``{class_dict['name']}`` class that have the desired "
+                f"attributes for the ``{prop_name}`` property"
             ),
             'modules':     ['ISO_Varying_String'],
             'variables':   [

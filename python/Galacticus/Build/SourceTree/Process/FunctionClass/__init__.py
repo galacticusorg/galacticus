@@ -124,27 +124,6 @@ def _xml_escape(s):
     )
 
 
-_LATEX_ESCAPES = {
-    '\\': r'\textbackslash{}',
-    '_':  r'\_',
-    '&':  r'\&',
-    '%':  r'\%',
-    '$':  r'\$',
-    '#':  r'\#',
-    '{':  r'\{',
-    '}':  r'\}',
-    '~':  r'\textasciitilde{}',
-    '^':  r'\textasciicircum{}',
-}
-
-
-def _latex_encode(s):
-    """Minimal LaTeX special-character escape covering the subset of
-    characters this pipeline needs.
-    """
-    return ''.join(_LATEX_ESCAPES.get(c, c) for c in str(s))
-
-
 # Module-level caches.  The helpers take the state explicitly as
 # parameters, so these exist only to avoid repeat parses of the XML files
 # within a single `process_function_class` run.
@@ -2775,14 +2754,14 @@ def _generate_type_definition(directive, methods, pre, node):
     # contains + methods metadata.
     pre['content'] += '    contains\n'
     pre['content'] += '    !![\n'
-    pre['content'] += '    <methods>\n'
+    pre['content'] += '    <methods docformat="rst">\n'
 
     generics = {}
     for method_name in sorted(methods):
         if method_name == 'destructor':
             continue
         method = methods[method_name]
-        argument_list = _method_arguments_to_latex(method)
+        argument_list = _method_arguments_to_rst(method)
 
         pre['content'] += f'     <method method="{method_name}">\n'
         pre['content'] += '      <description>\n'
@@ -2872,11 +2851,13 @@ def _generate_type_definition(directive, methods, pre, node):
     )
 
 
-def _method_arguments_to_latex(method):
-    """Render each of a method's argument declarations to the LaTeX
+def _method_arguments_to_rst(method):
+    """Render each of a method's argument declarations to the reStructuredText
     notation FunctionClass embeds into the <methods>/<description>
-    metadata.  We lean on our existing `parse_declaration` rather than
-    indexing into INTRINSIC_DECLARATIONS directly.
+    metadata: an inline-literal type spec, the argument name, and an
+    `[in]`/`[out]`/`[inout]` direction marker.  We lean on our existing
+    `parse_declaration` rather than indexing into INTRINSIC_DECLARATIONS
+    directly.
     """
     args = list(as_array(method.get('argument') or []))
     if not args:
@@ -2890,19 +2871,19 @@ def _method_arguments_to_latex(method):
         type_val  = decl.get('type')
         attrs     = decl.get('attributes') or []
         for variable in decl.get('variables') or []:
-            piece = (
-                r'\textcolor{red}{\textless ' + _latex_encode(intrinsic)
-            )
+            # Inline literals are verbatim, so the type spec and the
+            # variable name need no escaping.
+            piece = '``' + intrinsic
             if type_val is not None:
-                piece += _latex_encode(type_val)
-            piece += r'\textgreater} ' + _latex_encode(variable)
+                piece += type_val
+            piece += '`` ' + variable
             for attr in attrs:
                 if attr == 'intent(in)':
-                    piece += r'\argin'
+                    piece += r' [in]'
                 elif attr == 'intent(out)':
-                    piece += r'\argout'
+                    piece += r' [out]'
                 elif attr == 'intent(inout)':
-                    piece += r'\arginout'
+                    piece += r' [inout]'
             parts.append(piece)
     return ','.join(parts)
 
@@ -2968,9 +2949,9 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
         f'{directive_name}CnstrctrPrmtrs'
         '(parameters,copyInstance,parameterName) result(self)\n'
     )
-    post['content'] += '      !!{\n'
+    post['content'] += '      !!{RST\n'
     post['content'] += (
-        f'      Return a pointer to a newly created \\mono{{{directive_name}}} '
+        f'      Return a pointer to a newly created ``{directive_name}`` '
         'object as specified by the provided parameters.\n'
     )
     post['content'] += '      !!}\n'
@@ -3718,10 +3699,10 @@ def _generate_method_functions(directive, methods, post, node):
         if argument_list:
             post['content'] += ',' + argument_list
         post['content'] += ')\n'
-        post['content'] += '      !!{\n'
+        post['content'] += '      !!{RST\n'
         post['content'] += (
-            f'      Default implementation of the \\mono{{{method_name}}} '
-            f'method for the \\mono{{{directive_name}}} class.\n'
+            f'      Default implementation of the ``{method_name}`` '
+            f'method for the ``{directive_name}`` class.\n'
         )
         post['content'] += '      !!}\n'
 
@@ -3844,11 +3825,12 @@ def _generate_recursive_shim(directive, methods, non_abstract_classes,
     # ---- type definition ----
     pre['content'] += f'   type, extends({directive_name}Class) :: {shim_type}\n'
     pre['content'] += (
-        '     !!{\n'
-        f'     A generated shim for the \\refClass{{{directive_name}Class}} '
+        '     !!{RST\n'
+        f'     A generated shim for the '
+        f':galacticus-class:`{directive_name}Class` '
         'family. Returned by the factory when a bounded construction cycle\n'
         '     re-enters the object currently under construction; forwards every '
-        'method to the (weakly-referenced) real object. See issue \\#695.\n'
+        'method to the (weakly-referenced) real object. See issue #695.\n'
         '     !!}\n'
     )
     pre['content'] += (

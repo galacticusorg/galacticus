@@ -345,7 +345,7 @@ def _emit_class_restore(parent_class, target_class, classes, class_identifiers):
             if rank > 0 else ''
         )
         code  = f"subroutine {parent_class}ClassRestore{suffix}(self,stateFile{stored_shape})\n"
-        code += " !!{\n"
+        code += " !!{RST\n"
         code += " Restore the class of this object from file.\n"
         code += " !!}\n"
         code += " use            :: Error        , only : Error_Report\n"
@@ -390,7 +390,7 @@ def _emit_class_restore(parent_class, target_class, classes, class_identifiers):
 
 _TYPE_BINDING = (
     "    !![\n"
-    "    <methods>\n"
+    "    <methods docformat=\"rst\">\n"
     "     <method method=\"stateStore\"   description=\"Store the state of this object to file.\"    />\n"
     "     <method method=\"stateRestore\" description=\"Restore the state of this object from file.\"/>\n"
     "    </methods>\n"
@@ -517,7 +517,7 @@ def _emit_store_restore(directive, classes, storable_types):
     # Openers (grow if label/storedShape/wasAllocated/ranks are needed).
     output_opener = (
         f"subroutine {target}StateStore(self,stateFile,gslStateFile,storeIdentifier)\n"
-        " !!{\n"
+        " !!{RST\n"
         " Store the state of this object to file.\n"
         " !!}\n"
         " use, intrinsic :: ISO_C_Binding     , only : c_size_t, c_ptr\n"
@@ -531,7 +531,7 @@ def _emit_store_restore(directive, classes, storable_types):
     )
     input_opener = (
         f"subroutine {target}StateRestore(self,stateFile,gslStateFile)\n"
-        " !!{\n"
+        " !!{RST\n"
         " Store the state of this object to file.\n"
         " !!}\n"
         " use, intrinsic :: ISO_C_Binding     , only : c_size_t, c_ptr\n"

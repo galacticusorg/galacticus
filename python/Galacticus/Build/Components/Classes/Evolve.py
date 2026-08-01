@@ -31,7 +31,7 @@ def Build_Meta_Rate_Functions(build, class_dict):
         'name':        name + 'FloatRank0MetaPropertyRate',
         'description': (
             f"Accumulate to the rate of change of the indexed rank-0 float "
-            f"meta-property of the \\mono{{{name}}} component class."
+            f"meta-property of the ``{name}`` component class."
         ),
         'modules':     ['ISO_Varying_String'],
         'variables':   [
@@ -132,7 +132,7 @@ def Build_Meta_Scale_Functions(build, class_dict):
         'name':        name + 'FloatRank0MetaPropertyScale',
         'description': (
             f"Set the absolute scale of the rank-0 float indexed "
-            f"meta-property of the \\mono{{{name}}} component class."
+            f"meta-property of the ``{name}`` component class."
         ),
         'modules':     ['ISO_Varying_String'],
         'variables':   [
@@ -179,7 +179,7 @@ def Build_Meta_Inactive_Functions(build, class_dict):
         'name':        name + 'FloatRank0MetaPropertyJcbnZr',
         'description': (
             f"Indicate that the indexed rank-0 float meta-property of the "
-            f"\\mono{{{name}}} component class is inactive for differential "
+            f"``{name}`` component class is inactive for differential "
             "equation solving."
         ),
         'variables':   [
@@ -218,7 +218,7 @@ def Build_Meta_Analytic_Functions(build, class_dict):
         'name':        name + 'FloatRank0MetaPropertyAlytc',
         'description': (
             f"Indicate that the indexed rank-0 float meta-property of the "
-            f"\\mono{{{name}}} component class is to be solved analytically "
+            f"``{name}`` component class is to be solved analytically "
             "for differential evolution."
         ),
         'variables':   [

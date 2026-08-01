@@ -111,9 +111,9 @@ def Implementation_Deferred_Binding_Attachers(build, class_dict, member):
             'type':        'void',
             'name':        member_function_name + 'DfrrdFnctnSet',
             'description': (
-                f"Set the function to be used for the \\mono{{{method_name}}} "
-                f"method of the \\mono{{{member['name']}}} implementation of "
-                f"the \\mono{{{name}}} component class."
+                f"Set the function to be used for the ``{method_name}`` "
+                f"method of the ``{member['name']}`` implementation of "
+                f"the ``{name}`` component class."
             ),
             'variables':   [
                 {
@@ -155,9 +155,9 @@ def Implementation_Deferred_Binding_Attach_Status(build, class_dict, member):
             'name':        member_function_name + 'DfrrdFnctnIsSet',
             'description': (
                 f"Return true if the deferred function for the "
-                f"\\mono{{{method_name}}} method of the "
-                f"\\mono{{{member['name']}}} implementation of the "
-                f"\\mono{{{name}}} component class has been set."
+                f"``{method_name}`` method of the "
+                f"``{member['name']}`` implementation of the "
+                f"``{name}`` component class has been set."
             ),
             'content': (
                 f"{member_function_name}DfrrdFnctnIsSet="
@@ -212,8 +212,8 @@ def Implementation_Deferred_Binding_Wrappers(build, class_dict, member):
             'type':        function_type,
             'name':        member_function_name,
             'description': (
-                f"Call the deferred function for the \\mono{{{method_name}}} "
-                f"method of the \\mono{{{name}}} component class if it has "
+                f"Call the deferred function for the ``{method_name}`` "
+                f"method of the ``{name}`` component class if it has "
                 "been set."
             ),
             'modules':     ['Error'],

@@ -54,7 +54,7 @@ def _parse_type_opener(opener):
 def _emit_deep_copy_action(class_name, classes, directive):
     """Render the generated `XDeepCopyActions` subroutine text."""
     out  = f"subroutine {class_name}DeepCopyActions(self)\n"
-    out += " !!{\n"
+    out += " !!{RST\n"
     out += " Perform actions needed for deep copy of this object.\n"
     out += " !!}\n"
     out += " implicit none\n"
@@ -122,7 +122,7 @@ def _emit_type_binding(class_name):
     """
     return (
         "    !![\n"
-        "    <methods>\n"
+        "    <methods docformat=\"rst\">\n"
         "     <method method=\"deepCopyActions\" description=\"Perform actions "
         "needed for deep copy of this object.\"/>\n"
         "    </methods>\n"

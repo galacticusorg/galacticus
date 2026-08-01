@@ -5,31 +5,7 @@ Andrew Benson (ported to Python 2026)
 """
 
 
-
 from Galacticus.Build.Components.Utils import intrinsic_types
-
-
-# Minimal LaTeX special-character escape — a deliberately minimal subset
-# covering the characters that appear in type strings ("integer", type
-# names, etc.), kept consistent with historical generated output.  Matches
-# the subset already used in
-# python/Galacticus/Build/SourceTree/Process/FunctionClass/__init__.py.
-_LATEX_ESCAPES = {
-    '\\': r'\textbackslash{}',
-    '_':  r'\_',
-    '&':  r'\&',
-    '%':  r'\%',
-    '$':  r'\$',
-    '#':  r'\#',
-    '{':  r'\{',
-    '}':  r'\}',
-    '~':  r'\textasciitilde{}',
-    '^':  r'\textasciicircum{}',
-}
-
-
-def _latex_encode(text):
-    return ''.join(_LATEX_ESCAPES.get(c, c) for c in str(text))
 
 
 def data_object_primitive_name(data_object, *, match_only=False):
@@ -84,11 +60,10 @@ def data_object_primitive_name(data_object, *, match_only=False):
 
 
 def data_object_doc_name(data_object):
-    """Return the LaTeX-encoded display name used in component documentation.
+    """Return the display name used for this type in component documentation.
 
-    Always returns the `\\textcolor{red}
-    {\\textless …\\textgreater}` form, with `\\textless` and `\\textgreater`
-    typeset literally so the LaTeX renderer sees them as `<` and `>`.
+    An RST inline literal, e.g. ```` ``double(:)`` ````.  Literals are verbatim,
+    so the type spec needs no escaping.
     """
     if 'type' not in data_object:
         raise RuntimeError(
@@ -97,12 +72,12 @@ def data_object_doc_name(data_object):
     rank = int(data_object.get('rank') or 0)
     type_label = data_object['type']
     if type_label in intrinsic_types:
-        body = _latex_encode(intrinsic_types[type_label])
+        body = intrinsic_types[type_label]
     else:
-        body = f"type({_latex_encode(type_label)})"
+        body = f"type({type_label})"
     if rank > 0:
         body += "[" + ",".join([":"] * rank) + "]"
-    return f"\\textcolor{{red}}{{\\textless {body}\\textgreater}}"
+    return f"``{body}``"
 
 
 def data_object_name(data_object):

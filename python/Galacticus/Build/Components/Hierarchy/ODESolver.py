@@ -20,7 +20,7 @@ def Component_ODE_Name_From_Index(build):
         'name':        'nodeComponentNameFromIndex',
         'description': (
             r"Return the name of the property of given index for a "
-            r"\mono{nodeComponent} object."
+            r"``nodeComponent`` object."
         ),
         'modules':     ['ISO_Varying_String'],
         'variables':   [

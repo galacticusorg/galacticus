@@ -35,7 +35,7 @@ def Class_Dump_ASCII(build, class_dict):
     function = {
         'type':        'void',
         'name':        type_name + 'DumpASCII',
-        'description': f"Dump the content of a \\mono{{{name}}} component.",
+        'description': f"Dump the content of a ``{name}`` component.",
         'modules':     ['Display', 'ISO_Varying_String'],
         'variables':   [
             {
@@ -68,7 +68,7 @@ def Class_Output_Count(build, class_dict):
         'name':        name + 'OutputCount',
         'description': (
             f"Increment the count of properties to output for a generic "
-            f"\\mono{{{name}}} component."
+            f"``{name}`` component."
         ),
         'variables':   [
             {
@@ -121,7 +121,7 @@ def Class_Output_Names(build, class_dict):
         'name':        name + 'OutputNames',
         'description': (
             f"Establish the names of properties to output for a generic "
-            f"\\mono{{{name}}} component."
+            f"``{name}`` component."
         ),
         'modules':     ['Merger_Tree_Outputter_Buffer_Types'],
         'variables':   [
@@ -242,7 +242,7 @@ def Class_Output(build, class_dict):
         'name':        name + 'Output',
         'description': (
             f"Populate output buffers with properties to output for a "
-            f"\\mono{{{name}}} component."
+            f"``{name}`` component."
         ),
         'content':     '',
         'modules':     [
@@ -420,7 +420,7 @@ def Class_Post_Output(build, class_dict):
         'type':        'void',
         'name':        name + 'PostOutput',
         'description': (
-            f"Perform post-output processing of a \\mono{{{name}}} component."
+            f"Perform post-output processing of a ``{name}`` component."
         ),
         'content':     "!$GLC attributes unused :: self, time\n",
         'variables':   [
